@@ -67,7 +67,7 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFrontDoor_complete(t *testing.T) {
+func TestAccAzureRMFrontDoor_update(t *testing.T) {
 	resourceName := "azurerm_frontdoor.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(5))
@@ -106,6 +106,55 @@ func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "true"),
 				),
 			},
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFrontDoorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enforce_backend_pools_certificate_name_check", "false"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.name", fmt.Sprintf("testAccBackendBing-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.address", "www.bing.com"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.http_port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.priority", "1"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.weight", "50"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Http"),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.successful_samples_required", "2"),
+					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.name", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.host_name", fmt.Sprintf("testAccFrontDoor-%d.azurefd.net", ri)),
+					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRule1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.0", "Http"),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.1", "Https"),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.forwarding_protocol", "MatchRequest"),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
+					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.patterns_to_match.0", "/*"),
+				),
+			},
+		},
+	})
+}
+func TestAccAzureRMFrontDoor_complete(t *testing.T) {
+	resourceName := "azurerm_frontdoor.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(5))
+	config := testAccAzureRMFrontDoor_complete(ri, rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
