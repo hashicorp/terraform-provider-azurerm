@@ -10,6 +10,13 @@ description: |-
 
 Manage an Azure Front Door instance.
 
+Azure Front Door Service is Microsoft's highly available and scalable web application acceleration platform and global HTTP(s) load balancer. It provides built-in DDoS protection and application layer security and caching. Front Door enables you to build applications that maximize and automate high-availability and performance for your end-users. Use Front Door with Azure services including Web/Mobile Apps, Cloud Services and Virtual Machines – or combine it with on-premises services for hybrid deployments and smooth cloud migration.
+
+Below are some of the key scenarios that Azure Front Door Service addresses: 
+* Use Front Door to improve application scale and availability with instant multi-region failover
+* Use Front Door to improve application performance with SSL offload and routing requests to the fastest available application backend.
+* Use Front Door for application layer security and DDoS protection for your application.
+
 ## Example Usage
 
 ```hcl
@@ -89,21 +96,17 @@ The following arguments are supported:
 
 The `backend_pool` block supports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Pool.
-
 * `name` - (Required) The name of the `Backend Pool`.
 
 * `backend` - (Required) A `backend` block as defined below.
 
-* `load_balancing_name` - (Required) The name of the `backend_pool_load_balancing` to use for the `Backend Pool`.
+* `load_balancing_name` - (Required) The name property of the `backend_pool_load_balancing` block whithin this resource to use for the `Backend Pool`.
 
-* `health_probe_name` - (Required) The name of the `backend_pool_health_probe` to use for the `Backend Pool`.
+* `health_probe_name` - (Required) The name property of a `backend_pool_health_probe` block whithin this resource to use for the `Backend Pool`.
 
 ---
 
 The `backend` block supports the following:
-
-* `id` - The Resource ID of the Azure Front Door Backend.
 
 * `address` - (Required) Location of the backend (IP address or FQDN)
 
@@ -121,8 +124,6 @@ The `backend` block supports the following:
 
 The `frontend_endpoint` block supports the following:
 
-* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
-
 * `name` - (Required) The name of the Frontend Endpoint.
 
 * `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
@@ -131,13 +132,11 @@ The `frontend_endpoint` block supports the following:
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
 
-[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+* `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
 
 ---
 
 The `backend_pool_health_probe` block supports the following:
-
-* `id` - The Resource ID of the Azure Front Door Backend Health Probe.
 
 * `name` - (Required) The name of the Azure Front Door Backend Health Probe.
 
@@ -151,8 +150,6 @@ The `backend_pool_health_probe` block supports the following:
 
 The `backend_pool_load_balancing` block supports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Load Balancer.
-
 * `name` - (Required) The name of the Azure Front Door Backend Load Balancer.
 
 * `sample_size` - (Optional) The number of samples to consider for load balancing decisions. Defaults to `4`.
@@ -165,33 +162,15 @@ The `backend_pool_load_balancing` block supports the following:
 
 The `routing_rule` block supports the following:
 
-* `id` - The Resource ID of the Azure Front Door Backend Routing Rule.
-
 * `name` - (Required) The name of the Front Door Backend Routing Rule.
 
-* `frontend_endpoints` - (Required) A `frontend_endpoint` block as defined below.
+* `frontend_endpoints` - (Required) The names of the `frontend_endpoint` blocks whithin this resource to associate with this `routing_rule`.
 
 * `accepted_protocols` - (Optional) Protocol schemes to match for the Backend Routing Rule. Defaults to `Http`.
 
 * `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 
 * `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
-
----
-
-The `frontend_endpoint` block supports the following:
-
-* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
-
-* `name` - (Required) The Name of the Azure Front Door Frontend Endpoint.
-
-* `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
-
-* `session_affinity_enabled` - (Optional) Allow session affinity on the Frontend Endpoint. Valid options are `true` or `false`. Defaults to `false`.
-
-* `session_affinity_ttl_seconds` - (Optional) The TTL to use, in seconds, for session affinity, if applicable. Defaults to `0`.
-
-* `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
 
 ---
 
@@ -213,11 +192,43 @@ The following attributes are only valid if `certificate_source` is set to `Azure
 
 ## Attributes Reference
 
-The following attributes are exported:
+`backend_pool` exports the following:
+
+* `id` - The Resource ID of the Azure Front Door Backend Pool.
+
+
+`backend` exports the following:
+
+* `id` - The Resource ID of the Azure Front Door Backend.
+
+
+`frontend_endpoint` exports the following:
+
+* `id` - The Resource ID of the Azure Front Door Frontend Endpoint.
 
 * `provisioning_state` - Provisioning state of the Front Door.
 
 * `provisioning_substate` - Provisioning substate of the Front Door
+
+[//]: * "* `web_application_firewall_policy_link_id` - (Optional) The `id` of the `web_application_firewall_policy_link` to use for this Frontend Endpoint."
+
+
+`backend_pool_health_probe` exports the following:
+
+* `id` - The Resource ID of the Azure Front Door Backend Health Probe.
+
+
+`backend_pool_load_balancing` exports the following:
+
+* `id` - The Resource ID of the Azure Front Door Backend Load Balancer.
+
+
+`routing_rule`  exports the following:
+
+* `id` - The Resource ID of the Azure Front Door Backend Routing Rule.
+
+
+The following attributes are exported:
 
 * `cname` - The host that each frontendEndpoint must CNAME to.
 

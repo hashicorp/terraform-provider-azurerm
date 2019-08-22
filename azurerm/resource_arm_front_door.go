@@ -608,14 +608,13 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 		d.Set("cname", properties.Cname)
 		if properties.EnabledState == frontdoor.EnabledStateEnabled {
-			d.Set("load_balancer_enabled", true)
+			d.Set("load_balancer_enabled", properties.EnabledState == frontdoor.EnabledStateEnabled)
 		} else {
 			d.Set("load_balancer_enabled", false)
 		}
 		d.Set("friendly_name", properties.FriendlyName)
 
 		if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
-
 			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 				return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
 			}
@@ -785,14 +784,10 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 			ID:   id,
 			Name: utils.String(name),
 			FrontendEndpointProperties: &frontdoor.FrontendEndpointProperties{
-				// ResourceState:
-				// CustomHTTPSProvisioningState:
-				// CustomHTTPSProvisioningSubstate:
 				CustomHTTPSConfiguration:    expandArmFrontDoorCustomHTTPSConfiguration(customHttpsConfiguration),
 				HostName:                    utils.String(hostName),
 				SessionAffinityEnabledState: sessionAffinityEnabled,
 				SessionAffinityTTLSeconds:   utils.Int32(sessionAffinityTtlSeconds),
-				// WebApplicationFirewallPolicyLink:
 			},
 		}
 
@@ -978,13 +973,11 @@ func expandArmFrontDoorFrontEndEndpoints(input []interface{}, subscriptionId str
 }
 
 func expandArmFrontDoorEnabledState(enabled bool) frontdoor.EnabledState {
-	result := frontdoor.EnabledStateDisabled
-
 	if enabled {
-		result = frontdoor.EnabledStateEnabled
+		return frontdoor.EnabledStateEnabled
 	}
 
-	return result
+	return frontdoor.EnabledStateDisabled
 }
 
 func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.RedirectConfiguration {
