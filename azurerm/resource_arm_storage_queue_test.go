@@ -201,8 +201,10 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		if err != nil {
 			return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", name, accountName, err)
 		}
+
+		// expected if this has been deleted
 		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s) - assuming removed", name, accountName)
+			return nil
 		}
 
 		queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)

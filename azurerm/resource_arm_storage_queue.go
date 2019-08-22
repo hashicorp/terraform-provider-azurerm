@@ -91,7 +91,7 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", queueName, accountName, err)
 	}
 	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", queueName, accountName)
+		return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s)", queueName, accountName)
 	}
 
 	queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
@@ -139,7 +139,7 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", id.QueueName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountName)
+		return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s)", id.QueueName, id.AccountName)
 	}
 
 	queuesClient, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
