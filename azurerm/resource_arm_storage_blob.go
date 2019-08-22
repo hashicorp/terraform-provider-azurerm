@@ -5,15 +5,14 @@ import (
 	"log"
 	"strings"
 
+	legacy "github.com/Azure/azure-sdk-for-go/storage"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
-	"github.com/hashicorp/terraform/helper/validation"
-
-	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 )
 
 func resourceArmStorageBlob() *schema.Resource {
@@ -33,20 +32,24 @@ func resourceArmStorageBlob() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: add validation
 			},
 
+			// TODO: this can be deprecated with the new sdk?
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: add validation
 			},
 
 			"storage_container_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: add validation
 			},
 
 			"type": {
@@ -105,15 +108,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
-			"metadata": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
-				},
-			},
+			"metadata": storage.MetaDataSchema(),
 		},
 	}
 }
@@ -158,14 +153,14 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if sourceUri != "" {
-		options := &storage.CopyOptions{}
+		options := &legacy.CopyOptions{}
 		if err := blob.Copy(sourceUri, options); err != nil {
 			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 		}
 	} else {
 		switch strings.ToLower(blobType) {
 		case "block":
-			options := &storage.PutBlobOptions{}
+			options := &legacy.PutBlobOptions{}
 			if err := blob.CreateBlockBlob(options); err != nil {
 				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
@@ -190,7 +185,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 				}
 			} else {
 				size := int64(d.Get("size").(int))
-				options := &storage.PutBlobOptions{}
+				options := &legacy.PutBlobOptions{}
 
 				blob.Properties.ContentLength = size
 				blob.Properties.ContentType = contentType
@@ -201,9 +196,10 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	blob.Metadata = expandStorageAccountBlobMetadata(d)
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	blob.Metadata = storage.ExpandMetaData(metaDataRaw)
 
-	opts := &storage.SetBlobMetadataOptions{}
+	opts := &legacy.SetBlobMetadataOptions{}
 	if err := blob.SetMetadata(opts); err != nil {
 		return fmt.Errorf("Error setting metadata for storage blob on Azure: %s", err)
 	}
@@ -245,16 +241,17 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		blob.Properties.ContentType = d.Get("content_type").(string)
 	}
 
-	options := &storage.SetBlobPropertiesOptions{}
+	options := &legacy.SetBlobPropertiesOptions{}
 	err = blob.SetProperties(options)
 	if err != nil {
 		return fmt.Errorf("Error setting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
 	}
 
 	if d.HasChange("metadata") {
-		blob.Metadata = expandStorageAccountBlobMetadata(d)
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		blob.Metadata = storage.ExpandMetaData(metaDataRaw)
 
-		opts := &storage.SetBlobMetadataOptions{}
+		opts := &legacy.SetBlobMetadataOptions{}
 		if err := blob.SetMetadata(opts); err != nil {
 			return fmt.Errorf("Error setting metadata for storage blob on Azure: %s", err)
 		}
@@ -305,13 +302,13 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		return nil
 	}
 
-	options := &storage.GetBlobPropertiesOptions{}
+	options := &legacy.GetBlobPropertiesOptions{}
 	err = blob.GetProperties(options)
 	if err != nil {
 		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
 	}
 
-	metadataOptions := &storage.GetBlobMetadataOptions{}
+	metadataOptions := &legacy.GetBlobMetadataOptions{}
 	err = blob.GetMetadata(metadataOptions)
 	if err != nil {
 		return fmt.Errorf("Error getting metadata of blob %s (container %s, storage account %s): %+v", id.blobName, id.containerName, id.storageAccountName, err)
@@ -334,7 +331,10 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		log.Printf("[INFO] URL for %q is empty", id.blobName)
 	}
 	d.Set("url", u)
-	d.Set("metadata", flattenStorageAccountBlobMetadata(blob.Metadata))
+
+	if err := d.Set("metadata", storage.FlattenMetaData(blob.Metadata)); err != nil {
+		return fmt.Errorf("Error setting `metadata`: %+v", err)
+	}
 
 	return nil
 }
@@ -367,7 +367,7 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	log.Printf("[INFO] Deleting storage blob %q", id.blobName)
-	options := &storage.DeleteBlobOptions{}
+	options := &legacy.DeleteBlobOptions{}
 	container := blobClient.GetContainerReference(id.containerName)
 	blob := container.GetBlobReference(id.blobName)
 	_, err = blob.DeleteIfExists(options)
@@ -376,24 +376,4 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	return nil
-}
-
-func expandStorageAccountBlobMetadata(d *schema.ResourceData) storage.BlobMetadata {
-	blobMetadata := make(map[string]string)
-
-	blobMetadataRaw := d.Get("metadata").(map[string]interface{})
-	for key, value := range blobMetadataRaw {
-		blobMetadata[key] = value.(string)
-	}
-	return blobMetadata
-}
-
-func flattenStorageAccountBlobMetadata(in storage.BlobMetadata) map[string]interface{} {
-	blobMetadata := make(map[string]interface{})
-
-	for key, value := range in {
-		blobMetadata[key] = value
-	}
-
-	return blobMetadata
 }
