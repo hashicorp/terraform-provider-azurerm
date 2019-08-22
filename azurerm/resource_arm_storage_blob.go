@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
 
 func resourceArmStorageBlob() *schema.Resource {
@@ -340,39 +341,33 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
+	storageClient := meta.(*ArmClient).storage
+	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseStorageBlobID(d.Id(), armClient.environment)
+	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := determineResourceGroupForStorageAccount(id.storageAccountName, armClient)
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q: %+v", id.storageAccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[INFO] Resource Group doesn't exist so the blob won't exist")
-		return nil
+		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q (Disk %q)!", id.AccountName, uri)
 	}
 
-	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.storageAccountName)
+	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
-		return err
-	}
-	if !accountExists {
-		log.Printf("[INFO] Storage Account %q doesn't exist so the blob won't exist", id.storageAccountName)
-		return nil
+		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
-	log.Printf("[INFO] Deleting storage blob %q", id.blobName)
-	options := &legacy.DeleteBlobOptions{}
-	container := blobClient.GetContainerReference(id.containerName)
-	blob := container.GetBlobReference(id.blobName)
-	_, err = blob.DeleteIfExists(options)
-	if err != nil {
-		return fmt.Errorf("Error deleting storage blob %q: %s", id.blobName, err)
+	log.Printf("[INFO] Deleting Blob %q from Container %q / Storage Account %q", id.BlobName, id.ContainerName, id.AccountName)
+	input := blobs.DeleteInput{
+		DeleteSnapshots: true,
+	}
+	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
+		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
 	return nil
