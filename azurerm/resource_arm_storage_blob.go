@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
 
@@ -262,57 +263,40 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
-	ctx := armClient.StopContext
+	storageClient := meta.(*ArmClient).storage
+	ctx := meta.(*ArmClient).StopContext
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := armClient.storage.FindResourceGroup(ctx, id.AccountName)
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
 	}
-
 	if resourceGroup == nil {
-		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.AccountName)
-	}
-
-	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.AccountName)
-	if err != nil {
-		return err
-	}
-	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", id.AccountName, d.Id())
+		log.Printf("[DEBUG] Unable to locate Storage Account for Blob %q (Container %q / Account %q) - assuming removed & removing from state!", id.BlobName, id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	log.Printf("[INFO] Checking for existence of storage blob %q in container %q.", id.BlobName, id.ContainerName)
-	container := blobClient.GetContainerReference(id.ContainerName)
-	blob := container.GetBlobReference(id.BlobName)
-	exists, err := blob.Exists()
+	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("error checking for existence of storage blob %q: %s", id.BlobName, err)
+		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
-	if !exists {
-		log.Printf("[INFO] Storage blob %q no longer exists, removing from state...", id.BlobName)
-		d.SetId("")
-		return nil
-	}
-
-	options := &legacy.GetBlobPropertiesOptions{}
-	err = blob.GetProperties(options)
+	log.Printf("[INFO] Retrieving Storage Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input)
 	if err != nil {
-		return fmt.Errorf("Error getting properties of blob %s (container %s, storage account %s): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
-	}
+		if utils.ResponseWasNotFound(props.Response) {
+			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", id.BlobName, id.ContainerName, id.AccountName)
+			d.SetId("")
+			return nil
+		}
 
-	metadataOptions := &legacy.GetBlobMetadataOptions{}
-	err = blob.GetMetadata(metadataOptions)
-	if err != nil {
-		return fmt.Errorf("Error getting metadata of blob %s (container %s, storage account %s): %+v", id.BlobName, id.ContainerName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
 	d.Set("name", id.BlobName)
@@ -320,20 +304,15 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("storage_account_name", id.AccountName)
 	d.Set("resource_group_name", resourceGroup)
 
-	d.Set("content_type", blob.Properties.ContentType)
+	d.Set("content_type", props.ContentType)
+	d.Set("source_uri", props.CopySource)
 
-	d.Set("source_uri", blob.Properties.CopySource)
-
-	blobType := strings.ToLower(strings.Replace(string(blob.Properties.BlobType), "Blob", "", 1))
+	blobType := strings.ToLower(strings.Replace(string(props.BlobType), "Blob", "", 1))
 	d.Set("type", blobType)
 
-	u := blob.GetURL()
-	if u == "" {
-		log.Printf("[INFO] URL for %q is empty", id.BlobName)
-	}
-	d.Set("url", u)
+	d.Set("url", d.Id())
 
-	if err := d.Set("metadata", storage.FlattenMetaData(blob.Metadata)); err != nil {
+	if err := d.Set("metadata", storage.FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
 	}
 
