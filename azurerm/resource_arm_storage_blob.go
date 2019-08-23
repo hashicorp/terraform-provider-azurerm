@@ -141,7 +141,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 		if err != nil {
 			if !utils.ResponseWasNotFound(props.Response) {
-				return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, resourceGroup, err)
+				return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, *resourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(props.Response) {
