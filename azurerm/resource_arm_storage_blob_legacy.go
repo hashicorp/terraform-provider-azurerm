@@ -2,17 +2,78 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"io"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+type StorageBlobUpload struct {
+	accountName   string
+	containerName string
+	blobName      string
+
+	attempts    int
+	blobType    string
+	contentType string
+	parallelism int
+	size        int
+	source      string
+	sourceUri   string
+
+	legacyClient *storage.BlobStorageClient
+}
+
+func (sbu StorageBlobUpload) Create(ctx context.Context) error {
+	container := sbu.legacyClient.GetContainerReference(sbu.containerName)
+	blob := container.GetBlobReference(sbu.blobName)
+
+	if sbu.sourceUri != "" {
+		options := &storage.CopyOptions{}
+		if err := blob.Copy(sbu.sourceUri, options); err != nil {
+			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+		}
+	} else {
+		switch strings.ToLower(sbu.blobType) {
+		case "block":
+			options := &storage.PutBlobOptions{}
+			if err := blob.CreateBlockBlob(options); err != nil {
+				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+			}
+
+			if sbu.source != "" {
+				if err := resourceArmStorageBlobBlockUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
+					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+				}
+			}
+		case "page":
+			if sbu.source != "" {
+				if err := resourceArmStorageBlobPageUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
+					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+				}
+			} else {
+				size := int64(sbu.size)
+				options := &storage.PutBlobOptions{}
+
+				blob.Properties.ContentLength = size
+				blob.Properties.ContentType = sbu.contentType
+				if err := blob.PutPageBlob(options); err != nil {
+					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+				}
+			}
+		}
+	}
+
+	return nil
+}
 
 type resourceArmStorageBlobPage struct {
 	offset  int64

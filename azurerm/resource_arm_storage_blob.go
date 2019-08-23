@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	legacy "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -146,6 +145,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	container := legacyBlobsClient.GetContainerReference(containerName)
 	blob := container.GetBlobReference(name)
 
+	// TODO: switch to the new sdk
 	id := blobsClient.GetResourceID(accountName, containerName, name)
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		exists, err := blob.Exists()
@@ -158,54 +158,24 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	log.Printf("[INFO] Creating blob %q in container %q within storage account %q", name, containerName, accountName)
-	blobType := d.Get("type").(string)
-	sourceUri := d.Get("source_uri").(string)
-	contentType := d.Get("content_type").(string)
-
-	if sourceUri != "" {
-		options := &legacy.CopyOptions{}
-		if err := blob.Copy(sourceUri, options); err != nil {
-			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-		}
-	} else {
-		switch strings.ToLower(blobType) {
-		case "block":
-			options := &legacy.PutBlobOptions{}
-			if err := blob.CreateBlockBlob(options); err != nil {
-				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-			}
-
-			source := d.Get("source").(string)
-			if source != "" {
-				parallelism := d.Get("parallelism").(int)
-				attempts := d.Get("attempts").(int)
-
-				if err := resourceArmStorageBlobBlockUploadFromSource(containerName, name, source, contentType, legacyBlobsClient, parallelism, attempts); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
-			}
-		case "page":
-			source := d.Get("source").(string)
-			if source != "" {
-				parallelism := d.Get("parallelism").(int)
-				attempts := d.Get("attempts").(int)
-
-				if err := resourceArmStorageBlobPageUploadFromSource(containerName, name, source, contentType, legacyBlobsClient, parallelism, attempts); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
-			} else {
-				size := int64(d.Get("size").(int))
-				options := &legacy.PutBlobOptions{}
-
-				blob.Properties.ContentLength = size
-				blob.Properties.ContentType = contentType
-				if err := blob.PutPageBlob(options); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
-			}
-		}
+	log.Printf("[INFO] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
+	blobInput := StorageBlobUpload{
+		accountName:   accountName,
+		containerName: containerName,
+		blobName:      name,
+		legacyClient:  legacyBlobsClient,
+		attempts:      d.Get("attempts").(int),
+		contentType:   d.Get("content_type").(string),
+		parallelism:   d.Get("parallelism").(int),
+		size:          d.Get("size").(int),
+		source:        d.Get("source").(string),
+		sourceUri:     d.Get("source_uri").(string),
+		blobType:      d.Get("type").(string),
 	}
+	if err := blobInput.Create(ctx); err != nil {
+		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+	}
+	log.Printf("[INFO] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
 
 	log.Printf("[DEBUG] Setting the MetaData for Blob %q (Container %q / Account %q)...", name, containerName, accountName)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
