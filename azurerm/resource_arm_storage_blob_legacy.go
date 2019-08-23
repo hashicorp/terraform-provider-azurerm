@@ -41,10 +41,15 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 		return sbu.copy(ctx)
 	}
 
-	switch strings.ToLower(sbu.blobType) {
+	blobType := strings.ToLower(sbu.blobType)
+
 	// TODO: new feature for 'append' blobs?
-	case "block":
+
+	if blobType == "block" {
 		return sbu.uploadBlockBlob(ctx)
+	}
+
+	switch strings.ToLower(sbu.blobType) {
 	case "page":
 		if sbu.source != "" {
 			if err := resourceArmStorageBlobPageUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
@@ -62,6 +67,13 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 			if err := blob.PutPageBlob(options); err != nil {
 				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
+		}
+
+		input := blobs.SetMetaDataInput{
+			MetaData: sbu.metaData,
+		}
+		if _, err := sbu.client.SetMetaData(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+			return fmt.Errorf("Error setting MetaData: %s", err)
 		}
 	}
 
