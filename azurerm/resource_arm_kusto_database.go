@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -24,9 +25,10 @@ func resourceArmKustoDatabase() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAzureRMKustoDatabaseName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -180,6 +182,24 @@ func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	return nil
+}
+
+func validateAzureRMKustoDatabaseName(v interface{}, k string) (warnings []string, errors []error) {
+	name := v.(string)
+
+	if regexp.MustCompile(`^[\s]+$`).MatchString(name) {
+		errors = append(errors, fmt.Errorf("%q must not consist of whitespaces only", k))
+	}
+
+	if !regexp.MustCompile(`^[a-zA-Z0-9\s.-]+$`).MatchString(name) {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters, whitespaces, dashes and dots: %q", k, name))
+	}
+
+	if len(name) > 260 {
+		errors = append(errors, fmt.Errorf("%q must be (inclusive) between 4 and 22 characters long but is %d", k, len(name)))
+	}
+
+	return warnings, errors
 }
 
 func expandKustoDatabaseProperties(d *schema.ResourceData) *kusto.DatabaseProperties {
