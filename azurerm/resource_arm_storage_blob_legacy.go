@@ -46,7 +46,11 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 	// TODO: new feature for 'append' blobs?
 
 	if blobType == "block" {
-		return sbu.uploadBlockBlob(ctx)
+		if sbu.source != "" {
+			return sbu.uploadBlockBlob(ctx)
+		}
+
+		return sbu.createEmptyBlockBlob(ctx)
 	}
 
 	if blobType == "page" {
@@ -72,11 +76,19 @@ func (sbu StorageBlobUpload) copy(ctx context.Context) error {
 	return nil
 }
 
-func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
-	if sbu.source == "" {
-		return fmt.Errorf("A `source` is required when uploading a Block Blob")
+func (sbu StorageBlobUpload) createEmptyBlockBlob(ctx context.Context) error {
+	input := blobs.PutBlockBlobInput{
+		ContentType: utils.String(sbu.contentType),
+		MetaData:    sbu.metaData,
+	}
+	if _, err := sbu.client.PutBlockBlob(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+		return fmt.Errorf("Error PutBlockBlob: %s", err)
 	}
 
+	return nil
+}
+
+func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
 	file, err := os.Open(sbu.source)
 	if err != nil {
 		return fmt.Errorf("Error opening: %s", err)
