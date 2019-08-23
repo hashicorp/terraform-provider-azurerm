@@ -21,6 +21,15 @@ import (
 var supportsNewStorageFeatures = false
 
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
+	sourceBlob, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := testAccAzureRMStorageBlob_populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -32,7 +41,7 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageBlob_blockEmpty(ri, rs, location),
+				Config: testAccAzureRMStorageBlob_blockFromLocalBlob(ri, rs, location, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 					testCheckAzureRMStorageBlobDisappears(resourceName),
@@ -91,60 +100,6 @@ func TestAccAzureRMStorageBlob_appendEmptyMetaData(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageBlob_appendEmptyMetaData(ri, rs, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobExists(resourceName),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStorageBlob_blockEmpty(t *testing.T) {
-	resourceName := "azurerm_storage_blob.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageBlob_blockEmpty(ri, rs, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageBlobExists(resourceName),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
-			},
-		},
-	})
-}
-
-func TestAccAzureRMStorageBlob_blockEmptyMetaData(t *testing.T) {
-	resourceName := "azurerm_storage_blob.test"
-	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(11))
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMStorageBlob_blockEmptyMetaData(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 				),
@@ -262,6 +217,43 @@ func TestAccAzureRMStorageBlob_blockFromLocalFile(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageBlob_blockFromLocalBlob(ri, rs, location, sourceBlob.Name()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypeBlock, sourceBlob.Name()),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blockFromLocalFileMetaData(t *testing.T) {
+	sourceBlob, err := ioutil.TempFile("", "")
+	if err != nil {
+		t.Fatalf("Failed to create local source blob file")
+	}
+
+	if err := testAccAzureRMStorageBlob_populateTempFile(sourceBlob); err != nil {
+		t.Fatalf("Error populating temp file: %s", err)
+	}
+
+	resourceName := "azurerm_storage_blob.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blockFromLocalBlobMetaData(ri, rs, location, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypeBlock, sourceBlob.Name()),
@@ -711,40 +703,6 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
-func testAccAzureRMStorageBlob_blockEmpty(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
-}
-`, template)
-}
-
-func testAccAzureRMStorageBlob_blockEmptyMetaData(rInt int, rString string, location string) string {
-	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_storage_blob" "test" {
-  name                   = "example.vhd"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  storage_account_name   = "${azurerm_storage_account.test.name}"
-  storage_container_name = "${azurerm_storage_container.test.name}"
-  type                   = "block"
-
-  metadata = {
-    hello = "world"
-  }
-}
-`, template)
-}
-
 func testAccAzureRMStorageBlob_blockFromPublicBlob(rInt int, rString, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "blob")
 	return fmt.Sprintf(`
@@ -835,6 +793,26 @@ resource "azurerm_storage_blob" "test" {
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
   source                 = "%s"
+}
+`, template, fileName)
+}
+
+func testAccAzureRMStorageBlob_blockFromLocalBlobMetaData(rInt int, rString, location, fileName string) string {
+	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+  type                   = "block"
+  source                 = "%s"
+
+  metadata = {
+    hello = "world"
+  }
 }
 `, template, fileName)
 }
