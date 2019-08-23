@@ -150,8 +150,8 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	addressPrefix := d.Get("address_prefix").(string)
 
-	locks.ByName(vnetName, virtualNetworkResourceName)
-	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
+	locks.ByName(name, subnetResourceName)
+	defer locks.UnlockByName(name, subnetResourceName)
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -162,14 +162,6 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.NetworkSecurityGroup = &network.SecurityGroup{
 			ID: &nsgId,
 		}
-
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(nsgId)
-		if err != nil {
-			return err
-		}
-
-		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	} else {
 		properties.NetworkSecurityGroup = nil
 	}
@@ -179,14 +171,6 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.RouteTable = &network.RouteTable{
 			ID: &rtId,
 		}
-
-		routeTableName, err := parseRouteTableName(rtId)
-		if err != nil {
-			return err
-		}
-
-		locks.ByName(routeTableName, routeTableResourceName)
-		defer locks.UnlockByName(routeTableName, routeTableResourceName)
 	} else {
 		properties.RouteTable = nil
 	}
@@ -295,31 +279,6 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["subnets"]
 	vnetName := id.Path["virtualNetworks"]
-
-	if v, ok := d.GetOk("network_security_group_id"); ok {
-		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err2 != nil {
-			return err2
-		}
-
-		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	}
-
-	if v, ok := d.GetOk("route_table_id"); ok {
-		rtId := v.(string)
-		routeTableName, err2 := parseRouteTableName(rtId)
-		if err2 != nil {
-			return err2
-		}
-
-		locks.ByName(routeTableName, routeTableResourceName)
-		defer locks.UnlockByName(routeTableName, routeTableResourceName)
-	}
-
-	locks.ByName(vnetName, virtualNetworkResourceName)
-	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
 	locks.ByName(name, subnetResourceName)
 	defer locks.UnlockByName(name, subnetResourceName)

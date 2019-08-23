@@ -43,15 +43,6 @@ func parseNetworkSecurityGroupName(networkSecurityGroupId string) (string, error
 	return id.Path["networkSecurityGroups"], nil
 }
 
-func parseRouteTableName(routeTableId string) (string, error) {
-	id, err := azure.ParseAzureResourceID(routeTableId)
-	if err != nil {
-		return "", fmt.Errorf("[ERROR] Unable to parse Route Table ID '%s': %+v", routeTableId, err)
-	}
-
-	return id.Path["routeTables"], nil
-}
-
 func retrieveErcByResourceId(resourceId string, meta interface{}) (erc *network.ExpressRouteCircuit, resourceGroup string, e error) {
 	ercClient := meta.(*ArmClient).network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
