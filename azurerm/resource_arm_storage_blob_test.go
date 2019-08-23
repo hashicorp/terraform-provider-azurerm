@@ -443,7 +443,7 @@ func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageBlob_blockEmpty(ri, rs, location),
+				Config: testAccAzureRMStorageBlob_blockFromPublicBlob(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 				),
@@ -963,7 +963,7 @@ func testAccAzureRMStorageBlob_populateTempFile(input *os.File) error {
 }
 
 func testAccAzureRMStorageBlob_requiresImport(rInt int, rString, location string) string {
-	template := testAccAzureRMStorageBlob_blockEmpty(rInt, rString, location)
+	template := testAccAzureRMStorageBlob_blockFromPublicBlob(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
