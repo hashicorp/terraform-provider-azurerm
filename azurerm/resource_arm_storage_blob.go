@@ -135,30 +135,27 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
-	legacyBlobsClient, accountExists, err := storageClient.LegacyBlobClient(ctx, *resourceGroup, accountName)
-	if err != nil {
-		return err
-	}
-	if !accountExists {
-		return fmt.Errorf("Storage Account %q Not Found", accountName)
-	}
-	container := legacyBlobsClient.GetContainerReference(containerName)
-	blob := container.GetBlobReference(name)
-
-	// TODO: switch to the new sdk
 	id := blobsClient.GetResourceID(accountName, containerName, name)
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		exists, err := blob.Exists()
+		input := blobs.GetPropertiesInput{}
+		props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 		if err != nil {
-			return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, resourceGroup, err)
+			if !utils.ResponseWasNotFound(props.Response) {
+				return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, resourceGroup, err)
+			}
 		}
-
-		if exists {
+		if !utils.ResponseWasNotFound(props.Response) {
 			return tf.ImportAsExistsError("azurerm_storage_blob", id)
 		}
 	}
 
-	log.Printf("[INFO] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
+	// TODO: remove me
+	legacyBlobsClient, _, err := storageClient.LegacyBlobClient(ctx, *resourceGroup, accountName)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
 	blobInput := StorageBlobUpload{
 		accountName:   accountName,
 		containerName: containerName,
@@ -175,7 +172,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	if err := blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
 	}
-	log.Printf("[INFO] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
+	log.Printf("[DEBUG] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
 
 	log.Printf("[DEBUG] Setting the MetaData for Blob %q (Container %q / Account %q)...", name, containerName, accountName)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
