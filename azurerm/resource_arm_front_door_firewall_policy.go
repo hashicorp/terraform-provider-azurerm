@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/helper"
 	//"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -331,25 +331,16 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	frontendEndpoints := d.Get("frontend_endpoint_ids").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
-	frontdoorWebApplicationFirewallPolicyProperties := frontdoor.WebApplicationFirewallPolicyProperties {} 
-	frontDoorPolicySettings := frontdoor.PolicySettings {
-		EnabledState : helper.ConvertToPolicyEnabledStateFromBool(enabled),
-		Mode: helper.ConvertToPolicyModeFromString(mode),
-		RedirectURL: utils.String(redirectUrl),
-		CustomBlockResponseStatusCode: &customBlockResponseStatusCode,
-		CustomBlockResponseBody: utils.String(customBlockResponseBody),
+	frontdoorWebApplicationFirewallPolicyProperties := frontdoor.WebApplicationFirewallPolicyProperties{
+		PolicySettings: &frontdoor.PolicySettings{
+			EnabledState:                  helper.ConvertToPolicyEnabledStateFromBool(enabled),
+			Mode:                          helper.ConvertToPolicyModeFromString(mode),
+			RedirectURL:                   utils.String(redirectUrl),
+			CustomBlockResponseStatusCode: &customBlockResponseStatusCode,
+			CustomBlockResponseBody:       utils.String(customBlockResponseBody),
+		},
 
-		// Properties: &frontdoor.Properties{
-		// 	FriendlyName:          utils.String(friendlyName),
-		// 	RoutingRules:          expandArmFrontDoorRoutingRule(routingRules, subscriptionId, resourceGroup, name),
-		// 	BackendPools:          expandArmFrontDoorBackendPools(backendPools, subscriptionId, resourceGroup, name),
-		// 	BackendPoolsSettings:  expandArmFrontDoorBackendPoolsSettings(backendPoolsSettings),
-		// 	FrontendEndpoints:     expandArmFrontDoorFrontendEndpoint(frontendEndpoints, subscriptionId, resourceGroup, name),
-		// 	HealthProbeSettings:   expandArmFrontDoorHealthProbeSettingsModel(healthProbeSettings, subscriptionId, resourceGroup, name),
-		// 	LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, subscriptionId, resourceGroup, name),
-		// 	EnabledState:          expandArmFrontDoorEnabledState(enabledState),
-		// },
-		//Tags: expandTags(tags),
+		Tags: expandTags(tags),
 	}
 
 	return nil
