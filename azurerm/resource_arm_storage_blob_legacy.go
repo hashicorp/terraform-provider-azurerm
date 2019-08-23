@@ -3,8 +3,6 @@ package azurerm
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"os"
@@ -277,93 +275,6 @@ func resourceArmStorageBlobPageUploadWorker(ctx resourceArmStorageBlobPageUpload
 		}
 		if err != nil {
 			ctx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, ctx.source, err)
-			ctx.wg.Done()
-			continue
-		}
-
-		ctx.wg.Done()
-	}
-}
-
-type resourceArmStorageBlobBlock struct {
-	section *io.SectionReader
-	id      string
-}
-
-func resourceArmStorageBlobBlockSplit(file *os.File) ([]legacy.Block, []resourceArmStorageBlobBlock, error) {
-	const (
-		idSize          = 64
-		blockSize int64 = 4 * 1024 * 1024
-	)
-	var parts []resourceArmStorageBlobBlock
-	var blockList []legacy.Block
-
-	info, err := file.Stat()
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error stating source file %q: %s", file.Name(), err)
-	}
-
-	for i := int64(0); i < info.Size(); i = i + blockSize {
-		entropy := make([]byte, idSize)
-		_, err = rand.Read(entropy)
-		if err != nil {
-			return nil, nil, fmt.Errorf("Error generating a random block ID for source file %q: %s", file.Name(), err)
-		}
-
-		sectionSize := blockSize
-		remainder := info.Size() - i
-		if remainder < blockSize {
-			sectionSize = remainder
-		}
-
-		block := legacy.Block{
-			ID:     base64.StdEncoding.EncodeToString(entropy),
-			Status: legacy.BlockStatusUncommitted,
-		}
-
-		blockList = append(blockList, block)
-
-		parts = append(parts, resourceArmStorageBlobBlock{
-			id:      block.ID,
-			section: io.NewSectionReader(file, i, sectionSize),
-		})
-	}
-
-	return blockList, parts, nil
-}
-
-type resourceArmStorageBlobBlockUploadContext struct {
-	client    *legacy.BlobStorageClient
-	container string
-	name      string
-	source    string
-	attempts  int
-	blocks    chan resourceArmStorageBlobBlock
-	errors    chan error
-	wg        *sync.WaitGroup
-}
-
-func resourceArmStorageBlobBlockUploadWorker(ctx resourceArmStorageBlobBlockUploadContext) {
-	for block := range ctx.blocks {
-		buffer := make([]byte, block.section.Size())
-
-		_, err := block.section.Read(buffer)
-		if err != nil {
-			ctx.errors <- fmt.Errorf("Error reading source file %q: %s", ctx.source, err)
-			ctx.wg.Done()
-			continue
-		}
-
-		for i := 0; i < ctx.attempts; i++ {
-			container := ctx.client.GetContainerReference(ctx.container)
-			blob := container.GetBlobReference(ctx.name)
-			options := &legacy.PutBlockOptions{}
-			if err = blob.PutBlock(block.id, buffer, options); err == nil {
-				break
-			}
-		}
-		if err != nil {
-			ctx.errors <- fmt.Errorf("Error uploading block %q for source file %q: %s", block.id, ctx.source, err)
 			ctx.wg.Done()
 			continue
 		}
