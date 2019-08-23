@@ -11,10 +11,14 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/storage"
+	legacy "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
+
+const pollingInterval = time.Second * 15
 
 type StorageBlobUpload struct {
 	accountName   string
@@ -24,12 +28,14 @@ type StorageBlobUpload struct {
 	attempts    int
 	blobType    string
 	contentType string
+	metaData    map[string]string
 	parallelism int
 	size        int
 	source      string
 	sourceUri   string
 
-	legacyClient *storage.BlobStorageClient
+	client       *blobs.Client
+	legacyClient *legacy.BlobStorageClient
 }
 
 func (sbu StorageBlobUpload) Create(ctx context.Context) error {
@@ -37,18 +43,13 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 	blob := container.GetBlobReference(sbu.blobName)
 
 	if sbu.sourceUri != "" {
-		options := &storage.CopyOptions{}
-		if err := blob.Copy(sbu.sourceUri, options); err != nil {
-			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-		}
-
-		return nil
+		return sbu.copy(ctx)
 	}
 
 	switch strings.ToLower(sbu.blobType) {
 	// TODO: new feature for 'append' blobs?
 	case "block":
-		options := &storage.PutBlobOptions{}
+		options := &legacy.PutBlobOptions{}
 		if err := blob.CreateBlockBlob(options); err != nil {
 			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 		}
@@ -65,7 +66,7 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 			}
 		} else {
 			size := int64(sbu.size)
-			options := &storage.PutBlobOptions{}
+			options := &legacy.PutBlobOptions{}
 
 			blob.Properties.ContentLength = size
 			blob.Properties.ContentType = sbu.contentType
@@ -78,12 +79,26 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 	return nil
 }
 
+func (sbu StorageBlobUpload) copy(ctx context.Context) error {
+	input := blobs.CopyInput{
+		CopySource: sbu.sourceUri,
+		MetaData:   sbu.metaData,
+	}
+	if err := sbu.client.CopyAndWait(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input, pollingInterval); err != nil {
+		return fmt.Errorf("Error copy/waiting: %s", err)
+	}
+
+	return nil
+}
+
+// TODO: remove below here
+
 type resourceArmStorageBlobPage struct {
 	offset  int64
 	section *io.SectionReader
 }
 
-func resourceArmStorageBlobPageUploadFromSource(container, name, source, contentType string, client *storage.BlobStorageClient, parallelism, attempts int) error {
+func resourceArmStorageBlobPageUploadFromSource(container, name, source, contentType string, client *legacy.BlobStorageClient, parallelism, attempts int) error {
 	workerCount := parallelism * runtime.NumCPU()
 
 	file, err := os.Open(source)
@@ -97,7 +112,7 @@ func resourceArmStorageBlobPageUploadFromSource(container, name, source, content
 		return fmt.Errorf("Error splitting source file %q into pages: %s", source, err)
 	}
 
-	options := &storage.PutBlobOptions{}
+	options := &legacy.PutBlobOptions{}
 	containerRef := client.GetContainerReference(container)
 	blob := containerRef.GetBlobReference(name)
 	blob.Properties.ContentLength = blobSize
@@ -208,7 +223,7 @@ type resourceArmStorageBlobPageUploadContext struct {
 	name      string
 	source    string
 	blobSize  int64
-	client    *storage.BlobStorageClient
+	client    *legacy.BlobStorageClient
 	pages     chan resourceArmStorageBlobPage
 	errors    chan error
 	wg        *sync.WaitGroup
@@ -235,11 +250,11 @@ func resourceArmStorageBlobPageUploadWorker(ctx resourceArmStorageBlobPageUpload
 		for x := 0; x < ctx.attempts; x++ {
 			container := ctx.client.GetContainerReference(ctx.container)
 			blob := container.GetBlobReference(ctx.name)
-			blobRange := storage.BlobRange{
+			blobRange := legacy.BlobRange{
 				Start: uint64(start),
 				End:   uint64(end),
 			}
-			options := &storage.PutPageOptions{}
+			options := &legacy.PutPageOptions{}
 			reader := bytes.NewReader(chunk)
 			err = blob.WriteRange(blobRange, reader, options)
 			if err == nil {
@@ -261,7 +276,7 @@ type resourceArmStorageBlobBlock struct {
 	id      string
 }
 
-func resourceArmStorageBlobBlockUploadFromSource(container, name, source, contentType string, client *storage.BlobStorageClient, parallelism, attempts int) error {
+func resourceArmStorageBlobBlockUploadFromSource(container, name, source, contentType string, client *legacy.BlobStorageClient, parallelism, attempts int) error {
 	workerCount := parallelism * runtime.NumCPU()
 
 	file, err := os.Open(source)
@@ -307,7 +322,7 @@ func resourceArmStorageBlobBlockUploadFromSource(container, name, source, conten
 	containerReference := client.GetContainerReference(container)
 	blobReference := containerReference.GetBlobReference(name)
 	blobReference.Properties.ContentType = contentType
-	options := &storage.PutBlockListOptions{}
+	options := &legacy.PutBlockListOptions{}
 	err = blobReference.PutBlockList(blockList, options)
 	if err != nil {
 		return fmt.Errorf("Error updating block list for source file %q: %s", source, err)
@@ -316,13 +331,13 @@ func resourceArmStorageBlobBlockUploadFromSource(container, name, source, conten
 	return nil
 }
 
-func resourceArmStorageBlobBlockSplit(file *os.File) ([]storage.Block, []resourceArmStorageBlobBlock, error) {
+func resourceArmStorageBlobBlockSplit(file *os.File) ([]legacy.Block, []resourceArmStorageBlobBlock, error) {
 	const (
 		idSize          = 64
 		blockSize int64 = 4 * 1024 * 1024
 	)
 	var parts []resourceArmStorageBlobBlock
-	var blockList []storage.Block
+	var blockList []legacy.Block
 
 	info, err := file.Stat()
 	if err != nil {
@@ -342,9 +357,9 @@ func resourceArmStorageBlobBlockSplit(file *os.File) ([]storage.Block, []resourc
 			sectionSize = remainder
 		}
 
-		block := storage.Block{
+		block := legacy.Block{
 			ID:     base64.StdEncoding.EncodeToString(entropy),
-			Status: storage.BlockStatusUncommitted,
+			Status: legacy.BlockStatusUncommitted,
 		}
 
 		blockList = append(blockList, block)
@@ -359,7 +374,7 @@ func resourceArmStorageBlobBlockSplit(file *os.File) ([]storage.Block, []resourc
 }
 
 type resourceArmStorageBlobBlockUploadContext struct {
-	client    *storage.BlobStorageClient
+	client    *legacy.BlobStorageClient
 	container string
 	name      string
 	source    string
@@ -383,7 +398,7 @@ func resourceArmStorageBlobBlockUploadWorker(ctx resourceArmStorageBlobBlockUplo
 		for i := 0; i < ctx.attempts; i++ {
 			container := ctx.client.GetContainerReference(ctx.container)
 			blob := container.GetBlobReference(ctx.name)
-			options := &storage.PutBlockOptions{}
+			options := &legacy.PutBlockOptions{}
 			if err = blob.PutBlock(block.id, buffer, options); err == nil {
 				break
 			}

@@ -156,33 +156,30 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	blobInput := StorageBlobUpload{
 		accountName:   accountName,
 		containerName: containerName,
 		blobName:      name,
-		legacyClient:  legacyBlobsClient,
-		attempts:      d.Get("attempts").(int),
-		contentType:   d.Get("content_type").(string),
-		parallelism:   d.Get("parallelism").(int),
-		size:          d.Get("size").(int),
-		source:        d.Get("source").(string),
-		sourceUri:     d.Get("source_uri").(string),
-		blobType:      d.Get("type").(string),
+
+		client:       blobsClient,
+		legacyClient: legacyBlobsClient,
+
+		blobType:    d.Get("type").(string),
+		contentType: d.Get("content_type").(string),
+		metaData:    storage.ExpandMetaData(metaDataRaw),
+		size:        d.Get("size").(int),
+		source:      d.Get("source").(string),
+		sourceUri:   d.Get("source_uri").(string),
+
+		// TODO: deprecate these
+		attempts:    d.Get("attempts").(int),
+		parallelism: d.Get("parallelism").(int),
 	}
 	if err := blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
 	}
 	log.Printf("[DEBUG] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
-
-	log.Printf("[DEBUG] Setting the MetaData for Blob %q (Container %q / Account %q)...", name, containerName, accountName)
-	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	input := blobs.SetMetaDataInput{
-		MetaData: storage.ExpandMetaData(metaDataRaw),
-	}
-	if _, err := blobsClient.SetMetaData(ctx, accountName, containerName, name, input); err != nil {
-		return fmt.Errorf("Error setting MetaData for Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
-	}
-	log.Printf("[DEBUG] Set the MetaData for Blob %q (Container %q / Account %q).", name, containerName, accountName)
 
 	d.SetId(id)
 	return resourceArmStorageBlobRead(d, meta)
@@ -213,6 +210,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 		input := blobs.SetPropertiesInput{
+			// TODO: other properties?
 			ContentType: utils.String(d.Get("content_type").(string)),
 		}
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
