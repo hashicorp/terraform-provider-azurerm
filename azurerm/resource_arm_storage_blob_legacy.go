@@ -46,38 +46,14 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 	// TODO: new feature for 'append' blobs?
 
 	if blobType == "block" {
-		return sbu.uploadBlockBlob(ctx)
+		return sbu.createBlockBlob(ctx)
 	}
 
-	switch strings.ToLower(sbu.blobType) {
-	case "page":
-		if sbu.source != "" {
-			if err := resourceArmStorageBlobPageUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
-				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-			}
-		} else {
-			container := sbu.legacyClient.GetContainerReference(sbu.containerName)
-			blob := container.GetBlobReference(sbu.blobName)
-
-			size := int64(sbu.size)
-			options := &legacy.PutBlobOptions{}
-
-			blob.Properties.ContentLength = size
-			blob.Properties.ContentType = sbu.contentType
-			if err := blob.PutPageBlob(options); err != nil {
-				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-			}
-		}
-
-		input := blobs.SetMetaDataInput{
-			MetaData: sbu.metaData,
-		}
-		if _, err := sbu.client.SetMetaData(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
-			return fmt.Errorf("Error setting MetaData: %s", err)
-		}
+	if blobType == "page" {
+		return sbu.createPageBlob(ctx)
 	}
 
-	return nil
+	return fmt.Errorf("Unsupported Blob Type: %q", blobType)
 }
 
 func (sbu StorageBlobUpload) copy(ctx context.Context) error {
@@ -92,7 +68,7 @@ func (sbu StorageBlobUpload) copy(ctx context.Context) error {
 	return nil
 }
 
-func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
+func (sbu StorageBlobUpload) createBlockBlob(ctx context.Context) error {
 	if sbu.source == "" {
 		return fmt.Errorf("A `source` is required when uploading a Block Blob")
 	}
@@ -110,6 +86,44 @@ func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
 
 	if err := sbu.client.PutBlockBlobFromFile(ctx, sbu.accountName, sbu.containerName, sbu.blobName, file, input); err != nil {
 		return fmt.Errorf("Error PutBlockBlobFromFile: %s", err)
+	}
+
+	return nil
+}
+
+func (sbu StorageBlobUpload) createPageBlob(ctx context.Context) error {
+	if sbu.source != "" {
+		if err := resourceArmStorageBlobPageUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
+			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+		}
+
+		input := blobs.SetMetaDataInput{
+			MetaData: sbu.metaData,
+		}
+		if _, err := sbu.client.SetMetaData(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+			return fmt.Errorf("Error setting MetaData: %s", err)
+		}
+
+		return nil
+	}
+
+	container := sbu.legacyClient.GetContainerReference(sbu.containerName)
+	blob := container.GetBlobReference(sbu.blobName)
+
+	size := int64(sbu.size)
+	options := &legacy.PutBlobOptions{}
+
+	blob.Properties.ContentLength = size
+	blob.Properties.ContentType = sbu.contentType
+	if err := blob.PutPageBlob(options); err != nil {
+		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+	}
+
+	input := blobs.SetMetaDataInput{
+		MetaData: sbu.metaData,
+	}
+	if _, err := sbu.client.SetMetaData(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+		return fmt.Errorf("Error setting MetaData: %s", err)
 	}
 
 	return nil
