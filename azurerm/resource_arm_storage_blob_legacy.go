@@ -41,33 +41,36 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 		if err := blob.Copy(sbu.sourceUri, options); err != nil {
 			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 		}
-	} else {
-		switch strings.ToLower(sbu.blobType) {
-		case "block":
-			options := &storage.PutBlobOptions{}
-			if err := blob.CreateBlockBlob(options); err != nil {
+
+		return nil
+	}
+
+	switch strings.ToLower(sbu.blobType) {
+	// TODO: new feature for 'append' blobs?
+	case "block":
+		options := &storage.PutBlobOptions{}
+		if err := blob.CreateBlockBlob(options); err != nil {
+			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+		}
+
+		if sbu.source != "" {
+			if err := resourceArmStorageBlobBlockUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
 				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
-
-			if sbu.source != "" {
-				if err := resourceArmStorageBlobBlockUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
+		}
+	case "page":
+		if sbu.source != "" {
+			if err := resourceArmStorageBlobPageUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
+				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
-		case "page":
-			if sbu.source != "" {
-				if err := resourceArmStorageBlobPageUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
-			} else {
-				size := int64(sbu.size)
-				options := &storage.PutBlobOptions{}
+		} else {
+			size := int64(sbu.size)
+			options := &storage.PutBlobOptions{}
 
-				blob.Properties.ContentLength = size
-				blob.Properties.ContentType = sbu.contentType
-				if err := blob.PutPageBlob(options); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
+			blob.Properties.ContentLength = size
+			blob.Properties.ContentType = sbu.contentType
+			if err := blob.PutPageBlob(options); err != nil {
+				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 			}
 		}
 	}
