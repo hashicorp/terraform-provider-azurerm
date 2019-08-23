@@ -28,7 +28,8 @@ type AppendBlockInput struct {
 	BlobConditionMaxSize *int64
 
 	// The Bytes which should be appended to the end of this Append Blob.
-	Content []byte
+	// This can either be nil, which creates an empty blob, or a byte array
+	Content *[]byte
 
 	// An MD5 hash of the block content.
 	// This hash is used to verify the integrity of the block during transport.
@@ -68,7 +69,7 @@ func (client Client) AppendBlock(ctx context.Context, accountName, containerName
 	if blobName == "" {
 		return result, validation.NewError("blobs.Client", "AppendBlock", "`blobName` cannot be an empty string.")
 	}
-	if len(input.Content) > (4 * 1024 * 1024) {
+	if input.Content != nil && len(*input.Content) > (4*1024*1024) {
 		return result, validation.NewError("files.Client", "PutByteRange", "`input.Content` must be at most 4MB.")
 	}
 
@@ -122,13 +123,19 @@ func (client Client) AppendBlockPreparer(ctx context.Context, accountName, conta
 		headers["x-ms-lease-id"] = *input.LeaseID
 	}
 
-	preparer := autorest.CreatePreparer(
+	decorators := []autorest.PrepareDecorator{
 		autorest.AsPut(),
 		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
 		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
 		autorest.WithQueryParameters(queryParameters),
 		autorest.WithHeaders(headers),
-		autorest.WithBytes(&input.Content))
+	}
+
+	if input.Content != nil {
+		decorators = append(decorators, autorest.WithBytes(input.Content))
+	}
+
+	preparer := autorest.CreatePreparer(decorators...)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

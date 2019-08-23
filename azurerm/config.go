@@ -175,6 +175,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, err
 	}
 
+	// Filesystem Endpoints
+	filesystemEndpoint := env.ResourceIdentifiers.Storage
+	filesystemAuth, err := c.GetAuthorizationToken(sender, oauthConfig, filesystemEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
 	graphAuth, err := c.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
@@ -211,6 +218,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		KeyVaultAuthorizer:          keyVaultAuth,
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
+		FilesystemAuthorizer:        filesystemAuth,
 		StorageAuthorizer:           storageAuth,
 		PollingDuration:             60 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,

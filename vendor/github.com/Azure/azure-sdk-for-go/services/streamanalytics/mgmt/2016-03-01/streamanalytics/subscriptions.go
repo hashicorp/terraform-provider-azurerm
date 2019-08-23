@@ -99,8 +99,8 @@ func (client SubscriptionsClient) ListQuotasPreparer(ctx context.Context, locati
 // ListQuotasSender sends the ListQuotas request. The method will close the
 // http.Response Body if it receives an error.
 func (client SubscriptionsClient) ListQuotasSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListQuotasResponder handles the response to the ListQuotas request. The method always

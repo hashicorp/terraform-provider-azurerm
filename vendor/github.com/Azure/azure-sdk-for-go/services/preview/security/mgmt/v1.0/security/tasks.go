@@ -113,8 +113,8 @@ func (client TasksClient) GetResourceGroupLevelTaskPreparer(ctx context.Context,
 // GetResourceGroupLevelTaskSender sends the GetResourceGroupLevelTask request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) GetResourceGroupLevelTaskSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResourceGroupLevelTaskResponder handles the response to the GetResourceGroupLevelTask request. The method always
@@ -195,8 +195,8 @@ func (client TasksClient) GetSubscriptionLevelTaskPreparer(ctx context.Context, 
 // GetSubscriptionLevelTaskSender sends the GetSubscriptionLevelTask request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) GetSubscriptionLevelTaskSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetSubscriptionLevelTaskResponder handles the response to the GetSubscriptionLevelTask request. The method always
@@ -279,8 +279,8 @@ func (client TasksClient) ListPreparer(ctx context.Context, filter string) (*htt
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -401,8 +401,8 @@ func (client TasksClient) ListByHomeRegionPreparer(ctx context.Context, filter s
 // ListByHomeRegionSender sends the ListByHomeRegion request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) ListByHomeRegionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByHomeRegionResponder handles the response to the ListByHomeRegion request. The method always
@@ -530,8 +530,8 @@ func (client TasksClient) ListByResourceGroupPreparer(ctx context.Context, resou
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -659,8 +659,8 @@ func (client TasksClient) UpdateResourceGroupLevelTaskStatePreparer(ctx context.
 // UpdateResourceGroupLevelTaskStateSender sends the UpdateResourceGroupLevelTaskState request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) UpdateResourceGroupLevelTaskStateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResourceGroupLevelTaskStateResponder handles the response to the UpdateResourceGroupLevelTaskState request. The method always
@@ -743,8 +743,8 @@ func (client TasksClient) UpdateSubscriptionLevelTaskStatePreparer(ctx context.C
 // UpdateSubscriptionLevelTaskStateSender sends the UpdateSubscriptionLevelTaskState request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) UpdateSubscriptionLevelTaskStateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateSubscriptionLevelTaskStateResponder handles the response to the UpdateSubscriptionLevelTaskState request. The method always

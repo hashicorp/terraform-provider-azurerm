@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"github.com/Azure/go-autorest/autorest"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	az "github.com/Azure/go-autorest/autorest/azure"
@@ -10,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/dfs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
@@ -18,7 +20,8 @@ import (
 )
 
 type Client struct {
-	AccountsClient storage.AccountsClient
+	FilesystemAuthorizer autorest.Authorizer
+	AccountsClient       storage.AccountsClient
 
 	environment az.Environment
 }
@@ -30,8 +33,9 @@ func BuildClient(options *common.ClientOptions) *Client {
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	return &Client{
-		AccountsClient: accountsClient,
-		environment:    options.Environment,
+		FilesystemAuthorizer: options.FilesystemAuthorizer,
+		AccountsClient:       accountsClient,
+		environment:          options.Environment,
 	}
 }
 
@@ -57,6 +61,13 @@ func (client Client) ContainersClient(ctx context.Context, resourceGroup, accoun
 	containersClient := containers.NewWithEnvironment(client.environment)
 	containersClient.Client.Authorizer = storageAuth
 	return &containersClient, nil
+}
+
+func (client Client) FileSystemsClient(ctx context.Context, resourceGroup, accountName string) (*dfs.Client, error) {
+	filesystemAuth := client.FilesystemAuthorizer
+	fileSystemsClient := dfs.NewWithEnvironment(client.environment)
+	fileSystemsClient.Client.Authorizer = filesystemAuth
+	return &fileSystemsClient, nil
 }
 
 func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {

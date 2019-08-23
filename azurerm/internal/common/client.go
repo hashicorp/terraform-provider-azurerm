@@ -24,6 +24,7 @@ type ClientOptions struct {
 	KeyVaultAuthorizer        autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
 	ResourceManagerEndpoint   string
+	FilesystemAuthorizer      autorest.Authorizer
 	StorageAuthorizer         autorest.Authorizer
 
 	PollingDuration             time.Duration
