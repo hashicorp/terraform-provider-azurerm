@@ -157,6 +157,12 @@ An `azure_blob_storage` block supports the following:
 
 An `http_logs` block supports the following: 
 
+* `file_system` - (Optional) A `file_system` block as defined below.
+
+---
+
+A `file_system` block supports the following:
+
 * `retention_in_days` - (Required) The number of days to retain logs for.
 
 * `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
