@@ -89,7 +89,7 @@ func TestAccAzureRMKustoDatabase_hotCachePeriod(t *testing.T) {
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKustoDatabaseExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "hot_cache_period", "P2W"),
+					resource.TestCheckResourceAttr(resourceName, "hot_cache_period", "P14DT12H"),
 				),
 			},
 		},
@@ -234,7 +234,7 @@ resource "azurerm_kusto_database" "test" {
   location            = azurerm_resource_group.rg.location
   cluster_name        = azurerm_kusto_cluster.cluster.name
 
-  hot_cache_period = "P2W"
+  hot_cache_period = "P14DT12H"
 }
 `, rInt, location, rs, rInt)
 }
