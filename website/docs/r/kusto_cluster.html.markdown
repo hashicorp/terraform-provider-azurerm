@@ -16,12 +16,12 @@ This example provisions a basic Kusto Cluster.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {
-  name     = "acctestRG1"
+  name     = "my-kusto-cluster-rg"
   location = "East US"
 }
 
 resource "azurerm_kusto_cluster" "test" {
-  name                = "acctestaks1"
+  name                = "kustocluster"
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
   
@@ -40,11 +40,11 @@ resource "azurerm_kusto_cluster" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the Managed Kubernetes Cluster to create. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the Kusto Cluster to create. Changing this forces a new resource to be created.
 
-* `location` - (Required) The location where the Managed Kubernetes Cluster should be created. Changing this forces a new resource to be created.
+* `location` - (Required) The location where the Kusto Cluster should be created. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the Resource Group where the Kusto Cluster should exist. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as defined below.
 
