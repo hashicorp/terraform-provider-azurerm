@@ -94,6 +94,7 @@ func resourceArmStorageBlob() *schema.Resource {
 			},
 
 			"parallelism": {
+				// TODO: @tombuildsstuff - a note this only works for Page blobs
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      8,
@@ -101,15 +102,18 @@ func resourceArmStorageBlob() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
+			"metadata": storage.MetaDataSchema(),
+
+			// Deprecated fields
 			"attempts": {
+				// TODO: @tombuildsstuff - add to the deprecation guide
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ForceNew:     true,
+				Deprecated:   "Retries are now handled by the Azure SDK as such this field is no longer necessary and will be removed in v2.0 of the Azure Provider",
 				ValidateFunc: validation.IntAtLeast(1),
 			},
-
-			"metadata": storage.MetaDataSchema(),
 		},
 	}
 }
@@ -160,13 +164,10 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		blobType:    d.Get("type").(string),
 		contentType: d.Get("content_type").(string),
 		metaData:    storage.ExpandMetaData(metaDataRaw),
+		parallelism: d.Get("parallelism").(int),
 		size:        d.Get("size").(int),
 		source:      d.Get("source").(string),
 		sourceUri:   d.Get("source_uri").(string),
-
-		// TODO: deprecate these
-		attempts:    d.Get("attempts").(int),
-		parallelism: d.Get("parallelism").(int),
 	}
 	if err := blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
@@ -202,7 +203,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 		input := blobs.SetPropertiesInput{
-			// TODO: other properties?
+			// TODO: other properties (Access Tier)?
 			ContentType: utils.String(d.Get("content_type").(string)),
 		}
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {

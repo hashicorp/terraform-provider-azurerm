@@ -27,13 +27,10 @@ type StorageBlobUpload struct {
 	blobType    string
 	contentType string
 	metaData    map[string]string
+	parallelism int
 	size        int
 	source      string
 	sourceUri   string
-
-	// TODO: deprecate/remove
-	attempts    int
-	parallelism int
 }
 
 func (sbu StorageBlobUpload) Create(ctx context.Context) error {
@@ -99,7 +96,6 @@ func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
 		ContentType: utils.String(sbu.contentType),
 		MetaData:    sbu.metaData,
 	}
-
 	if err := sbu.client.PutBlockBlobFromFile(ctx, sbu.accountName, sbu.containerName, sbu.blobName, file, input); err != nil {
 		return fmt.Errorf("Error PutBlockBlobFromFile: %s", err)
 	}
@@ -164,7 +160,7 @@ func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
 	return nil
 }
 
-// TODO: remove below here
+// TODO: move below here into Giovanni
 
 type storageBlobPage struct {
 	offset  int64
@@ -219,7 +215,7 @@ const (
 )
 
 func (sbu StorageBlobUpload) storageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
-	// whilst the file size can be any arbitary size, it must be uploaded in fixed-size pages
+	// whilst the file size can be any arbitrary size, it must be uploaded in fixed-size pages
 	blobSize := fileSize
 	if fileSize%minPageSize != 0 {
 		blobSize = fileSize + (minPageSize - (fileSize % minPageSize))
