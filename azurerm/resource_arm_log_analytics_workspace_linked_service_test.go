@@ -114,7 +114,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_noResourceID(t *testing.T)
 
 // Deprecated - remove in 2.0
 func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_linkedServiceProperties(t *testing.T) {
-	resourceName := "azurerm_log_analytics_linked_service.test"
+	resourceName := "azurerm_log_analytics_workspace_linked_service.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
