@@ -130,15 +130,35 @@ func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
 		// the user shouldn't need to specify this since we infer it
 	}
 
-	if err := sbu.resourceArmStorageBlobPageUploadFromSource(); err != nil {
-		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+	// determine the details about the file
+	file, err := os.Open(sbu.source)
+	if err != nil {
+		return fmt.Errorf("Error opening source file for upload %q: %s", sbu.source, err)
+	}
+	defer file.Close()
+
+	// TODO: all of this ultimately can be moved into Giovanni
+
+	info, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("Could not stat file %q: %s", file.Name(), err)
 	}
 
-	input := blobs.SetMetaDataInput{
-		MetaData: sbu.metaData,
+	fileSize := info.Size()
+
+	// first let's create a file of the specified file size
+	input := blobs.PutPageBlobInput{
+		BlobContentLengthBytes: int64(fileSize),
+		ContentType:            utils.String(sbu.contentType),
+		MetaData:               sbu.metaData,
 	}
-	if _, err := sbu.client.SetMetaData(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
-		return fmt.Errorf("Error setting MetaData: %s", err)
+	// TODO: access tiers?
+	if _, err := sbu.client.PutPageBlob(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+		return fmt.Errorf("Error PutPageBlob: %s", err)
+	}
+
+	if err := sbu.resourceArmStorageBlobPageUploadFromSource(ctx, file, fileSize); err != nil {
+		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 	}
 
 	return nil
@@ -151,30 +171,13 @@ type resourceArmStorageBlobPage struct {
 	section *io.SectionReader
 }
 
-func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource() error {
+func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource(ctx context.Context, file *os.File, fileSize int64) error {
 	workerCount := sbu.parallelism * runtime.NumCPU()
 
-	file, err := os.Open(sbu.source)
-	if err != nil {
-		return fmt.Errorf("Error opening source file for upload %q: %s", sbu.source, err)
-	}
-	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", sbu.blobName, sbu.source))
-
 	// first we chunk the file and assign them to 'pages'
-	blobSize, pageList, err := sbu.resourceArmStorageBlobPageSplit(file)
+	pageList, err := sbu.resourceArmStorageBlobPageSplit(file, fileSize)
 	if err != nil {
 		return fmt.Errorf("Error splitting source file %q into pages: %s", sbu.source, err)
-	}
-
-	// then we create an empty file with this size
-	options := &legacy.PutBlobOptions{}
-	containerRef := sbu.legacyClient.GetContainerReference(sbu.containerName)
-	blob := containerRef.GetBlobReference(sbu.blobName)
-	blob.Properties.ContentLength = blobSize
-	blob.Properties.ContentType = sbu.contentType
-	err = blob.PutPageBlob(options)
-	if err != nil {
-		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 	}
 
 	// finally we upload the contents of said file
@@ -195,7 +198,7 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource() error 
 			container: sbu.containerName,
 			name:      sbu.blobName,
 			source:    sbu.source,
-			blobSize:  blobSize,
+			blobSize:  fileSize,
 			client:    sbu.legacyClient,
 			pages:     pages,
 			errors:    errors,
@@ -213,20 +216,16 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource() error 
 	return nil
 }
 
-func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File) (int64, []resourceArmStorageBlobPage, error) {
-	const (
-		minPageSize int64 = 4 * 1024
-		maxPageSize int64 = 4 * 1024 * 1024
-	)
+const (
+	minPageSize int64 = 4 * 1024
+	maxPageSize int64 = 4 * 1024 * 1024
+)
 
-	info, err := file.Stat()
-	if err != nil {
-		return int64(0), nil, fmt.Errorf("Could not stat file %q: %s", file.Name(), err)
-	}
-
-	blobSize := info.Size()
-	if info.Size()%minPageSize != 0 {
-		blobSize = info.Size() + (minPageSize - (info.Size() % minPageSize))
+func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File, fileSize int64) ([]resourceArmStorageBlobPage, error) {
+	// whilst the file size can be any arbitary size, it must be uploaded in fixed-size pages
+	blobSize := fileSize
+	if fileSize%minPageSize != 0 {
+		blobSize = fileSize + (minPageSize - (fileSize % minPageSize))
 	}
 
 	emptyPage := make([]byte, minPageSize)
@@ -240,9 +239,9 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File) (int
 	var currentRange byteRange
 	for i := int64(0); i < blobSize; i += minPageSize {
 		pageBuf := make([]byte, minPageSize)
-		_, err = file.ReadAt(pageBuf, i)
+		_, err := file.ReadAt(pageBuf, i)
 		if err != nil && err != io.EOF {
-			return int64(0), nil, fmt.Errorf("Could not read chunk at %d: %s", i, err)
+			return nil, fmt.Errorf("Could not read chunk at %d: %s", i, err)
 		}
 
 		if bytes.Equal(pageBuf, emptyPage) {
@@ -271,7 +270,7 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File) (int
 		})
 	}
 
-	return info.Size(), pages, nil
+	return pages, nil
 }
 
 type resourceArmStorageBlobPageUploadContext struct {
