@@ -157,7 +157,7 @@ func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
 		return fmt.Errorf("Error PutPageBlob: %s", err)
 	}
 
-	if err := sbu.resourceArmStorageBlobPageUploadFromSource(ctx, file, fileSize); err != nil {
+	if err := sbu.pageUploadFromSource(ctx, file, fileSize); err != nil {
 		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 	}
 
@@ -166,12 +166,12 @@ func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
 
 // TODO: remove below here
 
-type resourceArmStorageBlobPage struct {
+type storageBlobPage struct {
 	offset  int64
 	section *io.SectionReader
 }
 
-func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource(ctx context.Context, file *os.File, fileSize int64) error {
+func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.File, fileSize int64) error {
 	workerCount := sbu.parallelism * runtime.NumCPU()
 
 	// first we chunk the file and assign them to 'pages'
@@ -181,7 +181,7 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource(ctx cont
 	}
 
 	// finally we upload the contents of said file
-	pages := make(chan resourceArmStorageBlobPage, len(pageList))
+	pages := make(chan storageBlobPage, len(pageList))
 	errors := make(chan error, len(pageList))
 	wg := &sync.WaitGroup{}
 	wg.Add(len(pageList))
@@ -194,16 +194,12 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource(ctx cont
 	close(pages)
 
 	for i := 0; i < workerCount; i++ {
-		go resourceArmStorageBlobPageUploadWorker(resourceArmStorageBlobPageUploadContext{
-			container: sbu.containerName,
-			name:      sbu.blobName,
-			source:    sbu.source,
-			blobSize:  fileSize,
-			client:    sbu.legacyClient,
-			pages:     pages,
-			errors:    errors,
-			wg:        wg,
-			attempts:  sbu.attempts,
+		go sbu.blobPageUploadWorker(blobPageUploadContext{
+			blobSize: fileSize,
+			pages:    pages,
+			errors:   errors,
+			wg:       wg,
+			attempts: sbu.attempts,
 		})
 	}
 
@@ -221,7 +217,7 @@ const (
 	maxPageSize int64 = 4 * 1024 * 1024
 )
 
-func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File, fileSize int64) ([]resourceArmStorageBlobPage, error) {
+func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
 	// whilst the file size can be any arbitary size, it must be uploaded in fixed-size pages
 	blobSize := fileSize
 	if fileSize%minPageSize != 0 {
@@ -262,9 +258,9 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File, file
 		}
 	}
 
-	var pages []resourceArmStorageBlobPage
+	var pages []storageBlobPage
 	for _, nonEmptyRange := range nonEmptyRanges {
-		pages = append(pages, resourceArmStorageBlobPage{
+		pages = append(pages, storageBlobPage{
 			offset:  nonEmptyRange.offset,
 			section: io.NewSectionReader(file, nonEmptyRange.offset, nonEmptyRange.length),
 		})
@@ -273,19 +269,15 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File, file
 	return pages, nil
 }
 
-type resourceArmStorageBlobPageUploadContext struct {
-	container string
-	name      string
-	source    string
-	blobSize  int64
-	client    *legacy.BlobStorageClient
-	pages     chan resourceArmStorageBlobPage
-	errors    chan error
-	wg        *sync.WaitGroup
-	attempts  int
+type blobPageUploadContext struct {
+	blobSize int64
+	pages    chan storageBlobPage
+	errors   chan error
+	wg       *sync.WaitGroup
+	attempts int
 }
 
-func resourceArmStorageBlobPageUploadWorker(ctx resourceArmStorageBlobPageUploadContext) {
+func (sbu StorageBlobUpload) blobPageUploadWorker(ctx blobPageUploadContext) {
 	for page := range ctx.pages {
 		start := page.offset
 		end := page.offset + page.section.Size() - 1
@@ -297,14 +289,14 @@ func resourceArmStorageBlobPageUploadWorker(ctx resourceArmStorageBlobPageUpload
 		chunk := make([]byte, size)
 		_, err := page.section.Read(chunk)
 		if err != nil && err != io.EOF {
-			ctx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", ctx.source, page.offset, err)
+			ctx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", sbu.source, page.offset, err)
 			ctx.wg.Done()
 			continue
 		}
 
 		for x := 0; x < ctx.attempts; x++ {
-			container := ctx.client.GetContainerReference(ctx.container)
-			blob := container.GetBlobReference(ctx.name)
+			container := sbu.legacyClient.GetContainerReference(sbu.containerName)
+			blob := container.GetBlobReference(sbu.blobName)
 			blobRange := legacy.BlobRange{
 				Start: uint64(start),
 				End:   uint64(end),
@@ -317,7 +309,7 @@ func resourceArmStorageBlobPageUploadWorker(ctx resourceArmStorageBlobPageUpload
 			}
 		}
 		if err != nil {
-			ctx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, ctx.source, err)
+			ctx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.source, err)
 			ctx.wg.Done()
 			continue
 		}
