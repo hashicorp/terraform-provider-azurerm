@@ -95,7 +95,7 @@ func TestISO8601DateTime(t *testing.T) {
 			_, errors := ISO8601DateTime(tc.Time, "test")
 
 			if len(errors) != tc.Errors {
-				t.Fatalf("Expected ISO8601DateTime to have %d not %d errors for %q got date", tc.Errors, len(errors), tc.Time)
+				t.Fatalf("Expected ISO8601DateTime to have %d but got %d errors for %q", tc.Errors, len(errors), tc.Time)
 			}
 		})
 	}
