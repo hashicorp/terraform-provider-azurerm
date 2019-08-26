@@ -53,20 +53,12 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	routeTableName, err := parseRouteTableName(routeTableId)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(routeTableName, routeTableResourceName)
-	defer locks.UnlockByName(routeTableName, routeTableResourceName)
-
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -185,20 +177,8 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 		return nil
 	}
 
-	// once we have the route table id to lock on, lock on that
-	routeTableName, err := parseRouteTableName(*props.RouteTable.ID)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(routeTableName, routeTableResourceName)
-	defer locks.UnlockByName(routeTableName, routeTableResourceName)
-
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
-
-	locks.ByName(subnetName, subnetResourceName)
-	defer locks.UnlockByName(subnetName, subnetResourceName)
+	azureRMLockByName(subnetName, subnetResourceName)
+	defer azureRMUnlockByName(subnetName, subnetResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

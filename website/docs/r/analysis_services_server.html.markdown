@@ -60,7 +60,7 @@ The following arguments are supported:
 
 ---
 
-A `ipv4_firwall_rule` block supports the following:
+A `ipv4_firewall_rule` block supports the following:
 
 * `name` - (Required) Specifies the name of the firewall rule.
 
