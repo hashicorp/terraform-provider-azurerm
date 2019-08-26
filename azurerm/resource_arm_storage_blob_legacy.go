@@ -175,7 +175,7 @@ func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.
 	workerCount := sbu.parallelism * runtime.NumCPU()
 
 	// first we chunk the file and assign them to 'pages'
-	pageList, err := sbu.resourceArmStorageBlobPageSplit(file, fileSize)
+	pageList, err := sbu.storageBlobPageSplit(file, fileSize)
 	if err != nil {
 		return fmt.Errorf("Error splitting source file %q into pages: %s", sbu.source, err)
 	}
@@ -199,7 +199,6 @@ func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.
 			pages:    pages,
 			errors:   errors,
 			wg:       wg,
-			attempts: sbu.attempts,
 		})
 	}
 
@@ -219,7 +218,7 @@ const (
 	maxPageSize int64 = 4 * 1024 * 1024
 )
 
-func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
+func (sbu StorageBlobUpload) storageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
 	// whilst the file size can be any arbitary size, it must be uploaded in fixed-size pages
 	blobSize := fileSize
 	if fileSize%minPageSize != 0 {
@@ -275,7 +274,6 @@ type blobPageUploadContext struct {
 	pages    chan storageBlobPage
 	errors   chan error
 	wg       *sync.WaitGroup
-	attempts int
 }
 
 func (sbu StorageBlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPageUploadContext) {
@@ -295,18 +293,13 @@ func (sbu StorageBlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx
 			continue
 		}
 
-		for x := 0; x < uploadCtx.attempts; x++ {
-			input := blobs.PutPageUpdateInput{
-				StartByte: start,
-				EndByte:   end,
-				Content:   chunk,
-			}
-			_, err = sbu.client.PutPageUpdate(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input)
-			if err == nil {
-				break
-			}
+		input := blobs.PutPageUpdateInput{
+			StartByte: start,
+			EndByte:   end,
+			Content:   chunk,
 		}
-		if err != nil {
+
+		if _, err = sbu.client.PutPageUpdate(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
 			uploadCtx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.source, err)
 			uploadCtx.wg.Done()
 			continue
