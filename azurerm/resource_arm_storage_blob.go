@@ -149,21 +149,13 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// TODO: remove me
-	legacyBlobsClient, _, err := storageClient.LegacyBlobClient(ctx, *resourceGroup, accountName)
-	if err != nil {
-		return err
-	}
-
 	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	blobInput := StorageBlobUpload{
 		accountName:   accountName,
 		containerName: containerName,
 		blobName:      name,
-
-		client:       blobsClient,
-		legacyClient: legacyBlobsClient,
+		client:        blobsClient,
 
 		blobType:    d.Get("type").(string),
 		contentType: d.Get("content_type").(string),

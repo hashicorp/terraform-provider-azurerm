@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	legacy "github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
@@ -19,21 +18,22 @@ import (
 const pollingInterval = time.Second * 15
 
 type StorageBlobUpload struct {
+	client *blobs.Client
+
 	accountName   string
 	containerName string
 	blobName      string
 
-	attempts    int
 	blobType    string
 	contentType string
 	metaData    map[string]string
-	parallelism int
 	size        int
 	source      string
 	sourceUri   string
 
-	client       *blobs.Client
-	legacyClient *legacy.BlobStorageClient
+	// TODO: deprecate/remove
+	attempts    int
+	parallelism int
 }
 
 func (sbu StorageBlobUpload) Create(ctx context.Context) error {
@@ -194,7 +194,7 @@ func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.
 	close(pages)
 
 	for i := 0; i < workerCount; i++ {
-		go sbu.blobPageUploadWorker(blobPageUploadContext{
+		go sbu.blobPageUploadWorker(ctx, blobPageUploadContext{
 			blobSize: fileSize,
 			pages:    pages,
 			errors:   errors,
@@ -214,6 +214,8 @@ func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.
 
 const (
 	minPageSize int64 = 4 * 1024
+
+	// TODO: investigate whether this can be bumped to 100MB with the new API
 	maxPageSize int64 = 4 * 1024 * 1024
 )
 
@@ -235,8 +237,7 @@ func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File, file
 	var currentRange byteRange
 	for i := int64(0); i < blobSize; i += minPageSize {
 		pageBuf := make([]byte, minPageSize)
-		_, err := file.ReadAt(pageBuf, i)
-		if err != nil && err != io.EOF {
+		if _, err := file.ReadAt(pageBuf, i); err != nil && err != io.EOF {
 			return nil, fmt.Errorf("Could not read chunk at %d: %s", i, err)
 		}
 
@@ -277,43 +278,40 @@ type blobPageUploadContext struct {
 	attempts int
 }
 
-func (sbu StorageBlobUpload) blobPageUploadWorker(ctx blobPageUploadContext) {
-	for page := range ctx.pages {
+func (sbu StorageBlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPageUploadContext) {
+	for page := range uploadCtx.pages {
 		start := page.offset
 		end := page.offset + page.section.Size() - 1
-		if end > ctx.blobSize-1 {
-			end = ctx.blobSize - 1
+		if end > uploadCtx.blobSize-1 {
+			end = uploadCtx.blobSize - 1
 		}
 		size := end - start + 1
 
 		chunk := make([]byte, size)
 		_, err := page.section.Read(chunk)
 		if err != nil && err != io.EOF {
-			ctx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", sbu.source, page.offset, err)
-			ctx.wg.Done()
+			uploadCtx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", sbu.source, page.offset, err)
+			uploadCtx.wg.Done()
 			continue
 		}
 
-		for x := 0; x < ctx.attempts; x++ {
-			container := sbu.legacyClient.GetContainerReference(sbu.containerName)
-			blob := container.GetBlobReference(sbu.blobName)
-			blobRange := legacy.BlobRange{
-				Start: uint64(start),
-				End:   uint64(end),
+		for x := 0; x < uploadCtx.attempts; x++ {
+			input := blobs.PutPageUpdateInput{
+				StartByte: start,
+				EndByte:   end,
+				Content:   chunk,
 			}
-			options := &legacy.PutPageOptions{}
-			reader := bytes.NewReader(chunk)
-			err = blob.WriteRange(blobRange, reader, options)
+			_, err = sbu.client.PutPageUpdate(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input)
 			if err == nil {
 				break
 			}
 		}
 		if err != nil {
-			ctx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.source, err)
-			ctx.wg.Done()
+			uploadCtx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.source, err)
+			uploadCtx.wg.Done()
 			continue
 		}
 
-		ctx.wg.Done()
+		uploadCtx.wg.Done()
 	}
 }
