@@ -102,7 +102,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_noResourceID(t *testing.T)
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		CheckDestroy: testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMLogAnalyticsWorkspaceLinkedService_noResourceID(ri, testLocation()),
@@ -125,7 +125,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_linkedServiceProperties(t 
 			{
 				Config: testAccAzureRMLogAnalyticsWorkspaceLinkedService_linkedServiceProperties(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
+					testCheckAzureRMLogAnalyticsWorkspaceLinkedServiceExists(resourceName),
 				),
 			},
 			{
@@ -240,10 +240,10 @@ resource "azurerm_log_analytics_workspace_linked_service" "test" {
 }
 
 func testAccAzureRMLogAnalyticsWorkspaceLinkedService_noResourceID(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+	template := testAccAzureRMLogAnalyticsWorkspaceLinkedService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_log_analytics_linked_service" "test" {
+resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
 }
@@ -251,10 +251,10 @@ resource "azurerm_log_analytics_linked_service" "test" {
 }
 
 func testAccAzureRMLogAnalyticsWorkspaceLinkedService_linkedServiceProperties(rInt int, location string) string {
-	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+	template := testAccAzureRMLogAnalyticsWorkspaceLinkedService_template(rInt, location)
 	return fmt.Sprintf(`
 %s
-resource "azurerm_log_analytics_linked_service" "test" {
+resource "azurerm_log_analytics_workspace_linked_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
   linked_service_properties {
