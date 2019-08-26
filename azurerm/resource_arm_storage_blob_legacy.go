@@ -126,7 +126,11 @@ func (sbu StorageBlobUpload) createEmptyPageBlob(ctx context.Context) error {
 }
 
 func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
-	if err := resourceArmStorageBlobPageUploadFromSource(sbu.containerName, sbu.blobName, sbu.source, sbu.contentType, sbu.legacyClient, sbu.parallelism, sbu.attempts); err != nil {
+	if sbu.size != 0 {
+		// the user shouldn't need to specify this since we infer it
+	}
+
+	if err := sbu.resourceArmStorageBlobPageUploadFromSource(); err != nil {
 		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 	}
 
@@ -147,30 +151,33 @@ type resourceArmStorageBlobPage struct {
 	section *io.SectionReader
 }
 
-func resourceArmStorageBlobPageUploadFromSource(container, name, source, contentType string, client *legacy.BlobStorageClient, parallelism, attempts int) error {
-	workerCount := parallelism * runtime.NumCPU()
+func (sbu StorageBlobUpload) resourceArmStorageBlobPageUploadFromSource() error {
+	workerCount := sbu.parallelism * runtime.NumCPU()
 
-	file, err := os.Open(source)
+	file, err := os.Open(sbu.source)
 	if err != nil {
-		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
+		return fmt.Errorf("Error opening source file for upload %q: %s", sbu.source, err)
 	}
-	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", name, source))
+	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Storage Blob `%s` file `%s` after upload", sbu.blobName, sbu.source))
 
-	blobSize, pageList, err := resourceArmStorageBlobPageSplit(file)
+	// first we chunk the file and assign them to 'pages'
+	blobSize, pageList, err := sbu.resourceArmStorageBlobPageSplit(file)
 	if err != nil {
-		return fmt.Errorf("Error splitting source file %q into pages: %s", source, err)
+		return fmt.Errorf("Error splitting source file %q into pages: %s", sbu.source, err)
 	}
 
+	// then we create an empty file with this size
 	options := &legacy.PutBlobOptions{}
-	containerRef := client.GetContainerReference(container)
-	blob := containerRef.GetBlobReference(name)
+	containerRef := sbu.legacyClient.GetContainerReference(sbu.containerName)
+	blob := containerRef.GetBlobReference(sbu.blobName)
 	blob.Properties.ContentLength = blobSize
-	blob.Properties.ContentType = contentType
+	blob.Properties.ContentType = sbu.contentType
 	err = blob.PutPageBlob(options)
 	if err != nil {
 		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
 	}
 
+	// finally we upload the contents of said file
 	pages := make(chan resourceArmStorageBlobPage, len(pageList))
 	errors := make(chan error, len(pageList))
 	wg := &sync.WaitGroup{}
@@ -185,28 +192,28 @@ func resourceArmStorageBlobPageUploadFromSource(container, name, source, content
 
 	for i := 0; i < workerCount; i++ {
 		go resourceArmStorageBlobPageUploadWorker(resourceArmStorageBlobPageUploadContext{
-			container: container,
-			name:      name,
-			source:    source,
+			container: sbu.containerName,
+			name:      sbu.blobName,
+			source:    sbu.source,
 			blobSize:  blobSize,
-			client:    client,
+			client:    sbu.legacyClient,
 			pages:     pages,
 			errors:    errors,
 			wg:        wg,
-			attempts:  attempts,
+			attempts:  sbu.attempts,
 		})
 	}
 
 	wg.Wait()
 
 	if len(errors) > 0 {
-		return fmt.Errorf("Error while uploading source file %q: %s", source, <-errors)
+		return fmt.Errorf("Error while uploading source file %q: %s", sbu.source, <-errors)
 	}
 
 	return nil
 }
 
-func resourceArmStorageBlobPageSplit(file *os.File) (int64, []resourceArmStorageBlobPage, error) {
+func (sbu StorageBlobUpload) resourceArmStorageBlobPageSplit(file *os.File) (int64, []resourceArmStorageBlobPage, error) {
 	const (
 		minPageSize int64 = 4 * 1024
 		maxPageSize int64 = 4 * 1024 * 1024
