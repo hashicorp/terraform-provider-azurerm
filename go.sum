@@ -20,9 +20,8 @@ github.com/Azure/azure-sdk-for-go v30.0.0+incompatible h1:6o1Yzl7wTBYg+xw0pY4qna
 github.com/Azure/azure-sdk-for-go v30.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/azure-sdk-for-go v31.0.0+incompatible h1:18nT+M3yxnWcO66yoJyomlCoKMu578UHh0DjJBA5c1M=
 github.com/Azure/azure-sdk-for-go v31.0.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
-github.com/Azure/azure-sdk-for-go v31.1.0+incompatible h1:5SzgnfAvUBdBwNTN23WLfZoCt/rGhLvd7QdCAaFXgY4=
-github.com/Azure/azure-sdk-for-go v31.1.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
-github.com/Azure/azure-sdk-for-go v32.3.0+incompatible h1:cPbYVpshHJc/lWNk0Gzhf8SLN+7qpdb8RQnRh0gntcI=
+github.com/Azure/azure-sdk-for-go v32.5.0+incompatible h1:Hn/DsObfmw0M7dMGS/c0MlVrJuGFzHzOpBWL89acR68=
+github.com/Azure/azure-sdk-for-go v32.5.0+incompatible/go.mod h1:9XXNKU+eRnpl9moKnB4QOLf1HestfXbmab5FXxiDBjc=
 github.com/Azure/go-autorest v10.15.4+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest v11.7.0+incompatible h1:gzma19dc9ejB75D90E5S+/wXouzpZyA+CV+/MJPSD/k=
 github.com/Azure/go-autorest v11.7.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
@@ -408,8 +407,6 @@ github.com/prometheus/procfs v0.0.0-20180725123919-05ee40e3a273/go.mod h1:c3At6R
 github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d/go.mod h1:c3At6R/oaqEKCNdg8wHV1ftS6bRYblBhIjjI8uT2IGk=
 github.com/prometheus/procfs v0.0.0-20190117184657-bf6a532e95b1/go.mod h1:c3At6R/oaqEKCNdg8wHV1ftS6bRYblBhIjjI8uT2IGk=
 github.com/rcrowley/go-metrics v0.0.0-20181016184325-3113b8401b8a/go.mod h1:bCqnVzQkZxMG4s8nGwiZ5l3QUCyqpo9Y+/ZMZ9VjZe4=
-github.com/relvacode/iso8601 v0.0.0-20181221151331-e9cae14c704e h1:NQHGYUZfr1cCsFZwC31Thmhuc9K6eUUmeNI9J9QMfB0=
-github.com/relvacode/iso8601 v0.0.0-20181221151331-e9cae14c704e/go.mod h1:Kn09ZkOSv8PRg6gPzFTGF6xIk6p7UFCVqGmS/+uUZ3Y=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
 github.com/satori/go.uuid v1.2.0 h1:0uYX9dsZ2yD7q2RtLRtPSdGDWzjeM3TbMJP9utgA0ww=
@@ -466,10 +463,6 @@ github.com/terraform-providers/terraform-provider-azuread v0.4.1-0.2019061020231
 github.com/terraform-providers/terraform-provider-openstack v1.15.0 h1:adpjqej+F8BAX9dHmuPF47sUIkgifeqBu6p7iCsyj0Y=
 github.com/terraform-providers/terraform-provider-openstack v1.15.0/go.mod h1:2aQ6n/BtChAl1y2S60vebhyJyZXBsuAI5G4+lHrT1Ew=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
-github.com/tombuildsstuff/giovanni v0.3.0 h1:uOaTgr6mp5iba02s+pz+ugBZuygIhA2tN+FZAsivOvg=
-github.com/tombuildsstuff/giovanni v0.3.0/go.mod h1:3UHcoRZCvWTjXMWCJ0epD1VROlPMwZeeof3vfP6NiWM=
-github.com/tombuildsstuff/giovanni v0.3.1 h1:weKffbA9vYVUACa6u1XXW0alYoTLuphMZ0BMgg63a/A=
-github.com/tombuildsstuff/giovanni v0.3.1/go.mod h1:3UHcoRZCvWTjXMWCJ0epD1VROlPMwZeeof3vfP6NiWM=
 github.com/tombuildsstuff/giovanni v0.3.2 h1:uKt7irq74daF0lvaA0X9bEuFKSDhceVy4DyWVPDRYeU=
 github.com/tombuildsstuff/giovanni v0.3.2/go.mod h1:3UHcoRZCvWTjXMWCJ0epD1VROlPMwZeeof3vfP6NiWM=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5 h1:cMjKdf4PxEBN9K5HaD9UMW8gkTbM0kMzkTa9SJe0WNQ=

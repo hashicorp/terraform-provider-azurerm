@@ -4261,7 +4261,7 @@ type MetricValue struct {
 	// Total - the sum of all of the values in the time range.
 	Total *float64 `json:"total,omitempty"`
 	// Count - the number of samples in the time range. Can be used to determine the number of values that contributed to the average value.
-	Count *int64 `json:"count,omitempty"`
+	Count *float64 `json:"count,omitempty"`
 }
 
 // BasicMultiMetricCriteria the types of conditions for a multi resource alert.

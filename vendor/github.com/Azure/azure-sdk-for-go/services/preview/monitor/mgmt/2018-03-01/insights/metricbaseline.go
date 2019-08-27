@@ -111,8 +111,8 @@ func (client MetricBaselineClient) CalculateBaselinePreparer(ctx context.Context
 // CalculateBaselineSender sends the CalculateBaseline request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricBaselineClient) CalculateBaselineSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CalculateBaselineResponder handles the response to the CalculateBaseline request. The method always
@@ -211,8 +211,8 @@ func (client MetricBaselineClient) GetPreparer(ctx context.Context, resourceURI 
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client MetricBaselineClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
