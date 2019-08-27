@@ -1,4 +1,9 @@
 ## 1.34.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
+
 ## 1.33.1 (August 27, 2019)
 
 * networking: reducing the number of locks to avoid deadlock when creating 3 or more subnets with Network Security Group/Route Table Associations ([#3673](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3673))
