@@ -1,6 +1,6 @@
-## 1.33.1 (Unreleased)
+## 1.33.1 (August 27, 2019)
 
-* networking: reducing the number of locks to avoid deadlock when creating 3 or more subnets with Network Security Group/Route Table Associations [GH-3673]
+* networking: reducing the number of locks to avoid deadlock when creating 3 or more subnets with Network Security Group/Route Table Associations ([#3673](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3673))
 
 ## 1.33.0 (August 22, 2019)
 
