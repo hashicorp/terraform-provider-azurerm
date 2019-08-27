@@ -521,7 +521,7 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -559,7 +559,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -590,7 +590,7 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind storage.Bl
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -653,7 +653,7 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return nil
 		}

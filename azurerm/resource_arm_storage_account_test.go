@@ -759,7 +759,7 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
@@ -787,7 +787,7 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
 
 		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
@@ -799,7 +799,7 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-	conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+	conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_account" {
