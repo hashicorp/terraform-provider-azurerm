@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
@@ -178,7 +179,7 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceProtectionContainerName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

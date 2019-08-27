@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"time"
 
@@ -112,7 +113,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

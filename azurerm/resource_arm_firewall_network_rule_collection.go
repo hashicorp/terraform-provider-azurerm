@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -172,7 +173,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 
 		ruleCollections[index] = newRuleCollection
 	} else {
-		if requireResourcesToBeImported && d.IsNewResource() {
+		if features.ShouldResourcesBeImported() && d.IsNewResource() {
 			if index != -1 {
 				return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
 			}

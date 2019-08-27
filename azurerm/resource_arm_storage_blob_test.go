@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: with the new SDK: changing the Tier of Blobs. Content type for Block blobs
@@ -434,7 +435,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

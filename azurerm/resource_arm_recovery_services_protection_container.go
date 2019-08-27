@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +56,7 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 	client := meta.(*ArmClient).recoveryServices.ProtectionContainerClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

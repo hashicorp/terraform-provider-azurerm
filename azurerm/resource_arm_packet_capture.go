@@ -5,6 +5,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"log"
 
@@ -146,7 +147,7 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
@@ -133,7 +134,7 @@ func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

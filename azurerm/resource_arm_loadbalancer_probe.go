@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -119,7 +120,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	existingProbe, existingProbeIndex, exists := findLoadBalancerProbeByName(loadBalancer, name)
 	if exists {
 		if name == *existingProbe.Name {
-			if requireResourcesToBeImported && d.IsNewResource() {
+			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_probe", *existingProbe.ID)
 			}
 

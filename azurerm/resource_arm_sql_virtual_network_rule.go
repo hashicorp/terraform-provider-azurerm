@@ -9,6 +9,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -69,7 +70,7 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 	virtualNetworkSubnetId := d.Get("subnet_id").(string)
 	ignoreMissingVnetServiceEndpoint := d.Get("ignore_missing_vnet_service_endpoint").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

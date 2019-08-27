@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -70,7 +71,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if requireResourcesToBeImported {
+		if features.ShouldResourcesBeImported() {
 			if nsg := props.NetworkSecurityGroup; nsg != nil {
 				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
 				if nsg.ID != nil && subnet.ID != nil {

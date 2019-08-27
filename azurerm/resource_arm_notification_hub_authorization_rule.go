@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -88,7 +89,7 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	send := d.Get("send").(bool)
 	listen := d.Get("listen").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
