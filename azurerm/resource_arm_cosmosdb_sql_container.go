@@ -63,6 +63,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 						"paths": {
 							Type:     schema.TypeSet,
 							Required: true,
+							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.NoEmptyStrings,
