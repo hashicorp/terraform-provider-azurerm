@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/date"
+	iso8601 "github.com/btubbs/datetime"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -36,6 +37,20 @@ func RFC3339Time(i interface{}, k string) (warnings []string, errors []error) {
 
 	if _, err := date.ParseTime(time.RFC3339, v); err != nil {
 		errors = append(errors, fmt.Errorf("%q has the invalid RFC3339 date format %q: %+v", k, i, err))
+	}
+
+	return warnings, errors
+}
+
+func ISO8601DateTime(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
+		return
+	}
+
+	if _, err := iso8601.Parse(v, time.UTC); err != nil {
+		errors = append(errors, fmt.Errorf("%q has the invalid ISO8601 date format %q: %+v", k, i, err))
 	}
 
 	return warnings, errors
