@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
+* `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
 
 ## 1.33.1 (August 27, 2019)
 
