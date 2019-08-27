@@ -22,6 +22,7 @@ resource "azurerm_role_assignment" "test" {
   scope                = "${data.azurerm_subscription.primary.id}"
   role_definition_name = "Reader"
   principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
+  principal_type       = "ServicePrincipal"
 }
 ```
 
@@ -132,6 +133,8 @@ The following arguments are supported:
 * `principal_id` - (Required) The ID of the Principal (User, Group, Service Principal, or Application) to assign the Role Definition to. Changing this forces a new resource to be created. 
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
+
+* `PrincipalType` - (Optional) The principal type of the assigned `principal_id`. Possible values include: `User`, `Group`, `ServicePrincipal`, `Unknown`, `DirectoryRoleTemplate`, `ForeignGroup`, `Application`, `MSI`, `DirectoryObjectOrGroup`, `Everyone`.
 
 ## Attributes Reference
 

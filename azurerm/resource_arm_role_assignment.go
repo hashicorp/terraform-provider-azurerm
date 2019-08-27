@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -63,6 +64,24 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+			},
+
+			"principal_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(authorization.Application),
+					string(authorization.DirectoryObjectOrGroup),
+					string(authorization.DirectoryRoleTemplate),
+					string(authorization.Everyone),
+					string(authorization.ForeignGroup),
+					string(authorization.Group),
+					string(authorization.MSI),
+					string(authorization.ServicePrincipal),
+					string(authorization.Unknown),
+					string(authorization.User),
+				}, false),
 			},
 		},
 	}
@@ -118,11 +137,19 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	roleAssignmentProperties := authorization.RoleAssignmentProperties{
+		RoleDefinitionID: utils.String(roleDefinitionId),
+		PrincipalID:      utils.String(principalId),
+	}
+
+	principalType := d.Get("principal_type").(string)
+
+	if principalType != "" {
+		roleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
+	}
+
 	properties := authorization.RoleAssignmentCreateParameters{
-		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
-			RoleDefinitionID: utils.String(roleDefinitionId),
-			PrincipalID:      utils.String(principalId),
-		},
+		RoleAssignmentProperties: &roleAssignmentProperties,
 	}
 
 	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta)); err != nil {
@@ -163,6 +190,12 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("scope", props.Scope)
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
+
+		principalType := d.Get("principal_type").(string)
+
+		if principalType != "" {
+			d.Set("principal_type", props.PrincipalType)
+		}
 
 		//allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleId := props.RoleDefinitionID; roleId != nil {
