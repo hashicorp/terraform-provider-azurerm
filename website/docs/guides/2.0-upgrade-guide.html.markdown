@@ -387,6 +387,15 @@ Splitting the Virtual Machine Scale Set resource in two allows us to both provid
 
 The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
 
+### Resource: `azurerm_log_analytics_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
+### Resource: `azurerm_log_analytics_workspace_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
+
 ---
 
 We've spent the past few months laying the groundwork for these changes - and whilst we appreciate that your Terraform Configurations may require code changes to upgrade to 2.0 - we take Semantic Versioning seriously and so try our best to limit these changes to major versions.
