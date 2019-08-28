@@ -123,7 +123,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			"additional_location": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"location": azure.SchemaLocation(),
