@@ -140,7 +140,7 @@ func TestAccAzureRMStreamAnalyticsStreamInputBlob_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

@@ -39,7 +39,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -67,7 +67,7 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
