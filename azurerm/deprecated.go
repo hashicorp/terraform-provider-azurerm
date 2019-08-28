@@ -24,10 +24,6 @@ func expandTags(tagsMap map[string]interface{}) map[string]*string {
 	return tags.Expand(tagsMap)
 }
 
-func validateAzureRMTags(v interface{}, k string) (warnings []string, errors []error) {
-	return tags.Validate(v, k)
-}
-
 // nolint: deadcode unused
 func tagsForDataSourceSchema() *schema.Schema {
 	return tags.SchemaDataSource()
@@ -36,11 +32,6 @@ func tagsForDataSourceSchema() *schema.Schema {
 // nolint: deadcode unused
 func tagsSchema() *schema.Schema {
 	return tags.Schema()
-}
-
-// nolint: deadcode unused
-func filterTags(tagsMap map[string]*string, tagNames ...string) map[string]*string {
-	return tags.Filter(tagsMap, tagNames...)
 }
 
 // nolint: deadcode unused
