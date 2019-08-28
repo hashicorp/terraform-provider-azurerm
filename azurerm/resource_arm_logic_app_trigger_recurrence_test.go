@@ -36,7 +36,7 @@ func TestAccAzureRMLogicAppTriggerRecurrence_month(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppTriggerRecurrence_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

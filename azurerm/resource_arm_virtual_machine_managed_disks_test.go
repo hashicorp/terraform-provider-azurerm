@@ -42,7 +42,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(t *t
 }
 
 func TestAccAzureRMVirtualMachine_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

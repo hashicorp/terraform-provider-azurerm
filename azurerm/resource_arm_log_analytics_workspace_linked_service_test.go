@@ -40,7 +40,7 @@ func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsWorkspaceLinkedService_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

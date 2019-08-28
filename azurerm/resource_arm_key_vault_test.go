@@ -146,7 +146,7 @@ func TestAccAzureRMKeyVault_basicClassic(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVault_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

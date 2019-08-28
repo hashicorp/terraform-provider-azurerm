@@ -85,7 +85,7 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	})
 }
 func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
