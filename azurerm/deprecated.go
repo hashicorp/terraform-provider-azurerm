@@ -1,6 +1,9 @@
 package azurerm
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -41,4 +44,19 @@ func tagsForceNewSchema() *schema.Schema {
 // nolint: deadcode unused
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
 	return azure.ParseAzureResourceID(id)
+}
+
+func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { // nolint: unparam
+	_, errors := validateFunc(i, k)
+
+	errorStrings := []string{}
+	for _, e := range errors {
+		errorStrings = append(errorStrings, e.Error())
+	}
+
+	if len(errors) > 0 {
+		return false, fmt.Errorf(strings.Join(errorStrings, "\n"))
+	}
+
+	return true, nil
 }
