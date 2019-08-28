@@ -35,6 +35,22 @@ func TestValidateStorageShareDirectoryName(t *testing.T) {
 			Input:    "123--abc",
 			Expected: false,
 		},
+		{
+			Input:    "Abc123",
+			Expected: true,
+		},
+		{
+			Input:    "abC123",
+			Expected: true,
+		},
+		{
+			Input:    "abc123a",
+			Expected: true,
+		},
+		{
+			Input:    "abc123A",
+			Expected: true,
+		},
 	}
 
 	for _, v := range testCases {
