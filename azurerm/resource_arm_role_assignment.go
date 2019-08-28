@@ -141,11 +141,11 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
 			RoleDefinitionID: utils.String(roleDefinitionId),
 			PrincipalID:      utils.String(principalId),
-		}
+		},
 	}
 
 	principalType := d.Get("principal_type").(string)
-	
+
 	if principalType != "" {
 		properties.RoleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
 	}
