@@ -492,7 +492,7 @@ resource "azuread_group" "test" {
   name = "acctestspa-%d"
 }
 
-resource ServicePrincipal {
+resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = "${data.azurerm_subscription.current.id}"
   role_definition_name = "Reader"
