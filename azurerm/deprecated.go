@@ -4,7 +4,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
@@ -42,14 +41,4 @@ func tagsForceNewSchema() *schema.Schema {
 // nolint: deadcode unused
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
 	return azure.ParseAzureResourceID(id)
-}
-
-// nolint: deadcode unused
-func azureRMLockByName(name string, resourceType string) {
-	locks.ByName(name, resourceType)
-}
-
-// nolint: deadcode unused
-func azureRMUnlockByName(name string, resourceType string) {
-	locks.UnlockByName(name, resourceType)
 }
