@@ -103,7 +103,6 @@ func resourceArmStorageBlob() *schema.Resource {
 
 			// Deprecated fields
 			"attempts": {
-				// TODO: @tombuildsstuff - add to the deprecation guide
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
