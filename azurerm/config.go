@@ -212,7 +212,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
-		PollingDuration:             60 * time.Minute,
+		PollingDuration:             180 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
 		Environment:                 *env,
