@@ -9,7 +9,7 @@ import (
 func StorageShareDirectoryName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	// File share names can contain only lowercase letters, numbers, and hyphens,
+	// File share names can contain only uppercase and lowercase letters, numbers, and hyphens,
 	// and must begin and end with a letter or a number.
 	// however they can be nested (e.g. foo/bar)
 	if !regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$`).MatchString(value) && !regexp.MustCompile(`^[A-Za-z0-9]{1,}/[A-Za-z0-9]{1,}$`).MatchString(value) {
