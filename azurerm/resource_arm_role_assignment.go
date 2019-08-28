@@ -137,19 +137,17 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	roleAssignmentProperties := authorization.RoleAssignmentProperties{
-		RoleDefinitionID: utils.String(roleDefinitionId),
-		PrincipalID:      utils.String(principalId),
+	properties := authorization.RoleAssignmentCreateParameters{
+		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
+			RoleDefinitionID: utils.String(roleDefinitionId),
+			PrincipalID:      utils.String(principalId),
+		}
 	}
 
 	principalType := d.Get("principal_type").(string)
-
+	
 	if principalType != "" {
-		roleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
-	}
-
-	properties := authorization.RoleAssignmentCreateParameters{
-		RoleAssignmentProperties: &roleAssignmentProperties,
+		properties.RoleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
 	}
 
 	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta)); err != nil {

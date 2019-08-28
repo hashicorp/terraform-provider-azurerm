@@ -478,8 +478,8 @@ resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = "${data.azurerm_subscription.current.id}"
   role_definition_name = "Reader"
-	principal_id         = "${azuread_service_principal.test.id}"
-	principal_type       = "ServicePrincipal"
+  principal_id         = "${azuread_service_principal.test.id}"
+  principal_type       = "ServicePrincipal"
 }
 `, rInt, roleAssignmentID)
 }
@@ -492,7 +492,7 @@ resource "azuread_group" "test" {
   name = "acctestspa-%d"
 }
 
-resource ServicePrincipal {
+resource "azurerm_role_assignment" "test" {
   name                 = "%s"
   scope                = "${data.azurerm_subscription.current.id}"
   role_definition_name = "Reader"
@@ -508,17 +508,17 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_role_definition" "test" {
-	name = "Monitoring Reader"
+  name = "Monitoring Reader"
 }
 
 resource "azurerm_management_group" "test" {
-	group_id = "%s"
+  group_id = "%s"
 }
 
 resource "azurerm_role_assignment" "test" {
-	scope              = "${azurerm_management_group.test.id}"
-	role_definition_id = "${data.azurerm_role_definition.test.id}"
-	principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  scope              = "${azurerm_management_group.test.id}"
+  role_definition_id = "${data.azurerm_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
 `, groupId)
 }

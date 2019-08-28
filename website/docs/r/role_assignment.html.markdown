@@ -134,7 +134,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
-* `PrincipalType` - (Optional) The principal type of the assigned `principal_id`. Possible values include: `User`, `Group`, `ServicePrincipal`, `Unknown`, `DirectoryRoleTemplate`, `ForeignGroup`, `Application`, `MSI`, `DirectoryObjectOrGroup`, `Everyone`.
+* `PrincipalType` - (Optional) The principal type of the assigned `principal_id`. Possible values include: `Application`, `DirectoryObjectOrGroup`, `DirectoryRoleTemplate`, `Everyone`, `ForeignGroup`, `Group`, `MSI`, `ServicePrincipal`, `Unknown` and `User`.
 
 ## Attributes Reference
 
