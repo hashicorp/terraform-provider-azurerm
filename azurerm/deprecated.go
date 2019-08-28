@@ -39,6 +39,7 @@ func tagsForceNewSchema() *schema.Schema {
 	return tags.ForceNewSchema()
 }
 
+// nolint: deadcode unused
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
 	return azure.ParseAzureResourceID(id)
 }
