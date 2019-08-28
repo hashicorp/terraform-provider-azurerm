@@ -306,7 +306,10 @@ A `google` block supports the following:
 
 A `ip_restriction` block supports the following:
 
-* `ip_address` - (Required) The IP Address used for this IP Restriction.
+* `ip_address` - (Optional) The IP Address used for this IP Restriction. One of `ip_address` or `virtual_network_subnet_id` must be specified.
+
+* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction. One of `ip_address` or `virtual_network_subnet_id` must be specified.
+
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
 

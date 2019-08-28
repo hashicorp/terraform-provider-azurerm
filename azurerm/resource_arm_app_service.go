@@ -217,7 +217,10 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+	}
 
 	siteEnvelope := web.Site{
 		Location: &location,
@@ -316,7 +319,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+	}
+
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     tags.Expand(t),
@@ -344,7 +351,10 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		if err != nil {
+			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+		}
 		siteConfigResource := web.SiteConfigResource{
 			SiteConfig: &siteConfig,
 		}

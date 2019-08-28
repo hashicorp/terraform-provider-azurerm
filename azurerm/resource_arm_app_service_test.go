@@ -775,6 +775,31 @@ func TestAccAzureRMAppService_oneIpRestriction(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_oneVNetSubnetIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_oneVNetSubnetIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_zeroedIpRestriction(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
@@ -3024,6 +3049,51 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_oneVNetSubnetIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+    ip_restriction {
+      virtual_network_subnet_id = "${azurerm_virtual_network.test.subnet.*.id}"[0]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMAppService_manyIpRestrictions(rInt int, location string) string {

@@ -300,12 +300,22 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
 								Type:     schema.TypeString,
-								Required: true,
+								Optional: true,
+							},
+							"virtual_network_subnet_id": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 							"subnet_mask": {
 								Type:     schema.TypeString,
 								Optional: true,
-								Default:  "255.255.255.255",
+								Computed: true,
+								// This attribute was made with the assumption that `ip_address` was the only valid option
+								// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
+								// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
+								// and `subnet_mask` is not.
+								// Default:  "255.255.255.255",
 							},
 						},
 					},
@@ -643,6 +653,10 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"virtual_network_subnet_id": {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
@@ -1294,12 +1308,12 @@ func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 	return []interface{}{result}
 }
 
-func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
+func ExpandAppServiceSiteConfig(input interface{}) (web.SiteConfig, error) {
 	configs := input.([]interface{})
 	siteConfig := web.SiteConfig{}
 
 	if len(configs) == 0 {
-		return siteConfig
+		return siteConfig, nil
 	}
 
 	config := configs[0].(map[string]interface{})
@@ -1354,26 +1368,45 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	if v, ok := config["ip_restriction"]; ok {
 		ipSecurityRestrictions := v.([]interface{})
 		restrictions := make([]web.IPSecurityRestriction, 0)
-		for _, ipSecurityRestriction := range ipSecurityRestrictions {
+		for i, ipSecurityRestriction := range ipSecurityRestrictions {
 			restriction := ipSecurityRestriction.(map[string]interface{})
 
 			ipAddress := restriction["ip_address"].(string)
-			mask := restriction["subnet_mask"].(string)
-			// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
-			// so translate the IP and mask if necessary
-			restrictionMask := ""
-			cidrAddress := ipAddress
-			if mask != "" {
-				ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
-				cidrAddress = ipNet.String()
-			} else if !strings.Contains(ipAddress, "/") {
-				cidrAddress += "/32"
+			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
+			if vNetSubnetID != "" && ipAddress != "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
 			}
 
-			restrictions = append(restrictions, web.IPSecurityRestriction{
-				IPAddress:  &cidrAddress,
-				SubnetMask: &restrictionMask,
-			})
+			if vNetSubnetID == "" && ipAddress == "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+			}
+
+			ipSecurityRestriction := web.IPSecurityRestriction{}
+			if ipAddress != "" {
+				mask := restriction["subnet_mask"].(string)
+				if mask == "" {
+					mask = "255.255.255.255"
+				}
+				// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
+				// so translate the IP and mask if necessary
+				restrictionMask := ""
+				cidrAddress := ipAddress
+				if mask != "" {
+					ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
+					cidrAddress = ipNet.String()
+				} else if !strings.Contains(ipAddress, "/") {
+					cidrAddress += "/32"
+				}
+				ipSecurityRestriction.IPAddress = &cidrAddress
+				ipSecurityRestriction.SubnetMask = &restrictionMask
+			}
+
+			if vNetSubnetID != "" {
+				ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+			}
+
+			restrictions = append(restrictions, ipSecurityRestriction)
+
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
@@ -1432,7 +1465,7 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.Cors = &expand
 	}
 
-	return siteConfig
+	return siteConfig, nil
 }
 
 func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
@@ -1499,6 +1532,9 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 			}
 			if subnet := v.SubnetMask; subnet != nil {
 				block["subnet_mask"] = *subnet
+			}
+			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+				block["virtual_network_subnet_id"] = *vNetSubnetID
 			}
 			restrictions = append(restrictions, block)
 		}
