@@ -9,11 +9,11 @@ IMPROVEMENTS:
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
+* `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
 
 BUG FIXES:
 
 * `azurerm_log_analytics_linked_service` crash fix [GH-4142]
-
 * `azurerm_log_analytics_workspace_linked_service` crash fix [GH-4152]
 
 ## 1.33.1 (August 27, 2019)
