@@ -110,7 +110,7 @@ resource "azurerm_virtual_machine" "test" {
 * `source_resource_id` - ID of an existing managed disk that the current resource was created from.
 * `os_type` - The operating system for managed disk. Valid values are `Linux` or `Windows`
 * `disk_size_gb` - The size of the managed disk in gigabytes.
-* `disk_iops_read_write` - The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
+* `disk_iops_read_write` - The number of IOPS allowed for this disk. One operation can transfer between 4k and 256k bytes.  Only applicable to disks of type `UltraSSD`.
 * `disk_mbps_read_write` - The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second.
 ~> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the attributes `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not opted-in to the `Azure ultra disks` private preview. For more information see the `Azure ultra disks` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd).
 * `tags` - A mapping of tags assigned to the resource.
