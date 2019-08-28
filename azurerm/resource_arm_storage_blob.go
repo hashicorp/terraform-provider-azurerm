@@ -36,9 +36,6 @@ func resourceArmStorageBlob() *schema.Resource {
 				// TODO: add validation
 			},
 
-			// TODO: this can be deprecated with the new sdk?
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"storage_account_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -114,6 +111,8 @@ func resourceArmStorageBlob() *schema.Resource {
 				Deprecated:   "Retries are now handled by the Azure SDK as such this field is no longer necessary and will be removed in v2.0 of the Azure Provider",
 				ValidateFunc: validation.IntAtLeast(1),
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 		},
 	}
 }
@@ -175,7 +174,8 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[DEBUG] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
 
 	d.SetId(id)
-	return resourceArmStorageBlobRead(d, meta)
+
+	return resourceArmStorageBlobUpdate(d, meta)
 }
 
 func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -200,10 +200,11 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
+	// TODO: changing the access tier
+
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 		input := blobs.SetPropertiesInput{
-			// TODO: other properties (Access Tier)?
 			ContentType: utils.String(d.Get("content_type").(string)),
 		}
 		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
