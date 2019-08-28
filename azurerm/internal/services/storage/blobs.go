@@ -123,7 +123,7 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 
 func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 	if sbu.Size != 0 {
-		// the user shouldn't need to specify this since we infer it
+		return fmt.Errorf("`size` cannot be set for an uploaded page blob")
 	}
 
 	// determine the details about the file
