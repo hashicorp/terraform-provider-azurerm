@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MariaDB Server.
 
-* `version` - (Required) Specifies the version of MariaDB to use. The valid value is `10.2`. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of MariaDB to use. Possible values are `10.2` and `10.3`. Changing this forces a new resource to be created.
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
