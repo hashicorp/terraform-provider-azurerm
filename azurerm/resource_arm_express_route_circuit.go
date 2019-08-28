@@ -232,7 +232,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Express Route Circuit %q (Resource Group %q): %+v", name, err)
+		return fmt.Errorf("Error retrieving Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
