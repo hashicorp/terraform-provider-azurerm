@@ -144,7 +144,7 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 
 	// first let's create a file of the specified file size
 	input := blobs.PutPageBlobInput{
-		BlobContentLengthBytes: int64(fileSize),
+		BlobContentLengthBytes: fileSize,
 		ContentType:            utils.String(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
@@ -167,7 +167,7 @@ type storageBlobPage struct {
 	section *io.SectionReader
 }
 
-func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file *os.File, fileSize int64) error {
+func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file io.ReaderAt, fileSize int64) error {
 	workerCount := sbu.Parallelism * runtime.NumCPU()
 
 	// first we chunk the file and assign them to 'pages'
@@ -214,7 +214,7 @@ const (
 	maxPageSize int64 = 4 * 1024 * 1024
 )
 
-func (sbu BlobUpload) storageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
+func (sbu BlobUpload) storageBlobPageSplit(file io.ReaderAt, fileSize int64) ([]storageBlobPage, error) {
 	// whilst the file Size can be any arbitrary Size, it must be uploaded in fixed-Size pages
 	blobSize := fileSize
 	if fileSize%minPageSize != 0 {
