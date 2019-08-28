@@ -145,7 +145,7 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 }
 
 func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

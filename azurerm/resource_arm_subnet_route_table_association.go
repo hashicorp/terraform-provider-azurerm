@@ -178,8 +178,8 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 		return nil
 	}
 
-	azureRMLockByName(subnetName, subnetResourceName)
-	defer azureRMUnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

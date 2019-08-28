@@ -242,7 +242,7 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -297,7 +297,7 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

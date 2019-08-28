@@ -79,7 +79,7 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
 	subnetsClient := meta.(*ArmClient).network.SubnetsClient
-	subnetParsedId, err := parseAzureResourceID(subnetId)
+	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func resourceArmMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).mariadb.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,7 +191,7 @@ func resourceArmMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).mariadb.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -88,7 +89,7 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -116,12 +117,12 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	webhook := containerregistry.WebhookCreateParameters{
 		Location:                          &location,
 		WebhookPropertiesCreateParameters: expandWebhookPropertiesCreateParameters(d),
-		Tags:                              expandTags(tags),
+		Tags:                              tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, registryName, name, webhook)
@@ -162,11 +163,11 @@ func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta inte
 	registryName := id.Path["registries"]
 	name := id.Path["webhooks"]
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	webhook := containerregistry.WebhookUpdateParameters{
 		WebhookPropertiesUpdateParameters: expandWebhookPropertiesUpdateParameters(d),
-		Tags:                              expandTags(tags),
+		Tags:                              tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, registryName, name, webhook)
@@ -243,9 +244,7 @@ func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interf
 		d.Set("actions", webhookActions)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerRegistryWebhookDelete(d *schema.ResourceData, meta interface{}) error {

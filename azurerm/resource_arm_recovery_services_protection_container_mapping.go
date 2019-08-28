@@ -121,7 +121,7 @@ func resourceArmRecoveryServicesContainerMappingCreate(d *schema.ResourceData, m
 }
 
 func resourceArmRecoveryServicesContainerMappingRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func resourceArmRecoveryServicesContainerMappingRead(d *schema.ResourceData, met
 }
 
 func resourceArmSiteRecoveryServicesContainerMappingDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
