@@ -153,19 +153,19 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	blobInput := StorageBlobUpload{
-		accountName:   accountName,
-		containerName: containerName,
-		blobName:      name,
-		client:        blobsClient,
+	blobInput := storage.StorageBlobUpload{
+		AccountName:   accountName,
+		ContainerName: containerName,
+		BlobName:      name,
+		Client:        blobsClient,
 
-		blobType:    d.Get("type").(string),
-		contentType: d.Get("content_type").(string),
-		metaData:    storage.ExpandMetaData(metaDataRaw),
-		parallelism: d.Get("parallelism").(int),
-		size:        d.Get("size").(int),
-		source:      d.Get("source").(string),
-		sourceUri:   d.Get("source_uri").(string),
+		BlobType:    d.Get("type").(string),
+		ContentType: d.Get("content_type").(string),
+		MetaData:    storage.ExpandMetaData(metaDataRaw),
+		Parallelism: d.Get("parallelism").(int),
+		Size:        d.Get("size").(int),
+		Source:      d.Get("source").(string),
+		SourceUri:   d.Get("source_uri").(string),
 	}
 	if err := blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)

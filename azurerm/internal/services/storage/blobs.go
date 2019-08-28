@@ -1,4 +1,4 @@
-package azurerm
+package storage
 
 import (
 	"bytes"
@@ -18,32 +18,32 @@ import (
 const pollingInterval = time.Second * 15
 
 type StorageBlobUpload struct {
-	client *blobs.Client
+	Client *blobs.Client
 
-	accountName   string
-	containerName string
-	blobName      string
+	AccountName   string
+	BlobName      string
+	ContainerName string
 
-	blobType    string
-	contentType string
-	metaData    map[string]string
-	parallelism int
-	size        int
-	source      string
-	sourceUri   string
+	BlobType    string
+	ContentType string
+	MetaData    map[string]string
+	Parallelism int
+	Size        int
+	Source      string
+	SourceUri   string
 }
 
 func (sbu StorageBlobUpload) Create(ctx context.Context) error {
-	if sbu.sourceUri != "" {
+	if sbu.SourceUri != "" {
 		return sbu.copy(ctx)
 	}
 
-	blobType := strings.ToLower(sbu.blobType)
+	blobType := strings.ToLower(sbu.BlobType)
 
 	// TODO: new feature for 'append' blobs?
 
 	if blobType == "block" {
-		if sbu.source != "" {
+		if sbu.Source != "" {
 			return sbu.uploadBlockBlob(ctx)
 		}
 
@@ -51,7 +51,7 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 	}
 
 	if blobType == "page" {
-		if sbu.source != "" {
+		if sbu.Source != "" {
 			return sbu.uploadPageBlob(ctx)
 		}
 
@@ -63,10 +63,10 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 
 func (sbu StorageBlobUpload) copy(ctx context.Context) error {
 	input := blobs.CopyInput{
-		CopySource: sbu.sourceUri,
-		MetaData:   sbu.metaData,
+		CopySource: sbu.SourceUri,
+		MetaData:   sbu.MetaData,
 	}
-	if err := sbu.client.CopyAndWait(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input, pollingInterval); err != nil {
+	if err := sbu.Client.CopyAndWait(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input, pollingInterval); err != nil {
 		return fmt.Errorf("Error copy/waiting: %s", err)
 	}
 
@@ -75,10 +75,10 @@ func (sbu StorageBlobUpload) copy(ctx context.Context) error {
 
 func (sbu StorageBlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.contentType),
-		MetaData:    sbu.metaData,
+		ContentType: utils.String(sbu.ContentType),
+		MetaData:    sbu.MetaData,
 	}
-	if _, err := sbu.client.PutBlockBlob(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+	if _, err := sbu.Client.PutBlockBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutBlockBlob: %s", err)
 	}
 
@@ -86,17 +86,17 @@ func (sbu StorageBlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 }
 
 func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
-	file, err := os.Open(sbu.source)
+	file, err := os.Open(sbu.Source)
 	if err != nil {
 		return fmt.Errorf("Error opening: %s", err)
 	}
 	defer file.Close()
 
 	input := blobs.PutBlockBlobInput{
-		ContentType: utils.String(sbu.contentType),
-		MetaData:    sbu.metaData,
+		ContentType: utils.String(sbu.ContentType),
+		MetaData:    sbu.MetaData,
 	}
-	if err := sbu.client.PutBlockBlobFromFile(ctx, sbu.accountName, sbu.containerName, sbu.blobName, file, input); err != nil {
+	if err := sbu.Client.PutBlockBlobFromFile(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, file, input); err != nil {
 		return fmt.Errorf("Error PutBlockBlobFromFile: %s", err)
 	}
 
@@ -104,17 +104,17 @@ func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
 }
 
 func (sbu StorageBlobUpload) createEmptyPageBlob(ctx context.Context) error {
-	if sbu.size == 0 {
+	if sbu.Size == 0 {
 		return fmt.Errorf("`size` cannot be zero for a page blob")
 	}
 
 	input := blobs.PutPageBlobInput{
-		BlobContentLengthBytes: int64(sbu.size),
-		ContentType:            utils.String(sbu.contentType),
-		MetaData:               sbu.metaData,
+		BlobContentLengthBytes: int64(sbu.Size),
+		ContentType:            utils.String(sbu.ContentType),
+		MetaData:               sbu.MetaData,
 	}
 	// TODO: access tiers?
-	if _, err := sbu.client.PutPageBlob(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutPageBlob: %s", err)
 	}
 
@@ -122,14 +122,14 @@ func (sbu StorageBlobUpload) createEmptyPageBlob(ctx context.Context) error {
 }
 
 func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
-	if sbu.size != 0 {
+	if sbu.Size != 0 {
 		// the user shouldn't need to specify this since we infer it
 	}
 
 	// determine the details about the file
-	file, err := os.Open(sbu.source)
+	file, err := os.Open(sbu.Source)
 	if err != nil {
-		return fmt.Errorf("Error opening source file for upload %q: %s", sbu.source, err)
+		return fmt.Errorf("Error opening source file for upload %q: %s", sbu.Source, err)
 	}
 	defer file.Close()
 
@@ -145,11 +145,11 @@ func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
 	// first let's create a file of the specified file size
 	input := blobs.PutPageBlobInput{
 		BlobContentLengthBytes: int64(fileSize),
-		ContentType:            utils.String(sbu.contentType),
-		MetaData:               sbu.metaData,
+		ContentType:            utils.String(sbu.ContentType),
+		MetaData:               sbu.MetaData,
 	}
 	// TODO: access tiers?
-	if _, err := sbu.client.PutPageBlob(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
+	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutPageBlob: %s", err)
 	}
 
@@ -168,12 +168,12 @@ type storageBlobPage struct {
 }
 
 func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.File, fileSize int64) error {
-	workerCount := sbu.parallelism * runtime.NumCPU()
+	workerCount := sbu.Parallelism * runtime.NumCPU()
 
 	// first we chunk the file and assign them to 'pages'
 	pageList, err := sbu.storageBlobPageSplit(file, fileSize)
 	if err != nil {
-		return fmt.Errorf("Error splitting source file %q into pages: %s", sbu.source, err)
+		return fmt.Errorf("Error splitting source file %q into pages: %s", sbu.Source, err)
 	}
 
 	// finally we upload the contents of said file
@@ -201,7 +201,7 @@ func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.
 	wg.Wait()
 
 	if len(errors) > 0 {
-		return fmt.Errorf("Error while uploading source file %q: %s", sbu.source, <-errors)
+		return fmt.Errorf("Error while uploading source file %q: %s", sbu.Source, <-errors)
 	}
 
 	return nil
@@ -215,7 +215,7 @@ const (
 )
 
 func (sbu StorageBlobUpload) storageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
-	// whilst the file size can be any arbitrary size, it must be uploaded in fixed-size pages
+	// whilst the file Size can be any arbitrary Size, it must be uploaded in fixed-Size pages
 	blobSize := fileSize
 	if fileSize%minPageSize != 0 {
 		blobSize = fileSize + (minPageSize - (fileSize % minPageSize))
@@ -284,7 +284,7 @@ func (sbu StorageBlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx
 		chunk := make([]byte, size)
 		_, err := page.section.Read(chunk)
 		if err != nil && err != io.EOF {
-			uploadCtx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", sbu.source, page.offset, err)
+			uploadCtx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", sbu.Source, page.offset, err)
 			uploadCtx.wg.Done()
 			continue
 		}
@@ -295,8 +295,8 @@ func (sbu StorageBlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx
 			Content:   chunk,
 		}
 
-		if _, err = sbu.client.PutPageUpdate(ctx, sbu.accountName, sbu.containerName, sbu.blobName, input); err != nil {
-			uploadCtx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.source, err)
+		if _, err = sbu.Client.PutPageUpdate(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+			uploadCtx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.Source, err)
 			uploadCtx.wg.Done()
 			continue
 		}
