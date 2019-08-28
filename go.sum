@@ -25,6 +25,8 @@ github.com/Azure/go-autorest v11.7.0+incompatible h1:gzma19dc9ejB75D90E5S+/wXouz
 github.com/Azure/go-autorest v11.7.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest v12.2.0+incompatible h1:2Fxszbg492oAJrcvJlgyVaTqnQYRkxmEK6VPCLLVpBI=
 github.com/Azure/go-autorest v12.2.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
+github.com/Azure/go-autorest v13.0.0+incompatible h1:56c11ykhsFSPNNQuS73Ri8h/ezqVhr2h6t9LJIEKVO0=
+github.com/Azure/go-autorest v13.0.0+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/Azure/go-autorest/autorest v0.3.0 h1:yOmXNB2qa2Kx40wMZB19YyafzjCHacXPk8u0neqa+M0=
 github.com/Azure/go-autorest/autorest v0.3.0/go.mod h1:AKyIcETwSUFxIcs/Wnq/C+kwCtlEYGUVd7FPNb2slmg=
 github.com/Azure/go-autorest/autorest v0.9.0 h1:MRvx8gncNaXJqOoLmhNjUAKh33JJF8LyxPhomEtOsjs=
@@ -478,6 +480,8 @@ github.com/svanharmelen/jsonapi v0.0.0-20180618144545-0c0828c3f16d/go.mod h1:BST
 github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07/go.mod h1:kDXzergiv9cbyO7IOYJZWg1U88JhDg3PB6klq9Hg2pA=
 github.com/terraform-providers/terraform-provider-azuread v0.4.1-0.20190610202312-5a179146b9f9 h1:ojk/m9351BypXVBhNVTJbRFvdjT0zUsgKUduZ5QoXl0=
 github.com/terraform-providers/terraform-provider-azuread v0.4.1-0.20190610202312-5a179146b9f9/go.mod h1:WhiLOITuLMMAoNEWQAC7bZR8tZpSIoFaOv6Hjiz0QOo=
+github.com/terraform-providers/terraform-provider-azuread v0.6.0 h1:eMTUnmKi7rfNrP3SIV9+/XJ9yC1RDhkHrOiCPI5KNBU=
+github.com/terraform-providers/terraform-provider-azuread v0.6.0/go.mod h1:O4kN9f8f6//T2EcSe4bcICeAex00XpYC50+fbBmuQ/g=
 github.com/terraform-providers/terraform-provider-openstack v1.15.0 h1:adpjqej+F8BAX9dHmuPF47sUIkgifeqBu6p7iCsyj0Y=
 github.com/terraform-providers/terraform-provider-openstack v1.15.0/go.mod h1:2aQ6n/BtChAl1y2S60vebhyJyZXBsuAI5G4+lHrT1Ew=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
