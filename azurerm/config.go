@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
@@ -156,7 +155,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
-	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, c.TenantID)
+	oauthConfig, err := c.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -183,24 +182,10 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	}
 
 	// Storage Endpoints
-	storageAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		storageSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
-		if err != nil {
-			return nil, err
-		}
-
-		return storageSpt, nil
-	})
+	storageAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
 
 	// Key Vault Endpoints
-	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
-		keyVaultSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
-		if err != nil {
-			return nil, err
-		}
-
-		return keyVaultSpt, nil
-	})
+	keyVaultAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
 
 	o := &common.ClientOptions{
 		SubscriptionId:              c.SubscriptionID,
