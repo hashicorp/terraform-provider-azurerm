@@ -475,7 +475,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-  name                 = "acctestRA%s"
+  name                 = "%s"
   scope                = "${data.azurerm_subscription.current.id}"
   role_definition_name = "Reader"
   principal_id         = "${azuread_service_principal.test.id}"
