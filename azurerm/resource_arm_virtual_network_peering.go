@@ -157,7 +157,9 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 		d.Set("allow_forwarded_traffic", peer.AllowForwardedTraffic)
 		d.Set("allow_gateway_transit", peer.AllowGatewayTransit)
 		d.Set("use_remote_gateways", peer.UseRemoteGateways)
-		d.Set("remote_virtual_network_id", peer.RemoteVirtualNetwork.ID)
+		if network := peer.RemoteVirtualNetwork; network != nil {
+			d.Set("remote_virtual_network_id", .ID)
+		}
 	}
 
 	return nil
