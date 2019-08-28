@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,7 +59,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -71,7 +73,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -88,7 +90,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
 	managed := d.Get("managed").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	availSet := compute.AvailabilitySet{
 		Name:     &name,
@@ -97,7 +99,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 			PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
 			PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if managed {
@@ -151,9 +153,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {

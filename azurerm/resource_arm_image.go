@@ -7,6 +7,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -161,7 +163,7 @@ func resourceArmImage() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -176,7 +178,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := d.Get("resource_group_name").(string)
 	zoneResilient := d.Get("zone_resilient").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -190,7 +192,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
+	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	properties := compute.ImageProperties{}
 
@@ -308,9 +310,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,20 +54,12 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return err
 	}
 
-	networkSecurityGroupName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -78,7 +71,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if requireResourcesToBeImported {
+		if features.ShouldResourcesBeImported() {
 			if nsg := props.NetworkSecurityGroup; nsg != nil {
 				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
 				if nsg.ID != nil && subnet.ID != nil {
@@ -184,18 +177,6 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Network Security Group - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 		return nil
 	}
-
-	// once we have the network security group id to lock on, lock on that
-	networkSecurityGroupName, err := parseNetworkSecurityGroupName(*props.NetworkSecurityGroup.ID)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	locks.ByName(subnetName, subnetResourceName)
 	defer locks.UnlockByName(subnetName, subnetResourceName)

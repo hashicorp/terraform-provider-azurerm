@@ -6,6 +6,8 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -71,7 +73,7 @@ func resourceArmSearchService() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -84,9 +86,9 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -105,7 +107,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 			Name: search.SkuName(skuName),
 		},
 		ServiceProperties: &search.ServiceProperties{},
-		Tags:              expandTags(tags),
+		Tags:              tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
@@ -181,9 +183,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("secondary_key", adminKeysResp.SecondaryKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {

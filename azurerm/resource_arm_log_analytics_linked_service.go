@@ -10,6 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,10 +57,13 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 			},
 
 			"linked_service_properties": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"resource_id"},
+				MaxItems:      1,
+				Deprecated:    "This property has been deprecated in favour of the 'resource_id' property and will be removed in version 2.0 of the provider",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"resource_id": {
@@ -77,7 +82,7 @@ func resourceArmLogAnalyticsLinkedService() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -92,7 +97,7 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 	workspaceName := d.Get("workspace_name").(string)
 	lsName := d.Get("linked_service_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, workspaceName, lsName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -107,19 +112,19 @@ func resourceArmLogAnalyticsLinkedServiceCreateUpdate(d *schema.ResourceData, me
 
 	resourceId := d.Get("resource_id").(string)
 	if resourceId == "" {
-		props := d.Get("linked_service_properties").(map[string]interface{})
-		resourceId = props["resource_id"].(string)
+		props := d.Get("linked_service_properties").([]interface{})
+		resourceId = expandLogAnalyticsLinkedServiceProperties(props)
 		if resourceId == "" {
 			return fmt.Errorf("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block")
 		}
 	}
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := operationalinsights.LinkedService{
 		LinkedServiceProperties: &operationalinsights.LinkedServiceProperties{
 			ResourceID: utils.String(resourceId),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, workspaceName, lsName, parameters); err != nil {
@@ -175,8 +180,7 @@ func resourceArmLogAnalyticsLinkedServiceRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error setting `linked_service_properties`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta interface{}) error {
@@ -202,6 +206,15 @@ func resourceArmLogAnalyticsLinkedServiceDelete(d *schema.ResourceData, meta int
 	}
 
 	return nil
+}
+
+func expandLogAnalyticsLinkedServiceProperties(input []interface{}) string {
+	if len(input) == 0 {
+		return ""
+	}
+
+	props := input[0].(map[string]interface{})
+	return props["resource_id"].(string)
 }
 
 func flattenLogAnalyticsLinkedServiceProperties(input *operationalinsights.LinkedServiceProperties) []interface{} {

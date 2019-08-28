@@ -6,6 +6,8 @@ import (
 	"regexp"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -87,7 +89,7 @@ func resourceArmBatchAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -103,9 +105,9 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageAccountId := d.Get("storage_account_id").(string)
 	poolAllocationMode := d.Get("pool_allocation_mode").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -123,7 +125,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 		AccountCreateProperties: &batch.AccountCreateProperties{
 			PoolAllocationMode: batch.PoolAllocationMode(poolAllocationMode),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
@@ -217,9 +219,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("secondary_access_key", keys.Secondary)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -236,7 +236,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	resourceGroup := id.ResourceGroup
 
 	storageAccountId := d.Get("storage_account_id").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
@@ -244,7 +244,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 				StorageAccountID: &storageAccountId,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err = client.Update(ctx, resourceGroup, name, parameters); err != nil {
