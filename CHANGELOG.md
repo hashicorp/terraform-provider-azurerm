@@ -2,6 +2,10 @@
 
 IMPROVEMENTS:
 
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v32.5.0` [GH-4166]
+* dependencies: updating `github.com/Azure/go-autorest` to `v0.9.0` [GH-4166]
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` [GH-4166]
+* dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
