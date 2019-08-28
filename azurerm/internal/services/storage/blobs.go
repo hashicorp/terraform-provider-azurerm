@@ -17,7 +17,7 @@ import (
 
 const pollingInterval = time.Second * 15
 
-type StorageBlobUpload struct {
+type BlobUpload struct {
 	Client *blobs.Client
 
 	AccountName   string
@@ -33,7 +33,7 @@ type StorageBlobUpload struct {
 	SourceUri   string
 }
 
-func (sbu StorageBlobUpload) Create(ctx context.Context) error {
+func (sbu BlobUpload) Create(ctx context.Context) error {
 	if sbu.SourceUri != "" {
 		return sbu.copy(ctx)
 	}
@@ -61,7 +61,7 @@ func (sbu StorageBlobUpload) Create(ctx context.Context) error {
 	return fmt.Errorf("Unsupported Blob Type: %q", blobType)
 }
 
-func (sbu StorageBlobUpload) copy(ctx context.Context) error {
+func (sbu BlobUpload) copy(ctx context.Context) error {
 	input := blobs.CopyInput{
 		CopySource: sbu.SourceUri,
 		MetaData:   sbu.MetaData,
@@ -73,7 +73,7 @@ func (sbu StorageBlobUpload) copy(ctx context.Context) error {
 	return nil
 }
 
-func (sbu StorageBlobUpload) createEmptyBlockBlob(ctx context.Context) error {
+func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	input := blobs.PutBlockBlobInput{
 		ContentType: utils.String(sbu.ContentType),
 		MetaData:    sbu.MetaData,
@@ -85,7 +85,7 @@ func (sbu StorageBlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	return nil
 }
 
-func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
+func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	file, err := os.Open(sbu.Source)
 	if err != nil {
 		return fmt.Errorf("Error opening: %s", err)
@@ -103,7 +103,7 @@ func (sbu StorageBlobUpload) uploadBlockBlob(ctx context.Context) error {
 	return nil
 }
 
-func (sbu StorageBlobUpload) createEmptyPageBlob(ctx context.Context) error {
+func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 	if sbu.Size == 0 {
 		return fmt.Errorf("`size` cannot be zero for a page blob")
 	}
@@ -121,7 +121,7 @@ func (sbu StorageBlobUpload) createEmptyPageBlob(ctx context.Context) error {
 	return nil
 }
 
-func (sbu StorageBlobUpload) uploadPageBlob(ctx context.Context) error {
+func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 	if sbu.Size != 0 {
 		// the user shouldn't need to specify this since we infer it
 	}
@@ -167,7 +167,7 @@ type storageBlobPage struct {
 	section *io.SectionReader
 }
 
-func (sbu StorageBlobUpload) pageUploadFromSource(ctx context.Context, file *os.File, fileSize int64) error {
+func (sbu BlobUpload) pageUploadFromSource(ctx context.Context, file *os.File, fileSize int64) error {
 	workerCount := sbu.Parallelism * runtime.NumCPU()
 
 	// first we chunk the file and assign them to 'pages'
@@ -214,7 +214,7 @@ const (
 	maxPageSize int64 = 4 * 1024 * 1024
 )
 
-func (sbu StorageBlobUpload) storageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
+func (sbu BlobUpload) storageBlobPageSplit(file *os.File, fileSize int64) ([]storageBlobPage, error) {
 	// whilst the file Size can be any arbitrary Size, it must be uploaded in fixed-Size pages
 	blobSize := fileSize
 	if fileSize%minPageSize != 0 {
@@ -272,7 +272,7 @@ type blobPageUploadContext struct {
 	wg       *sync.WaitGroup
 }
 
-func (sbu StorageBlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPageUploadContext) {
+func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPageUploadContext) {
 	for page := range uploadCtx.pages {
 		start := page.offset
 		end := page.offset + page.section.Size() - 1

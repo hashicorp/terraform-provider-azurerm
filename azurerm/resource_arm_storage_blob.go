@@ -153,7 +153,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
-	blobInput := storage.StorageBlobUpload{
+	blobInput := storage.BlobUpload{
 		AccountName:   accountName,
 		ContainerName: containerName,
 		BlobName:      name,
