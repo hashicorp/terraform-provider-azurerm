@@ -43,16 +43,18 @@ func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Res
 
 			// Always in UTC and must be ISO-8601 format
 			"start": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			// Always in UTC and must be ISO-8601 format
 			"expiry": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			"permissions": {
