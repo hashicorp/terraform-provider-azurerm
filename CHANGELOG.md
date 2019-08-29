@@ -1,5 +1,9 @@
 ## 1.34.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_kusto_cluster` [GH-4129]
+
 IMPROVEMENTS:
 
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v32.5.0` [GH-4166]
