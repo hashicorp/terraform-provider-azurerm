@@ -8,6 +8,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
+* `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
 * `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
 
