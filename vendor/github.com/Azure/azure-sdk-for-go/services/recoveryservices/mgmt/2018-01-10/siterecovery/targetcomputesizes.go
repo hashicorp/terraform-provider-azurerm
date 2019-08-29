@@ -105,8 +105,8 @@ func (client TargetComputeSizesClient) ListByReplicationProtectedItemsPreparer(c
 // ListByReplicationProtectedItemsSender sends the ListByReplicationProtectedItems request. The method will close the
 // http.Response Body if it receives an error.
 func (client TargetComputeSizesClient) ListByReplicationProtectedItemsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByReplicationProtectedItemsResponder handles the response to the ListByReplicationProtectedItems request. The method always

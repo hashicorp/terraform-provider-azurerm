@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform/helper/validation"
 
@@ -136,7 +137,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 	resourceGroupName := d.Get("resource_group_name").(string)
 	storageAccountName := d.Get("storage_account_name").(string)
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroupName, storageAccountName)
+	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroupName, storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -156,7 +157,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 
 	// gives us https://example.blob.core.windows.net/container/file.vhd
 	id := fmt.Sprintf("https://%s.blob.%s/%s/%s", storageAccountName, env.StorageEndpointSuffix, containerName, name)
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		exists, err := blob.Exists()
 		if err != nil {
 			return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, storageAccountName, resourceGroupName, err)
@@ -560,7 +561,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.storageAccountName)
 	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return fmt.Errorf("Error getting storage account %s: %+v", id.storageAccountName, err)
 	}
@@ -611,7 +612,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", id.storageAccountName)
 	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -687,7 +688,7 @@ func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) erro
 		return nil
 	}
 
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, *resourceGroup, id.storageAccountName)
+	blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, *resourceGroup, id.storageAccountName)
 	if err != nil {
 		return err
 	}
@@ -739,7 +740,7 @@ func parseStorageBlobID(input string, environment azauto.Environment) (*storageB
 }
 
 func determineResourceGroupForStorageAccount(accountName string, client *ArmClient) (*string, error) {
-	storageClient := client.storageServiceClient
+	storageClient := client.storage.AccountsClient
 	ctx := client.StopContext
 
 	// first locate which resource group the storage account is in

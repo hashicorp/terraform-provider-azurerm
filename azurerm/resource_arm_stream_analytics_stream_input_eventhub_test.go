@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_avro(t *testing.T) {
@@ -133,7 +134,7 @@ func TestAccAzureRMStreamAnalyticsStreamInputEventHub_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputEventHub_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

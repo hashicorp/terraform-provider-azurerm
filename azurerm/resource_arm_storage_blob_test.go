@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: with the new SDK: changing the Tier of Blobs. Content type for Block blobs
@@ -434,7 +435,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -521,7 +522,7 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -559,7 +560,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -590,7 +591,7 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind storage.Bl
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -653,7 +654,7 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return nil
 		}
