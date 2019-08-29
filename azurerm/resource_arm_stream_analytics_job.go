@@ -42,7 +42,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 			"compatibility_level": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// values found in the other API the portal uses
 					string(streamanalytics.OneFullStopZero),
@@ -55,27 +55,27 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 			"data_locale": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"events_late_arrival_max_delay_in_seconds": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 				// portal allows for up to 20d 23h 59m 59s
 				ValidateFunc: validation.IntBetween(-1, 1814399),
 			},
 
 			"events_out_of_order_max_delay_in_seconds": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 				// portal allows for up to 9m 59s
 				ValidateFunc: validation.IntBetween(0, 599),
 			},
 
 			"events_out_of_order_policy": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.Adjust),
 					string(streamanalytics.Drop),
@@ -84,7 +84,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 			"output_error_policy": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.OutputErrorPolicyDrop),
 					string(streamanalytics.OutputErrorPolicyStop),
@@ -93,13 +93,13 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 			"streaming_units": {
 				Type:         schema.TypeInt,
-				Required:     true,
+				Optional:	  true,
 				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
 			},
 
 			"transformation_query": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:	  true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
