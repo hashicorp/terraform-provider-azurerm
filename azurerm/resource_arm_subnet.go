@@ -113,6 +113,8 @@ func resourceArmSubnet() *schema.Resource {
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/virtualNetworks/subnets/action",
+												"Microsoft.Network/virtualNetworks/subnets/join/action",
+												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
 											}, false),
 										},
 									},
