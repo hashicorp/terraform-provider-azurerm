@@ -93,13 +93,13 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 			"streaming_units": {
 				Type:         schema.TypeInt,
-				Optional:	  true,
+				Optional:     true,
 				ValidateFunc: validate.StreamAnalyticsJobStreamingUnits,
 			},
 
 			"transformation_query": {
 				Type:         schema.TypeString,
-				Optional:	  true,
+				Optional:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
