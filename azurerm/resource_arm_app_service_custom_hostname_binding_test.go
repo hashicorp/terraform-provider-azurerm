@@ -76,7 +76,7 @@ func testAccAzureRMAppServiceCustomHostnameBinding_basic(t *testing.T, appServic
 }
 
 func testAccAzureRMAppServiceCustomHostnameBinding_requiresImport(t *testing.T, appServiceEnv, domainEnv string) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

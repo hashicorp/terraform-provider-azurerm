@@ -287,10 +287,12 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 			ID: &nsgId,
 		}
 
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(nsgId)
+		parsedNsgID, err := azure.ParseAzureResourceID(nsgId)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", nsgId, err)
 		}
+
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
 		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
@@ -467,10 +469,12 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err2 != nil {
-			return err2
+		parsedNsgID, err := azure.ParseAzureResourceID(networkSecurityGroupId)
+		if err != nil {
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", networkSecurityGroupId, err)
 		}
+
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
 		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)

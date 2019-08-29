@@ -134,7 +134,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

@@ -92,7 +92,7 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 }
 
 func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 }
 
 func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

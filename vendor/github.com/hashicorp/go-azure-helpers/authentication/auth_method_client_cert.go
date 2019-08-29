@@ -41,7 +41,7 @@ func (a servicePrincipalClientCertificateAuth) name() string {
 	return "Service Principal / Client Certificate"
 }
 
-func (a servicePrincipalClientCertificateAuth) getAuthorizationToken(sender autorest.Sender, oauth *MultiOAuth, endpoint string) (autorest.Authorizer, error) {
+func (a servicePrincipalClientCertificateAuth) getAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
 	if oauth.OAuth == nil {
 		return nil, fmt.Errorf("Error getting Authorization Token for client cert: an OAuth token wasn't configured correctly; please file a bug with more details")
 	}

@@ -10,14 +10,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azuread/version"
-
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 )
 
 // ArmClient contains the handles to all the specific Azure ADger resource classes' respective clients.
@@ -52,21 +49,16 @@ func getArmClient(authCfg *authentication.Config) (*ArmClient, error) {
 		environment:    *env,
 	}
 
-	sender := ar.BuildSender()
+	sender := sender.BuildSender("AzureAD")
 
-	oauthConfig, err := adal.NewOAuthConfig(env.ActiveDirectoryEndpoint, client.tenantID)
+	oauth, err := authCfg.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	// OAuthConfigForTenant returns a pointer, which can be nil.
-	if oauthConfig == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", client.tenantID)
-	}
-
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuthorizer, err := authCfg.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
+	graphAuthorizer, err := authCfg.GetAuthorizationToken(sender, oauth, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}

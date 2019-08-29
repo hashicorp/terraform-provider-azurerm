@@ -92,7 +92,7 @@ func resourceArmRecoveryServicesFabricCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRecoveryServicesFabricDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

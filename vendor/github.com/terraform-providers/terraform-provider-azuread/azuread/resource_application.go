@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 
@@ -36,6 +36,20 @@ func resourceApplication() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"available_to_other_tenants": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"group_membership_claims": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{"All", "None", "SecurityGroup", "DirectoryRole", "DistributionGroup"},
+					false,
+				),
+			},
+
 			"homepage": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -49,8 +63,19 @@ func resourceApplication() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.URLIsHTTPOrHTTPS,
+					ValidateFunc: validate.URLIsAppURI,
 				},
+			},
+
+			"oauth2_allow_implicit_flow": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
+			"public_client": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"reply_urls": {
@@ -63,35 +88,61 @@ func resourceApplication() *schema.Resource {
 				},
 			},
 
-			"available_to_other_tenants": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"oauth2_allow_implicit_flow": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
-
-			"application_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"group_membership_claims": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice(
-					[]string{"All", "None", "SecurityGroup", "DirectoryRole", "DistributionGroup"},
-					false,
-				),
-			},
-
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringInSlice([]string{"webapp/api", "native"}, false),
 				Default:      "webapp/api",
+			},
+
+			"app_role": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"allowed_member_types": {
+							Type:     schema.TypeSet,
+							Required: true,
+							MinItems: 1,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice(
+									[]string{"User", "Application"},
+									false,
+								),
+							},
+						},
+
+						"description": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"display_name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"is_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+
+						"value": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+					},
+				},
 			},
 
 			"required_resource_access": {
@@ -130,58 +181,17 @@ func resourceApplication() *schema.Resource {
 				},
 			},
 
-			"oauth2_permissions": {
-				Type:     schema.TypeList,
+			"application_id": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"admin_consent_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"admin_consent_display_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"is_enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"user_consent_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"user_consent_display_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"value": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 
 			"object_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"oauth2_permissions": graph.SchemaOauth2Permissions(),
 		},
 	}
 }
@@ -205,6 +215,7 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 		ReplyUrls:               tf.ExpandStringSlicePtr(d.Get("reply_urls").(*schema.Set).List()),
 		AvailableToOtherTenants: p.Bool(d.Get("available_to_other_tenants").(bool)),
 		RequiredResourceAccess:  expandADApplicationRequiredResourceAccess(d),
+		AppRoles:                expandADApplicationAppRoles(d.Get("app_role")),
 	}
 
 	if v, ok := d.GetOk("homepage"); ok {
@@ -219,6 +230,10 @@ func resourceApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("oauth2_allow_implicit_flow"); ok {
 		properties.Oauth2AllowImplicitFlow = p.Bool(v.(bool))
+	}
+
+	if v, ok := d.GetOk("public_client"); ok {
+		properties.PublicClient = p.Bool(v.(bool))
 	}
 
 	if v, ok := d.GetOk("group_membership_claims"); ok {
@@ -284,17 +299,45 @@ func resourceApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("available_to_other_tenants") {
-		availableToOtherTenants := d.Get("available_to_other_tenants").(bool)
-		properties.AvailableToOtherTenants = p.Bool(availableToOtherTenants)
+		properties.AvailableToOtherTenants = p.Bool(d.Get("available_to_other_tenants").(bool))
 	}
 
 	if d.HasChange("oauth2_allow_implicit_flow") {
-		oauth := d.Get("oauth2_allow_implicit_flow").(bool)
-		properties.Oauth2AllowImplicitFlow = p.Bool(oauth)
+		properties.Oauth2AllowImplicitFlow = p.Bool(d.Get("oauth2_allow_implicit_flow").(bool))
+	}
+
+	if d.HasChange("public_client") {
+		properties.PublicClient = p.Bool(d.Get("public_client").(bool))
 	}
 
 	if d.HasChange("required_resource_access") {
 		properties.RequiredResourceAccess = expandADApplicationRequiredResourceAccess(d)
+	}
+
+	if d.HasChange("app_role") {
+		// if the app role already exists then it must be disabled
+		// with no other changes before it can be edited or deleted
+		var app graphrbac.Application
+		var appRolesProperties graphrbac.ApplicationUpdateParameters
+		resp, err := client.Get(ctx, d.Id())
+		if err != nil {
+			if ar.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Error: AzureAD Application with ID %q was not found", d.Id())
+			}
+
+			return fmt.Errorf("Error making Read request on AzureAD Application with ID %q: %+v", d.Id(), err)
+		}
+		app = resp
+		for _, appRole := range *app.AppRoles {
+			*appRole.IsEnabled = false
+		}
+		appRolesProperties.AppRoles = app.AppRoles
+		if _, err := client.Patch(ctx, d.Id(), appRolesProperties); err != nil {
+			return fmt.Errorf("Error disabling App Roles for Azure AD Application with ID %q: %+v", d.Id(), err)
+		}
+
+		// now we can set the new state of the app role
+		properties.AppRoles = expandADApplicationAppRoles(d.Get("app_role"))
 	}
 
 	if d.HasChange("group_membership_claims") {
@@ -311,7 +354,6 @@ func resourceApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 			properties.IdentifierUris = &[]string{}
 		default:
 			return fmt.Errorf("Error paching Azure AD Application with ID %q: Unknow application type %v. Supported types are [webapp/api, native]", d.Id(), appType)
-
 		}
 	}
 
@@ -342,6 +384,7 @@ func resourceApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("homepage", app.Homepage)
 	d.Set("available_to_other_tenants", app.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", app.Oauth2AllowImplicitFlow)
+	d.Set("public_client", app.PublicClient)
 	d.Set("object_id", app.ObjectID)
 
 	if v := app.PublicClient; v != nil && *v {
@@ -366,7 +409,11 @@ func resourceApplicationRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `required_resource_access`: %+v", err)
 	}
 
-	if err := d.Set("oauth2_permissions", flattenADApplicationOauth2Permissions(app.Oauth2Permissions)); err != nil {
+	if err := d.Set("app_role", graph.FlattenAppRoles(app.AppRoles)); err != nil {
+		return fmt.Errorf("Error setting `app_role`: %+v", err)
+	}
+
+	if err := d.Set("oauth2_permissions", graph.FlattenOauth2Permissions(app.Oauth2Permissions)); err != nil {
 		return fmt.Errorf("Error setting `oauth2_permissions`: %+v", err)
 	}
 
@@ -479,41 +526,43 @@ func flattenADApplicationResourceAccess(in *[]graphrbac.ResourceAccess) []interf
 	return accesses
 }
 
-func flattenADApplicationOauth2Permissions(in *[]graphrbac.OAuth2Permission) []map[string]interface{} {
-	if in == nil {
-		return []map[string]interface{}{}
+func expandADApplicationAppRoles(i interface{}) *[]graphrbac.AppRole {
+	input := i.(*schema.Set).List()
+	if len(input) == 0 {
+		return nil
 	}
 
-	result := make([]map[string]interface{}, 0)
-	for _, p := range *in {
-		permission := make(map[string]interface{})
-		if v := p.AdminConsentDescription; v != nil {
-			permission["admin_consent_description"] = v
-		}
-		if v := p.AdminConsentDisplayName; v != nil {
-			permission["admin_consent_display_name"] = v
-		}
-		if v := p.ID; v != nil {
-			permission["id"] = v
-		}
-		if v := p.IsEnabled; v != nil {
-			permission["is_enabled"] = *v
-		}
-		if v := p.Type; v != nil {
-			permission["type"] = v
-		}
-		if v := p.UserConsentDescription; v != nil {
-			permission["user_consent_description"] = v
-		}
-		if v := p.UserConsentDisplayName; v != nil {
-			permission["user_consent_display_name"] = v
-		}
-		if v := p.Value; v != nil {
-			permission["value"] = v
+	var output []graphrbac.AppRole
+
+	for _, appRoleRaw := range input {
+		appRole := appRoleRaw.(map[string]interface{})
+
+		appRoleID := appRole["id"].(string)
+		if appRoleID == "" {
+			appRoleID = uuid.New().String()
 		}
 
-		result = append(result, permission)
+		var appRoleAllowedMemberTypes []string
+		for _, appRoleAllowedMemberType := range appRole["allowed_member_types"].(*schema.Set).List() {
+			appRoleAllowedMemberTypes = append(appRoleAllowedMemberTypes, appRoleAllowedMemberType.(string))
+		}
+
+		appRoleDescription := appRole["description"].(string)
+		appRoleDisplayName := appRole["display_name"].(string)
+		appRoleIsEnabled := appRole["is_enabled"].(bool)
+		appRoleValue := appRole["value"].(string)
+
+		output = append(output,
+			graphrbac.AppRole{
+				ID:                 &appRoleID,
+				AllowedMemberTypes: &appRoleAllowedMemberTypes,
+				Description:        &appRoleDescription,
+				DisplayName:        &appRoleDisplayName,
+				IsEnabled:          &appRoleIsEnabled,
+				Value:              &appRoleValue,
+			},
+		)
 	}
 
-	return result
+	return &output
 }

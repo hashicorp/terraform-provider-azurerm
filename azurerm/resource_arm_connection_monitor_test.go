@@ -44,7 +44,7 @@ func testAccAzureRMConnectionMonitor_addressBasic(t *testing.T) {
 }
 
 func testAccAzureRMConnectionMonitor_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

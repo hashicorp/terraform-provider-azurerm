@@ -35,7 +35,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) name() string {
 	return "Multi Tenant Service Principal / Client Secret"
 }
 
-func (a servicePrincipalClientSecretMultiTenantAuth) getAuthorizationToken(sender autorest.Sender, oauth *MultiOAuth, endpoint string) (autorest.Authorizer, error) {
+func (a servicePrincipalClientSecretMultiTenantAuth) getAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
 	if oauth.MultiTenantOauth == nil {
 		return nil, fmt.Errorf("Error getting Authorization Token for client cert: an MultiTenantOauth token wasn't configured correctly; please file a bug with more details")
 	}

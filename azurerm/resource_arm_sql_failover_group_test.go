@@ -36,7 +36,7 @@ func TestAccAzureRMSqlFailoverGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSqlFailoverGroup_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skiiping since resources aren't required to be imported")
 		return
 	}

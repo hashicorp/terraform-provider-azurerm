@@ -25,7 +25,7 @@ type Config struct {
 	authMethod authMethod
 }
 
-type MultiOAuth struct {
+type OAuthConfig struct {
 	OAuth            *adal.OAuthConfig
 	MultiTenantOauth *adal.MultiTenantOAuthConfig
 }
@@ -62,17 +62,50 @@ func (c Config) GetMultiTenantOAuthConfig(activeDirectoryEndpoint string) (*adal
 	return &oauth, nil
 }
 
-func (c Config) GetMultiOAuthConfig(activeDirectoryEndpoint string) (*MultiOAuth, error) {
-	if len(c.AuxiliaryTenantIDs) == 0 {
-		oauth, err := c.GetOAuthConfig(activeDirectoryEndpoint)
-		return &MultiOAuth{OAuth: oauth}, err
+// BuildOAuthConfig builds the authorization configuration for the specified Active Directory Endpoint
+func (c Config) BuildOAuthConfig(activeDirectoryEndpoint string) (*OAuthConfig, error) {
+	multiAuth := OAuthConfig{}
+	var err error
+
+	multiAuth.OAuth, err = c.GetOAuthConfig(activeDirectoryEndpoint)
+	if err != nil {
+		return nil, err
 	}
 
-	oauth, err := c.GetMultiTenantOAuthConfig(activeDirectoryEndpoint)
-	return &MultiOAuth{MultiTenantOauth: oauth}, err
+	if len(c.AuxiliaryTenantIDs) > 0 {
+		multiAuth.MultiTenantOauth, err = c.GetMultiTenantOAuthConfig(activeDirectoryEndpoint)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &multiAuth, nil
+}
+
+// BearerAuthorizerCallback returns a BearerAuthorizer valid only for the Primary Tenant
+// this signs a request using the AccessToken returned from the primary Resource Manager authorizer
+func (c Config) BearerAuthorizerCallback(sender autorest.Sender, oauthConfig *OAuthConfig) *autorest.BearerAuthorizerCallback {
+	return autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
+		// a BearerAuthorizer is only valid for the primary tenant
+		newAuthConfig := &OAuthConfig{
+			OAuth: oauthConfig.OAuth,
+		}
+
+		storageSpt, err := c.GetAuthorizationToken(sender, newAuthConfig, resource)
+		if err != nil {
+			return nil, err
+		}
+
+		cast, ok := storageSpt.(*autorest.BearerAuthorizer)
+		if !ok {
+			return nil, fmt.Errorf("Error converting %+v to a BearerAuthorizer", storageSpt)
+		}
+
+		return cast, nil
+	})
 }
 
 // GetAuthorizationToken returns an authorization token for the authentication method defined in the Config
-func (c Config) GetAuthorizationToken(sender autorest.Sender, oauth *MultiOAuth, endpoint string) (autorest.Authorizer, error) {
+func (c Config) GetAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
 	return c.authMethod.getAuthorizationToken(sender, oauth, endpoint)
 }

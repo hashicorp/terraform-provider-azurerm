@@ -2,14 +2,20 @@
 
 IMPROVEMENTS:
 
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v32.5.0` [GH-4166]
+* dependencies: updating `github.com/Azure/go-autorest` to `v0.9.0` [GH-4166]
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` [GH-4166]
+* dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
+* `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
+* `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
 
 BUG FIXES:
 
-* `azurerm_log_analytics_linked_service` crash fix [GH-4142]
-
-* `azurerm_log_analytics_workspace_linked_service` crash fix [GH-4152]
+* `azurerm_log_analytics_linked_service` - crash fix [GH-4142]
+* `azurerm_log_analytics_workspace_linked_service` - crash fix [GH-4152]
+* `azurerm_virtual_network_peering` - prevent nil object from being read [GH-4180]
 
 ## 1.33.1 (August 27, 2019)
 

@@ -9,7 +9,7 @@ type authMethod interface {
 
 	isApplicable(b Builder) bool
 
-	getAuthorizationToken(sender autorest.Sender, oauthConfig *MultiOAuth, endpoint string) (autorest.Authorizer, error)
+	getAuthorizationToken(sender autorest.Sender, oauthConfig *OAuthConfig, endpoint string) (autorest.Authorizer, error)
 
 	name() string
 
