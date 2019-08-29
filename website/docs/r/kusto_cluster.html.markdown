@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_cluster"
 sidebar_current: "docs-azurerm-resource-kusto-cluster"
 description: |-
-  Manages Kusto / Data Explorer Cluster
+  Manages Kusto (also known as Azure Data Explorer) Cluster
 ---
 
 # azurerm_kusto_cluster
@@ -11,8 +11,6 @@ description: |-
 Manages a Kusto (also known as Azure Data Explorer) Cluster
 
 ## Example Usage
-
-This example provisions a basic Kusto Cluster.
 
 ```hcl
 resource "azurerm_resource_group" "rg" {

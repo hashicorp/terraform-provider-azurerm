@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -68,7 +69,7 @@ func resourceArmKustoCluster() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -104,14 +105,14 @@ func resourceArmKustoClusterCreateUpdate(d *schema.ResourceData, meta interface{
 
 	clusterProperties := kusto.ClusterProperties{}
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	kustoCluster := kusto.Cluster{
 		Name:              &name,
 		Location:          &location,
 		Sku:               sku,
 		ClusterProperties: &clusterProperties,
-		Tags:              expandTags(tags),
+		Tags:              tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, kustoCluster)
@@ -170,14 +171,12 @@ func resourceArmKustoClusterRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	clusterProperties := clusterResponse.ClusterProperties
+	if clusterProperties := clusterResponse.ClusterProperties; clusterProperties != nil {
+		d.Set("uri", clusterProperties.URI)
+		d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
+	}
 
-	d.Set("uri", clusterProperties.URI)
-	d.Set("data_ingestion_uri", clusterProperties.DataIngestionURI)
-
-	flattenAndSetTags(d, clusterResponse.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, clusterResponse.Tags)
 }
 
 func resourceArmKustoClusterDelete(d *schema.ResourceData, meta interface{}) error {
@@ -267,10 +266,17 @@ func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
 }
 
 func flattenKustoClusterSku(sku *kusto.AzureSku) []interface{} {
-	return []interface{}{
-		map[string]interface{}{
-			"name":     string(sku.Name),
-			"capacity": int(*sku.Capacity),
-		},
+	if sku == nil {
+		return []interface{}{}
 	}
+
+	s := map[string]interface{}{
+		"name": string(sku.Name),
+	}
+
+	if sku.Capacity != nil {
+		s["capacity"] = int(*sku.Capacity)
+	}
+
+	return []interface{}{s}
 }
