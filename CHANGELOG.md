@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
+* **New Resource:** `azurerm_web_application_firewall_policy` [GH-4119]
 
 IMPROVEMENTS:
 
