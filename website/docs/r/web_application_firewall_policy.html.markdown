@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_web_application_firewall_policy"
 sidebar_current: "docs-azurerm-resource-web-application-firewall-policy"
 description: |-
-  Manage a Azure Web Application Firewall Policy instance.
+  Manages a Azure Web Application Firewall Policy instance.
 ---
 
 # azurerm_web_application_firewall_policy
