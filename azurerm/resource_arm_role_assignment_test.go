@@ -234,7 +234,6 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType(t *t
 				Config: testAccAzureRMRoleAssignment_servicePrincipalWithType(ri, id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
-					resource.TestCheckResourceAttr(resourceName, "principal_type", "ServicePrincipal"),
 				),
 			},
 		},
@@ -475,11 +474,11 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azurerm_role_assignment" "test" {
-  name                 = "%s"
-  scope                = "${data.azurerm_subscription.current.id}"
-  role_definition_name = "Reader"
-  principal_id         = "${azuread_service_principal.test.id}"
-  principal_type       = "ServicePrincipal"
+  name                             = "%s"
+  scope                            = "${data.azurerm_subscription.current.id}"
+  role_definition_name             = "Reader"
+  principal_id                     = "${azuread_service_principal.test.id}"
+  skip_service_principal_aad_check = true
 }
 `, rInt, roleAssignmentID)
 }

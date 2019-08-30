@@ -22,7 +22,6 @@ resource "azurerm_role_assignment" "test" {
   scope                = "${data.azurerm_subscription.primary.id}"
   role_definition_name = "Reader"
   principal_id         = "${data.azurerm_client_config.test.service_principal_object_id}"
-  principal_type       = "ServicePrincipal"
 }
 ```
 
@@ -134,7 +133,7 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
-* `PrincipalType` - (Optional) The principal type of the assigned `principal_id`. Possible values include: `Application`, `DirectoryObjectOrGroup`, `DirectoryRoleTemplate`, `Everyone`, `ForeignGroup`, `Group`, `MSI`, `ServicePrincipal`, `Unknown` and `User`.
+* `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. If it is not a `Service Principal` identity it will cause the role assignment to fail. Defaults to `false`.
 
 ## Attributes Reference
 
