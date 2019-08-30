@@ -221,7 +221,6 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 }
 
 func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType(t *testing.T) {
-	resourceName := "azurerm_role_assignment.test"
 	ri := tf.AccRandTimeInt()
 	id := uuid.New().String()
 
