@@ -329,8 +329,14 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
 		"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
+		"azurerm_recovery_network_mapping":                                               resourceArmRecoveryServicesNetworkMapping(),
+		"azurerm_recovery_replicated_vm":                                                 resourceArmRecoveryServicesReplicatedVm(),
+		"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
 		"azurerm_recovery_services_protected_vm":                                         resourceArmRecoveryServicesProtectedVm(),
+		"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
+		"azurerm_recovery_services_protection_container_mapping":                         resourceArmRecoveryServicesProtectionContainerMapping(),
 		"azurerm_recovery_services_protection_policy_vm":                                 resourceArmRecoveryServicesProtectionPolicyVm(),
+		"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
 		"azurerm_recovery_services_vault":                                                resourceArmRecoveryServicesVault(),
 		"azurerm_redis_cache":                                                            resourceArmRedisCache(),
 		"azurerm_redis_firewall_rule":                                                    resourceArmRedisFirewallRule(),
@@ -400,12 +406,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
-		"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
-		"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
-		"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
-		"azurerm_recovery_services_protection_container_mapping":                         resourceArmRecoveryServicesProtectionContainerMapping(),
-		"azurerm_recovery_network_mapping":                                               resourceArmRecoveryServicesNetworkMapping(),
-		"azurerm_recovery_replicated_vm":                                                 resourceArmRecoveryServicesReplicatedVm(),
+		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
 	for _, service := range supportedServices {
