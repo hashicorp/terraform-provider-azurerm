@@ -86,9 +86,9 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"key_vault_secret_id"},
 			},
 		},
