@@ -21,10 +21,11 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service_plan` and `azurerm_app_service_slot` crash fixes [GH-4184]
+* `azurerm_container_group~ - make `storage_account_key` field in `volume` block sensitive [GH-4201]
 * `azurerm_log_analytics_linked_service` - crash fix [GH-4142]
 * `azurerm_log_analytics_workspace_linked_service` - crash fix [GH-4152]
 * `azurerm_virtual_network_peering` - prevent nil object from being read [GH-4180]
-* `azurerm_app_service_plan` and `azurerm_app_service_slot` crash fixes [GH-4184]
 
 ## 1.33.1 (August 27, 2019)
 
