@@ -89,6 +89,7 @@ func TestAccAzureRMAppServiceCertificate_KeyVault(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{"key_vault_secret_id"},
 			},
 		},
 	})
@@ -192,11 +193,10 @@ resource "azurerm_key_vault_certificate" "test" {
 }
 
 resource "azurerm_app_service_certificate" "test" {
-  name                  = "acctest%d"
-  resource_group_name   = azurerm_resource_group.test.name
-  location              = azurerm_resource_group.test.location
-  key_vault_id          = azurerm_key_vault.test.id
-  key_vault_secret_name = azurerm_key_vault_certificate.test.name
+  name                = "acctest%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  key_vault_secret_id = azurerm_key_vault_certificate.test.id
 }
 `, rInt, location, rInt, rInt, rInt)
 }

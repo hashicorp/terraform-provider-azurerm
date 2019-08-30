@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -93,20 +92,11 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				Computed: true,
 			},
 
-			"key_vault_id": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				ForceNew:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
-				ValidateFunc:     azure.ValidateResourceID,
-				ConflictsWith:    []string{"pfx_blob", "password"},
-			},
-
-			"key_vault_secret_name": {
+			"key_vault_secret_id": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ValidateFunc:  validate.NoEmptyStrings,
+				ValidateFunc:  azure.ValidateKeyVaultChildId,
 				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
@@ -116,6 +106,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
 	client := meta.(*ArmClient).web.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -124,8 +115,14 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	pfxBlob := d.Get("pfx_blob").(string)
 	password := d.Get("password").(string)
+	keyVaultSecretId := d.Get("key_vault_secret_id").(string)
 	t := d.Get("tags").(map[string]interface{})
+
+	if pfxBlob == "" && keyVaultSecretId == "" {
+		return fmt.Errorf("Either `pfx_blob` or `key_vault_secret_id` must be set")
+	}
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -148,20 +145,32 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 		Tags:     tags.Expand(t),
 	}
 
-	if v, ok := d.GetOk("pfx_blob"); ok {
-		pfxBlob, err := base64.StdEncoding.DecodeString(v.(string))
+	if pfxBlob != "" {
+		decodedPfxBlob, err := base64.StdEncoding.DecodeString(pfxBlob)
 		if err != nil {
 			return fmt.Errorf("Could not decode PFX blob: %+v", err)
 		}
-		certificate.CertificateProperties.PfxBlob = &pfxBlob
+		certificate.CertificateProperties.PfxBlob = &decodedPfxBlob
 	}
 
-	if v, ok := d.GetOk("key_vault_id"); ok {
-		certificate.CertificateProperties.KeyVaultID = utils.String(v.(string))
-	}
+	if keyVaultSecretId != "" {
+		parsedSecretId, err := azure.ParseKeyVaultChildID(keyVaultSecretId)
+		if err != nil {
+			return err
+		}
 
-	if v, ok := d.GetOk("key_vault_secret_name"); ok {
-		certificate.CertificateProperties.KeyVaultSecretName = utils.String(v.(string))
+		keyVaultBaseUrl := parsedSecretId.KeyVaultBaseUrl
+
+		keyVaultId, err := azure.GetKeyVaultIDFromBaseUrl(ctx, vaultClient, keyVaultBaseUrl)
+		if err != nil {
+			return fmt.Errorf("Error retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
+		}
+		if keyVaultId == nil {
+			return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+		}
+
+		certificate.CertificateProperties.KeyVaultID = keyVaultId
+		certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificate); err != nil {
