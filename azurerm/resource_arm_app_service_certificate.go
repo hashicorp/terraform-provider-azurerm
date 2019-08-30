@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -130,7 +131,7 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -164,12 +165,12 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, certificate); err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving App Service Certificate %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read App Service Certificate %q (Resource Group %q) ID", name, resourceGroup)
@@ -214,8 +215,8 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		d.Set("subject_name", props.SubjectName)
 		d.Set("host_names", props.HostNames)
 		d.Set("issuer", props.Issuer)
-		d.Set("issue_date", props.IssueDate)
-		d.Set("expiration_date", props.ExpirationDate)
+		d.Set("issue_date", props.IssueDate.Format(time.RFC3339))
+		d.Set("expiration_date", props.ExpirationDate.Format(time.RFC3339))
 		d.Set("thumbprint", props.Thumbprint)
 		d.Set("key_vault_id", props.KeyVaultID)
 		d.Set("key_vault_secret_name", props.KeyVaultSecretName)
@@ -242,7 +243,7 @@ func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interfa
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {
-			return err
+			return fmt.Errorf("Error deleting App Service Certificate %q (Resource Group %q): %s)", name, resourceGroup, err)
 		}
 	}
 

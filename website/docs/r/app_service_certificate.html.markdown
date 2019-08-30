@@ -38,13 +38,15 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `pfx_blob` - (Required) The base64-encoded contents of the certificate. Changing this forces a new resource to be created.
+* `pfx_blob` - (Optional) The base64-encoded contents of the certificate. Changing this forces a new resource to be created.
+
+-> **NOTE:** One of either `pfx_blob` or `key_vault_secret_id` and `key_vault_secret_name` must be set.
 
 * `password` - (Optional) The password to access the certificate's private key. Changing this forces a new resource to be created.
 
-* `key_vault_id` - (Required) The resource ID for the Key Vault. Changing this forces a new resource to be created.
+* `key_vault_id` - (Optional) The resource ID for the Key Vault. Changing this forces a new resource to be created.
 
-* `key_vault_secret_name` - (Required) The name of the Key Vault secret. Changing this forces a new resource to be created.
+* `key_vault_secret_name` - (Optional) The name of the Key Vault secret. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
