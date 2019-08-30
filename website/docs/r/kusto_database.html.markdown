@@ -12,8 +12,6 @@ Manages a Kusto (also known as Azure Data Explorer) Database
 
 ## Example Usage
 
-This example provisions a Kusto Database.
-
 ```hcl
 resource "azurerm_resource_group" "rg" {
   name     = "my-kusto-rg"
