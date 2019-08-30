@@ -94,9 +94,9 @@ func (client ReplicationJobsClient) CancelPreparer(ctx context.Context, jobName 
 // CancelSender sends the Cancel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationJobsClient) CancelSender(req *http.Request) (future ReplicationJobsCancelFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -172,9 +172,9 @@ func (client ReplicationJobsClient) ExportPreparer(ctx context.Context, jobQuery
 // ExportSender sends the Export request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationJobsClient) ExportSender(req *http.Request) (future ReplicationJobsExportFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -255,8 +255,8 @@ func (client ReplicationJobsClient) GetPreparer(ctx context.Context, jobName str
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationJobsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -335,8 +335,8 @@ func (client ReplicationJobsClient) ListPreparer(ctx context.Context, filter str
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationJobsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -443,9 +443,9 @@ func (client ReplicationJobsClient) RestartPreparer(ctx context.Context, jobName
 // RestartSender sends the Restart request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationJobsClient) RestartSender(req *http.Request) (future ReplicationJobsRestartFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -523,9 +523,9 @@ func (client ReplicationJobsClient) ResumePreparer(ctx context.Context, jobName 
 // ResumeSender sends the Resume request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationJobsClient) ResumeSender(req *http.Request) (future ReplicationJobsResumeFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

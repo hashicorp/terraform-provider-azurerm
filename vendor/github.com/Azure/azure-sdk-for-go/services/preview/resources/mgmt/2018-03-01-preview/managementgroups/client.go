@@ -108,8 +108,8 @@ func (client BaseClient) CheckNameAvailabilityPreparer(ctx context.Context, chec
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
@@ -176,8 +176,8 @@ func (client BaseClient) StartTenantBackfillPreparer(ctx context.Context) (*http
 // StartTenantBackfillSender sends the StartTenantBackfill request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) StartTenantBackfillSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // StartTenantBackfillResponder handles the response to the StartTenantBackfill request. The method always
@@ -244,8 +244,8 @@ func (client BaseClient) TenantBackfillStatusPreparer(ctx context.Context) (*htt
 // TenantBackfillStatusSender sends the TenantBackfillStatus request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) TenantBackfillStatusSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // TenantBackfillStatusResponder handles the response to the TenantBackfillStatus request. The method always

@@ -161,6 +161,11 @@ resource "azurerm_kusto_cluster" "test" {
     name     = "Dev(No SLA)_Standard_D11_v2"
     capacity = 1
   }
+
+  tags = {
+	label = "test1"
+	ENV   = "prod"
+  }
 }
 `, rInt, location, rs)
 }

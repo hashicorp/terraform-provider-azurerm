@@ -104,9 +104,9 @@ func (client ReplicationStorageClassificationMappingsClient) CreatePreparer(ctx 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) CreateSender(req *http.Request) (future ReplicationStorageClassificationMappingsCreateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -185,9 +185,9 @@ func (client ReplicationStorageClassificationMappingsClient) DeletePreparer(ctx 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) DeleteSender(req *http.Request) (future ReplicationStorageClassificationMappingsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -271,8 +271,8 @@ func (client ReplicationStorageClassificationMappingsClient) GetPreparer(ctx con
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -346,8 +346,8 @@ func (client ReplicationStorageClassificationMappingsClient) ListPreparer(ctx co
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -463,8 +463,8 @@ func (client ReplicationStorageClassificationMappingsClient) ListByReplicationSt
 // ListByReplicationStorageClassificationsSender sends the ListByReplicationStorageClassifications request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationStorageClassificationMappingsClient) ListByReplicationStorageClassificationsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByReplicationStorageClassificationsResponder handles the response to the ListByReplicationStorageClassifications request. The method always

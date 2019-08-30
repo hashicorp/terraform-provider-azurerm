@@ -6,6 +6,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -85,7 +86,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	resGroup := id.ResourceGroup
 	appInsightsName := id.Path["components"]
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		var existing insights.ApplicationInsightsComponentAPIKey
 		existing, err = client.Get(ctx, resGroup, appInsightsName, name)
 		if err != nil {

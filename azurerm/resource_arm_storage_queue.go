@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
@@ -100,7 +101,7 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	resourceID := queueClient.GetResourceID(accountName, queueName)
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := queueClient.GetMetaData(ctx, accountName, queueName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
