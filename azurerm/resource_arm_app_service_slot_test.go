@@ -2776,11 +2776,13 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+}
 
-  subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
-  }
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_app_service_plan" "test" {
@@ -2810,11 +2812,11 @@ resource "azurerm_app_service_slot" "test" {
 
   site_config {
     ip_restriction {
-      virtual_network_subnet_id = "${azurerm_virtual_network.test.subnet.*.id}"[0]
+      virtual_network_subnet_id = "${azurerm_subnet.test.id}"
     }
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMAppServiceSlot_zeroedIpRestriction(rInt int, location string) string {

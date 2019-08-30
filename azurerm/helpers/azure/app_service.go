@@ -311,6 +311,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 								Type:     schema.TypeString,
 								Optional: true,
 								Computed: true,
+								// TODO we should fix this in 2.0
 								// This attribute was made with the assumption that `ip_address` was the only valid option
 								// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
 								// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
@@ -1308,9 +1309,9 @@ func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 	return []interface{}{result}
 }
 
-func ExpandAppServiceSiteConfig(input interface{}) (web.SiteConfig, error) {
+func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	configs := input.([]interface{})
-	siteConfig := web.SiteConfig{}
+	siteConfig := &web.SiteConfig{}
 
 	if len(configs) == 0 {
 		return siteConfig, nil

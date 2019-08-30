@@ -229,7 +229,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
 			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			SiteConfig:   siteConfig,
 		},
 	}
 
@@ -331,7 +331,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
 			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			SiteConfig:   siteConfig,
 		},
 	}
 
@@ -356,7 +356,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
 		}
 		siteConfigResource := web.SiteConfigResource{
-			SiteConfig: &siteConfig,
+			SiteConfig: siteConfig,
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource); err != nil {
