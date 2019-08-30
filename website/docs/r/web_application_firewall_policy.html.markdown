@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_web_application_firewall_policy
 
-Manage a Azure Web Application Firewall Policy instance.
+Manages a Azure Web Application Firewall Policy instance.
 
 ## Example Usage
 
