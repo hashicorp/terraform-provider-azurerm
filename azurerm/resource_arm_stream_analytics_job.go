@@ -43,6 +43,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			"compatibility_level": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// values found in the other API the portal uses
 					string(streamanalytics.OneFullStopZero),
@@ -56,6 +57,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			"data_locale": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
@@ -85,6 +87,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 			"output_error_policy": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.OutputErrorPolicyDrop),
 					string(streamanalytics.OutputErrorPolicyStop),
@@ -137,7 +140,7 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	compatibilityLevel := d.Get("compatibility_level").(string)
-	// dataLocale := d.Get("data_locale").(string)
+	dataLocale := d.Get("data_locale").(string)
 	eventsLateArrivalMaxDelayInSeconds := d.Get("events_late_arrival_max_delay_in_seconds").(int)
 	eventsOutOfOrderMaxDelayInSeconds := d.Get("events_out_of_order_max_delay_in_seconds").(int)
 	eventsOutOfOrderPolicy := d.Get("events_out_of_order_policy").(string)
@@ -163,8 +166,8 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 			Sku: &streamanalytics.Sku{
 				Name: streamanalytics.Standard,
 			},
-			CompatibilityLevel: streamanalytics.CompatibilityLevel(compatibilityLevel),
-			// DataLocale:                         utils.String(dataLocale),
+			CompatibilityLevel:                 streamanalytics.CompatibilityLevel(compatibilityLevel),
+			DataLocale:                         utils.String(dataLocale),
 			EventsLateArrivalMaxDelayInSeconds: utils.Int32(int32(eventsLateArrivalMaxDelayInSeconds)),
 			EventsOutOfOrderMaxDelayInSeconds:  utils.Int32(int32(eventsOutOfOrderMaxDelayInSeconds)),
 			EventsOutOfOrderPolicy:             streamanalytics.EventsOutOfOrderPolicy(eventsOutOfOrderPolicy),
