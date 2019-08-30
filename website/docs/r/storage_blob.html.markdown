@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_blob
 
-Manage an Azure Storage Blob.
+Manages an Azure Storage Blob.
 
 ## Example Usage
 

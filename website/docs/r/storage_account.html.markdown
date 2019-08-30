@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_account
 
-Manage an Azure Storage Account.
+Manages an Azure Storage Account.
 
 ## Example Usage
 

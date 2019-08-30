@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory"
 sidebar_current: "docs-azurerm-resource-data-factory-x"
 description: |-
-  Manage an Azure Data Factory (Version 2).
+  Manages an Azure Data Factory (Version 2).
 ---
 
 # azurerm_data_factory
 
-Manage an Azure Data Factory (Version 2).
+Manages an Azure Data Factory (Version 2).
 
 ## Example Usage
 
