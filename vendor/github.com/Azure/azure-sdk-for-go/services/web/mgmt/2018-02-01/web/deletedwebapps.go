@@ -99,8 +99,8 @@ func (client DeletedWebAppsClient) GetDeletedWebAppByLocationPreparer(ctx contex
 // GetDeletedWebAppByLocationSender sends the GetDeletedWebAppByLocation request. The method will close the
 // http.Response Body if it receives an error.
 func (client DeletedWebAppsClient) GetDeletedWebAppByLocationSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetDeletedWebAppByLocationResponder handles the response to the GetDeletedWebAppByLocation request. The method always
@@ -172,8 +172,8 @@ func (client DeletedWebAppsClient) ListPreparer(ctx context.Context) (*http.Requ
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client DeletedWebAppsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -283,8 +283,8 @@ func (client DeletedWebAppsClient) ListByLocationPreparer(ctx context.Context, l
 // ListByLocationSender sends the ListByLocation request. The method will close the
 // http.Response Body if it receives an error.
 func (client DeletedWebAppsClient) ListByLocationSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByLocationResponder handles the response to the ListByLocation request. The method always

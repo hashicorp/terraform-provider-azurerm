@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -184,7 +185,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -216,7 +217,10 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+	}
 
 	siteEnvelope := web.Site{
 		Location: &location,
@@ -225,7 +229,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
 			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			SiteConfig:   siteConfig,
 		},
 	}
 
@@ -315,7 +319,11 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+	}
+
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     tags.Expand(t),
@@ -323,7 +331,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
 			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			SiteConfig:   siteConfig,
 		},
 	}
 
@@ -343,9 +351,12 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		if err != nil {
+			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+		}
 		siteConfigResource := web.SiteConfigResource{
-			SiteConfig: &siteConfig,
+			SiteConfig: siteConfig,
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource); err != nil {

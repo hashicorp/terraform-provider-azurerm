@@ -7,6 +7,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -218,7 +219,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	createMode := "Default"
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

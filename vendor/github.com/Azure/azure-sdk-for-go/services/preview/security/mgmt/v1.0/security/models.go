@@ -49,6 +49,23 @@ func PossibleAadConnectivityStateValues() []AadConnectivityState {
 	return []AadConnectivityState{Connected, Discovered, NotLicensed}
 }
 
+// Action enumerates the values for action.
+type Action string
+
+const (
+	// Add ...
+	Add Action = "Add"
+	// Recommended ...
+	Recommended Action = "Recommended"
+	// Remove ...
+	Remove Action = "Remove"
+)
+
+// PossibleActionValues returns an array of possible values for the Action const type.
+func PossibleActionValues() []Action {
+	return []Action{Add, Recommended, Remove}
+}
+
 // AlertNotifications enumerates the values for alert notifications.
 type AlertNotifications string
 
@@ -94,6 +111,69 @@ func PossibleAutoProvisionValues() []AutoProvision {
 	return []AutoProvision{AutoProvisionOff, AutoProvisionOn}
 }
 
+// ConfigurationStatus enumerates the values for configuration status.
+type ConfigurationStatus string
+
+const (
+	// Configured ...
+	Configured ConfigurationStatus = "Configured"
+	// Failed ...
+	Failed ConfigurationStatus = "Failed"
+	// InProgress ...
+	InProgress ConfigurationStatus = "InProgress"
+	// NoStatus ...
+	NoStatus ConfigurationStatus = "NoStatus"
+	// NotConfigured ...
+	NotConfigured ConfigurationStatus = "NotConfigured"
+)
+
+// PossibleConfigurationStatusValues returns an array of possible values for the ConfigurationStatus const type.
+func PossibleConfigurationStatusValues() []ConfigurationStatus {
+	return []ConfigurationStatus{Configured, Failed, InProgress, NoStatus, NotConfigured}
+}
+
+// ConfigurationStatus1 enumerates the values for configuration status 1.
+type ConfigurationStatus1 string
+
+const (
+	// ConfigurationStatus1Configured ...
+	ConfigurationStatus1Configured ConfigurationStatus1 = "Configured"
+	// ConfigurationStatus1Failed ...
+	ConfigurationStatus1Failed ConfigurationStatus1 = "Failed"
+	// ConfigurationStatus1InProgress ...
+	ConfigurationStatus1InProgress ConfigurationStatus1 = "InProgress"
+	// ConfigurationStatus1NoStatus ...
+	ConfigurationStatus1NoStatus ConfigurationStatus1 = "NoStatus"
+	// ConfigurationStatus1NotConfigured ...
+	ConfigurationStatus1NotConfigured ConfigurationStatus1 = "NotConfigured"
+)
+
+// PossibleConfigurationStatus1Values returns an array of possible values for the ConfigurationStatus1 const type.
+func PossibleConfigurationStatus1Values() []ConfigurationStatus1 {
+	return []ConfigurationStatus1{ConfigurationStatus1Configured, ConfigurationStatus1Failed, ConfigurationStatus1InProgress, ConfigurationStatus1NoStatus, ConfigurationStatus1NotConfigured}
+}
+
+// ConfigurationStatus2 enumerates the values for configuration status 2.
+type ConfigurationStatus2 string
+
+const (
+	// ConfigurationStatus2Configured ...
+	ConfigurationStatus2Configured ConfigurationStatus2 = "Configured"
+	// ConfigurationStatus2Failed ...
+	ConfigurationStatus2Failed ConfigurationStatus2 = "Failed"
+	// ConfigurationStatus2InProgress ...
+	ConfigurationStatus2InProgress ConfigurationStatus2 = "InProgress"
+	// ConfigurationStatus2NoStatus ...
+	ConfigurationStatus2NoStatus ConfigurationStatus2 = "NoStatus"
+	// ConfigurationStatus2NotConfigured ...
+	ConfigurationStatus2NotConfigured ConfigurationStatus2 = "NotConfigured"
+)
+
+// PossibleConfigurationStatus2Values returns an array of possible values for the ConfigurationStatus2 const type.
+func PossibleConfigurationStatus2Values() []ConfigurationStatus2 {
+	return []ConfigurationStatus2{ConfigurationStatus2Configured, ConfigurationStatus2Failed, ConfigurationStatus2InProgress, ConfigurationStatus2NoStatus, ConfigurationStatus2NotConfigured}
+}
+
 // ConnectionType enumerates the values for connection type.
 type ConnectionType string
 
@@ -122,6 +202,36 @@ const (
 // PossibleDirectionValues returns an array of possible values for the Direction const type.
 func PossibleDirectionValues() []Direction {
 	return []Direction{Inbound, Outbound}
+}
+
+// EnforcementMode enumerates the values for enforcement mode.
+type EnforcementMode string
+
+const (
+	// Audit ...
+	Audit EnforcementMode = "Audit"
+	// Enforce ...
+	Enforce EnforcementMode = "Enforce"
+)
+
+// PossibleEnforcementModeValues returns an array of possible values for the EnforcementMode const type.
+func PossibleEnforcementModeValues() []EnforcementMode {
+	return []EnforcementMode{Audit, Enforce}
+}
+
+// EnforcementMode1 enumerates the values for enforcement mode 1.
+type EnforcementMode1 string
+
+const (
+	// EnforcementMode1Audit ...
+	EnforcementMode1Audit EnforcementMode1 = "Audit"
+	// EnforcementMode1Enforce ...
+	EnforcementMode1Enforce EnforcementMode1 = "Enforce"
+)
+
+// PossibleEnforcementMode1Values returns an array of possible values for the EnforcementMode1 const type.
+func PossibleEnforcementMode1Values() []EnforcementMode1 {
+	return []EnforcementMode1{EnforcementMode1Audit, EnforcementMode1Enforce}
 }
 
 // ExternalSecuritySolutionKind enumerates the values for external security solution kind.
@@ -158,6 +268,52 @@ const (
 // PossibleFamilyValues returns an array of possible values for the Family const type.
 func PossibleFamilyValues() []Family {
 	return []Family{Ngfw, SaasWaf, Va, Waf}
+}
+
+// FileType enumerates the values for file type.
+type FileType string
+
+const (
+	// Dll ...
+	Dll FileType = "Dll"
+	// Exe ...
+	Exe FileType = "Exe"
+	// Executable ...
+	Executable FileType = "Executable"
+	// Msi ...
+	Msi FileType = "Msi"
+	// Script ...
+	Script FileType = "Script"
+	// Unknown ...
+	Unknown FileType = "Unknown"
+)
+
+// PossibleFileTypeValues returns an array of possible values for the FileType const type.
+func PossibleFileTypeValues() []FileType {
+	return []FileType{Dll, Exe, Executable, Msi, Script, Unknown}
+}
+
+// Issue enumerates the values for issue.
+type Issue string
+
+const (
+	// ExecutableViolationsAudited ...
+	ExecutableViolationsAudited Issue = "ExecutableViolationsAudited"
+	// MsiAndScriptViolationsAudited ...
+	MsiAndScriptViolationsAudited Issue = "MsiAndScriptViolationsAudited"
+	// MsiAndScriptViolationsBlocked ...
+	MsiAndScriptViolationsBlocked Issue = "MsiAndScriptViolationsBlocked"
+	// RulesViolatedManually ...
+	RulesViolatedManually Issue = "RulesViolatedManually"
+	// ViolationsAudited ...
+	ViolationsAudited Issue = "ViolationsAudited"
+	// ViolationsBlocked ...
+	ViolationsBlocked Issue = "ViolationsBlocked"
+)
+
+// PossibleIssueValues returns an array of possible values for the Issue const type.
+func PossibleIssueValues() []Issue {
+	return []Issue{ExecutableViolationsAudited, MsiAndScriptViolationsAudited, MsiAndScriptViolationsBlocked, RulesViolatedManually, ViolationsAudited, ViolationsBlocked}
 }
 
 // KindEnum enumerates the values for kind enum.
@@ -211,6 +367,59 @@ func PossibleProtocolValues() []Protocol {
 	return []Protocol{All, TCP, UDP}
 }
 
+// RecommendationAction enumerates the values for recommendation action.
+type RecommendationAction string
+
+const (
+	// RecommendationActionAdd ...
+	RecommendationActionAdd RecommendationAction = "Add"
+	// RecommendationActionRecommended ...
+	RecommendationActionRecommended RecommendationAction = "Recommended"
+	// RecommendationActionRemove ...
+	RecommendationActionRemove RecommendationAction = "Remove"
+)
+
+// PossibleRecommendationActionValues returns an array of possible values for the RecommendationAction const type.
+func PossibleRecommendationActionValues() []RecommendationAction {
+	return []RecommendationAction{RecommendationActionAdd, RecommendationActionRecommended, RecommendationActionRemove}
+}
+
+// RecommendationAction1 enumerates the values for recommendation action 1.
+type RecommendationAction1 string
+
+const (
+	// RecommendationAction1Add ...
+	RecommendationAction1Add RecommendationAction1 = "Add"
+	// RecommendationAction1Recommended ...
+	RecommendationAction1Recommended RecommendationAction1 = "Recommended"
+	// RecommendationAction1Remove ...
+	RecommendationAction1Remove RecommendationAction1 = "Remove"
+)
+
+// PossibleRecommendationAction1Values returns an array of possible values for the RecommendationAction1 const type.
+func PossibleRecommendationAction1Values() []RecommendationAction1 {
+	return []RecommendationAction1{RecommendationAction1Add, RecommendationAction1Recommended, RecommendationAction1Remove}
+}
+
+// RecommendationStatus enumerates the values for recommendation status.
+type RecommendationStatus string
+
+const (
+	// RecommendationStatusNoStatus ...
+	RecommendationStatusNoStatus RecommendationStatus = "NoStatus"
+	// RecommendationStatusNotAvailable ...
+	RecommendationStatusNotAvailable RecommendationStatus = "NotAvailable"
+	// RecommendationStatusNotRecommended ...
+	RecommendationStatusNotRecommended RecommendationStatus = "NotRecommended"
+	// RecommendationStatusRecommended ...
+	RecommendationStatusRecommended RecommendationStatus = "Recommended"
+)
+
+// PossibleRecommendationStatusValues returns an array of possible values for the RecommendationStatus const type.
+func PossibleRecommendationStatusValues() []RecommendationStatus {
+	return []RecommendationStatus{RecommendationStatusNoStatus, RecommendationStatusNotAvailable, RecommendationStatusNotRecommended, RecommendationStatusRecommended}
+}
+
 // ReportedSeverity enumerates the values for reported severity.
 type ReportedSeverity string
 
@@ -245,23 +454,45 @@ func PossibleSettingKindValues() []SettingKind {
 	return []SettingKind{SettingKindAlertSuppressionSetting, SettingKindDataExportSetting}
 }
 
+// SourceSystem enumerates the values for source system.
+type SourceSystem string
+
+const (
+	// AzureAppLocker ...
+	AzureAppLocker SourceSystem = "Azure_AppLocker"
+	// AzureAuditD ...
+	AzureAuditD SourceSystem = "Azure_AuditD"
+	// NonAzureAppLocker ...
+	NonAzureAppLocker SourceSystem = "NonAzure_AppLocker"
+	// NonAzureAuditD ...
+	NonAzureAuditD SourceSystem = "NonAzure_AuditD"
+	// None ...
+	None SourceSystem = "None"
+)
+
+// PossibleSourceSystemValues returns an array of possible values for the SourceSystem const type.
+func PossibleSourceSystemValues() []SourceSystem {
+	return []SourceSystem{AzureAppLocker, AzureAuditD, NonAzureAppLocker, NonAzureAuditD, None}
+}
+
 // State enumerates the values for state.
 type State string
 
 const (
-	// Failed At least one supported regulatory compliance control in the given standard has a state of failed
-	Failed State = "Failed"
-	// Passed All supported regulatory compliance controls in the given standard have a passed state
-	Passed State = "Passed"
-	// Skipped All supported regulatory compliance controls in the given standard have a state of skipped
-	Skipped State = "Skipped"
-	// Unsupported No supported regulatory compliance data for the given standard
-	Unsupported State = "Unsupported"
+	// StateFailed At least one supported regulatory compliance control in the given standard has a state of
+	// failed
+	StateFailed State = "Failed"
+	// StatePassed All supported regulatory compliance controls in the given standard have a passed state
+	StatePassed State = "Passed"
+	// StateSkipped All supported regulatory compliance controls in the given standard have a state of skipped
+	StateSkipped State = "Skipped"
+	// StateUnsupported No supported regulatory compliance data for the given standard
+	StateUnsupported State = "Unsupported"
 )
 
 // PossibleStateValues returns an array of possible values for the State const type.
 func PossibleStateValues() []State {
-	return []State{Failed, Passed, Skipped, Unsupported}
+	return []State{StateFailed, StatePassed, StateSkipped, StateUnsupported}
 }
 
 // Status enumerates the values for status.
@@ -309,6 +540,29 @@ const (
 // PossibleTransportProtocolValues returns an array of possible values for the TransportProtocol const type.
 func PossibleTransportProtocolValues() []TransportProtocol {
 	return []TransportProtocol{TransportProtocolTCP, TransportProtocolUDP}
+}
+
+// Type enumerates the values for type.
+type Type string
+
+const (
+	// BinarySignature ...
+	BinarySignature Type = "BinarySignature"
+	// File ...
+	File Type = "File"
+	// FileHash ...
+	FileHash Type = "FileHash"
+	// ProductSignature ...
+	ProductSignature Type = "ProductSignature"
+	// PublisherSignature ...
+	PublisherSignature Type = "PublisherSignature"
+	// VersionAndAboveSignature ...
+	VersionAndAboveSignature Type = "VersionAndAboveSignature"
+)
+
+// PossibleTypeValues returns an array of possible values for the Type const type.
+func PossibleTypeValues() []Type {
+	return []Type{BinarySignature, File, FileHash, ProductSignature, PublisherSignature, VersionAndAboveSignature}
 }
 
 // ValueType enumerates the values for value type.
@@ -1329,6 +1583,128 @@ type AllowlistCustomAlertRule struct {
 	IsEnabled *bool `json:"isEnabled,omitempty"`
 	// RuleType - The type of the custom alert rule.
 	RuleType *string `json:"ruleType,omitempty"`
+}
+
+// AppWhitelistingGroup ...
+type AppWhitelistingGroup struct {
+	autorest.Response `json:"-"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - READ-ONLY; Location where the resource is stored
+	Location                  *string `json:"location,omitempty"`
+	*AppWhitelistingGroupData `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for AppWhitelistingGroup.
+func (awg AppWhitelistingGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if awg.AppWhitelistingGroupData != nil {
+		objectMap["properties"] = awg.AppWhitelistingGroupData
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for AppWhitelistingGroup struct.
+func (awg *AppWhitelistingGroup) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				awg.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				awg.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				awg.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				awg.Location = &location
+			}
+		case "properties":
+			if v != nil {
+				var appWhitelistingGroupData AppWhitelistingGroupData
+				err = json.Unmarshal(*v, &appWhitelistingGroupData)
+				if err != nil {
+					return err
+				}
+				awg.AppWhitelistingGroupData = &appWhitelistingGroupData
+			}
+		}
+	}
+
+	return nil
+}
+
+// AppWhitelistingGroupData represents a VM/server group and set of rules that are Recommended by Azure
+// Security Center to be allowed
+type AppWhitelistingGroupData struct {
+	// EnforcementMode - Possible values include: 'Audit', 'Enforce'
+	EnforcementMode EnforcementMode `json:"enforcementMode,omitempty"`
+	// ConfigurationStatus - Possible values include: 'ConfigurationStatus2Configured', 'ConfigurationStatus2NotConfigured', 'ConfigurationStatus2InProgress', 'ConfigurationStatus2Failed', 'ConfigurationStatus2NoStatus'
+	ConfigurationStatus ConfigurationStatus2 `json:"configurationStatus,omitempty"`
+	// RecommendationStatus - Possible values include: 'RecommendationStatusRecommended', 'RecommendationStatusNotRecommended', 'RecommendationStatusNotAvailable', 'RecommendationStatusNoStatus'
+	RecommendationStatus RecommendationStatus           `json:"recommendationStatus,omitempty"`
+	Issues               *[]AppWhitelistingIssueSummary `json:"issues,omitempty"`
+	// SourceSystem - Possible values include: 'AzureAppLocker', 'AzureAuditD', 'NonAzureAppLocker', 'NonAzureAuditD', 'None'
+	SourceSystem        SourceSystem          `json:"sourceSystem,omitempty"`
+	VMRecommendations   *[]VMRecommendation   `json:"vmRecommendations,omitempty"`
+	PathRecommendations *[]PathRecommendation `json:"pathRecommendations,omitempty"`
+}
+
+// AppWhitelistingGroups represents a list of VM/server groups and set of rules that are Recommended by
+// Azure Security Center to be allowed
+type AppWhitelistingGroups struct {
+	autorest.Response `json:"-"`
+	Value             *[]AppWhitelistingGroup `json:"value,omitempty"`
+}
+
+// AppWhitelistingIssueSummary represents a summary of the alerts of the VM/server group
+type AppWhitelistingIssueSummary struct {
+	// Issue - Possible values include: 'ViolationsAudited', 'ViolationsBlocked', 'MsiAndScriptViolationsAudited', 'MsiAndScriptViolationsBlocked', 'ExecutableViolationsAudited', 'RulesViolatedManually'
+	Issue Issue `json:"issue,omitempty"`
+	// NumberOfVms - The number of machines in the VM/server group that have this alert
+	NumberOfVms *float64 `json:"numberOfVms,omitempty"`
+}
+
+// AppWhitelistingPutGroupData the altered data of the recommended VM/server group policy
+type AppWhitelistingPutGroupData struct {
+	// EnforcementMode - Possible values include: 'EnforcementMode1Audit', 'EnforcementMode1Enforce'
+	EnforcementMode     EnforcementMode1      `json:"enforcementMode,omitempty"`
+	VMRecommendations   *[]VMRecommendation   `json:"vmRecommendations,omitempty"`
+	PathRecommendations *[]PathRecommendation `json:"pathRecommendations,omitempty"`
 }
 
 // AscLocation the ASC location of the subscription is in the "name" field
@@ -4117,6 +4493,8 @@ type JitNetworkAccessPolicyVirtualMachine struct {
 	ID *string `json:"id,omitempty"`
 	// Ports - Port configurations for the virtual machine
 	Ports *[]JitNetworkAccessPortRule `json:"ports,omitempty"`
+	// PublicIPAddress - Public IP address of the Azure Firewall that is linked to this policy, if applicable
+	PublicIPAddress *string `json:"publicIpAddress,omitempty"`
 }
 
 // JitNetworkAccessPortRule ...
@@ -4155,6 +4533,8 @@ type JitNetworkAccessRequestPort struct {
 	Status Status `json:"status,omitempty"`
 	// StatusReason - A description of why the `status` has its value. Possible values include: 'Expired', 'UserRequested', 'NewerRequestInitiated'
 	StatusReason StatusReason `json:"statusReason,omitempty"`
+	// MappedPort - The port which is mapped to this port's `number` in the Azure Firewall, if applicable
+	MappedPort *int32 `json:"mappedPort,omitempty"`
 }
 
 // JitNetworkAccessRequestVirtualMachine ...
@@ -4356,6 +4736,25 @@ func (page OperationListPage) Values() []Operation {
 // Creates a new instance of the OperationListPage type.
 func NewOperationListPage(getNextPage func(context.Context, OperationList) (OperationList, error)) OperationListPage {
 	return OperationListPage{fn: getNextPage}
+}
+
+// PathRecommendation represents a path that is recommended to be allowed and its properties
+type PathRecommendation struct {
+	// Path - The full path to whitelist
+	Path *string `json:"path,omitempty"`
+	// Action - Possible values include: 'Recommended', 'Add', 'Remove'
+	Action Action `json:"action,omitempty"`
+	// Type - Possible values include: 'File', 'FileHash', 'PublisherSignature', 'ProductSignature', 'BinarySignature', 'VersionAndAboveSignature'
+	Type          Type           `json:"type,omitempty"`
+	PublisherInfo *PublisherInfo `json:"publisherInfo,omitempty"`
+	// Common - Whether the path is commonly run on the machine
+	Common    *bool                 `json:"common,omitempty"`
+	UserSids  *[]string             `json:"userSids,omitempty"`
+	Usernames *[]UserRecommendation `json:"usernames,omitempty"`
+	// FileType - Possible values include: 'Exe', 'Dll', 'Msi', 'Script', 'Executable', 'Unknown'
+	FileType FileType `json:"fileType,omitempty"`
+	// ConfigurationStatus - Possible values include: 'ConfigurationStatus1Configured', 'ConfigurationStatus1NotConfigured', 'ConfigurationStatus1InProgress', 'ConfigurationStatus1Failed', 'ConfigurationStatus1NoStatus'
+	ConfigurationStatus ConfigurationStatus1 `json:"configurationStatus,omitempty"`
 }
 
 // Pricing pricing tier will be applied for the scope based on the resource ID
@@ -4581,6 +4980,18 @@ func NewPricingListPage(getNextPage func(context.Context, PricingList) (PricingL
 type PricingProperties struct {
 	// PricingTier - Pricing tier type. Possible values include: 'Free', 'Standard'
 	PricingTier PricingTier `json:"pricingTier,omitempty"`
+}
+
+// PublisherInfo represents the publisher information of a process/rule
+type PublisherInfo struct {
+	// PublisherName - The Subject field of the x.509 certificate used to sign the code, using the following fields -  O = Organization, L = Locality, S = State or Province, and C = Country
+	PublisherName *string `json:"publisherName,omitempty"`
+	// ProductName - The product name taken from the file's version resource
+	ProductName *string `json:"productName,omitempty"`
+	// BinaryName - The "OriginalName" field taken from the file's version resource
+	BinaryName *string `json:"binaryName,omitempty"`
+	// Version - The binary file version taken from the file's version resource
+	Version *string `json:"version,omitempty"`
 }
 
 // RegulatoryComplianceAssessment regulatory compliance assessment details and state
@@ -4810,7 +5221,7 @@ type RegulatoryComplianceAssessmentProperties struct {
 	AssessmentType *string `json:"assessmentType,omitempty"`
 	// AssessmentDetailsLink - READ-ONLY; Link to more detailed assessment results data. The response type will be according to the assessmentType field
 	AssessmentDetailsLink *string `json:"assessmentDetailsLink,omitempty"`
-	// State - Aggregative state based on the assessment's scanned resources states. Possible values include: 'Passed', 'Failed', 'Skipped', 'Unsupported'
+	// State - Aggregative state based on the assessment's scanned resources states. Possible values include: 'StatePassed', 'StateFailed', 'StateSkipped', 'StateUnsupported'
 	State State `json:"state,omitempty"`
 	// PassedResources - READ-ONLY; The given assessment's related resources count with passed state.
 	PassedResources *int32 `json:"passedResources,omitempty"`
@@ -5046,7 +5457,7 @@ func NewRegulatoryComplianceControlListPage(getNextPage func(context.Context, Re
 type RegulatoryComplianceControlProperties struct {
 	// Description - READ-ONLY; The description of the regulatory compliance control
 	Description *string `json:"description,omitempty"`
-	// State - Aggregative state based on the control's supported assessments states. Possible values include: 'Passed', 'Failed', 'Skipped', 'Unsupported'
+	// State - Aggregative state based on the control's supported assessments states. Possible values include: 'StatePassed', 'StateFailed', 'StateSkipped', 'StateUnsupported'
 	State State `json:"state,omitempty"`
 	// PassedAssessments - READ-ONLY; The number of supported regulatory compliance assessments of the given control with a passed state
 	PassedAssessments *int32 `json:"passedAssessments,omitempty"`
@@ -5277,7 +5688,7 @@ func NewRegulatoryComplianceStandardListPage(getNextPage func(context.Context, R
 
 // RegulatoryComplianceStandardProperties regulatory compliance standard data
 type RegulatoryComplianceStandardProperties struct {
-	// State - Aggregative state based on the standard's supported controls states. Possible values include: 'Passed', 'Failed', 'Skipped', 'Unsupported'
+	// State - Aggregative state based on the standard's supported controls states. Possible values include: 'StatePassed', 'StateFailed', 'StateSkipped', 'StateUnsupported'
 	State State `json:"state,omitempty"`
 	// PassedControls - READ-ONLY; The number of supported regulatory compliance controls of the given standard with a passed state
 	PassedControls *int32 `json:"passedControls,omitempty"`
@@ -6081,6 +6492,23 @@ type TopologySingleResourceChild struct {
 type TopologySingleResourceParent struct {
 	// ResourceID - READ-ONLY; Azure resource id which serves as parent resource in topology view
 	ResourceID *string `json:"resourceId,omitempty"`
+}
+
+// UserRecommendation represents a user that is recommended to be allowed for a certain rule
+type UserRecommendation struct {
+	// Username - Represents a user that is recommended to be allowed for a certain rule
+	Username *string `json:"username,omitempty"`
+	// RecommendationAction - Possible values include: 'RecommendationAction1Recommended', 'RecommendationAction1Add', 'RecommendationAction1Remove'
+	RecommendationAction RecommendationAction1 `json:"recommendationAction,omitempty"`
+}
+
+// VMRecommendation represents a machine that is part of a VM/server group
+type VMRecommendation struct {
+	// ConfigurationStatus - Possible values include: 'Configured', 'NotConfigured', 'InProgress', 'Failed', 'NoStatus'
+	ConfigurationStatus ConfigurationStatus `json:"configurationStatus,omitempty"`
+	// RecommendationAction - Possible values include: 'RecommendationActionRecommended', 'RecommendationActionAdd', 'RecommendationActionRemove'
+	RecommendationAction RecommendationAction `json:"recommendationAction,omitempty"`
+	ResourceID           *string              `json:"resourceId,omitempty"`
 }
 
 // WorkspaceSetting configures where to store the OMS agent data for workspaces under a scope

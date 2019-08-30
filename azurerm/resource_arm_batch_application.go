@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,7 +70,7 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {

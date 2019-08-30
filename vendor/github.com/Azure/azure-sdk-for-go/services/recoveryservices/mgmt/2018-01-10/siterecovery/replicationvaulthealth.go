@@ -97,8 +97,8 @@ func (client ReplicationVaultHealthClient) GetPreparer(ctx context.Context) (*ht
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationVaultHealthClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -165,9 +165,9 @@ func (client ReplicationVaultHealthClient) RefreshPreparer(ctx context.Context) 
 // RefreshSender sends the Refresh request. The method will close the
 // http.Response Body if it receives an error.
 func (client ReplicationVaultHealthClient) RefreshSender(req *http.Request) (future ReplicationVaultHealthRefreshFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

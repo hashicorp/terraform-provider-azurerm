@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
@@ -125,7 +126,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 							ValidateFunc:     azure.ValidateResourceID,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
-						"targert_disk_type": {
+						"target_disk_type": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
@@ -137,7 +138,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
-						"targert_replica_disk_type": {
+						"target_replica_disk_type": {
 							Type:     schema.TypeString,
 							Required: true,
 							ForceNew: true,
@@ -178,7 +179,7 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceProtectionContainerName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -198,15 +199,15 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 		diskId := diskInput["disk_id"].(string)
 		primaryStagingAzureStorageAccountID := diskInput["staging_storage_account_id"].(string)
 		recoveryResourceGroupId := diskInput["target_resource_group_id"].(string)
-		targertReplicaDiskType := diskInput["targert_replica_disk_type"].(string)
-		targertDiskType := diskInput["targert_disk_type"].(string)
+		targetReplicaDiskType := diskInput["target_replica_disk_type"].(string)
+		targetDiskType := diskInput["target_disk_type"].(string)
 
 		managedDisks = append(managedDisks, siterecovery.A2AVMManagedDiskInputDetails{
 			DiskID:                              &diskId,
 			PrimaryStagingAzureStorageAccountID: &primaryStagingAzureStorageAccountID,
 			RecoveryResourceGroupID:             &recoveryResourceGroupId,
-			RecoveryReplicaDiskAccountType:      &targertReplicaDiskType,
-			RecoveryTargetDiskAccountType:       &targertDiskType,
+			RecoveryReplicaDiskAccountType:      &targetReplicaDiskType,
+			RecoveryTargetDiskAccountType:       &targetDiskType,
 		})
 	}
 
@@ -241,7 +242,7 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -283,8 +284,8 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 				diskOutput["disk_id"] = *disk.DiskID
 				diskOutput["staging_storage_account_id"] = *disk.PrimaryStagingAzureStorageAccountID
 				diskOutput["target_resource_group_id"] = *disk.RecoveryResourceGroupID
-				diskOutput["targert_replica_disk_type"] = *disk.RecoveryReplicaDiskAccountType
-				diskOutput["targert_disk_type"] = *disk.RecoveryTargetDiskAccountType
+				diskOutput["target_replica_disk_type"] = *disk.RecoveryReplicaDiskAccountType
+				diskOutput["target_disk_type"] = *disk.RecoveryTargetDiskAccountType
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
@@ -296,7 +297,7 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

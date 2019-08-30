@@ -54,6 +54,9 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.3294600504", "StartTask"),
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.4077195354", "RemoteUser"),
 					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.type", "DockerCompatible"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
 				),
 			},
 		},
@@ -126,6 +129,13 @@ resource "azurerm_batch_pool" "test" {
 
   container_configuration {
     type = "DockerCompatible"
+    container_registries= [
+      {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      },
+    ]
   }
 
   start_task {

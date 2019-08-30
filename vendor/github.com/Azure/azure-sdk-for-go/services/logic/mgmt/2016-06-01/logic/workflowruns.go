@@ -102,8 +102,8 @@ func (client WorkflowRunsClient) CancelPreparer(ctx context.Context, resourceGro
 // CancelSender sends the Cancel request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowRunsClient) CancelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CancelResponder handles the response to the Cancel request. The method always
@@ -180,8 +180,8 @@ func (client WorkflowRunsClient) GetPreparer(ctx context.Context, resourceGroupN
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowRunsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -267,8 +267,8 @@ func (client WorkflowRunsClient) ListPreparer(ctx context.Context, resourceGroup
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowRunsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always

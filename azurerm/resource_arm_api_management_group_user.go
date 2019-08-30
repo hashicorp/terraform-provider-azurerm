@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +41,7 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 	groupName := d.Get("group_name").(string)
 	userId := d.Get("user_id").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {

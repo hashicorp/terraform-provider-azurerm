@@ -6,6 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -77,7 +78,7 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

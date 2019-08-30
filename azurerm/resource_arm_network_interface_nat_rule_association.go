@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -107,7 +108,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 		for _, existingRule := range *p.LoadBalancerInboundNatRules {
 			if id := existingRule.ID; id != nil {
 				if *id == natRuleId {
-					if requireResourcesToBeImported {
+					if features.ShouldResourcesBeImported() {
 						return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
 					}
 

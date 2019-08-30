@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -98,7 +99,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -396,6 +397,35 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMStorageAccount_blockBlobStorage(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_blockBlobStorage(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "BlockBlobStorage"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
@@ -730,7 +760,7 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
@@ -758,7 +788,7 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
 
 		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
@@ -770,7 +800,7 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-	conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
+	conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_account" {
@@ -1091,6 +1121,29 @@ resource "azurerm_storage_account" "testsa" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   access_tier              = "Cool"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_blockBlobStorage(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "BlockBlobStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
 
   tags = {
     environment = "production"

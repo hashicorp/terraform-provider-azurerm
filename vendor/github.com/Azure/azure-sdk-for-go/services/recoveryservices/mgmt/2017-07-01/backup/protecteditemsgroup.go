@@ -111,8 +111,8 @@ func (client ProtectedItemsGroupClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectedItemsGroupClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -196,8 +196,8 @@ func (client ProtectedItemsGroupClient) DeletePreparer(ctx context.Context, vaul
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectedItemsGroupClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -284,8 +284,8 @@ func (client ProtectedItemsGroupClient) GetPreparer(ctx context.Context, vaultNa
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ProtectedItemsGroupClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always

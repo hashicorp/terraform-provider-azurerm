@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -62,7 +63,7 @@ func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, 
 	client := meta.(*ArmClient).recoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -144,7 +145,7 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -176,7 +177,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 }
 
 func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

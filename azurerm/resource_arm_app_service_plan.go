@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
@@ -173,7 +174,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

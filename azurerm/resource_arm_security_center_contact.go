@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -61,7 +62,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 
 	name := securityCenterContactName
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

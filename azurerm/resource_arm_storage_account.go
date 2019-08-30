@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -57,6 +58,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.BlockBlobStorage),
 					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
@@ -602,13 +604,13 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).storage.AccountsClient
 	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 
 	storageAccountName := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -734,7 +736,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
-		queueClient := meta.(*ArmClient).storage.QueuesClient
+		queueClient, err := meta.(*ArmClient).storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		queueProperties, err := expandQueueProperties(val.([]interface{}))
 		if err != nil {
@@ -754,7 +759,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 // available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).storage.AccountsClient
 	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -925,7 +930,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("queue_properties") {
-		queueClient := meta.(*ArmClient).storage.QueuesClient
+		queueClient, err := meta.(*ArmClient).storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
 		if err != nil {
@@ -945,7 +953,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).storage.AccountsClient
 	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
@@ -1071,7 +1079,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	queueClient := meta.(*ArmClient).storage.QueuesClient
+	queueClient, err := meta.(*ArmClient).storage.QueuesClient(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error building Queues Client: %s", err)
+	}
+
 	queueProps, err := queueClient.GetServiceProperties(ctx, name)
 	if err != nil {
 		if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
@@ -1088,7 +1100,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).storage.AccountsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

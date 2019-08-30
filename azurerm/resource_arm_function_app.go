@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -244,7 +245,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
