@@ -144,6 +144,11 @@ func TestAccAzureRMWebApplicationFirewallPolicy_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "custom_rules.1.action", "Block"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
