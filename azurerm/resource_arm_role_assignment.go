@@ -176,7 +176,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("scope", props.Scope)
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
-		d.Set("skip_service_principal_aad_check", props.PrincipalType == authorization.ServicePrincipal)
+		d.Set("skip_service_principal_aad_check", d.Get("skip_service_principal_aad_check").(bool))
 
 		//allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleId := props.RoleDefinitionID; roleId != nil {
