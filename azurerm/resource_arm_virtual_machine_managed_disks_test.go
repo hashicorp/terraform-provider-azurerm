@@ -8,13 +8,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // NOTE: Test `TestAccAzureRMVirtualMachine_enableAnWithVM` requires a machine of size `D8_v3` which is large/expensive - you may wish to ignore this test"
@@ -41,7 +42,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_standardSSD(t *t
 }
 
 func TestAccAzureRMVirtualMachine_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -571,7 +572,7 @@ func TestAccAzureRMVirtualMachine_importBasic_withZone(t *testing.T) {
 
 func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		vmID, err := parseAzureResourceID(*vm.ID)
+		vmID, err := azure.ParseAzureResourceID(*vm.ID)
 		if err != nil {
 			return fmt.Errorf("Unable to parse virtual machine ID %s, %+v", *vm.ID, err)
 		}
@@ -579,7 +580,7 @@ func testCheckAndStopAzureRMVirtualMachine(vm *compute.VirtualMachine) resource.
 		name := vmID.Path["virtualMachines"]
 		resourceGroup := vmID.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Deallocate(ctx, resourceGroup, name)
@@ -2171,20 +2172,20 @@ func testLookupAzureRMVirtualMachineManagedDiskID(vm *compute.VirtualMachine, di
 }
 
 func findAzureRMVirtualMachineManagedDiskID(md *compute.ManagedDiskParameters) (string, error) {
-	if _, err := parseAzureResourceID(*md.ID); err != nil {
+	if _, err := azure.ParseAzureResourceID(*md.ID); err != nil {
 		return "", err
 	}
 	return *md.ID, nil
 }
 
 func testGetAzureRMVirtualMachineManagedDisk(managedDiskID *string) (*compute.Disk, error) {
-	armID, err := parseAzureResourceID(*managedDiskID)
+	armID, err := azure.ParseAzureResourceID(*managedDiskID)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse Managed Disk ID %s, %+v", *managedDiskID, err)
 	}
 	name := armID.Path["disks"]
 	resourceGroup := armID.ResourceGroup
-	client := testAccProvider.Meta().(*ArmClient).diskClient
+	client := testAccProvider.Meta().(*ArmClient).compute.DisksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	d, err := client.Get(ctx, resourceGroup, name)
 	//check status first since sdk client returns error if not 200

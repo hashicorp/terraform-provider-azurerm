@@ -100,7 +100,7 @@ func dataSourceArmSnapshot() *schema.Resource {
 }
 
 func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

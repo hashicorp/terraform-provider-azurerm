@@ -6,26 +6,30 @@ import (
 )
 
 type Client struct {
-	DatasetClient       datafactory.DatasetsClient
-	FactoriesClient     datafactory.FactoriesClient
-	LinkedServiceClient datafactory.LinkedServicesClient
-	PipelinesClient     datafactory.PipelinesClient
+	DatasetClient       *datafactory.DatasetsClient
+	FactoriesClient     *datafactory.FactoriesClient
+	LinkedServiceClient *datafactory.LinkedServicesClient
+	PipelinesClient     *datafactory.PipelinesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.DatasetClient = datafactory.NewDatasetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DatasetClient.Client, o.ResourceManagerAuthorizer)
+	DatasetClient := datafactory.NewDatasetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DatasetClient.Client, o.ResourceManagerAuthorizer)
 
-	c.FactoriesClient = datafactory.NewFactoriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.FactoriesClient.Client, o.ResourceManagerAuthorizer)
+	FactoriesClient := datafactory.NewFactoriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&FactoriesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.LinkedServiceClient = datafactory.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.LinkedServiceClient.Client, o.ResourceManagerAuthorizer)
+	LinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LinkedServiceClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PipelinesClient = datafactory.NewPipelinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PipelinesClient.Client, o.ResourceManagerAuthorizer)
+	PipelinesClient := datafactory.NewPipelinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PipelinesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		DatasetClient:       &DatasetClient,
+		FactoriesClient:     &FactoriesClient,
+		LinkedServiceClient: &LinkedServiceClient,
+		PipelinesClient:     &PipelinesClient,
+	}
 }

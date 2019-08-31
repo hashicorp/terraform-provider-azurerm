@@ -12,6 +12,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/go-autorest/autorest/date"
@@ -470,7 +471,7 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 	resourceGroup := d.Get("resource_group_name").(string)
 	jobCollection := d.Get("job_collection_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, jobCollection, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -523,7 +524,7 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -617,7 +618,7 @@ func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -1,12 +1,17 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"time"
 
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
@@ -60,7 +65,10 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", directoryName, shareName, accountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Share Directory %q (Share %s, Account %s) ", directoryName, shareName, accountName)
 	}
 
 	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
@@ -68,7 +76,7 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error building File Share Client: %s", err)
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, accountName, shareName, directoryName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -84,6 +92,21 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 
 	if _, err := client.Create(ctx, accountName, shareName, directoryName, metaData); err != nil {
 		return fmt.Errorf("Error creating Directory %q (File Share %q / Account %q): %+v", directoryName, shareName, accountName, err)
+	}
+
+	// Storage Share Directories are eventually consistent
+	log.Printf("[DEBUG] Waiting for Directory %q (File Share %q / Account %q) to become available", directoryName, shareName, accountName)
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"404"},
+		Target:                    []string{"200"},
+		Refresh:                   storageShareDirectoryRefreshFunc(ctx, client, accountName, shareName, directoryName),
+		Timeout:                   5 * time.Minute,
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Directory %q (File Share %q / Account %q) to become available: %s", directoryName, shareName, accountName, err)
 	}
 
 	resourceID := client.GetResourceID(accountName, shareName, directoryName)
@@ -106,7 +129,12 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
+	}
+	if resourceGroup == nil {
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed & removing from state", id.DirectoryName, id.ShareName, id.AccountName)
+		d.SetId("")
+		return nil
 	}
 
 	client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, id.AccountName)
@@ -132,10 +160,10 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed & removing from state", id.DirectoryName, id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -172,10 +200,10 @@ func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interfa
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", id.DirectoryName, id.ShareName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed already", id.AccountName)
+		log.Printf("[WARN] Unable to determine Resource Group for Storage Share Directory %q (Share %s, Account %s) - assuming removed already", id.DirectoryName, id.ShareName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -190,4 +218,15 @@ func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func storageShareDirectoryRefreshFunc(ctx context.Context, client *directories.Client, accountName, shareName, directoryName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, accountName, shareName, directoryName)
+		if err != nil {
+			return nil, strconv.Itoa(res.StatusCode), fmt.Errorf("Error retrieving Directory %q (File Share %q / Account %q): %s", directoryName, shareName, accountName, err)
+		}
+
+		return res, strconv.Itoa(res.StatusCode), nil
+	}
 }

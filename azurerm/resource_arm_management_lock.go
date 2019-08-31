@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,14 +58,14 @@ func resourceArmManagementLock() *schema.Resource {
 }
 
 func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementLocksClient
+	client := meta.(*ArmClient).resource.LocksClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Management Lock creation.")
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetByScope(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -105,7 +106,7 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementLocksClient
+	client := meta.(*ArmClient).resource.LocksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureRMLockId(d.Id())
@@ -134,7 +135,7 @@ func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmManagementLockDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementLocksClient
+	client := meta.(*ArmClient).resource.LocksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureRMLockId(d.Id())

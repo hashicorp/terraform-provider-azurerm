@@ -8,22 +8,28 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
+	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/terraform/httpclient"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
 )
 
 type ClientOptions struct {
-	GraphAuthorizer            autorest.Authorizer
-	GraphEndpoint              string
-	KeyVaultAuthorizer         autorest.Authorizer
-	ResourceManagerAuthorizer  autorest.Authorizer
-	ResourceManagerEndpoint    string
-	SubscriptionId             string
-	PartnerId                  string
-	PollingDuration            time.Duration
-	SkipProviderReg            bool
-	EnableCorrelationRequestID bool
+	SubscriptionId string
+	TenantID       string
+	PartnerId      string
+
+	GraphAuthorizer           autorest.Authorizer
+	GraphEndpoint             string
+	KeyVaultAuthorizer        autorest.Authorizer
+	ResourceManagerAuthorizer autorest.Authorizer
+	ResourceManagerEndpoint   string
+	StorageAuthorizer         autorest.Authorizer
+
+	PollingDuration             time.Duration
+	SkipProviderReg             bool
+	DisableCorrelationRequestID bool
+	Environment                 azure.Environment
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
@@ -35,7 +41,7 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	c.Sender = sender.BuildSender("AzureRM")
 	c.PollingDuration = o.PollingDuration
 	c.SkipResourceProviderRegistration = o.SkipProviderReg
-	if o.EnableCorrelationRequestID {
+	if !o.DisableCorrelationRequestID {
 		c.RequestInspector = WithCorrelationRequestID(CorrelationRequestID())
 	}
 }

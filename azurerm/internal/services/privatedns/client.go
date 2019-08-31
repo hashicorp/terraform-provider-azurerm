@@ -6,14 +6,20 @@ import (
 )
 
 type Client struct {
-	PrivateZonesClient privatedns.PrivateZonesClient
+	RecordSetsClient   *privatedns.RecordSetsClient
+	PrivateZonesClient *privatedns.PrivateZonesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.PrivateZonesClient = privatedns.NewPrivateZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PrivateZonesClient.Client, o.ResourceManagerAuthorizer)
+	RecordSetsClient := privatedns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RecordSetsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	PrivateZonesClient := privatedns.NewPrivateZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateZonesClient.Client, o.ResourceManagerAuthorizer)
+
+	return &Client{
+		RecordSetsClient:   &RecordSetsClient,
+		PrivateZonesClient: &PrivateZonesClient,
+	}
 }

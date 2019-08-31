@@ -3,12 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -28,25 +29,22 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{1,49}$"),
-					"Recovery Service Vault name must be 2 - 50 characters long, start with a letter, contain only letters, numbers and hyphens.",
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateRecoveryServicesVaultName,
 			},
 
 			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"sku": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(recoveryservices.RS0),
 					string(recoveryservices.Standard),
@@ -63,11 +61,11 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[DEBUG] Creating/updating Recovery Service Vault %q (resource group %q)", name, resourceGroup)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -83,7 +81,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 	//build vault struct
 	vault := recoveryservices.Vault{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		Sku: &recoveryservices.Sku{
 			Name: recoveryservices.SkuName(d.Get("sku").(string)),
 		},
@@ -105,7 +103,7 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -135,16 +133,14 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).recoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

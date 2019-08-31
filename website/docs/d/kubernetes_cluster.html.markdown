@@ -58,6 +58,8 @@ The following attributes are exported:
 
 * `linux_profile` - A `linux_profile` block as documented below.
 
+* `windows_profile` - A `windows_profile` block as documented below.
+
 * `network_profile` - A `network_profile` block as documented below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
@@ -76,6 +78,8 @@ A `addon_profile` block exports the following:
 
 * `oms_agent` - A `oms_agent` block.
 
+* `kube_dashboard` - A `kube_dashboard` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -89,8 +93,6 @@ A `agent_pool_profile` block exports the following:
 * `availability_zones` - The availability zones used for the nodes. 
 
 * `enable_auto_scaling` - If the auto-scaler is enabled. 
-
-* `min_count` - Minimum number of nodes for auto-scaling 
 
 * `min_count` - Minimum number of nodes for auto-scaling 
 
@@ -165,6 +167,12 @@ A `linux_profile` block exports the following:
 
 ---
 
+A `windows_profile` block exports the following:
+
+* `admin_username` - The username associated with the administrator account of the Windows VMs.
+
+---
+
 A `network_profile` block exports the following:
 
 * `docker_bridge_cidr` - IP address (in CIDR notation) used as the Docker bridge IP address on nodes.
@@ -186,6 +194,12 @@ A `oms_agent` block exports the following:
 * `enabled` - Is the OMS Agent Enabled?
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+
+---
+
+A `kube_dashboard` block supports the following:
+
+* `enabled` - (Required) Is the Kubernetes Dashboard enabled? 
 
 ---
 

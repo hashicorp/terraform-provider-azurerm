@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -187,7 +188,7 @@ func dataSourceArmRedisCache() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -265,8 +266,6 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("primary_access_key", keys.PrimaryKey)
 	d.Set("secondary_access_key", keys.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 
 }

@@ -5,17 +5,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageTable_basic(t *testing.T) {
 	resourceName := "azurerm_storage_table.test"
-	var table storage.Table
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -29,7 +28,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists(resourceName, &table),
+					testCheckAzureRMStorageTableExists(resourceName),
 				),
 			},
 			{
@@ -42,13 +41,12 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
 	resourceName := "azurerm_storage_table.test"
-	var table storage.Table
 
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -62,7 +60,7 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 			{
 				Config: testAccAzureRMStorageTable_basic(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists(resourceName, &table),
+					testCheckAzureRMStorageTableExists(resourceName),
 				),
 			},
 			{
@@ -74,8 +72,6 @@ func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMStorageTable_disappears(t *testing.T) {
-	var table storage.Table
-
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	config := testAccAzureRMStorageTable_basic(ri, rs, testLocation())
@@ -88,8 +84,8 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMStorageTableExists("azurerm_storage_table.test", &table),
-					testAccARMStorageTableDisappears("azurerm_storage_table.test", &table),
+					testCheckAzureRMStorageTableExists("azurerm_storage_table.test"),
+					testAccARMStorageTableDisappears("azurerm_storage_table.test"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -97,7 +93,44 @@ func TestAccAzureRMStorageTable_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) resource.TestCheckFunc {
+func TestAccAzureRMStorageTable_acl(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+	resourceName := "azurerm_storage_table.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageTableDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageTable_acl(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageTableExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMStorageTable_aclUpdated(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageTableExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -113,10 +146,10 @@ func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) r
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
 		}
 		if resourceGroup == nil {
-			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", t.Name)
+			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
 		}
 
 		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
@@ -137,7 +170,7 @@ func testCheckAzureRMStorageTableExists(resourceName string, t *storage.Table) r
 	}
 }
 
-func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) resource.TestCheckFunc {
+func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -152,10 +185,10 @@ func testAccARMStorageTableDisappears(resourceName string, t *storage.Table) res
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
 		}
 		if resourceGroup == nil {
-			return fmt.Errorf("Bad: no resource group found in state for storage table: %s", t.Name)
+			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
 		}
 
 		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
@@ -194,7 +227,7 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
 		}
 		if resourceGroup == nil {
 			return nil
@@ -290,4 +323,86 @@ resource "azurerm_storage_table" "import" {
   storage_account_name = "${azurerm_storage_table.test.storage_account_name}"
 }
 `, template)
+}
+
+func testAccAzureRMStorageTable_acl(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+}
+`, rInt, location, rString, rInt)
+}
+
+func testAccAzureRMStorageTable_aclUpdated(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_table" "test" {
+  name                 = "acctestst%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+
+  acl {
+    id = "AAAANDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2020-11-26T08:49:37.0000000Z"
+      expiry      = "2020-11-27T08:49:37.0000000Z"
+    }
+  }
+  acl {
+    id = "MTIzNDU2Nzg5MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTI"
+
+    access_policy {
+      permissions = "raud"
+      start       = "2019-07-02T09:38:21.0000000Z"
+      expiry      = "2019-07-02T10:38:21.0000000Z"
+    }
+  }
+}
+`, rInt, location, rString, rInt)
 }

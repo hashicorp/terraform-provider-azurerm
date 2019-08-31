@@ -9,6 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -158,13 +160,13 @@ func resourceArmAppServicePlan() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
@@ -172,7 +174,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -187,7 +189,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmAppServicePlanSku(d)
 	properties := expandAppServicePlanProperties(d)
@@ -203,7 +205,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 		Location:                 &location,
 		Kind:                     &kind,
 		Sku:                      &sku,
-		Tags:                     expandTags(tags),
+		Tags:                     tags.Expand(t),
 		AppServicePlanProperties: properties,
 	}
 
@@ -255,9 +257,9 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -277,6 +279,14 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	// A 404 doesn't error from the app service plan sdk so we'll add this check here to catch resource not found responses
+	// TODO This block can be removed if https://github.com/Azure/azure-sdk-for-go/issues/5407 gets addressed.
+	if utils.ResponseWasNotFound(resp.Response) {
+		log.Printf("[DEBUG] App Service Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("name", name)
@@ -312,16 +322,14 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

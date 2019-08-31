@@ -25,7 +25,7 @@ func dataSourceArmVirtualMachine() *schema.Resource {
 }
 
 func dataSourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vmClient
+	client := meta.(*ArmClient).compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +36,7 @@ func TestAccAzureRMMySQLDatabase_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLDatabase_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -129,7 +130,7 @@ func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mysqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).mysql.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -145,7 +146,7 @@ func testCheckAzureRMMySQLDatabaseExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMMySQLDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mysqlDatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).mysql.DatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -168,13 +169,13 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -256,7 +257,5 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
 	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

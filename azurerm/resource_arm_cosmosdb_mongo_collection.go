@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -92,7 +93,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 }
 
 func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -100,7 +101,7 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 	account := d.Get("account_name").(string)
 	database := d.Get("database_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -161,7 +162,7 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())
@@ -195,19 +196,20 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 			d.Set("shard_key", k)
 		}
 
-		indexes, ttl := flattenCosmosMongoCollectionIndexes(props.Indexes)
-		d.Set("default_ttl_seconds", ttl)
-		if err := d.Set("indexes", indexes); err != nil {
-			return fmt.Errorf("Error setting `indexes`: %+v", err)
+		if props.Indexes != nil {
+			indexes, ttl := flattenCosmosMongoCollectionIndexes(props.Indexes)
+			d.Set("default_ttl_seconds", ttl)
+			if err := d.Set("indexes", indexes); err != nil {
+				return fmt.Errorf("Error setting `indexes`: %+v", err)
+			}
 		}
-
 	}
 
 	return nil
 }
 
 func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
+	client := meta.(*ArmClient).cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())

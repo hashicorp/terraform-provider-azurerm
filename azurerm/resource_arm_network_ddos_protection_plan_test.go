@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,7 +67,7 @@ func testAccAzureRMNetworkDDoSProtectionPlan_basic(t *testing.T) {
 }
 
 func testAccAzureRMNetworkDDoSProtectionPlan_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -154,7 +155,7 @@ func testAccAzureRMNetworkDDoSProtectionPlan_disappears(t *testing.T) {
 
 func testCheckAzureRMNetworkDDoSProtectionPlanExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
+		client := testAccProvider.Meta().(*ArmClient).network.DDOSProtectionPlansClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -196,7 +197,7 @@ func testCheckAzureRMNetworkDDoSProtectionPlanDisappears(resourceName string) re
 			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
+		client := testAccProvider.Meta().(*ArmClient).network.DDOSProtectionPlansClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -212,7 +213,7 @@ func testCheckAzureRMNetworkDDoSProtectionPlanDisappears(resourceName string) re
 }
 
 func testCheckAzureRMNetworkDDoSProtectionPlanDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
+	client := testAccProvider.Meta().(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -71,6 +72,31 @@ func TestAccAzureRMApiManagementBackend_allProperties(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tls.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tls.0.validate_certificate_chain", "false"),
 					resource.TestCheckResourceAttr(resourceName, "tls.0.validate_certificate_name", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApiManagementBackend_credentialsNoCertificate(t *testing.T) {
+	resourceName := "azurerm_api_management_backend.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementBackendDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementBackend_credentialsNoCertificate(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementBackendExists(resourceName),
 				),
 			},
 			{
@@ -188,7 +214,7 @@ func TestAccAzureRMApiManagementBackend_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementBackend_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -464,4 +490,45 @@ resource "azurerm_api_management" "test" {
   }
 }
 `, rInt, testName, location, rInt, testName)
+}
+
+func testAccAzureRMApiManagementBackend_credentialsNoCertificate(rInt int, location string) string {
+	template := testAccAzureRMApiManagementBackend_template(rInt, "all", location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  protocol            = "http"
+  url                 = "https://acctest"
+  description         = "description"
+  resource_id         = "https://resourceid"
+  title               = "title"
+  credentials {
+    authorization {
+      parameter = "parameter"
+      scheme    = "scheme"
+    }
+    header = {
+      header1 = "header1value1,header1value2"
+      header2 = "header2value1,header2value2"
+    }
+    query = {
+      query1 = "query1value1,query1value2"
+      query2 = "query2value1,query2value2"
+    }
+  }
+  proxy {
+    url      = "http://192.168.1.1:8080"
+    username = "username"
+    password = "password"
+  }
+  tls {
+    validate_certificate_chain = false
+    validate_certificate_name  = true
+  }
+}
+`, template, rInt)
 }

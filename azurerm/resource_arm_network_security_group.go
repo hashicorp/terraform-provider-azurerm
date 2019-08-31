@@ -9,7 +9,11 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,7 +66,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleProtocolTCP),
 								string(network.SecurityRuleProtocolUDP),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"source_port_range": {
@@ -134,7 +138,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleAccessAllow),
 								string(network.SecurityRuleAccessDeny),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"priority": {
@@ -150,25 +154,25 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleDirectionInbound),
 								string(network.SecurityRuleDirectionOutbound),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -182,15 +186,15 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sgRules, sgErr := expandAzureRmSecurityRules(d)
 	if sgErr != nil {
 		return fmt.Errorf("Error Building list of Network Security Group Rules: %+v", sgErr)
 	}
 
-	azureRMLockByName(name, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(name, networkSecurityGroupResourceName)
+	locks.ByName(name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(name, networkSecurityGroupResourceName)
 
 	sg := network.SecurityGroup{
 		Name:     &name,
@@ -198,7 +202,7 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 		SecurityGroupPropertiesFormat: &network.SecurityGroupPropertiesFormat{
 			SecurityRules: &sgRules,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, sg)
@@ -224,10 +228,10 @@ func resourceArmNetworkSecurityGroupCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -256,16 +260,14 @@ func resourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetworkSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
+	client := meta.(*ArmClient).network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -46,7 +47,7 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 }
 
 func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -311,6 +312,10 @@ func TestAccAzureRMBatchPool_container(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBatchPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.type", "DockerCompatible"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.password", "myPassword"),
 				),
 			},
 		},
@@ -411,7 +416,7 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchPoolClient
+		conn := testAccProvider.Meta().(*ArmClient).batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -437,7 +442,7 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchPoolClient
+		conn := testAccProvider.Meta().(*ArmClient).batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -935,7 +940,7 @@ resource "azurerm_batch_certificate" "testpfx" {
   certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
   format               = "Pfx"
   password             = "terraform"
-  thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
+  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
   thumbprint_algorithm = "SHA1"
 }
 
@@ -1012,6 +1017,13 @@ resource "azurerm_batch_pool" "test" {
 
   container_configuration {
     type = "DockerCompatible"
+    container_registries= [
+      {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      },
+    ]
   }
 }
 `, rInt, location, rString, rString, rString)

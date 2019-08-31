@@ -6,22 +6,25 @@ import (
 )
 
 type Client struct {
-	AssignmentsClient    policy.AssignmentsClient
-	DefinitionsClient    policy.DefinitionsClient
-	SetDefinitionsClient policy.SetDefinitionsClient
+	AssignmentsClient    *policy.AssignmentsClient
+	DefinitionsClient    *policy.DefinitionsClient
+	SetDefinitionsClient *policy.SetDefinitionsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.AssignmentsClient = policy.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AssignmentsClient.Client, o.ResourceManagerAuthorizer)
+	AssignmentsClient := policy.NewAssignmentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AssignmentsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DefinitionsClient = policy.NewDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.DefinitionsClient.Client, o.ResourceManagerAuthorizer)
+	DefinitionsClient := policy.NewDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SetDefinitionsClient = policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.SetDefinitionsClient.Client, o.ResourceManagerAuthorizer)
+	SetDefinitionsClient := policy.NewSetDefinitionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SetDefinitionsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		AssignmentsClient:    &AssignmentsClient,
+		DefinitionsClient:    &DefinitionsClient,
+		SetDefinitionsClient: &SetDefinitionsClient,
+	}
 }

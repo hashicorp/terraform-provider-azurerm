@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
@@ -40,7 +41,7 @@ func TestAccAzureRMFirewallNetworkRuleCollection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMFirewallNetworkRuleCollection_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -317,7 +318,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionExists(resourceName string) re
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -351,7 +352,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDoesNotExist(resourceName stri
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -380,7 +381,7 @@ func testCheckAzureRMFirewallNetworkRuleCollectionDisappears(resourceName string
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {

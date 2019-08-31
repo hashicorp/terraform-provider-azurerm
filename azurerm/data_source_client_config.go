@@ -43,7 +43,7 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 
 	var servicePrincipal *graphrbac.ServicePrincipal
 	if client.usingServicePrincipal {
-		spClient := client.servicePrincipalsClient
+		spClient := client.graph.ServicePrincipalsClient
 		// Application & Service Principal is 1:1 per tenant. Since we know the appId (client_id)
 		// here, we can query for the Service Principal whose appId matches.
 		filter := fmt.Sprintf("appId eq '%s'", client.clientId)

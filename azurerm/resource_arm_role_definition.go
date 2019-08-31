@@ -6,8 +6,9 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -98,7 +99,7 @@ func resourceArmRoleDefinition() *schema.Resource {
 }
 
 func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
+	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
@@ -118,7 +119,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 	permissions := expandRoleDefinitionPermissions(d)
 	assignableScopes := expandRoleDefinitionAssignableScopes(d)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, roleDefinitionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -158,7 +159,7 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
+	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.GetByID(ctx, d.Id())
@@ -170,6 +171,16 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 		}
 
 		return fmt.Errorf("Error loading Role Definition %q: %+v", d.Id(), err)
+	}
+
+	if id := resp.ID; id != nil {
+		roleDefinitionId, err := parseRoleDefinitionId(*id)
+		if err != nil {
+			return fmt.Errorf("Error parsing Role Definition ID: %+v", err)
+		}
+		if roleDefinitionId != nil {
+			d.Set("role_definition_id", roleDefinitionId.roleDefinitionId)
+		}
 	}
 
 	if props := resp.RoleDefinitionProperties; props != nil {
@@ -191,7 +202,7 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
+	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseRoleDefinitionId(d.Id())

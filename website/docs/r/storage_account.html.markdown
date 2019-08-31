@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`, `StorageV2`,  `BlobStorage`, and `FileStorage`. Changing this forces a new resource to be created. Defaults to `Storage`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `Storage`.
 
 * `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
@@ -105,24 +105,91 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
-* `network_rules` - (Optional) A `network_rules` block as documented below.
-
 * `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
+
+~> **Note:** `enable_advanced_threat_protection` is not supported in all regions.
+
+* `identity` - (Optional) A `identity` block as defined below.
+
+* `queue_properties` - (Optional) A `queue_properties` block as defined below.
+
+~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
+
+* `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `identity` - (Optional) A Managed Service Identity block as defined below.
+---
+
+A `cors_rule` block supports the following:
+
+* `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
+
+* `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are
+`DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` or `PUT`.
+
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS. 
+
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients. 
+
+* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
 
 ---
 
-* `custom_domain` supports the following:
+A `custom_domain` block supports the following:
 
 * `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
+--- 
+
+A `hour_metrics` block supports the following:
+
+* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
 ---
 
-* `network_rules` supports the following:
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+
+---
+
+A `logging` block supports the following:
+
+* `delete` - (Required) Indicates whether all delete requests should be logged. Changing this forces a new resource.
+
+* `read` - (Required) Indicates whether all read requests should be logged. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
+---
+
+A `minute_metrics` block supports the following:
+
+* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
+---
+
+A `network_rules` block supports the following:
 
 * `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
@@ -136,11 +203,15 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 
 ---
 
-`identity` supports the following:
+A `queue_properties` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+* `logging` - (Optional) A `logging` block as defined below.
+
+* `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
+
+* `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
 
 ## Attributes Reference
 

@@ -6,9 +6,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -83,7 +85,7 @@ func resourceArmStreamAnalyticsOutputSql() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] Preparing arguments for Azure Stream Analytics SQL Output creation.")
@@ -91,7 +93,7 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil && !utils.ResponseWasNotFound(existing.Response) {
 			return fmt.Errorf("Error checking for existing Azure Stream Analytics SQL Output %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
@@ -148,10 +150,10 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,10 +193,10 @@ func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmStreamAnalyticsOutputSqlDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsOutputsClient
+	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -135,6 +135,8 @@ A `logs` block supports the following:
 
 * `application_logs` - (Optional) An `application_logs` block as defined below.
 
+* `http_logs` - (Optional) An `http_logs` block as defined below.
+
 ---
 
 An `application_logs` block supports the following:
@@ -150,6 +152,20 @@ An `azure_blob_storage` block supports the following:
 * `sas_url` - (Required) The URL to the storage container, with a Service SAS token appended. **NOTE:** there is currently no means of generating Service SAS tokens with the `azurerm` provider.
 
 * `retention_in_days` - (Required) The number of days to retain logs for.
+
+---
+
+An `http_logs` block supports the following: 
+
+* `file_system` - (Optional) A `file_system` block as defined below.
+
+---
+
+A `file_system` block supports the following:
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
+
+* `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
 
 ---
 
@@ -285,9 +301,13 @@ A `google` block supports the following:
 
 A `ip_restriction` block supports the following:
 
-* `ip_address` - (Required) The IP Address used for this IP Restriction.
+* `ip_address` - (Optional) The IP Address used for this IP Restriction.
 
 * `subnet_mask` - (Optional) The Subnet mask used for this IP Restriction. Defaults to `255.255.255.255`.
+
+* `virtual_network_subnet_id` - (Optional.The Virtual Network Subnet ID used for this IP Restriction. 
+
+-> **NOTE:** One of either `ip_address` or `virtual_network_subnet_id` must be specified
 
 ---
 
@@ -298,6 +318,32 @@ A `microsoft` block supports the following:
 * `client_secret` - (Required) The OAuth 2.0 client secret that was created for the app used for authentication.
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
+
+---
+
+A `backup` block supports the following:
+
+* `backup_name` (Required) Specifies the name for this Backup.
+
+* `enabled` - (Required) Is this Backup enabled?
+
+* `storage_account_url` (Optional) The SAS URL to a Storage Container where Backups should be saved.
+
+* `schedule` - (Optional) A `schedule` block as defined below.
+
+---
+
+A `schedule` block supports the following:
+
+* `frequency_interval` - (Required) Sets how often the backup should be executed.
+
+* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
+
+* `keep_at_least_one_backup` - (Optional) Should at least one backup always be kept in the Storage Account by the Retention Policy, regardless of how old it is?
+
+* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
+
+* `start_time` - (Optional) Sets when the schedule should start working.
 
 ## Attributes Reference
 

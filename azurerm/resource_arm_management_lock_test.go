@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -67,7 +68,7 @@ func TestAccAzureRMManagementLock_resourceGroupReadOnlyBasic(t *testing.T) {
 }
 
 func TestAccAzureRMManagementLock_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -296,7 +297,7 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 		name := rs.Primary.Attributes["name"]
 		scope := rs.Primary.Attributes["scope"]
 
-		client := testAccProvider.Meta().(*ArmClient).managementLocksClient
+		client := testAccProvider.Meta().(*ArmClient).resource.LocksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.GetByScope(ctx, scope, name)
@@ -313,7 +314,7 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).managementLocksClient
+	client := testAccProvider.Meta().(*ArmClient).resource.LocksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

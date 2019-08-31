@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,14 +63,14 @@ func resourceArmBatchApplication() *schema.Resource {
 }
 
 func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -110,10 +111,10 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,7 +145,7 @@ func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -170,10 +171,10 @@ func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchApplicationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchApplicationClient
+	client := meta.(*ArmClient).batch.ApplicationClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

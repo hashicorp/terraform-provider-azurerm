@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -98,7 +99,7 @@ func TestAccAzureRMStorageAccount_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -396,6 +397,35 @@ func TestAccAzureRMStorageAccount_blobStorageWithUpdate(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMStorageAccount_blockBlobStorage(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_blockBlobStorage(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "account_kind", "BlockBlobStorage"),
+					resource.TestCheckResourceAttr("azurerm_storage_account.testsa", "access_tier", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_fileStorageWithUpdate(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
@@ -637,82 +667,6 @@ func TestAccAzureRMStorageAccount_networkRulesDeleted(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		storageAccount := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
-
-		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
-		if err != nil {
-			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", storageAccount, resourceGroup)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		storageAccount := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		// Ensure resource group exists in API
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
-
-		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
-			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
-		}
-
-		return nil
-	}
-}
-
-func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-	conn := testAccProvider.Meta().(*ArmClient).storageServiceClient
-
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_storage_account" {
-			continue
-		}
-
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.GetProperties(ctx, resourceGroup, name, "")
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Storage Account still exists:\n%#v", resp.AccountProperties)
-		}
-	}
-
-	return nil
-}
-
 func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
@@ -752,6 +706,121 @@ func TestAccAzureRMStorageAccount_enableAdvancedThreatProtection(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestAccAzureRMStorageAccount_queueProperties(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+	preConfig := testAccAzureRMStorageAccount_queueProperties(ri, rs, location)
+	postConfig := testAccAzureRMStorageAccount_queuePropertiesUpdated(ri, rs, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		storageAccount := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		// Ensure resource group exists in API
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
+
+		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
+		if err != nil {
+			return fmt.Errorf("Bad: Get on storageServiceClient: %+v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: StorageAccount %q (resource group: %q) does not exist", storageAccount, resourceGroup)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		storageAccount := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		// Ensure resource group exists in API
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
+
+		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
+			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+	conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_storage_account" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := conn.GetProperties(ctx, resourceGroup, name, "")
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Storage Account still exists:\n%#v", resp.AccountProperties)
+		}
+	}
+
+	return nil
 }
 
 func testAccAzureRMStorageAccount_basic(rInt int, rString string, location string) string {
@@ -1060,6 +1129,29 @@ resource "azurerm_storage_account" "testsa" {
 `, rInt, location, rString)
 }
 
+func testAccAzureRMStorageAccount_blockBlobStorage(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_kind             = "BlockBlobStorage"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString)
+}
+
 func testAccAzureRMStorageAccount_fileStorage(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
@@ -1360,6 +1452,110 @@ resource "azurerm_storage_account" "testsa" {
   account_tier                      = "Standard"
   account_replication_type          = "LRS"
   enable_advanced_threat_protection = false
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_queueProperties(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  queue_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["x-tempo-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+    }
+
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
+
+    hour_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
+
+    minute_metrics {
+      version               = "1.0"
+      enabled               = false
+      retention_policy_days = 7
+    }
+  }
+}
+`, rInt, location, rString)
+}
+
+func testAccAzureRMStorageAccount_queuePropertiesUpdated(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "testrg" {
+  name     = "acctestAzureRMSA-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "unlikely23exst2acct%s"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  queue_properties {
+    cors_rule {
+      allowed_origins    = ["http://www.example.com"]
+      exposed_headers    = ["x-tempo-*", "x-method-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["GET"]
+      max_age_in_seconds = "2000000000"
+		}
+		cors_rule {
+      allowed_origins    = ["http://www.test.com"]
+      exposed_headers    = ["x-tempo-*"]
+      allowed_headers    = ["*"]
+      allowed_methods    = ["PUT"]
+      max_age_in_seconds = "1000"
+    }
+    logging {
+      version               = "1.0"
+      delete                = true
+      read                  = true
+      write                 = true
+      retention_policy_days = 7
+    }
+
+    hour_metrics {
+      version               = "1.0"
+      enabled               = true
+      retention_policy_days = 7
+      include_apis          = true
+    }
+
+    minute_metrics {
+      version               = "1.0"
+      enabled               = true
+      include_apis          = false
+      retention_policy_days = 7
+    }
+  }
 }
 `, rInt, location, rString)
 }

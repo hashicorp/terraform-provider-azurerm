@@ -6,18 +6,20 @@ import (
 )
 
 type Client struct {
-	GroupsClient       managementgroups.Client
-	SubscriptionClient managementgroups.SubscriptionsClient
+	GroupsClient       *managementgroups.Client
+	SubscriptionClient *managementgroups.SubscriptionsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.GroupsClient = managementgroups.NewClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&c.GroupsClient.Client, o.ResourceManagerAuthorizer)
+	GroupsClient := managementgroups.NewClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&GroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SubscriptionClient = managementgroups.NewSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&c.SubscriptionClient.Client, o.ResourceManagerAuthorizer)
+	SubscriptionClient := managementgroups.NewSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&SubscriptionClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		GroupsClient:       &GroupsClient,
+		SubscriptionClient: &SubscriptionClient,
+	}
 }

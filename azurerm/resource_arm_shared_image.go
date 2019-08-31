@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -94,13 +96,13 @@ func resourceArmSharedImage() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImagesClient
+	client := meta.(*ArmClient).compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
@@ -116,9 +118,9 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	releaseNoteURI := d.Get("release_note_uri").(string)
 
 	osType := d.Get("os_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -144,7 +146,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 			OsType:              compute.OperatingSystemTypes(osType),
 			OsState:             compute.Generalized,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, name, image)
@@ -171,10 +173,10 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImagesClient
+	client := meta.(*ArmClient).compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -214,16 +216,14 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImagesClient
+	client := meta.(*ArmClient).compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

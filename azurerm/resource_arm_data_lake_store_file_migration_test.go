@@ -16,7 +16,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false, "")
+	client, err := getArmClient(config, false, "", true)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return
@@ -24,7 +24,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 
 	client.StopContext = testAccProvider.StopContext()
 
-	filesClient := client.dataLakeStoreFilesClient
+	filesClient := client.datalake.StoreFilesClient
 
 	cases := map[string]struct {
 		StateVersion       int
