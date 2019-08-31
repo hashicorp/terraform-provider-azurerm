@@ -69,7 +69,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Default: false,
+				Default:  false,
 			},
 		},
 	}
