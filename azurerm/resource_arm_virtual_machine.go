@@ -1122,9 +1122,8 @@ func flattenAzureRmVirtualMachineAdditionalCapabilities(profile *compute.Additio
 	}
 
 	result := make(map[string]interface{})
-
-	if profile.UltraSSDEnabled != nil {
-		result["ultra_ssd_enabled"] = *profile.UltraSSDEnabled
+	if v := profile.UltraSSDEnabled; v != nil {
+		result["ultra_ssd_enabled"] = *v
 	}
 	return []interface{}{result}
 }
@@ -1676,16 +1675,16 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *schema.ResourceData) *comp
 
 func expandAzureRmVirtualMachineAdditionalCapabilities(d *schema.ResourceData) *compute.AdditionalCapabilities {
 	additionalCapabilities := d.Get("additional_capabilities").([]interface{})
-	if len(additionalCapabilities) > 0 {
-		additionalCapability := additionalCapabilities[0].(map[string]interface{})
-
-		capability := &compute.AdditionalCapabilities{
-			UltraSSDEnabled: utils.Bool(additionalCapability["ultra_ssd_enabled"].(bool)),
-		}
-		return capability
+	if len(additionalCapabilities) == 0 {
+		return nil
 	}
 
-	return nil
+	additionalCapability := additionalCapabilities[0].(map[string]interface{})
+	capability := &compute.AdditionalCapabilities{
+		UltraSSDEnabled: utils.Bool(additionalCapability["ultra_ssd_enabled"].(bool)),
+	}
+
+	return capability
 }
 
 func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute.ImageReference, error) {
