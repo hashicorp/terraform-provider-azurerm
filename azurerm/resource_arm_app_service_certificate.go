@@ -38,6 +38,30 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
+			"pfx_blob": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ForceNew:     true,
+				ValidateFunc: validate.Base64String(),
+			},
+
+			"password": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"key_vault_secret_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ValidateFunc:  azure.ValidateKeyVaultChildId,
+				ConflictsWith: []string{"pfx_blob", "password"},
+			},
+
 			"friendly_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -56,14 +80,6 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				},
 			},
 
-			"pfx_blob": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ForceNew:     true,
-				ValidateFunc: validate.Base64String(),
-			},
-
 			"issuer": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -79,25 +95,9 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 				Computed: true,
 			},
 
-			"password": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Sensitive:    true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
-			},
-
 			"thumbprint": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-
-			"key_vault_secret_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				ForceNew:      true,
-				ValidateFunc:  azure.ValidateKeyVaultChildId,
-				ConflictsWith: []string{"pfx_blob", "password"},
 			},
 
 			"tags": tags.Schema(),
@@ -227,8 +227,6 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		d.Set("issue_date", props.IssueDate.Format(time.RFC3339))
 		d.Set("expiration_date", props.ExpirationDate.Format(time.RFC3339))
 		d.Set("thumbprint", props.Thumbprint)
-		d.Set("key_vault_id", props.KeyVaultID)
-		d.Set("key_vault_secret_name", props.KeyVaultSecretName)
 	}
 
 	flattenAndSetTags(d, resp.Tags)

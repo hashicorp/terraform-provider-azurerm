@@ -103,11 +103,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_certificate" "test" {
-  name = "acctest%d"
+  name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  pfx_blob = filebase64("testdata/app_service_certificate.pfx")
-  password = "terraform"
+  location            = azurerm_resource_group.test.location
+  pfx_blob            = filebase64("testdata/app_service_certificate.pfx")
+  password            = "terraform"
 }
 `, rInt, location, rInt)
 }
@@ -120,10 +120,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_certificate" "test" {
-  name = "acctest%d"
+  name                = "acctest%d"
   resource_group_name = azurerm_resource_group.test.name
-  location = azurerm_resource_group.test.location
-  pfx_blob = filebase64("testdata/app_service_certificate_nopassword.pfx")
+  location            = azurerm_resource_group.test.location
+  pfx_blob            = filebase64("testdata/app_service_certificate_nopassword.pfx")
 }
 `, rInt, location, rInt)
 }
