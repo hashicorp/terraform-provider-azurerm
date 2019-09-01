@@ -180,7 +180,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -207,7 +207,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicFile(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -234,7 +234,7 @@ func TestAccAzureRMStorageBlob_blockFromExistingBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -391,7 +391,7 @@ func TestAccAzureRMStorageBlob_pageFromExistingBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
