@@ -270,7 +270,12 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", resourceGroup)
 
 	d.Set("content_type", props.ContentType)
-	d.Set("source_uri", props.CopySource)
+
+	// The CopySource is only returned if the blob hasn't been modified (e.g. metadata configured etc)
+	// as such, we need to conditionally set this to ensure it's trackable if possible
+	if props.CopySource != "" {
+		d.Set("source_uri", props.CopySource)
+	}
 
 	blobType := strings.ToLower(strings.Replace(string(props.BlobType), "Blob", "", 1))
 	d.Set("type", blobType)
