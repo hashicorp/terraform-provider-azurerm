@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
 * `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
 * `azurerm_subnet` - support for the actions `Microsoft.Network/virtualNetworks/subnets/join/action` and `Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action` [GH-4137]
+* `azurerm_virtual_machine` - support for `UltraSSD_LRS` managed disks [GH-3860]
 
 BUG FIXES:
 
