@@ -34,6 +34,9 @@ func TestAccAzureRMAppServiceCustomHostnameBinding(t *testing.T) {
 			"multiple":       testAccAzureRMAppServiceCustomHostnameBinding_multiple,
 			"requiresImport": testAccAzureRMAppServiceCustomHostnameBinding_requiresImport,
 		},
+		"ssl": {
+			"sniEnabled": testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabled,
+		},
 	}
 
 	for group, m := range testCases {
@@ -126,6 +129,58 @@ func testAccAzureRMAppServiceCustomHostnameBinding_multiple(t *testing.T, appSer
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName),
 				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceEnv, domainEnv string) {
+	resourceName := "azurerm_app_service_custom_hostname_binding.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	config := testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(ri, location, appServiceEnv, domainEnv)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabled(t *testing.T, appServiceEnv, domainEnv string) {
+	resourceName := "azurerm_app_service_custom_hostname_binding.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	config := testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabledConfig(ri, location, appServiceEnv, domainEnv)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -243,4 +298,109 @@ resource "azurerm_app_service_custom_hostname_binding" "test2" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, template, altDomain)
+}
+
+func testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(rInt int, location, appServiceName, domain string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+data "azurerm_client_config" "test" {}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acct-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
+  sku_name            = "standard"
+
+  access_policy {
+    tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
+    object_id               = "${data.azurerm_client_config.test.service_principal_object_id}"
+    secret_permissions      = ["delete", "get", "set"]
+    certificate_permissions = ["create", "delete", "get", "import"]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "acct-%d"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
+      key_usage = [
+        "digitalSignature",
+        "keyEncipherment",
+      ]
+
+      subject            = "CN=%s"
+      validity_in_months = 12
+    }
+  }
+}
+
+data "azurerm_key_vault_secret" "test" {
+  name         = "${azurerm_key_vault_certificate.test.name}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+}
+
+resource "azurerm_app_service_certificate" "test" {
+  name                = "acctestCert-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  pfx_blob            = "${data.azurerm_key_vault_secret.test.value}"
+}
+`, rInt, location, rInt, appServiceName, rInt, rInt, domain, rInt)
+}
+
+func testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabledConfig(rInt int, location, appServiceName, domain string) string {
+	template := testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(rInt, location, appServiceName, domain)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_custom_hostname_binding" "test" {
+  hostname            = "%s"
+  app_service_name    = "${azurerm_app_service.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ssl_state           = "SniEnabled"
+  thumbprint          = "${azurerm_app_service_certificate.test.thumbprint}"
+}
+`, template, domain)
 }
