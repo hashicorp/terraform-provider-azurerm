@@ -33,9 +33,7 @@ func TestAccAzureRMAppServiceCustomHostnameBinding(t *testing.T) {
 			"basic":          testAccAzureRMAppServiceCustomHostnameBinding_basic,
 			"multiple":       testAccAzureRMAppServiceCustomHostnameBinding_multiple,
 			"requiresImport": testAccAzureRMAppServiceCustomHostnameBinding_requiresImport,
-		},
-		"ssl": {
-			"sniEnabled": testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabled,
+			"ssl":            testAccAzureRMAppServiceCustomHostnameBinding_ssl,
 		},
 	}
 
@@ -139,32 +137,6 @@ func testAccAzureRMAppServiceCustomHostnameBinding_ssl(t *testing.T, appServiceE
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(ri, location, appServiceEnv, domainEnv)
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceCustomHostnameBindingDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabled(t *testing.T, appServiceEnv, domainEnv string) {
-	resourceName := "azurerm_app_service_custom_hostname_binding.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-	config := testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabledConfig(ri, location, appServiceEnv, domainEnv)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -387,13 +359,6 @@ resource "azurerm_app_service_certificate" "test" {
   location            = "${azurerm_resource_group.test.location}"
   pfx_blob            = "${data.azurerm_key_vault_secret.test.value}"
 }
-`, rInt, location, rInt, appServiceName, rInt, rInt, domain, rInt)
-}
-
-func testAccAzureRMAppServiceCustomHostnameBinding_sslSniEnabledConfig(rInt int, location, appServiceName, domain string) string {
-	template := testAccAzureRMAppServiceCustomHostnameBinding_sslConfig(rInt, location, appServiceName, domain)
-	return fmt.Sprintf(`
-%s
 
 resource "azurerm_app_service_custom_hostname_binding" "test" {
   hostname            = "%s"
@@ -402,5 +367,5 @@ resource "azurerm_app_service_custom_hostname_binding" "test" {
   ssl_state           = "SniEnabled"
   thumbprint          = "${azurerm_app_service_certificate.test.thumbprint}"
 }
-`, template, domain)
+`, rInt, location, rInt, appServiceName, rInt, rInt, domain, rInt, domain)
 }
