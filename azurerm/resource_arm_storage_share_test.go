@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMStorageShare_basic(t *testing.T) {
@@ -289,14 +288,10 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 
 		props, err := client.GetProperties(ctx, accountName, shareName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Error retrieving Share %q: %s", shareName, accountName)
+			return nil
 		}
 
-		return fmt.Errorf("Bad: Share %q (storage account: %q) still exists", shareName, accountName)
+		return fmt.Errorf("Share still exists: %+v", props)
 	}
 
 	return nil
