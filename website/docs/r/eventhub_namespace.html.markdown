@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_eventhub_namespace
 
-Manage an EventHub Namespace.
+Manages an EventHub Namespace.
 
 ## Example Usage
 
