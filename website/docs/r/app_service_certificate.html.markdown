@@ -14,15 +14,15 @@ Manages an App Service certificate.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_certificate" "test" {
+resource "azurerm_app_service_certificate" "example" {
   name                = "example-cert"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   pfx_blob            = "${filebase64("certificate.pfx")}"
   password            = "terraform"
 }
