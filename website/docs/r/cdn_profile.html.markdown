@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_cdn_profile
 
-Manage a CDN Profile to create a collection of CDN Endpoints.
+Manages a CDN Profile to create a collection of CDN Endpoints.
 
 ## Example Usage
 

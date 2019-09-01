@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_postgresql_server
 
-Manage a PostgreSQL Server.
+Manages a PostgreSQL Server.
 
 ## Example Usage
 

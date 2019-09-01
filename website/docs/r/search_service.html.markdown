@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_search_service"
 sidebar_current: "docs-azurerm-resource-search-service"
 description: |-
-  Manage a Search Service.
+  Manages a Search Service.
 ---
 
 # azurerm_search_service

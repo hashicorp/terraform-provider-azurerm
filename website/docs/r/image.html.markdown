@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_image
 
-Manage a custom virtual machine image that can be used to create virtual machines.
+Manages a custom virtual machine image that can be used to create virtual machines.
 
 ## Example Usage Creating from VHD
 
