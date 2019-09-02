@@ -124,7 +124,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 	}
 }
 
-func resourceArmStorageManagementPolicyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
