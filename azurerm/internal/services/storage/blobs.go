@@ -113,7 +113,6 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 		ContentType:            utils.String(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
-	// TODO: access tiers?
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutPageBlob: %s", err)
 	}
@@ -282,8 +281,7 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 		size := end - start + 1
 
 		chunk := make([]byte, size)
-		_, err := page.section.Read(chunk)
-		if err != nil && err != io.EOF {
+		if _, err := page.section.Read(chunk); err != nil && err != io.EOF {
 			uploadCtx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", sbu.Source, page.offset, err)
 			uploadCtx.wg.Done()
 			continue
@@ -295,7 +293,7 @@ func (sbu BlobUpload) blobPageUploadWorker(ctx context.Context, uploadCtx blobPa
 			Content:   chunk,
 		}
 
-		if _, err = sbu.Client.PutPageUpdate(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+		if _, err := sbu.Client.PutPageUpdate(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 			uploadCtx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, sbu.Source, err)
 			uploadCtx.wg.Done()
 			continue
