@@ -1817,6 +1817,13 @@ data "azuread_service_principal" "test" {
   display_name = "Microsoft Azure App Service"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  name = "acctest%[2]d"
+}
+
 resource "azurerm_public_ip" "testStd" {
   name                = "acctest-PubIpStd-%[2]d"
   location            = "${azurerm_resource_group.test.location}"
@@ -1827,21 +1834,21 @@ resource "azurerm_public_ip" "testStd" {
 
 resource "azurerm_key_vault" "test" {
   name                = "acct%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  tenant_id = data.azurerm_client_config.test.tenant_id
-  sku_name = "standard"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  tenant_id           = "${data.azurerm_client_config.test.tenant_id}"
+  sku_name            = "standard"
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.test.tenant_id
-    object_id               = data.azurerm_client_config.test.service_principal_object_id 
+    tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
+    object_id               = "${data.azurerm_client_config.test.service_principal_object_id }"
     secret_permissions      = ["delete", "get", "set"]
     certificate_permissions = ["create", "delete", "get", "import"]
   }
 
   access_policy {
-    tenant_id               = data.azurerm_client_config.test.tenant_id
-    object_id               = data.azuread_service_principal.test.object_id
+    tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
+    object_id               = "${azurerm_user_assigned_identity.test.principal_id}"
     secret_permissions      = ["get"]
     certificate_permissions = ["get"]
   }
@@ -1849,7 +1856,7 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_key_vault_certificate" "test" {
   name         = "acctest%[2]d"
-  key_vault_id = azurerm_key_vault.test.id
+  key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {
     contents = filebase64("testdata/app_service_certificate.pfx")
@@ -1888,6 +1895,10 @@ resource "azurerm_application_gateway" "test" {
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
     subnet_id = "${azurerm_subnet.test.id}"
+  }
+
+  identity {
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
   }
 
   frontend_port {
@@ -2117,7 +2128,7 @@ locals {
   request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
 }
 
-resource "azurerm_public_ip" "testStd" {
+resource "azurerm_public_ip" "teststd" {
   name                = "acctest-PubIpStd-%[2]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -2139,7 +2150,7 @@ resource "azurerm_application_gateway" "test" {
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = "${azurerm_subnet.teststd.id}"
+    subnet_id = "${azurerm_subnet.test.id}"
   }
 
   frontend_port {
@@ -2149,7 +2160,7 @@ resource "azurerm_application_gateway" "test" {
 
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.teststd.id}"
   }
 
   backend_address_pool {
