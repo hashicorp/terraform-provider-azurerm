@@ -1733,25 +1733,24 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ne
 
 		name := v["name"].(string)
 		data := v["data"].(string)
-		kvsid := v["key_vault_secret_id"].(string)
+		// kvsid := v["key_vault_secret_id"].(string)
 
 		output := network.ApplicationGatewayTrustedRootCertificate{
 			Name: utils.String(name),
 			ApplicationGatewayTrustedRootCertificatePropertiesFormat: &network.ApplicationGatewayTrustedRootCertificatePropertiesFormat{},
 		}
 
-		if data == "" && kvsid == "" {
-			return nil, fmt.Errorf("Error: either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
-		}
-		if data != "" && kvsid != "" {
-			return nil, fmt.Errorf("Error: only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
-		}
+		/*		if data == "" && kvsid == "" {
+					return nil, fmt.Errorf("Error: either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
+				}
+				if data != "" && kvsid != "" {
+					return nil, fmt.Errorf("Error: only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
+				}*/
 
 		if data != "" {
 			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(base64Encode(data))
-		} else {
-			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = &kvsid
 		}
+		//	output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = &kvsid
 
 		results = append(results, output)
 	}
@@ -1818,22 +1817,20 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.Applicati
 			output["id"] = *v
 		}
 
-		kvsid := ""
+		/*kvsid := ""
 		if props := cert.ApplicationGatewayTrustedRootCertificatePropertiesFormat; props != nil {
 			if v := props.KeyVaultSecretID; v != nil {
 				kvsid = *v
 				output["key_vault_secret_id"] = *v
 			}
-		}
+		}*/
 
 		if v := cert.Name; v != nil {
 			output["name"] = *v
 
 			// if theres no key vauld ID and we have a name, so try and look up the old data to pass it along
-			if kvsid == "" {
-				if data, ok := nameToDataMap[*v]; ok && data != "" {
-					output["data"] = data
-				}
+			if data, ok := nameToDataMap[*v]; ok && data != "" {
+				output["data"] = data
 			}
 		}
 
