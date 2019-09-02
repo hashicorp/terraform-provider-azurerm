@@ -145,6 +145,9 @@ func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, me
 
 	rules := d.Get("rule").([]interface{})
 	armRules, err := expandStorageManagementPolicyRules(rules)
+	if err != nil {
+		return fmt.Errorf("Error expanding Azure Storage Management Policy Rules %q: %+v", storageAccountId, err)
+	}
 
 	parameters.ManagementPolicyProperties = &storage.ManagementPolicyProperties{
 		Policy: &storage.ManagementPolicySchema{
