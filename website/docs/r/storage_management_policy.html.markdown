@@ -1,0 +1,119 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_storage_management_policy"
+sidebar_current: "docs-azurerm-resource-storage-management-policy"
+description: |-
+  Manage Azure Storage Account Management Policies.
+---
+
+# azurerm_storage_management_policy
+
+Manage Azure Storage Account Management Policies.
+
+## Example Usage
+
+```terraform
+resource "azurerm_resource_group" "testrg" {
+  name     = "resourceGroupName"
+  location = "westus"
+}
+
+resource "azurerm_storage_account" "testsa" {
+  name                = "storageaccountname"
+  resource_group_name = "${azurerm_resource_group.testrg.name}"
+
+  location                 = "${azurerm_resource_group.testrg.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "BlobStorage"
+}
+
+resource "azurerm_storage_management_policy" "testpolicy" {
+  storage_account_id = "${azurerm_storage_account.testsa.id}"
+
+  rule {
+    name    = "rule1"
+    enabled = true
+    type    = "Lifecycle"
+    filters {
+      prefix_match = [ "container1/prefix1" ]
+      blob_types  = [ "blockBlob" ]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 10
+        tier_to_archive_after_days_since_modification_greater_than = 50
+        delete_after_days_since_modification_greater_than          = 100
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 30
+      }
+    }
+  }
+  rule {
+    name    = "rule2"
+    enabled = false
+    type    = "Lifecycle"
+    filters {
+      prefix_match = [ "container2/prefix1", "container2/prefix2" ]
+      blob_types  = [ "blockBlob" ]
+    }
+    actions {
+      base_blob {
+        tier_to_cool_after_days_since_modification_greater_than    = 11
+        tier_to_archive_after_days_since_modification_greater_than = 51
+        delete_after_days_since_modification_greater_than          = 101
+      }
+      snapshot {
+        delete_after_days_since_creation_greater_than = 31
+      }
+    }
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `storage_account_id` - (Required) Specifies the id of the storage account to apply the management policy to.
+
+* `rule` - (Optional) A `rule` block as documented below.
+
+---
+
+* `rule` supports the following:
+
+* `name` - (Required) A rule name can contain any combination of alpha numeric characters. Rule name is case-sensitive. It must be unique within a policy.
+* `enabled` - (Required)  Boolean to specify whether the rule is enabled.
+* `type` - (Required) Must be set to `Lifecycle`.
+* `filters` - A `filter` block as documented below.
+* `actions` - An `actions` block as documented below.
+
+---
+
+`filters` supports the following:
+
+* `prefix_match` - An array of strings for prefixes to be matched.
+* `blob_types` - An array of predefined values. Only `blockBlob` is supported.
+
+---
+
+`actions` supports the following:
+
+* `base_blob` - A `base_blob` block as documented below.
+* `snapshot` - A `snapshot` block as documented below.
+
+---
+
+`base_blob` supports the following:
+
+* `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier.
+* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier.
+* `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob.
+
+---
+
+`snapshot` supports the following:
+
+* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot.
