@@ -1100,7 +1100,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storage.AccountsClient
+	storageClient := meta.(*ArmClient).storage
+	client := storageClient.AccountsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -1149,6 +1150,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
+
+	// remove this from the cache
+	storageClient.ClearFromCache(resourceGroup, name)
 
 	return nil
 }
