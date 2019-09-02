@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_template_deployment
 
-Manage a template deployment of resources
+Manages a template deployment of resources
 
 ~> **Note on ARM Template Deployments:** Due to the way the underlying Azure API is designed, Terraform can only manage the deployment of the ARM Template - and not any resources which are created by it.
 This means that when deleting the `azurerm_template_deployment` resource, Terraform will only remove the reference to the deployment, whilst leaving any resources created by that ARM Template Deployment.

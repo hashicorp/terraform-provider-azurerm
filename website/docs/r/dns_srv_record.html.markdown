@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_srv_record"
 sidebar_current: "docs-azurerm-resource-dns-srv-record"
 description: |-
-  Manage a DNS SRV Record.
+  Manages a DNS SRV Record.
 ---
 
 # azurerm_dns_srv_record

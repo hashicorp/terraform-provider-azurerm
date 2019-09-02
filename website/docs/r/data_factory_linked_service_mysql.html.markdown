@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_mysql"
 sidebar_current: "docs-azurerm-resource-data-factory-linked-service-mysql"
 description: |-
-  Manage a Linked Service (connection) between MySQL and Azure Data Factory.
+  Manages a Linked Service (connection) between MySQL and Azure Data Factory.
 ---
 
 # azurerm_data_factory_linked_service_mysql
 
-Manage a Linked Service (connection) between MySQL and Azure Data Factory.
+Manages a Linked Service (connection) between MySQL and Azure Data Factory.
 
 ~> **Note:** All arguments including the connection_string will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 

@@ -2,7 +2,9 @@
 
 FEATURES:
 
+* **New Resource:** `azurerm_app_service_certificate` [GH-4192]
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
+* **New Resource:** `azurerm_web_application_firewall_policy` [GH-4119]
 
 IMPROVEMENTS:
 
@@ -12,14 +14,18 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
+* `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
 * `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
 * `azurerm_subnet` - support for the actions `Microsoft.Network/virtualNetworks/subnets/join/action` and `Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action` [GH-4137]
+* `azurerm_virtual_machine` - support for `UltraSSD_LRS` managed disks [GH-3860]
 
 BUG FIXES:
 
+* `azurerm_app_service_plan` and `azurerm_app_service_slot` crash fixes [GH-4184]
+* `azurerm_container_group~ - make `storage_account_key` field in `volume` block sensitive [GH-4201]
 * `azurerm_log_analytics_linked_service` - crash fix [GH-4142]
 * `azurerm_log_analytics_workspace_linked_service` - crash fix [GH-4152]
 * `azurerm_virtual_network_peering` - prevent nil object from being read [GH-4180]
