@@ -55,16 +55,6 @@ func dataSourceSqlDatabase() *schema.Resource {
 				Computed: true,
 			},
 
-			"requested_service_objective_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"requested_service_objective_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"server_name": {
@@ -121,14 +111,6 @@ func dataSourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		readScale = true
 	}
 	d.Set("read_scale", readScale)
-
-	if rsoID := resp.RequestedServiceObjectiveID; rsoID != nil {
-		d.Set("requested_service_objective_id", rsoID)
-	}
-
-	if rsoName := resp.RequestedServiceObjectiveID; rsoName != nil {
-		d.Set("requested_service_objective_name", rsoName)
-	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
