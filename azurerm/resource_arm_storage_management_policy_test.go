@@ -2,16 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	// "net/http"
-	// "os"
-	// "regexp"
 	"testing"
-
-	// "github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
-	// "github.com/hashicorp/terraform/terraform"
+
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -66,6 +61,7 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
+
 					// Rule1
 					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.enabled", "true"),
@@ -82,6 +78,7 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.base_blob.0.delete_after_days_since_modification_greater_than", "100"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.snapshot.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", "30"),
+
 					// Rule2
 					resource.TestCheckResourceAttr(resourceName, "rule.1.name", "rule2"),
 					resource.TestCheckResourceAttr(resourceName, "rule.1.enabled", "false"),
