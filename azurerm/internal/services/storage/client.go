@@ -65,7 +65,7 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGro
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
 	directoriesClient := directories.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
@@ -77,7 +77,7 @@ func (client Client) FileSharesClient(ctx context.Context, resourceGroup, accoun
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
 	directoriesClient := shares.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
