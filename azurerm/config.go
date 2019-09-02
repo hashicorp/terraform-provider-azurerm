@@ -24,6 +24,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -77,7 +78,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
-	healthCare "github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -259,7 +259,7 @@ type ArmClient struct {
 	appServicesClient     web.AppsClient
 
 	//healthcare
-	fhirApiServiceClient			healthCare.ServicesClient
+	fhirApiServiceClient healthcareapis.ServicesClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -406,6 +406,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
 	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerHealtcareClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
 }
@@ -835,6 +836,12 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
+}
+
+func (c *ArmClient) registerHealtcareClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	fhirApiServiceClient := healthcareapis.NewServicesClient(subscriptionId)
+	c.configureClient(&fhirApiServiceClient.Client, auth)
+	c.fhirApiServiceClient = fhirApiServiceClient
 }
 
 var (

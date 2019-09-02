@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,31 +26,30 @@ func dataSourceArmFhirApiService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"kind": {
-				Type: schema.TypeString,
-				Default: "fhir",
-				Required: true,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "fhir",
 			},
 
-			"cosmodb_throughput" : {
-				Type: schema.TypeInt,
-				Default: 1000,
-				Required: true,
+			"cosmodb_throughput": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1000,
 			},
 
-			"accees_policy_object_ids": {
-				Type: 		schema.TypeList,
-				Required: 	true,
+			"access_policy_object_ids": {
+				Type:     schema.TypeList,
+				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"ObjectID": {
+						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
-
 			},
 
 			"tags": tagsSchema(),
@@ -75,22 +75,6 @@ func dataSourceArmFhirApiServiceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.SetId(*resp.ID)
-
-	// ToDo Fix this here. replace with FHIR specific values. What do we need?
-	/*
-		if properties := resp.ServiceProperties; properties != nil {
-			d.Set("tier", string(properties.CurrentTier))
-
-			d.Set("encryption_state", string(properties.EncryptionState))
-			d.Set("firewall_state", string(properties.FirewallState))
-			d.Set("firewall_allow_azure_ips", string(properties.FirewallAllowAzureIps))
-
-			if config := properties.EncryptionConfig; config != nil {
-				d.Set("encryption_type", string(config.Type))
-			}
-
-			d.Set("endpoint", properties.Endpoint)
-		} */
 
 	flattenAndSetTags(d, resp.Tags)
 

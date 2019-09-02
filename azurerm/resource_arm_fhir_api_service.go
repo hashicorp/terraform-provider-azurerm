@@ -6,9 +6,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -37,31 +35,30 @@ func resourceArmFhirApiService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"kind": {
-				Type: schema.TypeString,
-				Default: "fhir",
-				Required: true,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "fhir",
 			},
 
-			"cosmodb_throughput" : {
-				Type: schema.TypeInt,
-				Default: 1000,
-				Required: true,
+			"cosmodb_throughput": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  1000,
 			},
 
-			"accees_policy_object_ids": {
-				Type: 		schema.TypeList,
-				Required: 	true,
+			"access_policy_object_ids": {
+				Type:     schema.TypeList,
+				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"ObjectID": {
+						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
-
 			},
 
 			"tags": tagsSchema(),
@@ -83,8 +80,8 @@ func resourceArmFhirApiServiceCreateUpdate(d *schema.ResourceData, meta interfac
 	expandedTags := expandTags(tags)
 
 	kind := d.Get("kind").(string)
-	cdba := d.Get("cosmodb_throughput").(int32)
-	accessPolicyObjectIds := d.Get("accees_policy_object_ids").([]string)
+	cdba := int32(d.Get("cosmodb_throughput").(int))
+	accessPolicyObjectIds := d.Get("access_policy_object_ids").([]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -104,29 +101,25 @@ func resourceArmFhirApiServiceCreateUpdate(d *schema.ResourceData, meta interfac
 		OfferThroughput: &cdba,
 	}
 
-	// create a single service access policy.
-	svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{}
-	var policies []string
-	// ToDo chagne objectId to *string?
+	var svcAccessPolicyArray = []healthcareapis.ServiceAccessPolicyEntry{}
 	for _, objectId := range accessPolicyObjectIds {
-		policies = append(policies, objectId)
+		objectIdMap := objectId.(map[string]interface{})
+		objectIdsStr := objectIdMap["object_id"].(string)
+		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: &objectIdsStr}
+		svcAccessPolicyArray = append(svcAccessPolicyArray, svcAccessPolicyObjectId)
 	}
-
 	// create the service access policy array for the Service Properties
-	svcAccessPolicyArray := []healthcareapis.ServiceAccessPolicyEntry{svcAccessPolicyObjectId}
-
 	properties := healthcareapis.ServicesProperties{
-		AccessPolicies: &svcAccessPolicyArray,
+		AccessPolicies:        &svcAccessPolicyArray,
 		CosmosDbConfiguration: &cosmoDbConfig,
 	}
 
 	fhirApiServiceDescription := healthcareapis.ServicesDescription{
-		Location:                     utils.String(location),
-		Tags:                         expandedTags,
-		Kind:						  &kind,
-		Properties:					  &properties,
+		Location:   utils.String(location),
+		Tags:       expandedTags,
+		Kind:       &kind,
+		Properties: &properties,
 	}
-
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, fhirApiServiceDescription)
 	if err != nil {
@@ -179,22 +172,6 @@ func resourceArmFhirApiServiceRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	// ToDo Fix this here. replace with FHIR specific values. What do we need?
-	/*
-	if properties := resp.ServiceProperties; properties != nil {
-		d.Set("tier", string(properties.CurrentTier))
-
-		d.Set("encryption_state", string(properties.EncryptionState))
-		d.Set("firewall_state", string(properties.FirewallState))
-		d.Set("firewall_allow_azure_ips", string(properties.FirewallAllowAzureIps))
-
-		if config := properties.EncryptionConfig; config != nil {
-			d.Set("encryption_type", string(config.Type))
-		}
-
-		d.Set("endpoint", properties.Endpoint)
-	} */
-
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
@@ -211,7 +188,6 @@ func resourceArmFhirApiServiceDelete(d *schema.ResourceData, meta interface{}) e
 	resGroup := id.ResourceGroup
 	// ToDo Is services right here?
 	name := id.Path["services"]
-
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error deleting FHIR API Service %q (Resource Group %q): %+v", name, resGroup, err)
