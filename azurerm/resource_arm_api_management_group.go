@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,7 +27,7 @@ func resourceArmApiManagementGroup() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementChildName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -62,7 +63,7 @@ func resourceArmApiManagementGroup() *schema.Resource {
 }
 
 func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementGroupClient
+	client := meta.(*ArmClient).apiManagement.GroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -74,7 +75,7 @@ func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta inte
 	externalID := d.Get("external_id").(string)
 	groupType := d.Get("type").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -113,10 +114,10 @@ func resourceArmApiManagementGroupCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApiManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementGroupClient
+	client := meta.(*ArmClient).apiManagement.GroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -150,10 +151,10 @@ func resourceArmApiManagementGroupRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmApiManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementGroupClient
+	client := meta.(*ArmClient).apiManagement.GroupClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

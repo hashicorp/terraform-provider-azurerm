@@ -5,10 +5,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
@@ -47,7 +49,7 @@ func TestAccAzureRMLoadBalancerNatRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerNatRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -141,40 +143,6 @@ func TestAccAzureRMLoadBalancerNatRule_update(t *testing.T) {
 					testCheckAzureRMLoadBalancerNatRuleExists(natRule2Name, &lb),
 					resource.TestCheckResourceAttr("azurerm_lb_nat_rule.test2", "frontend_port", "3391"),
 					resource.TestCheckResourceAttr("azurerm_lb_nat_rule.test2", "backend_port", "3391"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMLoadBalancerNatRule_reapply(t *testing.T) {
-	var lb network.LoadBalancer
-	ri := tf.AccRandTimeInt()
-	natRuleName := fmt.Sprintf("NatRule-%d", ri)
-
-	deleteNatRuleState := func(s *terraform.State) error {
-		return s.Remove("azurerm_lb_nat_rule.test")
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
-					deleteNatRuleState,
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: testAccAzureRMLoadBalancerNatRule_basic(ri, natRuleName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatRuleExists(natRuleName, &lb),
 				),
 			},
 		},
@@ -286,7 +254,7 @@ func testCheckAzureRMLoadBalancerNatRuleNotExists(natRuleName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerNatRuleByName(lb, natRuleName)
@@ -298,7 +266,7 @@ func testCheckAzureRMLoadBalancerNatRuleDisappears(natRuleName string, lb *netwo
 		rules := append(currentRules[:i], currentRules[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.InboundNatRules = &rules
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}

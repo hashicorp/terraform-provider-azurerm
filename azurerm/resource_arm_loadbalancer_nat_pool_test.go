@@ -5,10 +5,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
@@ -47,7 +49,7 @@ func TestAccAzureRMLoadBalancerNatPool_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerNatPool_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -145,40 +147,6 @@ func TestAccAzureRMLoadBalancerNatPool_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMLoadBalancerNatPool_reapply(t *testing.T) {
-	var lb network.LoadBalancer
-	ri := tf.AccRandTimeInt()
-	natPoolName := fmt.Sprintf("NatPool-%d", ri)
-
-	deleteNatPoolState := func(s *terraform.State) error {
-		return s.Remove("azurerm_lb_nat_pool.test")
-	}
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
-					deleteNatPoolState,
-				),
-				ExpectNonEmptyPlan: true,
-			},
-			{
-				Config: testAccAzureRMLoadBalancerNatPool_basic(ri, natPoolName, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
-					testCheckAzureRMLoadBalancerNatPoolExists(natPoolName, &lb),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMLoadBalancerNatPool_disappears(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
@@ -226,7 +194,7 @@ func testCheckAzureRMLoadBalancerNatPoolNotExists(natPoolName string, lb *networ
 
 func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerNatPoolByName(lb, natPoolName)
@@ -238,7 +206,7 @@ func testCheckAzureRMLoadBalancerNatPoolDisappears(natPoolName string, lb *netwo
 		pools := append(currentPools[:i], currentPools[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.InboundNatPools = &pools
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}

@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +38,7 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"scopes": {
 				Type:     schema.TypeSet,
@@ -148,19 +150,19 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 				Default:  true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -179,15 +181,15 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 	criteriaRaw := d.Get("criteria").([]interface{})
 	actionRaw := d.Get("action").(*schema.Set).List()
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.ActivityLogAlertResource{
-		Location: utils.String(azureRMNormalizeLocation("Global")),
+		Location: utils.String(azure.NormalizeLocation("Global")),
 		ActivityLogAlert: &insights.ActivityLogAlert{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
-			Scopes:      utils.ExpandStringArray(scopesRaw),
+			Scopes:      utils.ExpandStringSlice(scopesRaw),
 			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
@@ -211,10 +213,10 @@ func resourceArmMonitorActivityLogAlertCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -236,7 +238,7 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 	if alert := resp.ActivityLogAlert; alert != nil {
 		d.Set("enabled", alert.Enabled)
 		d.Set("description", alert.Description)
-		if err := d.Set("scopes", utils.FlattenStringArray(alert.Scopes)); err != nil {
+		if err := d.Set("scopes", utils.FlattenStringSlice(alert.Scopes)); err != nil {
 			return fmt.Errorf("Error setting `scopes`: %+v", err)
 		}
 		if err := d.Set("criteria", flattenMonitorActivityLogAlertCriteria(alert.Condition)); err != nil {
@@ -246,16 +248,14 @@ func resourceArmMonitorActivityLogAlertRead(d *schema.ResourceData, meta interfa
 			return fmt.Errorf("Error setting `action`: %+v", err)
 		}
 	}
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMonitorActivityLogAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActivityLogAlertsClient
+	client := meta.(*ArmClient).monitor.ActivityLogAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

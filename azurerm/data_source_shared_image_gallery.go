@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,9 +21,9 @@ func dataSourceArmSharedImageGallery() *schema.Resource {
 				ValidateFunc: validate.SharedImageGalleryName,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"description": {
 				Type:     schema.TypeString,
@@ -33,13 +35,13 @@ func dataSourceArmSharedImageGallery() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleriesClient
+	client := meta.(*ArmClient).compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -58,7 +60,7 @@ func dataSourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.GalleryProperties; props != nil {
@@ -68,7 +70,5 @@ func dataSourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

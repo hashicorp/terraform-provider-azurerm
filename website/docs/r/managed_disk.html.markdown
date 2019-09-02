@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_managed_disk
 
-Manage a managed disk.
+Manages a managed disk.
 
 ## Example Usage with Create Empty
 
@@ -89,10 +89,12 @@ The following arguments are supported:
  * `Empty` - Create an empty managed disk.
  * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
  * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
+ * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
 
 * `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
 
-* `source_resource_id` - (Optional) ID of an existing managed disk to copy when `create_option` is `Copy`.
+* `source_resource_id` - (Optional) ID of an existing managed disk to copy `create_option` is `Copy`
+    or the recovery point to restore when `create_option` is `Restore`
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
 

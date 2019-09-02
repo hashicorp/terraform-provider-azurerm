@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -40,7 +41,7 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 
 func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -65,13 +66,13 @@ func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementApi_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -95,7 +96,7 @@ func TestAccAzureRMApiManagementApi_requiresImport(t *testing.T) {
 
 func TestAccAzureRMApiManagementApi_soapPassthrough(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -120,7 +121,7 @@ func TestAccAzureRMApiManagementApi_soapPassthrough(t *testing.T) {
 
 func TestAccAzureRMApiManagementApi_importSwagger(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -149,7 +150,7 @@ func TestAccAzureRMApiManagementApi_importSwagger(t *testing.T) {
 
 func TestAccAzureRMApiManagementApi_importWsdl(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -178,7 +179,7 @@ func TestAccAzureRMApiManagementApi_importWsdl(t *testing.T) {
 
 func TestAccAzureRMApiManagementApi_importUpdate(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -222,7 +223,7 @@ func TestAccAzureRMApiManagementApi_importUpdate(t *testing.T) {
 
 func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -246,7 +247,7 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementApiClient
+	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api" {
@@ -288,7 +289,7 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementApiClient
+		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
@@ -450,7 +451,7 @@ resource "azurerm_api_management_api" "test" {
 func testAccAzureRMApiManagementApi_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

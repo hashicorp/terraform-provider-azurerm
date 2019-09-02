@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -20,6 +21,7 @@ func init() {
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"azurerm": testAccProvider,
+		"azuread": azuread.Provider().(*schema.Provider),
 	}
 }
 
@@ -41,6 +43,7 @@ func testAccPreCheck(t *testing.T) {
 		"ARM_TENANT_ID",
 		"ARM_TEST_LOCATION",
 		"ARM_TEST_LOCATION_ALT",
+		"ARM_TEST_LOCATION_ALT2",
 	}
 
 	for _, variable := range variables {
@@ -57,6 +60,10 @@ func testLocation() string {
 
 func testAltLocation() string {
 	return os.Getenv("ARM_TEST_LOCATION_ALT")
+}
+
+func testAltLocation2() string {
+	return os.Getenv("ARM_TEST_LOCATION_ALT2")
 }
 
 func testArmEnvironmentName() string {

@@ -36,7 +36,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 
-resource "azurerm_devspace_controller" test {
+resource "azurerm_devspace_controller" "test" {
   name                = "acctestdsc1"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"

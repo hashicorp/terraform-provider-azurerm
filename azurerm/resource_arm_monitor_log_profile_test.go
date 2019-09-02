@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,7 +73,7 @@ func testAccAzureRMMonitorLogProfile_basic(t *testing.T) {
 }
 
 func testAccAzureRMMonitorLogProfile_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -165,7 +166,7 @@ func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 }
 
 func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
+	client := testAccProvider.Meta().(*ArmClient).monitor.LogProfilesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -193,7 +194,7 @@ func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
+		client := testAccProvider.Meta().(*ArmClient).monitor.LogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		name := rs.Primary.Attributes["name"]
@@ -220,7 +221,7 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).monitorLogProfilesClient
+		client := testAccProvider.Meta().(*ArmClient).monitor.LogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, name); err != nil {
@@ -234,7 +235,7 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 func testAccAzureRMMonitorLogProfile_basicConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -289,7 +290,7 @@ resource "azurerm_monitor_log_profile" "import" {
 func testAccAzureRMMonitorLogProfile_servicebusConfig(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -333,7 +334,7 @@ resource "azurerm_monitor_log_profile" "test" {
 func testAccAzureRMMonitorLogProfile_completeConfig(rInt int, rString string, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 

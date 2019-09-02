@@ -8,9 +8,12 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,11 +35,11 @@ func resourceArmManagedDisk() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,
@@ -59,6 +62,7 @@ func resourceArmManagedDisk() *schema.Resource {
 					string(compute.Empty),
 					string(compute.FromImage),
 					string(compute.Import),
+					string(compute.Restore),
 				}, true),
 			},
 
@@ -99,7 +103,7 @@ func resourceArmManagedDisk() *schema.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -114,7 +118,7 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 }
 
 func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
@@ -122,7 +126,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -135,12 +139,12 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageAccountType := d.Get("storage_account_type").(string)
 	osType := d.Get("os_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
-	zones := expandZones(d.Get("zones").([]interface{}))
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	var skuName compute.DiskStorageAccountTypes
 	if strings.EqualFold(storageAccountType, string(compute.PremiumLRS)) {
@@ -149,6 +153,8 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		skuName = compute.StandardLRS
 	} else if strings.EqualFold(storageAccountType, string(compute.StandardSSDLRS)) {
 		skuName = compute.StandardSSDLRS
+	} else if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
+		skuName = compute.UltraSSDLRS
 	}
 
 	createDisk := compute.Disk{
@@ -180,7 +186,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 		} else {
 			return fmt.Errorf("[ERROR] source_uri must be specified when create_option is `%s`", compute.Import)
 		}
-	} else if strings.EqualFold(createOption, string(compute.Copy)) {
+	} else if strings.EqualFold(createOption, string(compute.Copy)) || strings.EqualFold(createOption, string(compute.Restore)) {
 		if sourceResourceId := d.Get("source_resource_id").(string); sourceResourceId != "" {
 			createDisk.CreationData.SourceResourceID = &sourceResourceId
 		} else {
@@ -225,10 +231,10 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -249,7 +255,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("zones", resp.Zones)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -276,16 +282,14 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

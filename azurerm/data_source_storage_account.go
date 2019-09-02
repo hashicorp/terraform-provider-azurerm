@@ -5,6 +5,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,9 +20,9 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"account_kind": {
 				Type:     schema.TypeString,
@@ -151,13 +153,62 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Computed: true,
 			},
 
-			// NOTE: The API does not appear to expose a secondary file endpoint
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"primary_file_endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -198,7 +249,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 
@@ -206,13 +257,13 @@ func dataSourceArmStorageAccount() *schema.Resource {
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).storage.AccountsClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	resp, err := client.GetProperties(ctx, resourceGroup, name)
+	resp, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Storage Account %q (Resource Group %q) was not found", name, resourceGroup)
@@ -229,7 +280,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	accessKeys := *keys.Keys
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("account_kind", resp.Kind)
 
@@ -299,7 +350,5 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("primary_access_key", accessKeys[0].Value)
 	d.Set("secondary_access_key", accessKeys[1].Value)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

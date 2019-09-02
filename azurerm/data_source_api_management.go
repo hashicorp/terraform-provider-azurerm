@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,9 +18,9 @@ func dataSourceApiManagementService() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementDataSourceName(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"public_ip_addresses": {
 				Type:     schema.TypeList,
@@ -91,7 +92,7 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"location": locationForDataSourceSchema(),
+						"location": azure.SchemaLocationForDataSource(),
 
 						"gateway_regional_url": {
 							Type:     schema.TypeString,
@@ -146,13 +147,13 @@ func dataSourceApiManagementService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementServiceClient
+	client := meta.(*ArmClient).apiManagement.ServiceClient
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -174,7 +175,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ServiceProperties; props != nil {
@@ -202,9 +203,7 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration) []interface{} {
@@ -255,8 +254,8 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 	return []interface{}{
 		map[string]interface{}{
 			"management": managementResults,
-			"portal":     proxyResults,
-			"proxy":      portalResults,
+			"portal":     portalResults,
+			"proxy":      proxyResults,
 			"scm":        scmResults,
 		},
 	}
@@ -272,7 +271,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 		output := make(map[string]interface{})
 
 		if prop.Location != nil {
-			output["location"] = azureRMNormalizeLocation(*prop.Location)
+			output["location"] = azure.NormalizeLocation(*prop.Location)
 		}
 
 		if prop.PublicIPAddresses != nil {

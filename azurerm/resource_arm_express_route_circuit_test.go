@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,10 +26,12 @@ func TestAccAzureRMExpressRouteCircuit(t *testing.T) {
 			"premiumUnlimited":             testAccAzureRMExpressRouteCircuit_premiumUnlimited,
 			"allowClassicOperationsUpdate": testAccAzureRMExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccAzureRMExpressRouteCircuit_requiresImport,
+			"data_basic":                   testAccDataSourceAzureRMExpressRoute_basicMetered,
 		},
 		"PrivatePeering": {
-			"azurePrivatePeering": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
-			"requiresImport":      testAccAzureRMExpressRouteCircuitPeering_requiresImport,
+			"azurePrivatePeering":           testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeering,
+			"azurePrivatePeeringWithUpdate": testAccAzureRMExpressRouteCircuitPeering_azurePrivatePeeringWithCircuitUpdate,
+			"requiresImport":                testAccAzureRMExpressRouteCircuitPeering_requiresImport,
 		},
 		"MicrosoftPeering": {
 			"microsoftPeering": testAccAzureRMExpressRouteCircuitPeering_microsoftPeering,
@@ -79,7 +82,7 @@ func testAccAzureRMExpressRouteCircuit_basicMetered(t *testing.T) {
 }
 
 func testAccAzureRMExpressRouteCircuit_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -285,7 +288,7 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 			return fmt.Errorf("Bad: no resource group found in state for Express Route Circuit: %s", expressRouteCircuitName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).expressRouteCircuitClient
+		client := testAccProvider.Meta().(*ArmClient).network.ExpressRouteCircuitsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, expressRouteCircuitName)
@@ -304,7 +307,7 @@ func testCheckAzureRMExpressRouteCircuitExists(resourceName string, erc *network
 }
 
 func testCheckAzureRMExpressRouteCircuitDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).expressRouteCircuitClient
+	client := testAccProvider.Meta().(*ArmClient).network.ExpressRouteCircuitsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

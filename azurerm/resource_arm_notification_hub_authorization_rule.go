@@ -6,7 +6,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +43,7 @@ func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"manage": {
 				Type:     schema.TypeBool,
@@ -74,7 +77,7 @@ func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubsClient
+	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -86,7 +89,7 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	send := d.Get("send").(bool)
 	listen := d.Get("listen").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -98,6 +101,12 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 			return tf.ImportAsExistsError("azurerm_notification_hub_authorization_rule", *existing.ID)
 		}
 	}
+
+	locks.ByName(notificationHubName, notificationHubResourceName)
+	defer locks.UnlockByName(notificationHubName, notificationHubResourceName)
+
+	locks.ByName(namespaceName, notificationHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, notificationHubNamespaceResourceName)
 
 	parameters := notificationhubs.SharedAccessAuthorizationRuleCreateOrUpdateParameters{
 		Properties: &notificationhubs.SharedAccessAuthorizationRuleProperties{
@@ -120,13 +129,14 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	d.SetId(*read.ID)
 
 	return resourceArmNotificationHubAuthorizationRuleRead(d, meta)
+
 }
 
 func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubsClient
+	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -170,10 +180,10 @@ func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubsClient
+	client := meta.(*ArmClient).notificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -181,6 +191,12 @@ func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, m
 	namespaceName := id.Path["namespaces"]
 	notificationHubName := id.Path["notificationHubs"]
 	name := id.Path["AuthorizationRules"]
+
+	locks.ByName(notificationHubName, notificationHubResourceName)
+	defer locks.UnlockByName(notificationHubName, notificationHubResourceName)
+
+	locks.ByName(namespaceName, notificationHubNamespaceResourceName)
+	defer locks.UnlockByName(namespaceName, notificationHubNamespaceResourceName)
 
 	resp, err := client.DeleteAuthorizationRule(ctx, resourceGroup, namespaceName, notificationHubName, name)
 	if err != nil {

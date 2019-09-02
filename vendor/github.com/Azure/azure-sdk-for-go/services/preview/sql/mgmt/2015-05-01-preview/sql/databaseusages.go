@@ -105,8 +105,8 @@ func (client DatabaseUsagesClient) ListByDatabasePreparer(ctx context.Context, r
 // ListByDatabaseSender sends the ListByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseUsagesClient) ListByDatabaseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByDatabaseResponder handles the response to the ListByDatabase request. The method always

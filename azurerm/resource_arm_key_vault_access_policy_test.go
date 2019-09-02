@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -68,7 +70,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_basicClassic(t *testing.T) {
 }
 
 func TestAccAzureRMKeyVaultAccessPolicy_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -196,7 +198,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 
 func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyVaultClient
+		client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -205,7 +207,7 @@ func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.Te
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parseAzureResourceID(rs.Primary.ID)
+		id, err := azure.ParseAzureResourceID(rs.Primary.ID)
 
 		if err != nil {
 			return err
@@ -290,9 +292,9 @@ func testAccAzureRMKeyVaultAccessPolicy_requiresImport(rString string, location 
 %s
 
 resource "azurerm_key_vault_access_policy" "import" {
-  key_vault_id  = "${azurerm_key_vault.test.id}"
-  tenant_id     = "${azurerm_key_vault_access_policy.test.tenant_id}"
-  object_id     = "${azurerm_key_vault_access_policy.test.object_id}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+  tenant_id    = "${azurerm_key_vault_access_policy.test.tenant_id}"
+  object_id    = "${azurerm_key_vault_access_policy.test.object_id}"
 
   key_permissions = [
     "get",
@@ -352,6 +354,23 @@ resource "azurerm_key_vault_access_policy" "test_no_application_id" {
     "delete",
   ]
 
+  storage_permissions = [
+    "backup",
+    "delete",
+    "deletesas",
+    "get",
+    "getsas",
+    "list",
+    "listsas",
+    "purge",
+    "recover",
+    "regeneratekey",
+    "restore",
+    "set",
+    "setsas",
+    "update",
+  ]
+
   tenant_id = "${data.azurerm_client_config.current.tenant_id}"
   object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 }
@@ -395,9 +414,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "premium"
-  }
+  sku_name = "premium"
 
   tags = {
     environment = "Production"
@@ -421,9 +438,7 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   tags = {
     environment = "Production"

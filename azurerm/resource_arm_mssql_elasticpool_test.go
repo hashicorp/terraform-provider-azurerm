@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: add import tests
@@ -38,7 +39,7 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlElasticPool_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -86,6 +87,34 @@ func TestAccAzureRMMsSqlElasticPool_standard_DTU(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "per_database_settings.0.max_capacity", "50"),
 					resource.TestCheckResourceAttrSet(resourceName, "max_size_gb"),
 					resource.TestCheckResourceAttrSet(resourceName, "zone_redundant"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"max_size_gb"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(t *testing.T) {
+	resourceName := "azurerm_mssql_elasticpool.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMsSqlElasticPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMsSqlElasticPoolExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "PremiumPool"),
+					resource.TestCheckResourceAttr(resourceName, "zone_redundant", "true"),
 				),
 			},
 			{
@@ -271,7 +300,7 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).msSqlElasticPoolsClient
+		client := testAccProvider.Meta().(*ArmClient).mssql.ElasticPoolsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
@@ -288,7 +317,7 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMMsSqlElasticPoolDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).msSqlElasticPoolsClient
+	client := testAccProvider.Meta().(*ArmClient).mssql.ElasticPoolsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -325,7 +354,7 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).msSqlElasticPoolsClient
+		client := testAccProvider.Meta().(*ArmClient).mssql.ElasticPoolsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {
@@ -337,11 +366,11 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 }
 
 func testAccAzureRMMsSqlElasticPool_basic_DTU(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "BasicPool", "Basic", 50, 4.8828125, 0, 5)
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "BasicPool", "Basic", 50, 4.8828125, 0, 5, false)
 }
 
 func testAccAzureRMMsSqlElasticPool_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "BasicPool", "Basic", 50, 5242880000, 0, 5)
+	template := testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "BasicPool", "Basic", 50, 5242880000, 0, 5, false)
 	return fmt.Sprintf(`
 %s
 
@@ -357,12 +386,16 @@ resource "azurerm_mssql_elasticpool" "import" {
 `, template)
 }
 
+func testAccAzureRMMsSqlElasticPool_premium_DTU_zone_redundant(rInt int, location string) string {
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "PremiumPool", "Premium", 125, 50, 0, 50, true)
+}
+
 func testAccAzureRMMsSqlElasticPool_standard_DTU(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "StandardPool", "Standard", 50, 50, 0, 50)
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "StandardPool", "Standard", 50, 50, 0, 50, false)
 }
 
 func testAccAzureRMMsSqlElasticPool_resize_DTU(rInt int, location string) string {
-	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "StandardPool", "Standard", 100, 100, 50, 100)
+	return testAccAzureRMMsSqlElasticPool_DTU_Template(rInt, location, "StandardPool", "Standard", 100, 100, 50, 100, false)
 }
 
 func testAccAzureRMMsSqlElasticPool_basic_vCore(rInt int, location string) string {
@@ -453,7 +486,7 @@ resource "azurerm_mssql_elasticpool" "test" {
 `, rInt, location, skuName, skuTier, skuCapacity, skuFamily, databaseSettingsMin, databaseSettingsMax)
 }
 
-func testAccAzureRMMsSqlElasticPool_DTU_Template(rInt int, location string, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int) string {
+func testAccAzureRMMsSqlElasticPool_DTU_Template(rInt int, location string, skuName string, skuTier string, skuCapacity int, maxSizeGB float64, databaseSettingsMin int, databaseSettingsMax int, zoneRedundant bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -475,6 +508,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   server_name         = "${azurerm_sql_server.test.name}"
   max_size_gb         = %.7[6]f
+  zone_redundant      = %[9]t
   
   sku {
     name     = "%[3]s"
@@ -487,5 +521,5 @@ resource "azurerm_mssql_elasticpool" "test" {
     max_capacity = %[8]d
   }
 }
-`, rInt, location, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax)
+`, rInt, location, skuName, skuTier, skuCapacity, maxSizeGB, databaseSettingsMin, databaseSettingsMax, zoneRedundant)
 }

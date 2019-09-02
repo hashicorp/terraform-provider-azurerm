@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +36,7 @@ func TestAccAzureRMEventHubConsumerGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubConsumerGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -120,7 +121,7 @@ func TestAccAzureRMEventHubConsumerGroup_userMetadataUpdate(t *testing.T) {
 }
 
 func testCheckAzureRMEventHubConsumerGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+	conn := testAccProvider.Meta().(*ArmClient).eventhub.ConsumerGroupClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -159,7 +160,7 @@ func testCheckAzureRMEventHubConsumerGroupExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Consumer Group: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventHubConsumerGroupClient
+		conn := testAccProvider.Meta().(*ArmClient).eventhub.ConsumerGroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		namespaceName := rs.Primary.Attributes["namespace_name"]

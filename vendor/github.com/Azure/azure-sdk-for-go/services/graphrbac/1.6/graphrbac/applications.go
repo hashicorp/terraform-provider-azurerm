@@ -110,8 +110,8 @@ func (client ApplicationsClient) AddOwnerPreparer(ctx context.Context, applicati
 // AddOwnerSender sends the AddOwner request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) AddOwnerSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // AddOwnerResponder handles the response to the AddOwner request. The method always
@@ -142,9 +142,7 @@ func (client ApplicationsClient) Create(ctx context.Context, parameters Applicat
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.AvailableToOtherTenants", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "parameters.DisplayName", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "parameters.IdentifierUris", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "parameters.DisplayName", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("graphrbac.ApplicationsClient", "Create", err.Error())
 	}
 
@@ -193,8 +191,8 @@ func (client ApplicationsClient) CreatePreparer(ctx context.Context, parameters 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -268,8 +266,8 @@ func (client ApplicationsClient) DeletePreparer(ctx context.Context, application
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -342,13 +340,88 @@ func (client ApplicationsClient) GetPreparer(ctx context.Context, applicationObj
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
 // closes the http.Response Body.
 func (client ApplicationsClient) GetResponder(resp *http.Response) (result Application, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// GetServicePrincipalsIDByAppID gets an object id for a given application id from the current tenant.
+// Parameters:
+// applicationID - the application ID.
+func (client ApplicationsClient) GetServicePrincipalsIDByAppID(ctx context.Context, applicationID string) (result ServicePrincipalObjectResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ApplicationsClient.GetServicePrincipalsIDByAppID")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.GetServicePrincipalsIDByAppIDPreparer(ctx, applicationID)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "graphrbac.ApplicationsClient", "GetServicePrincipalsIDByAppID", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.GetServicePrincipalsIDByAppIDSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "graphrbac.ApplicationsClient", "GetServicePrincipalsIDByAppID", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.GetServicePrincipalsIDByAppIDResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "graphrbac.ApplicationsClient", "GetServicePrincipalsIDByAppID", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// GetServicePrincipalsIDByAppIDPreparer prepares the GetServicePrincipalsIDByAppID request.
+func (client ApplicationsClient) GetServicePrincipalsIDByAppIDPreparer(ctx context.Context, applicationID string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"applicationID": autorest.Encode("path", applicationID),
+		"tenantID":      autorest.Encode("path", client.TenantID),
+	}
+
+	const APIVersion = "1.6"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{tenantID}/servicePrincipalsByAppId/{applicationID}/objectId", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// GetServicePrincipalsIDByAppIDSender sends the GetServicePrincipalsIDByAppID request. The method will close the
+// http.Response Body if it receives an error.
+func (client ApplicationsClient) GetServicePrincipalsIDByAppIDSender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// GetServicePrincipalsIDByAppIDResponder handles the response to the GetServicePrincipalsIDByAppID request. The method always
+// closes the http.Response Body.
+func (client ApplicationsClient) GetServicePrincipalsIDByAppIDResponder(resp *http.Response) (result ServicePrincipalObjectResult, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -425,8 +498,8 @@ func (client ApplicationsClient) ListPreparer(ctx context.Context, filter string
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -516,8 +589,8 @@ func (client ApplicationsClient) ListKeyCredentialsPreparer(ctx context.Context,
 // ListKeyCredentialsSender sends the ListKeyCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) ListKeyCredentialsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListKeyCredentialsResponder handles the response to the ListKeyCredentials request. The method always
@@ -591,8 +664,8 @@ func (client ApplicationsClient) ListNextPreparer(ctx context.Context, nextLink 
 // ListNextSender sends the ListNext request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) ListNextSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListNextResponder handles the response to the ListNext request. The method always
@@ -667,8 +740,8 @@ func (client ApplicationsClient) ListOwnersPreparer(ctx context.Context, applica
 // ListOwnersSender sends the ListOwners request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) ListOwnersSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListOwnersResponder handles the response to the ListOwners request. The method always
@@ -779,8 +852,8 @@ func (client ApplicationsClient) ListPasswordCredentialsPreparer(ctx context.Con
 // ListPasswordCredentialsSender sends the ListPasswordCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) ListPasswordCredentialsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListPasswordCredentialsResponder handles the response to the ListPasswordCredentials request. The method always
@@ -857,8 +930,8 @@ func (client ApplicationsClient) PatchPreparer(ctx context.Context, applicationO
 // PatchSender sends the Patch request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) PatchSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // PatchResponder handles the response to the Patch request. The method always
@@ -933,8 +1006,8 @@ func (client ApplicationsClient) RemoveOwnerPreparer(ctx context.Context, applic
 // RemoveOwnerSender sends the RemoveOwner request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) RemoveOwnerSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // RemoveOwnerResponder handles the response to the RemoveOwner request. The method always
@@ -1010,8 +1083,8 @@ func (client ApplicationsClient) UpdateKeyCredentialsPreparer(ctx context.Contex
 // UpdateKeyCredentialsSender sends the UpdateKeyCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) UpdateKeyCredentialsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateKeyCredentialsResponder handles the response to the UpdateKeyCredentials request. The method always
@@ -1087,8 +1160,8 @@ func (client ApplicationsClient) UpdatePasswordCredentialsPreparer(ctx context.C
 // UpdatePasswordCredentialsSender sends the UpdatePasswordCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client ApplicationsClient) UpdatePasswordCredentialsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdatePasswordCredentialsResponder handles the response to the UpdatePasswordCredentials request. The method always

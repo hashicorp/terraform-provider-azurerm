@@ -9,6 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,9 +38,14 @@ func dataSourceArmImage() *schema.Resource {
 				ConflictsWith: []string{"name_regex"},
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
+
+			"zone_resilient": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 
 			"os_disk": {
 				Type:     schema.TypeList,
@@ -102,13 +109,13 @@ func dataSourceArmImage() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
+	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -137,7 +144,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response().Response) {
-				return fmt.Errorf("Error: Image %q (Resource Group %q) was not found", name, resGroup)
+				return fmt.Errorf("Error: Unable to list images for Resource Group %q", resGroup)
 			}
 			return fmt.Errorf("[ERROR] Error getting list of images (resource group %q): %+v", resGroup, err)
 		}
@@ -176,7 +183,7 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := img.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if profile := img.StorageProfile; profile != nil {
@@ -191,9 +198,9 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}
+
+		d.Set("zone_resilient", profile.ZoneResilient)
 	}
 
-	flattenAndSetTags(d, img.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, img.Tags)
 }

@@ -68,6 +68,8 @@ A `capture_description` block supports the following:
 
 * `size_limit_in_bytes` - (Optional) Specifies the amount of data built up in your EventHub before a Capture Operation occurs. Value should be between `10485760` and `524288000`  bytes. Defaults to `314572800` bytes.
 
+* `skip_empty_archives` - (Optional) Specifies if empty files should not be emitted if no events occur during the Capture time window.  Defaults to `false`.
+
 * `destination` - (Required) A `destination` block as defined below.
 
 A `destination` block supports the following:

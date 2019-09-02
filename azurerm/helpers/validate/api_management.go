@@ -71,8 +71,19 @@ func ApiManagementApiName(v interface{}, k string) (ws []string, es []error) {
 func ApiManagementApiPath(v interface{}, k string) (ws []string, es []error) {
 	value := v.(string)
 
-	if matched := regexp.MustCompile(`^[\w][\w-/.]+[\w-]$`).Match([]byte(value)); !matched {
-		es = append(es, fmt.Errorf("%q may only be up to 256 characters in length, not start or end with `/` and only contain valid url characters", k))
+	if matched := regexp.MustCompile(`^(?:|[\w][\w-/.]{0,398}[\w-])$`).Match([]byte(value)); !matched {
+		es = append(es, fmt.Errorf("%q may only be up to 400 characters in length, not start or end with `/` and only contain valid url characters", k))
 	}
 	return ws, es
+}
+
+func ApiManagementBackendName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	// From https://docs.microsoft.com/en-us/rest/api/apimanagement/2018-01-01/backend/createorupdate#uri-parameters
+	if matched := regexp.MustCompile(`(^[\w]+$)|(^[\w][\w\-]+[\w]$)`).Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric characters and dashes up to 50 characters in length", k))
+	}
+
+	return warnings, errors
 }

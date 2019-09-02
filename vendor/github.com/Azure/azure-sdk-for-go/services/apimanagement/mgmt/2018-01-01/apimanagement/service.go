@@ -112,9 +112,9 @@ func (client ServiceClient) ApplyNetworkConfigurationUpdatesPreparer(ctx context
 // ApplyNetworkConfigurationUpdatesSender sends the ApplyNetworkConfigurationUpdates request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) ApplyNetworkConfigurationUpdatesSender(req *http.Request) (future ServiceApplyNetworkConfigurationUpdatesFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -206,9 +206,9 @@ func (client ServiceClient) BackupPreparer(ctx context.Context, resourceGroupNam
 // BackupSender sends the Backup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) BackupSender(req *http.Request) (future ServiceBackupFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -294,8 +294,8 @@ func (client ServiceClient) CheckNameAvailabilityPreparer(ctx context.Context, p
 // CheckNameAvailabilitySender sends the CheckNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) CheckNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CheckNameAvailabilityResponder handles the response to the CheckNameAvailability request. The method always
@@ -375,6 +375,7 @@ func (client ServiceClient) CreateOrUpdatePreparer(ctx context.Context, resource
 		"api-version": APIVersion,
 	}
 
+	parameters.Etag = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -388,9 +389,9 @@ func (client ServiceClient) CreateOrUpdatePreparer(ctx context.Context, resource
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) CreateOrUpdateSender(req *http.Request) (future ServiceCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -479,8 +480,8 @@ func (client ServiceClient) DeletePreparer(ctx context.Context, resourceGroupNam
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -563,8 +564,8 @@ func (client ServiceClient) GetPreparer(ctx context.Context, resourceGroupName s
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -648,8 +649,8 @@ func (client ServiceClient) GetSsoTokenPreparer(ctx context.Context, resourceGro
 // GetSsoTokenSender sends the GetSsoToken request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) GetSsoTokenSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetSsoTokenResponder handles the response to the GetSsoToken request. The method always
@@ -721,8 +722,8 @@ func (client ServiceClient) ListPreparer(ctx context.Context) (*http.Request, er
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -834,8 +835,8 @@ func (client ServiceClient) ListByResourceGroupPreparer(ctx context.Context, res
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -959,9 +960,9 @@ func (client ServiceClient) RestorePreparer(ctx context.Context, resourceGroupNa
 // RestoreSender sends the Restore request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) RestoreSender(req *http.Request) (future ServiceRestoreFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -1034,6 +1035,7 @@ func (client ServiceClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 		"api-version": APIVersion,
 	}
 
+	parameters.Etag = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
@@ -1047,9 +1049,9 @@ func (client ServiceClient) UpdatePreparer(ctx context.Context, resourceGroupNam
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) UpdateSender(req *http.Request) (future ServiceUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -1137,9 +1139,9 @@ func (client ServiceClient) UpdateHostnamePreparer(ctx context.Context, resource
 // UpdateHostnameSender sends the UpdateHostname request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) UpdateHostnameSender(req *http.Request) (future ServiceUpdateHostnameFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -1235,8 +1237,8 @@ func (client ServiceClient) UploadCertificatePreparer(ctx context.Context, resou
 // UploadCertificateSender sends the UploadCertificate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServiceClient) UploadCertificateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UploadCertificateResponder handles the response to the UploadCertificate request. The method always

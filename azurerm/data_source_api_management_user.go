@@ -17,7 +17,7 @@ func dataSourceArmApiManagementUser() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementDataSourceName(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"first_name": {
 				Type:     schema.TypeString,
@@ -48,7 +48,7 @@ func dataSourceArmApiManagementUser() *schema.Resource {
 }
 
 func dataSourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementUsersClient
+	client := meta.(*ArmClient).apiManagement.UsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

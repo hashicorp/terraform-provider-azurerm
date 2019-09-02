@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,9 +19,9 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"zones": zonesSchemaComputed(),
+			"zones": azure.SchemaZonesComputed(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,
@@ -51,13 +53,13 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).diskClient
+	client := meta.(*ArmClient).compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -92,7 +94,5 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("zones", resp.Zones)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

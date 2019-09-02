@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -42,7 +43,7 @@ func NewExportConfigurationsClientWithBaseURI(baseURI string, subscriptionID str
 
 // Create create a Continuous Export configuration of an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // exportProperties - properties that need to be specified to create a Continuous Export configuration of a
 // Application Insights component.
@@ -57,6 +58,16 @@ func (client ExportConfigurationsClient) Create(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ExportConfigurationsClient", "Create", err.Error())
+	}
+
 	req, err := client.CreatePreparer(ctx, resourceGroupName, resourceName, exportProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Create", nil, "Failure preparing request")
@@ -104,8 +115,8 @@ func (client ExportConfigurationsClient) CreatePreparer(ctx context.Context, res
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -123,7 +134,7 @@ func (client ExportConfigurationsClient) CreateResponder(resp *http.Response) (r
 
 // Delete delete a Continuous Export configuration of an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // exportID - the Continuous Export configuration ID. This is unique within a Application Insights component.
 func (client ExportConfigurationsClient) Delete(ctx context.Context, resourceGroupName string, resourceName string, exportID string) (result ApplicationInsightsComponentExportConfiguration, err error) {
@@ -137,6 +148,16 @@ func (client ExportConfigurationsClient) Delete(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ExportConfigurationsClient", "Delete", err.Error())
+	}
+
 	req, err := client.DeletePreparer(ctx, resourceGroupName, resourceName, exportID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Delete", nil, "Failure preparing request")
@@ -183,8 +204,8 @@ func (client ExportConfigurationsClient) DeletePreparer(ctx context.Context, res
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -202,7 +223,7 @@ func (client ExportConfigurationsClient) DeleteResponder(resp *http.Response) (r
 
 // Get get the Continuous Export configuration for this export id.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // exportID - the Continuous Export configuration ID. This is unique within a Application Insights component.
 func (client ExportConfigurationsClient) Get(ctx context.Context, resourceGroupName string, resourceName string, exportID string) (result ApplicationInsightsComponentExportConfiguration, err error) {
@@ -216,6 +237,16 @@ func (client ExportConfigurationsClient) Get(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ExportConfigurationsClient", "Get", err.Error())
+	}
+
 	req, err := client.GetPreparer(ctx, resourceGroupName, resourceName, exportID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Get", nil, "Failure preparing request")
@@ -262,8 +293,8 @@ func (client ExportConfigurationsClient) GetPreparer(ctx context.Context, resour
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -281,7 +312,7 @@ func (client ExportConfigurationsClient) GetResponder(resp *http.Response) (resu
 
 // List gets a list of Continuous Export configuration of an Application Insights component.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 func (client ExportConfigurationsClient) List(ctx context.Context, resourceGroupName string, resourceName string) (result ListApplicationInsightsComponentExportConfiguration, err error) {
 	if tracing.IsEnabled() {
@@ -294,6 +325,16 @@ func (client ExportConfigurationsClient) List(ctx context.Context, resourceGroup
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ExportConfigurationsClient", "List", err.Error())
+	}
+
 	req, err := client.ListPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "List", nil, "Failure preparing request")
@@ -339,8 +380,8 @@ func (client ExportConfigurationsClient) ListPreparer(ctx context.Context, resou
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -358,7 +399,7 @@ func (client ExportConfigurationsClient) ListResponder(resp *http.Response) (res
 
 // Update update the Continuous Export configuration for this export id.
 // Parameters:
-// resourceGroupName - the name of the resource group.
+// resourceGroupName - the name of the resource group. The name is case insensitive.
 // resourceName - the name of the Application Insights component resource.
 // exportID - the Continuous Export configuration ID. This is unique within a Application Insights component.
 // exportProperties - properties that need to be specified to update the Continuous Export configuration.
@@ -373,6 +414,16 @@ func (client ExportConfigurationsClient) Update(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
+		{TargetValue: client.SubscriptionID,
+			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("insights.ExportConfigurationsClient", "Update", err.Error())
+	}
+
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, resourceName, exportID, exportProperties)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "insights.ExportConfigurationsClient", "Update", nil, "Failure preparing request")
@@ -421,8 +472,8 @@ func (client ExportConfigurationsClient) UpdatePreparer(ctx context.Context, res
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ExportConfigurationsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always

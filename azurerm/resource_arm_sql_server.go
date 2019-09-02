@@ -10,6 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,17 +34,17 @@ func resourceArmSqlServer() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"version": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string("2.0"),
-					string("12.0"),
+					"2.0",
+					"12.0",
 				}, true),
 			},
 
@@ -63,25 +65,25 @@ func resourceArmSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	adminUsername := d.Get("administrator_login").(string)
 	version := d.Get("version").(string)
 
-	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	metadata := tags.Expand(t)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -114,7 +116,6 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-
 		if response.WasConflict(future.Response()) {
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
 		}
@@ -133,10 +134,10 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -158,7 +159,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if serverProperties := resp.ServerProperties; serverProperties != nil {
@@ -167,16 +168,14 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

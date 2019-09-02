@@ -45,7 +45,7 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func dataSourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	var servicePrincipal *graphrbac.ServicePrincipal

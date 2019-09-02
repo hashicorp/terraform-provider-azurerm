@@ -7,31 +7,9 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
-
-// NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
-// Plan per region.
-func TestAccAzureRMDDoSProtectionPlan(t *testing.T) {
-	testCases := map[string]map[string]func(t *testing.T){
-		"normal": {
-			"basic":          testAccAzureRMDDoSProtectionPlan_basic,
-			"requiresImport": testAccAzureRMDDoSProtectionPlan_requiresImport,
-			"withTags":       testAccAzureRMDDoSProtectionPlan_withTags,
-			"disappears":     testAccAzureRMDDoSProtectionPlan_disappears,
-		},
-	}
-
-	for group, steps := range testCases {
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range steps {
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
 
 func testAccAzureRMDDoSProtectionPlan_basic(t *testing.T) {
 	resourceName := "azurerm_ddos_protection_plan.test"
@@ -60,7 +38,7 @@ func testAccAzureRMDDoSProtectionPlan_basic(t *testing.T) {
 }
 
 func testAccAzureRMDDoSProtectionPlan_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -160,7 +138,7 @@ func testCheckAzureRMDDoSProtectionPlanExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
+		client := testAccProvider.Meta().(*ArmClient).network.DDOSProtectionPlansClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -189,7 +167,7 @@ func testCheckAzureRMDDoSProtectionPlanDisappears(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for DDoS Protection Plan: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
+		client := testAccProvider.Meta().(*ArmClient).network.DDOSProtectionPlansClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -205,7 +183,7 @@ func testCheckAzureRMDDoSProtectionPlanDisappears(resourceName string) resource.
 }
 
 func testCheckAzureRMDDoSProtectionPlanDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ddosProtectionPlanClient
+	client := testAccProvider.Meta().(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

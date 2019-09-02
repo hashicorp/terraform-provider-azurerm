@@ -47,13 +47,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `route` - (Optional) Can be specified multiple times to define multiple routes. Each `route` block supports fields documented below.
+* `route` - (Optional) [List of objects](/docs/configuration/attr-as-blocks.html) representing routes. Each object accepts the arguments documented below.
 
 * `disable_bgp_route_propagation` - (Optional) Boolean flag which controls propagation of routes learned by BGP on that route table. True means disable.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `route` block supports:
+Elements of `route` support:
 
 * `name` - (Required) The name of the route.
 
@@ -62,7 +62,6 @@ The `route` block supports:
 * `next_hop_type` - (Required) The type of Azure hop the packet should be sent to. Possible values are `VirtualNetworkGateway`, `VnetLocal`, `Internet`, `VirtualAppliance` and `None`.
 
 * `next_hop_in_ip_address` - (Optional) Contains the IP address packets should be forwarded to. Next hop values are only allowed in routes where the next hop type is `VirtualAppliance`.
-
 
 ## Attributes Reference
 

@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,13 +42,13 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 		},
 	}
 }
 
 func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothubResourceClient
+	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM IoTHub Consumer Group creation.")
 
@@ -55,7 +57,7 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 	endpointName := d.Get("eventhub_endpoint_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -87,10 +89,10 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothubResourceClient
+	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -118,10 +120,10 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothubResourceClient
+	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

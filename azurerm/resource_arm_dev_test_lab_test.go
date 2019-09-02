@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestLab_basic(t *testing.T) {
@@ -38,7 +39,7 @@ func TestAccAzureRMDevTestLab_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLab_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -108,7 +109,7 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for DevTest Lab: %s", labName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestLabsClient
+		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.LabsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, labName, "")
 		if err != nil {
@@ -124,7 +125,7 @@ func testCheckAzureRMDevTestLabExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMDevTestLabDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestLabsClient
+	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.LabsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -193,7 +194,7 @@ resource "azurerm_dev_test_lab" "test" {
   storage_type        = "Standard"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt)

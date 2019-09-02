@@ -14,12 +14,12 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 	}
 
 	// this test intentionally checks all the RP's are registered - so this is intentional
-	armClient, err := getArmClient(config, true, "")
+	armClient, err := getArmClient(config, true, "", true)
 	if err != nil {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}
 
-	client := armClient.providersClient
+	client := armClient.resource.ProvidersClient
 	ctx := testAccProvider.StopContext()
 	providerList, err := client.List(ctx, nil, "")
 	if err != nil {
@@ -30,7 +30,7 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 
 	availableResourceProviders := providerList.Values()
 	requiredResourceProviders := requiredResourceProviders()
-	err = ensureResourceProvidersAreRegistered(ctx, client, availableResourceProviders, requiredResourceProviders)
+	err = ensureResourceProvidersAreRegistered(ctx, *client, availableResourceProviders, requiredResourceProviders)
 	if err != nil {
 		t.Fatalf("Error registering Resource Providers: %+v", err)
 	}

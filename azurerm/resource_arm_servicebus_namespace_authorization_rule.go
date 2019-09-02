@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -39,7 +40,7 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusNamespaceName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 		}),
 
 		CustomizeDiff: azure.ServiceBusAuthorizationRuleCustomizeDiff,
@@ -47,7 +48,7 @@ func resourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace Authorization Rule creation.")
@@ -56,7 +57,7 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 	resourceGroup := d.Get("resource_group_name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -95,10 +96,10 @@ func resourceArmServiceBusNamespaceAuthorizationRuleCreateUpdate(d *schema.Resou
 }
 
 func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -141,10 +142,10 @@ func resourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData,
 }
 
 func resourceArmServiceBusNamespaceAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

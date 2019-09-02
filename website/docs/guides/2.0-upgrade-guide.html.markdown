@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.22.0"
+  version = "=1.28.0"
 }
 ```
 
@@ -145,6 +145,10 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Data Source: `azurerm_dns_zone`
+
+The deprecated field `zone_type` will be removed. Private DNS Zones are now a separate resource in both Azure and Terraform.
+
 ### Data Source: `azurerm_kubernetes_cluster`
 
 The deprecated field `dns_prefix` within the `agent_pool_profile` block will be removed.
@@ -156,6 +160,10 @@ The deprecated field `internal_fqdn` will be removed.
 ### Data Source: `azurerm_scheduler_job_collection`
 
 Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Data Source will be removed.
+
+### Data Source: `azurerm_virtual_network`
+
+The deprecated field `address_space` will be removed.
 
 ### Resource: `azurerm_app_service_plan`
 
@@ -189,11 +197,15 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Resource: `azurerm_connection_monitor`
+
+The `azurerm_connection_monitor` resource will be deprecated in favour of a new resources `azurerm_network_connection_monitor`.
+
 ### Resource: `azurerm_container_group`
 
 The deprecated `port` and `protocol` fields in the `container`  block will be removed. These fields have been moved into the `ports` block within the `ports` field.
 
-The deprecated `command` field in the `container` block will be removed. This has been replaced by the `commands` field in the container` block.
+The deprecated `command` field in the `container` block will be removed. This has been replaced by the `commands` field in the `container` block.
 
 ### Resource: `azurerm_container_registry`
 
@@ -207,6 +219,10 @@ Azure Container Service (ACS) is being Deprecated in favour of Azure Kubernetes 
 
 The deprecated `failover_policy` block will be removed. This has been replaced by the `geo_location` block.
 
+### Resource: `azurerm_ddos_protection_plan`
+
+The `azurerm_ddos_protection_planr` resource will be deprecated in favour of a new resources `azurerm_network_ddos_protection_plan`.
+
 ### Resource: `azurerm_dns_mx_record`
 
 The `preference` field in the `record` block will change from a String to an Integer to better reflect the API.
@@ -214,6 +230,10 @@ The `preference` field in the `record` block will change from a String to an Int
 ### Resource: `azurerm_dns_ns_record`
 
 The deprecated `record` field will be removed. This has been replaced by the `records` field which accepts multiple values.
+
+### Resource: `azurerm_dns_zone`
+
+The deprecated `zone_type` field will be removed. This has been replaced by the `azurerm_private_dns_zone` resource.
 
 ### Resource: `azurerm_eventhub`
 
@@ -287,6 +307,10 @@ The `load_balancer_backend_address_pools_ids` field in the `ip_configuration` bl
 
 The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block will been removed. This has been replaced by the `azurerm_network_interface_nat_rule_association` resource.
 
+### Resource: `azurerm_packet_capture`
+
+The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
+
 ### Resource: `azurerm_public_ip`
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
@@ -323,6 +347,30 @@ The deprecated `enable_filtering_messages_before_publishing` field will be remov
 
 The deprecated `account_type` field will be removed. This has been split into the fields `account_tier` and `account_replication_type`.
 
+### Resource: `azurerm_storage_blob`
+
+The deprecated `attempts` field will be removed, since Terraform now handles retries automatically.
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_storage_container`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+The deprecated `properties` block will be removed.
+
+### Resource: `azurerm_storage_queue`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_storage_share`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_storage_table`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
 ### Resource: `azurerm_subnet`
 
 The deprecated field `network_security_group_id` will be removed. This has been replaced by the `azurerm_subnet_network_security_group_association` resource.
@@ -344,6 +392,15 @@ The `azurerm_virtual_machine_scale_set` resource will be deprecated in favour of
 Splitting the Virtual Machine Scale Set resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
 The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_log_analytics_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
+### Resource: `azurerm_log_analytics_workspace_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
 
 ---
 

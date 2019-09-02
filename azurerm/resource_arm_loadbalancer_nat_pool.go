@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,9 +34,9 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"loadbalancer_id": {
 				Type:         schema.TypeString,
@@ -88,13 +90,13 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 }
 
 func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
 	name := d.Get("name").(string)
-	armMutexKV.Lock(loadBalancerID)
-	defer armMutexKV.Unlock(loadBalancerID)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
@@ -116,7 +118,7 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 	existingNatPool, existingNatPoolIndex, exists := findLoadBalancerNatPoolByName(loadBalancer, name)
 	if exists {
 		if name == *existingNatPool.Name {
-			if requireResourcesToBeImported && d.IsNewResource() {
+			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_nat_pool", *existingNatPool.ID)
 			}
 
@@ -165,7 +167,7 @@ func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -198,7 +200,7 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 		d.Set("backend_port", props.BackendPort)
 
 		if feipConfig := props.FrontendIPConfiguration; feipConfig != nil {
-			fipID, err := parseAzureResourceID(*feipConfig.ID)
+			fipID, err := azure.ParseAzureResourceID(*feipConfig.ID)
 			if err != nil {
 				return err
 			}
@@ -212,12 +214,12 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
-	armMutexKV.Lock(loadBalancerID)
-	defer armMutexKV.Unlock(loadBalancerID)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {

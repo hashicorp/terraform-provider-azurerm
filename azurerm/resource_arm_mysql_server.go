@@ -8,9 +8,12 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,20 +23,22 @@ func resourceArmMySqlServer() *schema.Resource {
 		Read:   resourceArmMySqlServerRead,
 		Update: resourceArmMySqlServerUpdate,
 		Delete: resourceArmMySqlServerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -174,7 +179,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -192,13 +197,13 @@ func resourceArmMySqlServer() *schema.Resource {
 }
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLogin := d.Get("administrator_login").(string)
@@ -206,9 +211,9 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	createMode := "Default"
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -235,7 +240,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 			CreateMode:                 mysql.CreateMode(createMode),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -262,7 +267,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
@@ -275,7 +280,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	version := d.Get("version").(string)
 	sku := expandMySQLServerSku(d)
 	storageProfile := expandMySQLStorageProfile(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := mysql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
@@ -285,7 +290,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -312,10 +317,10 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -336,7 +341,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("administrator_login", resp.AdministratorLogin)
@@ -351,19 +356,17 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

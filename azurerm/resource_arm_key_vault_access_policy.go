@@ -6,8 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -78,21 +80,21 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"object_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"application_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
@@ -100,12 +102,14 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 			"key_permissions": azure.SchemaKeyVaultKeyPermissions(),
 
 			"secret_permissions": azure.SchemaKeyVaultSecretPermissions(),
+
+			"storage_permissions": azure.SchemaKeyVaultStoragePermissions(),
 		},
 	}
 }
 
 func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
@@ -167,10 +171,10 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	}
 
 	// Locking to prevent parallel changes causing issues
-	azureRMLockByName(vaultName, keyVaultResourceName)
-	defer azureRMUnlockByName(vaultName, keyVaultResourceName)
+	locks.ByName(vaultName, keyVaultResourceName)
+	defer locks.UnlockByName(vaultName, keyVaultResourceName)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		props := keyVault.Properties
 		if props == nil {
 			return fmt.Errorf("Error parsing Key Vault: `properties` was nil")
@@ -208,6 +212,9 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 	secretPermissionsRaw := d.Get("secret_permissions").([]interface{})
 	secretPermissions := azure.ExpandSecretPermissions(secretPermissionsRaw)
 
+	storagePermissionsRaw := d.Get("storage_permissions").([]interface{})
+	storagePermissions := azure.ExpandStoragePermissions(storagePermissionsRaw)
+
 	accessPolicy := keyvault.AccessPolicyEntry{
 		ObjectID: utils.String(objectId),
 		TenantID: &tenantId,
@@ -215,6 +222,7 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 			Certificates: certPermissions,
 			Keys:         keyPermissions,
 			Secrets:      secretPermissions,
+			Storage:      storagePermissions,
 		},
 	}
 
@@ -269,10 +277,10 @@ func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyVaultClient
+	client := meta.(*ArmClient).keyvault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
@@ -331,6 +339,11 @@ func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{
 		secretPermissions := azure.FlattenSecretPermissions(permissions.Secrets)
 		if err := d.Set("secret_permissions", secretPermissions); err != nil {
 			return fmt.Errorf("Error setting `secret_permissions`: %+v", err)
+		}
+
+		storagePermissions := azure.FlattenStoragePermissions(permissions.Storage)
+		if err := d.Set("storage_permissions", storagePermissions); err != nil {
+			return fmt.Errorf("Error setting `storage_permissions`: %+v", err)
 		}
 	}
 

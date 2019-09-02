@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_application_security_group
 
-Manage an Application Security Group.
+Manages an Application Security Group.
 
 ## Example Usage
 
@@ -24,7 +24,7 @@ resource "azurerm_application_security_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 ```

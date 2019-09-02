@@ -1,0 +1,100 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_api_management_logger"
+sidebar_current: "docs-azurerm-resource-api-management-logger"
+description: |-
+  Manages a Logger within an API Management Service.
+---
+
+# azurerm_api_management_logger
+
+Manages a Logger within an API Management Service.
+
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West US"
+}
+
+resource "azurerm_application_insights" "example" {
+  name                = "example-appinsights"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  application_type    = "Other"
+}
+
+resource "azurerm_api_management" "example" {
+  name                = "example-apim"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  publisher_name      = "My Company"
+  publisher_email     = "company@terraform.io"
+
+  sku {
+    name     = "Developer"
+    capacity = 1
+  }
+}
+
+resource "azurerm_api_management_logger" "example" {
+  name                = "example-logger"
+  api_management_name = "${azurerm_api_management.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+
+  application_insights {
+    instrumentation_key = "${azurerm_application_insights.example.instrumentation_key}"
+  }
+}
+```
+
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of this Logger, which must be unique within the API Management Service. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group in which the API Management Service exists. Changing this forces a new resource to be created.
+
+* `api_management_name` - (Required) The name of the API Management Service. Changing this forces a new resource to be created.
+
+* `application_insights` - (Optional) An `application_insights` block as documented below.
+
+* `buffered` - (Optional) Specifies whether records should be buffered in the Logger prior to publishing. Defaults to `true`.
+
+* `description` - (Optional) A description of this Logger.
+
+* `eventhub` - (Optional) An `eventhub` block as documented below.
+
+---
+
+An `application_insights` block supports the following:
+
+* `instrumentation_key` - (Required) The instrumentation key used to push data to Application Insights.
+
+---
+
+An `eventhub` block supports the following:
+
+* `name` - (Required) The name of an EventHub.
+
+* `connection_string` - (Required) The connection string of an EventHub Namespace.
+
+
+## Attributes Reference
+
+In addition to all arguments above, the following attributes are exported:
+
+* `id` - The ID of the API Management Logger.
+
+
+## Import
+
+API Management Loggers can be imported using the `resource id`, e.g.
+
+```shell
+$ terraform import azurerm_api_management_logger.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/example-rg/Microsoft.ApiManagement/service/example-apim/loggers/example-logger
+```

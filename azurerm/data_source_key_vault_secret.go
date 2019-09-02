@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,14 +58,14 @@ func dataSourceArmKeyVaultSecret() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
+	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -118,6 +119,5 @@ func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

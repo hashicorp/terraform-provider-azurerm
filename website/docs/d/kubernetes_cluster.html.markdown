@@ -38,7 +38,7 @@ The following attributes are exported:
 
 * `addon_profile` - A `addon_profile` block as documented below.
 
-* `agent_pool_profile` - One or more `agent_profile_pool` blocks as documented below.
+* `agent_pool_profile` - An `agent_pool_profile` block as documented below.
 
 * `dns_prefix` - The DNS Prefix of the managed Kubernetes cluster.
 
@@ -58,6 +58,8 @@ The following attributes are exported:
 
 * `linux_profile` - A `linux_profile` block as documented below.
 
+* `windows_profile` - A `windows_profile` block as documented below.
+
 * `network_profile` - A `network_profile` block as documented below.
 
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
@@ -76,13 +78,25 @@ A `addon_profile` block exports the following:
 
 * `oms_agent` - A `oms_agent` block.
 
+* `kube_dashboard` - A `kube_dashboard` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
 
+* `type` - The type of the Agent Pool.
+
 * `count` - The number of Agents (VM's) in the Pool.
 
 * `max_pods` - The maximum number of pods that can run on each agent.
+
+* `availability_zones` - The availability zones used for the nodes. 
+
+* `enable_auto_scaling` - If the auto-scaler is enabled. 
+
+* `min_count` - Minimum number of nodes for auto-scaling 
+
+* `max_count` - Maximum number of nodes for auto-scaling
 
 * `name` - The name assigned to this pool of agents.
 
@@ -93,6 +107,8 @@ A `agent_pool_profile` block exports the following:
 * `vm_size` - The size of each VM in the Agent Pool (e.g. `Standard_F1`).
 
 * `vnet_subnet_id` - The ID of the Subnet where the Agents in the Pool are provisioned.
+
+* `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
 
 ---
 
@@ -147,7 +163,13 @@ A `linux_profile` block exports the following:
 
 * `admin_username` - The username associated with the administrator account of the managed Kubernetes Cluster.
 
-* `ssh_key` - One or more `ssh_key` blocks as defined below.
+* `ssh_key` - An `ssh_key` block as defined below.
+
+---
+
+A `windows_profile` block exports the following:
+
+* `admin_username` - The username associated with the administrator account of the Windows VMs.
 
 ---
 
@@ -158,6 +180,8 @@ A `network_profile` block exports the following:
 * `dns_service_ip` - IP address within the Kubernetes service address range used by cluster service discovery (kube-dns).
 
 * `network_plugin` - Network plugin used such as `azure` or `kubenet`.
+
+* `network_policy` - Network policy to be used with Azure CNI. Eg: `calico` or `azure`
 
 * `pod_cidr` - The CIDR used for pod IP addresses.
 
@@ -170,6 +194,12 @@ A `oms_agent` block exports the following:
 * `enabled` - Is the OMS Agent Enabled?
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+
+---
+
+A `kube_dashboard` block supports the following:
+
+* `enabled` - (Required) Is the Kubernetes Dashboard enabled? 
 
 ---
 

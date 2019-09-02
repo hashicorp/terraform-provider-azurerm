@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,7 +39,7 @@ func TestAccAzureRMRouteTable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRouteTable_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -159,7 +160,8 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 	resourceName := "azurerm_route_table.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMRouteTable_singleRoute(ri, testLocation())
-	updatedConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
+	noBlocksConfig := testAccAzureRMRouteTable_noRouteBlocks(ri, testLocation())
+	blocksEmptyConfig := testAccAzureRMRouteTable_singleRouteRemoved(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -167,6 +169,7 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 		CheckDestroy: testCheckAzureRMRouteTableDestroy,
 		Steps: []resource.TestStep{
 			{
+				// This configuration includes a single explicit route block
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(resourceName),
@@ -174,9 +177,23 @@ func TestAccAzureRMRouteTable_removeRoute(t *testing.T) {
 				),
 			},
 			{
-				Config: updatedConfig,
+				// This configuration has no route blocks at all.
+				Config: noBlocksConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRouteTableExists(resourceName),
+					// The route from the first step is preserved because no
+					// blocks at all means "ignore existing blocks".
+					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
+				),
+			},
+			{
+				// This configuration sets route to [] explicitly using the
+				// attribute syntax.
+				Config: blocksEmptyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRouteTableExists(resourceName),
+					// The route from the first step is now removed, leaving us
+					// with no routes at all.
 					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
 				),
 			},
@@ -325,7 +342,7 @@ func testCheckAzureRMRouteTableExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		client := testAccProvider.Meta().(*ArmClient).network.RouteTablesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
@@ -354,7 +371,7 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+		client := testAccProvider.Meta().(*ArmClient).network.RouteTablesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
@@ -373,7 +390,7 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).routeTablesClient
+	client := testAccProvider.Meta().(*ArmClient).network.RouteTablesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -492,6 +509,21 @@ resource "azurerm_route_table" "test" {
 `, rInt, location, rInt)
 }
 
+func testAccAzureRMRouteTable_noRouteBlocks(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctestrt%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, rInt, location, rInt)
+}
+
 func testAccAzureRMRouteTable_singleRouteRemoved(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -503,6 +535,8 @@ resource "azurerm_route_table" "test" {
   name                = "acctestrt%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  route = []
 }
 `, rInt, location, rInt)
 }

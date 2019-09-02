@@ -3,7 +3,9 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-08-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -21,9 +23,17 @@ func resourceArmConnectionMonitor() *schema.Resource {
 		Read:   resourceArmConnectionMonitorRead,
 		Update: resourceArmConnectionMonitorCreateUpdate,
 		Delete: resourceArmConnectionMonitorDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		DeprecationMessage: `The 'azurerm_connection_monitor' resource is deprecated in favour of the renamed version 'azurerm_network_connection_monitor'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_connection_monitor' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -33,7 +43,7 @@ func resourceArmConnectionMonitor() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
 				Type:         schema.TypeString,
@@ -42,7 +52,7 @@ func resourceArmConnectionMonitor() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"auto_start": {
 				Type:     schema.TypeBool,
@@ -105,19 +115,19 @@ func resourceArmConnectionMonitor() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).connectionMonitorsClient
+	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	watcherName := d.Get("network_watcher_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	autoStart := d.Get("auto_start").(bool)
 	intervalInSeconds := int32(d.Get("interval_in_seconds").(int))
 
@@ -131,7 +141,7 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -144,11 +154,11 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := network.ConnectionMonitor{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		ConnectionMonitorParameters: &network.ConnectionMonitorParameters{
 			Source:                      source,
 			Destination:                 dest,
@@ -180,10 +190,10 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).connectionMonitorsClient
+	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -204,7 +214,7 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("network_watcher_name", watcherName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ConnectionMonitorResultProperties; props != nil {
@@ -222,16 +232,14 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).connectionMonitorsClient
+	client := meta.(*ArmClient).network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMContainerService_orchestrationPlatformValidation(t *testing.T) {
@@ -96,7 +97,7 @@ func TestAccAzureRMContainerService_dcosBasic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerService_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -410,7 +411,7 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Container Service Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).containerServicesClient
+		conn := testAccProvider.Meta().(*ArmClient).containers.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -427,7 +428,7 @@ func testCheckAzureRMContainerServiceExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMContainerServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).containerServicesClient
+	conn := testAccProvider.Meta().(*ArmClient).containers.ServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_service" {

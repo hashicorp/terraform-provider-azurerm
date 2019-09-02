@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
@@ -44,7 +45,7 @@ func TestAccAzureRMDevTestLinuxVirtualMachine_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestLinuxVirtualMachine_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -185,7 +186,7 @@ func testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName string) resou
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestVirtualMachinesClient
+		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualMachinesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
@@ -202,7 +203,7 @@ func testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName string) resou
 }
 
 func testCheckAzureRMDevTestLinuxVirtualMachineDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestVirtualMachinesClient
+	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualMachinesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

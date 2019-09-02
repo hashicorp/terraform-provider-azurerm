@@ -5,7 +5,9 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2017-09-01/batch"
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // FlattenBatchPoolAutoScaleSettings flattens the auto scale settings for a Batch pool
@@ -123,6 +125,32 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 		result["user_identity"] = []interface{}{userIdentity}
 	}
 
+	resourceFiles := make([]interface{}, 0)
+	if startTask.ResourceFiles != nil {
+		for _, armResourceFile := range *startTask.ResourceFiles {
+			resourceFile := make(map[string]interface{})
+			if armResourceFile.AutoStorageContainerName != nil {
+				resourceFile["auto_storage_container_name"] = *armResourceFile.AutoStorageContainerName
+			}
+			if armResourceFile.StorageContainerURL != nil {
+				resourceFile["storage_container_url"] = *armResourceFile.StorageContainerURL
+			}
+			if armResourceFile.HTTPURL != nil {
+				resourceFile["http_url"] = *armResourceFile.HTTPURL
+			}
+			if armResourceFile.BlobPrefix != nil {
+				resourceFile["blob_prefix"] = *armResourceFile.BlobPrefix
+			}
+			if armResourceFile.FilePath != nil {
+				resourceFile["file_path"] = *armResourceFile.FilePath
+			}
+			if armResourceFile.FileMode != nil {
+				resourceFile["file_mode"] = *armResourceFile.FileMode
+			}
+			resourceFiles = append(resourceFiles, resourceFile)
+		}
+	}
+
 	if startTask.EnvironmentSettings != nil {
 		environment := make(map[string]interface{})
 		for _, envSetting := range *startTask.EnvironmentSettings {
@@ -131,8 +159,110 @@ func FlattenBatchPoolStartTask(startTask *batch.StartTask) []interface{} {
 
 		result["environment"] = environment
 	}
+	result["resource_file"] = resourceFiles
 
 	return append(results, result)
+}
+
+// FlattenBatchPoolCertificateReferences flattens a Batch pool certificate reference
+func FlattenBatchPoolCertificateReferences(armCertificates *[]batch.CertificateReference) []interface{} {
+	if armCertificates == nil {
+		return []interface{}{}
+	}
+	output := make([]interface{}, 0)
+
+	for _, armCertificate := range *armCertificates {
+		certificate := map[string]interface{}{}
+		if armCertificate.ID != nil {
+			certificate["id"] = *armCertificate.ID
+		}
+		certificate["store_location"] = string(armCertificate.StoreLocation)
+		if armCertificate.StoreName != nil {
+			certificate["store_name"] = *armCertificate.StoreName
+		}
+		visibility := &schema.Set{F: schema.HashString}
+		if armCertificate.Visibility != nil {
+			for _, armVisibility := range *armCertificate.Visibility {
+				visibility.Add(string(armVisibility))
+			}
+		}
+		certificate["visibility"] = visibility
+		output = append(output, certificate)
+	}
+	return output
+}
+
+// FlattenBatchPoolContainerConfiguration flattens a Batch pool container configuration
+func FlattenBatchPoolContainerConfiguration(d *schema.ResourceData, armContainerConfiguration *batch.ContainerConfiguration) interface{} {
+	result := make(map[string]interface{})
+
+	if armContainerConfiguration == nil {
+		return nil
+	}
+
+	if armContainerConfiguration.Type != nil {
+		result["type"] = *armContainerConfiguration.Type
+	}
+	result["container_registries"] = flattenBatchPoolContainerRegistries(d, armContainerConfiguration.ContainerRegistries)
+
+	return []interface{}{result}
+}
+
+func flattenBatchPoolContainerRegistries(d *schema.ResourceData, armContainerRegistries *[]batch.ContainerRegistry) []interface{} {
+	results := make([]interface{}, 0)
+
+	if armContainerRegistries == nil {
+		return results
+	}
+	for _, armContainerRegistry := range *armContainerRegistries {
+		result := flattenBatchPoolContainerRegistry(d, &armContainerRegistry)
+		results = append(results, result)
+	}
+	return results
+}
+
+func flattenBatchPoolContainerRegistry(d *schema.ResourceData, armContainerRegistry *batch.ContainerRegistry) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if armContainerRegistry == nil {
+		return result
+	}
+	if registryServer := armContainerRegistry.RegistryServer; registryServer != nil {
+		result["registry_server"] = *registryServer
+	}
+	if userName := armContainerRegistry.UserName; userName != nil {
+		result["user_name"] = *userName
+	}
+
+	// If we didn't specify a registry server and user name, just return what we have now rather than trying to locate the password
+	if len(result) != 2 {
+		return result
+	}
+
+	result["password"] = findBatchPoolContainerRegistryPassword(d, result["registry_server"].(string), result["user_name"].(string))
+
+	return result
+}
+
+func findBatchPoolContainerRegistryPassword(d *schema.ResourceData, armServer string, armUsername string) interface{} {
+	numContainerRegistries := 0
+	if n, ok := d.GetOk("container_configuration.0.container_registries.#"); ok {
+		numContainerRegistries = n.(int)
+	} else {
+		return ""
+	}
+
+	for i := 0; i < numContainerRegistries; i++ {
+		if server, ok := d.GetOk(fmt.Sprintf("container_configuration.0.container_registries.%d.registry_server", i)); !ok || server != armServer {
+			continue
+		}
+		if username, ok := d.GetOk(fmt.Sprintf("container_configuration.0.container_registries.%d.user_name", i)); !ok || username != armUsername {
+			continue
+		}
+		return d.Get(fmt.Sprintf("container_configuration.0.container_registries.%d.password", i))
+	}
+
+	return ""
 }
 
 // ExpandBatchPoolImageReference expands Batch pool image reference
@@ -142,20 +272,122 @@ func ExpandBatchPoolImageReference(list []interface{}) (*batch.ImageReference, e
 	}
 
 	storageImageRef := list[0].(map[string]interface{})
+	imageRef := &batch.ImageReference{}
 
-	storageImageRefOffer := storageImageRef["offer"].(string)
-	storageImageRefPublisher := storageImageRef["publisher"].(string)
-	storageImageRefSku := storageImageRef["sku"].(string)
-	storageImageRefVersion := storageImageRef["version"].(string)
+	if storageImageRef["id"] != nil && storageImageRef["id"] != "" {
+		storageImageRefID := storageImageRef["id"].(string)
+		imageRef.ID = &storageImageRefID
+	}
 
-	imageRef := &batch.ImageReference{
-		Offer:     &storageImageRefOffer,
-		Publisher: &storageImageRefPublisher,
-		Sku:       &storageImageRefSku,
-		Version:   &storageImageRefVersion,
+	if storageImageRef["offer"] != nil && storageImageRef["offer"] != "" {
+		storageImageRefOffer := storageImageRef["offer"].(string)
+		imageRef.Offer = &storageImageRefOffer
+	}
+
+	if storageImageRef["publisher"] != nil && storageImageRef["publisher"] != "" {
+		storageImageRefPublisher := storageImageRef["publisher"].(string)
+		imageRef.Publisher = &storageImageRefPublisher
+	}
+
+	if storageImageRef["sku"] != nil && storageImageRef["sku"] != "" {
+		storageImageRefSku := storageImageRef["sku"].(string)
+		imageRef.Sku = &storageImageRefSku
+	}
+
+	if storageImageRef["version"] != nil && storageImageRef["version"] != "" {
+		storageImageRefVersion := storageImageRef["version"].(string)
+		imageRef.Version = &storageImageRefVersion
 	}
 
 	return imageRef, nil
+}
+
+// ExpandBatchPoolContainerConfiguration expands the Batch pool container configuration
+func ExpandBatchPoolContainerConfiguration(list []interface{}) (*batch.ContainerConfiguration, error) {
+	if len(list) == 0 {
+		return nil, nil
+	}
+
+	containerConfiguration := list[0].(map[string]interface{})
+	containerType := containerConfiguration["type"].(string)
+	containerRegistries, err := expandBatchPoolContainerRegistries(containerConfiguration["container_registries"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
+	containerConf := &batch.ContainerConfiguration{
+		Type:                &containerType,
+		ContainerRegistries: containerRegistries,
+	}
+
+	return containerConf, nil
+}
+
+func expandBatchPoolContainerRegistries(list []interface{}) (*[]batch.ContainerRegistry, error) {
+	result := []batch.ContainerRegistry{}
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		containerRegistry, err := expandBatchPoolContainerRegistry(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *containerRegistry)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*batch.ContainerRegistry, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: container registry reference should be defined")
+	}
+
+	containerRegistry := batch.ContainerRegistry{
+		RegistryServer: utils.String(ref["registry_server"].(string)),
+		UserName:       utils.String(ref["user_name"].(string)),
+		Password:       utils.String(ref["password"].(string)),
+	}
+	return &containerRegistry, nil
+}
+
+// ExpandBatchPoolCertificateReferences expands Batch pool certificate references
+func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]batch.CertificateReference, error) {
+	var result []batch.CertificateReference
+
+	for _, tempItem := range list {
+		item := tempItem.(map[string]interface{})
+		certificateReference, err := expandBatchPoolCertificateReference(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, *certificateReference)
+	}
+	return &result, nil
+}
+
+func expandBatchPoolCertificateReference(ref map[string]interface{}) (*batch.CertificateReference, error) {
+	if len(ref) == 0 {
+		return nil, fmt.Errorf("Error: storage image reference should be defined")
+	}
+
+	id := ref["id"].(string)
+	storeLocation := ref["store_location"].(string)
+	storeName := ref["store_name"].(string)
+	visibilityRefs := ref["visibility"].(*schema.Set)
+	var visibility []batch.CertificateVisibility
+	if visibilityRefs != nil {
+		for _, visibilityRef := range visibilityRefs.List() {
+			visibility = append(visibility, batch.CertificateVisibility(visibilityRef.(string)))
+		}
+	}
+
+	certificateReference := &batch.CertificateReference{
+		ID:            &id,
+		StoreLocation: batch.CertificateStoreLocation(storeLocation),
+		StoreName:     &storeName,
+		Visibility:    &visibility,
+	}
+	return certificateReference, nil
 }
 
 // ExpandBatchPoolStartTask expands Batch pool start task
@@ -195,11 +427,56 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 		return nil, fmt.Errorf("Error: either auto_user or user_name should be speicfied for Batch pool start task")
 	}
 
+	resourceFileList := startTaskValue["resource_file"].([]interface{})
+	resourceFiles := make([]batch.ResourceFile, 0)
+	for _, resourceFileValueTemp := range resourceFileList {
+		resourceFileValue := resourceFileValueTemp.(map[string]interface{})
+		resourceFile := batch.ResourceFile{}
+		if v, ok := resourceFileValue["auto_storage_container_name"]; ok {
+			autoStorageContainerName := v.(string)
+			if autoStorageContainerName != "" {
+				resourceFile.AutoStorageContainerName = &autoStorageContainerName
+			}
+		}
+		if v, ok := resourceFileValue["storage_container_url"]; ok {
+			storageContainerURL := v.(string)
+			if storageContainerURL != "" {
+				resourceFile.StorageContainerURL = &storageContainerURL
+			}
+		}
+		if v, ok := resourceFileValue["http_url"]; ok {
+			httpURL := v.(string)
+			if httpURL != "" {
+				resourceFile.HTTPURL = &httpURL
+			}
+		}
+		if v, ok := resourceFileValue["blob_prefix"]; ok {
+			blobPrefix := v.(string)
+			if blobPrefix != "" {
+				resourceFile.BlobPrefix = &blobPrefix
+			}
+		}
+		if v, ok := resourceFileValue["file_path"]; ok {
+			filePath := v.(string)
+			if filePath != "" {
+				resourceFile.FilePath = &filePath
+			}
+		}
+		if v, ok := resourceFileValue["file_mode"]; ok {
+			fileMode := v.(string)
+			if fileMode != "" {
+				resourceFile.FileMode = &fileMode
+			}
+		}
+		resourceFiles = append(resourceFiles, resourceFile)
+	}
+
 	startTask := &batch.StartTask{
 		CommandLine:       &startTaskCmdLine,
 		MaxTaskRetryCount: &maxTaskRetryCount,
 		WaitForSuccess:    &waitForSuccess,
 		UserIdentity:      &userIdentity,
+		ResourceFiles:     &resourceFiles,
 	}
 
 	// populate environment settings, if defined

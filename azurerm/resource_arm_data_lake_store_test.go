@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
@@ -38,7 +39,7 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -209,7 +210,7 @@ func testCheckAzureRMDataLakeStoreExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreAccountClient
+		conn := testAccProvider.Meta().(*ArmClient).datalake.StoreAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName)
@@ -226,7 +227,7 @@ func testCheckAzureRMDataLakeStoreExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreAccountClient
+	conn := testAccProvider.Meta().(*ArmClient).datalake.StoreAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -264,7 +265,7 @@ resource "azurerm_data_lake_store" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, rInt, location, strconv.Itoa(rInt)[2:17])
 }
 
 func testAccAzureRMDataLakeStore_requiresImport(rInt int, location string) string {
@@ -293,7 +294,7 @@ resource "azurerm_data_lake_store" "test" {
   location            = "${azurerm_resource_group.test.location}"
   tier                = "Commitment_1TB"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, rInt, location, strconv.Itoa(rInt)[2:17])
 }
 
 func testAccAzureRMDataLakeStore_encryptionDisabled(rInt int, location string) string {
@@ -309,7 +310,7 @@ resource "azurerm_data_lake_store" "test" {
   location            = "${azurerm_resource_group.test.location}"
   encryption_state    = "Disabled"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, rInt, location, strconv.Itoa(rInt)[2:17])
 }
 
 func testAccAzureRMDataLakeStore_firewall(rInt int, location string, firewallState string, firewallAllowAzureIPs string) string {
@@ -326,7 +327,7 @@ resource "azurerm_data_lake_store" "test" {
   firewall_state           = "%s"
   firewall_allow_azure_ips = "%s"
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15], firewallState, firewallAllowAzureIPs)
+`, rInt, location, strconv.Itoa(rInt)[2:17], firewallState, firewallAllowAzureIPs)
 }
 
 func testAccAzureRMDataLakeStore_withTags(rInt int, location string) string {
@@ -346,7 +347,7 @@ resource "azurerm_data_lake_store" "test" {
     cost_center = "MSFT"
   }
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, rInt, location, strconv.Itoa(rInt)[2:17])
 }
 
 func testAccAzureRMDataLakeStore_withTagsUpdate(rInt int, location string) string {
@@ -365,5 +366,5 @@ resource "azurerm_data_lake_store" "test" {
     environment = "staging"
   }
 }
-`, rInt, location, strconv.Itoa(rInt)[0:15])
+`, rInt, location, strconv.Itoa(rInt)[2:17])
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,7 +26,7 @@ func resourceArmApiManagementProperty() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementChildName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -59,14 +60,14 @@ func resourceArmApiManagementProperty() *schema.Resource {
 }
 
 func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementPropertyClient
+	client := meta.(*ArmClient).apiManagement.PropertyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -88,7 +89,7 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if tags, ok := d.GetOk("tags"); ok {
-		parameters.PropertyContractProperties.Tags = utils.ExpandStringArray(tags.([]interface{}))
+		parameters.PropertyContractProperties.Tags = utils.ExpandStringSlice(tags.([]interface{}))
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, name, parameters, ""); err != nil {
@@ -108,10 +109,10 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementPropertyClient
+	client := meta.(*ArmClient).apiManagement.PropertyClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -145,10 +146,10 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementPropertyClient
+	client := meta.(*ArmClient).apiManagement.PropertyClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

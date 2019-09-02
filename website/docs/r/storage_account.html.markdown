@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_account
 
-Manage an Azure Storage Account.
+Manages an Azure Storage Account.
 
 ## Example Usage
 
@@ -63,7 +63,8 @@ resource "azurerm_storage_account" "testsa" {
   account_replication_type = "LRS"
 
   network_rules {
-    ip_rules                   = ["127.0.0.1"]
+    default_action             = "Deny"
+    ip_rules                   = ["100.0.0.1"]
     virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
   }
 
@@ -77,25 +78,19 @@ resource "azurerm_storage_account" "testsa" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the storage account. Changing this forces a
-    new resource to be created. This must be unique across the entire Azure service,
-    not just within the resource group.
+* `name` - (Required) Specifies the name of the storage account. Changing this forces a new resource to be created. This must be unique across the entire Azure service, not just within the resource group.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the storage account. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which to create the storage account. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the supported Azure location where the
-    resource exists. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `account_kind` - (Optional) Defines the Kind of account. Valid options are `Storage`,
-    `StorageV2` and `BlobStorage`. Changing this forces a new resource to be created.
-    Defaults to `Storage`.
+* `account_kind` - (Optional) Defines the Kind of account. Valid options are `BlobStorage`, `BlockBlobStorage`, `FileStorage`, `Storage` and `StorageV2`. Changing this forces a new resource to be created. Defaults to `Storage`.
 
-* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. Changing this forces a new resource to be created
+* `account_tier` - (Required) Defines the Tier to use for this storage account. Valid options are `Standard` and `Premium`. For `FileStorage` accounts only `Premium` is valid. Changing this forces a new resource to be created.
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS` and `ZRS`.
 
-* `access_tier` - (Optional) Defines the access tier for `BlobStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
+* `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot` and `Cool`, defaults to `Hot`.
 
 * `enable_blob_encryption` - (Optional) Boolean flag which controls if Encryption Services are enabled for Blob storage, see [here](https://azure.microsoft.com/en-us/documentation/articles/storage-service-encryption/) for more information. Defaults to `true`.
 
@@ -110,37 +105,113 @@ The following arguments are supported:
 
 * `custom_domain` - (Optional) A `custom_domain` block as documented below.
 
+* `enable_advanced_threat_protection` (Optional) Boolean flag which controls if advanced threat protection is enabled, see [here](https://docs.microsoft.com/en-us/azure/storage/common/storage-advanced-threat-protection) for more information. Defaults to `false`.
+
+~> **Note:** `enable_advanced_threat_protection` is not supported in all regions.
+
+* `identity` - (Optional) A `identity` block as defined below.
+
+* `queue_properties` - (Optional) A `queue_properties` block as defined below.
+
+~> **NOTE:** `queue_properties` cannot be set when the `access_tier` is set to `BlobStorage`
+
 * `network_rules` - (Optional) A `network_rules` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-* `identity` - (Optional) A Managed Service Identity block as defined below.
+---
+
+A `cors_rule` block supports the following:
+
+* `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
+
+* `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are
+`DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` or `PUT`.
+
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS. 
+
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients. 
+
+* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
 
 ---
 
-* `custom_domain` supports the following:
+A `custom_domain` block supports the following:
 
 * `name` - (Optional) The Custom Domain Name to use for the Storage Account, which will be validated by Azure.
 * `use_subdomain` - (Optional) Should the Custom Domain Name be validated by using indirect CNAME validation?
 
+--- 
+
+A `hour_metrics` block supports the following:
+
+* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
 ---
 
-* `network_rules` supports the following:
+A `identity` block supports the following:
 
+* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
+
+~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+
+---
+
+A `logging` block supports the following:
+
+* `delete` - (Required) Indicates whether all delete requests should be logged. Changing this forces a new resource.
+
+* `read` - (Required) Indicates whether all read requests should be logged. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
+---
+
+A `minute_metrics` block supports the following:
+
+* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
+---
+
+A `network_rules` block supports the following:
+
+* `default_action` - (Required) Specifies the default action of allow or deny when no other rules match. Valid options are `Deny` or `Allow`.
 * `bypass` - (Optional)  Specifies whether traffic is bypassed for Logging/Metrics/AzureServices. Valid options are
 any combination of `Logging`, `Metrics`, `AzureServices`, or `None`. 
-* `ip_rules` - (Optional) List of IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed.
+* `ip_rules` - (Optional) List of public IP or IP ranges in CIDR Format. Only IPV4 addresses are allowed. Private IP address ranges (as defined in [RFC 1918](https://tools.ietf.org/html/rfc1918#section-3)) are not allowed.
 * `virtual_network_subnet_ids` - (Optional) A list of resource ids for subnets.
+
+~> **Note:** If specifying `network_rules`, one of either `ip_rules` or `virtual_network_subnet_ids` must be specified and `default_action` must be set to `Deny`.
 
 ~> **Note:** [More information on Validation is available here](https://docs.microsoft.com/en-gb/azure/storage/blobs/storage-custom-domain-name)
 
 ---
 
-`identity` supports the following:
+A `queue_properties` block supports the following:
 
-* `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+* `logging` - (Optional) A `logging` block as defined below.
+
+* `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
+
+* `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
 
 ## Attributes Reference
 
@@ -179,6 +250,26 @@ The following attributes are exported in addition to the arguments listed above:
 * `primary_file_endpoint` - The endpoint URL for file storage in the primary location.
 
 * `primary_file_host` - The hostname with port if applicable for file storage in the primary location.
+
+* `secondary_file_endpoint` - The endpoint URL for file storage in the secondary location.
+
+* `secondary_file_host` - The hostname with port if applicable for file storage in the secondary location.
+
+* `primary_dfs_endpoint` - The endpoint URL for DFS storage in the primary location.
+
+* `primary_dfs_host` - The hostname with port if applicable for DFS storage in the primary location.
+
+* `secondary_dfs_endpoint` - The endpoint URL for DFS storage in the secondary location.
+
+* `secondary_dfs_host` - The hostname with port if applicable for DFS storage in the secondary location.
+
+* `primary_web_endpoint` - The endpoint URL for web storage in the primary location.
+
+* `primary_web_host` - The hostname with port if applicable for web storage in the primary location.
+
+* `secondary_web_endpoint` - The endpoint URL for web storage in the secondary location.
+
+* `secondary_web_host` - The hostname with port if applicable for web storage in the secondary location.
 
 * `primary_access_key` - The primary access key for the storage account.
 

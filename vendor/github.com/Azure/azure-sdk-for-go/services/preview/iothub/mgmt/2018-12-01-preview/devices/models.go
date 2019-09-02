@@ -138,6 +138,21 @@ func PossibleIotHubNameUnavailabilityReasonValues() []IotHubNameUnavailabilityRe
 	return []IotHubNameUnavailabilityReason{AlreadyExists, Invalid}
 }
 
+// IotHubReplicaRoleType enumerates the values for iot hub replica role type.
+type IotHubReplicaRoleType string
+
+const (
+	// Primary ...
+	Primary IotHubReplicaRoleType = "primary"
+	// Secondary ...
+	Secondary IotHubReplicaRoleType = "secondary"
+)
+
+// PossibleIotHubReplicaRoleTypeValues returns an array of possible values for the IotHubReplicaRoleType const type.
+func PossibleIotHubReplicaRoleTypeValues() []IotHubReplicaRoleType {
+	return []IotHubReplicaRoleType{Primary, Secondary}
+}
+
 // IotHubScaleType enumerates the values for iot hub scale type.
 type IotHubScaleType string
 
@@ -266,25 +281,6 @@ func PossibleJobTypeValues() []JobType {
 	return []JobType{JobTypeBackup, JobTypeExport, JobTypeFactoryResetDevice, JobTypeFirmwareUpdate, JobTypeImport, JobTypeReadDeviceProperties, JobTypeRebootDevice, JobTypeUnknown, JobTypeUpdateDeviceConfiguration, JobTypeWriteDeviceProperties}
 }
 
-// OperationMonitoringLevel enumerates the values for operation monitoring level.
-type OperationMonitoringLevel string
-
-const (
-	// OperationMonitoringLevelError ...
-	OperationMonitoringLevelError OperationMonitoringLevel = "Error"
-	// OperationMonitoringLevelErrorInformation ...
-	OperationMonitoringLevelErrorInformation OperationMonitoringLevel = "Error, Information"
-	// OperationMonitoringLevelInformation ...
-	OperationMonitoringLevelInformation OperationMonitoringLevel = "Information"
-	// OperationMonitoringLevelNone ...
-	OperationMonitoringLevelNone OperationMonitoringLevel = "None"
-)
-
-// PossibleOperationMonitoringLevelValues returns an array of possible values for the OperationMonitoringLevel const type.
-func PossibleOperationMonitoringLevelValues() []OperationMonitoringLevel {
-	return []OperationMonitoringLevel{OperationMonitoringLevelError, OperationMonitoringLevelErrorInformation, OperationMonitoringLevelInformation, OperationMonitoringLevelNone}
-}
-
 // RouteErrorSeverity enumerates the values for route error severity.
 type RouteErrorSeverity string
 
@@ -348,13 +344,13 @@ type CertificateBodyDescription struct {
 type CertificateDescription struct {
 	autorest.Response `json:"-"`
 	Properties        *CertificateProperties `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the certificate.
+	// Name - READ-ONLY; The name of the certificate.
 	Name *string `json:"name,omitempty"`
-	// Etag - The entity tag.
+	// Etag - READ-ONLY; The entity tag.
 	Etag *string `json:"etag,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -367,17 +363,17 @@ type CertificateListDescription struct {
 
 // CertificateProperties the description of an X509 CA Certificate.
 type CertificateProperties struct {
-	// Subject - The certificate's subject name.
+	// Subject - READ-ONLY; The certificate's subject name.
 	Subject *string `json:"subject,omitempty"`
-	// Expiry - The certificate's expiration date and time.
+	// Expiry - READ-ONLY; The certificate's expiration date and time.
 	Expiry *date.TimeRFC1123 `json:"expiry,omitempty"`
-	// Thumbprint - The certificate's thumbprint.
+	// Thumbprint - READ-ONLY; The certificate's thumbprint.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// IsVerified - Determines whether certificate has been verified.
+	// IsVerified - READ-ONLY; Determines whether certificate has been verified.
 	IsVerified *bool `json:"isVerified,omitempty"`
-	// Created - The certificate's create date and time.
+	// Created - READ-ONLY; The certificate's create date and time.
 	Created *date.TimeRFC1123 `json:"created,omitempty"`
-	// Updated - The certificate's last update date and time.
+	// Updated - READ-ONLY; The certificate's last update date and time.
 	Updated *date.TimeRFC1123 `json:"updated,omitempty"`
 	// Certificate - The certificate content
 	Certificate *string `json:"certificate,omitempty"`
@@ -386,21 +382,21 @@ type CertificateProperties struct {
 // CertificatePropertiesWithNonce the description of an X509 CA Certificate including the challenge nonce
 // issued for the Proof-Of-Possession flow.
 type CertificatePropertiesWithNonce struct {
-	// Subject - The certificate's subject name.
+	// Subject - READ-ONLY; The certificate's subject name.
 	Subject *string `json:"subject,omitempty"`
-	// Expiry - The certificate's expiration date and time.
+	// Expiry - READ-ONLY; The certificate's expiration date and time.
 	Expiry *date.TimeRFC1123 `json:"expiry,omitempty"`
-	// Thumbprint - The certificate's thumbprint.
+	// Thumbprint - READ-ONLY; The certificate's thumbprint.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// IsVerified - Determines whether certificate has been verified.
+	// IsVerified - READ-ONLY; Determines whether certificate has been verified.
 	IsVerified *bool `json:"isVerified,omitempty"`
-	// Created - The certificate's create date and time.
+	// Created - READ-ONLY; The certificate's create date and time.
 	Created *date.TimeRFC1123 `json:"created,omitempty"`
-	// Updated - The certificate's last update date and time.
+	// Updated - READ-ONLY; The certificate's last update date and time.
 	Updated *date.TimeRFC1123 `json:"updated,omitempty"`
-	// VerificationCode - The certificate's verification code that will be used for proof of possession.
+	// VerificationCode - READ-ONLY; The certificate's verification code that will be used for proof of possession.
 	VerificationCode *string `json:"verificationCode,omitempty"`
-	// Certificate - The certificate content
+	// Certificate - READ-ONLY; The certificate content
 	Certificate *string `json:"certificate,omitempty"`
 }
 
@@ -414,13 +410,13 @@ type CertificateVerificationDescription struct {
 type CertificateWithNonceDescription struct {
 	autorest.Response `json:"-"`
 	Properties        *CertificatePropertiesWithNonce `json:"properties,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the certificate.
+	// Name - READ-ONLY; The name of the certificate.
 	Name *string `json:"name,omitempty"`
-	// Etag - The entity tag.
+	// Etag - READ-ONLY; The entity tag.
 	Etag *string `json:"etag,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -437,7 +433,7 @@ type CloudToDeviceProperties struct {
 type EndpointHealthData struct {
 	// EndpointID - Id of the endpoint
 	EndpointID *string `json:"endpointId,omitempty"`
-	// HealthStatus - Health status. Possible values include: 'Unknown', 'Healthy', 'Unhealthy', 'Dead'
+	// HealthStatus - Health statuses have following meanings. The 'healthy' status shows that the endpoint is accepting messages as expected. The 'unhealthy' status shows that the endpoint is not accepting messages as expected and IoT Hub is retrying to send data to this endpoint. The status of an unhealthy endpoint will be updated to healthy when IoT Hub has established an eventually consistent state of health. The 'dead' status shows that the endpoint is not accepting messages, after IoT Hub retried sending messages for the retrial period. See IoT Hub metrics to identify errors and monitor issues with endpoints. The 'unknown' status shows that the IoT Hub has not established a connection with the endpoint. No messages have been delivered to or rejected from this endpoint. Possible values include: 'Unknown', 'Healthy', 'Unhealthy', 'Dead'
 	HealthStatus EndpointHealthStatus `json:"healthStatus,omitempty"`
 }
 
@@ -446,7 +442,7 @@ type EndpointHealthDataListResult struct {
 	autorest.Response `json:"-"`
 	// Value - JSON-serialized array of Endpoint health data
 	Value *[]EndpointHealthData `json:"value,omitempty"`
-	// NextLink - Link to more results
+	// NextLink - READ-ONLY; Link to more results
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -589,13 +585,13 @@ func NewEndpointHealthDataListResultPage(getNextPage func(context.Context, Endpo
 
 // ErrorDetails error details.
 type ErrorDetails struct {
-	// Code - The error code.
+	// Code - READ-ONLY; The error code.
 	Code *string `json:"code,omitempty"`
-	// HTTPStatusCode - The HTTP status code.
+	// HTTPStatusCode - READ-ONLY; The HTTP status code.
 	HTTPStatusCode *string `json:"httpStatusCode,omitempty"`
-	// Message - The error message.
+	// Message - READ-ONLY; The error message.
 	Message *string `json:"message,omitempty"`
-	// Details - The error details.
+	// Details - READ-ONLY; The error details.
 	Details *string `json:"details,omitempty"`
 }
 
@@ -604,13 +600,13 @@ type EventHubConsumerGroupInfo struct {
 	autorest.Response `json:"-"`
 	// Properties - The tags.
 	Properties map[string]*string `json:"properties"`
-	// ID - The Event Hub-compatible consumer group identifier.
+	// ID - READ-ONLY; The Event Hub-compatible consumer group identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The Event Hub-compatible consumer group name.
+	// Name - READ-ONLY; The Event Hub-compatible consumer group name.
 	Name *string `json:"name,omitempty"`
-	// Type - the resource type.
+	// Type - READ-ONLY; the resource type.
 	Type *string `json:"type,omitempty"`
-	// Etag - The etag.
+	// Etag - READ-ONLY; The etag.
 	Etag *string `json:"etag,omitempty"`
 }
 
@@ -619,18 +615,6 @@ func (ehcgi EventHubConsumerGroupInfo) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ehcgi.Properties != nil {
 		objectMap["properties"] = ehcgi.Properties
-	}
-	if ehcgi.ID != nil {
-		objectMap["id"] = ehcgi.ID
-	}
-	if ehcgi.Name != nil {
-		objectMap["name"] = ehcgi.Name
-	}
-	if ehcgi.Type != nil {
-		objectMap["type"] = ehcgi.Type
-	}
-	if ehcgi.Etag != nil {
-		objectMap["etag"] = ehcgi.Etag
 	}
 	return json.Marshal(objectMap)
 }
@@ -641,7 +625,7 @@ type EventHubConsumerGroupsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of consumer groups objects
 	Value *[]EventHubConsumerGroupInfo `json:"value,omitempty"`
-	// NextLink - The next link.
+	// NextLink - READ-ONLY; The next link.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -789,11 +773,11 @@ type EventHubProperties struct {
 	RetentionTimeInDays *int64 `json:"retentionTimeInDays,omitempty"`
 	// PartitionCount - The number of partitions for receiving device-to-cloud messages in the Event Hub-compatible endpoint. See: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-messaging#device-to-cloud-messages.
 	PartitionCount *int32 `json:"partitionCount,omitempty"`
-	// PartitionIds - The partition ids in the Event Hub-compatible endpoint.
+	// PartitionIds - READ-ONLY; The partition ids in the Event Hub-compatible endpoint.
 	PartitionIds *[]string `json:"partitionIds,omitempty"`
-	// Path - The Event Hub-compatible name.
+	// Path - READ-ONLY; The Event Hub-compatible name.
 	Path *string `json:"path,omitempty"`
-	// Endpoint - The Event Hub-compatible endpoint.
+	// Endpoint - READ-ONLY; The Event Hub-compatible endpoint.
 	Endpoint *string `json:"endpoint,omitempty"`
 }
 
@@ -840,13 +824,13 @@ type ImportDevicesRequest struct {
 
 // IotHubCapacity ioT Hub capacity information.
 type IotHubCapacity struct {
-	// Minimum - The minimum number of units.
+	// Minimum - READ-ONLY; The minimum number of units.
 	Minimum *int64 `json:"minimum,omitempty"`
-	// Maximum - The maximum number of units.
+	// Maximum - READ-ONLY; The maximum number of units.
 	Maximum *int64 `json:"maximum,omitempty"`
-	// Default - The default number of units.
+	// Default - READ-ONLY; The default number of units.
 	Default *int64 `json:"default,omitempty"`
-	// ScaleType - The type of the scaling enabled. Possible values include: 'IotHubScaleTypeAutomatic', 'IotHubScaleTypeManual', 'IotHubScaleTypeNone'
+	// ScaleType - READ-ONLY; The type of the scaling enabled. Possible values include: 'IotHubScaleTypeAutomatic', 'IotHubScaleTypeManual', 'IotHubScaleTypeNone'
 	ScaleType IotHubScaleType `json:"scaleType,omitempty"`
 }
 
@@ -859,11 +843,11 @@ type IotHubDescription struct {
 	Properties *IotHubProperties `json:"properties,omitempty"`
 	// Sku - IotHub SKU info
 	Sku *IotHubSkuInfo `json:"sku,omitempty"`
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -883,15 +867,6 @@ func (ihd IotHubDescription) MarshalJSON() ([]byte, error) {
 	if ihd.Sku != nil {
 		objectMap["sku"] = ihd.Sku
 	}
-	if ihd.ID != nil {
-		objectMap["id"] = ihd.ID
-	}
-	if ihd.Name != nil {
-		objectMap["name"] = ihd.Name
-	}
-	if ihd.Type != nil {
-		objectMap["type"] = ihd.Type
-	}
 	if ihd.Location != nil {
 		objectMap["location"] = ihd.Location
 	}
@@ -906,7 +881,7 @@ type IotHubDescriptionListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The array of IotHubDescription objects.
 	Value *[]IotHubDescription `json:"value,omitempty"`
-	// NextLink - The next link.
+	// NextLink - READ-ONLY; The next link.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1047,12 +1022,20 @@ func NewIotHubDescriptionListResultPage(getNextPage func(context.Context, IotHub
 	return IotHubDescriptionListResultPage{fn: getNextPage}
 }
 
+// IotHubLocationDescription public representation of one of the locations where a resource is provisioned.
+type IotHubLocationDescription struct {
+	// Location - Azure Geo Regions
+	Location *string `json:"location,omitempty"`
+	// Role - Specific Role assigned to this location. Possible values include: 'Primary', 'Secondary'
+	Role IotHubReplicaRoleType `json:"role,omitempty"`
+}
+
 // IotHubNameAvailabilityInfo the properties indicating whether a given IoT hub name is available.
 type IotHubNameAvailabilityInfo struct {
 	autorest.Response `json:"-"`
-	// NameAvailable - The value which indicates whether the provided name is available.
+	// NameAvailable - READ-ONLY; The value which indicates whether the provided name is available.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
-	// Reason - The reason for unavailability. Possible values include: 'Invalid', 'AlreadyExists'
+	// Reason - READ-ONLY; The reason for unavailability. Possible values include: 'Invalid', 'AlreadyExists'
 	Reason IotHubNameUnavailabilityReason `json:"reason,omitempty"`
 	// Message - The detailed reason message.
 	Message *string `json:"message,omitempty"`
@@ -1064,13 +1047,13 @@ type IotHubProperties struct {
 	AuthorizationPolicies *[]SharedAccessSignatureAuthorizationRule `json:"authorizationPolicies,omitempty"`
 	// IPFilterRules - The IP filter rules.
 	IPFilterRules *[]IPFilterRule `json:"ipFilterRules,omitempty"`
-	// ProvisioningState - The provisioning state.
+	// ProvisioningState - READ-ONLY; The provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// State - The hub state.
+	// State - READ-ONLY; The hub state.
 	State *string `json:"state,omitempty"`
-	// HostName - The name of the host.
+	// HostName - READ-ONLY; The name of the host.
 	HostName *string `json:"hostName,omitempty"`
-	// EventHubEndpoints - The Event Hub-compatible endpoint properties. The possible keys to this dictionary are events and operationsMonitoringEvents. Both of these keys have to be present in the dictionary while making create or update calls for the IoT hub.
+	// EventHubEndpoints - The Event Hub-compatible endpoint properties. The only possible keys to this dictionary is events. This key has to be present in the dictionary while making create or update calls for the IoT hub.
 	EventHubEndpoints map[string]*EventHubProperties `json:"eventHubEndpoints"`
 	Routing           *RoutingProperties             `json:"routing,omitempty"`
 	// StorageEndpoints - The list of Azure Storage endpoints where you can upload files. Currently you can configure only one Azure Storage account and that MUST have its key as $default. Specifying more than one storage account causes an error to be thrown. Not specifying a value for this property when the enableFileUploadNotifications property is set to True, causes an error to be thrown.
@@ -1081,12 +1064,13 @@ type IotHubProperties struct {
 	EnableFileUploadNotifications *bool                    `json:"enableFileUploadNotifications,omitempty"`
 	CloudToDevice                 *CloudToDeviceProperties `json:"cloudToDevice,omitempty"`
 	// Comments - IoT hub comments.
-	Comments                       *string                         `json:"comments,omitempty"`
-	OperationsMonitoringProperties *OperationsMonitoringProperties `json:"operationsMonitoringProperties,omitempty"`
+	Comments *string `json:"comments,omitempty"`
 	// DeviceStreams - The device streams properties of iothub.
 	DeviceStreams *IotHubPropertiesDeviceStreams `json:"deviceStreams,omitempty"`
 	// Features - The capabilities and features enabled for the IoT hub. Possible values include: 'None', 'DeviceManagement'
 	Features Capabilities `json:"features,omitempty"`
+	// Locations - Primary and secondary location for iot hub
+	Locations *[]IotHubLocationDescription `json:"locations,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for IotHubProperties.
@@ -1097,15 +1081,6 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	}
 	if ihp.IPFilterRules != nil {
 		objectMap["ipFilterRules"] = ihp.IPFilterRules
-	}
-	if ihp.ProvisioningState != nil {
-		objectMap["provisioningState"] = ihp.ProvisioningState
-	}
-	if ihp.State != nil {
-		objectMap["state"] = ihp.State
-	}
-	if ihp.HostName != nil {
-		objectMap["hostName"] = ihp.HostName
 	}
 	if ihp.EventHubEndpoints != nil {
 		objectMap["eventHubEndpoints"] = ihp.EventHubEndpoints
@@ -1128,14 +1103,14 @@ func (ihp IotHubProperties) MarshalJSON() ([]byte, error) {
 	if ihp.Comments != nil {
 		objectMap["comments"] = ihp.Comments
 	}
-	if ihp.OperationsMonitoringProperties != nil {
-		objectMap["operationsMonitoringProperties"] = ihp.OperationsMonitoringProperties
-	}
 	if ihp.DeviceStreams != nil {
 		objectMap["deviceStreams"] = ihp.DeviceStreams
 	}
 	if ihp.Features != "" {
 		objectMap["features"] = ihp.Features
+	}
+	if ihp.Locations != nil {
+		objectMap["locations"] = ihp.Locations
 	}
 	return json.Marshal(objectMap)
 }
@@ -1148,11 +1123,11 @@ type IotHubPropertiesDeviceStreams struct {
 
 // IotHubQuotaMetricInfo quota metrics properties.
 type IotHubQuotaMetricInfo struct {
-	// Name - The name of the quota metric.
+	// Name - READ-ONLY; The name of the quota metric.
 	Name *string `json:"name,omitempty"`
-	// CurrentValue - The current value for the quota metric.
+	// CurrentValue - READ-ONLY; The current value for the quota metric.
 	CurrentValue *int64 `json:"currentValue,omitempty"`
-	// MaxValue - The maximum value of the quota metric.
+	// MaxValue - READ-ONLY; The maximum value of the quota metric.
 	MaxValue *int64 `json:"maxValue,omitempty"`
 }
 
@@ -1162,7 +1137,7 @@ type IotHubQuotaMetricInfoListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The array of quota metrics objects.
 	Value *[]IotHubQuotaMetricInfo `json:"value,omitempty"`
-	// NextLink - The next link.
+	// NextLink - READ-ONLY; The next link.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1314,7 +1289,7 @@ type IotHubResourceCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *IotHubResourceCreateOrUpdateFuture) Result(client IotHubResourceClient) (ihd IotHubDescription, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.IotHubResourceCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1343,7 +1318,7 @@ type IotHubResourceDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *IotHubResourceDeleteFuture) Result(client IotHubResourceClient) (so SetObject, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.IotHubResourceDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1372,7 +1347,7 @@ type IotHubResourceUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *IotHubResourceUpdateFuture) Result(client IotHubResourceClient) (ihd IotHubDescription, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devices.IotHubResourceUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1393,7 +1368,7 @@ func (future *IotHubResourceUpdateFuture) Result(client IotHubResourceClient) (i
 
 // IotHubSkuDescription SKU properties.
 type IotHubSkuDescription struct {
-	// ResourceType - The type of the resource.
+	// ResourceType - READ-ONLY; The type of the resource.
 	ResourceType *string `json:"resourceType,omitempty"`
 	// Sku - The type of the resource.
 	Sku *IotHubSkuInfo `json:"sku,omitempty"`
@@ -1407,7 +1382,7 @@ type IotHubSkuDescriptionListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The array of IotHubSkuDescription.
 	Value *[]IotHubSkuDescription `json:"value,omitempty"`
-	// NextLink - The next link.
+	// NextLink - READ-ONLY; The next link.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1553,7 +1528,7 @@ func NewIotHubSkuDescriptionListResultPage(getNextPage func(context.Context, Iot
 type IotHubSkuInfo struct {
 	// Name - The name of the SKU. Possible values include: 'F1', 'S1', 'S2', 'S3', 'B1', 'B2', 'B3'
 	Name IotHubSku `json:"name,omitempty"`
-	// Tier - The billing tier for the IoT hub. Possible values include: 'Free', 'Standard', 'Basic'
+	// Tier - READ-ONLY; The billing tier for the IoT hub. Possible values include: 'Free', 'Standard', 'Basic'
 	Tier IotHubSkuTier `json:"tier,omitempty"`
 	// Capacity - The number of provisioned IoT Hub units. See: https://docs.microsoft.com/azure/azure-subscription-service-limits#iot-hub-limits.
 	Capacity *int64 `json:"capacity,omitempty"`
@@ -1572,21 +1547,21 @@ type IPFilterRule struct {
 // JobResponse the properties of the Job Response object.
 type JobResponse struct {
 	autorest.Response `json:"-"`
-	// JobID - The job identifier.
+	// JobID - READ-ONLY; The job identifier.
 	JobID *string `json:"jobId,omitempty"`
-	// StartTimeUtc - The start time of the job.
+	// StartTimeUtc - READ-ONLY; The start time of the job.
 	StartTimeUtc *date.TimeRFC1123 `json:"startTimeUtc,omitempty"`
-	// EndTimeUtc - The time the job stopped processing.
+	// EndTimeUtc - READ-ONLY; The time the job stopped processing.
 	EndTimeUtc *date.TimeRFC1123 `json:"endTimeUtc,omitempty"`
-	// Type - The type of the job. Possible values include: 'JobTypeUnknown', 'JobTypeExport', 'JobTypeImport', 'JobTypeBackup', 'JobTypeReadDeviceProperties', 'JobTypeWriteDeviceProperties', 'JobTypeUpdateDeviceConfiguration', 'JobTypeRebootDevice', 'JobTypeFactoryResetDevice', 'JobTypeFirmwareUpdate'
+	// Type - READ-ONLY; The type of the job. Possible values include: 'JobTypeUnknown', 'JobTypeExport', 'JobTypeImport', 'JobTypeBackup', 'JobTypeReadDeviceProperties', 'JobTypeWriteDeviceProperties', 'JobTypeUpdateDeviceConfiguration', 'JobTypeRebootDevice', 'JobTypeFactoryResetDevice', 'JobTypeFirmwareUpdate'
 	Type JobType `json:"type,omitempty"`
-	// Status - The status of the job. Possible values include: 'JobStatusUnknown', 'JobStatusEnqueued', 'JobStatusRunning', 'JobStatusCompleted', 'JobStatusFailed', 'JobStatusCancelled'
+	// Status - READ-ONLY; The status of the job. Possible values include: 'JobStatusUnknown', 'JobStatusEnqueued', 'JobStatusRunning', 'JobStatusCompleted', 'JobStatusFailed', 'JobStatusCancelled'
 	Status JobStatus `json:"status,omitempty"`
-	// FailureReason - If status == failed, this string containing the reason for the failure.
+	// FailureReason - READ-ONLY; If status == failed, this string containing the reason for the failure.
 	FailureReason *string `json:"failureReason,omitempty"`
-	// StatusMessage - The status message for the job.
+	// StatusMessage - READ-ONLY; The status message for the job.
 	StatusMessage *string `json:"statusMessage,omitempty"`
-	// ParentJobID - The job identifier of the parent job, if any.
+	// ParentJobID - READ-ONLY; The job identifier of the parent job, if any.
 	ParentJobID *string `json:"parentJobId,omitempty"`
 }
 
@@ -1595,7 +1570,7 @@ type JobResponseListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The array of JobResponse objects.
 	Value *[]JobResponse `json:"value,omitempty"`
-	// NextLink - The next link.
+	// NextLink - READ-ONLY; The next link.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1762,7 +1737,7 @@ type Name struct {
 
 // Operation ioT Hub REST API operation
 type Operation struct {
-	// Name - Operation name: {provider}/{resource}/{read | write | action | delete}
+	// Name - READ-ONLY; Operation name: {provider}/{resource}/{read | write | action | delete}
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
@@ -1770,13 +1745,13 @@ type Operation struct {
 
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
-	// Provider - Service provider: Microsoft Devices
+	// Provider - READ-ONLY; Service provider: Microsoft Devices
 	Provider *string `json:"provider,omitempty"`
-	// Resource - Resource Type: IotHubs
+	// Resource - READ-ONLY; Resource Type: IotHubs
 	Resource *string `json:"resource,omitempty"`
-	// Operation - Name of the operation
+	// Operation - READ-ONLY; Name of the operation
 	Operation *string `json:"operation,omitempty"`
-	// Description - Description of the operation
+	// Description - READ-ONLY; Description of the operation
 	Description *string `json:"description,omitempty"`
 }
 
@@ -1790,9 +1765,9 @@ type OperationInputs struct {
 // and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - List of IoT Hub operations supported by the Microsoft.Devices resource provider.
+	// Value - READ-ONLY; List of IoT Hub operations supported by the Microsoft.Devices resource provider.
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - URL to get the next set of operation list results if there are any.
+	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1933,41 +1908,24 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
-// OperationsMonitoringProperties the operations monitoring properties for the IoT hub. The possible keys
-// to the dictionary are Connections, DeviceTelemetry, C2DCommands, DeviceIdentityOperations,
-// FileUploadOperations, Routes, D2CTwinOperations, C2DTwinOperations, TwinQueries, JobsOperations,
-// DirectMethods.
-type OperationsMonitoringProperties struct {
-	Events map[string]*OperationMonitoringLevel `json:"events"`
-}
-
-// MarshalJSON is the custom marshaler for OperationsMonitoringProperties.
-func (omp OperationsMonitoringProperties) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if omp.Events != nil {
-		objectMap["events"] = omp.Events
-	}
-	return json.Marshal(objectMap)
-}
-
 // RegistryStatistics identity registry statistics.
 type RegistryStatistics struct {
 	autorest.Response `json:"-"`
-	// TotalDeviceCount - The total count of devices in the identity registry.
+	// TotalDeviceCount - READ-ONLY; The total count of devices in the identity registry.
 	TotalDeviceCount *int64 `json:"totalDeviceCount,omitempty"`
-	// EnabledDeviceCount - The count of enabled devices in the identity registry.
+	// EnabledDeviceCount - READ-ONLY; The count of enabled devices in the identity registry.
 	EnabledDeviceCount *int64 `json:"enabledDeviceCount,omitempty"`
-	// DisabledDeviceCount - The count of disabled devices in the identity registry.
+	// DisabledDeviceCount - READ-ONLY; The count of disabled devices in the identity registry.
 	DisabledDeviceCount *int64 `json:"disabledDeviceCount,omitempty"`
 }
 
 // Resource the common properties of an Azure resource.
 type Resource struct {
-	// ID - The resource identifier.
+	// ID - READ-ONLY; The resource identifier.
 	ID *string `json:"id,omitempty"`
-	// Name - The resource name.
+	// Name - READ-ONLY; The resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - The resource type.
+	// Type - READ-ONLY; The resource type.
 	Type *string `json:"type,omitempty"`
 	// Location - The resource location.
 	Location *string `json:"location,omitempty"`
@@ -1978,15 +1936,6 @@ type Resource struct {
 // MarshalJSON is the custom marshaler for Resource.
 func (r Resource) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
-	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
 	}
@@ -2054,7 +2003,7 @@ type RoutingEndpoints struct {
 type RoutingEventHubProperties struct {
 	// ConnectionString - The connection string of the event hub endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the event hub endpoint.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
@@ -2101,7 +2050,7 @@ type RoutingProperties struct {
 type RoutingServiceBusQueueEndpointProperties struct {
 	// ConnectionString - The connection string of the service bus queue endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types. The name need not be the same as the actual queue name.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types. The name need not be the same as the actual queue name.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the service bus queue endpoint.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
@@ -2113,7 +2062,7 @@ type RoutingServiceBusQueueEndpointProperties struct {
 type RoutingServiceBusTopicEndpointProperties struct {
 	// ConnectionString - The connection string of the service bus topic endpoint.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types.  The name need not be the same as the actual topic name.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.  The name need not be the same as the actual topic name.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the service bus topic endpoint.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
@@ -2125,7 +2074,7 @@ type RoutingServiceBusTopicEndpointProperties struct {
 type RoutingStorageContainerProperties struct {
 	// ConnectionString - The connection string of the storage account.
 	ConnectionString *string `json:"connectionString,omitempty"`
-	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, operationsMonitoringEvents, fileNotifications, $default. Endpoint names must be unique across endpoint types.
+	// Name - The name that identifies this endpoint. The name can only include alphanumeric characters, periods, underscores, hyphens and has a maximum length of 64 characters. The following names are reserved:  events, fileNotifications, $default. Endpoint names must be unique across endpoint types.
 	Name *string `json:"name,omitempty"`
 	// SubscriptionID - The subscription identifier of the storage account.
 	SubscriptionID *string `json:"subscriptionId,omitempty"`
@@ -2182,7 +2131,7 @@ type SharedAccessSignatureAuthorizationRuleListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of shared access policies.
 	Value *[]SharedAccessSignatureAuthorizationRule `json:"value,omitempty"`
-	// NextLink - The next link.
+	// NextLink - READ-ONLY; The next link.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2413,5 +2362,6 @@ type UserSubscriptionQuota struct {
 type UserSubscriptionQuotaListResult struct {
 	autorest.Response `json:"-"`
 	Value             *[]UserSubscriptionQuota `json:"value,omitempty"`
-	NextLink          *string                  `json:"nextLink,omitempty"`
+	// NextLink - READ-ONLY
+	NextLink *string `json:"nextLink,omitempty"`
 }

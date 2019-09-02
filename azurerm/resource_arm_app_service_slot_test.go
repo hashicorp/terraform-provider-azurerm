@@ -2,13 +2,15 @@ package azurerm
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,7 +40,7 @@ func TestAccAzureRMAppServiceSlot_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceSlot_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -258,6 +260,420 @@ func TestAccAzureRMAppServiceSlot_connectionStrings(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_corsSettings(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceSlot_corsSettings(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				)},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.additional_login_params.test_key", "test_value"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.allowed_external_redirect_urls.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.allowed_external_redirect_urls.0", "https://terra.form"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.runtime_version", "1.0"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.token_refresh_extension_hours", "75"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.unauthenticated_client_action", "RedirectToLoginPage"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.token_store_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_aadAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config := testAccAzureRMAppServiceSlot_aadAuthSettings(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_facebookAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_facebookAuthSettings(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.app_id", "facebookappid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.app_secret", "facebookappsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.facebook.0.oauth_scopes.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_googleAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_googleAuthSettings(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.google.0.client_id", "googleclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.google.0.client_secret", "googleclientsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.google.0.oauth_scopes.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_microsoftAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_microsoftAuthSettings(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_twitterAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_twitterAuthSettings(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.twitter.0.consumer_key", "twitterconsumerkey"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.twitter.0.consumer_secret", "twitterconsumersecret"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_multiAuthSettings(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	tenantID := os.Getenv("ARM_TENANT_ID")
+	config1 := testAccAzureRMAppServiceSlot_aadAuthSettings(ri, testLocation(), tenantID)
+	config2 := testAccAzureRMAppServiceSlot_aadMicrosoftAuthSettings(ri, testLocation(), tenantID)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config1,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: config2,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.issuer", fmt.Sprintf("https://sts.windows.net/%s", tenantID)),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_id", "aadclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.client_secret", "aadsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.active_directory.0.allowed_audiences.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_id", "microsoftclientid"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.client_secret", "microsoftclientsecret"),
+					resource.TestCheckResourceAttr(resourceName, "auth_settings.0.microsoft.0.oauth_scopes.#", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_defaultDocuments(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
@@ -418,6 +834,71 @@ func TestAccAzureRMAppServiceSlot_oneIpRestriction(t *testing.T) {
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.ip_address", "10.10.10.10"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.0.subnet_mask", "255.255.255.255"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_zeroedIpRestriction(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_oneIpRestriction(ri, testLocation())
+	noBlocksConfig := testAccAzureRMAppServiceSlot_basic(ri, testLocation())
+	blocksEmptyConfig := testAccAzureRMAppServiceSlot_zeroedIpRestriction(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				// This configuration includes a single explicit ip_restriction
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration has no site_config blocks at all.
+				Config: noBlocksConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "1"),
+				),
+			},
+			{
+				// This configuration explicitly sets ip_restriction to [] using attribute syntax.
+				Config: blocksEmptyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.ip_restriction.#", "0"),
 				),
 			},
 		},
@@ -597,6 +1078,34 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet2(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServiceSlot_updateManageServiceIdentity(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceSlot_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMAppServiceSlot_enableManageServiceIdentity(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
@@ -612,6 +1121,54 @@ func TestAccAzureRMAppServiceSlot_windowsDotNet4(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.dotnet_framework_version", "v4.0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_userAssignedIdentity(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_userAssignedIdentity(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "UserAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.principal_id", ""),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.tenant_id", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_multipleAssignedIdentities(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_multipleAssignedIdentities(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned, UserAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.identity_ids.#", "1"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
 				),
 			},
 		},
@@ -692,6 +1249,29 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Jetty(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMAppServiceSlot_windowsJava11Jetty(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "11", "JETTY", "9.3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JETTY"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppServiceSlot_windowsJava7Tomcat(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
@@ -730,6 +1310,29 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Tomcat(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceSlotExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceSlot_windowsJava11Tomcat(t *testing.T) {
+	resourceName := "azurerm_app_service_slot.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "11", "TOMCAT", "9.0")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceSlotExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
 					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
 				),
@@ -859,7 +1462,7 @@ func TestAccAzureRMAppServiceSlot_minTls(t *testing.T) {
 }
 
 func testCheckAzureRMAppServiceSlotDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).appServicesClient
+	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_slot" {
@@ -900,7 +1503,7 @@ func testCheckAzureRMAppServiceSlotExists(slot string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for App Service Slot: %q/%q", appServiceName, slot)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.GetSlot(ctx, resourceGroup, appServiceName, slot)
 		if err != nil {
@@ -1251,6 +1854,721 @@ resource "azurerm_app_service_slot" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
+func testAccAzureRMAppServiceSlot_corsSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    cors {
+      allowed_origins = [
+        "http://www.contoso.com",
+        "www.contoso.com",
+        "contoso.com"
+      ]
+      support_credentials = true
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_authSettingsAdditionalLoginParams(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  
+    site_config {
+    always_on = true
+  }
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+
+    additional_login_params = {
+      test_key = "test_value"
+    }
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppServiceSlot_authSettingsAdditionalAllowedExternalRedirectUrls(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+          
+    allowed_external_redirect_urls = [
+      "https://terra.form"
+    ]
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppServiceSlot_authSettingsRuntimeVersion(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+    runtime_version = "1.0"
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppServiceSlot_authSettingsTokenRefreshExtensionHours(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+    token_refresh_extension_hours = 75
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppServiceSlot_authSettingsTokenStoreEnabled(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+  
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+    token_store_enabled = true
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppServiceSlot_authSettingsUnauthenticatedClientAction(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+    unauthenticated_client_action = "RedirectToLoginPage"
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppServiceSlot_aadAuthSettings(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    issuer  = "https://sts.windows.net/%s"
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID)
+}
+
+func testAccAzureRMAppServiceSlot_facebookAuthSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    facebook {
+      app_id     = "facebookappid"
+      app_secret = "facebookappsecret"
+
+      oauth_scopes = [
+        "facebookscope",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_googleAuthSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    google {
+      client_id     = "googleclientid"
+      client_secret = "googleclientsecret"
+
+      oauth_scopes = [
+        "googlescope",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_microsoftAuthSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    microsoft {
+      client_id     = "microsoftclientid"
+      client_secret = "microsoftclientsecret"
+
+      oauth_scopes = [
+        "microsoftscope",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_twitterAuthSettings(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled = true
+    twitter {
+      consumer_key     = "twitterconsumerkey"
+      consumer_secret  = "twitterconsumersecret"
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_aadMicrosoftAuthSettings(rInt int, location string, tenantID string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestRG-%d"
+  kind                = "Linux"
+  reserved            = true
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestRG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    always_on = true
+  }
+
+  auth_settings {
+    enabled          = true
+    issuer           = "https://sts.windows.net/%s"
+    default_provider = "%s"
+
+    active_directory {
+      client_id     = "aadclientid"
+      client_secret = "aadsecret"
+
+      allowed_audiences = [
+        "activedirectorytokenaudiences",
+      ]
+    }
+    
+    microsoft {
+      client_id     = "microsoftclientid"
+      client_secret = "microsoftclientsecret"
+
+      oauth_scopes = [
+        "microsoftscope",
+      ]
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, tenantID, web.AzureActiveDirectory)
+}
+
 func testAccAzureRMAppServiceSlot_defaultDocuments(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1446,6 +2764,100 @@ resource "azurerm_app_service_slot" "test" {
 `, rInt, location, rInt, rInt, rInt)
 }
 
+func testAccAzureRMAppServiceSlot_oneVNetSubnetIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    ip_restriction {
+      virtual_network_subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_zeroedIpRestriction(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  site_config {
+    ip_restriction = []
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
+}
+
 func testAccAzureRMAppServiceSlot_manyIpRestrictions(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1613,7 +3025,7 @@ resource "azurerm_app_service_slot" "test" {
   app_service_name    = "${azurerm_app_service.test.name}"
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -1697,7 +3109,7 @@ resource "azurerm_app_service_slot" "test" {
   }
 
   tags = {
-    "Hello" = "World"
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt, rInt)
@@ -2051,6 +3463,98 @@ resource "azurerm_app_service_slot" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_userAssignedIdentity(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMAppServiceSlot_multipleAssignedIdentities(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+}
+
+resource "azurerm_app_service_slot" "test" {
+  name                = "acctestASSlot-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.test.name}"
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = ["${azurerm_user_assigned_identity.test.id}"]
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMAppServiceSlot_minTls(rInt int, location string, tlsVersion string) string {

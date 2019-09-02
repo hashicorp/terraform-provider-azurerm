@@ -48,13 +48,31 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the Batch account. Changing this forces a new resource to be created.
 
+~> **NOTE:** To work around [a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/5574) this property is currently treated as case-insensitive. A future version of Terraform will require that the casing is correct.
+
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `pool_allocation_mode` - (Optional) Specifies the mode to use for pool allocation. Possible values are `BatchService` or `UserSubscription`. Defaults to `BatchService`.
 
+~> **NOTE:** When using `UserSubscription` mode, an Azure KeyVault reference has to be specified. See `key_vault_reference` below.
+
+~> **NOTE:** When using `UserSubscription` mode, the `Microsoft Azure Batch` service principal has to have `Contributor` role on your subscription scope, as documented [here](https://docs.microsoft.com/en-us/azure/batch/batch-account-create-portal#additional-configuration-for-user-subscription-mode).
+
+* `key_vault_reference` - (Optional) A `key_vault_reference` block that describes the Azure KeyVault reference to use when deploying the Azure Batch account using the `UserSubscription` pool allocation mode. 
+
 * `storage_account_id` - (Optional) Specifies the storage account to use for the Batch account. If not specified, Azure Batch will manage the storage.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `key_vault_reference` block supports the following:
+
+* `id` - (Required) The Azure identifier of the Azure KeyVault to use.
+
+* `url` - (Required) The HTTPS URL of the Azure KeyVault to use.
+
+---
 
 ## Attributes Reference
 

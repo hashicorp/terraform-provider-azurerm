@@ -8,7 +8,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,9 +32,9 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"platform_update_domain_count": {
 				Type:         schema.TypeInt,
@@ -56,13 +59,13 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).availSetClient
+	client := meta.(*ArmClient).compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
@@ -70,7 +73,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -83,11 +86,11 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	updateDomainCount := d.Get("platform_update_domain_count").(int)
 	faultDomainCount := d.Get("platform_fault_domain_count").(int)
 	managed := d.Get("managed").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	availSet := compute.AvailabilitySet{
 		Name:     &name,
@@ -96,7 +99,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 			PlatformFaultDomainCount:  utils.Int32(int32(faultDomainCount)),
 			PlatformUpdateDomainCount: utils.Int32(int32(updateDomainCount)),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if managed {
@@ -117,10 +120,10 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).availSetClient
+	client := meta.(*ArmClient).compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -139,7 +142,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if resp.Sku != nil && resp.Sku.Name != nil {
 		d.Set("managed", strings.EqualFold(*resp.Sku.Name, "Aligned"))
@@ -150,16 +153,14 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).availSetClient
+	client := meta.(*ArmClient).compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

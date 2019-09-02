@@ -7,8 +7,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,7 +57,7 @@ func resourceArmDevTestPolicy() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"threshold": {
 				Type:         schema.TypeString,
@@ -82,13 +85,13 @@ func resourceArmDevTestPolicy() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestPoliciesClient
+	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Policy creation")
@@ -98,7 +101,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 	labName := d.Get("lab_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, labName, policySetName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -116,10 +119,10 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 	evaluatorType := d.Get("evaluator_type").(string)
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Policy{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		PolicyProperties: &dtl.PolicyProperties{
 			FactName:      dtl.PolicyFactName(name),
 			FactData:      utils.String(factData),
@@ -148,10 +151,10 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestPoliciesClient
+	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,16 +186,14 @@ func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("threshold", props.Threshold)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestPoliciesClient
+	client := meta.(*ArmClient).devTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,7 +27,7 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 		"DataSource": {
 			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
 		},
-		"ConnectionMonitor": {
+		"ConnectionMonitorOld": {
 			"addressBasic":              testAccAzureRMConnectionMonitor_addressBasic,
 			"addressComplete":           testAccAzureRMConnectionMonitor_addressComplete,
 			"addressUpdate":             testAccAzureRMConnectionMonitor_addressUpdate,
@@ -38,12 +39,31 @@ func TestAccAzureRMNetworkWatcher(t *testing.T) {
 			"bothDestinationsInvalid":   testAccAzureRMConnectionMonitor_conflictingDestinations,
 			"requiresImport":            testAccAzureRMConnectionMonitor_requiresImport,
 		},
-		"PacketCapture": {
+		"PacketCaptureOld": {
 			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
 			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
 			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
 			"withFilters":                testAccAzureRMPacketCapture_withFilters,
 			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
+		},
+		"ConnectionMonitor": {
+			"addressBasic":              testAccAzureRMNetworkConnectionMonitor_addressBasic,
+			"addressComplete":           testAccAzureRMNetworkConnectionMonitor_addressComplete,
+			"addressUpdate":             testAccAzureRMNetworkConnectionMonitor_addressUpdate,
+			"vmBasic":                   testAccAzureRMNetworkConnectionMonitor_vmBasic,
+			"vmComplete":                testAccAzureRMNetworkConnectionMonitor_vmComplete,
+			"vmUpdate":                  testAccAzureRMNetworkConnectionMonitor_vmUpdate,
+			"destinationUpdate":         testAccAzureRMNetworkConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid": testAccAzureRMNetworkConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":   testAccAzureRMNetworkConnectionMonitor_conflictingDestinations,
+			"requiresImport":            testAccAzureRMNetworkConnectionMonitor_requiresImport,
+		},
+		"PacketCapture": {
+			"localDisk":                  testAccAzureRMNetworkPacketCapture_localDisk,
+			"storageAccount":             testAccAzureRMNetworkPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccAzureRMNetworkPacketCapture_withFilters,
+			"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
 		},
 	}
 
@@ -84,7 +104,7 @@ func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
 }
 
 func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -194,7 +214,7 @@ func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).watcherClient
+		client := testAccProvider.Meta().(*ArmClient).network.WatcherClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -223,7 +243,7 @@ func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).watcherClient
+		client := testAccProvider.Meta().(*ArmClient).network.WatcherClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -250,7 +270,7 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).watcherClient
+		client := testAccProvider.Meta().(*ArmClient).network.WatcherClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 

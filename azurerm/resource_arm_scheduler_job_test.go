@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -41,7 +42,7 @@ func TestAccAzureRMSchedulerJob_web_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJob_web_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -514,7 +515,7 @@ func testCheckAzureRMSchedulerJobDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		jobCollection := rs.Primary.Attributes["job_collection_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).schedulerJobsClient
+		client := testAccProvider.Meta().(*ArmClient).scheduler.JobsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
@@ -548,7 +549,7 @@ func testCheckAzureRMSchedulerJobExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Scheduler Job: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).schedulerJobsClient
+		client := testAccProvider.Meta().(*ArmClient).scheduler.JobsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, jobCollection, name)
@@ -668,7 +669,7 @@ resource "azurerm_scheduler_job" "test" {
     method = "get"
 
     authentication_certificate {
-      pfx      = "${base64encode(file("testdata/application_gateway_test.pfx"))}"
+      pfx      = "${filebase64("testdata/application_gateway_test.pfx")}"
       password = "terraform"
     }
   }
@@ -920,7 +921,7 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
 }
 
 func testAccAzureRMSchedulerJob_storageQueue_errorAction(rInt int, location string) string {
@@ -957,5 +958,5 @@ resource "azurerm_scheduler_job" "test" {
     message              = "storage message"
   }
 }
-`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[0:5], rInt)
+`, testAccAzureRMSchedulerJob_template(rInt, location), strconv.Itoa(rInt)[12:17], rInt)
 }

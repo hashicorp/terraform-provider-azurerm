@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `admin_enabled` - (Optional) Specifies whether the admin user is enabled. Defaults to `false`.
 
-* `storage_account_id` - (Required for `Classic` Sku - Optional otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
+* `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
 
 * `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
 
@@ -54,6 +54,24 @@ The following arguments are supported:
 
 * `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
 
+* `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
+
+`network_rule_set` supports the following:
+
+* `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SDK at this time.
+
+`ip_rule` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+
+---
 ## Attributes Reference
 
 The following attributes are exported:
