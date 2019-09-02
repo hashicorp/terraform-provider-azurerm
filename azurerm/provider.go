@@ -1,12 +1,8 @@
 package azurerm
 
 import (
-	"crypto/sha1"
-	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -614,51 +610,4 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		return client, nil
 	}
-}
-
-// ignoreCaseStateFunc is a StateFunc from helper/schema that converts the
-// supplied value to lower before saving to state for consistency.
-func ignoreCaseStateFunc(val interface{}) string {
-	return strings.ToLower(val.(string))
-}
-
-func userDataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
-	return userDataStateFunc(old) == new
-}
-
-func userDataStateFunc(v interface{}) string {
-	switch s := v.(type) {
-	case string:
-		s = base64Encode(s)
-		hash := sha1.Sum([]byte(s))
-		return hex.EncodeToString(hash[:])
-	default:
-		return ""
-	}
-}
-
-func base64EncodedStateFunc(v interface{}) string {
-	switch s := v.(type) {
-	case string:
-		return base64Encode(s)
-	default:
-		return ""
-	}
-}
-
-// base64Encode encodes data if the input isn't already encoded using
-// base64.StdEncoding.EncodeToString. If the input is already base64 encoded,
-// return the original input unchanged.
-func base64Encode(data string) string {
-	// Check whether the data is already Base64 encoded; don't double-encode
-	if isBase64Encoded(data) {
-		return data
-	}
-	// data has not been encoded encode and return
-	return base64.StdEncoding.EncodeToString([]byte(data))
-}
-
-func isBase64Encoded(data string) bool {
-	_, err := base64.StdEncoding.DecodeString(data)
-	return err == nil
 }

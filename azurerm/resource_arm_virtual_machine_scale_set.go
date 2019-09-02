@@ -1395,11 +1395,7 @@ func flattenAzureRMVirtualMachineScaleSetOsProfile(d *schema.ResourceData, profi
 		result["custom_data"] = *profile.CustomData
 	} else {
 		// look up the current custom data
-		value := d.Get("os_profile.0.custom_data").(string)
-		if !isBase64Encoded(value) {
-			value = base64Encode(value)
-		}
-		result["custom_data"] = value
+		result["custom_data"] = utils.Base64EncodeIfNot(d.Get("os_profile.0.custom_data").(string))
 	}
 
 	return []interface{}{result}
@@ -1904,7 +1900,7 @@ func expandAzureRMVirtualMachineScaleSetsOsProfile(d *schema.ResourceData) (*com
 	}
 
 	if customData != "" {
-		customData = base64Encode(customData)
+		customData = utils.Base64EncodeIfNot(customData)
 		osProfile.CustomData = &customData
 	}
 

@@ -6,8 +6,10 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
@@ -59,4 +61,14 @@ func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.Sch
 	}
 
 	return true, nil
+}
+
+// nolint: deadcode unused
+func base64Encode(data string) string {
+	return utils.Base64EncodeIfNot(data)
+}
+
+// nolint: deadcode unused
+func ignoreCaseStateFunc(val interface{}) string {
+	return state.IgnoreCase(val)
 }
