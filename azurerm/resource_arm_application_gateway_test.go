@@ -263,7 +263,10 @@ func TestAccAzureRMApplicationGateway_authCertificate(t *testing.T) {
 	})
 }
 
+// TODO required soft delete on the keyvault
 func TestAccAzureRMApplicationGateway_trustedRootCertificate_keyvault(t *testing.T) {
+	t.Skip()
+
 	resourceName := "azurerm_application_gateway.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -1925,7 +1928,7 @@ resource "azurerm_application_gateway" "test" {
 
   trusted_root_certificate {
     name                = "${local.auth_cert_name}"
-    key_vault_secret_id = "${azurerm_key_vault_certificate.test.id}"
+    key_vault_secret_id = "${azurerm_key_vault_certificate.test.secret_id}"
   }
 
   http_listener {

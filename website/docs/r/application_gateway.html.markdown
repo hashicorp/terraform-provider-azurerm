@@ -190,11 +190,7 @@ A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Authentication Certificate to use.
 
-* `data` - (Optional) The contents of the Authentication Certificate which should be used.
-
-* `key_vault_secret_id` - (Optional) The secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in a KeyVault.
-
-~> **NOTE:** Either `data ` or `key_vault_secret_id` must be specified.
+* `data` - (Required) The contents of the Authentication Certificate which should be used.
 
 ---
 

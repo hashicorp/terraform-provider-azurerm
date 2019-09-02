@@ -707,16 +707,17 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 						"data": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 							Sensitive:    true,
 						},
 
-						"key_vault_secret_id": {
+						// TODO required soft delete on the keyvault
+						/*"key_vault_secret_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: azure.ValidateKeyVaultChildId,
-						},
+						},*/
 
 						"id": {
 							Type:     schema.TypeString,
