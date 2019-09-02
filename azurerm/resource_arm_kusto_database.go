@@ -150,13 +150,13 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	databaseProperties := *databaseResponse.DatabaseProperties
+	if props := databaseResponse.DatabaseProperties; props != nil {
+		d.Set("hot_cache_period", props.HotCachePeriod)
+		d.Set("soft_delete_period", props.SoftDeletePeriod)
 
-	d.Set("hot_cache_period", databaseProperties.HotCachePeriod)
-	d.Set("soft_delete_period", databaseProperties.SoftDeletePeriod)
-
-	if statistics := databaseProperties.Statistics; statistics != nil {
-		d.Set("size", statistics.Size)
+		if statistics := props.Statistics; statistics != nil {
+			d.Set("size", statistics.Size)
+		}
 	}
 
 	return nil
