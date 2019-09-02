@@ -36,6 +36,8 @@ func (client Client) FindResourceGroup(ctx context.Context, accountName string) 
 		return &v, nil
 	}
 
+	log.Printf("[DEBUG] Cache Miss - looking up the resource group for storage account %q..", accountName)
+	writeLock.Lock()
 	accounts, err := client.AccountsClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Error listing Storage Accounts (to find Resource Group for %q): %s", accountName, err)
@@ -63,10 +65,10 @@ func (client Client) FindResourceGroup(ctx context.Context, accountName string) 
 	}
 
 	if resourceGroup != nil {
-		writeLock.Lock()
 		resourceGroupNamesCache[cacheKey] = *resourceGroup
-		writeLock.Unlock()
 	}
+
+	writeLock.Unlock()
 
 	return resourceGroup, nil
 }
@@ -77,6 +79,8 @@ func (client Client) findAccountKey(ctx context.Context, resourceGroup, accountN
 		return &v, nil
 	}
 
+	writeLock.Lock()
+	log.Printf("[DEBUG] Cache Miss - looking up the account key for storage account %q..", accountName)
 	props, err := client.AccountsClient.ListKeys(ctx, resourceGroup, accountName)
 	if err != nil {
 		return nil, fmt.Errorf("Error Listing Keys for Storage Account %q (Resource Group %q): %+v", accountName, resourceGroup, err)
@@ -89,7 +93,6 @@ func (client Client) findAccountKey(ctx context.Context, resourceGroup, accountN
 	keys := *props.Keys
 	firstKey := keys[0].Value
 
-	writeLock.Lock()
 	accountKeysCache[cacheKey] = *firstKey
 	writeLock.Unlock()
 
