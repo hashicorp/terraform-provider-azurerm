@@ -400,7 +400,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 				if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
 					if v := ipProps.PrivateIPAddress; v != nil {
 						if i == 0 {
-							d.Set("private_ip_address", *v)
+							d.Set("private_ip_address", v)
 						}
 						addresses = append(addresses, *v)
 					}

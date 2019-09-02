@@ -205,7 +205,6 @@ func resourceArmFunctionApp() *schema.Resource {
 						"virtual_network_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: false,
 						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},

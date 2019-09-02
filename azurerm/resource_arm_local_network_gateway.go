@@ -173,9 +173,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 		d.Set("gateway_address", props.GatewayIPAddress)
 
 		if lnas := props.LocalNetworkAddressSpace; lnas != nil {
-			if prefixes := lnas.AddressPrefixes; prefixes != nil {
-				d.Set("address_space", *prefixes)
-			}
+			d.Set("address_space", lnas.AddressPrefixes)
 		}
 		flattenedSettings := flattenLocalNetworkGatewayBGPSettings(props.BgpSettings)
 		if err := d.Set("bgp_settings", flattenedSettings); err != nil {

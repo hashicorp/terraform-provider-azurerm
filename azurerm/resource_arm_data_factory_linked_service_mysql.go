@@ -197,10 +197,7 @@ func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta i
 	}
 
 	d.Set("additional_properties", mysql.AdditionalProperties)
-
-	if mysql.Description != nil {
-		d.Set("description", *mysql.Description)
-	}
+	d.Set("description", mysql.Description)
 
 	annotations := flattenDataFactoryAnnotations(mysql.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {

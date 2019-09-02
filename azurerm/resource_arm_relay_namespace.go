@@ -219,7 +219,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error setting 'sku': %+v", err)
 		}
 
-		if err := d.Set("sku_name", *sku.Name); err != nil {
+		if err := d.Set("sku_name", sku.Name); err != nil {
 			return fmt.Errorf("Error setting 'sku_name': %+v", err)
 		}
 	} else {

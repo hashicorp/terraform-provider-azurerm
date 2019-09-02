@@ -212,9 +212,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.Reso
 
 	d.Set("backend_address_pool_id", backendAddressPoolId)
 	d.Set("ip_configuration_name", ipConfigurationName)
-	if id := read.ID; id != nil {
-		d.Set("network_interface_id", *id)
-	}
+	d.Set("network_interface_id", read.ID)
 
 	return nil
 }
