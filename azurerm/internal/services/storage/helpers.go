@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 
@@ -14,6 +15,20 @@ var (
 	resourceGroupNamesCache = map[string]string{}
 	writeLock               = sync.RWMutex{}
 )
+
+func (client Client) ClearFromCache(resourceGroup, accountName string) {
+	writeLock.Lock()
+
+	log.Printf("[DEBUG] Removing Account %q (Resource Group %q) from the cache", accountName, resourceGroup)
+	accountCacheKey := fmt.Sprintf("%s-%s", resourceGroup, accountName)
+	delete(accountKeysCache, accountCacheKey)
+
+	resourceGroupsCacheKey := accountName
+	delete(resourceGroupNamesCache, resourceGroupsCacheKey)
+
+	log.Printf("[DEBUG] Removed Account %q (Resource Group %q) from the cache", accountName, resourceGroup)
+	writeLock.Unlock()
+}
 
 func (client Client) FindResourceGroup(ctx context.Context, accountName string) (*string, error) {
 	cacheKey := accountName
