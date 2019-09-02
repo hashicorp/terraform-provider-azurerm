@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -144,7 +146,7 @@ func resourceArmContainerGroup() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForceNewSchema(),
+			"tags": tags.ForceNewSchema(),
 
 			"restart_policy": {
 				Type:             schema.TypeString,
@@ -355,6 +357,7 @@ func resourceArmContainerGroup() *schema.Resource {
 									"storage_account_key": {
 										Type:         schema.TypeString,
 										Required:     true,
+										Sensitive:    true,
 										ForceNew:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
@@ -443,7 +446,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -459,7 +462,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	OSType := d.Get("os_type").(string)
 	IPAddressType := d.Get("ip_address_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	restartPolicy := d.Get("restart_policy").(string)
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
@@ -468,7 +471,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		Identity: expandContainerGroupIdentity(d),
 		ContainerGroupProperties: &containerinstance.ContainerGroupProperties{
 			Containers:    containers,
@@ -526,7 +529,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).containers.GroupsClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -580,16 +583,14 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).containers.GroupsClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -626,7 +627,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if networkProfileId != "" {
-		parsedProfileId, err := parseAzureResourceID(networkProfileId)
+		parsedProfileId, err := azure.ParseAzureResourceID(networkProfileId)
 		if err != nil {
 			return err
 		}
@@ -672,7 +673,7 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 						continue
 					}
 
-					parsedId, err := parseAzureResourceID(*nicProps.Container.ID)
+					parsedId, err := azure.ParseAzureResourceID(*nicProps.Container.ID)
 					if err != nil {
 						return nil, "", err
 					}

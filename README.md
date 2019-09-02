@@ -106,6 +106,7 @@ The following Environment Variables must be set in your shell prior to running a
 - `ARM_ENVIRONMENT`
 - `ARM_TEST_LOCATION`
 - `ARM_TEST_LOCATION_ALT`
+- `ARM_TEST_LOCATION_ALT2`
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
 

@@ -11,7 +11,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 )
@@ -22,13 +21,14 @@ func Provider() terraform.ResourceProvider {
 	// the Service Registration interface to gradually migrate Data Sources/Resources over to the
 	// new pattern.
 	// However this requires that the following be done first:
-	//  1. Migrating the top level functions into the internal package
-	//		e.g. deprecated.go, locks.go
-	//	2. Switch the remaining resources over to the new Storage SDK
+	//  1. (DONE) Migrating the top level functions into the internal package
+	//	2. (DONE) Finish migrating the SDK Clients into Packages
+	//	3. Switch the remaining resources over to the new Storage SDK
 	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
-	//	3. Finish migrating the SDK Clients into Packages
 	//	4. Making the SDK Clients public in the ArmClient prior to moving
-	//	5. Migrating the `ArmClient` from `common.go` into internal/common/clients.go
+	//  5. Introducing a parent struct which becomes a nested field in `config.go`
+	//  	for those properties, to ease migration (probably internal/common/clients.go)
+	//	6. Migrating references from the `ArmClient` to the new parent client
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
 	supportedServices := []common.ServiceRegistration{}
@@ -144,6 +144,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_api_management_subscription":                           resourceArmApiManagementSubscription(),
 		"azurerm_api_management_user":                                   resourceArmApiManagementUser(),
 		"azurerm_app_service_active_slot":                               resourceArmAppServiceActiveSlot(),
+		"azurerm_app_service_certificate":                               resourceArmAppServiceCertificate(),
 		"azurerm_app_service_custom_hostname_binding":                   resourceArmAppServiceCustomHostnameBinding(),
 		"azurerm_app_service_plan":                                      resourceArmAppServicePlan(),
 		"azurerm_app_service_slot":                                      resourceArmAppServiceSlot(),
@@ -178,12 +179,14 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_cognitive_account":                                     resourceArmCognitiveAccount(),
 		"azurerm_connection_monitor":                                    resourceArmConnectionMonitor(),
 		"azurerm_container_group":                                       resourceArmContainerGroup(),
+		"azurerm_container_registry_webhook":                            resourceArmContainerRegistryWebhook(),
 		"azurerm_container_registry":                                    resourceArmContainerRegistry(),
 		"azurerm_container_service":                                     resourceArmContainerService(),
 		"azurerm_cosmosdb_account":                                      resourceArmCosmosDbAccount(),
 		"azurerm_cosmosdb_cassandra_keyspace":                           resourceArmCosmosDbCassandraKeyspace(),
 		"azurerm_cosmosdb_mongo_collection":                             resourceArmCosmosDbMongoCollection(),
 		"azurerm_cosmosdb_mongo_database":                               resourceArmCosmosDbMongoDatabase(),
+		"azurerm_cosmosdb_sql_container":                                resourceArmCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":                                 resourceArmCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_table":                                        resourceArmCosmosDbTable(),
 		"azurerm_data_factory":                                          resourceArmDataFactory(),
@@ -200,7 +203,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_data_lake_store_file":                                  resourceArmDataLakeStoreFile(),
 		"azurerm_data_lake_store_firewall_rule":                         resourceArmDataLakeStoreFirewallRule(),
 		"azurerm_data_lake_store":                                       resourceArmDataLakeStore(),
-		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceArmMssqlDatabaseVulnerabilityAssessmentRuleBaseline(),
 		"azurerm_databricks_workspace":                                  resourceArmDatabricksWorkspace(),
 		"azurerm_ddos_protection_plan":                                  resourceArmDDoSProtectionPlan(),
 		"azurerm_dev_test_lab":                                          resourceArmDevTestLab(),
@@ -256,6 +258,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_key_vault_secret":                                      resourceArmKeyVaultSecret(),
 		"azurerm_key_vault":                                             resourceArmKeyVault(),
 		"azurerm_kubernetes_cluster":                                    resourceArmKubernetesCluster(),
+		"azurerm_kusto_cluster":                                         resourceArmKustoCluster(),
 		"azurerm_lb_backend_address_pool":                               resourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_nat_pool":                                           resourceArmLoadBalancerNatPool(),
 		"azurerm_lb_nat_rule":                                           resourceArmLoadBalancerNatRule(),
@@ -282,6 +285,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_mariadb_database":                                      resourceArmMariaDbDatabase(),
 		"azurerm_mariadb_firewall_rule":                                 resourceArmMariaDBFirewallRule(),
 		"azurerm_mariadb_server":                                        resourceArmMariaDbServer(),
+		"azurerm_mariadb_virtual_network_rule":                          resourceArmMariaDbVirtualNetworkRule(),
 		"azurerm_media_services_account":                                resourceArmMediaServicesAccount(),
 		"azurerm_metric_alertrule":                                      resourceArmMetricAlertRule(),
 		"azurerm_monitor_autoscale_setting":                             resourceArmMonitorAutoScaleSetting(),
@@ -292,6 +296,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_monitor_metric_alert":                                  resourceArmMonitorMetricAlert(),
 		"azurerm_monitor_metric_alertrule":                              resourceArmMonitorMetricAlertRule(),
 		"azurerm_mssql_elasticpool":                                     resourceArmMsSqlElasticPool(),
+		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceArmMssqlDatabaseVulnerabilityAssessmentRuleBaseline(),
 		"azurerm_mysql_configuration":                                   resourceArmMySQLConfiguration(),
 		"azurerm_mysql_database":                                        resourceArmMySqlDatabase(),
 		"azurerm_mysql_firewall_rule":                                   resourceArmMySqlFirewallRule(),
@@ -326,8 +331,14 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
 		"azurerm_public_ip_prefix":                                                       resourceArmPublicIpPrefix(),
+		"azurerm_recovery_network_mapping":                                               resourceArmRecoveryServicesNetworkMapping(),
+		"azurerm_recovery_replicated_vm":                                                 resourceArmRecoveryServicesReplicatedVm(),
+		"azurerm_recovery_services_fabric":                                               resourceArmRecoveryServicesFabric(),
 		"azurerm_recovery_services_protected_vm":                                         resourceArmRecoveryServicesProtectedVm(),
+		"azurerm_recovery_services_protection_container":                                 resourceArmRecoveryServicesProtectionContainer(),
+		"azurerm_recovery_services_protection_container_mapping":                         resourceArmRecoveryServicesProtectionContainerMapping(),
 		"azurerm_recovery_services_protection_policy_vm":                                 resourceArmRecoveryServicesProtectionPolicyVm(),
+		"azurerm_recovery_services_replication_policy":                                   resourceArmRecoveryServicesReplicationPolicy(),
 		"azurerm_recovery_services_vault":                                                resourceArmRecoveryServicesVault(),
 		"azurerm_redis_cache":                                                            resourceArmRedisCache(),
 		"azurerm_redis_firewall_rule":                                                    resourceArmRedisFirewallRule(),
@@ -360,6 +371,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_sql_active_directory_administrator":                                     resourceArmSqlAdministrator(),
 		"azurerm_sql_database":                                                           resourceArmSqlDatabase(),
 		"azurerm_sql_elasticpool":                                                        resourceArmSqlElasticPool(),
+		"azurerm_sql_failover_group":                                                     resourceArmSqlFailoverGroup(),
 		"azurerm_sql_firewall_rule":                                                      resourceArmSqlFirewallRule(),
 		"azurerm_sql_server":                                                             resourceArmSqlServer(),
 		"azurerm_sql_virtual_network_rule":                                               resourceArmSqlVirtualNetworkRule(),
@@ -395,6 +407,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_gateway":                                                resourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
+		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
+		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
 	for _, service := range supportedServices {
@@ -423,37 +437,43 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SUBSCRIPTION_ID", ""),
+				Description: "The Subscription ID which should be used.",
 			},
 
 			"client_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_ID", ""),
+				Description: "The Client ID which should be used.",
 			},
 
 			"tenant_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", ""),
+				Description: "The Tenant ID which should be used.",
 			},
 
 			"environment": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_ENVIRONMENT", "public"),
+				Description: "The Cloud Environment which should be used. Possible values are public, usgovernment, german, and china. Defaults to public.",
 			},
 
 			// Client Certificate specific fields
-			"client_certificate_password": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
-			},
-
 			"client_certificate_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PATH", ""),
+				Description: "The path to the Client Certificate associated with the Service Principal for use when authenticating as a Service Principal using a Client Certificate.",
+			},
+
+			"client_certificate_password": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_CERTIFICATE_PASSWORD", ""),
+				Description: "The password associated with the Client Certificate. For use when authenticating as a Service Principal using a Client Certificate",
 			},
 
 			// Client Secret specific fields
@@ -461,6 +481,7 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_CLIENT_SECRET", ""),
+				Description: "The Client Secret which should be used. For use When authenticating as a Service Principal using a Client Secret.",
 			},
 
 			// Managed Service Identity specific fields
@@ -468,25 +489,29 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_USE_MSI", false),
+				Description: "Allowed Managed Service Identity be used for Authentication.",
 			},
 			"msi_endpoint": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_MSI_ENDPOINT", ""),
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
 			},
 
 			// Managed Tracking GUID for User-agent
 			"partner_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
 				ValidateFunc: validate.UUIDOrEmpty,
+				DefaultFunc:  schema.EnvDefaultFunc("ARM_PARTNER_ID", ""),
+				Description:  "A GUID/UUID that is registered with Microsoft to facilitate partner resource usage attribution.",
 			},
 
 			"disable_correlation_request_id": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
+				Description: "This will disable the x-ms-correlation-request-id header.",
 			},
 
 			// Advanced feature flags
@@ -494,12 +519,14 @@ func Provider() terraform.ResourceProvider {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_CREDENTIALS_VALIDATION", false),
+				Description: "This will cause the AzureRM Provider to skip verifying the credentials being used are valid.",
 			},
 
 			"skip_provider_registration": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_SKIP_PROVIDER_REGISTRATION", false),
+				Description: "Should the AzureRM Provider skip registering all of the Resource Providers that it supports, if they're not already registered?",
 			},
 		},
 
@@ -581,11 +608,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		return client, nil
 	}
-}
-
-// Deprecated: use `suppress.CaseDifference` instead
-func ignoreCaseDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
-	return suppress.CaseDifference(k, old, new, d)
 }
 
 // ignoreCaseStateFunc is a StateFunc from helper/schema that converts the

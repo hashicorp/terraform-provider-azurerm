@@ -90,6 +90,28 @@ func ParseCosmosDatabaseCollectionID(id string) (*CosmosDatabaseCollectionID, er
 	}, nil
 }
 
+type CosmosDatabaseContainerID struct {
+	CosmosDatabaseID
+	Container string
+}
+
+func ParseCosmosDatabaseContainerID(id string) (*CosmosDatabaseContainerID, error) {
+	subid, err := ParseCosmosDatabaseID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	container, ok := subid.Path["containers"]
+	if !ok {
+		return nil, fmt.Errorf("Error: Unable to parse Cosmos Database Container Resource ID: containers is missing from: %s", id)
+	}
+
+	return &CosmosDatabaseContainerID{
+		CosmosDatabaseID: *subid,
+		Container:        container,
+	}, nil
+}
+
 type CosmosKeyspaceID struct {
 	CosmosAccountID
 	Keyspace string

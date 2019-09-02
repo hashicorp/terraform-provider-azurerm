@@ -8,7 +8,7 @@ import (
 
 func TestValidateMaximumNumberOfTags(t *testing.T) {
 	tagsMap := make(map[string]interface{})
-	for i := 0; i < 16; i++ {
+	for i := 0; i < 51; i++ {
 		tagsMap[fmt.Sprintf("key%d", i)] = fmt.Sprintf("value%d", i)
 	}
 
@@ -18,7 +18,7 @@ func TestValidateMaximumNumberOfTags(t *testing.T) {
 		t.Fatal("Expected one validation error for too many tags")
 	}
 
-	if !strings.Contains(es[0].Error(), "a maximum of 15 tags") {
+	if !strings.Contains(es[0].Error(), "a maximum of 50 tags") {
 		t.Fatal("Wrong validation error message for too many tags")
 	}
 }

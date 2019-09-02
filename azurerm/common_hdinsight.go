@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,7 +16,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		client := meta.(*ArmClient).hdinsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
-		id, err := parseAzureResourceID(d.Id())
+		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
 			return err
 		}
@@ -24,9 +25,9 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		name := id.Path["clusters"]
 
 		if d.HasChange("tags") {
-			tags := d.Get("tags").(map[string]interface{})
+			t := d.Get("tags").(map[string]interface{})
 			params := hdinsight.ClusterPatchParameters{
-				Tags: expandTags(tags),
+				Tags: tags.Expand(t),
 			}
 			if _, err := client.Update(ctx, resourceGroup, name, params); err != nil {
 				return fmt.Errorf("Error updating Tags for HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
@@ -63,7 +64,7 @@ func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 		client := meta.(*ArmClient).hdinsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
-		id, err := parseAzureResourceID(d.Id())
+		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
 			return err
 		}
