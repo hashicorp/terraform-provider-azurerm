@@ -1,6 +1,7 @@
 package authorizers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -10,30 +11,30 @@ import (
 // TODO: switch to using the version from github.com/Azure/go-autorest
 // once https://github.com/Azure/go-autorest/pull/416 has been merged
 
-// SharedKeyLiteAuthorizer implements an authorization for Shared Key Lite
+// SharedKeyAuthorizer implements an authorization for Shared Key
 // this can be used for interaction with Blob, File and Queue Storage Endpoints
-type SharedKeyLiteAuthorizer struct {
+type SharedKeyAuthorizer struct {
 	storageAccountName string
 	storageAccountKey  string
 }
 
-// NewSharedKeyLiteAuthorizer creates a SharedKeyLiteAuthorizer using the given credentials
-func NewSharedKeyLiteAuthorizer(accountName, accountKey string) *SharedKeyLiteAuthorizer {
-	return &SharedKeyLiteAuthorizer{
+// NewSharedKeyAuthorizer creates a SharedKeyAuthorizer using the given credentials
+func NewSharedKeyAuthorizer(accountName, accountKey string) *SharedKeyAuthorizer {
+	return &SharedKeyAuthorizer{
 		storageAccountName: accountName,
 		storageAccountKey:  accountKey,
 	}
 }
 
 // WithAuthorization returns a PrepareDecorator that adds an HTTP Authorization header whose
-// value is "SharedKeyLite " followed by the computed key.
+// value is "SharedKey " followed by the computed key.
 // This can be used for the Blob, Queue, and File Services
 //
 // from: https://docs.microsoft.com/en-us/rest/api/storageservices/authorize-with-shared-key
 // You may use Shared Key Lite authorization to authorize a request made against the
 // 2009-09-19 version and later of the Blob and Queue services,
 // and version 2014-02-14 and later of the File services.
-func (skl *SharedKeyLiteAuthorizer) WithAuthorization() autorest.PrepareDecorator {
+func (skl *SharedKeyAuthorizer) WithAuthorization() autorest.PrepareDecorator {
 	return func(p autorest.Preparer) autorest.Preparer {
 		return autorest.PreparerFunc(func(r *http.Request) (*http.Request, error) {
 			r, err := p.Prepare(r)
@@ -41,21 +42,21 @@ func (skl *SharedKeyLiteAuthorizer) WithAuthorization() autorest.PrepareDecorato
 				return r, err
 			}
 
-			key, err := buildSharedKeyLite(skl.storageAccountName, skl.storageAccountKey, r)
+			key, err := buildSharedKey(skl.storageAccountName, skl.storageAccountKey, r)
 			if err != nil {
 				return r, err
 			}
 
-			sharedKeyHeader := formatSharedKeyLiteAuthorizationHeader(skl.storageAccountName, *key)
+			sharedKeyHeader := formatSharedKeyAuthorizationHeader(skl.storageAccountName, *key)
 			return autorest.Prepare(r, autorest.WithHeader(HeaderAuthorization, sharedKeyHeader))
 		})
 	}
 }
-func buildSharedKeyLite(accountName, storageAccountKey string, r *http.Request) (*string, error) {
+func buildSharedKey(accountName, storageAccountKey string, r *http.Request) (*string, error) {
 	// first ensure the relevant headers are configured
 	prepareHeadersForRequest(r)
 
-	sharedKey, err := computeSharedKeyLite(r.Method, r.URL.String(), accountName, r.Header)
+	sharedKey, err := computeSharedKey(r.Method, r.URL.String(), accountName, r.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -67,24 +68,37 @@ func buildSharedKeyLite(accountName, storageAccountKey string, r *http.Request) 
 
 // computeSharedKeyLite computes the Shared Key Lite required for Storage Authentication
 // NOTE: this function assumes that the `x-ms-date` field is set
-func computeSharedKeyLite(verb, url string, accountName string, headers http.Header) (*string, error) {
-	canonicalizedResource, err := buildCanonicalizedResource(url, accountName, true)
+func computeSharedKey(verb, url string, accountName string, headers http.Header) (*string, error) {
+	canonicalizedResource, err := buildCanonicalizedResource(url, accountName, false)
 	if err != nil {
 		return nil, err
 	}
 
 	canonicalizedHeaders := buildCanonicalizedHeader(headers)
-	canonicalizedString := buildCanonicalizedStringForSharedKeyLite(verb, headers, canonicalizedHeaders, *canonicalizedResource)
+	canonicalizedString := buildCanonicalizedStringForSharedKey(verb, headers, canonicalizedHeaders, *canonicalizedResource)
 	return &canonicalizedString, nil
 }
 
-func buildCanonicalizedStringForSharedKeyLite(verb string, headers http.Header, canonicalizedHeaders, canonicalizedResource string) string {
+func buildCanonicalizedStringForSharedKey(verb string, headers http.Header, canonicalizedHeaders, canonicalizedResource string) string {
 	return strings.Join([]string{
 		verb,
-		headers.Get(HeaderContentMD5), // TODO: this appears to always be empty?
+		"",
+		"",
+		"",
+		headers.Get(HeaderContentMD5),
 		headers.Get(HeaderContentType),
 		"", // date should be nil, apparently :shrug:
+		"",
+		"",
+		"",
+		"",
+		"",
 		canonicalizedHeaders,
 		canonicalizedResource,
 	}, "\n")
+}
+
+func formatSharedKeyAuthorizationHeader(accountName, key string) string {
+	canonicalizedAccountName := primaryStorageAccountName(accountName)
+	return fmt.Sprintf("SharedKey %s:%s", canonicalizedAccountName, key)
 }

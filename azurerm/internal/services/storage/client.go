@@ -41,7 +41,7 @@ func (client Client) BlobsClient(ctx context.Context, resourceGroup, accountName
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
 	blobsClient := blobs.NewWithEnvironment(client.environment)
 	blobsClient.Client.Authorizer = storageAuth
 	return &blobsClient, nil
@@ -53,7 +53,7 @@ func (client Client) ContainersClient(ctx context.Context, resourceGroup, accoun
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
 	containersClient := containers.NewWithEnvironment(client.environment)
 	containersClient.Client.Authorizer = storageAuth
 	return &containersClient, nil
@@ -65,7 +65,7 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGro
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
 	directoriesClient := directories.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
@@ -77,7 +77,7 @@ func (client Client) FileSharesClient(ctx context.Context, resourceGroup, accoun
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
 	directoriesClient := shares.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
@@ -89,7 +89,7 @@ func (client Client) QueuesClient(ctx context.Context, resourceGroup, accountNam
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
 	queuesClient := queues.NewWithEnvironment(client.environment)
 	queuesClient.Client.Authorizer = storageAuth
 	return &queuesClient, nil
