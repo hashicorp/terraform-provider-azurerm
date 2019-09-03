@@ -12,9 +12,9 @@ default: build
 tools:
 	@echo "==> installing required tooling..."
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
-	GO111MODULE=on go install github.com/client9/misspell/cmd/misspell
-	GO111MODULE=on go install github.com/golangci/golangci-lint/cmd/golangci-lint
-	GO111MODULE=on go install github.com/bflad/tfproviderlint/cmd/tfproviderlint
+	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
+	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 
 build: fmtcheck
 	go install
