@@ -192,10 +192,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 	}
 
 	d.Set("additional_properties", sqlServer.AdditionalProperties)
-
-	if sqlServer.Description != nil {
-		d.Set("description", *sqlServer.Description)
-	}
+	d.Set("description", sqlServer.Description)
 
 	annotations := flattenDataFactoryAnnotations(sqlServer.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {

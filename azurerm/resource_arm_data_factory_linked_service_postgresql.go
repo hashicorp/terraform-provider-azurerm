@@ -197,10 +197,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQLRead(d *schema.ResourceData, m
 	}
 
 	d.Set("additional_properties", postgresql.AdditionalProperties)
-
-	if postgresql.Description != nil {
-		d.Set("description", *postgresql.Description)
-	}
+	d.Set("description", postgresql.Description)
 
 	annotations := flattenDataFactoryAnnotations(postgresql.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {

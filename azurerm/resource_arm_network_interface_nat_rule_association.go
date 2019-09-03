@@ -212,9 +212,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, m
 
 	d.Set("ip_configuration_name", ipConfigurationName)
 	d.Set("nat_rule_id", natRuleId)
-	if id := read.ID; id != nil {
-		d.Set("network_interface_id", *id)
-	}
+	d.Set("network_interface_id", read.ID)
 
 	return nil
 }

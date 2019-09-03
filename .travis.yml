@@ -29,6 +29,8 @@ matrix:
   include:
     - name: "make lint"
       script: GOGC=20 make lint
+    - name: "make tflint"
+      script: make tflint
     - name: "make test"
       script: make test
     - name: "make website-lint"
