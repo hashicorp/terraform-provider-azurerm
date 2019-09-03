@@ -15,43 +15,13 @@ func dataSourceSqlDatabase() *schema.Resource {
 		Read: dataSourceArmSqlDatabaseRead,
 
 		Schema: map[string]*schema.Schema{
-			"collation": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"default_secondary_location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"edition": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"elastic_pool_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"failover_group_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"read_scale": {
-				Type:     schema.TypeBool,
+			"location": {
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
@@ -62,7 +32,38 @@ func dataSourceSqlDatabase() *schema.Resource {
 				Required: true,
 			},
 
+			"edition": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"collation": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"elastic_pool_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"default_secondary_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"read_scale": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
+
+
+			"failover_group_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -84,33 +85,26 @@ func dataSourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error retrieving SQL Database %q (server %q / resource group %q): %s", name, serverName, resourceGroup, err)
 	}
 
+	d.Set("location", azure.NormalizeLocation(*resp.Location))
+
 	if id := resp.ID; id != nil {
 		d.SetId(*id)
 	}
 
-	d.Set("collation", resp.Collation)
+	if props := resp.DatabaseProperties; props != nil {
 
-	if dsLocation := resp.ElasticPoolName; dsLocation != nil {
-		d.Set("default_secondary_location", dsLocation)
+		d.Set("collation", props.Collation)
+
+		d.Set("default_secondary_location", props.DefaultSecondaryLocation)
+
+		d.Set("edition", string(props.Edition))
+
+		d.Set("elastic_pool_name", props.ElasticPoolName)
+
+		d.Set("failover_group_id", props.FailoverGroupID)
+
+		d.Set("read_scale", props.ReadScale == sql.ReadScaleEnabled)
 	}
-
-	d.Set("edition", string(resp.Edition))
-
-	if ep := resp.ElasticPoolName; ep != nil {
-		d.Set("elastic_pool_name", ep)
-	}
-
-	if fogID := resp.FailoverGroupID; fogID != nil {
-		d.Set("failover_group_id", fogID)
-	}
-
-	d.Set("location", azure.NormalizeLocation(*resp.Location))
-
-	readScale := false
-	if resp.ReadScale == sql.ReadScaleEnabled {
-		readScale = true
-	}
-	d.Set("read_scale", readScale)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
