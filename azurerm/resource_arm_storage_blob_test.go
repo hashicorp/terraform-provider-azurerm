@@ -316,6 +316,33 @@ func TestAccAzureRMStorageBlob_contentType(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageBlob_contentTypePremium(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_contentTypePremium(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageBlob_pageEmpty(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
@@ -329,6 +356,33 @@ func TestAccAzureRMStorageBlob_pageEmpty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageBlob_pageEmpty(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_pageEmptyPremium(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_pageEmptyPremium(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 				),
@@ -856,6 +910,23 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
+func testAccAzureRMStorageBlob_contentTypePremium(rInt int, rString, location string) string {
+	template := testAccAzureRMStorageBlob_templatePremium(rInt, rString, location, "private")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+  type                   = "page"
+  size                   = 5120
+  content_type           = "image/png"
+}
+`, template)
+}
+
 func testAccAzureRMStorageBlob_contentTypeUpdated(rInt int, rString, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
 	return fmt.Sprintf(`
@@ -875,6 +946,22 @@ resource "azurerm_storage_blob" "test" {
 
 func testAccAzureRMStorageBlob_pageEmpty(rInt int, rString string, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+  type                   = "page"
+  size                   = 5120
+}
+`, template)
+}
+
+func testAccAzureRMStorageBlob_pageEmptyPremium(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageBlob_templatePremium(rInt, rString, location, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -1000,30 +1087,6 @@ resource "azurerm_storage_blob" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageBlob_template(rInt int, rString, location, accessLevel string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "%s"
-}
-`, rInt, location, rString, accessLevel)
-}
-
 func testAccAzureRMStorageBlob_update(rInt int, rString, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
 	return fmt.Sprintf(`
@@ -1063,4 +1126,52 @@ resource "azurerm_storage_blob" "test" {
   }
 }
 `, template)
+}
+
+func testAccAzureRMStorageBlob_template(rInt int, rString, location, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, rInt, location, rString, accessLevel)
+}
+
+func testAccAzureRMStorageBlob_templatePremium(rInt int, rString, location, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, rInt, location, rString, accessLevel)
 }
