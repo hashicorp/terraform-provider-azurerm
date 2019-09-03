@@ -11,6 +11,8 @@ description: |-
 
 Manages an App Service source control token.
 
+~> **NOTE:** A source control token is global and required only once per Azure account.
+
 ## Example Usage
 
 ```hcl

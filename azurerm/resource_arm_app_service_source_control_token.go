@@ -7,8 +7,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,10 +15,10 @@ var appServiceSourceControlTokenResourceName = "azurerm_app_service_source_contr
 
 func resourceArmAppServiceSourceControlToken() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmAppServiceSourceControlTokenCreateOrUpdate,
+		Create: resourceArmAppServiceSourceControlTokenCreateUpdate,
 		Read:   resourceArmAppServiceSourceControlTokenRead,
-		Update: resourceArmAppServiceSourceControlTokenCreateOrUpdate,
-		Delete: schema.Noop,
+		Update: resourceArmAppServiceSourceControlTokenCreateUpdate,
+		Delete: resourceArmAppServiceSourceControlTokenDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,14 +36,15 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 			},
 
 			"token": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 		},
 	}
 }
 
-func resourceArmAppServiceSourceControlTokenCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).web.BaseClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -56,19 +55,6 @@ func resourceArmAppServiceSourceControlTokenCreateOrUpdate(d *schema.ResourceDat
 
 	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
 	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
-
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.GetSourceControl(ctx, scmType)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing App Service Source Control Token (Type %q): %s", scmType, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError(appServiceSourceControlTokenResourceName, *existing.ID)
-		}
-	}
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
@@ -113,6 +99,33 @@ func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta in
 
 	if props := resp.SourceControlProperties; props != nil {
 		d.Set("token", props.Token)
+	}
+
+	return nil
+}
+
+func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).web.BaseClient
+	ctx := meta.(*ArmClient).StopContext
+
+	scmType := d.Id()
+
+	// Delete cleans up existing token by setting the token to ""
+	token := ""
+
+	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
+	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
+
+	log.Printf("[DEBUG] Deleting App Service Source Control Token (Type %q)", scmType)
+
+	properties := web.SourceControl{
+		SourceControlProperties: &web.SourceControlProperties{
+			Token: utils.String(token),
+		},
+	}
+
+	if _, err := client.UpdateSourceControl(ctx, scmType, properties); err != nil {
+		return fmt.Errorf("Error deleting App Service Source Control Token (Type %q): %s", scmType, err)
 	}
 
 	return nil
