@@ -41,7 +41,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   container_name    = "${azurerm_storage_container.container.name}"
   https_only        = true
 
-  ip = "168.1.5.65"
+  ip_address = "168.1.5.65"
 
   start  = "2018-03-21"
   expiry = "2018-03-21"
@@ -74,6 +74,8 @@ output "sas_url_query_string" {
 * `container_name` - (Required) Name of the container.
 
 * `https_only` - (Optional) Only permit `https` access. If `false`, both `http` and `https` are permitted. Defaults to `true`.
+
+* `ip_address` - (Optional) Single ipv4 address or range (connected with a dash) of ipv4 addresses.
 
 * `start` - (Required) The starting time and date of validity of this SAS. Must be a valid ISO-8601 format time/date string.
 

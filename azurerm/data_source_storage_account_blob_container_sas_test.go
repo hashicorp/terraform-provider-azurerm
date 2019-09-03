@@ -29,7 +29,7 @@ func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "https_only", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "start", startDate),
 					resource.TestCheckResourceAttr(dataSourceName, "expiry", endDate),
-					resource.TestCheckResourceAttr(dataSourceName, "ip", "168.1.5.65"),
+					resource.TestCheckResourceAttr(dataSourceName, "ip_address", "168.1.5.65"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.read", "true"),
 					resource.TestCheckResourceAttr(dataSourceName, "permissions.0.add", "true"),
@@ -77,7 +77,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   container_name    = "${azurerm_storage_container.container.name}"
   https_only        = true
 
-  ip = "168.1.5.65"
+  ip_address = "168.1.5.65"
 
   start  = "%s"
   expiry = "%s"

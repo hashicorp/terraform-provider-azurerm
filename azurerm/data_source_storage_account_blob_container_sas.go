@@ -33,7 +33,7 @@ func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Res
 				Default:  true,
 			},
 
-			"ip": {
+			"ip_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.SharedAccessSignatureIP,
@@ -130,7 +130,7 @@ func dataSourceArmStorageContainerSasRead(d *schema.ResourceData, _ interface{})
 	connString := d.Get("connection_string").(string)
 	containerName := d.Get("container_name").(string)
 	httpsOnly := d.Get("https_only").(bool)
-	ip := d.Get("ip").(string)
+	ip := d.Get("ip_address").(string)
 	start := d.Get("start").(string)
 	expiry := d.Get("expiry").(string)
 	permissionsIface := d.Get("permissions").([]interface{})
