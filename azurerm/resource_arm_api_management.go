@@ -904,13 +904,13 @@ func expandApiManagementCustomProperties(d *schema.ResourceData) map[string]*str
 
 	if len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
-		backendProtocolSsl3 = v["disable_backend_ssl30"].(bool)
-		backendProtocolTls10 = v["disable_backend_tls10"].(bool)
-		backendProtocolTls11 = v["disable_backend_tls11"].(bool)
-		frontendProtocolSsl3 = v["disable_frontend_ssl30"].(bool)
-		frontendProtocolTls10 = v["disable_frontend_tls10"].(bool)
-		frontendProtocolTls11 = v["disable_frontend_tls11"].(bool)
-		//tripleDesCiphers = v["disable_triple_des_ciphers"].(bool) //restore in 2.0
+		backendProtocolSsl3 = !v["disable_backend_ssl30"].(bool)
+		backendProtocolTls10 = !v["disable_backend_tls10"].(bool)
+		backendProtocolTls11 = !v["disable_backend_tls11"].(bool)
+		frontendProtocolSsl3 = !v["disable_frontend_ssl30"].(bool)
+		frontendProtocolTls10 = !v["disable_frontend_tls10"].(bool)
+		frontendProtocolTls11 = !v["disable_frontend_tls11"].(bool)
+		//tripleDesCiphers = !v["disable_triple_des_ciphers"].(bool) //restore in 2.0
 	}
 
 	if c, ok := d.GetOkExists("security.0.disable_triple_des_ciphers"); ok {
