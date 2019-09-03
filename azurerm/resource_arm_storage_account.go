@@ -575,7 +575,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
 		},
 	}
 }
