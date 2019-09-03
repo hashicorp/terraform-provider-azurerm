@@ -12,7 +12,7 @@ import (
 
 func dataSourceNetworkDDoSProtectionPlan() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceNetworkDDoSProtectionPlanRead,
+		Read: dataSourceNetworkDDoSProtectionPlanRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {

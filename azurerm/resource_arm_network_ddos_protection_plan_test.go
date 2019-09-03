@@ -22,7 +22,7 @@ func TestAccAzureRMNetworkDDoSProtectionPlan(t *testing.T) {
 			"disappears":     testAccAzureRMNetworkDDoSProtectionPlan_disappears,
 		},
 		"datasource": {
-			"basic":          testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic,
+			"basic": testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic,
 		},
 		"deprecated": {
 			"basic":          testAccAzureRMDDoSProtectionPlan_basic,
