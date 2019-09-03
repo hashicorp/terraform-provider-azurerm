@@ -33,7 +33,6 @@ func testAccAzureRMDataSourceFhirApi_basic(rInt int, location string) string {
 	resource := testAccAzureRMFhirApi_basic(rInt)
 	s := fmt.Sprintf(`
 %s
-data "azurerm_client_config" "current" {}
 
 data "azurerm_fhir_api_service" "test" {
   name                = "${azurerm_fhir_api_service.test.name}"
