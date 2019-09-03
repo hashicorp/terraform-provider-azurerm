@@ -80,19 +80,26 @@ func computeSharedKey(verb, url string, accountName string, headers http.Header)
 }
 
 func buildCanonicalizedStringForSharedKey(verb string, headers http.Header, canonicalizedHeaders, canonicalizedResource string) string {
+	lengthString := headers.Get(HeaderContentLength)
+
+	// empty string when zero
+	if lengthString == "0" {
+		lengthString = ""
+	}
+
 	return strings.Join([]string{
-		verb,
-		"",
-		"",
-		"",
-		headers.Get(HeaderContentMD5),
-		headers.Get(HeaderContentType),
-		"", // date should be nil, apparently :shrug:
-		"",
-		"",
-		"",
-		"",
-		"",
+		verb,                           // HTTP Verb
+		"",                             // Content-Encoding
+		"",                             // Content-Language
+		lengthString,                   // Content-Length (empty string when zero)
+		headers.Get(HeaderContentMD5),  // Content-MD5
+		headers.Get(HeaderContentType), // Content-Type
+		"",                             // date should be nil, apparently :shrug:
+		"",                             // If-Modified-Since
+		"",                             // If-Match
+		"",                             // If-None-Match
+		"",                             // If-Unmodified-Since
+		"",                             // Range
 		canonicalizedHeaders,
 		canonicalizedResource,
 	}, "\n")
