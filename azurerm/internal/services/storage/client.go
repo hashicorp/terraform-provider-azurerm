@@ -89,7 +89,7 @@ func (client Client) QueuesClient(ctx context.Context, resourceGroup, accountNam
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
 	queuesClient := queues.NewWithEnvironment(client.environment)
 	queuesClient.Client.Authorizer = storageAuth
 	return &queuesClient, nil
