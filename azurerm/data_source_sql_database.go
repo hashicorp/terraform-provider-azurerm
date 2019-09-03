@@ -59,7 +59,6 @@ func dataSourceSqlDatabase() *schema.Resource {
 
 			"tags": tags.Schema(),
 
-
 			"failover_group_id": {
 				Type:     schema.TypeString,
 				Computed: true,
