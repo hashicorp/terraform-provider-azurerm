@@ -17,9 +17,9 @@ import (
 
 func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate,
+		Create: resourceArmDataFactoryDatasetSQLServerTableCreateUpdate,
 		Read:   resourceArmDataFactoryDatasetSQLServerTableRead,
-		Update: resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate,
+		Update: resourceArmDataFactoryDatasetSQLServerTableCreateUpdate,
 		Delete: resourceArmDataFactoryDatasetSQLServerTableDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -133,7 +133,7 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetSQLServerTableCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetSQLServerTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -17,9 +17,9 @@ import (
 
 func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetMySQLCreateOrUpdate,
+		Create: resourceArmDataFactoryDatasetMySQLCreateUpdate,
 		Read:   resourceArmDataFactoryDatasetMySQLRead,
-		Update: resourceArmDataFactoryDatasetMySQLCreateOrUpdate,
+		Update: resourceArmDataFactoryDatasetMySQLCreateUpdate,
 		Delete: resourceArmDataFactoryDatasetMySQLDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -133,7 +133,7 @@ func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetMySQLCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 

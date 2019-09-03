@@ -196,7 +196,7 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 }
 
 //This is a regression test around https://github.com/hashicorp/terraform/issues/6517
-//Because we use CreateOrUpdate, we were sending an empty password on update requests
+//Because we use CreateUpdate, we were sending an empty password on update requests
 func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 	var vm compute.VirtualMachine
 
