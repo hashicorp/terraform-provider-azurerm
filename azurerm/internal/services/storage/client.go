@@ -41,7 +41,7 @@ func (client Client) BlobsClient(ctx context.Context, resourceGroup, accountName
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
 	blobsClient := blobs.NewWithEnvironment(client.environment)
 	blobsClient.Client.Authorizer = storageAuth
 	return &blobsClient, nil
