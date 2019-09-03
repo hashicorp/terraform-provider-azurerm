@@ -166,16 +166,16 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
-                        "auto_grow": {
-                            Type:     schema.TypeString,
-                            Optional: true,
-                            Default: string(postgresql.StorageAutogrowEnabled),
-                            ValidateFunc: validation.StringInSlice([]string{
-                                string(postgresql.StorageAutogrowEnabled),
-                                string(postgresql.StorageAutogrowDisabled),
-                            }, true),
-                            DiffSuppressFunc: suppress.CaseDifference,
-                        },
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(postgresql.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(postgresql.StorageAutogrowEnabled),
+								string(postgresql.StorageAutogrowDisabled),
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
 					},
 				},
 			},
@@ -434,7 +434,7 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
-    autoGrow := storageprofile["auto_grow"].(string)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &postgresql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
@@ -471,7 +471,7 @@ func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interfac
 		values["storage_mb"] = *storageMB
 	}
 
-    values["auto_grow"] = string(resp.StorageAutogrow)
+	values["auto_grow"] = string(resp.StorageAutogrow)
 
 	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
 		values["backup_retention_days"] = *backupRetentionDays
