@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
+* `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
@@ -27,7 +28,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * `azurerm_app_service_plan` and `azurerm_app_service_slot` crash fixes [GH-4184]
-* `azurerm_container_group~ - make `storage_account_key` field in `volume` block sensitive [GH-4201]
+* `azurerm_container_group` - make `storage_account_key` field in `volume` block sensitive [GH-4201]
 * `azurerm_log_analytics_linked_service` - crash fix [GH-4142]
 * `azurerm_log_analytics_workspace_linked_service` - crash fix [GH-4152]
 * `azurerm_virtual_network_peering` - prevent nil object from being read [GH-4180]
