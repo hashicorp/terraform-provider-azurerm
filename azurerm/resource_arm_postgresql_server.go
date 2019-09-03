@@ -173,8 +173,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(postgresql.StorageAutogrowEnabled),
 								string(postgresql.StorageAutogrowDisabled),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 					},
 				},
