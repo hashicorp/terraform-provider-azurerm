@@ -15,87 +15,76 @@ func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Res
 
 		Schema: map[string]*schema.Schema{
 			"connection_string": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"container_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"https_only": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
-				ForceNew: true,
 			},
 
 			"ip": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.SharedAccessSignatureIP,
 			},
 
 			"start": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			"expiry": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			"permissions": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"read": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"add": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"create": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"write": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"delete": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 
 						"list": {
 							Type:     schema.TypeBool,
 							Required: true,
-							ForceNew: true,
 						},
 					},
 				},
@@ -104,31 +93,26 @@ func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Res
 			"cache_control": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"content_disposition": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"content_encoding": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"content_language": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"content_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"sas": {
