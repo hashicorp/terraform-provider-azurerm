@@ -113,5 +113,5 @@ The following attributes are exported:
 SQL Failover Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sql_failover_group.database1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failovergroups/group1
+terraform import azurerm_sql_failover_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failovergroups/group1
 ```
