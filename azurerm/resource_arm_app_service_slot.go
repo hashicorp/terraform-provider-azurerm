@@ -173,7 +173,10 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 	affinity := d.Get("client_affinity_enabled").(bool)
 
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
+	}
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     tags.Expand(t),
@@ -181,7 +184,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 			ServerFarmID:          utils.String(appServicePlanId),
 			Enabled:               utils.Bool(enabled),
 			HTTPSOnly:             utils.Bool(httpsOnly),
-			SiteConfig:            &siteConfig,
+			SiteConfig:            siteConfig,
 			ClientAffinityEnabled: &affinity,
 		},
 	}
@@ -230,7 +233,10 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
+	}
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -242,7 +248,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
 			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			SiteConfig:   siteConfig,
 		},
 	}
 	if v, ok := d.GetOk("client_affinity_enabled"); ok {
@@ -261,9 +267,12 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		if err != nil {
+			return fmt.Errorf("Error expanding `site_config` for App Service Slot %q (Resource Group %q): %s", slot, resourceGroup, err)
+		}
 		siteConfigResource := web.SiteConfigResource{
-			SiteConfig: &siteConfig,
+			SiteConfig: siteConfig,
 		}
 		if _, err := client.CreateOrUpdateConfigurationSlot(ctx, resourceGroup, appServiceName, siteConfigResource, slot); err != nil {
 			return fmt.Errorf("Error updating Configuration for App Service Slot %q/%q: %+v", appServiceName, slot, err)

@@ -43,7 +43,7 @@ func (client Client) PutPageBlob(ctx context.Context, accountName, containerName
 		return result, validation.NewError("blobs.Client", "PutPageBlob", "`blobName` cannot be an empty string.")
 	}
 	if input.BlobContentLengthBytes == 0 || input.BlobContentLengthBytes%512 != 0 {
-		return result, validation.NewError("blobs.Client", "PutPageBlob", "`blobName` must be aligned to a 512-byte boundary.")
+		return result, validation.NewError("blobs.Client", "PutPageBlob", "`input.BlobContentLengthBytes` must be aligned to a 512-byte boundary.")
 	}
 
 	req, err := client.PutPageBlobPreparer(ctx, accountName, containerName, blobName, input)

@@ -17,9 +17,9 @@ import (
 
 func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetPostgreSQLCreateOrUpdate,
+		Create: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
 		Read:   resourceArmDataFactoryDatasetPostgreSQLRead,
-		Update: resourceArmDataFactoryDatasetPostgreSQLCreateOrUpdate,
+		Update: resourceArmDataFactoryDatasetPostgreSQLCreateUpdate,
 		Delete: resourceArmDataFactoryDatasetPostgreSQLDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -133,7 +133,7 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetPostgreSQLCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 

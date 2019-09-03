@@ -80,9 +80,9 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.DiskProperties; props != nil {
-		if diskSize := props.DiskSizeGB; diskSize != nil {
-			d.Set("disk_size_gb", *diskSize)
-		}
+
+		d.Set("disk_size_gb", props.DiskSizeGB)
+
 		if osType := props.OsType; osType != "" {
 			d.Set("os_type", string(osType))
 		}

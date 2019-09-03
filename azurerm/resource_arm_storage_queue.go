@@ -192,7 +192,7 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", id.QueueName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", *resourceGroup)
+	d.Set("resource_group_name", resourceGroup)
 
 	if err := d.Set("metadata", storage.FlattenMetaData(metaData.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %s", err)

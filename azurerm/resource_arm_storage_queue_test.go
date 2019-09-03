@@ -213,16 +213,12 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
+		props, err := queueClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
-			if utils.ResponseWasNotFound(metaData.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Unexpected error getting MetaData for Queue %q: %s", name, err)
+			return nil
 		}
 
-		return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) still exists", name, accountName)
+		return fmt.Errorf("Queue still exists: %+v", props)
 	}
 
 	return nil

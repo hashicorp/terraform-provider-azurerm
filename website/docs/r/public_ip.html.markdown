@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_public_ip
 
-Manage a Public IP Address.
+Manages a Public IP Address.
 
 ## Example Usage
 

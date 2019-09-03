@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_blob"
 sidebar_current: "docs-azurerm-resource-storage-blob"
 description: |-
-  Manages a Azure Storage Blob.
+  Manages a Blob within a Storage Container.
 ---
 
 # azurerm_storage_blob
 
-Manage an Azure Storage Blob.
+Manages a Blob within a Storage Container.
 
 ## Example Usage
 
@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_storage_account" "test" {
   name                     = "acctestaccs"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -51,9 +51,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the storage blob. Must be unique within the storage container the blob is located.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
-    create the storage container. Changing this forces a new resource to be created.
-
 * `storage_account_name` - (Required) Specifies the storage account in which to create the storage container.
  Changing this forces a new resource to be created.
 
@@ -73,9 +70,11 @@ The following arguments are supported:
 
 * `parallelism` - (Optional) The number of workers per CPU core to run for concurrent uploads. Defaults to `8`.
 
-* `attempts` - (Optional) The number of attempts to make per page or block when uploading. Defaults to `1`.
-
 * `metadata` - (Optional) A map of custom blob metadata.
+
+* `attempts` - (Optional / **Deprecated**) The number of attempts to make per page or block when uploading. Defaults to `1`.
+
+* `resource_group_name` - (Optional / **Deprecated**) The name of the resource group in which to create the storage container.
 
 ## Attributes Reference
 

@@ -17,9 +17,9 @@ import (
 
 func resourceArmDataFactory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryCreateOrUpdate,
+		Create: resourceArmDataFactoryCreateUpdate,
 		Read:   resourceArmDataFactoryRead,
-		Update: resourceArmDataFactoryCreateOrUpdate,
+		Update: resourceArmDataFactoryCreateUpdate,
 		Delete: resourceArmDataFactoryDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -151,7 +151,7 @@ func resourceArmDataFactory() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 

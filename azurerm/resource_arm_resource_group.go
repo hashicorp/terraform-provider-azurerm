@@ -20,7 +20,6 @@ func resourceArmResourceGroup() *schema.Resource {
 		Create: resourceArmResourceGroupCreateUpdate,
 		Read:   resourceArmResourceGroupRead,
 		Update: resourceArmResourceGroupCreateUpdate,
-		Exists: resourceArmResourceGroupExists,
 		Delete: resourceArmResourceGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -103,29 +102,6 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
-}
-
-func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*ArmClient).resource.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
-
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return false, fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
-	}
-
-	name := id.ResourceGroup
-
-	resp, err := client.Get(ctx, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return false, nil
-		}
-
-		return false, fmt.Errorf("Error reading resource group: %+v", err)
-	}
-
-	return true, nil
 }
 
 func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store_firewall_rule"
 sidebar_current: "docs-azurerm-resource-data-lake-store-firewall-rule"
 description: |-
-  Manage a Azure Data Lake Store Firewall Rule.
+  Manages a Azure Data Lake Store Firewall Rule.
 ---
 
 # azurerm_data_lake_store_firewall_rule
 
-Manage a Azure Data Lake Store Firewall Rule.
+Manages a Azure Data Lake Store Firewall Rule.
 
 ## Example Usage
 

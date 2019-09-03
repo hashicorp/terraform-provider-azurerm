@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_mx_record"
 sidebar_current: "docs-azurerm-resource-dns-mx-record"
 description: |-
-  Manage a DNS MX Record.
+  Manages a DNS MX Record.
 ---
 
 # azurerm_dns_mx_record

@@ -180,7 +180,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -207,7 +207,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicFile(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -234,7 +234,7 @@ func TestAccAzureRMStorageBlob_blockFromExistingBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -391,7 +391,7 @@ func TestAccAzureRMStorageBlob_pageFromExistingBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -435,7 +435,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
-	if features.ShouldResourcesBeImported() {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -451,7 +451,7 @@ func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageBlob_blockEmpty(ri, rs, location),
+				Config: testAccAzureRMStorageBlob_blockFromPublicBlob(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 				),
@@ -985,7 +985,7 @@ func testAccAzureRMStorageBlob_populateTempFile(input *os.File) error {
 }
 
 func testAccAzureRMStorageBlob_requiresImport(rInt int, rString, location string) string {
-	template := testAccAzureRMStorageBlob_blockEmpty(rInt, rString, location)
+	template := testAccAzureRMStorageBlob_blockFromPublicBlob(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 

@@ -336,12 +336,10 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 
 		props, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Error retrieving Container %q in Storage Account %q: %s", containerName, accountName, err)
+			return nil
 		}
+
+		return fmt.Errorf("Container still exists: %+v", props)
 	}
 
 	return nil

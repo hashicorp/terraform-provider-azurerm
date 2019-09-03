@@ -357,6 +357,7 @@ func resourceArmContainerGroup() *schema.Resource {
 									"storage_account_key": {
 										Type:         schema.TypeString,
 										Required:     true,
+										Sensitive:    true,
 										ForceNew:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
