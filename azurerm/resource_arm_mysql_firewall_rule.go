@@ -6,7 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,6 +18,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 		Read:   resourceArmMySqlFirewallRuleRead,
 		Update: resourceArmMySqlFirewallRuleCreateUpdate,
 		Delete: resourceArmMySqlFirewallRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -27,12 +30,13 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"start_ip_address": {
@@ -49,7 +53,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 }
 
 func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlFirewallRulesClient
+	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Firewall Rule creation.")
@@ -60,7 +64,7 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -103,10 +107,10 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlFirewallRulesClient
+	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -133,10 +137,10 @@ func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlFirewallRulesClient
+	client := meta.(*ArmClient).mysql.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

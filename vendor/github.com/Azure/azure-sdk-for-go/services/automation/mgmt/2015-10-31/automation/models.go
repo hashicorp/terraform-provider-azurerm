@@ -470,6 +470,8 @@ const (
 	Day ScheduleFrequency = "Day"
 	// Hour ...
 	Hour ScheduleFrequency = "Hour"
+	// Minute The minimum allowed interval for Minute schedules is 15 minutes.
+	Minute ScheduleFrequency = "Minute"
 	// Month ...
 	Month ScheduleFrequency = "Month"
 	// OneTime ...
@@ -480,7 +482,7 @@ const (
 
 // PossibleScheduleFrequencyValues returns an array of possible values for the ScheduleFrequency const type.
 func PossibleScheduleFrequencyValues() []ScheduleFrequency {
-	return []ScheduleFrequency{Day, Hour, Month, OneTime, Week}
+	return []ScheduleFrequency{Day, Hour, Minute, Month, OneTime, Week}
 }
 
 // SkuNameEnum enumerates the values for sku name enum.
@@ -509,11 +511,11 @@ type Account struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -531,15 +533,6 @@ func (a Account) MarshalJSON() ([]byte, error) {
 	}
 	if a.Location != nil {
 		objectMap["location"] = a.Location
-	}
-	if a.ID != nil {
-		objectMap["id"] = a.ID
-	}
-	if a.Name != nil {
-		objectMap["name"] = a.Name
-	}
-	if a.Type != nil {
-		objectMap["type"] = a.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -862,11 +855,11 @@ type AccountProperties struct {
 	Sku *Sku `json:"sku,omitempty"`
 	// LastModifiedBy - Gets or sets the last modified by.
 	LastModifiedBy *string `json:"lastModifiedBy,omitempty"`
-	// State - Gets status of account. Possible values include: 'Ok', 'Unavailable', 'Suspended'
+	// State - READ-ONLY; Gets status of account. Possible values include: 'Ok', 'Unavailable', 'Suspended'
 	State AccountState `json:"state,omitempty"`
-	// CreationTime - Gets the creation time.
+	// CreationTime - READ-ONLY; Gets the creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - Gets the last modified time.
+	// LastModifiedTime - READ-ONLY; Gets the last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
@@ -964,7 +957,7 @@ type Activity struct {
 	autorest.Response `json:"-"`
 	// ID - Gets or sets the id of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the name of the activity.
+	// Name - READ-ONLY; Gets the name of the activity.
 	Name *string `json:"name,omitempty"`
 	// ActivityProperties - Gets or sets the properties of the activity.
 	*ActivityProperties `json:"properties,omitempty"`
@@ -975,9 +968,6 @@ func (a Activity) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if a.ID != nil {
 		objectMap["id"] = a.ID
-	}
-	if a.Name != nil {
-		objectMap["name"] = a.Name
 	}
 	if a.ActivityProperties != nil {
 		objectMap["properties"] = a.ActivityProperties
@@ -1309,11 +1299,11 @@ type Certificate struct {
 	autorest.Response `json:"-"`
 	// CertificateProperties - Gets or sets the properties of the certificate.
 	*CertificateProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1322,15 +1312,6 @@ func (c Certificate) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if c.CertificateProperties != nil {
 		objectMap["properties"] = c.CertificateProperties
-	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1600,15 +1581,15 @@ func NewCertificateListResultPage(getNextPage func(context.Context, CertificateL
 
 // CertificateProperties properties of the certificate.
 type CertificateProperties struct {
-	// Thumbprint - Gets the thumbprint of the certificate.
+	// Thumbprint - READ-ONLY; Gets the thumbprint of the certificate.
 	Thumbprint *string `json:"thumbprint,omitempty"`
-	// ExpiryTime - Gets the expiry time of the certificate.
+	// ExpiryTime - READ-ONLY; Gets the expiry time of the certificate.
 	ExpiryTime *date.Time `json:"expiryTime,omitempty"`
-	// IsExportable - Gets the is exportable flag of the certificate.
+	// IsExportable - READ-ONLY; Gets the is exportable flag of the certificate.
 	IsExportable *bool `json:"isExportable,omitempty"`
-	// CreationTime - Gets the creation time.
+	// CreationTime - READ-ONLY; Gets the creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - Gets the last modified time.
+	// LastModifiedTime - READ-ONLY; Gets the last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
@@ -1678,11 +1659,11 @@ type Connection struct {
 	autorest.Response `json:"-"`
 	// ConnectionProperties - Gets or sets the properties of the connection.
 	*ConnectionProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1691,15 +1672,6 @@ func (c Connection) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if c.ConnectionProperties != nil {
 		objectMap["properties"] = c.ConnectionProperties
-	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1983,11 +1955,11 @@ func NewConnectionListResultPage(getNextPage func(context.Context, ConnectionLis
 type ConnectionProperties struct {
 	// ConnectionType - Gets or sets the connectionType of the connection.
 	ConnectionType *ConnectionTypeAssociationProperty `json:"connectionType,omitempty"`
-	// FieldDefinitionValues - Gets the field definition values of the connection.
+	// FieldDefinitionValues - READ-ONLY; Gets the field definition values of the connection.
 	FieldDefinitionValues map[string]*string `json:"fieldDefinitionValues"`
-	// CreationTime - Gets the creation time.
+	// CreationTime - READ-ONLY; Gets the creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - Gets the last modified time.
+	// LastModifiedTime - READ-ONLY; Gets the last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
@@ -1999,15 +1971,6 @@ func (cp ConnectionProperties) MarshalJSON() ([]byte, error) {
 	if cp.ConnectionType != nil {
 		objectMap["connectionType"] = cp.ConnectionType
 	}
-	if cp.FieldDefinitionValues != nil {
-		objectMap["fieldDefinitionValues"] = cp.FieldDefinitionValues
-	}
-	if cp.CreationTime != nil {
-		objectMap["creationTime"] = cp.CreationTime
-	}
-	if cp.LastModifiedTime != nil {
-		objectMap["lastModifiedTime"] = cp.LastModifiedTime
-	}
 	if cp.Description != nil {
 		objectMap["description"] = cp.Description
 	}
@@ -2017,11 +1980,11 @@ func (cp ConnectionProperties) MarshalJSON() ([]byte, error) {
 // ConnectionType definition of the connection type.
 type ConnectionType struct {
 	autorest.Response `json:"-"`
-	// ID - Gets the id of the resource.
+	// ID - READ-ONLY; Gets the id of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the name of the connection type.
+	// Name - READ-ONLY; Gets the name of the connection type.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// ConnectionTypeProperties - Gets or sets the properties of the connection type.
 	*ConnectionTypeProperties `json:"properties,omitempty"`
@@ -2030,15 +1993,6 @@ type ConnectionType struct {
 // MarshalJSON is the custom marshaler for ConnectionType.
 func (ct ConnectionType) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ct.ID != nil {
-		objectMap["id"] = ct.ID
-	}
-	if ct.Name != nil {
-		objectMap["name"] = ct.Name
-	}
-	if ct.Type != nil {
-		objectMap["type"] = ct.Type
-	}
 	if ct.ConnectionTypeProperties != nil {
 		objectMap["properties"] = ct.ConnectionTypeProperties
 	}
@@ -2326,9 +2280,9 @@ func NewConnectionTypeListResultPage(getNextPage func(context.Context, Connectio
 type ConnectionTypeProperties struct {
 	// IsGlobal - Gets or sets a Boolean value to indicate if the connection type is global.
 	IsGlobal *bool `json:"isGlobal,omitempty"`
-	// FieldDefinitions - Gets the field definitions of the connection type.
+	// FieldDefinitions - READ-ONLY; Gets the field definitions of the connection type.
 	FieldDefinitions map[string]*FieldDefinition `json:"fieldDefinitions"`
-	// CreationTime - Gets the creation time.
+	// CreationTime - READ-ONLY; Gets the creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
 	// LastModifiedTime - Gets or sets the last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
@@ -2341,12 +2295,6 @@ func (ctp ConnectionTypeProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ctp.IsGlobal != nil {
 		objectMap["isGlobal"] = ctp.IsGlobal
-	}
-	if ctp.FieldDefinitions != nil {
-		objectMap["fieldDefinitions"] = ctp.FieldDefinitions
-	}
-	if ctp.CreationTime != nil {
-		objectMap["creationTime"] = ctp.CreationTime
 	}
 	if ctp.LastModifiedTime != nil {
 		objectMap["lastModifiedTime"] = ctp.LastModifiedTime
@@ -2465,11 +2413,11 @@ type Credential struct {
 	autorest.Response `json:"-"`
 	// CredentialProperties - Gets or sets the properties of the credential.
 	*CredentialProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2478,15 +2426,6 @@ func (c Credential) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if c.CredentialProperties != nil {
 		objectMap["properties"] = c.CredentialProperties
-	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -2753,11 +2692,11 @@ func NewCredentialListResultPage(getNextPage func(context.Context, CredentialLis
 
 // CredentialProperties definition of the credential properties
 type CredentialProperties struct {
-	// UserName - Gets the user name of the credential.
+	// UserName - READ-ONLY; Gets the user name of the credential.
 	UserName *string `json:"userName,omitempty"`
-	// CreationTime - Gets the creation time.
+	// CreationTime - READ-ONLY; Gets the creation time.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
-	// LastModifiedTime - Gets the last modified time.
+	// LastModifiedTime - READ-ONLY; Gets the last modified time.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
 	// Description - Gets or sets the description.
 	Description *string `json:"description,omitempty"`
@@ -2831,11 +2770,11 @@ type DscCompilationJob struct {
 	autorest.Response `json:"-"`
 	// DscCompilationJobProperties - Gets or sets the properties of the Dsc Compilation job.
 	*DscCompilationJobProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2844,15 +2783,6 @@ func (dcj DscCompilationJob) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if dcj.DscCompilationJobProperties != nil {
 		objectMap["properties"] = dcj.DscCompilationJobProperties
-	}
-	if dcj.ID != nil {
-		objectMap["id"] = dcj.ID
-	}
-	if dcj.Name != nil {
-		objectMap["name"] = dcj.Name
-	}
-	if dcj.Type != nil {
-		objectMap["type"] = dcj.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3164,11 +3094,11 @@ func NewDscCompilationJobListResultPage(getNextPage func(context.Context, DscCom
 type DscCompilationJobProperties struct {
 	// Configuration - Gets or sets the configuration.
 	Configuration *DscConfigurationAssociationProperty `json:"configuration,omitempty"`
-	// StartedBy - Gets the compilation job started by.
+	// StartedBy - READ-ONLY; Gets the compilation job started by.
 	StartedBy *string `json:"startedBy,omitempty"`
-	// JobID - Gets the id of the job.
+	// JobID - READ-ONLY; Gets the id of the job.
 	JobID *uuid.UUID `json:"jobId,omitempty"`
-	// CreationTime - Gets the creation time of the job.
+	// CreationTime - READ-ONLY; Gets the creation time of the job.
 	CreationTime *date.Time `json:"creationTime,omitempty"`
 	// ProvisioningState - The current provisioning state of the job. Possible values include: 'JobProvisioningStateFailed', 'JobProvisioningStateSucceeded', 'JobProvisioningStateSuspended', 'JobProvisioningStateProcessing'
 	ProvisioningState JobProvisioningState `json:"provisioningState,omitempty"`
@@ -3178,15 +3108,15 @@ type DscCompilationJobProperties struct {
 	Status JobStatus `json:"status,omitempty"`
 	// StatusDetails - Gets or sets the status details of the job.
 	StatusDetails *string `json:"statusDetails,omitempty"`
-	// StartTime - Gets the start time of the job.
+	// StartTime - READ-ONLY; Gets the start time of the job.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - Gets the end time of the job.
+	// EndTime - READ-ONLY; Gets the end time of the job.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// Exception - Gets the exception of the job.
+	// Exception - READ-ONLY; Gets the exception of the job.
 	Exception *string `json:"exception,omitempty"`
-	// LastModifiedTime - Gets the last modified time of the job.
+	// LastModifiedTime - READ-ONLY; Gets the last modified time of the job.
 	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
-	// LastStatusModifiedTime - Gets the last status modified time of the job.
+	// LastStatusModifiedTime - READ-ONLY; Gets the last status modified time of the job.
 	LastStatusModifiedTime *date.Time `json:"lastStatusModifiedTime,omitempty"`
 	// Parameters - Gets or sets the parameters of the job.
 	Parameters map[string]*string `json:"parameters"`
@@ -3197,15 +3127,6 @@ func (dcjp DscCompilationJobProperties) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if dcjp.Configuration != nil {
 		objectMap["configuration"] = dcjp.Configuration
-	}
-	if dcjp.StartedBy != nil {
-		objectMap["startedBy"] = dcjp.StartedBy
-	}
-	if dcjp.JobID != nil {
-		objectMap["jobId"] = dcjp.JobID
-	}
-	if dcjp.CreationTime != nil {
-		objectMap["creationTime"] = dcjp.CreationTime
 	}
 	if dcjp.ProvisioningState != "" {
 		objectMap["provisioningState"] = dcjp.ProvisioningState
@@ -3218,21 +3139,6 @@ func (dcjp DscCompilationJobProperties) MarshalJSON() ([]byte, error) {
 	}
 	if dcjp.StatusDetails != nil {
 		objectMap["statusDetails"] = dcjp.StatusDetails
-	}
-	if dcjp.StartTime != nil {
-		objectMap["startTime"] = dcjp.StartTime
-	}
-	if dcjp.EndTime != nil {
-		objectMap["endTime"] = dcjp.EndTime
-	}
-	if dcjp.Exception != nil {
-		objectMap["exception"] = dcjp.Exception
-	}
-	if dcjp.LastModifiedTime != nil {
-		objectMap["lastModifiedTime"] = dcjp.LastModifiedTime
-	}
-	if dcjp.LastStatusModifiedTime != nil {
-		objectMap["lastStatusModifiedTime"] = dcjp.LastStatusModifiedTime
 	}
 	if dcjp.Parameters != nil {
 		objectMap["parameters"] = dcjp.Parameters
@@ -3251,11 +3157,11 @@ type DscConfiguration struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3273,15 +3179,6 @@ func (dc DscConfiguration) MarshalJSON() ([]byte, error) {
 	}
 	if dc.Location != nil {
 		objectMap["location"] = dc.Location
-	}
-	if dc.ID != nil {
-		objectMap["id"] = dc.ID
-	}
-	if dc.Name != nil {
-		objectMap["name"] = dc.Name
-	}
-	if dc.Type != nil {
-		objectMap["type"] = dc.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3814,11 +3711,11 @@ type DscNode struct {
 	Etag *string `json:"etag,omitempty"`
 	// ExtensionHandler - Gets or sets the list of extensionHandler properties for a Node.
 	ExtensionHandler *[]DscNodeExtensionHandlerAssociationProperty `json:"extensionHandler,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3831,11 +3728,11 @@ type DscNodeConfiguration struct {
 	CreationTime *date.Time `json:"creationTime,omitempty"`
 	// Configuration - Gets or sets the configuration of the node.
 	Configuration *DscConfigurationAssociationProperty `json:"configuration,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -4957,11 +4854,11 @@ func (jp JobProperties) MarshalJSON() ([]byte, error) {
 // JobSchedule definition of the job schedule.
 type JobSchedule struct {
 	autorest.Response `json:"-"`
-	// ID - Gets the id of the resource.
+	// ID - READ-ONLY; Gets the id of the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - Gets the name of the variable.
+	// Name - READ-ONLY; Gets the name of the variable.
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 	// JobScheduleProperties - Gets or sets the properties of the job schedule.
 	*JobScheduleProperties `json:"properties,omitempty"`
@@ -4970,15 +4867,6 @@ type JobSchedule struct {
 // MarshalJSON is the custom marshaler for JobSchedule.
 func (js JobSchedule) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if js.ID != nil {
-		objectMap["id"] = js.ID
-	}
-	if js.Name != nil {
-		objectMap["name"] = js.Name
-	}
-	if js.Type != nil {
-		objectMap["type"] = js.Type
-	}
 	if js.JobScheduleProperties != nil {
 		objectMap["properties"] = js.JobScheduleProperties
 	}
@@ -5528,11 +5416,11 @@ func (jsp JobStreamProperties) MarshalJSON() ([]byte, error) {
 
 // Key automation key which is used to register a DSC Node
 type Key struct {
-	// KeyName - Automation key name. Possible values include: 'KeyNamePrimary', 'KeyNameSecondary'
+	// KeyName - READ-ONLY; Automation key name. Possible values include: 'KeyNamePrimary', 'KeyNameSecondary'
 	KeyName KeyName `json:"KeyName,omitempty"`
-	// Permissions - Automation key permissions. Possible values include: 'Read', 'Full'
+	// Permissions - READ-ONLY; Automation key permissions. Possible values include: 'Read', 'Full'
 	Permissions KeyPermissions `json:"Permissions,omitempty"`
-	// Value - Value of the Automation Key used for registration.
+	// Value - READ-ONLY; Value of the Automation Key used for registration.
 	Value *string `json:"Value,omitempty"`
 }
 
@@ -5546,7 +5434,7 @@ type KeyListResult struct {
 // LinkedWorkspace definition of the linked workspace.
 type LinkedWorkspace struct {
 	autorest.Response `json:"-"`
-	// ID - Gets the id of the linked workspace.
+	// ID - READ-ONLY; Gets the id of the linked workspace.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -5561,11 +5449,11 @@ type Module struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -5583,15 +5471,6 @@ func (mVar Module) MarshalJSON() ([]byte, error) {
 	}
 	if mVar.Location != nil {
 		objectMap["location"] = mVar.Location
-	}
-	if mVar.ID != nil {
-		objectMap["id"] = mVar.ID
-	}
-	if mVar.Name != nil {
-		objectMap["name"] = mVar.Name
-	}
-	if mVar.Type != nil {
-		objectMap["type"] = mVar.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -6055,11 +5934,11 @@ type OperationListResult struct {
 
 // ProxyResource ARM proxy resource.
 type ProxyResource struct {
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6071,11 +5950,11 @@ type ReadCloser struct {
 
 // Resource the core properties of ARM resources
 type Resource struct {
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6096,11 +5975,11 @@ type Runbook struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6118,15 +5997,6 @@ func (r Runbook) MarshalJSON() ([]byte, error) {
 	}
 	if r.Location != nil {
 		objectMap["location"] = r.Location
-	}
-	if r.ID != nil {
-		objectMap["id"] = r.ID
-	}
-	if r.Name != nil {
-		objectMap["name"] = r.Name
-	}
-	if r.Type != nil {
-		objectMap["type"] = r.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -6388,7 +6258,7 @@ type RunbookDraftPublishFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RunbookDraftPublishFuture) Result(client RunbookDraftClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftPublishFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -6411,7 +6281,7 @@ type RunbookDraftReplaceContentFuture struct {
 // If the operation has not completed it will return an error.
 func (future *RunbookDraftReplaceContentFuture) Result(client RunbookDraftClient) (rc ReadCloser, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftReplaceContentFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -6779,11 +6649,11 @@ type Schedule struct {
 	autorest.Response `json:"-"`
 	// ScheduleProperties - Gets or sets the properties of the schedule.
 	*ScheduleProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -6792,15 +6662,6 @@ func (s Schedule) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if s.ScheduleProperties != nil {
 		objectMap["properties"] = s.ScheduleProperties
-	}
-	if s.ID != nil {
-		objectMap["id"] = s.ID
-	}
-	if s.Name != nil {
-		objectMap["name"] = s.Name
-	}
-	if s.Type != nil {
-		objectMap["type"] = s.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -6925,7 +6786,7 @@ type ScheduleCreateOrUpdateProperties struct {
 	ExpiryTime *date.Time `json:"expiryTime,omitempty"`
 	// Interval - Gets or sets the interval of the schedule.
 	Interval interface{} `json:"interval,omitempty"`
-	// Frequency - Possible values include: 'OneTime', 'Day', 'Hour', 'Week', 'Month'
+	// Frequency - Gets or sets the frequency of the schedule. Possible values include: 'OneTime', 'Day', 'Hour', 'Week', 'Month', 'Minute'
 	Frequency ScheduleFrequency `json:"frequency,omitempty"`
 	// TimeZone - Gets or sets the time zone of the schedule.
 	TimeZone *string `json:"timeZone,omitempty"`
@@ -7083,7 +6944,7 @@ func NewScheduleListResultPage(getNextPage func(context.Context, ScheduleListRes
 type ScheduleProperties struct {
 	// StartTime - Gets or sets the start time of the schedule.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// StartTimeOffsetMinutes - Gets the start time's offset in minutes.
+	// StartTimeOffsetMinutes - READ-ONLY; Gets the start time's offset in minutes.
 	StartTimeOffsetMinutes *float64 `json:"startTimeOffsetMinutes,omitempty"`
 	// ExpiryTime - Gets or sets the end time of the schedule.
 	ExpiryTime *date.Time `json:"expiryTime,omitempty"`
@@ -7097,7 +6958,7 @@ type ScheduleProperties struct {
 	NextRunOffsetMinutes *float64 `json:"nextRunOffsetMinutes,omitempty"`
 	// Interval - Gets or sets the interval of the schedule.
 	Interval interface{} `json:"interval,omitempty"`
-	// Frequency - Gets or sets the frequency of the schedule. Possible values include: 'OneTime', 'Day', 'Hour', 'Week', 'Month'
+	// Frequency - Gets or sets the frequency of the schedule. Possible values include: 'OneTime', 'Day', 'Hour', 'Week', 'Month', 'Minute'
 	Frequency ScheduleFrequency `json:"frequency,omitempty"`
 	// TimeZone - Gets or sets the time zone of the schedule.
 	TimeZone *string `json:"timeZone,omitempty"`
@@ -7190,15 +7051,15 @@ type Sku struct {
 
 // Statistics definition of the statistic.
 type Statistics struct {
-	// CounterProperty - Gets the property value of the statistic.
+	// CounterProperty - READ-ONLY; Gets the property value of the statistic.
 	CounterProperty *string `json:"counterProperty,omitempty"`
-	// CounterValue - Gets the value of the statistic.
+	// CounterValue - READ-ONLY; Gets the value of the statistic.
 	CounterValue *int64 `json:"counterValue,omitempty"`
-	// StartTime - Gets the startTime of the statistic.
+	// StartTime - READ-ONLY; Gets the startTime of the statistic.
 	StartTime *date.Time `json:"startTime,omitempty"`
-	// EndTime - Gets the endTime of the statistic.
+	// EndTime - READ-ONLY; Gets the endTime of the statistic.
 	EndTime *date.Time `json:"endTime,omitempty"`
-	// ID - Gets the id.
+	// ID - READ-ONLY; Gets the id.
 	ID *string `json:"id,omitempty"`
 }
 
@@ -7307,11 +7168,11 @@ type TrackedResource struct {
 	Tags map[string]*string `json:"tags"`
 	// Location - The Azure Region where the resource lives
 	Location *string `json:"location,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7323,15 +7184,6 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	}
 	if tr.Location != nil {
 		objectMap["location"] = tr.Location
-	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -7387,11 +7239,11 @@ type Variable struct {
 	autorest.Response `json:"-"`
 	// VariableProperties - Gets or sets the properties of the variable.
 	*VariableProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7400,15 +7252,6 @@ func (vVar Variable) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if vVar.VariableProperties != nil {
 		objectMap["properties"] = vVar.VariableProperties
-	}
-	if vVar.ID != nil {
-		objectMap["id"] = vVar.ID
-	}
-	if vVar.Name != nil {
-		objectMap["name"] = vVar.Name
-	}
-	if vVar.Type != nil {
-		objectMap["type"] = vVar.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -7753,11 +7596,11 @@ type Webhook struct {
 	autorest.Response `json:"-"`
 	// WebhookProperties - Gets or sets the webhook properties.
 	*WebhookProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource
+	// ID - READ-ONLY; Fully qualified resource Id for the resource
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -7766,15 +7609,6 @@ func (w Webhook) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if w.WebhookProperties != nil {
 		objectMap["properties"] = w.WebhookProperties
-	}
-	if w.ID != nil {
-		objectMap["id"] = w.ID
-	}
-	if w.Name != nil {
-		objectMap["name"] = w.Name
-	}
-	if w.Type != nil {
-		objectMap["type"] = w.Type
 	}
 	return json.Marshal(objectMap)
 }

@@ -6,7 +6,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,9 +34,9 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_ids": {
 				Type:     schema.TypeList,
@@ -42,13 +46,13 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
@@ -56,7 +60,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -69,23 +73,23 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 
 	vnetsToLock, err := expandArmNetworkDDoSProtectionPlanVnetNames(d)
 	if err != nil {
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureNetworkDDoSProtectionPlanResourceName)
-	defer azureRMUnlockByName(name, azureNetworkDDoSProtectionPlanResourceName)
+	locks.ByName(name, azureNetworkDDoSProtectionPlanResourceName)
+	defer locks.UnlockByName(name, azureNetworkDDoSProtectionPlanResourceName)
 
-	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 
 	parameters := network.DdosProtectionPlan{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -112,15 +116,15 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["NetworkDDoSProtectionPlans"]
+	name := id.Path["ddosProtectionPlans"]
 
 	plan, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -136,7 +140,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 	d.Set("name", plan.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := plan.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := plan.DdosProtectionPlanPropertiesFormat; props != nil {
@@ -146,21 +150,19 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 		}
 	}
 
-	flattenAndSetTags(d, plan.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, plan.Tags)
 }
 
 func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ddosProtectionPlanClient
+	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["NetworkDDoSProtectionPlans"]
+	name := id.Path["ddosProtectionPlans"]
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -178,11 +180,11 @@ func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error extracting names of Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureNetworkDDoSProtectionPlanResourceName)
-	defer azureRMUnlockByName(name, azureNetworkDDoSProtectionPlanResourceName)
+	locks.ByName(name, azureNetworkDDoSProtectionPlanResourceName)
+	defer locks.UnlockByName(name, azureNetworkDDoSProtectionPlanResourceName)
 
-	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -201,7 +203,7 @@ func expandArmNetworkDDoSProtectionPlanVnetNames(d *schema.ResourceData) (*[]str
 	vnetNames := make([]string, 0)
 
 	for _, vnetID := range vnetIDs {
-		vnetResourceID, err := parseAzureResourceID(vnetID.(string))
+		vnetResourceID, err := azure.ParseAzureResourceID(vnetID.(string))
 		if err != nil {
 			return nil, err
 		}

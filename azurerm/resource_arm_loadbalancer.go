@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,9 +34,9 @@ func resourceArmLoadBalancer() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -75,6 +77,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"public_ip_address_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						},
+
+						"public_ip_prefix_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
@@ -123,7 +132,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Set: schema.HashString,
 						},
 
-						"zones": singleZonesSchema(),
+						"zones": azure.SchemaSingleZone(),
 					},
 				},
 			},
@@ -140,13 +149,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
@@ -154,7 +163,7 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -167,12 +176,12 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
 	}
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	properties := network.LoadBalancerPropertiesFormat{}
 
@@ -211,7 +220,7 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,7 +238,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("name", loadBalancer.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := loadBalancer.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := loadBalancer.Sku; sku != nil {
@@ -261,16 +270,14 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	flattenAndSetTags(d, loadBalancer.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, loadBalancer.Tags)
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
@@ -311,6 +318,12 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 			}
 		}
 
+		if v := data["public_ip_prefix_id"].(string); v != "" {
+			properties.PublicIPPrefix = &network.SubResource{
+				ID: &v,
+			}
+		}
+
 		if v := data["subnet_id"].(string); v != "" {
 			properties.Subnet = &network.Subnet{
 				ID: &v,
@@ -318,7 +331,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
-		zones := expandZones(data["zones"].([]interface{}))
+		zones := azure.ExpandZones(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name:                                    &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
@@ -363,6 +376,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 			if pip := props.PublicIPAddress; pip != nil {
 				ipConfig["public_ip_address_id"] = *pip.ID
+			}
+
+			if pip := props.PublicIPPrefix; pip != nil {
+				ipConfig["public_ip_prefix_id"] = *pip.ID
 			}
 
 			loadBalancingRules := make([]interface{}, 0)

@@ -189,6 +189,26 @@ func TestAccDataSourceAzureRMAppService_minTls(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMAppService_basicWindowsContainer(t *testing.T) {
+	dataSourceName := "data.azurerm_app_service.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceAppService_basicWindowsContainer(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "site_config.0.windows_fx_version", "DOCKER|mcr.microsoft.com/azure-app-service/samples/aspnethelloworld:latest"),
+					resource.TestCheckResourceAttr(dataSourceName, "app_settings.DOCKER_REGISTRY_SERVER_URL", "https://mcr.microsoft.com"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAppService_basic(rInt int, location string) string {
 	config := testAccAzureRMAppService_basic(rInt, location)
 	return fmt.Sprintf(`
@@ -287,6 +307,18 @@ data "azurerm_app_service" "test" {
 
 func testAccDataSourceAppService_minTls(rInt int, location string) string {
 	config := testAccAzureRMAppService_minTls(rInt, location, "1.1")
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_app_service" "test" {
+  name                = "${azurerm_app_service.test.name}"
+  resource_group_name = "${azurerm_app_service.test.resource_group_name}"
+}
+`, config)
+}
+
+func testAccDataSourceAppService_basicWindowsContainer(rInt int, location string) string {
+	config := testAccAzureRMAppService_basicWindowsContainer(rInt, location)
 	return fmt.Sprintf(`
 %s
 

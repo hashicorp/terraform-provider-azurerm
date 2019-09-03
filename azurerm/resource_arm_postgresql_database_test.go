@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,7 +33,7 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -118,7 +119,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).postgres.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -134,7 +135,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).postgres.DatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

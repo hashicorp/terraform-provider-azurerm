@@ -48,6 +48,21 @@ func PossibleAccessRightsValues() []AccessRights {
 	return []AccessRights{Listen, Manage, Send}
 }
 
+// DefaultAction enumerates the values for default action.
+type DefaultAction string
+
+const (
+	// Allow ...
+	Allow DefaultAction = "Allow"
+	// Deny ...
+	Deny DefaultAction = "Deny"
+)
+
+// PossibleDefaultActionValues returns an array of possible values for the DefaultAction const type.
+func PossibleDefaultActionValues() []DefaultAction {
+	return []DefaultAction{Allow, Deny}
+}
+
 // EncodingCaptureDescription enumerates the values for encoding capture description.
 type EncodingCaptureDescription string
 
@@ -105,6 +120,19 @@ const (
 // PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
 func PossibleKeyTypeValues() []KeyType {
 	return []KeyType{PrimaryKey, SecondaryKey}
+}
+
+// NetworkRuleIPAction enumerates the values for network rule ip action.
+type NetworkRuleIPAction string
+
+const (
+	// NetworkRuleIPActionAllow ...
+	NetworkRuleIPActionAllow NetworkRuleIPAction = "Allow"
+)
+
+// PossibleNetworkRuleIPActionValues returns an array of possible values for the NetworkRuleIPAction const type.
+func PossibleNetworkRuleIPActionValues() []NetworkRuleIPAction {
+	return []NetworkRuleIPAction{NetworkRuleIPActionAllow}
 }
 
 // ProvisioningStateDR enumerates the values for provisioning state dr.
@@ -197,19 +225,19 @@ func PossibleUnavailableReasonValues() []UnavailableReason {
 // AccessKeys namespace/EventHub Connection String
 type AccessKeys struct {
 	autorest.Response `json:"-"`
-	// PrimaryConnectionString - Primary connection string of the created namespace AuthorizationRule.
+	// PrimaryConnectionString - READ-ONLY; Primary connection string of the created namespace AuthorizationRule.
 	PrimaryConnectionString *string `json:"primaryConnectionString,omitempty"`
-	// SecondaryConnectionString - Secondary connection string of the created namespace AuthorizationRule.
+	// SecondaryConnectionString - READ-ONLY; Secondary connection string of the created namespace AuthorizationRule.
 	SecondaryConnectionString *string `json:"secondaryConnectionString,omitempty"`
-	// AliasPrimaryConnectionString - Primary connection string of the alias if GEO DR is enabled
+	// AliasPrimaryConnectionString - READ-ONLY; Primary connection string of the alias if GEO DR is enabled
 	AliasPrimaryConnectionString *string `json:"aliasPrimaryConnectionString,omitempty"`
-	// AliasSecondaryConnectionString - Secondary  connection string of the alias if GEO DR is enabled
+	// AliasSecondaryConnectionString - READ-ONLY; Secondary  connection string of the alias if GEO DR is enabled
 	AliasSecondaryConnectionString *string `json:"aliasSecondaryConnectionString,omitempty"`
-	// PrimaryKey - A base64-encoded 256-bit primary key for signing and validating the SAS token.
+	// PrimaryKey - READ-ONLY; A base64-encoded 256-bit primary key for signing and validating the SAS token.
 	PrimaryKey *string `json:"primaryKey,omitempty"`
-	// SecondaryKey - A base64-encoded 256-bit primary key for signing and validating the SAS token.
+	// SecondaryKey - READ-ONLY; A base64-encoded 256-bit primary key for signing and validating the SAS token.
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
-	// KeyName - A string that describes the AuthorizationRule.
+	// KeyName - READ-ONLY; A string that describes the AuthorizationRule.
 	KeyName *string `json:"keyName,omitempty"`
 }
 
@@ -218,11 +246,11 @@ type ArmDisasterRecovery struct {
 	autorest.Response `json:"-"`
 	// ArmDisasterRecoveryProperties - Properties required to the Create Or Update Alias(Disaster Recovery configurations)
 	*ArmDisasterRecoveryProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -231,15 +259,6 @@ func (adr ArmDisasterRecovery) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if adr.ArmDisasterRecoveryProperties != nil {
 		objectMap["properties"] = adr.ArmDisasterRecoveryProperties
-	}
-	if adr.ID != nil {
-		objectMap["id"] = adr.ID
-	}
-	if adr.Name != nil {
-		objectMap["name"] = adr.Name
-	}
-	if adr.Type != nil {
-		objectMap["type"] = adr.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -300,7 +319,7 @@ type ArmDisasterRecoveryListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of Alias(Disaster Recovery configurations)
 	Value *[]ArmDisasterRecovery `json:"value,omitempty"`
-	// NextLink - Link to the next set of results. Not empty if Value contains incomplete list of Alias(Disaster Recovery configuration)
+	// NextLink - READ-ONLY; Link to the next set of results. Not empty if Value contains incomplete list of Alias(Disaster Recovery configuration)
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -445,15 +464,15 @@ func NewArmDisasterRecoveryListResultPage(getNextPage func(context.Context, ArmD
 // ArmDisasterRecoveryProperties properties required to the Create Or Update Alias(Disaster Recovery
 // configurations)
 type ArmDisasterRecoveryProperties struct {
-	// ProvisioningState - Provisioning state of the Alias(Disaster Recovery configuration) - possible values 'Accepted' or 'Succeeded' or 'Failed'. Possible values include: 'Accepted', 'Succeeded', 'Failed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the Alias(Disaster Recovery configuration) - possible values 'Accepted' or 'Succeeded' or 'Failed'. Possible values include: 'Accepted', 'Succeeded', 'Failed'
 	ProvisioningState ProvisioningStateDR `json:"provisioningState,omitempty"`
 	// PartnerNamespace - ARM Id of the Primary/Secondary eventhub namespace name, which is part of GEO DR pairing
 	PartnerNamespace *string `json:"partnerNamespace,omitempty"`
 	// AlternateName - Alternate name specified when alias and namespace names are same.
 	AlternateName *string `json:"alternateName,omitempty"`
-	// Role - role of namespace in GEO DR - possible values 'Primary' or 'PrimaryNotReplicating' or 'Secondary'. Possible values include: 'Primary', 'PrimaryNotReplicating', 'Secondary'
+	// Role - READ-ONLY; role of namespace in GEO DR - possible values 'Primary' or 'PrimaryNotReplicating' or 'Secondary'. Possible values include: 'Primary', 'PrimaryNotReplicating', 'Secondary'
 	Role RoleDisasterRecovery `json:"role,omitempty"`
-	// PendingReplicationOperationsCount - Number of entities pending to be replicated.
+	// PendingReplicationOperationsCount - READ-ONLY; Number of entities pending to be replicated.
 	PendingReplicationOperationsCount *int64 `json:"pendingReplicationOperationsCount,omitempty"`
 }
 
@@ -462,11 +481,11 @@ type AuthorizationRule struct {
 	autorest.Response `json:"-"`
 	// AuthorizationRuleProperties - Properties supplied to create or update AuthorizationRule
 	*AuthorizationRuleProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -475,15 +494,6 @@ func (ar AuthorizationRule) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if ar.AuthorizationRuleProperties != nil {
 		objectMap["properties"] = ar.AuthorizationRuleProperties
-	}
-	if ar.ID != nil {
-		objectMap["id"] = ar.ID
-	}
-	if ar.Name != nil {
-		objectMap["name"] = ar.Name
-	}
-	if ar.Type != nil {
-		objectMap["type"] = ar.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -716,7 +726,7 @@ type CheckNameAvailabilityParameter struct {
 // CheckNameAvailabilityResult the Result of the CheckNameAvailability operation
 type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
-	// Message - The detailed info regarding the reason associated with the Namespace.
+	// Message - READ-ONLY; The detailed info regarding the reason associated with the Namespace.
 	Message *string `json:"message,omitempty"`
 	// NameAvailable - Value indicating Namespace is availability, true if the Namespace is available; otherwise, false.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
@@ -729,11 +739,11 @@ type ConsumerGroup struct {
 	autorest.Response `json:"-"`
 	// ConsumerGroupProperties - Single item in List or Get Consumer group operation
 	*ConsumerGroupProperties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -742,15 +752,6 @@ func (cg ConsumerGroup) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if cg.ConsumerGroupProperties != nil {
 		objectMap["properties"] = cg.ConsumerGroupProperties
-	}
-	if cg.ID != nil {
-		objectMap["id"] = cg.ID
-	}
-	if cg.Name != nil {
-		objectMap["name"] = cg.Name
-	}
-	if cg.Type != nil {
-		objectMap["type"] = cg.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -954,9 +955,9 @@ func NewConsumerGroupListResultPage(getNextPage func(context.Context, ConsumerGr
 
 // ConsumerGroupProperties single item in List or Get Consumer group operation
 type ConsumerGroupProperties struct {
-	// CreatedAt - Exact time the message was created.
+	// CreatedAt - READ-ONLY; Exact time the message was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// UpdatedAt - The exact time the message was updated.
+	// UpdatedAt - READ-ONLY; The exact time the message was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
 	// UserMetadata - User Metadata is a placeholder to store user-defined string data with maximum length 1024. e.g. it can be used to store descriptive data, such as list of teams and their contact information also user-defined configuration settings can be stored.
 	UserMetadata *string `json:"userMetadata,omitempty"`
@@ -1037,11 +1038,11 @@ type EHNamespace struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1059,15 +1060,6 @@ func (en EHNamespace) MarshalJSON() ([]byte, error) {
 	}
 	if en.Tags != nil {
 		objectMap["tags"] = en.Tags
-	}
-	if en.ID != nil {
-		objectMap["id"] = en.ID
-	}
-	if en.Name != nil {
-		objectMap["name"] = en.Name
-	}
-	if en.Type != nil {
-		objectMap["type"] = en.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1298,15 +1290,15 @@ func NewEHNamespaceListResultPage(getNextPage func(context.Context, EHNamespaceL
 
 // EHNamespaceProperties namespace properties supplied for create namespace operation.
 type EHNamespaceProperties struct {
-	// ProvisioningState - Provisioning state of the Namespace.
+	// ProvisioningState - READ-ONLY; Provisioning state of the Namespace.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// CreatedAt - The time the Namespace was created.
+	// CreatedAt - READ-ONLY; The time the Namespace was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// UpdatedAt - The time the Namespace was updated.
+	// UpdatedAt - READ-ONLY; The time the Namespace was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
-	// ServiceBusEndpoint - Endpoint you can use to perform Service Bus operations.
+	// ServiceBusEndpoint - READ-ONLY; Endpoint you can use to perform Service Bus operations.
 	ServiceBusEndpoint *string `json:"serviceBusEndpoint,omitempty"`
-	// MetricID - Identifier for Azure Insights metrics.
+	// MetricID - READ-ONLY; Identifier for Azure Insights metrics.
 	MetricID *string `json:"metricId,omitempty"`
 	// IsAutoInflateEnabled - Value that indicates whether AutoInflate is enabled for eventhub namespace.
 	IsAutoInflateEnabled *bool `json:"isAutoInflateEnabled,omitempty"`
@@ -1479,11 +1471,11 @@ type MessagingPlan struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1498,15 +1490,6 @@ func (mp MessagingPlan) MarshalJSON() ([]byte, error) {
 	}
 	if mp.Tags != nil {
 		objectMap["tags"] = mp.Tags
-	}
-	if mp.ID != nil {
-		objectMap["id"] = mp.ID
-	}
-	if mp.Name != nil {
-		objectMap["name"] = mp.Name
-	}
-	if mp.Type != nil {
-		objectMap["type"] = mp.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1582,13 +1565,13 @@ func (mp *MessagingPlan) UnmarshalJSON(body []byte) error {
 
 // MessagingPlanProperties ...
 type MessagingPlanProperties struct {
-	// Sku - Sku type
+	// Sku - READ-ONLY; Sku type
 	Sku *int32 `json:"sku,omitempty"`
-	// SelectedEventHubUnit - Selected event hub unit
+	// SelectedEventHubUnit - READ-ONLY; Selected event hub unit
 	SelectedEventHubUnit *int32 `json:"selectedEventHubUnit,omitempty"`
-	// UpdatedAt - The exact time the messaging plan was updated.
+	// UpdatedAt - READ-ONLY; The exact time the messaging plan was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
-	// Revision - revision number
+	// Revision - READ-ONLY; revision number
 	Revision *int64 `json:"revision,omitempty"`
 }
 
@@ -1599,11 +1582,11 @@ type MessagingRegions struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1619,15 +1602,6 @@ func (mr MessagingRegions) MarshalJSON() ([]byte, error) {
 	if mr.Tags != nil {
 		objectMap["tags"] = mr.Tags
 	}
-	if mr.ID != nil {
-		objectMap["id"] = mr.ID
-	}
-	if mr.Name != nil {
-		objectMap["name"] = mr.Name
-	}
-	if mr.Type != nil {
-		objectMap["type"] = mr.Type
-	}
 	return json.Marshal(objectMap)
 }
 
@@ -1636,7 +1610,7 @@ type MessagingRegionsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - Result of the List MessagingRegions type.
 	Value *[]MessagingRegions `json:"value,omitempty"`
-	// NextLink - Link to the next set of results. Not empty if Value contains incomplete list of MessagingRegions.
+	// NextLink - READ-ONLY; Link to the next set of results. Not empty if Value contains incomplete list of MessagingRegions.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1779,9 +1753,9 @@ func NewMessagingRegionsListResultPage(getNextPage func(context.Context, Messagi
 
 // MessagingRegionsProperties ...
 type MessagingRegionsProperties struct {
-	// Code - Region code
+	// Code - READ-ONLY; Region code
 	Code *string `json:"code,omitempty"`
-	// FullName - Full name of the region
+	// FullName - READ-ONLY; Full name of the region
 	FullName *string `json:"fullName,omitempty"`
 }
 
@@ -1790,11 +1764,11 @@ type Model struct {
 	autorest.Response `json:"-"`
 	// Properties - Properties supplied to the Create Or Update Event Hub operation.
 	*Properties `json:"properties,omitempty"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1803,15 +1777,6 @@ func (mVar Model) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if mVar.Properties != nil {
 		objectMap["properties"] = mVar.Properties
-	}
-	if mVar.ID != nil {
-		objectMap["id"] = mVar.ID
-	}
-	if mVar.Name != nil {
-		objectMap["name"] = mVar.Name
-	}
-	if mVar.Type != nil {
-		objectMap["type"] = mVar.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1877,7 +1842,7 @@ type NamespacesCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (en EHNamespace, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1906,7 +1871,7 @@ type NamespacesDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventhub.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1919,9 +1884,108 @@ func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autore
 	return
 }
 
+// NetworkRuleSet description of NetworkRuleSet resource.
+type NetworkRuleSet struct {
+	autorest.Response `json:"-"`
+	// NetworkRuleSetProperties - NetworkRuleSet properties
+	*NetworkRuleSetProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NetworkRuleSet.
+func (nrs NetworkRuleSet) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if nrs.NetworkRuleSetProperties != nil {
+		objectMap["properties"] = nrs.NetworkRuleSetProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for NetworkRuleSet struct.
+func (nrs *NetworkRuleSet) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var networkRuleSetProperties NetworkRuleSetProperties
+				err = json.Unmarshal(*v, &networkRuleSetProperties)
+				if err != nil {
+					return err
+				}
+				nrs.NetworkRuleSetProperties = &networkRuleSetProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				nrs.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				nrs.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				nrs.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// NetworkRuleSetProperties networkRuleSet properties
+type NetworkRuleSetProperties struct {
+	// DefaultAction - Default Action for Network Rule Set. Possible values include: 'Allow', 'Deny'
+	DefaultAction DefaultAction `json:"defaultAction,omitempty"`
+	// VirtualNetworkRules - List VirtualNetwork Rules
+	VirtualNetworkRules *[]NWRuleSetVirtualNetworkRules `json:"virtualNetworkRules,omitempty"`
+	// IPRules - List of IpRules
+	IPRules *[]NWRuleSetIPRules `json:"ipRules,omitempty"`
+}
+
+// NWRuleSetIPRules description of NetWorkRuleSet - IpRules resource.
+type NWRuleSetIPRules struct {
+	// IPMask - IP Mask
+	IPMask *string `json:"ipMask,omitempty"`
+	// Action - The IP Filter Action. Possible values include: 'NetworkRuleIPActionAllow'
+	Action NetworkRuleIPAction `json:"action,omitempty"`
+}
+
+// NWRuleSetVirtualNetworkRules description of VirtualNetworkRules - NetworkRules resource.
+type NWRuleSetVirtualNetworkRules struct {
+	// Subnet - Subnet properties
+	Subnet *Subnet `json:"subnet,omitempty"`
+	// IgnoreMissingVnetServiceEndpoint - Value that indicates whether to ignore missing VNet Service Endpoint
+	IgnoreMissingVnetServiceEndpoint *bool `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
+}
+
 // Operation a Event Hub REST API operation
 type Operation struct {
-	// Name - Operation name: {provider}/{resource}/{operation}
+	// Name - READ-ONLY; Operation name: {provider}/{resource}/{operation}
 	Name *string `json:"name,omitempty"`
 	// Display - The object that represents the operation.
 	Display *OperationDisplay `json:"display,omitempty"`
@@ -1929,11 +1993,11 @@ type Operation struct {
 
 // OperationDisplay the object that represents the operation.
 type OperationDisplay struct {
-	// Provider - Service provider: Microsoft.EventHub
+	// Provider - READ-ONLY; Service provider: Microsoft.EventHub
 	Provider *string `json:"provider,omitempty"`
-	// Resource - Resource on which the operation is performed: Invoice, etc.
+	// Resource - READ-ONLY; Resource on which the operation is performed: Invoice, etc.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - Operation type: Read, write, delete, etc.
+	// Operation - READ-ONLY; Operation type: Read, write, delete, etc.
 	Operation *string `json:"operation,omitempty"`
 }
 
@@ -1941,9 +2005,9 @@ type OperationDisplay struct {
 // and a URL link to get the next set of results.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - List of Event Hub operations supported by the Microsoft.EventHub resource provider.
+	// Value - READ-ONLY; List of Event Hub operations supported by the Microsoft.EventHub resource provider.
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - URL to get the next set of operation list results if there are any.
+	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -2086,11 +2150,11 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 
 // Properties properties supplied to the Create Or Update Event Hub operation.
 type Properties struct {
-	// PartitionIds - Current number of shards on the Event Hub.
+	// PartitionIds - READ-ONLY; Current number of shards on the Event Hub.
 	PartitionIds *[]string `json:"partitionIds,omitempty"`
-	// CreatedAt - Exact time the Event Hub was created.
+	// CreatedAt - READ-ONLY; Exact time the Event Hub was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// UpdatedAt - The exact time the message was updated.
+	// UpdatedAt - READ-ONLY; The exact time the message was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
 	// MessageRetentionInDays - Number of days to retain the events for this Event Hub, value should be 1 to 7 days
 	MessageRetentionInDays *int64 `json:"messageRetentionInDays,omitempty"`
@@ -2113,11 +2177,11 @@ type RegenerateAccessKeyParameters struct {
 
 // Resource the Resource definition
 type Resource struct {
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2131,17 +2195,23 @@ type Sku struct {
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
+// Subnet properties supplied for Subnet
+type Subnet struct {
+	// ID - Resource ID of Virtual Network Subnet
+	ID *string `json:"id,omitempty"`
+}
+
 // TrackedResource definition of Resource
 type TrackedResource struct {
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
 	Tags map[string]*string `json:"tags"`
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
@@ -2153,15 +2223,6 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	}
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
-	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
 }

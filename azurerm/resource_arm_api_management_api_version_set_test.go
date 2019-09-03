@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMApiManagementApiVersionSet_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementApiVersionSet_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -150,7 +151,7 @@ func TestAccAzureRMApiManagementApiVersionSet_update(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiVersionSetDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementApiVersionSetClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.ApiVersionSetClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_version_set" {
 			continue
@@ -185,7 +186,7 @@ func testCheckAzureRMApiManagementApiVersionSetExists(resourceName string) resou
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementApiVersionSetClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.ApiVersionSetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {

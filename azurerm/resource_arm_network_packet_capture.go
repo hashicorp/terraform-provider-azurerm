@@ -3,7 +3,9 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"log"
 
@@ -31,7 +33,7 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
 				Type:     schema.TypeString,
@@ -134,7 +136,7 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 }
 
 func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
+	client := meta.(*ArmClient).network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -146,7 +148,7 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -200,10 +202,10 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
+	client := meta.(*ArmClient).network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -248,10 +250,10 @@ func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
+	client := meta.(*ArmClient).network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

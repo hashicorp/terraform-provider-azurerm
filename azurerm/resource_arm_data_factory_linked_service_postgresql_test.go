@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_postgresql.test"
 
@@ -42,7 +41,7 @@ func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactoryLinkedServicePostgreSQL_update(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryLinkedServicePostgreSQL_update1(ri, testLocation())
 	config2 := testAccAzureRMDataFactoryLinkedServicePostgreSQL_update2(ri, testLocation())
 	resourceName := "azurerm_data_factory_linked_service_postgresql.test"
@@ -100,7 +99,7 @@ func testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(name string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactoryLinkedServiceClient
+		client := testAccProvider.Meta().(*ArmClient).dataFactory.LinkedServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -117,7 +116,7 @@ func testCheckAzureRMDataFactoryLinkedServicePostgreSQLExists(name string) resou
 }
 
 func testCheckAzureRMDataFactoryLinkedServicePostgreSQLDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactoryLinkedServiceClient
+	client := testAccProvider.Meta().(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -221,8 +220,8 @@ resource "azurerm_data_factory_linked_service_postgresql" "test" {
   description         = "test description 2"
 
   parameters = {
-    foo = "test1"
-    bar = "test2"
+    foo  = "test1"
+    bar  = "test2"
     buzz = "test3"
   }
 

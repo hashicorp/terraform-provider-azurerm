@@ -9,12 +9,12 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	resourceName := "azurerm_virtual_network.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMVirtualNetwork_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +22,7 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualNetwork_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualNetworkExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
@@ -38,8 +38,42 @@ func TestAccAzureRMVirtualNetwork_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetwork_basicUpdated(t *testing.T) {
+	resourceName := "azurerm_virtual_network.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualNetwork_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "subnet.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet.1472110187.id"),
+				),
+			},
+			{
+				Config: testAccAzureRMVirtualNetwork_basicUpdated(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "subnet.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet.1472110187.id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetwork_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -188,7 +222,7 @@ func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestChec
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).vnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, "")
@@ -219,7 +253,7 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).vnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, virtualNetworkName)
@@ -236,7 +270,7 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).vnetClient
+	client := testAccProvider.Meta().(*ArmClient).network.VnetClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -277,6 +311,32 @@ resource "azurerm_virtual_network" "test" {
   subnet {
     name           = "subnet1"
     address_prefix = "10.0.1.0/24"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMVirtualNetwork_basicUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16", "10.10.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = "10.0.1.0/24"
+  }
+
+  subnet {
+    name           = "subnet2"
+    address_prefix = "10.10.1.0/24"
   }
 }
 `, rInt, location, rInt)

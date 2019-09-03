@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestResourceAzureRMLoadBalancerPrivateIpAddressAllocation_validation(t *testing.T) {
@@ -72,7 +73,7 @@ func TestAccAzureRMLoadBalancer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -123,7 +124,32 @@ func TestAccAzureRMLoadBalancer_standard(t *testing.T) {
 		},
 	})
 }
+func TestAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	resourceName := "azurerm_lb.test"
 
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists(resourceName, &lb),
+					resource.TestCheckResourceAttr(resourceName, "frontend_ip_configuration.#", "1"),
+				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
 func TestAccAzureRMLoadBalancer_frontEndConfig(t *testing.T) {
 	var lb network.LoadBalancer
 	resourceName := "azurerm_lb.test"
@@ -231,7 +257,7 @@ func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBal
 			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", loadBalancerName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, loadBalancerName, "")
@@ -250,7 +276,7 @@ func testCheckAzureRMLoadBalancerExists(resourceName string, lb *network.LoadBal
 }
 
 func testCheckAzureRMLoadBalancerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+	client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -424,6 +450,34 @@ resource "azurerm_lb" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
+}
+
+func testAccAzureRMLoadBalancer_frontEndConfigPublicIPPrefix(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "test-ip-prefix-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  prefix_length       = 31
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctest-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                = "prefix-%d"
+    public_ip_prefix_id = "${azurerm_public_ip_prefix.test.id}"
+  }
+}
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMLoadBalancer_frontEndConfigRemoval(rInt int, location string) string {

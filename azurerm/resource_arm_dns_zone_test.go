@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsZone_basic(t *testing.T) {
@@ -36,7 +37,7 @@ func TestAccAzureRMDnsZone_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsZone_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -138,7 +139,7 @@ func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for DNS zone: %s", zoneName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).zonesClient
+		client := testAccProvider.Meta().(*ArmClient).dns.ZonesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
@@ -154,7 +155,7 @@ func testCheckAzureRMDnsZoneExists(resourceName string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDnsZoneDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).zonesClient
+	conn := testAccProvider.Meta().(*ArmClient).dns.ZonesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

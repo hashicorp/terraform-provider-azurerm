@@ -6,7 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,9 +35,9 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 				ValidateFunc: validate.SharedImageName,
 			},
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"managed_image_id": {
 				Type:     schema.TypeString,
@@ -65,13 +67,13 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImageVersionsClient
+	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	imageVersion := d.Get("name").(string)
@@ -97,7 +99,7 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.GalleryImageVersionProperties; props != nil {
@@ -117,9 +119,7 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetRegion) []interface{} {
@@ -130,7 +130,7 @@ func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetReg
 			output := make(map[string]interface{})
 
 			if v.Name != nil {
-				output["name"] = azureRMNormalizeLocation(*v.Name)
+				output["name"] = azure.NormalizeLocation(*v.Name)
 			}
 
 			if v.RegionalReplicaCount != nil {

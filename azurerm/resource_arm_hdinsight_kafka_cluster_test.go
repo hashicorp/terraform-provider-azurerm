@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHDInsightKafkaCluster_basic(t *testing.T) {
@@ -48,7 +49,7 @@ func TestAccAzureRMHDInsightKafkaCluster_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightKafkaCluster_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -357,13 +358,13 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     head_node {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
 
     worker_node {
       vm_size                  = "Standard_D3_V2"
       username                 = "acctestusrvm"
-      ssh_keys                 = [ "${var.ssh_key}" ]
+      ssh_keys                 = ["${var.ssh_key}"]
       target_instance_count    = 3
       number_of_disks_per_node = 2
     }
@@ -371,7 +372,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
     zookeeper_node {
       vm_size  = "Standard_D3_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
   }
 }
@@ -453,6 +454,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
+
 resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -525,6 +527,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
+
 resource "azurerm_hdinsight_kafka_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"

@@ -10,6 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,7 +50,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Re
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Security Group Association creation.")
@@ -57,7 +59,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 	ipConfigurationName := d.Get("ip_configuration_name").(string)
 	applicationSecurityGroupId := d.Get("application_security_group_id").(string)
 
-	id, err := parseAzureResourceID(networkInterfaceId)
+	id, err := azure.ParseAzureResourceID(networkInterfaceId)
 	if err != nil {
 		return err
 	}
@@ -65,8 +67,8 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 	networkInterfaceName := id.Path["networkInterfaces"]
 	resourceGroup := id.ResourceGroup
 
-	azureRMLockByName(networkInterfaceName, networkInterfaceResourceName)
-	defer azureRMUnlockByName(networkInterfaceName, networkInterfaceResourceName)
+	locks.ByName(networkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(networkInterfaceName, networkInterfaceResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {
@@ -105,7 +107,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 		for _, existingGroup := range *p.ApplicationSecurityGroups {
 			if id := existingGroup.ID; id != nil {
 				if *id == applicationSecurityGroupId {
-					if requireResourcesToBeImported {
+					if features.ShouldResourcesBeImported() {
 						return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", *id)
 					}
 
@@ -141,7 +143,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -149,7 +151,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}
@@ -210,15 +212,13 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 
 	d.Set("application_security_group_id", applicationSecurityGroupId)
 	d.Set("ip_configuration_name", ipConfigurationName)
-	if id := read.ID; id != nil {
-		d.Set("network_interface_id", *id)
-	}
+	d.Set("network_interface_id", read.ID)
 
 	return nil
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -226,7 +226,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *sch
 		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{applicationSecurityGroupId} but got %q", d.Id())
 	}
 
-	nicID, err := parseAzureResourceID(splitId[0])
+	nicID, err := azure.ParseAzureResourceID(splitId[0])
 	if err != nil {
 		return err
 	}
@@ -236,8 +236,8 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *sch
 	resourceGroup := nicID.ResourceGroup
 	applicationSecurityGroupId := splitId[1]
 
-	azureRMLockByName(networkInterfaceName, networkInterfaceResourceName)
-	defer azureRMUnlockByName(networkInterfaceName, networkInterfaceResourceName)
+	locks.ByName(networkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(networkInterfaceName, networkInterfaceResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, networkInterfaceName, "")
 	if err != nil {

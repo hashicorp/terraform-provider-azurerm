@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"time"
 
@@ -21,8 +23,8 @@ import (
 
 func resourceArmPolicyAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPolicyAssignmentCreateOrUpdate,
-		Update: resourceArmPolicyAssignmentCreateOrUpdate,
+		Create: resourceArmPolicyAssignmentCreateUpdate,
+		Update: resourceArmPolicyAssignmentCreateUpdate,
 		Read:   resourceArmPolicyAssignmentRead,
 		Delete: resourceArmPolicyAssignmentDelete,
 		Importer: &schema.ResourceImporter{
@@ -58,7 +60,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 				Optional: true,
 			},
 
-			"location": locationSchemaOptional(),
+			"location": azure.SchemaLocationOptional(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -105,8 +107,8 @@ func resourceArmPolicyAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyAssignmentsClient
+func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -115,7 +117,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -146,7 +148,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if v := d.Get("location").(string); v != "" {
-		assignment.Location = utils.String(azureRMNormalizeLocation(v))
+		assignment.Location = utils.String(azure.NormalizeLocation(v))
 	}
 
 	if v := d.Get("parameters").(string); v != "" {
@@ -193,7 +195,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyAssignmentsClient
+	client := meta.(*ArmClient).policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
@@ -216,7 +218,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AssignmentProperties; props != nil {
@@ -242,7 +244,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyAssignmentsClient
+	client := meta.(*ArmClient).policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
@@ -259,7 +261,7 @@ func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func policyAssignmentRefreshFunc(ctx context.Context, client policy.AssignmentsClient, scope string, name string) resource.StateRefreshFunc {
+func policyAssignmentRefreshFunc(ctx context.Context, client *policy.AssignmentsClient, scope string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, scope, name)
 		if err != nil {

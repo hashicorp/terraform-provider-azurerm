@@ -10,8 +10,10 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,8 +50,8 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					StateFunc:        azureRMNormalizeLocation,
-					DiffSuppressFunc: azureRMSuppressLocationDiff,
+					StateFunc:        azure.NormalizeLocation,
+					DiffSuppressFunc: azure.SuppressLocationDiff,
 				},
 				Set: schema.HashString,
 			},
@@ -59,7 +61,7 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 				MinItems: 1,
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
-					DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+					DiffSuppressFunc: suppress.CaseDifference,
 				},
 				Set: schema.HashString,
 			},
@@ -86,11 +88,11 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 }
 
 func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorLogProfilesClient
+	client := meta.(*ArmClient).monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -148,7 +150,7 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorLogProfilesClient
+	client := meta.(*ArmClient).monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parseLogProfileNameFromID(d.Id())
@@ -185,7 +187,7 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmLogProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorLogProfilesClient
+	client := meta.(*ArmClient).monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parseLogProfileNameFromID(d.Id())
@@ -217,7 +219,7 @@ func expandLogProfileLocations(d *schema.ResourceData) []string {
 	locations := make([]string, 0)
 
 	for _, location := range logProfileLocations {
-		locations = append(locations, azureRMNormalizeLocation(location.(string)))
+		locations = append(locations, azure.NormalizeLocation(location.(string)))
 	}
 
 	return locations
@@ -241,7 +243,7 @@ func flattenAzureRmLogProfileLocations(input *[]string) []string {
 	result := make([]string, 0)
 	if input != nil {
 		for _, location := range *input {
-			result = append(result, azureRMNormalizeLocation(location))
+			result = append(result, azure.NormalizeLocation(location))
 		}
 	}
 
@@ -267,7 +269,7 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 
 func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		client := meta.(*ArmClient).monitorLogProfilesClient
+		client := meta.(*ArmClient).monitor.LogProfilesClient
 		ctx := meta.(*ArmClient).StopContext
 
 		if _, err := client.Get(ctx, name); err != nil {

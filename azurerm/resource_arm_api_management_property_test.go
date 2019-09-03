@@ -81,7 +81,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementPropertyClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.PropertyClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_property" {
 			continue
@@ -116,14 +116,14 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementPropertyClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.PropertyClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: API Management Property %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementPropertyClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.PropertyClient: %+v", err)
 		}
 
 		return nil
@@ -181,7 +181,7 @@ resource "azurerm_api_management" "test" {
 
   sku {
     name     = "Developer"
-	capacity = 1
+    capacity = 1
   }
 }
 

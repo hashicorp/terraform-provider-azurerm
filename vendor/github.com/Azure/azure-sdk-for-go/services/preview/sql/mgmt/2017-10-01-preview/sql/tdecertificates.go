@@ -108,9 +108,9 @@ func (client TdeCertificatesClient) CreatePreparer(ctx context.Context, resource
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client TdeCertificatesClient) CreateSender(req *http.Request) (future TdeCertificatesCreateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

@@ -37,10 +37,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the arguments above, the following attributes are exported:
 
 * `id` - The resource group ID.
-
 
 ## Import
 

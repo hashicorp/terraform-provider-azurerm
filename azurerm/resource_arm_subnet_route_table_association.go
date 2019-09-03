@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,7 +41,7 @@ func resourceArmSubnetRouteTableAssociation() *schema.Resource {
 }
 
 func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> Route Table Association creation.")
@@ -47,25 +49,17 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	subnetId := d.Get("subnet_id").(string)
 	routeTableId := d.Get("route_table_id").(string)
 
-	parsedSubnetId, err := parseAzureResourceID(subnetId)
+	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err
 	}
-
-	routeTableName, err := parseRouteTableName(routeTableId)
-	if err != nil {
-		return err
-	}
-
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
 
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -77,7 +71,7 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if requireResourcesToBeImported {
+		if features.ShouldResourcesBeImported() {
 			if rt := props.RouteTable; rt != nil {
 				// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
 				if rt.ID != nil && subnet.ID != nil {
@@ -111,10 +105,10 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -152,10 +146,10 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -184,20 +178,8 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 		return nil
 	}
 
-	// once we have the route table id to lock on, lock on that
-	routeTableName, err := parseRouteTableName(*props.RouteTable.ID)
-	if err != nil {
-		return err
-	}
-
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
-
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
-
-	azureRMLockByName(subnetName, subnetResourceName)
-	defer azureRMUnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

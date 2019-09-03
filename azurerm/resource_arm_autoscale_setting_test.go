@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
@@ -43,7 +44,7 @@ func TestAccAzureRMAutoScaleSetting_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutoScaleSetting_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -332,7 +333,7 @@ func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for AutoScale Setting: %s", autoscaleSettingName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).autoscaleSettingsClient
+		conn := testAccProvider.Meta().(*ArmClient).monitor.AutoscaleSettingsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
@@ -349,7 +350,7 @@ func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMAutoScaleSettingDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).autoscaleSettingsClient
+	conn := testAccProvider.Meta().(*ArmClient).monitor.AutoscaleSettingsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

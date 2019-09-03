@@ -30,6 +30,34 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 
+// ApplicationHTTPSEndpointAccessMode enumerates the values for application https endpoint access mode.
+type ApplicationHTTPSEndpointAccessMode string
+
+const (
+	// WebPage ...
+	WebPage ApplicationHTTPSEndpointAccessMode = "WebPage"
+)
+
+// PossibleApplicationHTTPSEndpointAccessModeValues returns an array of possible values for the ApplicationHTTPSEndpointAccessMode const type.
+func PossibleApplicationHTTPSEndpointAccessModeValues() []ApplicationHTTPSEndpointAccessMode {
+	return []ApplicationHTTPSEndpointAccessMode{WebPage}
+}
+
+// ApplicationType enumerates the values for application type.
+type ApplicationType string
+
+const (
+	// CustomApplication ...
+	CustomApplication ApplicationType = "CustomApplication"
+	// RServer ...
+	RServer ApplicationType = "RServer"
+)
+
+// PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
+func PossibleApplicationTypeValues() []ApplicationType {
+	return []ApplicationType{CustomApplication, RServer}
+}
+
 // AsyncOperationState enumerates the values for async operation state.
 type AsyncOperationState string
 
@@ -68,6 +96,31 @@ func PossibleClusterProvisioningStateValues() []ClusterProvisioningState {
 	return []ClusterProvisioningState{ClusterProvisioningStateCanceled, ClusterProvisioningStateDeleting, ClusterProvisioningStateFailed, ClusterProvisioningStateInProgress, ClusterProvisioningStateSucceeded}
 }
 
+// DaysOfWeek enumerates the values for days of week.
+type DaysOfWeek string
+
+const (
+	// Friday ...
+	Friday DaysOfWeek = "Friday"
+	// Monday ...
+	Monday DaysOfWeek = "Monday"
+	// Saturday ...
+	Saturday DaysOfWeek = "Saturday"
+	// Sunday ...
+	Sunday DaysOfWeek = "Sunday"
+	// Thursday ...
+	Thursday DaysOfWeek = "Thursday"
+	// Tuesday ...
+	Tuesday DaysOfWeek = "Tuesday"
+	// Wednesday ...
+	Wednesday DaysOfWeek = "Wednesday"
+)
+
+// PossibleDaysOfWeekValues returns an array of possible values for the DaysOfWeek const type.
+func PossibleDaysOfWeekValues() []DaysOfWeek {
+	return []DaysOfWeek{Friday, Monday, Saturday, Sunday, Thursday, Tuesday, Wednesday}
+}
+
 // DirectoryType enumerates the values for directory type.
 type DirectoryType string
 
@@ -79,6 +132,21 @@ const (
 // PossibleDirectoryTypeValues returns an array of possible values for the DirectoryType const type.
 func PossibleDirectoryTypeValues() []DirectoryType {
 	return []DirectoryType{ActiveDirectory}
+}
+
+// FilterMode enumerates the values for filter mode.
+type FilterMode string
+
+const (
+	// Exclude ...
+	Exclude FilterMode = "Exclude"
+	// Include ...
+	Include FilterMode = "Include"
+)
+
+// PossibleFilterModeValues returns an array of possible values for the FilterMode const type.
+func PossibleFilterModeValues() []FilterMode {
+	return []FilterMode{Exclude, Include}
 }
 
 // JSONWebKeyEncryptionAlgorithm enumerates the values for json web key encryption algorithm.
@@ -156,11 +224,11 @@ type Application struct {
 	Tags map[string]*string `json:"tags"`
 	// Properties - The properties of the application.
 	Properties *ApplicationProperties `json:"properties,omitempty"`
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -175,15 +243,6 @@ func (a Application) MarshalJSON() ([]byte, error) {
 	}
 	if a.Properties != nil {
 		objectMap["properties"] = a.Properties
-	}
-	if a.ID != nil {
-		objectMap["id"] = a.ID
-	}
-	if a.Name != nil {
-		objectMap["name"] = a.Name
-	}
-	if a.Type != nil {
-		objectMap["type"] = a.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -201,13 +260,17 @@ type ApplicationGetEndpoint struct {
 // ApplicationGetHTTPSEndpoint gets the application HTTP endpoints.
 type ApplicationGetHTTPSEndpoint struct {
 	// AccessModes - The list of access modes for the application.
-	AccessModes *[]string `json:"accessModes,omitempty"`
+	AccessModes *[]ApplicationHTTPSEndpointAccessMode `json:"accessModes,omitempty"`
 	// Location - The location of the endpoint.
 	Location *string `json:"location,omitempty"`
 	// DestinationPort - The destination port to connect to.
 	DestinationPort *int32 `json:"destinationPort,omitempty"`
 	// PublicPort - The public port to connect to.
 	PublicPort *int32 `json:"publicPort,omitempty"`
+	// SubDomainSuffix - The subdomain suffix of the application.
+	SubDomainSuffix *string `json:"subDomainSuffix,omitempty"`
+	// DisableGatewayAuth - The value indicates whether to disable GatewayAuth.
+	DisableGatewayAuth *bool `json:"disableGatewayAuth,omitempty"`
 }
 
 // ApplicationListResult result of the request to list cluster Applications. It contains a list of
@@ -216,7 +279,7 @@ type ApplicationListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of HDInsight applications installed on HDInsight cluster.
 	Value *[]Application `json:"value,omitempty"`
-	// NextLink - The URL to get the next set of operation list results if there are any.
+	// NextLink - READ-ONLY; The URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -369,17 +432,17 @@ type ApplicationProperties struct {
 	HTTPSEndpoints *[]ApplicationGetHTTPSEndpoint `json:"httpsEndpoints,omitempty"`
 	// SSHEndpoints - The list of application SSH endpoints.
 	SSHEndpoints *[]ApplicationGetEndpoint `json:"sshEndpoints,omitempty"`
-	// ProvisioningState - The provisioning state of the application.
+	// ProvisioningState - READ-ONLY; The provisioning state of the application.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ApplicationType - The application type.
-	ApplicationType *string `json:"applicationType,omitempty"`
-	// ApplicationState - The application state.
+	// ApplicationType - The application type. Possible values include: 'CustomApplication', 'RServer'
+	ApplicationType ApplicationType `json:"applicationType,omitempty"`
+	// ApplicationState - READ-ONLY; The application state.
 	ApplicationState *string `json:"applicationState,omitempty"`
 	// Errors - The list of errors.
 	Errors *[]Errors `json:"errors,omitempty"`
-	// CreatedDate - The application create date time.
+	// CreatedDate - READ-ONLY; The application create date time.
 	CreatedDate *string `json:"createdDate,omitempty"`
-	// MarketplaceIdentifier - The marketplace identifier.
+	// MarketplaceIdentifier - READ-ONLY; The marketplace identifier.
 	MarketplaceIdentifier *string `json:"marketplaceIdentifier,omitempty"`
 }
 
@@ -393,7 +456,7 @@ type ApplicationsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationsCreateFuture) Result(client ApplicationsClient) (a Application, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -422,7 +485,7 @@ type ApplicationsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ApplicationsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -433,6 +496,122 @@ func (future *ApplicationsDeleteFuture) Result(client ApplicationsClient) (ar au
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// Autoscale the autoscale request parameters
+type Autoscale struct {
+	// Capacity - Parameters for load-based autoscale
+	Capacity *AutoscaleCapacity `json:"capacity,omitempty"`
+	// Recurrence - Parameters for schedule-based autoscale
+	Recurrence *AutoscaleRecurrence `json:"recurrence,omitempty"`
+}
+
+// AutoscaleCapacity the load-based autoscale request parameters
+type AutoscaleCapacity struct {
+	// MinInstanceCount - The minimum instance count of the cluster
+	MinInstanceCount *int32 `json:"minInstanceCount,omitempty"`
+	// MaxInstanceCount - The maximum instance count of the cluster
+	MaxInstanceCount *int32 `json:"maxInstanceCount,omitempty"`
+}
+
+// AutoscaleRecurrence schedule-based autoscale request parameters
+type AutoscaleRecurrence struct {
+	// TimeZone - The time zone for the autoscale schedule times
+	TimeZone *string `json:"timeZone,omitempty"`
+	// Schedule - Array of schedule-based autoscale rules
+	Schedule *[]AutoscaleSchedule `json:"schedule,omitempty"`
+}
+
+// AutoscaleSchedule parameters for a schedule-based autoscale rule, consisting of an array of days + a
+// time and capacity
+type AutoscaleSchedule struct {
+	// Days - Days of the week for a schedule-based autoscale rule
+	Days *[]DaysOfWeek `json:"days,omitempty"`
+	// TimeAndCapacity - Time and capacity for a schedule-based autoscale rule
+	TimeAndCapacity *AutoscaleTimeAndCapacity `json:"timeAndCapacity,omitempty"`
+}
+
+// AutoscaleTimeAndCapacity time and capacity request parameters
+type AutoscaleTimeAndCapacity struct {
+	// Time - 24-hour time in the form xx:xx
+	Time *string `json:"time,omitempty"`
+	// MinInstanceCount - The minimum instance count of the cluster
+	MinInstanceCount *int32 `json:"minInstanceCount,omitempty"`
+	// MaxInstanceCount - The maximum instance count of the cluster
+	MaxInstanceCount *int32 `json:"maxInstanceCount,omitempty"`
+}
+
+// BillingMeters the billing meters.
+type BillingMeters struct {
+	// MeterParameter - The virtual machine sizes.
+	MeterParameter *string `json:"meterParameter,omitempty"`
+	// Meter - The HDInsight meter guid.
+	Meter *string `json:"meter,omitempty"`
+	// Unit - The unit of meter, VMHours or CoreHours.
+	Unit *string `json:"unit,omitempty"`
+}
+
+// BillingResources the billing resources.
+type BillingResources struct {
+	// Region - The region or location.
+	Region *string `json:"region,omitempty"`
+	// BillingMeters - The billing meter information.
+	BillingMeters *[]BillingMeters `json:"billingMeters,omitempty"`
+	// DiskBillingMeters - The managed disk billing information.
+	DiskBillingMeters *[]DiskBillingMeters `json:"diskBillingMeters,omitempty"`
+}
+
+// BillingResponseListResult the response for the operation to get regional billingSpecs for a
+// subscription.
+type BillingResponseListResult struct {
+	autorest.Response `json:"-"`
+	// VMSizes - The virtual machine sizes to include or exclude.
+	VMSizes *[]string `json:"vmSizes,omitempty"`
+	// VMSizeFilters - The virtual machine filtering mode. Effectively this can enabling or disabling the virtual machine sizes in a particular set.
+	VMSizeFilters *[]VMSizeCompatibilityFilterV2 `json:"vmSizeFilters,omitempty"`
+	// BillingResources - The billing and managed disk billing resources for a region.
+	BillingResources *[]BillingResources `json:"billingResources,omitempty"`
+}
+
+// CapabilitiesResult the Get Capabilities operation response.
+type CapabilitiesResult struct {
+	autorest.Response `json:"-"`
+	// Versions - The version capability.
+	Versions map[string]*VersionsCapability `json:"versions"`
+	// Regions - The virtual machine size compatibility features.
+	Regions map[string]*RegionsCapability `json:"regions"`
+	// VMSizes - The virtual machine sizes.
+	VMSizes map[string]*VMSizesCapability `json:"vmSizes"`
+	// VMSizeFilters - The virtual machine size compatibility filters.
+	VMSizeFilters *[]VMSizeCompatibilityFilter `json:"vmSize_filters,omitempty"`
+	// Features - The capability features.
+	Features *[]string `json:"features,omitempty"`
+	// Quota - The quota capability.
+	Quota *QuotaCapability `json:"quota,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CapabilitiesResult.
+func (cr CapabilitiesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cr.Versions != nil {
+		objectMap["versions"] = cr.Versions
+	}
+	if cr.Regions != nil {
+		objectMap["regions"] = cr.Regions
+	}
+	if cr.VMSizes != nil {
+		objectMap["vmSizes"] = cr.VMSizes
+	}
+	if cr.VMSizeFilters != nil {
+		objectMap["vmSize_filters"] = cr.VMSizeFilters
+	}
+	if cr.Features != nil {
+		objectMap["features"] = cr.Features
+	}
+	if cr.Quota != nil {
+		objectMap["quota"] = cr.Quota
+	}
+	return json.Marshal(objectMap)
 }
 
 // Cluster the HDInsight cluster.
@@ -448,11 +627,11 @@ type Cluster struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -474,14 +653,21 @@ func (c Cluster) MarshalJSON() ([]byte, error) {
 	if c.Tags != nil {
 		objectMap["tags"] = c.Tags
 	}
-	if c.ID != nil {
-		objectMap["id"] = c.ID
-	}
-	if c.Name != nil {
-		objectMap["name"] = c.Name
-	}
-	if c.Type != nil {
-		objectMap["type"] = c.Type
+	return json.Marshal(objectMap)
+}
+
+// ClusterConfigurations the configuration object for the specified cluster.
+type ClusterConfigurations struct {
+	autorest.Response `json:"-"`
+	// Configurations - The configuration object for the specified configuration for the specified cluster.
+	Configurations map[string]map[string]*string `json:"configurations"`
+}
+
+// MarshalJSON is the custom marshaler for ClusterConfigurations.
+func (cc ClusterConfigurations) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cc.Configurations != nil {
+		objectMap["configurations"] = cc.Configurations
 	}
 	return json.Marshal(objectMap)
 }
@@ -608,9 +794,9 @@ type ClusterGetProperties struct {
 
 // ClusterIdentity identity for the cluster.
 type ClusterIdentity struct {
-	// PrincipalID - The principal id of cluster identity. This property will only be provided for a system assigned identity.
+	// PrincipalID - READ-ONLY; The principal id of cluster identity. This property will only be provided for a system assigned identity.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// TenantID - The tenant id associated with the cluster. This property will only be provided for a system assigned identity.
+	// TenantID - READ-ONLY; The tenant id associated with the cluster. This property will only be provided for a system assigned identity.
 	TenantID *string `json:"tenantId,omitempty"`
 	// Type - The type of identity used for the cluster. The type 'SystemAssigned, UserAssigned' includes both an implicitly created identity and a set of user assigned identities. Possible values include: 'SystemAssigned', 'UserAssigned', 'SystemAssignedUserAssigned', 'None'
 	Type ResourceIdentityType `json:"type,omitempty"`
@@ -621,12 +807,6 @@ type ClusterIdentity struct {
 // MarshalJSON is the custom marshaler for ClusterIdentity.
 func (ci ClusterIdentity) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ci.PrincipalID != nil {
-		objectMap["principalId"] = ci.PrincipalID
-	}
-	if ci.TenantID != nil {
-		objectMap["tenantId"] = ci.TenantID
-	}
 	if ci.Type != "" {
 		objectMap["type"] = ci.Type
 	}
@@ -638,9 +818,9 @@ func (ci ClusterIdentity) MarshalJSON() ([]byte, error) {
 
 // ClusterIdentityUserAssignedIdentitiesValue ...
 type ClusterIdentityUserAssignedIdentitiesValue struct {
-	// PrincipalID - The principal id of user assigned identity.
+	// PrincipalID - READ-ONLY; The principal id of user assigned identity.
 	PrincipalID *string `json:"principalId,omitempty"`
-	// ClientID - The client id of user assigned identity.
+	// ClientID - READ-ONLY; The client id of user assigned identity.
 	ClientID *string `json:"clientId,omitempty"`
 }
 
@@ -648,7 +828,7 @@ type ClusterIdentityUserAssignedIdentitiesValue struct {
 type ClusterListPersistedScriptActionsResult struct {
 	// Value - The list of Persisted Script Actions.
 	Value *[]RuntimeScriptAction `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -657,7 +837,7 @@ type ClusterListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of Clusters.
 	Value *[]Cluster `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -800,9 +980,9 @@ func NewClusterListResultPage(getNextPage func(context.Context, ClusterListResul
 
 // ClusterListRuntimeScriptActionDetailResult the list runtime script action detail response.
 type ClusterListRuntimeScriptActionDetailResult struct {
-	// Value - The list of persisted script action details for the cluster.
+	// Value - READ-ONLY; The list of persisted script action details for the cluster.
 	Value *[]RuntimeScriptActionDetail `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -854,7 +1034,7 @@ type ClustersCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ClustersCreateFuture) Result(client ClustersClient) (c Cluster, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -883,7 +1063,7 @@ type ClustersDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ClustersDeleteFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -906,7 +1086,7 @@ type ClustersExecuteScriptActionsFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ClustersExecuteScriptActionsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersExecuteScriptActionsFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -929,7 +1109,7 @@ type ClustersResizeFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ClustersResizeFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersResizeFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -952,13 +1132,36 @@ type ClustersRotateDiskEncryptionKeyFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ClustersRotateDiskEncryptionKeyFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ClustersRotateDiskEncryptionKeyFuture", "Result", future.Response(), "Polling failure")
 		return
 	}
 	if !done {
 		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersRotateDiskEncryptionKeyFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// ClustersUpdateGatewaySettingsFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type ClustersUpdateGatewaySettingsFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ClustersUpdateGatewaySettingsFuture) Result(client ClustersClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "hdinsight.ClustersUpdateGatewaySettingsFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("hdinsight.ClustersUpdateGatewaySettingsFuture")
 		return
 	}
 	ar.Response = future.Response()
@@ -981,7 +1184,7 @@ type ConfigurationsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ConfigurationsUpdateFuture) Result(client ConfigurationsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ConfigurationsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1010,10 +1213,20 @@ type ConnectivityEndpoint struct {
 type DataDisksGroups struct {
 	// DisksPerNode - The number of disks per node.
 	DisksPerNode *int32 `json:"disksPerNode,omitempty"`
-	// StorageAccountType - ReadOnly. The storage account type. Do not set this value.
+	// StorageAccountType - READ-ONLY; ReadOnly. The storage account type. Do not set this value.
 	StorageAccountType *string `json:"storageAccountType,omitempty"`
-	// DiskSizeGB - ReadOnly. The DiskSize in GB. Do not set this value.
+	// DiskSizeGB - READ-ONLY; ReadOnly. The DiskSize in GB. Do not set this value.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
+}
+
+// DiskBillingMeters the disk billing meters.
+type DiskBillingMeters struct {
+	// DiskRpMeter - The managed disk meter guid.
+	DiskRpMeter *string `json:"diskRpMeter,omitempty"`
+	// Sku - The managed disk billing sku, P30 or S30.
+	Sku *string `json:"sku,omitempty"`
+	// Tier - The managed disk billing tier, Standard or Premium. Possible values include: 'Standard', 'Premium'
+	Tier Tier `json:"tier,omitempty"`
 }
 
 // DiskEncryptionProperties the disk encryption properties
@@ -1073,7 +1286,7 @@ type ExtensionsCreateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ExtensionsCreateFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsCreateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1096,7 +1309,7 @@ type ExtensionsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ExtensionsDeleteFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1119,7 +1332,7 @@ type ExtensionsDisableMonitoringFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ExtensionsDisableMonitoringFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsDisableMonitoringFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1142,7 +1355,7 @@ type ExtensionsEnableMonitoringFuture struct {
 // If the operation has not completed it will return an error.
 func (future *ExtensionsEnableMonitoringFuture) Result(client ExtensionsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "hdinsight.ExtensionsEnableMonitoringFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1153,6 +1366,17 @@ func (future *ExtensionsEnableMonitoringFuture) Result(client ExtensionsClient) 
 	}
 	ar.Response = future.Response()
 	return
+}
+
+// GatewaySettings gateway settings.
+type GatewaySettings struct {
+	autorest.Response `json:"-"`
+	// IsCredentialEnabled - READ-ONLY; Indicates whether or not the gateway settings based authorization is enabled.
+	IsCredentialEnabled *string `json:"restAuthCredential.isEnabled,omitempty"`
+	// UserName - READ-ONLY; The gateway settings user name.
+	UserName *string `json:"restAuthCredential.username,omitempty"`
+	// Password - READ-ONLY; The gateway settings user password.
+	Password *string `json:"restAuthCredential.password,omitempty"`
 }
 
 // HardwareProfile the hardware profile.
@@ -1361,12 +1585,22 @@ type OsProfile struct {
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
 // required location and tags
 type ProxyResource struct {
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
+}
+
+// QuotaCapability the regional quota capability.
+type QuotaCapability struct {
+	// CoresUsed - The number of cores used in the subscription.
+	CoresUsed *int64 `json:"cores_used,omitempty"`
+	// MaxCoresAllowed - The number of cores that the subscription allowed.
+	MaxCoresAllowed *int64 `json:"max_cores_allowed,omitempty"`
+	// RegionalQuotas - The list of region quota capabilities.
+	RegionalQuotas *[]RegionalQuotaCapability `json:"regionalQuotas,omitempty"`
 }
 
 // QuotaInfo the quota properties for the cluster.
@@ -1375,13 +1609,29 @@ type QuotaInfo struct {
 	CoresUsed *int32 `json:"coresUsed,omitempty"`
 }
 
+// RegionalQuotaCapability the regional quota capacity.
+type RegionalQuotaCapability struct {
+	// RegionName - The region name.
+	RegionName *string `json:"region_name,omitempty"`
+	// CoresUsed - The number of cores used in the region.
+	CoresUsed *int64 `json:"cores_used,omitempty"`
+	// CoresAvailable - The number of cores available in the region.
+	CoresAvailable *int64 `json:"cores_available,omitempty"`
+}
+
+// RegionsCapability the regions capability.
+type RegionsCapability struct {
+	// Available - The list of region capabilities.
+	Available *[]string `json:"available,omitempty"`
+}
+
 // Resource the core properties of ARM resources
 type Resource struct {
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1393,6 +1643,8 @@ type Role struct {
 	MinInstanceCount *int32 `json:"minInstanceCount,omitempty"`
 	// TargetInstanceCount - The instance count of the cluster.
 	TargetInstanceCount *int32 `json:"targetInstanceCount,omitempty"`
+	// AutoscaleConfiguration - The autoscale configurations.
+	AutoscaleConfiguration *Autoscale `json:"autoscale,omitempty"`
 	// HardwareProfile - The hardware profile.
 	HardwareProfile *HardwareProfile `json:"hardwareProfile,omitempty"`
 	// OsProfile - The operating system profile.
@@ -1415,26 +1667,26 @@ type RuntimeScriptAction struct {
 	Parameters *string `json:"parameters,omitempty"`
 	// Roles - The list of roles where script will be executed.
 	Roles *[]string `json:"roles,omitempty"`
-	// ApplicationName - The application name of the script action, if any.
+	// ApplicationName - READ-ONLY; The application name of the script action, if any.
 	ApplicationName *string `json:"applicationName,omitempty"`
 }
 
 // RuntimeScriptActionDetail the execution details of a script action.
 type RuntimeScriptActionDetail struct {
 	autorest.Response `json:"-"`
-	// ScriptExecutionID - The execution id of the script action.
+	// ScriptExecutionID - READ-ONLY; The execution id of the script action.
 	ScriptExecutionID *int64 `json:"scriptExecutionId,omitempty"`
-	// StartTime - The start time of script action execution.
+	// StartTime - READ-ONLY; The start time of script action execution.
 	StartTime *string `json:"startTime,omitempty"`
-	// EndTime - The end time of script action execution.
+	// EndTime - READ-ONLY; The end time of script action execution.
 	EndTime *string `json:"endTime,omitempty"`
-	// Status - The current execution status of the script action.
+	// Status - READ-ONLY; The current execution status of the script action.
 	Status *string `json:"status,omitempty"`
-	// Operation - The reason why the script action was executed.
+	// Operation - READ-ONLY; The reason why the script action was executed.
 	Operation *string `json:"operation,omitempty"`
-	// ExecutionSummary - The summary of script action execution result.
+	// ExecutionSummary - READ-ONLY; The summary of script action execution result.
 	ExecutionSummary *[]ScriptActionExecutionSummary `json:"executionSummary,omitempty"`
-	// DebugInformation - The script action execution debug information.
+	// DebugInformation - READ-ONLY; The script action execution debug information.
 	DebugInformation *string `json:"debugInformation,omitempty"`
 	// Name - The name of the script action.
 	Name *string `json:"name,omitempty"`
@@ -1444,7 +1696,7 @@ type RuntimeScriptActionDetail struct {
 	Parameters *string `json:"parameters,omitempty"`
 	// Roles - The list of roles where script will be executed.
 	Roles *[]string `json:"roles,omitempty"`
-	// ApplicationName - The application name of the script action, if any.
+	// ApplicationName - READ-ONLY; The application name of the script action, if any.
 	ApplicationName *string `json:"applicationName,omitempty"`
 }
 
@@ -1461,9 +1713,9 @@ type ScriptAction struct {
 // ScriptActionExecutionHistoryList the list script execution history response.
 type ScriptActionExecutionHistoryList struct {
 	autorest.Response `json:"-"`
-	// Value - The list of persisted script action details for the cluster.
+	// Value - READ-ONLY; The list of persisted script action details for the cluster.
 	Value *[]RuntimeScriptActionDetail `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1607,9 +1859,9 @@ func NewScriptActionExecutionHistoryListPage(getNextPage func(context.Context, S
 
 // ScriptActionExecutionSummary the execution summary of a script action.
 type ScriptActionExecutionSummary struct {
-	// Status - The status of script action execution.
+	// Status - READ-ONLY; The status of script action execution.
 	Status *string `json:"status,omitempty"`
-	// InstanceCount - The instance count for a given script action execution status.
+	// InstanceCount - READ-ONLY; The instance count for a given script action execution status.
 	InstanceCount *int32 `json:"instanceCount,omitempty"`
 }
 
@@ -1632,7 +1884,7 @@ type ScriptActionsList struct {
 	autorest.Response `json:"-"`
 	// Value - The list of persisted script action details for the cluster.
 	Value *[]RuntimeScriptActionDetail `json:"value,omitempty"`
-	// NextLink - The link (url) to the next page of results.
+	// NextLink - READ-ONLY; The link (url) to the next page of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1852,11 +2104,11 @@ type TrackedResource struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// ID - Fully qualified resource Id for the resource.
+	// ID - READ-ONLY; Fully qualified resource Id for the resource.
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the resource
+	// Name - READ-ONLY; The name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - The type of the resource.
+	// Type - READ-ONLY; The type of the resource.
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1869,16 +2121,17 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
 	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
-	}
 	return json.Marshal(objectMap)
+}
+
+// UpdateGatewaySettingsParameters the update gateway settings request parameters.
+type UpdateGatewaySettingsParameters struct {
+	// IsCredentialEnabled - Indicates whether or not the gateway settings based authorization is enabled.
+	IsCredentialEnabled *bool `json:"restAuthCredential.isEnabled,omitempty"`
+	// UserName - The gateway settings user name.
+	UserName *string `json:"restAuthCredential.username,omitempty"`
+	// Password - The gateway settings user password.
+	Password *string `json:"restAuthCredential.password,omitempty"`
 }
 
 // Usage the details about the usage of a particular limited resource.
@@ -1900,10 +2153,90 @@ type UsagesListResult struct {
 	Value *[]Usage `json:"value,omitempty"`
 }
 
+// VersionsCapability the version capability.
+type VersionsCapability struct {
+	// Available - The list of version capabilities.
+	Available *[]VersionSpec `json:"available,omitempty"`
+}
+
+// VersionSpec the version properties.
+type VersionSpec struct {
+	// FriendlyName - The friendly name
+	FriendlyName *string `json:"friendlyName,omitempty"`
+	// DisplayName - The display name
+	DisplayName *string `json:"displayName,omitempty"`
+	// IsDefault - Whether or not the version is the default version.
+	IsDefault *string `json:"isDefault,omitempty"`
+	// ComponentVersions - The component version property.
+	ComponentVersions map[string]*string `json:"componentVersions"`
+}
+
+// MarshalJSON is the custom marshaler for VersionSpec.
+func (vs VersionSpec) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vs.FriendlyName != nil {
+		objectMap["friendlyName"] = vs.FriendlyName
+	}
+	if vs.DisplayName != nil {
+		objectMap["displayName"] = vs.DisplayName
+	}
+	if vs.IsDefault != nil {
+		objectMap["isDefault"] = vs.IsDefault
+	}
+	if vs.ComponentVersions != nil {
+		objectMap["componentVersions"] = vs.ComponentVersions
+	}
+	return json.Marshal(objectMap)
+}
+
 // VirtualNetworkProfile the virtual network properties.
 type VirtualNetworkProfile struct {
 	// ID - The ID of the virtual network.
 	ID *string `json:"id,omitempty"`
 	// Subnet - The name of the subnet.
 	Subnet *string `json:"subnet,omitempty"`
+}
+
+// VMSizeCompatibilityFilter the virtual machine type compatibility filter.
+type VMSizeCompatibilityFilter struct {
+	// FilterMode - The mode for the filter.
+	FilterMode *string `json:"FilterMode,omitempty"`
+	// Regions - The list of regions.
+	Regions *[]string `json:"Regions,omitempty"`
+	// ClusterFlavors - The list of cluster types available.
+	ClusterFlavors *[]string `json:"ClusterFlavors,omitempty"`
+	// NodeTypes - The list of node types.
+	NodeTypes *[]string `json:"NodeTypes,omitempty"`
+	// ClusterVersions - The list of cluster versions.
+	ClusterVersions *[]string `json:"ClusterVersions,omitempty"`
+	// Vmsizes - The list of virtual machine sizes.
+	Vmsizes *[]string `json:"vmsizes,omitempty"`
+}
+
+// VMSizeCompatibilityFilterV2 this class represent a single filter object that defines a multidimensional
+// set. The dimensions of this set are Regions, ClusterFlavors, NodeTypes and ClusterVersions. The
+// constraint should be defined based on the following: FilterMode (Exclude vs Include), VMSizes (the vm
+// sizes in affect of exclusion/inclusion) and the ordering of the Filters. Later filters override previous
+// settings if conflicted.
+type VMSizeCompatibilityFilterV2 struct {
+	// FilterMode - The filtering mode. Effectively this can enabling or disabling the VM sizes in a particular set. Possible values include: 'Exclude', 'Include'
+	FilterMode FilterMode `json:"filterMode,omitempty"`
+	// Regions - The list of regions under the effect of the filter.
+	Regions *[]string `json:"regions,omitempty"`
+	// ClusterFlavors - The list of cluster flavors under the effect of the filter.
+	ClusterFlavors *[]string `json:"clusterFlavors,omitempty"`
+	// NodeTypes - The list of node types affected by the filter.
+	NodeTypes *[]string `json:"nodeTypes,omitempty"`
+	// ClusterVersions - The list of cluster versions affected in Major.Minor format.
+	ClusterVersions *[]string `json:"clusterVersions,omitempty"`
+	// OsType - The OSType affected, Windows or Linux.
+	OsType *[]OSType `json:"osType,omitempty"`
+	// VMSizes - The list of virtual machine sizes to include or exclude.
+	VMSizes *[]string `json:"vmSizes,omitempty"`
+}
+
+// VMSizesCapability the virtual machine sizes capability.
+type VMSizesCapability struct {
+	// Available - The list of virtual machine size capabilities.
+	Available *[]string `json:"available,omitempty"`
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -93,7 +94,7 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automationCredentialClient
+	conn := testAccProvider.Meta().(*ArmClient).automation.CredentialClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -143,7 +144,7 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Automation Credential: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automationCredentialClient
+		conn := testAccProvider.Meta().(*ArmClient).automation.CredentialClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

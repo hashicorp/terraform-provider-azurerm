@@ -106,6 +106,9 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelPreparer(c
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -119,8 +122,8 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelPreparer(c
 // CreateOrUpdateAtResourceGroupLevelSender sends the CreateOrUpdateAtResourceGroupLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) CreateOrUpdateAtResourceGroupLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateAtResourceGroupLevelResponder handles the response to the CreateOrUpdateAtResourceGroupLevel request. The method always
@@ -207,6 +210,9 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelPreparer(ctx co
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -220,8 +226,8 @@ func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelPreparer(ctx co
 // CreateOrUpdateAtResourceLevelSender sends the CreateOrUpdateAtResourceLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) CreateOrUpdateAtResourceLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateAtResourceLevelResponder handles the response to the CreateOrUpdateAtResourceLevel request. The method always
@@ -295,6 +301,9 @@ func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelPreparer(ct
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -308,8 +317,8 @@ func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelPreparer(ct
 // CreateOrUpdateAtSubscriptionLevelSender sends the CreateOrUpdateAtSubscriptionLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) CreateOrUpdateAtSubscriptionLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateAtSubscriptionLevelResponder handles the response to the CreateOrUpdateAtSubscriptionLevel request. The method always
@@ -384,6 +393,9 @@ func (client ManagementLocksClient) CreateOrUpdateByScopePreparer(ctx context.Co
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Type = nil
+	parameters.Name = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -397,8 +409,8 @@ func (client ManagementLocksClient) CreateOrUpdateByScopePreparer(ctx context.Co
 // CreateOrUpdateByScopeSender sends the CreateOrUpdateByScope request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) CreateOrUpdateByScopeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateByScopeResponder handles the response to the CreateOrUpdateByScope request. The method always
@@ -484,8 +496,8 @@ func (client ManagementLocksClient) DeleteAtResourceGroupLevelPreparer(ctx conte
 // DeleteAtResourceGroupLevelSender sends the DeleteAtResourceGroupLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) DeleteAtResourceGroupLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteAtResourceGroupLevelResponder handles the response to the DeleteAtResourceGroupLevel request. The method always
@@ -578,8 +590,8 @@ func (client ManagementLocksClient) DeleteAtResourceLevelPreparer(ctx context.Co
 // DeleteAtResourceLevelSender sends the DeleteAtResourceLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) DeleteAtResourceLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteAtResourceLevelResponder handles the response to the DeleteAtResourceLevel request. The method always
@@ -654,8 +666,8 @@ func (client ManagementLocksClient) DeleteAtSubscriptionLevelPreparer(ctx contex
 // DeleteAtSubscriptionLevelSender sends the DeleteAtSubscriptionLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) DeleteAtSubscriptionLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteAtSubscriptionLevelResponder handles the response to the DeleteAtSubscriptionLevel request. The method always
@@ -729,8 +741,8 @@ func (client ManagementLocksClient) DeleteByScopePreparer(ctx context.Context, s
 // DeleteByScopeSender sends the DeleteByScope request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) DeleteByScopeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteByScopeResponder handles the response to the DeleteByScope request. The method always
@@ -813,8 +825,8 @@ func (client ManagementLocksClient) GetAtResourceGroupLevelPreparer(ctx context.
 // GetAtResourceGroupLevelSender sends the GetAtResourceGroupLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) GetAtResourceGroupLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAtResourceGroupLevelResponder handles the response to the GetAtResourceGroupLevel request. The method always
@@ -906,8 +918,8 @@ func (client ManagementLocksClient) GetAtResourceLevelPreparer(ctx context.Conte
 // GetAtResourceLevelSender sends the GetAtResourceLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) GetAtResourceLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAtResourceLevelResponder handles the response to the GetAtResourceLevel request. The method always
@@ -981,8 +993,8 @@ func (client ManagementLocksClient) GetAtSubscriptionLevelPreparer(ctx context.C
 // GetAtSubscriptionLevelSender sends the GetAtSubscriptionLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) GetAtSubscriptionLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAtSubscriptionLevelResponder handles the response to the GetAtSubscriptionLevel request. The method always
@@ -1057,8 +1069,8 @@ func (client ManagementLocksClient) GetByScopePreparer(ctx context.Context, scop
 // GetByScopeSender sends the GetByScope request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) GetByScopeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetByScopeResponder handles the response to the GetByScope request. The method always
@@ -1145,8 +1157,8 @@ func (client ManagementLocksClient) ListAtResourceGroupLevelPreparer(ctx context
 // ListAtResourceGroupLevelSender sends the ListAtResourceGroupLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) ListAtResourceGroupLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListAtResourceGroupLevelResponder handles the response to the ListAtResourceGroupLevel request. The method always
@@ -1279,8 +1291,8 @@ func (client ManagementLocksClient) ListAtResourceLevelPreparer(ctx context.Cont
 // ListAtResourceLevelSender sends the ListAtResourceLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) ListAtResourceLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListAtResourceLevelResponder handles the response to the ListAtResourceLevel request. The method always
@@ -1394,8 +1406,8 @@ func (client ManagementLocksClient) ListAtSubscriptionLevelPreparer(ctx context.
 // ListAtSubscriptionLevelSender sends the ListAtSubscriptionLevel request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagementLocksClient) ListAtSubscriptionLevelSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListAtSubscriptionLevelResponder handles the response to the ListAtSubscriptionLevel request. The method always
@@ -1445,5 +1457,125 @@ func (client ManagementLocksClient) ListAtSubscriptionLevelComplete(ctx context.
 		}()
 	}
 	result.page, err = client.ListAtSubscriptionLevel(ctx, filter)
+	return
+}
+
+// ListByScope gets all the management locks for a scope.
+// Parameters:
+// scope - the scope for the lock. When providing a scope for the assignment, use
+// '/subscriptions/{subscriptionId}' for subscriptions,
+// '/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}' for resource groups, and
+// '/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{parentResourcePathIfPresent}/{resourceType}/{resourceName}'
+// for resources.
+// filter - the filter to apply on the operation.
+func (client ManagementLocksClient) ListByScope(ctx context.Context, scope string, filter string) (result ManagementLockListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagementLocksClient.ListByScope")
+		defer func() {
+			sc := -1
+			if result.mllr.Response.Response != nil {
+				sc = result.mllr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.fn = client.listByScopeNextResults
+	req, err := client.ListByScopePreparer(ctx, scope, filter)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.ListByScopeSender(req)
+	if err != nil {
+		result.mllr.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", resp, "Failure sending request")
+		return
+	}
+
+	result.mllr, err = client.ListByScopeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "ListByScope", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// ListByScopePreparer prepares the ListByScope request.
+func (client ManagementLocksClient) ListByScopePreparer(ctx context.Context, scope string, filter string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"scope": autorest.Encode("path", scope),
+	}
+
+	const APIVersion = "2016-09-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsGet(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/{scope}/providers/Microsoft.Authorization/locks", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ListByScopeSender sends the ListByScope request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagementLocksClient) ListByScopeSender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// ListByScopeResponder handles the response to the ListByScope request. The method always
+// closes the http.Response Body.
+func (client ManagementLocksClient) ListByScopeResponder(resp *http.Response) (result ManagementLockListResult, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}
+
+// listByScopeNextResults retrieves the next set of results, if any.
+func (client ManagementLocksClient) listByScopeNextResults(ctx context.Context, lastResults ManagementLockListResult) (result ManagementLockListResult, err error) {
+	req, err := lastResults.managementLockListResultPreparer(ctx)
+	if err != nil {
+		return result, autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", nil, "Failure preparing next results request")
+	}
+	if req == nil {
+		return
+	}
+	resp, err := client.ListByScopeSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		return result, autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", resp, "Failure sending next results request")
+	}
+	result, err = client.ListByScopeResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "locks.ManagementLocksClient", "listByScopeNextResults", resp, "Failure responding to next results request")
+	}
+	return
+}
+
+// ListByScopeComplete enumerates all values, automatically crossing page boundaries as required.
+func (client ManagementLocksClient) ListByScopeComplete(ctx context.Context, scope string, filter string) (result ManagementLockListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagementLocksClient.ListByScope")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByScope(ctx, scope, filter)
 	return
 }

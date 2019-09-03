@@ -113,8 +113,8 @@ func (client StorageAccountsClient) AddPreparer(ctx context.Context, resourceGro
 // AddSender sends the Add request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) AddSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // AddResponder handles the response to the Add request. The method always
@@ -191,8 +191,8 @@ func (client StorageAccountsClient) DeletePreparer(ctx context.Context, resource
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -269,8 +269,8 @@ func (client StorageAccountsClient) GetPreparer(ctx context.Context, resourceGro
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -351,8 +351,8 @@ func (client StorageAccountsClient) GetStorageContainerPreparer(ctx context.Cont
 // GetStorageContainerSender sends the GetStorageContainer request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) GetStorageContainerSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetStorageContainerResponder handles the response to the GetStorageContainer request. The method always
@@ -468,8 +468,8 @@ func (client StorageAccountsClient) ListByAccountPreparer(ctx context.Context, r
 // ListByAccountSender sends the ListByAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) ListByAccountSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByAccountResponder handles the response to the ListByAccount request. The method always
@@ -588,8 +588,8 @@ func (client StorageAccountsClient) ListSasTokensPreparer(ctx context.Context, r
 // ListSasTokensSender sends the ListSasTokens request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) ListSasTokensSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListSasTokensResponder handles the response to the ListSasTokens request. The method always
@@ -706,8 +706,8 @@ func (client StorageAccountsClient) ListStorageContainersPreparer(ctx context.Co
 // ListStorageContainersSender sends the ListStorageContainers request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) ListStorageContainersSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListStorageContainersResponder handles the response to the ListStorageContainers request. The method always
@@ -830,8 +830,8 @@ func (client StorageAccountsClient) UpdatePreparer(ctx context.Context, resource
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client StorageAccountsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always

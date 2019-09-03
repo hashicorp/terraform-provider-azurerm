@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
@@ -40,7 +41,7 @@ func TestAccAzureRMUserAssignedIdentity_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMUserAssignedIdentity_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -84,7 +85,7 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).userAssignedIdentitiesClient
+		client := testAccProvider.Meta().(*ArmClient).msi.UserAssignedIdentitiesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -101,7 +102,7 @@ func testCheckAzureRMUserAssignedIdentityExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMUserAssignedIdentityDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).userAssignedIdentitiesClient
+	client := testAccProvider.Meta().(*ArmClient).msi.UserAssignedIdentitiesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

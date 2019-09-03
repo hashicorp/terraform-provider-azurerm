@@ -47,6 +47,8 @@ The following attributes are exported:
 
 * `certificate` - One or more `certificate` blocks that describe the certificates installed on each compute node in the pool.
 
+* `container_configuration` - The container configuration used in the pool's VMs.
+
 ---
 
 A `fixed_scale` block exports the following:
@@ -128,3 +130,21 @@ A `resource_file` block exports the following:
 * `http_url` - The URL of the file to download. If the URL is Azure Blob Storage, it must be readable using anonymous access.
 
 * `storage_container_url` - The URL of the blob container within Azure Blob Storage.
+
+---
+
+A `container_configuration` block exports the following:
+
+* `type` - The type of container configuration.
+
+* `container_registries` - Additional container registries from which container images can be pulled by the pool's VMs.
+
+---
+
+A `container_registries` block exports the following:
+
+* `registry_server` - The container registry URL. The default is "docker.io".
+
+* `user_name` - The user name to log into the registry server.
+
+* `password` - The password to log into the registry server.

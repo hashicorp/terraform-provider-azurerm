@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,7 +27,7 @@ func resourceArmApiManagementCertificate() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementChildName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -62,7 +63,7 @@ func resourceArmApiManagementCertificate() *schema.Resource {
 }
 
 func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementCertificatesClient
+	client := meta.(*ArmClient).apiManagement.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -71,7 +72,7 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 	data := d.Get("data").(string)
 	password := d.Get("password").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -108,10 +109,10 @@ func resourceArmApiManagementCertificateCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementCertificatesClient
+	client := meta.(*ArmClient).apiManagement.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,10 +150,10 @@ func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmApiManagementCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementCertificatesClient
+	client := meta.(*ArmClient).apiManagement.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

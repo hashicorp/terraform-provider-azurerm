@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHDInsightInteractiveQueryCluster_basic(t *testing.T) {
@@ -48,7 +49,7 @@ func TestAccAzureRMHDInsightInteractiveQueryCluster_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightInteractiveQueryCluster_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -356,20 +357,20 @@ resource "azurerm_hdinsight_interactive_query_cluster" "test" {
     head_node {
       vm_size  = "Standard_D13_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
 
     worker_node {
       vm_size               = "Standard_D14_V2"
       username              = "acctestusrvm"
-      ssh_keys              = [ "${var.ssh_key}" ]
+      ssh_keys              = ["${var.ssh_key}"]
       target_instance_count = 3
     }
 
     zookeeper_node {
       vm_size  = "Standard_A4_V2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
   }
 }

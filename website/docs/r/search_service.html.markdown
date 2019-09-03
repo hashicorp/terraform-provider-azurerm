@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_search_service"
 sidebar_current: "docs-azurerm-resource-search-service"
 description: |-
-  Manage a Search Service.
+  Manages a Search Service.
 ---
 
 # azurerm_search_service
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `partition_count` - (Optional) Default is 1. Valid values include 1, 2, 3, 4, 6, or 12. Valid only when `sku` is `standard`. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 

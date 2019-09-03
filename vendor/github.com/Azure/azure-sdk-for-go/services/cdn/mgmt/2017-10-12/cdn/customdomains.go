@@ -26,8 +26,7 @@ import (
 	"net/http"
 )
 
-// CustomDomainsClient is the use these APIs to manage Azure CDN resources through the Azure Resource Manager. You must
-// make sure that requests made to these resources are secure.
+// CustomDomainsClient is the cdn Management Client
 type CustomDomainsClient struct {
 	BaseClient
 }
@@ -114,9 +113,9 @@ func (client CustomDomainsClient) CreatePreparer(ctx context.Context, resourceGr
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) CreateSender(req *http.Request) (future CustomDomainsCreateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -203,9 +202,9 @@ func (client CustomDomainsClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) DeleteSender(req *http.Request) (future CustomDomainsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -298,8 +297,8 @@ func (client CustomDomainsClient) DisableCustomHTTPSPreparer(ctx context.Context
 // DisableCustomHTTPSSender sends the DisableCustomHTTPS request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) DisableCustomHTTPSSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DisableCustomHTTPSResponder handles the response to the DisableCustomHTTPS request. The method always
@@ -321,7 +320,10 @@ func (client CustomDomainsClient) DisableCustomHTTPSResponder(resp *http.Respons
 // profileName - name of the CDN profile which is unique within the resource group.
 // endpointName - name of the endpoint under the profile which is unique globally.
 // customDomainName - name of the custom domain within an endpoint.
-func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string) (result CustomDomain, err error) {
+// customDomainHTTPSParameters - the configuration specifying how to enable HTTPS for the custom domain - using
+// CDN managed certificate or user's own certificate. If not specified, enabling ssl uses CDN managed
+// certificate by default.
+func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string, customDomainHTTPSParameters *BasicCustomDomainHTTPSParameters) (result CustomDomain, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/CustomDomainsClient.EnableCustomHTTPS")
 		defer func() {
@@ -340,7 +342,7 @@ func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourc
 		return result, validation.NewError("cdn.CustomDomainsClient", "EnableCustomHTTPS", err.Error())
 	}
 
-	req, err := client.EnableCustomHTTPSPreparer(ctx, resourceGroupName, profileName, endpointName, customDomainName)
+	req, err := client.EnableCustomHTTPSPreparer(ctx, resourceGroupName, profileName, endpointName, customDomainName, customDomainHTTPSParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cdn.CustomDomainsClient", "EnableCustomHTTPS", nil, "Failure preparing request")
 		return
@@ -362,7 +364,7 @@ func (client CustomDomainsClient) EnableCustomHTTPS(ctx context.Context, resourc
 }
 
 // EnableCustomHTTPSPreparer prepares the EnableCustomHTTPS request.
-func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string) (*http.Request, error) {
+func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context, resourceGroupName string, profileName string, endpointName string, customDomainName string, customDomainHTTPSParameters *BasicCustomDomainHTTPSParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"customDomainName":  autorest.Encode("path", customDomainName),
 		"endpointName":      autorest.Encode("path", endpointName),
@@ -377,18 +379,23 @@ func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Cdn/profiles/{profileName}/endpoints/{endpointName}/customDomains/{customDomainName}/enableCustomHttps", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
+	if customDomainHTTPSParameters != nil {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithJSON(customDomainHTTPSParameters))
+	}
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 
 // EnableCustomHTTPSSender sends the EnableCustomHTTPS request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) EnableCustomHTTPSSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // EnableCustomHTTPSResponder handles the response to the EnableCustomHTTPS request. The method always
@@ -476,8 +483,8 @@ func (client CustomDomainsClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -564,8 +571,8 @@ func (client CustomDomainsClient) ListByEndpointPreparer(ctx context.Context, re
 // ListByEndpointSender sends the ListByEndpoint request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) ListByEndpointSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByEndpointResponder handles the response to the ListByEndpoint request. The method always

@@ -8,11 +8,15 @@ import (
 
 	"bytes"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,9 +43,9 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"orchestration_platform": {
 				Type:         schema.TypeString,
@@ -138,7 +142,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 						"vm_size": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -186,7 +190,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceDiagnosticProfilesHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -194,14 +198,14 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	ctx := meta.(*ArmClient).StopContext
-	containerServiceClient := client.containerServicesClient
+	containerServiceClient := client.containers.ServicesClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Container Service creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := containerServiceClient.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -214,7 +218,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	orchestrationPlatform := d.Get("orchestration_platform").(string)
 
@@ -223,7 +227,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 	agentProfiles := expandAzureRmContainerServiceAgentProfiles(d)
 	diagnosticsProfile := expandAzureRmContainerServiceDiagnostics(d)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := containerservice.ContainerService{
 		Name:     &name,
@@ -237,7 +241,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 			AgentPoolProfiles:  &agentProfiles,
 			DiagnosticsProfile: &diagnosticsProfile,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	servicePrincipalProfile := expandAzureRmContainerServiceServicePrincipal(d)
@@ -276,9 +280,9 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
-	containerServiceClient := meta.(*ArmClient).containerServicesClient
+	containerServiceClient := meta.(*ArmClient).containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -299,7 +303,7 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("orchestration_platform", string(resp.Properties.OrchestratorProfile.OrchestratorType))
@@ -323,16 +327,14 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("diagnostics_profile", diagnosticProfile)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	containerServiceClient := client.containerServicesClient
+	containerServiceClient := client.containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -548,7 +550,7 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		ctx := client.StopContext
-		res, err := client.containerServicesClient.Get(ctx, resourceGroupName, containerServiceName)
+		res, err := client.containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
 		}

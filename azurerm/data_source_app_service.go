@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,9 +20,9 @@ func dataSourceArmAppService() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
@@ -77,7 +78,7 @@ func dataSourceArmAppService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -132,7 +133,7 @@ func dataSourceArmAppService() *schema.Resource {
 	}
 }
 func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -174,7 +175,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 	if err != nil {
 		return err
 	}
-	siteCredResp, err := siteCredFuture.Result(client)
+	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
 	}
@@ -184,7 +185,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.SiteProperties; props != nil {
@@ -220,7 +221,5 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

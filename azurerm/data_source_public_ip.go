@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,9 +20,9 @@ func dataSourceArmPublicIP() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -62,15 +64,15 @@ func dataSourceArmPublicIP() *schema.Resource {
 				Computed: true,
 			},
 
-			"zones": zonesSchemaComputed(),
+			"zones": azure.SchemaZonesComputed(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPClient
+	client := meta.(*ArmClient).network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -101,7 +103,7 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("idle_timeout_in_minutes", 0)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -121,6 +123,5 @@ func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("idle_timeout_in_minutes", props.IdleTimeoutInMinutes)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

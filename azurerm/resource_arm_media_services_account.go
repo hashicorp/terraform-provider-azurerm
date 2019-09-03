@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,9 +35,9 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"storage_account": {
 				Type:     schema.TypeSet,
@@ -60,17 +61,17 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 
 			// TODO: support Tags when this bug is fixed:
 			// https://github.com/Azure/azure-rest-api-specs/issues/5249
-			//"tags": tagsSchema(),
+			//"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mediaServicesClient
+	client := meta.(*ArmClient).media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	accountName := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
@@ -100,10 +101,10 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mediaServicesClient
+	client := meta.(*ArmClient).media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -125,7 +126,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ServiceProperties; props != nil {
@@ -135,16 +136,14 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	//flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mediaServicesClient
+	client := meta.(*ArmClient).media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

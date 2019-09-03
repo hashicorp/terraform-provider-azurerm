@@ -7,7 +7,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,9 +31,9 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -56,26 +58,26 @@ func resourceArmPublicIpPrefix() *schema.Resource {
 				Computed: true,
 			},
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPPrefixClient
+	client := meta.(*ArmClient).network.PublicIPPrefixesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP Prefix creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
 	prefix_length := d.Get("prefix_length").(int)
-	tags := d.Get("tags").(map[string]interface{})
-	zones := expandZones(d.Get("zones").([]interface{}))
+	t := d.Get("tags").(map[string]interface{})
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 
 	publicIpPrefix := network.PublicIPPrefix{
 		Name:     &name,
@@ -86,7 +88,7 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 		PublicIPPrefixPropertiesFormat: &network.PublicIPPrefixPropertiesFormat{
 			PrefixLength: utils.Int32(int32(prefix_length)),
 		},
-		Tags:  expandTags(tags),
+		Tags:  tags.Expand(t),
 		Zones: zones,
 	}
 
@@ -113,10 +115,10 @@ func resourceArmPublicIpPrefixCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPPrefixClient
+	client := meta.(*ArmClient).network.PublicIPPrefixesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -137,7 +139,7 @@ func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("resource_group_name", resGroup)
 	d.Set("zones", resp.Zones)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -149,16 +151,14 @@ func resourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_prefix", props.IPPrefix)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPublicIpPrefixDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPPrefixClient
+	client := meta.(*ArmClient).network.PublicIPPrefixesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

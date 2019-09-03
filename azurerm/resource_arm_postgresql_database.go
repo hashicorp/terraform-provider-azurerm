@@ -5,7 +5,11 @@ import (
 	"log"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -29,7 +33,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:     schema.TypeString,
@@ -40,7 +44,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 			"charset": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
 			},
 
@@ -48,14 +52,14 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCollation(),
+				ValidateFunc: validate.DatabaseCollation,
 			},
 		},
 	}
 }
 
 func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlDatabasesClient
+	client := meta.(*ArmClient).postgres.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Database creation.")
@@ -67,7 +71,7 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 	charset := d.Get("charset").(string)
 	collation := d.Get("collation").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -110,10 +114,10 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlDatabasesClient
+	client := meta.(*ArmClient).postgres.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,10 +153,10 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlDatabasesClient
+	client := meta.(*ArmClient).postgres.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -84,6 +84,10 @@ func (client DdosProtectionPlansClient) CreateOrUpdatePreparer(ctx context.Conte
 		"api-version": APIVersion,
 	}
 
+	parameters.ID = nil
+	parameters.Name = nil
+	parameters.Type = nil
+	parameters.Etag = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
@@ -97,9 +101,9 @@ func (client DdosProtectionPlansClient) CreateOrUpdatePreparer(ctx context.Conte
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client DdosProtectionPlansClient) CreateOrUpdateSender(req *http.Request) (future DdosProtectionPlansCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -174,9 +178,9 @@ func (client DdosProtectionPlansClient) DeletePreparer(ctx context.Context, reso
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client DdosProtectionPlansClient) DeleteSender(req *http.Request) (future DdosProtectionPlansDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -256,8 +260,8 @@ func (client DdosProtectionPlansClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client DdosProtectionPlansClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -329,8 +333,8 @@ func (client DdosProtectionPlansClient) ListPreparer(ctx context.Context) (*http
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client DdosProtectionPlansClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -442,8 +446,8 @@ func (client DdosProtectionPlansClient) ListByResourceGroupPreparer(ctx context.
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client DdosProtectionPlansClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -493,5 +497,85 @@ func (client DdosProtectionPlansClient) ListByResourceGroupComplete(ctx context.
 		}()
 	}
 	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName)
+	return
+}
+
+// UpdateTags update a DDoS protection plan tags
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// ddosProtectionPlanName - the name of the DDoS protection plan.
+// parameters - parameters supplied to the update DDoS protection plan resource tags.
+func (client DdosProtectionPlansClient) UpdateTags(ctx context.Context, resourceGroupName string, ddosProtectionPlanName string, parameters TagsObject) (result DdosProtectionPlansUpdateTagsFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DdosProtectionPlansClient.UpdateTags")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	req, err := client.UpdateTagsPreparer(ctx, resourceGroupName, ddosProtectionPlanName, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "network.DdosProtectionPlansClient", "UpdateTags", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.UpdateTagsSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "network.DdosProtectionPlansClient", "UpdateTags", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// UpdateTagsPreparer prepares the UpdateTags request.
+func (client DdosProtectionPlansClient) UpdateTagsPreparer(ctx context.Context, resourceGroupName string, ddosProtectionPlanName string, parameters TagsObject) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"ddosProtectionPlanName": autorest.Encode("path", ddosProtectionPlanName),
+		"resourceGroupName":      autorest.Encode("path", resourceGroupName),
+		"subscriptionId":         autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2018-12-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/ddosProtectionPlans/{ddosProtectionPlanName}", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateTagsSender sends the UpdateTags request. The method will close the
+// http.Response Body if it receives an error.
+func (client DdosProtectionPlansClient) UpdateTagsSender(req *http.Request) (future DdosProtectionPlansUpdateTagsFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req, sd...)
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// UpdateTagsResponder handles the response to the UpdateTags request. The method always
+// closes the http.Response Body.
+func (client DdosProtectionPlansClient) UpdateTagsResponder(resp *http.Response) (result DdosProtectionPlan, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }

@@ -64,7 +64,7 @@ func resourceArmLogicAppActionCustomCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func resourceArmLogicAppActionCustomRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLogicAppActionCustomDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

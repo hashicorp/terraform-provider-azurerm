@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -41,7 +42,7 @@ func TestAccAzureRMApiManagementLogger_basicEventHub(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementLogger_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -225,14 +226,14 @@ func testCheckAzureRMApiManagementLoggerExists(resourceName string) resource.Tes
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementLoggerClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.LoggerClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Logger %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementLoggerClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.LoggerClient: %+v", err)
 		}
 
 		return nil
@@ -240,7 +241,7 @@ func testCheckAzureRMApiManagementLoggerExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMApiManagementLoggerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementLoggerClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.LoggerClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -254,7 +255,7 @@ func testCheckAzureRMApiManagementLoggerDestroy(s *terraform.State) error {
 
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on apiManagementLoggerClient: %+v", err)
+				return fmt.Errorf("Bad: Get on apiManagement.LoggerClient: %+v", err)
 			}
 		}
 
@@ -305,7 +306,7 @@ resource "azurerm_api_management_logger" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   eventhub {
-    name = "${azurerm_eventhub.test.name}"
+    name              = "${azurerm_eventhub.test.name}"
     connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
   }
 }
@@ -323,7 +324,7 @@ resource "azurerm_api_management_logger" "import" {
   resource_group_name = "${azurerm_api_management_logger.test.resource_group_name}"
 
   eventhub {
-    name = "${azurerm_eventhub.test.name}"
+    name              = "${azurerm_eventhub.test.name}"
     connection_string = "${azurerm_eventhub_namespace.test.default_primary_connection_string}"
   }
 }

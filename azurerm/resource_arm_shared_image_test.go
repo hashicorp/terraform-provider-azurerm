@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMSharedImage_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSharedImage_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -95,7 +96,7 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 }
 
 func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).galleryImagesClient
+	client := testAccProvider.Meta().(*ArmClient).compute.GalleryImagesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -138,7 +139,7 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image: %s", imageName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).galleryImagesClient
+		client := testAccProvider.Meta().(*ArmClient).compute.GalleryImagesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName)

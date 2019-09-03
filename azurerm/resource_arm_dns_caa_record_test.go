@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
@@ -37,7 +38,7 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsCaaRecord_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -145,7 +146,7 @@ func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS CAA record: %s", caaName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, caaName, dns.CAA)
 		if err != nil {
@@ -161,7 +162,7 @@ func testCheckAzureRMDnsCaaRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsCaaRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

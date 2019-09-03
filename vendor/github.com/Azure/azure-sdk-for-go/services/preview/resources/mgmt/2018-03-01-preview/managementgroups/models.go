@@ -194,11 +194,11 @@ type CheckNameAvailabilityRequest struct {
 // availability.
 type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
-	// NameAvailable - Required. True indicates name is valid and available. False indicates the name is invalid, unavailable, or both.
+	// NameAvailable - READ-ONLY; Required. True indicates name is valid and available. False indicates the name is invalid, unavailable, or both.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
-	// Reason - Required if nameAvailable == false. Invalid indicates the name provided does not match the resource provider's naming requirements (incorrect length, unsupported characters, etc.) AlreadyExists indicates that the name is already in use and is therefore unavailable. Possible values include: 'Invalid', 'AlreadyExists'
+	// Reason - READ-ONLY; Required if nameAvailable == false. Invalid indicates the name provided does not match the resource provider's naming requirements (incorrect length, unsupported characters, etc.) AlreadyExists indicates that the name is already in use and is therefore unavailable. Possible values include: 'Invalid', 'AlreadyExists'
 	Reason Reason `json:"reason,omitempty"`
-	// Message - Required if nameAvailable == false. Localized. If reason == invalid, provide the user with the reason why the given name is invalid, and provide the resource naming requirements so that the user can select a valid name. If reason == AlreadyExists, explain that is already in use, and direct them to select a different name.
+	// Message - READ-ONLY; Required if nameAvailable == false. Localized. If reason == invalid, provide the user with the reason why the given name is invalid, and provide the resource naming requirements so that the user can select a valid name. If reason == AlreadyExists, explain that is already in use, and direct them to select a different name.
 	Message *string `json:"message,omitempty"`
 }
 
@@ -220,49 +220,49 @@ type ChildInfo struct {
 
 // CreateManagementGroupChildInfo the child information of a management group used during creation.
 type CreateManagementGroupChildInfo struct {
-	// Type - The fully qualified resource type which includes provider namespace (e.g. /providers/Microsoft.Management/managementGroups). Possible values include: 'Type2ProvidersMicrosoftManagementmanagementGroups', 'Type2Subscriptions'
+	// Type - READ-ONLY; The fully qualified resource type which includes provider namespace (e.g. /providers/Microsoft.Management/managementGroups). Possible values include: 'Type2ProvidersMicrosoftManagementmanagementGroups', 'Type2Subscriptions'
 	Type Type2 `json:"type,omitempty"`
-	// ID - The fully qualified ID for the child resource (management group or subscription).  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	// ID - READ-ONLY; The fully qualified ID for the child resource (management group or subscription).  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the child entity.
+	// Name - READ-ONLY; The name of the child entity.
 	Name *string `json:"name,omitempty"`
-	// DisplayName - The friendly name of the child resource.
+	// DisplayName - READ-ONLY; The friendly name of the child resource.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Roles - The roles definitions associated with the management group.
+	// Roles - READ-ONLY; The roles definitions associated with the management group.
 	Roles *[]string `json:"roles,omitempty"`
-	// Children - The list of children.
+	// Children - READ-ONLY; The list of children.
 	Children *[]CreateManagementGroupChildInfo `json:"children,omitempty"`
 }
 
 // CreateManagementGroupDetails the details of a management group used during creation.
 type CreateManagementGroupDetails struct {
-	// Version - The version number of the object.
+	// Version - READ-ONLY; The version number of the object.
 	Version *float64 `json:"version,omitempty"`
-	// UpdatedTime - The date and time when this object was last updated.
+	// UpdatedTime - READ-ONLY; The date and time when this object was last updated.
 	UpdatedTime *date.Time `json:"updatedTime,omitempty"`
-	// UpdatedBy - The identity of the principal or process that updated the object.
+	// UpdatedBy - READ-ONLY; The identity of the principal or process that updated the object.
 	UpdatedBy *string                `json:"updatedBy,omitempty"`
 	Parent    *CreateParentGroupInfo `json:"parent,omitempty"`
 }
 
 // CreateManagementGroupProperties the generic properties of a management group used during creation.
 type CreateManagementGroupProperties struct {
-	// TenantID - The AAD Tenant ID associated with the management group. For example, 00000000-0000-0000-0000-000000000000
+	// TenantID - READ-ONLY; The AAD Tenant ID associated with the management group. For example, 00000000-0000-0000-0000-000000000000
 	TenantID *string `json:"tenantId,omitempty"`
 	// DisplayName - The friendly name of the management group. If no value is passed then this  field will be set to the groupId.
 	DisplayName *string `json:"displayName,omitempty"`
-	// Roles - The roles definitions associated with the management group.
+	// Roles - READ-ONLY; The roles definitions associated with the management group.
 	Roles   *[]string                     `json:"roles,omitempty"`
 	Details *CreateManagementGroupDetails `json:"details,omitempty"`
-	// Children - The list of children.
+	// Children - READ-ONLY; The list of children.
 	Children *[]CreateManagementGroupChildInfo `json:"children,omitempty"`
 }
 
 // CreateManagementGroupRequest management group creation parameters.
 type CreateManagementGroupRequest struct {
-	// ID - The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
 	// Name - The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name                             *string `json:"name,omitempty"`
@@ -272,12 +272,6 @@ type CreateManagementGroupRequest struct {
 // MarshalJSON is the custom marshaler for CreateManagementGroupRequest.
 func (cmgr CreateManagementGroupRequest) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if cmgr.ID != nil {
-		objectMap["id"] = cmgr.ID
-	}
-	if cmgr.Type != nil {
-		objectMap["type"] = cmgr.Type
-	}
 	if cmgr.Name != nil {
 		objectMap["name"] = cmgr.Name
 	}
@@ -348,7 +342,7 @@ type CreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *CreateOrUpdateFuture) Result(client Client) (so SetObject, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.CreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -371,9 +365,9 @@ func (future *CreateOrUpdateFuture) Result(client Client) (so SetObject, err err
 type CreateParentGroupInfo struct {
 	// ID - The fully qualified ID for the parent management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Name - The name of the parent management group
+	// Name - READ-ONLY; The name of the parent management group
 	Name *string `json:"name,omitempty"`
-	// DisplayName - The friendly name of the parent management group.
+	// DisplayName - READ-ONLY; The friendly name of the parent management group.
 	DisplayName *string `json:"displayName,omitempty"`
 }
 
@@ -386,7 +380,7 @@ type DeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *DeleteFuture) Result(client Client) (or OperationResults, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "managementgroups.DeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -405,6 +399,236 @@ func (future *DeleteFuture) Result(client Client) (or OperationResults, err erro
 	return
 }
 
+// DescendantInfo the descendant.
+type DescendantInfo struct {
+	// ID - READ-ONLY; The fully qualified ID for the descendant.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000 or /subscriptions/0000000-0000-0000-0000-000000000000
+	ID *string `json:"id,omitempty"`
+	// Type - READ-ONLY; The type of the resource. For example, /providers/Microsoft.Management/managementGroups or /subscriptions
+	Type *string `json:"type,omitempty"`
+	// Name - READ-ONLY; The name of the descendant. For example, 00000000-0000-0000-0000-000000000000
+	Name                      *string `json:"name,omitempty"`
+	*DescendantInfoProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for DescendantInfo.
+func (di DescendantInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if di.DescendantInfoProperties != nil {
+		objectMap["properties"] = di.DescendantInfoProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DescendantInfo struct.
+func (di *DescendantInfo) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				di.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				di.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				di.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var descendantInfoProperties DescendantInfoProperties
+				err = json.Unmarshal(*v, &descendantInfoProperties)
+				if err != nil {
+					return err
+				}
+				di.DescendantInfoProperties = &descendantInfoProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// DescendantInfoProperties the generic properties of an descendant.
+type DescendantInfoProperties struct {
+	// DisplayName - The friendly name of the management group.
+	DisplayName *string                    `json:"displayName,omitempty"`
+	Parent      *DescendantParentGroupInfo `json:"parent,omitempty"`
+}
+
+// DescendantListResult describes the result of the request to view descendants.
+type DescendantListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of descendants.
+	Value *[]DescendantInfo `json:"value,omitempty"`
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DescendantListResultIterator provides access to a complete listing of DescendantInfo values.
+type DescendantListResultIterator struct {
+	i    int
+	page DescendantListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DescendantListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DescendantListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DescendantListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DescendantListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DescendantListResultIterator) Response() DescendantListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DescendantListResultIterator) Value() DescendantInfo {
+	if !iter.page.NotDone() {
+		return DescendantInfo{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DescendantListResultIterator type.
+func NewDescendantListResultIterator(page DescendantListResultPage) DescendantListResultIterator {
+	return DescendantListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dlr DescendantListResult) IsEmpty() bool {
+	return dlr.Value == nil || len(*dlr.Value) == 0
+}
+
+// descendantListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dlr DescendantListResult) descendantListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if dlr.NextLink == nil || len(to.String(dlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dlr.NextLink)))
+}
+
+// DescendantListResultPage contains a page of DescendantInfo values.
+type DescendantListResultPage struct {
+	fn  func(context.Context, DescendantListResult) (DescendantListResult, error)
+	dlr DescendantListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DescendantListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DescendantListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.dlr)
+	if err != nil {
+		return err
+	}
+	page.dlr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DescendantListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DescendantListResultPage) NotDone() bool {
+	return !page.dlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DescendantListResultPage) Response() DescendantListResult {
+	return page.dlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DescendantListResultPage) Values() []DescendantInfo {
+	if page.dlr.IsEmpty() {
+		return nil
+	}
+	return *page.dlr.Value
+}
+
+// Creates a new instance of the DescendantListResultPage type.
+func NewDescendantListResultPage(getNextPage func(context.Context, DescendantListResult) (DescendantListResult, error)) DescendantListResultPage {
+	return DescendantListResultPage{fn: getNextPage}
+}
+
+// DescendantParentGroupInfo the ID of the parent management group.
+type DescendantParentGroupInfo struct {
+	// ID - The fully qualified ID for the parent management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	ID *string `json:"id,omitempty"`
+}
+
 // Details the details of a management group.
 type Details struct {
 	// Version - The version number of the object.
@@ -418,11 +642,11 @@ type Details struct {
 
 // EntityHierarchyItem the management group details for the hierarchy view.
 type EntityHierarchyItem struct {
-	// ID - The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
-	// Name - The name of the management group. For example, 00000000-0000-0000-0000-000000000000
+	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name                           *string `json:"name,omitempty"`
 	*EntityHierarchyItemProperties `json:"properties,omitempty"`
 }
@@ -430,15 +654,6 @@ type EntityHierarchyItem struct {
 // MarshalJSON is the custom marshaler for EntityHierarchyItem.
 func (ehi EntityHierarchyItem) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ehi.ID != nil {
-		objectMap["id"] = ehi.ID
-	}
-	if ehi.Type != nil {
-		objectMap["type"] = ehi.Type
-	}
-	if ehi.Name != nil {
-		objectMap["name"] = ehi.Name
-	}
 	if ehi.EntityHierarchyItemProperties != nil {
 		objectMap["properties"] = ehi.EntityHierarchyItemProperties
 	}
@@ -508,11 +723,11 @@ type EntityHierarchyItemProperties struct {
 
 // EntityInfo the entity.
 type EntityInfo struct {
-	// ID - The fully qualified ID for the entity.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	// ID - READ-ONLY; The fully qualified ID for the entity.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - The type of the resource. For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource. For example, /providers/Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
-	// Name - The name of the entity. For example, 00000000-0000-0000-0000-000000000000
+	// Name - READ-ONLY; The name of the entity. For example, 00000000-0000-0000-0000-000000000000
 	Name                  *string `json:"name,omitempty"`
 	*EntityInfoProperties `json:"properties,omitempty"`
 }
@@ -520,15 +735,6 @@ type EntityInfo struct {
 // MarshalJSON is the custom marshaler for EntityInfo.
 func (ei EntityInfo) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if ei.ID != nil {
-		objectMap["id"] = ei.ID
-	}
-	if ei.Type != nil {
-		objectMap["type"] = ei.Type
-	}
-	if ei.Name != nil {
-		objectMap["name"] = ei.Name
-	}
 	if ei.EntityInfoProperties != nil {
 		objectMap["properties"] = ei.EntityInfoProperties
 	}
@@ -613,9 +819,9 @@ type EntityListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of entities.
 	Value *[]EntityInfo `json:"value,omitempty"`
-	// Count - Total count of records that match the filter
+	// Count - READ-ONLY; Total count of records that match the filter
 	Count *int32 `json:"count,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -779,11 +985,11 @@ type ErrorResponse struct {
 
 // Info the management group resource.
 type Info struct {
-	// ID - The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - The type of the resource. For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource. For example, /providers/Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
-	// Name - The name of the management group. For example, 00000000-0000-0000-0000-000000000000
+	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name            *string `json:"name,omitempty"`
 	*InfoProperties `json:"properties,omitempty"`
 }
@@ -791,15 +997,6 @@ type Info struct {
 // MarshalJSON is the custom marshaler for Info.
 func (i Info) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if i.ID != nil {
-		objectMap["id"] = i.ID
-	}
-	if i.Type != nil {
-		objectMap["type"] = i.Type
-	}
-	if i.Name != nil {
-		objectMap["name"] = i.Name
-	}
 	if i.InfoProperties != nil {
 		objectMap["properties"] = i.InfoProperties
 	}
@@ -870,7 +1067,7 @@ type ListResult struct {
 	autorest.Response `json:"-"`
 	// Value - The list of management groups.
 	Value *[]Info `json:"value,omitempty"`
-	// NextLink - The URL to use for getting the next set of results.
+	// NextLink - READ-ONLY; The URL to use for getting the next set of results.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1014,11 +1211,11 @@ func NewListResultPage(getNextPage func(context.Context, ListResult) (ListResult
 // ManagementGroup the management group details.
 type ManagementGroup struct {
 	autorest.Response `json:"-"`
-	// ID - The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
-	// Name - The name of the management group. For example, 00000000-0000-0000-0000-000000000000
+	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name        *string `json:"name,omitempty"`
 	*Properties `json:"properties,omitempty"`
 }
@@ -1026,15 +1223,6 @@ type ManagementGroup struct {
 // MarshalJSON is the custom marshaler for ManagementGroup.
 func (mg ManagementGroup) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if mg.ID != nil {
-		objectMap["id"] = mg.ID
-	}
-	if mg.Type != nil {
-		objectMap["type"] = mg.Type
-	}
-	if mg.Name != nil {
-		objectMap["name"] = mg.Name
-	}
 	if mg.Properties != nil {
 		objectMap["properties"] = mg.Properties
 	}
@@ -1094,29 +1282,29 @@ func (mg *ManagementGroup) UnmarshalJSON(body []byte) error {
 
 // Operation operation supported by the Microsoft.Management resource provider.
 type Operation struct {
-	// Name - Operation name: {provider}/{resource}/{operation}.
+	// Name - READ-ONLY; Operation name: {provider}/{resource}/{operation}.
 	Name    *string                     `json:"name,omitempty"`
 	Display *OperationDisplayProperties `json:"display,omitempty"`
 }
 
 // OperationDisplayProperties the object that represents the operation.
 type OperationDisplayProperties struct {
-	// Provider - The name of the provider.
+	// Provider - READ-ONLY; The name of the provider.
 	Provider *string `json:"provider,omitempty"`
-	// Resource - The resource on which the operation is performed.
+	// Resource - READ-ONLY; The resource on which the operation is performed.
 	Resource *string `json:"resource,omitempty"`
-	// Operation - The operation that can be performed.
+	// Operation - READ-ONLY; The operation that can be performed.
 	Operation *string `json:"operation,omitempty"`
-	// Description - Operation description.
+	// Description - READ-ONLY; Operation description.
 	Description *string `json:"description,omitempty"`
 }
 
 // OperationListResult describes the result of the request to list Microsoft.Management operations.
 type OperationListResult struct {
 	autorest.Response `json:"-"`
-	// Value - List of operations supported by the Microsoft.Management resource provider.
+	// Value - READ-ONLY; List of operations supported by the Microsoft.Management resource provider.
 	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - URL to get the next set of operation list results if there are any.
+	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -1260,11 +1448,11 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 // OperationResults the results of an asynchronous operation.
 type OperationResults struct {
 	autorest.Response `json:"-"`
-	// ID - The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
+	// ID - READ-ONLY; The fully qualified ID for the management group.  For example, /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000
 	ID *string `json:"id,omitempty"`
-	// Type - The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
+	// Type - READ-ONLY; The type of the resource.  For example, /providers/Microsoft.Management/managementGroups
 	Type *string `json:"type,omitempty"`
-	// Name - The name of the management group. For example, 00000000-0000-0000-0000-000000000000
+	// Name - READ-ONLY; The name of the management group. For example, 00000000-0000-0000-0000-000000000000
 	Name                        *string `json:"name,omitempty"`
 	*OperationResultsProperties `json:"properties,omitempty"`
 }
@@ -1272,15 +1460,6 @@ type OperationResults struct {
 // MarshalJSON is the custom marshaler for OperationResults.
 func (or OperationResults) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if or.ID != nil {
-		objectMap["id"] = or.ID
-	}
-	if or.Type != nil {
-		objectMap["type"] = or.Type
-	}
-	if or.Name != nil {
-		objectMap["name"] = or.Name
-	}
 	if or.OperationResultsProperties != nil {
 		objectMap["properties"] = or.OperationResultsProperties
 	}
@@ -1384,8 +1563,8 @@ type SetObject struct {
 // TenantBackfillStatusResult the tenant backfill status
 type TenantBackfillStatusResult struct {
 	autorest.Response `json:"-"`
-	// TenantID - The AAD Tenant ID associated with the management group. For example, 00000000-0000-0000-0000-000000000000
+	// TenantID - READ-ONLY; The AAD Tenant ID associated with the management group. For example, 00000000-0000-0000-0000-000000000000
 	TenantID *string `json:"tenantId,omitempty"`
-	// Status - The status of the Tenant Backfill. Possible values include: 'NotStarted', 'NotStartedButGroupsExist', 'Started', 'Failed', 'Cancelled', 'Completed'
+	// Status - READ-ONLY; The status of the Tenant Backfill. Possible values include: 'NotStarted', 'NotStartedButGroupsExist', 'Started', 'Failed', 'Cancelled', 'Completed'
 	Status Status `json:"status,omitempty"`
 }

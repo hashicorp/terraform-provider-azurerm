@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_api_management_api.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -35,7 +35,7 @@ func TestAccDataSourceAzureRMApiManagementApi_basic(t *testing.T) {
 
 func TestAccDataSourceAzureRMApiManagementApi_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_api_management_api.test"
-	rInt := acctest.RandInt()
+	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{

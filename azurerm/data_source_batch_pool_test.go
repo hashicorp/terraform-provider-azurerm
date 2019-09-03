@@ -29,9 +29,9 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
 					resource.TestCheckResourceAttr(dataSourceName, "vm_size", "STANDARD_A1"),
 					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.publisher", "Canonical"),
-					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.sku", "16.04.0-LTS"),
-					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.offer", "UbuntuServer"),
+					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.publisher", "microsoft-azure-batch"),
+					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.sku", "16-04-lts"),
+					resource.TestCheckResourceAttr(dataSourceName, "storage_image_reference.0.offer", "ubuntu-server-container"),
 					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.0.target_dedicated_nodes", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "fixed_scale.0.resize_timeout", "PT15M"),
@@ -53,6 +53,10 @@ func TestAccDataSourceAzureRMBatchPool_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.#", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.3294600504", "StartTask"),
 					resource.TestCheckResourceAttr(dataSourceName, "certificate.0.visibility.4077195354", "RemoteUser"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.type", "DockerCompatible"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
+					resource.TestCheckResourceAttr(dataSourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
 				),
 			},
 		},
@@ -87,23 +91,23 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "test" {
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
-	format               = "Pfx"
-	password             = "terraform"
-	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
-	thumbprint_algorithm = "SHA1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  format               = "Pfx"
+  password             = "terraform"
+  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
+  thumbprint_algorithm = "SHA1"
 }
 
 resource "azurerm_batch_pool" "test" {
-  name                   = "testaccpool%s"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  account_name           = "${azurerm_batch_account.test.name}"
-  display_name           = "Test Acc Pool"
-  vm_size                = "Standard_A1"
-  node_agent_sku_id      = "batch.node.ubuntu 16.04"
-  max_tasks_per_node     = 2
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  display_name        = "Test Acc Pool"
+  vm_size             = "Standard_A1"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  max_tasks_per_node  = 2
 
   fixed_scale {
     target_dedicated_nodes = 2
@@ -111,18 +115,29 @@ resource "azurerm_batch_pool" "test" {
   }
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "16.04.0-LTS"
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "16-04-lts"
     version   = "latest"
   }
 
   certificate {
     id             = "${azurerm_batch_certificate.test.id}"
     store_location = "CurrentUser"
-    visibility     = [ "StartTask", "RemoteUser" ]
+    visibility     = ["StartTask", "RemoteUser"]
   }
-  
+
+  container_configuration {
+    type = "DockerCompatible"
+    container_registries= [
+      {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      },
+    ]
+  }
+
   start_task {
     command_line         = "echo 'Hello World from $env'"
     max_task_retry_count = 1

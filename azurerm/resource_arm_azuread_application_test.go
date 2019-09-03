@@ -138,7 +138,7 @@ func testCheckAzureRMActiveDirectoryApplicationExists(resourceName string) resou
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).applicationsClient
+		client := testAccProvider.Meta().(*ArmClient).graph.ApplicationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
@@ -159,7 +159,7 @@ func testCheckAzureRMActiveDirectoryApplicationDestroy(s *terraform.State) error
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).applicationsClient
+		client := testAccProvider.Meta().(*ArmClient).graph.ApplicationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 

@@ -10,7 +10,9 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -95,7 +97,7 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 }
 
 func TestAccAzureRMImage_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -244,10 +246,10 @@ func TestAccAzureRMImageVMSS_customImageVMSSFromVHD(t *testing.T) {
 func testGeneralizeVMImage(resourceGroup string, vmName string, userName string, password string, hostName string, port string, location string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		armClient := testAccProvider.Meta().(*ArmClient)
-		vmClient := armClient.vmClient
+		vmClient := armClient.compute.VMClient
 		ctx := armClient.StopContext
 
-		normalizedLocation := azureRMNormalizeLocation(location)
+		normalizedLocation := azure.NormalizeLocation(location)
 		suffix := armClient.environment.ResourceManagerVMDNSSuffix
 		dnsName := fmt.Sprintf("%s.%s.%s", hostName, normalizedLocation, suffix)
 
@@ -322,7 +324,7 @@ func testCheckAzureRMImageExists(resourceName string, shouldExist bool) resource
 			return fmt.Errorf("Bad: no resource group found in state for image: %s", dName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).imageClient
+		client := testAccProvider.Meta().(*ArmClient).compute.ImagesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dName, "")
@@ -345,7 +347,7 @@ func testCheckAzureVMExists(sourceVM string, shouldExist bool) resource.TestChec
 	return func(s *terraform.State) error {
 		log.Printf("[INFO] testing MANAGED IMAGE VM EXISTS - BEGIN.")
 
-		client := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		vmRs, vmOk := s.RootModule().Resources[sourceVM]
 		if !vmOk {
@@ -380,7 +382,7 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 	return func(s *terraform.State) error {
 		log.Printf("[INFO] testing MANAGED IMAGE VMSS EXISTS - BEGIN.")
 
-		vmssClient := testAccProvider.Meta().(*ArmClient).vmScaleSetClient
+		vmssClient := testAccProvider.Meta().(*ArmClient).compute.VMScaleSetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		vmRs, vmOk := s.RootModule().Resources[sourceVMSS]
 		if !vmOk {
@@ -412,7 +414,7 @@ func testCheckAzureVMSSExists(sourceVMSS string, shouldExist bool) resource.Test
 }
 
 func testCheckAzureRMImageDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).diskClient
+	client := testAccProvider.Meta().(*ArmClient).compute.DisksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -663,7 +665,6 @@ func testAccAzureRMImage_standaloneImage_requiresImport(rInt int, userName strin
 	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location, "LRS")
 	return fmt.Sprintf(`
 %s
-
 
 resource "azurerm_image" "import" {
   name                = "${azurerm_image.test.name}"

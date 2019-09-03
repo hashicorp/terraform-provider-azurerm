@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMApiManagementOpenIDConnectProvider_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementOpenIDConnectProvider_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -106,14 +107,14 @@ func testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName strin
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementOpenIdConnectClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.OpenIdConnectClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: OpenID Connect Provider %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementOpenIdConnectClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.OpenIdConnectClient: %+v", err)
 		}
 
 		return nil
@@ -121,7 +122,7 @@ func testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName strin
 }
 
 func testCheckAzureRMApiManagementOpenIDConnectProviderDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementOpenIdConnectClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.OpenIdConnectClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -135,7 +136,7 @@ func testCheckAzureRMApiManagementOpenIDConnectProviderDestroy(s *terraform.Stat
 
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on apiManagementOpenIdConnectClient: %+v", err)
+				return fmt.Errorf("Bad: Get on apiManagement.OpenIdConnectClient: %+v", err)
 			}
 		}
 

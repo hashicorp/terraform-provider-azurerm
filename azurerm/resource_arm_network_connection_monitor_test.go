@@ -8,7 +8,9 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
@@ -27,7 +29,7 @@ func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(resourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(resourceName, "auto_start", "true"),
 					resource.TestCheckResourceAttr(resourceName, "interval_in_seconds", "60"),
 				),
@@ -42,7 +44,7 @@ func testAccAzureRMNetworkConnectionMonitor_addressBasic(t *testing.T) {
 }
 
 func testAccAzureRMNetworkConnectionMonitor_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -158,7 +160,7 @@ func testAccAzureRMNetworkConnectionMonitor_vmBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkConnectionMonitorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(resourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(resourceName, "auto_start", "true"),
 					resource.TestCheckResourceAttr(resourceName, "interval_in_seconds", "60"),
 				),
@@ -318,7 +320,7 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T
 
 func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).connectionMonitorsClient
+		client := testAccProvider.Meta().(*ArmClient).network.ConnectionMonitorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -344,7 +346,7 @@ func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resourc
 }
 
 func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).connectionMonitorsClient
+	client := testAccProvider.Meta().(*ArmClient).network.ConnectionMonitorsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -522,7 +524,7 @@ resource "azurerm_network_connection_monitor" "test" {
 
   destination {
     address = "terraform.io"
-    port = 80
+    port    = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]
@@ -661,9 +663,9 @@ resource "azurerm_network_connection_monitor" "test" {
   }
 
   destination {
-		address            = "terraform.io"
-		virtual_machine_id = "${azurerm_virtual_machine.src.id}"
-		port               = 80
+    address            = "terraform.io"
+    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    port               = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]
@@ -688,7 +690,7 @@ resource "azurerm_network_connection_monitor" "import" {
 
   destination {
     address = "terraform.io"
-    port = 80
+    port    = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]

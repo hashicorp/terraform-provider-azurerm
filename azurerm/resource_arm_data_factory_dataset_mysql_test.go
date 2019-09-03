@@ -7,13 +7,12 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/acctest"
 )
 
 func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryDatasetMySQL_basic(ri, testLocation())
 	resourceName := "azurerm_data_factory_dataset_mysql.test"
 
@@ -38,7 +37,7 @@ func TestAccAzureRMDataFactoryDatasetMySQL_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDataFactoryDatasetMySQL_update(t *testing.T) {
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMDataFactoryDatasetMySQL_update1(ri, testLocation())
 	config2 := testAccAzureRMDataFactoryDatasetMySQL_update2(ri, testLocation())
 	resourceName := "azurerm_data_factory_dataset_mysql.test"
@@ -94,7 +93,7 @@ func testCheckAzureRMDataFactoryDatasetMySQLExists(name string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactoryDatasetClient
+		client := testAccProvider.Meta().(*ArmClient).dataFactory.DatasetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -111,7 +110,7 @@ func testCheckAzureRMDataFactoryDatasetMySQLExists(name string) resource.TestChe
 }
 
 func testCheckAzureRMDataFactoryDatasetMySQLDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactoryDatasetClient
+	client := testAccProvider.Meta().(*ArmClient).dataFactory.DatasetClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -191,7 +190,7 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   linked_service_name = "${azurerm_data_factory_linked_service_mysql.test.name}"
- 
+
   description = "test description"
   annotations = ["test1", "test2", "test3"]
   table_name  = "testTable"
@@ -201,12 +200,12 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
     foo = "test1"
     bar = "test2"
   }
- 
+
   additional_properties = {
     foo = "test1"
     bar = "test2"
   }
-	
+
   schema_column {
     name        = "test1"
     type        = "Byte"
@@ -241,7 +240,7 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   linked_service_name = "${azurerm_data_factory_linked_service_mysql.test.name}"
- 
+
   description = "test description 2"
   annotations = ["test1", "test2"]
   table_name  = "testTable"
@@ -252,17 +251,17 @@ resource "azurerm_data_factory_dataset_mysql" "test" {
     bar  = "test2"
     buzz = "test3"
   }
- 
+
   additional_properties = {
     foo = "test1"
   }
-	
+
   schema_column {
     name        = "test1"
     type        = "Byte"
     description = "description"
   }
-	
+
   schema_column {
     name        = "test2"
     type        = "Byte"

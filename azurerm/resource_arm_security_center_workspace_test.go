@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -43,7 +44,7 @@ func testAccAzureRMSecurityCenterWorkspace_basic(t *testing.T) {
 }
 
 func testAccAzureRMSecurityCenterWorkspace_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -116,7 +117,7 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 
 func testCheckAzureRMSecurityCenterWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).securityCenterWorkspaceClient
+		client := testAccProvider.Meta().(*ArmClient).securityCenter.WorkspaceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -140,7 +141,7 @@ func testCheckAzureRMSecurityCenterWorkspaceExists(resourceName string) resource
 }
 
 func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).securityCenterWorkspaceClient
+	client := testAccProvider.Meta().(*ArmClient).securityCenter.WorkspaceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, res := range s.RootModule().Resources {

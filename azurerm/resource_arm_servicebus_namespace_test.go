@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
@@ -36,7 +37,7 @@ func TestAccAzureRMServiceBusNamespace_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMServiceBusNamespace_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -181,7 +182,7 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).servicebus.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -220,7 +221,7 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).serviceBusNamespacesClient
+		client := testAccProvider.Meta().(*ArmClient).servicebus.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName)

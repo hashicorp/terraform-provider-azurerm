@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMAutomationRunbook_PSWorkflow(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationRunbook_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -119,7 +120,7 @@ func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automationRunbookClient
+	conn := testAccProvider.Meta().(*ArmClient).automation.RunbookClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -168,7 +169,7 @@ func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Automation Runbook: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automationRunbookClient
+		conn := testAccProvider.Meta().(*ArmClient).automation.RunbookClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

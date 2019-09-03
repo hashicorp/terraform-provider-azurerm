@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
@@ -37,7 +38,7 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsPtrRecord_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -146,7 +147,7 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS PTR record: %s", ptrName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dnsClient
+		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, ptrName, dns.PTR)
 		if err != nil {
@@ -162,7 +163,7 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dnsClient
+	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
