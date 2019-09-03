@@ -16,9 +16,9 @@ import (
 
 func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServicePostgreSQLCreateOrUpdate,
+		Create: resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate,
 		Read:   resourceArmDataFactoryLinkedServicePostgreSQLRead,
-		Update: resourceArmDataFactoryLinkedServicePostgreSQLCreateOrUpdate,
+		Update: resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate,
 		Delete: resourceArmDataFactoryLinkedServicePostgreSQLDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -87,7 +87,7 @@ func resourceArmDataFactoryLinkedServicePostgreSQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServicePostgreSQLCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServicePostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 

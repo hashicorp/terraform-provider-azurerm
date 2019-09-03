@@ -25,9 +25,9 @@ import (
 
 func resourceArmIotDPS() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotDPSCreateOrUpdate,
+		Create: resourceArmIotDPSCreateUpdate,
 		Read:   resourceArmIotDPSRead,
-		Update: resourceArmIotDPSCreateOrUpdate,
+		Update: resourceArmIotDPSCreateUpdate,
 		Delete: resourceArmIotDPSDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -136,7 +136,7 @@ func resourceArmIotDPS() *schema.Resource {
 	}
 }
 
-func resourceArmIotDPSCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSResourceClient
 	ctx := meta.(*ArmClient).StopContext
 

@@ -17,9 +17,9 @@ import (
 
 func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate,
+		Create: resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate,
 		Read:   resourceArmDataFactoryLinkedServiceSQLServerRead,
-		Update: resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate,
+		Update: resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate,
 		Delete: resourceArmDataFactoryLinkedServiceSQLServerDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -88,7 +88,7 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
