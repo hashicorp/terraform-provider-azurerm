@@ -14,8 +14,9 @@ import (
 func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 	resourceName := "azurerm_app_service_source_control_token.test"
 	token := strings.ToLower(acctest.RandString(41))
+	tokenSecret := strings.ToLower(acctest.RandString(41))
 
-	config := testAccAzureRMAppServiceSourceControlToken(token)
+	config := testAccAzureRMAppServiceSourceControlToken(token, tokenSecret)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -27,6 +28,7 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "type", "GitHub"),
 					resource.TestCheckResourceAttr(resourceName, "token", token),
+					resource.TestCheckResourceAttr(resourceName, "token_secret", tokenSecret),
 				),
 			},
 			{
@@ -38,13 +40,14 @@ func TestAccAzureRMAppServiceSourceControlToken(t *testing.T) {
 	})
 }
 
-func testAccAzureRMAppServiceSourceControlToken(token string) string {
+func testAccAzureRMAppServiceSourceControlToken(token, tokenSecret string) string {
 	return fmt.Sprintf(`
 resource "azurerm_app_service_source_control_token" "test" {
-  type  = "GitHub"
-  token = "%s"
+  type         = "GitHub"
+  token        = "%s"
+  token_secret = "%s"
 }
-`, token)
+`, token, tokenSecret)
 }
 
 func testCheckAzureRMAppServiceSourceControlTokenDestroy(s *terraform.State) error {

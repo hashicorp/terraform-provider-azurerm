@@ -30,6 +30,8 @@ The following arguments are supported:
 
 * `token` - (Required) The OAuth access token.
 
+* `token_secret` - (Optional) The OAuth access token secret.
+
 ## Import
 
 App Service source control tokens can be imported using the `type`, e.g.

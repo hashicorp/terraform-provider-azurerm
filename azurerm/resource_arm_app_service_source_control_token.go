@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -36,9 +37,17 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 			},
 
 			"token": {
-				Type:      schema.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"token_secret": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}
@@ -52,13 +61,15 @@ func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData,
 
 	scmType := d.Get("type").(string)
 	token := d.Get("token").(string)
+	tokenSecret := d.Get("token_secret").(string)
 
 	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
 	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
-			Token: utils.String(token),
+			Token:       utils.String(token),
+			TokenSecret: utils.String(tokenSecret),
 		},
 	}
 
@@ -99,6 +110,7 @@ func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta in
 
 	if props := resp.SourceControlProperties; props != nil {
 		d.Set("token", props.Token)
+		d.Set("token_secret", props.TokenSecret)
 	}
 
 	return nil
@@ -110,8 +122,9 @@ func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta 
 
 	scmType := d.Id()
 
-	// Delete cleans up existing token by setting the token to ""
+	// Delete cleans up existing tokens by setting their values to ""
 	token := ""
+	tokenSecret := ""
 
 	locks.ByName(scmType, appServiceSourceControlTokenResourceName)
 	defer locks.UnlockByName(scmType, appServiceSourceControlTokenResourceName)
@@ -120,7 +133,8 @@ func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta 
 
 	properties := web.SourceControl{
 		SourceControlProperties: &web.SourceControlProperties{
-			Token: utils.String(token),
+			Token:       utils.String(token),
+			TokenSecret: utils.String(tokenSecret),
 		},
 	}
 
