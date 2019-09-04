@@ -36,19 +36,21 @@ type BlobUpload struct {
 }
 
 func (sbu BlobUpload) Create(ctx context.Context) error {
-	// TODO: should we move this into the Block and Page blocks?
-	if sbu.SourceUri != "" {
-		return sbu.copy(ctx)
-	}
-
 	blobType := strings.ToLower(sbu.BlobType)
 
 	if blobType == "append" {
-		// TODO: if Source/SourceContent are set return an error
+		if sbu.Source != "" || sbu.SourceContent != "" || sbu.SourceUri != "" {
+			return fmt.Errorf("A source cannot be specified for an Append blob")
+		}
+
 		return sbu.createEmptyAppendBlob(ctx)
 	}
 
 	if blobType == "block" {
+		if sbu.SourceUri != "" {
+			return sbu.copy(ctx)
+		}
+
 		if sbu.SourceContent != "" {
 			return sbu.uploadBlockBlobFromContent(ctx)
 		}
@@ -60,6 +62,10 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 	}
 
 	if blobType == "page" {
+		if sbu.SourceUri != "" {
+			return sbu.copy(ctx)
+		}
+
 		if sbu.SourceContent != "" {
 			return sbu.uploadPageBlobFromContent(ctx)
 		}
@@ -203,7 +209,6 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 		ContentType:            utils.String(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
-	// TODO: access tiers?
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutPageBlob: %s", err)
 	}
