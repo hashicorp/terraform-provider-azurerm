@@ -658,34 +658,39 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 			continue
 		}
 
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		storageContainerName := rs.Primary.Attributes["storage_container_name"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for storage blob: %s", name)
-		}
+		containerName := rs.Primary.Attributes["storage_container_name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return nil
+			return fmt.Errorf("Error locating Resource Group for Storage Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
 		}
-		if !accountExists {
+		if resourceGroup == nil {
 			return nil
 		}
 
-		container := blobClient.GetContainerReference(storageContainerName)
-		blob := container.GetBlobReference(name)
-		exists, err := blob.Exists()
+		client, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
 		if err != nil {
+			return fmt.Errorf("Error building Blobs Client: %s", err)
+		}
+
+		input := blobs.GetPropertiesInput{}
+		props, err := client.GetProperties(ctx, accountName, containerName, name, input)
+		if err != nil {
+			if !utils.ResponseWasNotFound(props.Response) {
+				return fmt.Errorf("Error retrieving Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+			}
+		}
+
+		if utils.ResponseWasNotFound(props.Response) {
 			return nil
 		}
 
-		if exists {
-			return fmt.Errorf("Bad: Storage Blob %q (storage container: %q) still exists", name, storageContainerName)
-		}
+		return fmt.Errorf("Bad: Storage Blob %q (Storage Container: %q) still exists", name, containerName)
 	}
 
 	return nil
