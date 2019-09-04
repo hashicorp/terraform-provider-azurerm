@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -86,6 +87,7 @@ type ArmClient struct {
 	automation       *automation.Client
 	authorization    *authorization.Client
 	batch            *batch.Client
+	bot              *bot.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	compute          *compute.Client
@@ -210,6 +212,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.automation = automation.BuildClient(o)
 	client.authorization = authorization.BuildClient(o)
 	client.batch = batch.BuildClient(o)
+	client.bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
 	client.compute = compute.BuildClient(o)

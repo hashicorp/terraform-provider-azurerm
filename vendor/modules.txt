@@ -30,6 +30,7 @@ github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault
+github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
@@ -71,8 +72,8 @@ github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage
 github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web
+github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice
 github.com/Azure/azure-sdk-for-go/storage
-github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
 github.com/Azure/azure-sdk-for-go/version
