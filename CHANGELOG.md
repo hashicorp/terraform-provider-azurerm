@@ -22,6 +22,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
 * `azurerm_postgresql_server` - support for `auto_grow` [GH-4220]
+* `azurerm_resource_group` - the `name` field can now be up to 90 characters [GH-4233]
 * `azurerm_storage_blob` - switching over to use the new Storage SDK [GH-4179]
 * `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
 * `azurerm_subnet` - support for the actions `Microsoft.Network/virtualNetworks/subnets/join/action` and `Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action` [GH-4137]
