@@ -17,7 +17,7 @@ Manages an AzureNetwork DDoS Protection Plan.
 
 ```hcl
 data "azurerm_network_ddos_protection_plan" "example" {
-  name                = "azurerm_network_ddos_protection_plan.test.name"
+  name                = "${azurerm_network_ddos_protection_plan.example.name}"
   resource_group_name = "${azurerm_network_ddos_protection_plan.test.resource_group_name}"
 }
 
