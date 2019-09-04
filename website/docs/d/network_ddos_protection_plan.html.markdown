@@ -22,7 +22,7 @@ data "azurerm_network_ddos_protection_plan" "example" {
 }
 
 output "ddos_protection_plan_id" {
-  value = "${data.azurerm_network_ddos_protection_plan.test.id}"
+  value = "${data.azurerm_network_ddos_protection_plan.example.id}"
 }
 ```
 
