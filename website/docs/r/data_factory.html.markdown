@@ -1,4 +1,4 @@
-data_factory.html.markdown---
+---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory"
 sidebar_current: "docs-azurerm-resource-data-factory-x"

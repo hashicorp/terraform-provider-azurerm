@@ -1,4 +1,4 @@
-bot_channels_registration.html.markdown---
+---
 layout: "azurerm"
 page_title: "Azure Resource Manager: bot_channels_registration"
 sidebar_current: "docs-azurerm-resource-bot_channels_registration"
