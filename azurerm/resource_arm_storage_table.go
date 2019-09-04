@@ -121,7 +121,7 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 
 	id := client.GetResourceID(accountName, tableName)
 	if features.ShouldResourcesBeImported() {
-		existing, err := client.Exists(ctx, *resourceGroup, tableName)
+		existing, err := client.Exists(ctx, accountName, tableName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing) {
 				return fmt.Errorf("Error checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, *resourceGroup, err)
