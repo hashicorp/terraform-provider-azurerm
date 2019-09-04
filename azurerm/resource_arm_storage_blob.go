@@ -53,7 +53,7 @@ func resourceArmStorageBlob() *schema.Resource {
 
 			"type": {
 				Type:             schema.TypeString,
-				Optional:         true,
+				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: suppress.CaseDifference, // TODO: remove in 2.0
 				ValidateFunc: validation.StringInSlice([]string{
