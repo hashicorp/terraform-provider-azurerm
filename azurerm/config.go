@@ -259,7 +259,7 @@ type ArmClient struct {
 	appServicesClient     web.AppsClient
 
 	//healthcare
-	fhirApiServiceClient healthcareapis.ServicesClient
+	healthcareServiceClient healthcareapis.ServicesClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -839,9 +839,9 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerHealtcareClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	fhirApiServiceClient := healthcareapis.NewServicesClient(subscriptionId)
-	c.configureClient(&fhirApiServiceClient.Client, auth)
-	c.fhirApiServiceClient = fhirApiServiceClient
+	healthcareServiceClient := healthcareapis.NewServicesClient(subscriptionId)
+	c.configureClient(&healthcareServiceClient.Client, auth)
+	c.healthcareServiceClient = healthcareServiceClient
 }
 
 var (

@@ -11,25 +11,23 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccAzureRMFhirApi(t *testing.T) {
-	var fhir_api healthcareapis.ServicesDescription
+func TestAccAzureRMHealthcareService(t *testing.T) {
+	var healthcareServiceDescription healthcareapis.ServicesDescription
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMFhirApiDestroy,
+		CheckDestroy: testCheckAzureRMHealthcareServiceDestroy,
 		Steps: []resource.TestStep{
 			{
-				//Config: testAccAzureRMFhirApi_basic(ri, testLocation()),
-				Config: testAccAzureRMFhirApi_basic(ri),
+				Config: testAccAzureRMHealthcareService_basic(ri),
 				Check: resource.ComposeTestCheckFunc(
-					//testCheckAzureRMFhirApiExists("azurerm_fhir_api_service.test", &fhir_api),
-					testCheckAzureRMFhirApiExists("azurerm_fhir_api_service.test", &fhir_api),
+					testCheckAzureRMHealthcareServiceExists("azurerm_healthcare_service.test", &healthcareServiceDescription),
 				),
 			},
 			{
-				ResourceName: "azurerm_fhir_api_service.test",
+				ResourceName: "azurerm_healthcare_service.test",
 				ImportState:  true,
 				ImportStateVerifyIgnore: []string{
 					// since these are read from the existing state
@@ -42,44 +40,43 @@ func TestAccAzureRMFhirApi(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMFhirApiExists(resourceName string, fhir_api *healthcareapis.ServicesDescription) resource.TestCheckFunc {
-	//func testCheckAzureRMFhirApiExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMHealthcareServiceExists(resourceName string, healthcareServiceDescription *healthcareapis.ServicesDescription) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		fhirApiName := rs.Primary.Attributes["name"]
+		healthcareServiceName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", fhirApiName)
+			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", healthcareServiceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).fhirApiServiceClient
+		client := testAccProvider.Meta().(*ArmClient).healthcareServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup, fhirApiName)
+		resp, err := client.Get(ctx, resourceGroup, healthcareServiceName)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
-				return fmt.Errorf("Bad: Fhir Api service %q (resource group: %q) does not exist", fhirApiName, resourceGroup)
+				return fmt.Errorf("Bad: Healthcare service %q (resource group: %q) does not exist", healthcareServiceName, resourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on loadBalancerClient: %+v", err)
 		}
 
-		*fhir_api = resp
+		*healthcareServiceDescription = resp
 
 		return nil
 	}
 }
 
-func testCheckAzureRMFhirApiDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).fhirApiServiceClient
+func testCheckAzureRMHealthcareServiceDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).healthcareServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_fhir_api_service" {
+		if rs.Type != "azurerm_healthcare_service" {
 			continue
 		}
 
@@ -100,8 +97,7 @@ func testCheckAzureRMFhirApiDestroy(s *terraform.State) error {
 	return nil
 }
 
-//func testAccAzureRMFhirApi_basic(rInt int, location string) string {
-func testAccAzureRMFhirApi_basic(rInt int) string {
+func testAccAzureRMHealthcareService_basic(rInt int) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -110,7 +106,7 @@ resource "azurerm_resource_group" "test" {
   location = "westus2"
 }
 
-resource "azurerm_fhir_api_service" "test" {
+resource "azurerm_healthcare_service" "test" {
   name                = "accfa-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"

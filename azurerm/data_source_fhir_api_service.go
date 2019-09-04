@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmFhirApiService() *schema.Resource {
+func dataSourceArmHealthcareService() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmFhirApiServiceRead,
+		Read: dataSourceArmHealthcareServiceRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -57,8 +57,8 @@ func dataSourceArmFhirApiService() *schema.Resource {
 	}
 }
 
-func dataSourceArmFhirApiServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).fhirApiServiceClient
+func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).healthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -67,11 +67,11 @@ func dataSourceArmFhirApiServiceRead(d *schema.ResourceData, meta interface{}) e
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] FHIR API Service %q was not found (Resource Group %q)", name, resourceGroup)
+			log.Printf("[WARN] Healthcare Service %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure FHIR API Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)

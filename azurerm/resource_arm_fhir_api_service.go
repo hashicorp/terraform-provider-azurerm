@@ -12,12 +12,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmFhirApiService() *schema.Resource {
+func resourceArmHealthcareService() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmFhirApiServiceCreateUpdate,
-		Read:   resourceArmFhirApiServiceRead,
-		Update: resourceArmFhirApiServiceCreateUpdate,
-		Delete: resourceArmFhirApiServiceDelete,
+		Create: resourceArmHealthcareServiceCreateUpdate,
+		Read:   resourceArmHealthcareServiceRead,
+		Update: resourceArmHealthcareServiceCreateUpdate,
+		Delete: resourceArmHealthcareServiceDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -66,11 +66,11 @@ func resourceArmFhirApiService() *schema.Resource {
 	}
 }
 
-func resourceArmFhirApiServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).fhirApiServiceClient
+func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).healthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM FHIR API Service creation.")
+	log.Printf("[INFO] preparing arguments for Azure ARM Healthcare Service creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -87,12 +87,12 @@ func resourceArmFhirApiServiceCreateUpdate(d *schema.ResourceData, meta interfac
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing FHIR API Service %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Healthcare Service %q (Resource Group %q): %s", name, resGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_fhir_api_service", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_healthcare_service", *existing.ID)
 		}
 	}
 
@@ -114,37 +114,37 @@ func resourceArmFhirApiServiceCreateUpdate(d *schema.ResourceData, meta interfac
 		CosmosDbConfiguration: &cosmoDbConfig,
 	}
 
-	fhirApiServiceDescription := healthcareapis.ServicesDescription{
+	healthcareServiceDescription := healthcareapis.ServicesDescription{
 		Location:   utils.String(location),
 		Tags:       expandedTags,
 		Kind:       &kind,
 		Properties: &properties,
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resGroup, name, fhirApiServiceDescription)
+	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating FHIR API Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error Creating/Updating FHIR API Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error Retrieving FHIR API Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error Retrieving Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read FHIR API Service %q (resource group %q) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Healthcare Service %q (resource group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*read.ID)
 
-	return resourceArmFhirApiServiceRead(d, meta)
+	return resourceArmHealthcareServiceRead(d, meta)
 }
 
-func resourceArmFhirApiServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).fhirApiServiceClient
+func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).healthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -152,18 +152,17 @@ func resourceArmFhirApiServiceRead(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	// ToDo Is services right here? Needs to get the account/instance name of fhir service
 	name := id.Path["services"]
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] FHIR API Service %q was not found (Resource Group %q)", name, resourceGroup)
+			log.Printf("[WARN] Healthcare Service %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure FHIR API Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", name)
@@ -177,8 +176,8 @@ func resourceArmFhirApiServiceRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceArmFhirApiServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).fhirApiServiceClient
+func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).healthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -190,11 +189,11 @@ func resourceArmFhirApiServiceDelete(d *schema.ResourceData, meta interface{}) e
 	name := id.Path["services"]
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting FHIR API Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deleting FHIR API Service %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for the deleting Healthcare Service %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	return nil
