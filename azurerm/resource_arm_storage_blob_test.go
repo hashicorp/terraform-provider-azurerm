@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/storage"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -266,7 +265,7 @@ func TestAccAzureRMStorageBlob_blockFromLocalFile(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_blockFromLocalBlob(ri, rs, location, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
-					testCheckAzureRMStorageBlobMatchesFile(resourceName, "block", sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, blobs.BlockBlob, sourceBlob.Name()),
 				),
 			},
 			{
@@ -423,7 +422,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_pageFromLocalBlob(ri, rs, location, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
-					testCheckAzureRMStorageBlobMatchesFile(resourceName, "page", sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, blobs.PageBlob, sourceBlob.Name()),
 				),
 			},
 			{
@@ -590,62 +589,61 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind string, filePath string) resource.TestCheckFunc {
+func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind blobs.BlobType, filePath string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		storageContainerName := rs.Primary.Attributes["storage_container_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		containerName := rs.Primary.Attributes["storage_container_name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error locating Resource Group for Storage Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
 		}
-		if !accountExists {
-			return fmt.Errorf("Bad: Storage Account %q does not exist", storageAccountName)
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Blob %q (Container %q / Account %q) - assuming removed & removing from state", name, containerName, accountName)
 		}
 
-		containerReference := blobClient.GetContainerReference(storageContainerName)
-		blobReference := containerReference.GetBlobReference(name)
-		propertyOptions := &storage.GetBlobPropertiesOptions{}
-		err = blobReference.GetProperties(propertyOptions)
+		client, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error building Blobs Client: %s", err)
 		}
 
-		properties := blobReference.Properties
-
-		if string(properties.BlobType) != kind {
-			return fmt.Errorf("Bad: blob type %q does not match expected type %q", properties.BlobType, kind)
-		}
-
-		getOptions := &storage.GetBlobOptions{}
-		blob, err := blobReference.Get(getOptions)
+		// first check the type
+		getPropsInput := blobs.GetPropertiesInput{}
+		props, err := client.GetProperties(ctx, accountName, containerName, name, getPropsInput)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error retrieving Properties for Blob %q (Container %q): %s", name, containerName, err)
 		}
 
-		contents, err := ioutil.ReadAll(blob)
+		if props.BlobType != kind {
+			return fmt.Errorf("Bad: blob type %q does not match expected type %q", props.BlobType, kind)
+		}
+
+		// then compare the content itself
+		getInput := blobs.GetInput{}
+		actualProps, err := client.Get(ctx, accountName, containerName, name, getInput)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error retrieving Blob %q (Container %q): %s", name, containerName, err)
 		}
-		defer blob.Close()
 
+		actualContents := actualProps.Contents
+
+		// local file for comparison
 		expectedContents, err := ioutil.ReadFile(filePath)
 		if err != nil {
 			return err
 		}
 
-		if string(contents) != string(expectedContents) {
-			return fmt.Errorf("Bad: Storage Blob %q (storage container: %q) does not match contents", name, storageContainerName)
+		if string(actualContents) != string(expectedContents) {
+			return fmt.Errorf("Bad: Storage Blob %q (storage container: %q) does not match contents", name, containerName)
 		}
 
 		return nil
