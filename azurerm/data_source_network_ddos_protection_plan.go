@@ -49,7 +49,7 @@ func dataSourceNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		if utils.ResponseWasNotFound(plan.Response) {
 			log.Printf("[DEBUG] DDoS Protection Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
-			d.SetId("")
+			return fmt.Errorf("Error DDoS Protection Plan %q (Resource Group %q) was not found", name, resourceGroup)
 			return nil
 		}
 
