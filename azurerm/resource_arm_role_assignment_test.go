@@ -65,6 +65,9 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -91,6 +94,9 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -146,6 +152,9 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -170,6 +179,9 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -196,6 +208,9 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
