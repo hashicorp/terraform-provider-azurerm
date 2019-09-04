@@ -298,6 +298,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -308,6 +309,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_4"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -438,6 +440,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb            = 51200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    auto_grow             = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -583,6 +586,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb            = 947200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    auto_grow             = "Enabled"
   }
 
   administrator_login          = "acctestun"

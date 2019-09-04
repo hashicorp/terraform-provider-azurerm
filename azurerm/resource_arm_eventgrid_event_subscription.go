@@ -306,7 +306,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
 
 		if props.Topic != nil && *props.Topic != "" {
-			d.Set("topic_name", *props.Topic)
+			d.Set("topic_name", props.Topic)
 		}
 
 		if storageQueueEndpoint, ok := props.Destination.AsStorageQueueEventSubscriptionDestination(); ok {
@@ -355,10 +355,8 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			}
 		}
 
-		if labels := props.Labels; labels != nil {
-			if err := d.Set("labels", *labels); err != nil {
-				return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
-			}
+		if err := d.Set("labels", props.Labels); err != nil {
+			return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 		}
 	}
 

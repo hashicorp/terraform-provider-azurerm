@@ -220,172 +220,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"primary_location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_blob_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_blob_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_blob_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_blob_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_table_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_table_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_table_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_table_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_web_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_web_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_web_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_web_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_dfs_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_dfs_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_dfs_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_dfs_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_file_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_file_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_file_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_file_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_access_key": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
-			},
-
-			"secondary_access_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_blob_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_blob_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -574,6 +408,172 @@ func resourceArmStorageAccount() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"primary_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_table_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_blob_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_blob_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -1100,7 +1100,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storage.AccountsClient
+	storageClient := meta.(*ArmClient).storage
+	client := storageClient.AccountsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -1149,6 +1150,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
+
+	// remove this from the cache
+	storageClient.ClearFromCache(resourceGroup, name)
 
 	return nil
 }
@@ -1638,7 +1642,9 @@ func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointTy
 		host = u.Host
 	}
 
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

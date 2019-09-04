@@ -249,12 +249,10 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(ctx, accountName, shareName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on FileShareDirectoriesClient: %+v", err)
+			return nil
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("File Share still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("File Share still exists:\n%#v", resp)
 	}
 
 	return nil

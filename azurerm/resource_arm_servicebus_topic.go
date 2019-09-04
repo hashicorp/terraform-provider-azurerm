@@ -223,7 +223,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 
 		if window := props.DuplicateDetectionHistoryTimeWindow; window != nil && *window != "" {
-			d.Set("duplicate_detection_history_time_window", *window)
+			d.Set("duplicate_detection_history_time_window", window)
 		}
 
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
