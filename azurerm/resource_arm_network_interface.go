@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -254,7 +255,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -286,10 +287,12 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 			ID: &nsgId,
 		}
 
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(nsgId)
+		parsedNsgID, err := azure.ParseAzureResourceID(nsgId)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", nsgId, err)
 		}
+
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
 		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
@@ -397,7 +400,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 				if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
 					if v := ipProps.PrivateIPAddress; v != nil {
 						if i == 0 {
-							d.Set("private_ip_address", *v)
+							d.Set("private_ip_address", v)
 						}
 						addresses = append(addresses, *v)
 					}
@@ -466,10 +469,12 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err2 != nil {
-			return err2
+		parsedNsgID, err := azure.ParseAzureResourceID(networkSecurityGroupId)
+		if err != nil {
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", networkSecurityGroupId, err)
 		}
+
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
 		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)

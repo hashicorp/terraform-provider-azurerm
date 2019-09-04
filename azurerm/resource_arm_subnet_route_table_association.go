@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -53,20 +54,12 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	routeTableName, err := parseRouteTableName(routeTableId)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(routeTableName, routeTableResourceName)
-	defer locks.UnlockByName(routeTableName, routeTableResourceName)
-
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -78,7 +71,7 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if requireResourcesToBeImported {
+		if features.ShouldResourcesBeImported() {
 			if rt := props.RouteTable; rt != nil {
 				// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
 				if rt.ID != nil && subnet.ID != nil {
@@ -184,18 +177,6 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Route Table - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 		return nil
 	}
-
-	// once we have the route table id to lock on, lock on that
-	routeTableName, err := parseRouteTableName(*props.RouteTable.ID)
-	if err != nil {
-		return err
-	}
-
-	locks.ByName(routeTableName, routeTableResourceName)
-	defer locks.UnlockByName(routeTableName, routeTableResourceName)
-
-	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
-	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	locks.ByName(subnetName, subnetResourceName)
 	defer locks.UnlockByName(subnetName, subnetResourceName)

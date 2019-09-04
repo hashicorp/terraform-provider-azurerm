@@ -99,6 +99,7 @@ func (client Client) PutPageUpdatePreparer(ctx context.Context, accountName, con
 		"x-ms-version":    APIVersion,
 		"x-ms-page-write": "update",
 		"x-ms-range":      fmt.Sprintf("bytes=%d-%d", input.StartByte, input.EndByte),
+		"Content-Length":  int(len(input.Content)),
 	}
 
 	if input.LeaseID != nil {

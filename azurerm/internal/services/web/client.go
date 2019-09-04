@@ -8,6 +8,7 @@ import (
 type Client struct {
 	AppServicePlansClient *web.AppServicePlansClient
 	AppServicesClient     *web.AppsClient
+	CertificatesClient    *web.CertificatesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -18,8 +19,12 @@ func BuildClient(o *common.ClientOptions) *Client {
 	AppServicesClient := web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AppServicesClient.Client, o.ResourceManagerAuthorizer)
 
+	CertificatesClient := web.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CertificatesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		AppServicePlansClient: &AppServicePlansClient,
 		AppServicesClient:     &AppServicesClient,
+		CertificatesClient:    &CertificatesClient,
 	}
 }

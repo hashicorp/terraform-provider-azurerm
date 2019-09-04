@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	intStor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -309,6 +310,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
+								string(compute.StorageAccountTypesUltraSSDLRS),
 							}, true),
 						},
 
@@ -365,6 +367,21 @@ func resourceArmVirtualMachine() *schema.Resource {
 						"storage_uri": {
 							Type:     schema.TypeString,
 							Required: true,
+						},
+					},
+				},
+			},
+
+			"additional_capabilities": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ultra_ssd_enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+							ForceNew: true,
 						},
 					},
 				},
@@ -580,7 +597,7 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -642,6 +659,9 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		if diagnosticsProfile != nil {
 			properties.DiagnosticsProfile = diagnosticsProfile
 		}
+	}
+	if _, ok := d.GetOk("additional_capabilities"); ok {
+		properties.AdditionalCapabilities = expandAzureRmVirtualMachineAdditionalCapabilities(d)
 	}
 
 	if _, ok := d.GetOk("os_profile"); ok {
@@ -839,6 +859,9 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			if err := d.Set("boot_diagnostics", flattenAzureRmVirtualMachineDiagnosticsProfile(profile.BootDiagnostics)); err != nil {
 				return fmt.Errorf("Error setting `boot_diagnostics`: %#v", err)
 			}
+		}
+		if err := d.Set("additional_capabilities", flattenAzureRmVirtualMachineAdditionalCapabilities(props.AdditionalCapabilities)); err != nil {
+			return fmt.Errorf("Error setting `additional_capabilities`: %#v", err)
 		}
 
 		if profile := props.NetworkProfile; profile != nil {
@@ -1115,6 +1138,18 @@ func flattenAzureRmVirtualMachineDiagnosticsProfile(profile *compute.BootDiagnos
 		result["storage_uri"] = *profile.StorageURI
 	}
 
+	return []interface{}{result}
+}
+
+func flattenAzureRmVirtualMachineAdditionalCapabilities(profile *compute.AdditionalCapabilities) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	result := make(map[string]interface{})
+	if v := profile.UltraSSDEnabled; v != nil {
+		result["ultra_ssd_enabled"] = *v
+	}
 	return []interface{}{result}
 }
 
@@ -1661,6 +1696,20 @@ func expandAzureRmVirtualMachineDiagnosticsProfile(d *schema.ResourceData) *comp
 	}
 
 	return nil
+}
+
+func expandAzureRmVirtualMachineAdditionalCapabilities(d *schema.ResourceData) *compute.AdditionalCapabilities {
+	additionalCapabilities := d.Get("additional_capabilities").([]interface{})
+	if len(additionalCapabilities) == 0 {
+		return nil
+	}
+
+	additionalCapability := additionalCapabilities[0].(map[string]interface{})
+	capability := &compute.AdditionalCapabilities{
+		UltraSSDEnabled: utils.Bool(additionalCapability["ultra_ssd_enabled"].(bool)),
+	}
+
+	return capability
 }
 
 func expandAzureRmVirtualMachineImageReference(d *schema.ResourceData) (*compute.ImageReference, error) {

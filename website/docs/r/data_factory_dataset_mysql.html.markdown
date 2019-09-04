@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_mysql"
 sidebar_current: "docs-azurerm-resource-data-factory-dataset-mysql"
 description: |-
-  Manage a MySQL Dataset inside a Azure Data Factory.
+  Manages a MySQL Dataset inside a Azure Data Factory.
 ---
 
 # azurerm_data_factory_dataset_mysql
 
-Manage a MySQL Dataset inside a Azure Data Factory.
+Manages a MySQL Dataset inside a Azure Data Factory.
 
 ## Example Usage
 

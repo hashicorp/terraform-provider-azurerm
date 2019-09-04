@@ -24,7 +24,7 @@ func (client Client) PutBlockBlobFromFile(ctx context.Context, accountName, cont
 		}
 	}
 
-	input.Content = bytes
+	input.Content = &bytes
 
 	if _, err = client.PutBlockBlob(ctx, accountName, containerName, blobName, input); err != nil {
 		return fmt.Errorf("Error putting bytes: %s", err)

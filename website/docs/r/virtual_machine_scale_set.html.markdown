@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_virtual_machine_scale_set
 
-Manage a virtual machine scale set.
+Manages a virtual machine scale set.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).

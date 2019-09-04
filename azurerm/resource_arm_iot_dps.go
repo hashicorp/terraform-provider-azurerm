@@ -18,15 +18,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmIotDPS() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotDPSCreateOrUpdate,
+		Create: resourceArmIotDPSCreateUpdate,
 		Read:   resourceArmIotDPSRead,
-		Update: resourceArmIotDPSCreateOrUpdate,
+		Update: resourceArmIotDPSCreateUpdate,
 		Delete: resourceArmIotDPSDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -135,14 +136,14 @@ func resourceArmIotDPS() *schema.Resource {
 	}
 }
 
-func resourceArmIotDPSCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name, resourceGroup)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

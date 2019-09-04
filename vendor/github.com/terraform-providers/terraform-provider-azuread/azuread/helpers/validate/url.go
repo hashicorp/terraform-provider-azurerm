@@ -16,6 +16,10 @@ func URLIsHTTPOrHTTPS(i interface{}, k string) (_ []string, errors []error) {
 	return URLWithScheme([]string{"http", "https"})(i, k)
 }
 
+func URLIsAppURI(i interface{}, k string) (_ []string, errors []error) {
+	return URLWithScheme([]string{"http", "https", "api", "urn", "ms-appx"})(i, k)
+}
+
 func URLWithScheme(validSchemes []string) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (_ []string, errors []error) {
 		v, ok := i.(string)

@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: with the new SDK: changing the Tier of Blobs. Content type for Block blobs
@@ -179,7 +180,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -206,7 +207,7 @@ func TestAccAzureRMStorageBlob_blockFromPublicFile(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -233,7 +234,7 @@ func TestAccAzureRMStorageBlob_blockFromExistingBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -315,6 +316,33 @@ func TestAccAzureRMStorageBlob_contentType(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageBlob_contentTypePremium(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_contentTypePremium(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageBlob_pageEmpty(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
@@ -328,6 +356,33 @@ func TestAccAzureRMStorageBlob_pageEmpty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMStorageBlob_pageEmpty(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_pageEmptyPremium(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_pageEmptyPremium(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 				),
@@ -390,7 +445,7 @@ func TestAccAzureRMStorageBlob_pageFromExistingBlob(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "source_uri", "type"},
 			},
 		},
 	})
@@ -434,7 +489,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -450,7 +505,7 @@ func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMStorageBlob_blockEmpty(ri, rs, location),
+				Config: testAccAzureRMStorageBlob_blockFromPublicBlob(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
 				),
@@ -521,7 +576,7 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -559,7 +614,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -590,7 +645,7 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind storage.Bl
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return err
 		}
@@ -653,7 +708,7 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 
 		armClient := testAccProvider.Meta().(*ArmClient)
 		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
 		if err != nil {
 			return nil
 		}
@@ -755,7 +810,7 @@ resource "azurerm_storage_blob" "source" {
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
-  source_uri             = "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-desktop-amd64.iso"
+  source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
 
@@ -789,7 +844,7 @@ resource "azurerm_storage_blob" "test" {
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
-  source_uri             = "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-desktop-amd64.iso"
+  source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
 `, template)
@@ -806,7 +861,7 @@ resource "azurerm_storage_blob" "source" {
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
   type                   = "block"
-  source_uri             = "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-desktop-amd64.iso"
+  source_uri             = "http://releases.ubuntu.com/18.04.3/ubuntu-18.04.3-desktop-amd64.iso"
   content_type           = "application/x-iso9660-image"
 }
 
@@ -855,6 +910,23 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
+func testAccAzureRMStorageBlob_contentTypePremium(rInt int, rString, location string) string {
+	template := testAccAzureRMStorageBlob_templatePremium(rInt, rString, location, "private")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.ext"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+  type                   = "page"
+  size                   = 5120
+  content_type           = "image/png"
+}
+`, template)
+}
+
 func testAccAzureRMStorageBlob_contentTypeUpdated(rInt int, rString, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
 	return fmt.Sprintf(`
@@ -874,6 +946,22 @@ resource "azurerm_storage_blob" "test" {
 
 func testAccAzureRMStorageBlob_pageEmpty(rInt int, rString string, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+  type                   = "page"
+  size                   = 5120
+}
+`, template)
+}
+
+func testAccAzureRMStorageBlob_pageEmptyPremium(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageBlob_templatePremium(rInt, rString, location, "private")
 	return fmt.Sprintf(`
 %s
 
@@ -984,7 +1072,7 @@ func testAccAzureRMStorageBlob_populateTempFile(input *os.File) error {
 }
 
 func testAccAzureRMStorageBlob_requiresImport(rInt int, rString, location string) string {
-	template := testAccAzureRMStorageBlob_blockEmpty(rInt, rString, location)
+	template := testAccAzureRMStorageBlob_blockFromPublicBlob(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -997,30 +1085,6 @@ resource "azurerm_storage_blob" "import" {
   size                   = "${azurerm_storage_blob.test.size}"
 }
 `, template)
-}
-
-func testAccAzureRMStorageBlob_template(rInt int, rString, location, accessLevel string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "%s"
-}
-`, rInt, location, rString, accessLevel)
 }
 
 func testAccAzureRMStorageBlob_update(rInt int, rString, location string) string {
@@ -1062,4 +1126,52 @@ resource "azurerm_storage_blob" "test" {
   }
 }
 `, template)
+}
+
+func testAccAzureRMStorageBlob_template(rInt int, rString, location, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, rInt, location, rString, accessLevel)
+}
+
+func testAccAzureRMStorageBlob_templatePremium(rInt int, rString, location, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Premium"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, rInt, location, rString, accessLevel)
 }

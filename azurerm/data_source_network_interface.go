@@ -198,15 +198,12 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
 		configs := *iface.IPConfigurations
 
-		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
-			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
-			d.Set("private_ip_address", *privateIPAddress)
-		}
+		d.Set("private_ip_address", configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
 
 		addresses := make([]interface{}, 0)
 		for _, config := range configs {
 			if config.InterfaceIPConfigurationPropertiesFormat != nil {
-				addresses = append(addresses, *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+				addresses = append(addresses, config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
 			}
 		}
 
@@ -220,7 +217,7 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if iface.VirtualMachine != nil {
-		d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
+		d.Set("virtual_machine_id", iface.VirtualMachine.ID)
 	} else {
 		d.Set("virtual_machine_id", "")
 	}

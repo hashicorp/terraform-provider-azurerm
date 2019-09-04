@@ -11,14 +11,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryDatasetMySQLCreateOrUpdate,
+		Create: resourceArmDataFactoryDatasetMySQLCreateUpdate,
 		Read:   resourceArmDataFactoryDatasetMySQLRead,
-		Update: resourceArmDataFactoryDatasetMySQLCreateOrUpdate,
+		Update: resourceArmDataFactoryDatasetMySQLCreateUpdate,
 		Delete: resourceArmDataFactoryDatasetMySQLDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -132,7 +133,7 @@ func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryDatasetMySQLCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -140,7 +141,7 @@ func resourceArmDataFactoryDatasetMySQLCreateOrUpdate(d *schema.ResourceData, me
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
