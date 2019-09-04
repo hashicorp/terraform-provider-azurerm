@@ -88,18 +88,18 @@ func buildCanonicalizedStringForSharedKey(verb string, headers http.Header, cano
 	}
 
 	return strings.Join([]string{
-		verb,                           // HTTP Verb
-		"",                             // Content-Encoding
-		"",                             // Content-Language
-		lengthString,                   // Content-Length (empty string when zero)
-		headers.Get(HeaderContentMD5),  // Content-MD5
-		headers.Get(HeaderContentType), // Content-Type
-		"",                             // date should be nil, apparently :shrug:
-		"",                             // If-Modified-Since
-		"",                             // If-Match
-		"",                             // If-None-Match
-		"",                             // If-Unmodified-Since
-		"",                             // Range
+		verb,                                 // HTTP Verb
+		headers.Get(HeaderContentEncoding),   // Content-Encoding
+		headers.Get(HeaderContentLanguage),   // Content-Language
+		lengthString,                         // Content-Length (empty string when zero)
+		headers.Get(HeaderContentMD5),        // Content-MD5
+		headers.Get(HeaderContentType),       // Content-Type
+		"",                                   // date should be nil, apparently :shrug:
+		headers.Get(HeaderIfModifiedSince),   // If-Modified-Since
+		headers.Get(HeaderIfMatch),           // If-Match
+		headers.Get(HeaderIfNoneMatch),       // If-None-Match
+		headers.Get(HeaderIfUnmodifiedSince), // If-Unmodified-Since
+		headers.Get(HeaderRange),             // Range
 		canonicalizedHeaders,
 		canonicalizedResource,
 	}, "\n")
