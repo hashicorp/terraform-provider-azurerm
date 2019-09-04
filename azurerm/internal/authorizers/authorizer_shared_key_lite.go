@@ -81,7 +81,7 @@ func computeSharedKeyLite(verb, url string, accountName string, headers http.Hea
 func buildCanonicalizedStringForSharedKeyLite(verb string, headers http.Header, canonicalizedHeaders, canonicalizedResource string) string {
 	return strings.Join([]string{
 		verb,
-		headers.Get(HeaderContentMD5), // TODO: this appears to always be empty?
+		headers.Get(HeaderContentMD5),
 		headers.Get(HeaderContentType),
 		"", // date should be nil, apparently :shrug:
 		canonicalizedHeaders,
