@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -72,9 +72,9 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.Protocol1All),
-					string(network.Protocol1TCP),
-					string(network.Protocol1UDP),
+					string(network.TransportProtocolAll),
+					string(network.TransportProtocolTCP),
+					string(network.TransportProtocolUDP),
 				}, false),
 			},
 
@@ -305,7 +305,7 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 func expandAzureRmLoadBalancerOutboundRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
 
 	properties := network.OutboundRulePropertiesFormat{
-		Protocol: network.Protocol1(d.Get("protocol").(string)),
+		Protocol: network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
 	}
 
 	feConfigs := d.Get("frontend_ip_configuration").([]interface{})
