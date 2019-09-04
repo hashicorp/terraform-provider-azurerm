@@ -74,7 +74,7 @@ func resourceArmStorageBlob() *schema.Resource {
 			"access_tier": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  string(blobs.Hot),
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(blobs.Archive),
 					string(blobs.Cool),
@@ -92,14 +92,21 @@ func resourceArmStorageBlob() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"source_uri"},
+				ConflictsWith: []string{"source_uri", "source_content"},
+			},
+
+			"source_content": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"source", "source_uri"},
 			},
 
 			"source_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"source"},
+				ConflictsWith: []string{"source", "source_content"},
 			},
 
 			"url": {
@@ -176,13 +183,14 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		BlobName:      name,
 		Client:        blobsClient,
 
-		BlobType:    d.Get("type").(string),
-		ContentType: d.Get("content_type").(string),
-		MetaData:    storage.ExpandMetaData(metaDataRaw),
-		Parallelism: d.Get("parallelism").(int),
-		Size:        d.Get("size").(int),
-		Source:      d.Get("source").(string),
-		SourceUri:   d.Get("source_uri").(string),
+		BlobType:      d.Get("type").(string),
+		ContentType:   d.Get("content_type").(string),
+		MetaData:      storage.ExpandMetaData(metaDataRaw),
+		Parallelism:   d.Get("parallelism").(int),
+		Size:          d.Get("size").(int),
+		Source:        d.Get("source").(string),
+		SourceContent: d.Get("source_content").(string),
+		SourceUri:     d.Get("source_uri").(string),
 	}
 	if err := blobInput.Create(ctx); err != nil {
 		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
@@ -217,6 +225,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if d.HasChange("access_tier") {
+		// this is only applicable for Gen2/BlobStorage accounts
 		log.Printf("[DEBUG] Updating Access Tier for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
 		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
 

@@ -58,14 +58,16 @@ The following arguments are supported:
 
 * `size` - (Optional) Used only for `page` blobs to specify the size in bytes of the blob to be created. Must be a multiple of 512. Defaults to 0.
 
-* `access_tier` - (Optional) The access tier of the storage blob. Possible values are `Archive`, `Cool` and `Hot`. Defaults to `Hot`.
+* `access_tier` - (Optional) The access tier of the storage blob. Possible values are `Archive`, `Cool` and `Hot`.
 
 * `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 
-* `source` - (Optional) An absolute path to a file on the local system. Cannot be defined if `source_uri` is defined.
+* `source` - (Optional) An absolute path to a file on the local system. Cannot be specified if `source_content` or `source_uri` is specified.
+
+* `source_content` - (Optional) The content for this blob which should be defined inline. Cannot be specified if `source` or `source_uri` is specified.
 
 * `source_uri` - (Optional) The URI of an existing blob, or a file in the Azure File service, to use as the source contents
-    for the blob to be created. Changing this forces a new resource to be created. Cannot be defined if `source` is defined.
+    for the blob to be created. Changing this forces a new resource to be created. Cannot be specified if `source` or `source_content` is specified.
 
 * `parallelism` - (Optional) The number of workers per CPU core to run for concurrent uploads. Defaults to `8`.
 

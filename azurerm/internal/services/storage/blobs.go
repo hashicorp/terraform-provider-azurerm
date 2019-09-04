@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
@@ -24,16 +25,18 @@ type BlobUpload struct {
 	BlobName      string
 	ContainerName string
 
-	BlobType    string
-	ContentType string
-	MetaData    map[string]string
-	Parallelism int
-	Size        int
-	Source      string
-	SourceUri   string
+	BlobType      string
+	ContentType   string
+	MetaData      map[string]string
+	Parallelism   int
+	Size          int
+	Source        string
+	SourceContent string
+	SourceUri     string
 }
 
 func (sbu BlobUpload) Create(ctx context.Context) error {
+	// TODO: should we move this into the Block and Page blocks?
 	if sbu.SourceUri != "" {
 		return sbu.copy(ctx)
 	}
@@ -41,10 +44,14 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 	blobType := strings.ToLower(sbu.BlobType)
 
 	if blobType == "append" {
+		// TODO: if Source/SourceContent are set return an error
 		return sbu.createEmptyAppendBlob(ctx)
 	}
 
 	if blobType == "block" {
+		if sbu.SourceContent != "" {
+			return sbu.uploadBlockBlobFromContent(ctx)
+		}
 		if sbu.Source != "" {
 			return sbu.uploadBlockBlob(ctx)
 		}
@@ -53,6 +60,9 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 	}
 
 	if blobType == "page" {
+		if sbu.SourceContent != "" {
+			return sbu.uploadPageBlobFromContent(ctx)
+		}
 		if sbu.Source != "" {
 			return sbu.uploadPageBlob(ctx)
 		}
@@ -99,6 +109,22 @@ func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	return nil
 }
 
+func (sbu BlobUpload) uploadBlockBlobFromContent(ctx context.Context) error {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "upload-")
+	if err != nil {
+		return fmt.Errorf("Error creating temporary file: %s", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+		return fmt.Errorf("Error writing Source Content to Temp File: %s", err)
+	}
+	defer tmpFile.Close()
+
+	sbu.Source = tmpFile.Name()
+	return sbu.uploadBlockBlob(ctx)
+}
+
 func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
 	file, err := os.Open(sbu.Source)
 	if err != nil {
@@ -132,6 +158,22 @@ func (sbu BlobUpload) createEmptyPageBlob(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (sbu BlobUpload) uploadPageBlobFromContent(ctx context.Context) error {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "upload-")
+	if err != nil {
+		return fmt.Errorf("Error creating temporary file: %s", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+		return fmt.Errorf("Error writing Source Content to Temp File: %s", err)
+	}
+	defer tmpFile.Close()
+
+	sbu.Source = tmpFile.Name()
+	return sbu.uploadPageBlob(ctx)
 }
 
 func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
