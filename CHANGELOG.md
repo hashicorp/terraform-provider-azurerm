@@ -25,6 +25,7 @@ IMPROVEMENTS:
 * `azurerm_resource_group` - the `name` field can now be up to 90 characters [GH-4233]
 * `azurerm_storage_blob` - switching over to use the new Storage SDK [GH-4179]
 * `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
+* `azurerm_storage_table` - using the correct storage account name when checking for the presence of an existing storage table [GH-4234]
 * `azurerm_subnet` - support for the actions `Microsoft.Network/virtualNetworks/subnets/join/action` and `Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action` [GH-4137]
 * `azurerm_virtual_machine` - support for `UltraSSD_LRS` managed disks [GH-3860]
 
