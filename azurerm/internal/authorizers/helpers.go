@@ -83,9 +83,7 @@ func buildCanonicalizedResource(uri, accountName string, sharedKeyLite bool) (*s
 
 			// If a query parameter has more than one value, sort all values lexicographically, then include them in a comma-separated list:
 			sortedValues := make([]string, 0)
-			for _, value := range unsortedValues {
-				sortedValues = append(sortedValues, value)
-			}
+			sortedValues = append(sortedValues, unsortedValues...)
 			sort.Strings(sortedValues)
 			keysWithValues[key] = strings.Join(sortedValues, ",")
 		}
