@@ -17,9 +17,7 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
 
-// TODO: with the new SDK: changing the Tier of Blobs. Content type for Block blobs
-
-var supportsNewStorageFeatures = false
+// TODO: with the new SDK: changing the Tier of Blobs
 
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
@@ -45,10 +43,6 @@ func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_appendEmpty(t *testing.T) {
-	if !supportsNewStorageFeatures {
-		t.Skip("Resource doesn't support Append Blobs Yet..")
-	}
-
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -76,10 +70,6 @@ func TestAccAzureRMStorageBlob_appendEmpty(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_appendEmptyMetaData(t *testing.T) {
-	if !supportsNewStorageFeatures {
-		t.Skip("Resource doesn't support Append Blobs Yet..")
-	}
-
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
@@ -520,10 +510,6 @@ func TestAccAzureRMStorageBlob_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMStorageBlob_update(t *testing.T) {
-	if !supportsNewStorageFeatures {
-		t.Skip("Current implementation doesn't support updating the Content Type..")
-	}
-
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))

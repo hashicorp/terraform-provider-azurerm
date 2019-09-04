@@ -40,7 +40,9 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 
 	blobType := strings.ToLower(sbu.BlobType)
 
-	// TODO: new feature for 'append' blobs?
+	if blobType == "append" {
+		return sbu.createEmptyAppendBlob(ctx)
+	}
 
 	if blobType == "block" {
 		if sbu.Source != "" {
@@ -68,6 +70,18 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 	}
 	if err := sbu.Client.CopyAndWait(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input, pollingInterval); err != nil {
 		return fmt.Errorf("Error copy/waiting: %s", err)
+	}
+
+	return nil
+}
+
+func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
+	input := blobs.PutAppendBlobInput{
+		ContentType: utils.String(sbu.ContentType),
+		MetaData:    sbu.MetaData,
+	}
+	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+		return fmt.Errorf("Error PutAppendBlob: %s", err)
 	}
 
 	return nil

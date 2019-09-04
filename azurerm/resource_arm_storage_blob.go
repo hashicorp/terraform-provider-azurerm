@@ -51,10 +51,14 @@ func resourceArmStorageBlob() *schema.Resource {
 			},
 
 			"type": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"block", "page"}, true),
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"append",
+					"block",
+					"page",
+				}, true),
 			},
 
 			"size": {
