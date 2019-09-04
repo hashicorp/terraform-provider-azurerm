@@ -122,6 +122,9 @@ func (client Client) AppendBlockPreparer(ctx context.Context, accountName, conta
 	if input.LeaseID != nil {
 		headers["x-ms-lease-id"] = *input.LeaseID
 	}
+	if input.Content != nil {
+		headers["Content-Length"] = int(len(*input.Content))
+	}
 
 	decorators := []autorest.PrepareDecorator{
 		autorest.AsPut(),

@@ -511,6 +511,12 @@ github.com/tombuildsstuff/giovanni v0.3.3-0.20190823094657-ff85ec2ac5d5 h1:M5CRm
 github.com/tombuildsstuff/giovanni v0.3.3-0.20190823094657-ff85ec2ac5d5/go.mod h1:3UHcoRZCvWTjXMWCJ0epD1VROlPMwZeeof3vfP6NiWM=
 github.com/tombuildsstuff/giovanni v0.4.0 h1:MHJuSqcRkYqoNMIBpOjn3ljwAmABR5GPmtFH11bm/Vo=
 github.com/tombuildsstuff/giovanni v0.4.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.4.1-0.20190903215726-2cef302b48fa h1:s49bFLgKvyf4HH+3Hk1Lfa1wuTmJ/0PQW9Jbhi3mgTw=
+github.com/tombuildsstuff/giovanni v0.4.1-0.20190903215726-2cef302b48fa/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.4.1-0.20190904054847-5e2f814cba5a h1:Ucv3t1V9CERUzQTmdjzzgPnA0oRIdc+WYfry6BaL3P0=
+github.com/tombuildsstuff/giovanni v0.4.1-0.20190904054847-5e2f814cba5a/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.5.0 h1:ih4qTvjOOAHubTdINDWtrTpHyHNzrqam4xcIWQY9A1A=
+github.com/tombuildsstuff/giovanni v0.5.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5 h1:cMjKdf4PxEBN9K5HaD9UMW8gkTbM0kMzkTa9SJe0WNQ=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5/go.mod h1:hnLbHMwcvSihnDhEfx2/BzKp2xb0Y+ErdfYcrs9tkJQ=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
