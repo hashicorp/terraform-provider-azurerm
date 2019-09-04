@@ -266,7 +266,7 @@ func TestAccAzureRMStorageBlob_blockFromLocalFile(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_blockFromLocalBlob(ri, rs, location, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
-					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypeBlock, sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, "block", sourceBlob.Name()),
 				),
 			},
 			{
@@ -423,7 +423,7 @@ func TestAccAzureRMStorageBlob_pageFromLocalFile(t *testing.T) {
 				Config: testAccAzureRMStorageBlob_pageFromLocalBlob(ri, rs, location, sourceBlob.Name()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMStorageBlobExists(resourceName),
-					testCheckAzureRMStorageBlobMatchesFile(resourceName, storage.BlobTypePage, sourceBlob.Name()),
+					testCheckAzureRMStorageBlobMatchesFile(resourceName, "page", sourceBlob.Name()),
 				),
 			},
 			{
@@ -590,7 +590,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 	}
 }
 
-func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind storage.BlobType, filePath string) resource.TestCheckFunc {
+func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind string, filePath string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -623,7 +623,7 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind storage.Bl
 
 		properties := blobReference.Properties
 
-		if properties.BlobType != kind {
+		if string(properties.BlobType) != kind {
 			return fmt.Errorf("Bad: blob type %q does not match expected type %q", properties.BlobType, kind)
 		}
 
