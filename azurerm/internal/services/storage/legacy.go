@@ -7,6 +7,9 @@ import (
 	legacy "github.com/Azure/azure-sdk-for-go/storage"
 )
 
+// NOTE: we'll remove this once #4238 and #4235 have been merged to avoid conflicts
+
+// nolint: deadcode unused
 func (client *Client) LegacyBlobClient(ctx context.Context, resourceGroup, accountName string) (*legacy.BlobStorageClient, bool, error) {
 	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
 	if err != nil {
