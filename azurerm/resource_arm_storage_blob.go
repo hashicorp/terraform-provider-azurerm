@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -37,27 +38,28 @@ func resourceArmStorageBlob() *schema.Resource {
 			},
 
 			"storage_account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: add validation
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmStorageAccountName,
 			},
 
 			"storage_container_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: add validation
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmStorageContainerName,
 			},
 
 			"type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO: remove in 2.0
 				ValidateFunc: validation.StringInSlice([]string{
-					"append",
-					"block",
-					"page",
+					"Append",
+					"Block",
+					"Page",
 				}, true),
 			},
 
@@ -67,6 +69,17 @@ func resourceArmStorageBlob() *schema.Resource {
 				ForceNew:     true,
 				Default:      0,
 				ValidateFunc: validate.IntDivisibleBy(512),
+			},
+
+			"access_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(blobs.Hot),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(blobs.Archive),
+					string(blobs.Cool),
+					string(blobs.Hot),
+				}, false),
 			},
 
 			"content_type": {
@@ -203,7 +216,16 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
-	// TODO: changing the access tier
+	if d.HasChange("access_tier") {
+		log.Printf("[DEBUG] Updating Access Tier for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
+
+		if _, err := blobsClient.SetTier(ctx, id.AccountName, id.ContainerName, id.BlobName, accessTier); err != nil {
+			return fmt.Errorf("Error updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	}
 
 	if d.HasChange("content_type") {
 		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
@@ -273,21 +295,18 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("storage_account_name", id.AccountName)
 	d.Set("resource_group_name", resourceGroup)
 
+	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
-
-	// The CopySource is only returned if the blob hasn't been modified (e.g. metadata configured etc)
-	// as such, we need to conditionally set this to ensure it's trackable if possible
-	if props.CopySource != "" {
-		d.Set("source_uri", props.CopySource)
-	}
-
-	blobType := strings.ToLower(strings.Replace(string(props.BlobType), "Blob", "", 1))
-	d.Set("type", blobType)
-
+	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
 	d.Set("url", d.Id())
 
 	if err := d.Set("metadata", storage.FlattenMetaData(props.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %+v", err)
+	}
+	// The CopySource is only returned if the blob hasn't been modified (e.g. metadata configured etc)
+	// as such, we need to conditionally set this to ensure it's trackable if possible
+	if props.CopySource != "" {
+		d.Set("source_uri", props.CopySource)
 	}
 
 	return nil

@@ -14,12 +14,12 @@ Manages a Blob within a Storage Container.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-d"
-  location = "westus"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestaccs"
+  name                     = "examplestoracc"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -27,21 +27,19 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "vhds"
+  name                  = "content"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   storage_account_name  = "${azurerm_storage_account.test.name}"
   container_access_type = "private"
 }
 
-resource "azurerm_storage_blob" "testsb" {
-  name = "sample.vhd"
-
+resource "azurerm_storage_blob" "test" {
+  name                   = "my-awesome-content.zip"
   resource_group_name    = "${azurerm_resource_group.test.name}"
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
-
-  type = "page"
-  size = 5120
+  type                   = "blob"
+  source                 = "some-local-file.zip"
 }
 ```
 
@@ -56,10 +54,12 @@ The following arguments are supported:
 
 * `storage_container_name` - (Required) The name of the storage container in which this blob should be created.
 
-* `type` - (Optional) The type of the storage blob to be created. One of either `block` or `page`. When not copying from an existing blob,
+* `type` - (Optional) The type of the storage blob to be created. One of either `Append`, `Block` or `Page`. When not copying from an existing blob,
     this becomes required.
 
 * `size` - (Optional) Used only for `page` blobs to specify the size in bytes of the blob to be created. Must be a multiple of 512. Defaults to 0.
+
+* `access_tier` - (Optional) The access tier of the storage blob. Possible values are `Archive`, `Cool` and `Hot`. Defaults to `Hot`.
 
 * `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 

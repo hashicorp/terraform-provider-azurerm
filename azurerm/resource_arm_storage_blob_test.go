@@ -17,8 +17,6 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
 
-// TODO: with the new SDK: changing the Tier of Blobs
-
 func TestAccAzureRMStorageBlob_disappears(t *testing.T) {
 	resourceName := "azurerm_storage_blob.test"
 	ri := tf.AccRandTimeInt()
@@ -145,6 +143,48 @@ func TestAccAzureRMStorageBlob_blockEmptyMetaData(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMStorageBlob_blockEmptyAccessTier(t *testing.T) {
+	resourceName := "azurerm_storage_blob.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageBlobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageBlob_blockEmptyAccessTier(ri, rs, location, blobs.Cool),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_tier", "Cool"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"attempts", "parallelism", "size", "type"},
+			},
+			{
+				Config: testAccAzureRMStorageBlob_blockEmptyAccessTier(ri, rs, location, blobs.Hot),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_tier", "Hot"),
+				),
+			},
+			{
+				Config: testAccAzureRMStorageBlob_blockEmptyAccessTier(ri, rs, location, blobs.Cool),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageBlobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "access_tier", "Cool"),
+				),
 			},
 		},
 	})
@@ -802,6 +842,22 @@ resource "azurerm_storage_blob" "test" {
 `, template)
 }
 
+func testAccAzureRMStorageBlob_blockEmptyAccessTier(rInt int, rString string, location string, accessTier blobs.AccessTier) string {
+	template := testAccAzureRMStorageBlob_templateBlockBlobStorage(rInt, rString, location, "private")
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test" {
+  name                   = "example.vhd"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
+  storage_account_name   = "${azurerm_storage_account.test.name}"
+  storage_container_name = "${azurerm_storage_container.test.name}"
+  type                   = "block"
+  access_tier            = "%s"
+}
+`, template, string(accessTier))
+}
+
 func testAccAzureRMStorageBlob_blockFromPublicBlob(rInt int, rString, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "blob")
 	return fmt.Sprintf(`
@@ -1088,6 +1144,31 @@ resource "azurerm_storage_blob" "import" {
   size                   = "${azurerm_storage_blob.test.size}"
 }
 `, template)
+}
+
+func testAccAzureRMStorageBlob_templateBlockBlobStorage(rInt int, rString, location, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_kind             = "StorageV2"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, rInt, location, rString, accessLevel)
 }
 
 func testAccAzureRMStorageBlob_update(rInt int, rString, location string) string {
