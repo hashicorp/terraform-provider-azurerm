@@ -17,6 +17,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` [GH-4166]
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * storage: caching the Resource Group Name / Account Key [GH-4205]
+* storage: switching to use SharedKey for authentication with Blobs/Containers rather than SharedKeyLite [GH-4235]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
