@@ -107,7 +107,7 @@ func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceDat
 	resourceGroupName := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 
-	alertPolicy, err := expandSecurityAlertPolicy(d)
+	alertPolicy := expandSecurityAlertPolicy(d)
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, serverName, *alertPolicy)
 	if err != nil {
@@ -242,7 +242,7 @@ func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, met
 	return nil
 }
 
-func expandSecurityAlertPolicy(d *schema.ResourceData) (*sql.ServerSecurityAlertPolicy, error) {
+func expandSecurityAlertPolicy(d *schema.ResourceData) *sql.ServerSecurityAlertPolicy {
 
 	state := sql.SecurityAlertPolicyState(d.Get("state").(string))
 
@@ -286,5 +286,5 @@ func expandSecurityAlertPolicy(d *schema.ResourceData) (*sql.ServerSecurityAlert
 		props.StorageEndpoint = utils.String(v.(string))
 	}
 
-	return &policy, nil
+	return &policy
 }
