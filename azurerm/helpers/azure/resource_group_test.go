@@ -48,11 +48,11 @@ func TestValidateResourceGroupName(t *testing.T) {
 			ErrCount: 1,
 		},
 		{
-			Value:    acctest.RandString(80),
+			Value:    acctest.RandString(90),
 			ErrCount: 0,
 		},
 		{
-			Value:    acctest.RandString(81),
+			Value:    acctest.RandString(91),
 			ErrCount: 1,
 		},
 	}
