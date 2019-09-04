@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_sql_database` [GH-4210]
 * **New Resource:** `azurerm_app_service_certificate` [GH-4192]
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
 * **New Resource:** `azurerm_web_application_firewall_policy` [GH-4119]
