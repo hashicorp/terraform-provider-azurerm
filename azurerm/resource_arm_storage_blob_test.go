@@ -14,6 +14,8 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
 
 // TODO: with the new SDK: changing the Tier of Blobs. Content type for Block blobs
@@ -515,30 +517,34 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
+		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		name := rs.Primary.Attributes["name"]
-		storageAccountName := rs.Primary.Attributes["storage_account_name"]
-		storageContainerName := rs.Primary.Attributes["storage_container_name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		containerName := rs.Primary.Attributes["storage_container_name"]
+		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		armClient := testAccProvider.Meta().(*ArmClient)
-		ctx := armClient.StopContext
-		blobClient, accountExists, err := armClient.storage.LegacyBlobClient(ctx, resourceGroup, storageAccountName)
+		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error locating Resource Group for Storage Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
 		}
-		if !accountExists {
-			return fmt.Errorf("Bad: Storage Account %q does not exist", storageAccountName)
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Blob %q (Container %q / Account %q) - assuming removed & removing from state", name, containerName, accountName)
 		}
 
-		container := blobClient.GetContainerReference(storageContainerName)
-		blob := container.GetBlobReference(name)
-		exists, err := blob.Exists()
+		client, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error building Blobs Client: %s", err)
 		}
 
-		if !exists {
-			return fmt.Errorf("Bad: Storage Blob %q (storage container: %q) does not exist", name, storageContainerName)
+		input := blobs.GetPropertiesInput{}
+		resp, err := client.GetProperties(ctx, accountName, containerName, name, input)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: Blob %q (Container %q / Account %q / Resource Group %q) does not exist", name, containerName, accountName, *resourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on BlobsClient: %+v", err)
 		}
 
 		return nil
