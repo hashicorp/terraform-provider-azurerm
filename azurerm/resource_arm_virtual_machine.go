@@ -28,7 +28,7 @@ import (
 
 var virtualMachineResourceName = "azurerm_virtual_machine"
 
-// todo move into internal/services/compute/something.go
+// TODO move into internal/tf/suppress/base64.go
 func userDataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	return userDataStateFunc(old) == new
 }
