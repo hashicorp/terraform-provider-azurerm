@@ -19,6 +19,7 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.ApiManagement":        {},
 		"Microsoft.Authorization":        {},
 		"Microsoft.Automation":           {},
+		"Microsoft.BotService":           {},
 		"Microsoft.Cache":                {},
 		"Microsoft.Cdn":                  {},
 		"Microsoft.CognitiveServices":    {},

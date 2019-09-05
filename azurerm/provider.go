@@ -173,6 +173,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_batch_account":                                      resourceArmBatchAccount(),
 		"azurerm_batch_application":                                  resourceArmBatchApplication(),
 		"azurerm_batch_certificate":                                  resourceArmBatchCertificate(),
+		"azurerm_bot_channels_registration":                          resourceArmBotChannelsRegistration(),
 		"azurerm_batch_pool":                                         resourceArmBatchPool(),
 		"azurerm_cdn_endpoint":                                       resourceArmCdnEndpoint(),
 		"azurerm_cdn_profile":                                        resourceArmCdnProfile(),
