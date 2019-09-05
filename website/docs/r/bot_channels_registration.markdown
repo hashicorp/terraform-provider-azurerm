@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Bot Channels Registration. Changing this forces a new resource to be created.
 
-* `display_name` - (Optional) The name of the Bot Channels Registration will be displayed as.
+* `display_name` - (Optional) The name of the Bot Channels Registration will be displayed as. This defaults to `name` if not specified. 
 
 * `endpoint` - (Optional) The Bot Channels Registration endpoint.
 

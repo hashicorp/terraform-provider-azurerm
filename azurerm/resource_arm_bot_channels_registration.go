@@ -53,7 +53,7 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"display_name": {
@@ -142,8 +142,7 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 		Tags: tags.Expand(t),
 	}
 
-	_, err := client.Create(ctx, resourceGroup, name, bot)
-	if err != nil {
+	if _, err := client.Create(ctx, resourceGroup, name, bot); err != nil {
 		return fmt.Errorf("Error issuing create request for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -230,8 +229,7 @@ func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta inter
 		Tags: tags.Expand(t),
 	}
 
-	_, err := client.Update(ctx, resourceGroup, name, bot)
-	if err != nil {
+	if _, err := client.Update(ctx, resourceGroup, name, bot); err != nil {
 		return fmt.Errorf("Error issuing update request for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
