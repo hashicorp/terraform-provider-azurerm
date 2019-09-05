@@ -9,9 +9,7 @@ description: |-
 
 # Data Source: azurerm_network_ddos_protection_plan
 
-Manages an AzureNetwork DDoS Protection Plan.
-
--> **NOTE** Azure only allow `one` DDoS Protection Plan per region.
+Use this data source to access information about an existing Azure Network DDoS Protection Plan.
 
 ## Example Usage
 
@@ -32,16 +30,16 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Network DDoS Protection Plan.
 
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
-
 * `resource_group_name` - (Required) The name of the resource group where the Network DDoS Protection Plan exists.
-
-* `tags` - (Optional) A mapping of tags assigned to the resource.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Resource ID of the DDoS Protection Plan
+
+* `location` - Specifies the supported Azure location where the resource exists.
+
+* `tags` - A mapping of tags assigned to the resource.
 
 * `virtual_network_ids` - The Resource ID list of the Virtual Networks associated with DDoS Protection Plan.

@@ -18,7 +18,6 @@ func dataSourceNetworkDDoSProtectionPlan() *schema.Resource {
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -50,7 +49,6 @@ func dataSourceNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interf
 		if utils.ResponseWasNotFound(plan.Response) {
 			log.Printf("[DEBUG] DDoS Protection Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			return fmt.Errorf("Error DDoS Protection Plan %q (Resource Group %q) was not found", name, resourceGroup)
-			return nil
 		}
 
 		return fmt.Errorf("Error making Read request on DDoS Protection Plan %q (Resource Group %q): %+v", name, resourceGroup, err)

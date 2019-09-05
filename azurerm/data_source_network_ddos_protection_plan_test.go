@@ -8,9 +8,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-// NOTE: this is a test group to avoid each test case to run in parallel, since Azure only allows one DDoS Protection
-// Plan per region.
-
 func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic(t *testing.T) {
 	dsn := "azurerm_network_ddos_protection_plan.test"
 	ri := tf.AccRandTimeInt()
