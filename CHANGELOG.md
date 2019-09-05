@@ -12,6 +12,7 @@ FEATURES:
 * **New Resource:** `azurerm_kusto_database` [GH-4149]
 * **New Resource:** `azurerm_stream_analytics_output_servicebus_topic` [GH-4164]
 * **New Resource:** `azurerm_web_application_firewall_policy` [GH-4119]
+* **New Resource:** `azurerm_bot_channels_registration` [GH-4245]
 
 IMPROVEMENTS:
 
