@@ -66,6 +66,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(-1, 1814399),
+				Default:      5,
 			},
 
 			"events_out_of_order_max_delay_in_seconds": {
@@ -73,6 +74,7 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 599),
+				Default:      0,
 			},
 
 			"events_out_of_order_policy": {
@@ -82,16 +84,17 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 					string(streamanalytics.Adjust),
 					string(streamanalytics.Drop),
 				}, false),
+				Default: string(streamanalytics.Adjust),
 			},
 
 			"output_error_policy": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.OutputErrorPolicyDrop),
 					string(streamanalytics.OutputErrorPolicyStop),
 				}, false),
+				Default: string(streamanalytics.OutputErrorPolicyDrop),
 			},
 
 			"streaming_units": {
@@ -140,7 +143,6 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	compatibilityLevel := d.Get("compatibility_level").(string)
-	dataLocale := d.Get("data_locale").(string)
 	eventsLateArrivalMaxDelayInSeconds := d.Get("events_late_arrival_max_delay_in_seconds").(int)
 	eventsOutOfOrderMaxDelayInSeconds := d.Get("events_out_of_order_max_delay_in_seconds").(int)
 	eventsOutOfOrderPolicy := d.Get("events_out_of_order_policy").(string)
@@ -167,13 +169,16 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 				Name: streamanalytics.Standard,
 			},
 			CompatibilityLevel:                 streamanalytics.CompatibilityLevel(compatibilityLevel),
-			DataLocale:                         utils.String(dataLocale),
 			EventsLateArrivalMaxDelayInSeconds: utils.Int32(int32(eventsLateArrivalMaxDelayInSeconds)),
 			EventsOutOfOrderMaxDelayInSeconds:  utils.Int32(int32(eventsOutOfOrderMaxDelayInSeconds)),
 			EventsOutOfOrderPolicy:             streamanalytics.EventsOutOfOrderPolicy(eventsOutOfOrderPolicy),
 			OutputErrorPolicy:                  streamanalytics.OutputErrorPolicy(outputErrorPolicy),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if dataLocale, ok := d.GetOk("data_locale"); ok {
+		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
 	}
 
 	if d.IsNewResource() {

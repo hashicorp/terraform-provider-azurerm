@@ -249,6 +249,7 @@ resource "azurerm_stream_analytics_job" "import" {
   output_error_policy                      = "${azurerm_stream_analytics_job.test.output_error_policy}"
   streaming_units                          = "${azurerm_stream_analytics_job.test.streaming_units}"
   transformation_query                     = "${azurerm_stream_analytics_job.test.transformation_query}"
+  tags				                       = "${azurerm_stream_analytics_job.test.tags}"
 }
 `, template)
 }
