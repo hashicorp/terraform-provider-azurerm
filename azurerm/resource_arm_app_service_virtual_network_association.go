@@ -6,8 +6,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
