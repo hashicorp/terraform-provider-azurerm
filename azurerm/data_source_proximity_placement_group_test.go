@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDataSourceProximityPlacementGroup_basic(t *testing.T) {
+func TestAccProximityPlacementGroupDataSource_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -19,38 +19,25 @@ func TestAccDataSourceProximityPlacementGroup_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceProximityPlacementGroup_basic(ri, location),
+				Config: testAccProximityPlacementGroupDataSource_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "2"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDataSourceProximityPlacementGroup_basic(rInt int, location string) string {
+func testAccProximityPlacementGroupDataSource_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_proximity_placement_group" "test" {
-  name                = "acctestppg-%[1]d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    "foo" = "bar"
-  }
-}
+%s
 
 data "azurerm_proximity_placement_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_proximity_placement_group.test.name}"
 }
-`, rInt, location)
+`, testAccProximityPlacementGroup_withTags(rInt, location))
 }

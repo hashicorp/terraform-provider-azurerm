@@ -111,24 +111,23 @@ func TestAccAzureRMVirtualMachine_withPPG(t *testing.T) {
 	resourceName := "azurerm_virtual_machine.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(14)
-	config := testAccAzureRMVirtualMachinePPG(ri, testLocation(), rs)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMVirtualMachinePPG(ri, testLocation(), rs),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
-					testCheckAzureRMVirtualMachineHasPPG(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "proximity_placement_group_id"),
 				),
 			},
 		},
 	})
 }
 
-/*
 func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.VirtualMachine) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -160,46 +159,6 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 		return nil
 	}
 }
-*/
-
-func testGetAzureRMVirtualMachine(s *terraform.State, resourceName string) (result *compute.VirtualMachine, err error) {
-	// Ensure we have enough information in state to look up in API
-	rs, ok := s.RootModule().Resources[resourceName]
-	if !ok {
-		return nil, fmt.Errorf("Not found: %s", resourceName)
-	}
-
-	// Name of the actual scale set
-	name := rs.Primary.Attributes["name"]
-
-	resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-	if !hasResourceGroup {
-		return nil, fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
-	}
-
-	client := testAccProvider.Meta().(*ArmClient).compute.VMClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-	vm, err := client.Get(ctx, resourceGroup, name, "")
-	if err != nil {
-		return nil, fmt.Errorf("Bad: Get on vmClient: %+v", err)
-	}
-
-	if vm.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("Bad: VirtualMachine %q (resource group: %q) does not exist", name, resourceGroup)
-	}
-
-	return &vm, err
-}
-
-func testCheckAzureRMVirtualMachineExists(name string, vm *compute.VirtualMachine) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachine(s, name)
-
-		vm = resp
-		return err
-	}
-}
 
 func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).compute.VMClient
@@ -227,22 +186,6 @@ func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
 	}
 
 	return nil
-}
-
-func testCheckAzureRMVirtualMachineHasPPG(name string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		resp, err := testGetAzureRMVirtualMachine(s, name)
-		if err != nil {
-			return err
-		}
-
-		id := resp.ProximityPlacementGroup.ID
-		if id == nil || *id == "" {
-			return fmt.Errorf("Bad: Could not get proximity placement group configurations for virtual machine %v", name)
-		}
-
-		return nil
-	}
 }
 
 func testAccAzureRMVirtualMachine_winTimeZone(rInt int, location string) string {
@@ -633,26 +576,27 @@ resource "azurerm_virtual_machine" "test" {
 func testAccAzureRMVirtualMachinePPG(rInt int, location string, rString string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
+
 resource "azurerm_virtual_network" "test" {
-  name                = "acctvn-%d"
+  name                = "acctvn-%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "acctsub-%d"
+  name                 = "acctsub-%[1]d"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
 resource "azurerm_network_interface" "test" {
-  name                = "acctni-%d"
+  name                = "acctni-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -664,7 +608,7 @@ resource "azurerm_network_interface" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "accsa%d"
+  name                     = "accsa%[1]d"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
@@ -683,13 +627,13 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_proximity_placement_group" "test" {
-	name 								= "accPPG-%d"
+	name 								= "accPPG-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctvm-%d"
+  name                  = "acctvm-%[1]d"
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
@@ -711,7 +655,7 @@ resource "azurerm_virtual_machine" "test" {
   }
 
   os_profile {
-    computer_name  = "hn%d"
+    computer_name  = "hn%[1]d"
     admin_username = "testadmin"
     admin_password = "Password1234!"
   }
@@ -720,12 +664,12 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  proximity_placement_group_id = "${azure_proximity_placement_group.test.id}"
+  proximity_placement_group_id = "${azurerm_proximity_placement_group.test.id}"
 
   tags = {
     environment = "Production"
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location)
 }

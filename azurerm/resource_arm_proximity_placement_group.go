@@ -8,6 +8,8 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,22 +19,24 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 		Read:   resourceArmProximityPlacementGroupRead,
 		Update: resourceArmProximityPlacementGroupCreateUpdate,
 		Delete: resourceArmProximityPlacementGroupDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -44,13 +48,13 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 	log.Printf("[INFO] preparing arguments for AzureRM Proximity Placement Group creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Proximity Placement Group %q (Resource Group %q): %s", name, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Proximity Placement Group %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
 
@@ -59,16 +63,13 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
-
 	ppg := compute.ProximityPlacementGroup{
 		Name:     &name,
-		Location: &location,
-		Tags:     expandTags(tags),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, ppg)
+	resp, err := client.CreateOrUpdate(ctx, resourceGroup, name, ppg)
 	if err != nil {
 		return err
 	}
@@ -86,27 +87,25 @@ func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["proximityPlacementGroups"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Proximity Placement Group %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error making Read request on Proximity Placement Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
@@ -121,6 +120,5 @@ func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta inter
 	name := id.Path["proximityPlacementGroups"]
 
 	_, err = client.Delete(ctx, resGroup, name)
-
 	return err
 }

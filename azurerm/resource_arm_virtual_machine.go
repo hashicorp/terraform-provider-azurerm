@@ -89,9 +89,12 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				StateFunc: func(id interface{}) string {
-					return strings.ToLower(id.(string))
-				},
+
+				// We have to ignore case due to incorrect capitalisation of resource group name in
+				// proximity placement group ID in the response we get from the API request
+				//
+				// todo can be removed when https://github.com/Azure/azure-sdk-for-go/issues/5699 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"identity": {
@@ -682,12 +685,9 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
-		proximityPlacementGroup := v.(string)
-		ppg := compute.SubResource{
-			ID: &proximityPlacementGroup,
+		properties.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
 		}
-
-		properties.ProximityPlacementGroup = &ppg
 	}
 
 	vm := compute.VirtualMachine{
@@ -794,13 +794,12 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 		if availabilitySet := props.AvailabilitySet; availabilitySet != nil {
 			// Lowercase due to incorrect capitalisation of resource group name in
 			// availability set ID in response from get VM API request
+			// todo can be removed when https://github.com/Azure/azure-sdk-for-go/issues/5699 is fixed
 			d.Set("availability_set_id", strings.ToLower(*availabilitySet.ID))
 		}
 
 		if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
-			// Lowercase due to incorrect capitalisation of resource group name in
-			// proximity placement group ID in response from get VM API request
-			d.Set("proximity_placement_group_id", strings.ToLower(*proximityPlacementGroup.ID))
+			d.Set("proximity_placement_group_id", proximityPlacementGroup.ID)
 		}
 
 		if profile := props.HardwareProfile; profile != nil {

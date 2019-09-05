@@ -11,10 +11,10 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMProximityPlacementGroup_basic(t *testing.T) {
+func TestAccProximityPlacementGroup_basic(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMProximityPlacementGroup_basic(ri, testLocation())
+	config := testAccProximityPlacementGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -36,7 +36,7 @@ func TestAccAzureRMProximityPlacementGroup_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMProximityPlacementGroup_requiresImport(t *testing.T) {
+func TestAccProximityPlacementGroup_requiresImport(t *testing.T) {
 	if !requireResourcesToBeImported {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -52,23 +52,23 @@ func TestAccAzureRMProximityPlacementGroup_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMProximityPlacementGroupDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMProximityPlacementGroup_basic(ri, location),
+				Config: testAccProximityPlacementGroup_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMProximityPlacementGroupExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMProximityPlacementGroup_requiresImport(ri, location),
+				Config:      testAccProximityPlacementGroup_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_proximity_placement_group"),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMProximityPlacementGroup_disappears(t *testing.T) {
+func TestAccProximityPlacementGroup_disappears(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMProximityPlacementGroup_basic(ri, testLocation())
+	config := testAccProximityPlacementGroup_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -87,12 +87,12 @@ func TestAccAzureRMProximityPlacementGroup_disappears(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMProximityPlacementGroup_withTags(t *testing.T) {
+func TestAccProximityPlacementGroup_withTags(t *testing.T) {
 	resourceName := "azurerm_proximity_placement_group.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
-	preConfig := testAccAzureRMProximityPlacementGroup_withTags(ri, location)
-	postConfig := testAccAzureRMProximityPlacementGroup_withUpdatedTags(ri, location)
+	preConfig := testAccProximityPlacementGroup_withTags(ri, location)
+	postConfig := testAccProximityPlacementGroup_withUpdatedTags(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -207,7 +207,7 @@ func testCheckAzureRMProximityPlacementGroupDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMProximityPlacementGroup_basic(rInt int, location string) string {
+func testAccProximityPlacementGroup_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -222,8 +222,8 @@ resource "azurerm_proximity_placement_group" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMProximityPlacementGroup_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMProximityPlacementGroup_basic(rInt, location)
+func testAccProximityPlacementGroup_requiresImport(rInt int, location string) string {
+	template := testAccProximityPlacementGroup_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -235,7 +235,7 @@ resource "azurerm_proximity_placement_group" "import" {
 `, template)
 }
 
-func testAccAzureRMProximityPlacementGroup_withTags(rInt int, location string) string {
+func testAccProximityPlacementGroup_withTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -255,7 +255,7 @@ resource "azurerm_proximity_placement_group" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMProximityPlacementGroup_withUpdatedTags(rInt int, location string) string {
+func testAccProximityPlacementGroup_withUpdatedTags(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
