@@ -62,12 +62,12 @@ The following arguments are supported:
 
 * `content_type` - (Optional) The content type of the storage blob. Cannot be defined if `source_uri` is defined. Defaults to `application/octet-stream`.
 
-* `source` - (Optional) An absolute path to a file on the local system. Cannot be specified if `source_content` or `source_uri` is specified.
+* `source` - (Optional) An absolute path to a file on the local system. This field cannot be specified for Append blobs and annot be specified if `source_content` or `source_uri` is specified.
 
-* `source_content` - (Optional) The content for this blob which should be defined inline. Cannot be specified if `source` or `source_uri` is specified.
+* `source_content` - (Optional) The content for this blob which should be defined inline. This field can only be specified for Block blobs and cannot be specified if `source` or `source_uri` is specified.
 
 * `source_uri` - (Optional) The URI of an existing blob, or a file in the Azure File service, to use as the source contents
-    for the blob to be created. Changing this forces a new resource to be created. Cannot be specified if `source` or `source_content` is specified.
+    for the blob to be created. Changing this forces a new resource to be created. This field cannot be specified for Append blobs and cannot be specified if `source` or `source_content` is specified.
 
 * `parallelism` - (Optional) The number of workers per CPU core to run for concurrent uploads. Defaults to `8`.
 
