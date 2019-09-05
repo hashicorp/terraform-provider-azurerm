@@ -121,6 +121,8 @@ func resourceArmAppService() *schema.Resource {
 				},
 			},
 
+			"source_control": azure.SchemaAppServiceSourceControl(),
+
 			"tags": tags.Schema(),
 
 			"site_credential": {
@@ -154,23 +156,6 @@ func resourceArmAppService() *schema.Resource {
 			"possible_outbound_ip_addresses": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"source_control": {
-				Type:     schema.TypeList,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"repo_url": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"branch": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
 			},
 		},
 	}
@@ -295,6 +280,16 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 		if err != nil {
 			return fmt.Errorf("Error updating Backup Settings for App Service %q (Resource Group %q): %s", name, resGroup, err)
 		}
+	}
+
+	sourceControlRaw := d.Get("source_control").([]interface{})
+	sourceControlProperties := azure.ExpandAppServiceSourceControl(sourceControlRaw)
+	sourceControl := web.SiteSourceControl{
+		SiteSourceControlProperties: &sourceControlProperties,
+	}
+
+	if _, err := client.CreateOrUpdateSourceControl(ctx, resGroup, name, sourceControl); err != nil {
+		return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resGroup, err)
 	}
 
 	return resourceArmAppServiceUpdate(d, meta)
@@ -477,6 +472,18 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	if d.HasChange("source_control") {
+		sourceControlRaw := d.Get("source_control").([]interface{})
+		sourceControlProperties := azure.ExpandAppServiceSourceControl(sourceControlRaw)
+		sourceControl := web.SiteSourceControl{
+			SiteSourceControlProperties: &sourceControlProperties,
+		}
+
+		if _, err := client.UpdateSourceControl(ctx, resGroup, name, sourceControl); err != nil {
+			return fmt.Errorf("Error updating Source Control for App Service %q (Resource Group %q): %+s", name, resGroup, err)
+		}
+	}
+
 	return resourceArmAppServiceRead(d, meta)
 }
 
@@ -621,7 +628,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `logs`: %s", err)
 	}
 
-	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	scm := azure.FlattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
 		return fmt.Errorf("Error setting `source_control`: %s", err)
 	}
@@ -662,27 +669,6 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 	}
 
 	return nil
-}
-
-func flattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
-	results := make([]interface{}, 0)
-	result := make(map[string]interface{})
-
-	if input == nil {
-		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
-		return results
-	}
-
-	if input.RepoURL != nil {
-		result["repo_url"] = *input.RepoURL
-	}
-	if input.Branch != nil && *input.Branch != "" {
-		result["branch"] = *input.Branch
-	} else {
-		result["branch"] = "master"
-	}
-
-	return append(results, result)
 }
 
 func expandAppServiceAppSettings(d *schema.ResourceData) map[string]*string {

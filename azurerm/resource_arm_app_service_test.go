@@ -2012,6 +2012,33 @@ func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_basicSourceControl(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	repoUrl := "https://github.com/Azure-Samples/php-docs-hello-world"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_basicSourceControl(ri, testLocation(), repoUrl)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "source_control.0.repo_url", repoUrl),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 
@@ -4444,4 +4471,40 @@ resource "azurerm_app_service" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMAppService_basicSourceControl(rInt int, location, repoUrl string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_app_service" "test" {
+  name                = "acctestAS-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+
+  site_config {
+	php_version = "7.2"
+  }
+
+  source_control {
+	repo_url              = "%s"
+	is_manual_integration = true
+  }
+}
+`, rInt, location, rInt, rInt, repoUrl)
 }

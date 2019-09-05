@@ -211,7 +211,7 @@ func dataSourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	scm := flattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
+	scm := azure.FlattenAppServiceSourceControl(scmResp.SiteSourceControlProperties)
 	if err := d.Set("source_control", scm); err != nil {
 		return err
 	}

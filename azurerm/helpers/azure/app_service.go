@@ -616,6 +616,45 @@ func SchemaAppServiceStorageAccounts() *schema.Schema {
 	}
 }
 
+func SchemaAppServiceSourceControl() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"repo_url": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+				"branch": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					Default:      "master",
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+				"is_manual_integration": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+				"deployment_rollback_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+				"is_mercurial": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+			},
+		},
+	}
+}
+
 func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -1638,4 +1677,68 @@ func FlattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValu
 	}
 
 	return results
+}
+
+func ExpandAppServiceSourceControl(input []interface{}) web.SiteSourceControlProperties {
+	sourceControlProperties := web.SiteSourceControlProperties{}
+
+	if len(input) == 0 {
+		return sourceControlProperties
+	}
+
+	sourceControl := input[0].(map[string]interface{})
+
+	if v, ok := sourceControl["repo_url"]; ok {
+		sourceControlProperties.RepoURL = utils.String(v.(string))
+	}
+
+	if v, ok := sourceControl["branch"]; ok {
+		sourceControlProperties.Branch = utils.String(v.(string))
+	}
+
+	if v, ok := sourceControl["is_manual_integration"]; ok {
+		sourceControlProperties.IsManualIntegration = utils.Bool(v.(bool))
+	}
+
+	if v, ok := sourceControl["deployment_rollback_enabled"]; ok {
+		sourceControlProperties.DeploymentRollbackEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := sourceControl["is_mercurial"]; ok {
+		sourceControlProperties.IsMercurial = utils.Bool(v.(bool))
+	}
+
+	return sourceControlProperties
+}
+
+func FlattenAppServiceSourceControl(input *web.SiteSourceControlProperties) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input == nil {
+		log.Printf("[DEBUG] SiteSourceControlProperties is nil")
+		return results
+	}
+
+	if input.RepoURL != nil {
+		result["repo_url"] = *input.RepoURL
+	}
+
+	if input.Branch != nil {
+		result["branch"] = *input.Branch
+	}
+
+	if input.IsManualIntegration != nil {
+		result["is_manual_integration"] = *input.IsManualIntegration
+	}
+
+	if input.DeploymentRollbackEnabled != nil {
+		result["deployment_rollback_enabled"] = *input.DeploymentRollbackEnabled
+	}
+
+	if input.IsMercurial != nil {
+		result["is_mercurial"] = *input.IsMercurial
+	}
+
+	return append(results, result)
 }

@@ -89,6 +89,8 @@ The following arguments are supported:
 
 * `site_config` - (Optional) A `site_config` block as defined below.
 
+* `source_control` - (Optional) A Source Control block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
@@ -227,6 +229,20 @@ Additional examples of how to run Containers via the `azurerm_app_service` resou
 
 ---
 
+A `source_control` block supports the following:
+
+* `repo_url` - (Required) The repository or source control URL.
+
+* `branch` - (Optional) The name of branch to use for deployment. Defaults to `master`.
+
+* `is_manual_integration` - (Optional) Is manual integration enabled, rather than continuous integration (which configures webhooks into online repos like GitHub)? Defaults to `false`.
+
+* `deployment_rollback_enabled` - (Optional) Should deployment rollback be enabled? Defaults to `false`.
+
+* `is_mercurial` - (Optional) Is the repository Mercurial, rather than Git? Defaults to `false`.
+
+---
+
 A `cors` block supports the following:
 
 * `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
@@ -357,8 +373,6 @@ The following attributes are exported:
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
 
-* `source_control` - A `source_control` block as defined below, which contains the Source Control information when `scm_type` is set to `LocalGit`.
-
 * `site_credential` - A `site_credential` block as defined below, which contains the site-level credentials used to publish to this App Service.
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this App Service.
@@ -381,13 +395,6 @@ A `site_credential` block exports the following:
 * `password` - The password associated with the username, which can be used to publish to this App Service.
 
 ~> **NOTE:** both `username` and `password` for the `site_credential` block are only exported when `scm_type` is set to `LocalGit`
-
----
-
-A `source_control` block exports the following:
-
-* `repo_url` - URL of the Git repository for this App Service.
-* `branch` - Branch name of the Git repository for this App Service.
 
 ## Import
 
