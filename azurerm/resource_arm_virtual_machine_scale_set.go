@@ -747,6 +747,18 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetExtensionHash,
 			},
 
+			"proximity_placement_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+
+				// We have to ignore case due to incorrect capitalisation of resource group name in
+				// proximity placement group ID in the response we get from the API request
+				//
+				// todo can be removed when https://github.com/Azure/azure-sdk-for-go/issues/5699 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
 			"tags": tags.Schema(),
 		},
 
@@ -857,6 +869,12 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		}
 	}
 
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		scaleSetProps.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	properties := compute.VirtualMachineScaleSet{
 		Name:                             &name,
 		Location:                         &location,
@@ -951,6 +969,10 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
 					return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Rolling Upgrade Policy error: %#v", err)
 				}
+			}
+
+			if proximityPlacementGroup := properties.ProximityPlacementGroup; proximityPlacementGroup != nil {
+				d.Set("proximity_placement_group_id", proximityPlacementGroup.ID)
 			}
 		}
 		d.Set("overprovision", properties.Overprovision)
