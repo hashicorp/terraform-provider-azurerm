@@ -25,6 +25,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
+* `azurerm_app_service` - fixing a bug where the `logs` block would get reset when `app_settings` were configured [GH-4243]
 * `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
 * `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
