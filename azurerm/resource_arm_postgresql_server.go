@@ -7,6 +7,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -165,6 +166,15 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(postgresql.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(postgresql.StorageAutogrowEnabled),
+								string(postgresql.StorageAutogrowDisabled),
+							}, false),
+						},
 					},
 				},
 			},
@@ -218,7 +228,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	createMode := "Default"
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -423,11 +433,13 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &postgresql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
 		GeoRedundantBackup:  postgresql.GeoRedundantBackup(geoRedundantBackup),
 		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     postgresql.StorageAutogrow(autoGrow),
 	}
 }
 
@@ -457,6 +469,8 @@ func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interfac
 	if storageMB := resp.StorageMB; storageMB != nil {
 		values["storage_mb"] = *storageMB
 	}
+
+	values["auto_grow"] = string(resp.StorageAutogrow)
 
 	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
 		values["backup_retention_days"] = *backupRetentionDays

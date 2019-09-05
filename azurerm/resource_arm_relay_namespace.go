@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"time"
@@ -143,7 +144,7 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -218,7 +219,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error setting 'sku': %+v", err)
 		}
 
-		if err := d.Set("sku_name", *sku.Name); err != nil {
+		if err := d.Set("sku_name", sku.Name); err != nil {
 			return fmt.Errorf("Error setting 'sku_name': %+v", err)
 		}
 	} else {

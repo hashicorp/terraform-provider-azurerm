@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMMapsAccount(t *testing.T) {
+func TestAccDataSourceAzureRMMapsAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_maps_account.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
@@ -18,7 +18,7 @@ func TestAccDataSourceAzureRMMapsAccount(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMapsAccount(rInt, location),
+				Config: testAccDataSourceAzureRMMapsAccount_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
@@ -35,7 +35,7 @@ func TestAccDataSourceAzureRMMapsAccount(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMMapsAccount(rInt int, location string) string {
+func testAccDataSourceAzureRMMapsAccount_basic(rInt int, location string) string {
 	template := testAccAzureRMMapsAccount_tags(rInt, location)
 	return fmt.Sprintf(`
 %s

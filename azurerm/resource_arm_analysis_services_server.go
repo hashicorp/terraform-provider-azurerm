@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -109,7 +110,7 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		server, err := client.GetDetails(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
@@ -194,10 +195,10 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	}
 
 	if serverProps := server.ServerProperties; serverProps != nil {
-		if serverProps.AsAdministrators == nil || serverProps.AsAdministrators.Members == nil {
+		if serverProps.AsAdministrators == nil {
 			d.Set("admin_users", []string{})
 		} else {
-			d.Set("admin_users", *serverProps.AsAdministrators.Members)
+			d.Set("admin_users", serverProps.AsAdministrators.Members)
 		}
 
 		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)

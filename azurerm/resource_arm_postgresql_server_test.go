@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -133,7 +134,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -297,6 +298,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -307,6 +309,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_4"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -437,6 +440,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb            = 51200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    auto_grow             = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -582,6 +586,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb            = 947200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    auto_grow             = "Enabled"
   }
 
   administrator_login          = "acctestun"

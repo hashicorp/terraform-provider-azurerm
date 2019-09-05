@@ -27,6 +27,7 @@ func SchemaLocationOptional() *schema.Schema {
 	}
 }
 
+// todo should we change this to SchemaLocationComputed
 func SchemaLocationForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,

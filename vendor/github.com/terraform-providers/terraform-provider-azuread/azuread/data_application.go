@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 )
@@ -78,6 +79,8 @@ func dataApplication() *schema.Resource {
 				Computed: true,
 			},
 
+			"app_roles": graph.SchemaAppRoles(),
+
 			"required_resource_access": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -109,54 +112,7 @@ func dataApplication() *schema.Resource {
 				},
 			},
 
-			"oauth2_permissions": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"admin_consent_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"admin_consent_display_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"is_enabled": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"user_consent_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"user_consent_display_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"value": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
+			"oauth2_permissions": graph.SchemaOauth2Permissions(),
 		},
 	}
 }
@@ -239,11 +195,15 @@ func dataApplicationRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("type", "webapp/api")
 	}
 
+	if err := d.Set("app_roles", graph.FlattenAppRoles(app.AppRoles)); err != nil {
+		return fmt.Errorf("Error setting `app_roles`: %+v", err)
+	}
+
 	if err := d.Set("group_membership_claims", app.GroupMembershipClaims); err != nil {
 		return fmt.Errorf("Error setting `group_membership_claims`: %+v", err)
 	}
 
-	if err := d.Set("oauth2_permissions", flattenADApplicationOauth2Permissions(app.Oauth2Permissions)); err != nil {
+	if err := d.Set("oauth2_permissions", graph.FlattenOauth2Permissions(app.Oauth2Permissions)); err != nil {
 		return fmt.Errorf("Error setting `oauth2_permissions`: %+v", err)
 	}
 
