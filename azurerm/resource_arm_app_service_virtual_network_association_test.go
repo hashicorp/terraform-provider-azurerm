@@ -106,7 +106,7 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationExists(resourceName stri
 			return fmt.Errorf("Bad: no resource group found in state for Azure App Service Virtual Network Association: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 		if err != nil {
@@ -140,7 +140,7 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationDisappears(resourceName 
 			return fmt.Errorf("Bad: no resource group found in state for Azure App Service Virtual Network Association: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.DeleteSwiftVirtualNetwork(ctx, resourceGroup, name)
 		if err != nil {
@@ -154,7 +154,7 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationDisappears(resourceName 
 }
 
 func testCheckAzureRMAppServiceVirtualNetworkAssociationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).appServicesClient
+	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_virtual_network_association" {
@@ -258,7 +258,6 @@ resource "azurerm_app_service_virtual_network_association" "test" {
   app_service_id       = "${azurerm_app_service.test.id}"
   subnet_id            = "${azurerm_subnet.test1.id}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
 }
 `, template)
 }
@@ -272,7 +271,6 @@ resource "azurerm_app_service_virtual_network_association" "test" {
   app_service_id       = "${azurerm_app_service.test.id}"
   subnet_id            = "${azurerm_subnet.test2.id}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
 }
 `, template)
 }

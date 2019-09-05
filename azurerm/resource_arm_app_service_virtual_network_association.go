@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 )
 
 func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
@@ -21,8 +22,6 @@ func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"location": azure.SchemaLocation(),
 
 			"app_service_id": {
 				Type:         schema.TypeString,
@@ -41,7 +40,7 @@ func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
 }
 
 func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Get("app_service_id").(string))
@@ -54,15 +53,14 @@ func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.Resour
 	}
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := id.Path["sites"]
-	location := d.Get("location").(string)
 	subnetName := subnetID.Path["subnets"]
 	virtualNetworkName := subnetID.Path["virtualNetworks"]
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
-	azureRMLockByName(subnetName, subnetResourceName)
-	defer azureRMUnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	exists, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -73,7 +71,6 @@ func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.Resour
 	}
 
 	connectionEnvelope := web.SwiftVirtualNetwork{
-		Location: &location,
 		SwiftVirtualNetworkProperties: &web.SwiftVirtualNetworkProperties{
 			SubnetResourceID: utils.String(d.Get("subnet_id").(string)),
 		},
@@ -91,7 +88,7 @@ func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.Resour
 }
 
 func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -129,13 +126,12 @@ func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, 
 	}
 	d.Set("subnet_id", subnetID)
 	d.Set("app_service_id", appService.ID)
-	d.Set("location", appService.Location)
 	d.Set("resource_group_name", resourceGroup)
 	return nil
 }
 
 func resourceArmAppServiceVirtualNetworkAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Get("app_service_id").(string))
@@ -151,11 +147,11 @@ func resourceArmAppServiceVirtualNetworkAssociationDelete(d *schema.ResourceData
 	subnetName := subnetID.Path["subnets"]
 	virtualNetworkName := subnetID.Path["virtualNetworks"]
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
-	azureRMLockByName(subnetName, subnetResourceName)
-	defer azureRMUnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	appService, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
