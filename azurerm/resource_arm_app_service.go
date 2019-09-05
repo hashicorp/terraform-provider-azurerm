@@ -378,19 +378,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("logs") {
-		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
-		id := d.Id()
-		logsResource := web.SiteLogsConfig{
-			ID:                       &id,
-			SiteLogsConfigProperties: &logs,
-		}
-
-		if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logsResource); err != nil {
-			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", name, err)
-		}
-	}
-
 	if d.HasChange("backup") {
 		backupRaw := d.Get("backup").([]interface{})
 		if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
@@ -422,6 +409,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	// app settings updates have a side effect on logging settings. See the note below
 	if d.HasChange("app_settings") {
 		// update the AppSettings
 		appSettings := expandAppServiceAppSettings(d)
@@ -431,6 +419,25 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		if _, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings); err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", name, err)
+		}
+	}
+
+	// the logging configuration has a dependency on the app settings in Azure
+	// e.g. configuring logging to blob storage will add the DIAGNOSTICS_AZUREBLOBCONTAINERSASURL
+	// and DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS app settings to the app service.
+	// If the app settings are updated, also update the logging configuration if it exists, otherwise
+	// updating the former will clobber the log settings
+	_, hasLogs := d.GetOkExists("logs")
+	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
+		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
+		id := d.Id()
+		logsResource := web.SiteLogsConfig{
+			ID:                       &id,
+			SiteLogsConfigProperties: &logs,
+		}
+
+		if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logsResource); err != nil {
+			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", name, err)
 		}
 	}
 
