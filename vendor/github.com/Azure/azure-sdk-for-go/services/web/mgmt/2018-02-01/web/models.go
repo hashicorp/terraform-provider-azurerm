@@ -20696,8 +20696,8 @@ type SwiftVirtualNetwork struct {
 	ID *string `json:"id,omitempty"`
 	// Name - READ-ONLY; Resource Name.
 	Name *string `json:"name,omitempty"`
-	// Location - Location of resource.
-	Location *string `json:"location,omitempty"`
+	// Kind - Kind of resource.
+	Kind *string `json:"kind,omitempty"`
 	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
 }
@@ -20708,8 +20708,8 @@ func (svn SwiftVirtualNetwork) MarshalJSON() ([]byte, error) {
 	if svn.SwiftVirtualNetworkProperties != nil {
 		objectMap["properties"] = svn.SwiftVirtualNetworkProperties
 	}
-	if svn.Location != nil {
-		objectMap["location"] = svn.Location
+	if svn.Kind != nil {
+		objectMap["kind"] = svn.Kind
 	}
 	return json.Marshal(objectMap)
 }
@@ -20750,14 +20750,14 @@ func (svn *SwiftVirtualNetwork) UnmarshalJSON(body []byte) error {
 				}
 				svn.Name = &name
 			}
-		case "location":
+		case "kind":
 			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
+				var kind string
+				err = json.Unmarshal(*v, &kind)
 				if err != nil {
 					return err
 				}
-				svn.Location = &location
+				svn.Kind = &kind
 			}
 		case "type":
 			if v != nil {
