@@ -14,6 +14,7 @@ tools:
 	@sh "$(CURDIR)/scripts/gogetcookie.sh"
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
 
 build: fmtcheck
 	go install
@@ -39,6 +40,12 @@ lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./...
 
+tflint:
+	@echo "==> Checking source code against terraform provider linters..."
+	@tfproviderlint \
+        -R001 -R002 -R003 -R004\
+        ./$(PKG_NAME)
+
 test-docker:
 	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.12 make test
 
@@ -61,16 +68,16 @@ testacc: fmtcheck
 debugacc: fmtcheck
 	TF_ACC=1 dlv test $(TEST) --headless --listen=:2345 --api-version=2 -- -test.v $(TESTARGS)
 
+website-lint:
+	@echo "==> Checking website against linters..."
+	@misspell -error -source=text -i hdinsight website/
+
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))
 	echo "$(WEBSITE_REPO) not found in your GOPATH (necessary for layouts and assets), get-ting..."
 	git clone https://$(WEBSITE_REPO) $(GOPATH)/src/$(WEBSITE_REPO)
 endif
 	@$(MAKE) -C $(GOPATH)/src/$(WEBSITE_REPO) website-provider PROVIDER_PATH=$(shell pwd) PROVIDER_NAME=$(PKG_NAME)
-
-website-lint:
-	@echo "==> Checking website against linters..."
-	@misspell -error -source=text -i hdinsight website/
 
 website-test:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))

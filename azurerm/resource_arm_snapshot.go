@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,7 +45,7 @@ func resourceArmSnapshot() *schema.Resource {
 					string(compute.Copy),
 					string(compute.Import),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"source_uri": {
@@ -71,22 +74,22 @@ func resourceArmSnapshot() *schema.Resource {
 
 			"encryption_settings": encryptionSettingsSchema(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	createOption := d.Get("create_option").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -106,7 +109,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 				CreateOption: compute.DiskCreateOption(createOption),
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("source_uri"); ok {
@@ -152,10 +155,10 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -199,16 +202,14 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: refactor the test configs
@@ -40,7 +41,7 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 	})
 }
 func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -644,7 +645,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
+	conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -670,7 +671,7 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).cosmosAccountsClient
+		conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -825,7 +826,12 @@ func testAccAzureRMCosmosDBAccount_capabilityDocLevelTTL(rInt int, location stri
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altLocation string) string {
-	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+	co := `
+	max_interval_in_seconds = 373
+	max_staleness_prefix    = 100001
+`
+
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), co, fmt.Sprintf(`
         geo_location {
             location          = "%s"
             failover_priority = 1
@@ -835,7 +841,12 @@ func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altL
 }
 
 func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLocation string) string {
-	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+	co := `
+	max_interval_in_seconds = 373
+	max_staleness_prefix    = 100001
+`
+
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), co, fmt.Sprintf(`
         enable_multiple_write_locations = true
 
         geo_location {
@@ -847,7 +858,12 @@ func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLoc
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location string, altLocation string) string {
-	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+	co := `
+	max_interval_in_seconds = 373
+	max_staleness_prefix    = 100001
+`
+
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), co, fmt.Sprintf(`
         geo_location {
             prefix            = "acctest-%d-custom-id"
             location          = "%s"
@@ -858,7 +874,11 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 }
 
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
-	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+	co := `
+	max_interval_in_seconds = 373
+	max_staleness_prefix    = 100001
+`
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), co, fmt.Sprintf(`
 		ip_range_filter				= "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45/32,52.187.184.26,10.20.0.0/16"
 		enable_automatic_failover	= true
 
@@ -871,7 +891,12 @@ func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocati
 }
 
 func testAccAzureRMCosmosDBAccount_emptyIpFilter(rInt int, location string, altLocation string) string {
-	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), "", fmt.Sprintf(`
+	co := `
+	max_interval_in_seconds = 373
+	max_staleness_prefix    = 100001
+`
+
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), co, fmt.Sprintf(`
 		ip_range_filter				= ""
 		enable_automatic_failover	= true
 

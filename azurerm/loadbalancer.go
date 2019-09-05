@@ -8,10 +8,11 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error) {
-	id, err := parseAzureResourceID(loadBalancerId)
+	id, err := azure.ParseAzureResourceID(loadBalancerId)
 	if err != nil {
 		return "", "", err
 	}
@@ -22,7 +23,7 @@ func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error)
 }
 
 func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)
@@ -155,7 +156,7 @@ func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{})
 	}
 
 	lbID := strings.TrimSuffix(r.FindString(d.Id()), "/")
-	parsed, err := parseAzureResourceID(lbID)
+	parsed, err := azure.ParseAzureResourceID(lbID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse loadbalancer id from %s", d.Id())
 	}

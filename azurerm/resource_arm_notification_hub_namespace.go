@@ -13,9 +13,13 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
 
 func resourceArmNotificationHubNamespace() *schema.Resource {
 	return &schema.Resource{
@@ -88,12 +92,12 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 					string(notificationhubs.Messaging),
 					string(notificationhubs.NotificationHub),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
 			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tagsSchema(),
+			//"tags": tags.Schema(),
 
 			"servicebus_endpoint": {
 				Type:     schema.TypeString,
@@ -134,7 +138,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 	namespaceType := d.Get("namespace_type").(string)
 	enabled := d.Get("enabled").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -190,7 +194,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -240,7 +244,7 @@ func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).notificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -284,7 +288,7 @@ func flattenNotificationHubNamespacesSku(input *notificationhubs.Sku) []interfac
 	return outputs
 }
 
-func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {
@@ -299,7 +303,7 @@ func notificationHubNamespaceStateRefreshFunc(ctx context.Context, client notifi
 	}
 }
 
-func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func notificationHubNamespaceDeleteStateRefreshFunc(ctx context.Context, client *notificationhubs.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {

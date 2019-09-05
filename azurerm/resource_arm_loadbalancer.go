@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -147,13 +149,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
@@ -161,7 +163,7 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -178,8 +180,8 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
 	}
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	properties := network.LoadBalancerPropertiesFormat{}
 
@@ -218,7 +220,7 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -268,16 +270,14 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	flattenAndSetTags(d, loadBalancer.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, loadBalancer.Tags)
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}

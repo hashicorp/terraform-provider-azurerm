@@ -19,6 +19,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -156,6 +159,64 @@ func resourceArmIotHub() *schema.Resource {
 						"permissions": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"file_upload": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"connection_string": {
+							Type:     schema.TypeString,
+							Required: true,
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								secretKeyRegex := regexp.MustCompile("(SharedAccessKey|AccountKey)=[^;]+")
+								sbProtocolRegex := regexp.MustCompile("sb://([^:]+)(:5671)?/;")
+
+								// Azure will always mask the Access Keys and will include the port number in the GET response
+								// 5671 is the default port for Azure Service Bus connections
+								maskedNew := sbProtocolRegex.ReplaceAllString(new, "sb://$1:5671/;")
+								maskedNew = secretKeyRegex.ReplaceAllString(maskedNew, "$1=****")
+								return (new == d.Get(k).(string)) && (maskedNew == old)
+							},
+							Sensitive: true,
+						},
+						"container_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"notifications": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"max_delivery_count": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(1, 100),
+						},
+						"sas_ttl": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.ISO8601Duration,
+						},
+						"default_ttl": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.ISO8601Duration,
+						},
+						"lock_duration": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.ISO8601Duration,
 						},
 					},
 				},
@@ -353,7 +414,7 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 
@@ -367,10 +428,10 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(name, iothubResourceName)
-	defer azureRMUnlockByName(name, iothubResourceName)
+	locks.ByName(name, iothubResourceName)
+	defer locks.UnlockByName(name, iothubResourceName)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -399,12 +460,17 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	fallbackRoute := expandIoTHubFallbackRoute(d)
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
 	if err != nil {
 		return fmt.Errorf("Error expanding `endpoint`: %+v", err)
+	}
+
+	storageEndpoints, messagingEndpoints, enableFileUploadNotifications, err := expandIoTHubFileUpload(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `file_upload`: %+v", err)
 	}
 
 	routes := expandIoTHubRoutes(d)
@@ -421,8 +487,11 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 				Routes:        routes,
 				FallbackRoute: fallbackRoute,
 			},
+			StorageEndpoints:              storageEndpoints,
+			MessagingEndpoints:            messagingEndpoints,
+			EnableFileUploadNotifications: &enableFileUploadNotifications,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
@@ -448,7 +517,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -517,6 +586,10 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error setting `ip_filter_rule` in IoTHub %q: %+v", name, err)
 		}
 
+		fileUpload := flattenIoTHubFileUpload(properties.StorageEndpoints, properties.MessagingEndpoints, properties.EnableFileUploadNotifications)
+		if err := d.Set("file_upload", fileUpload); err != nil {
+			return fmt.Errorf("Error setting `file_upload` in IoTHub %q: %+v", name, err)
+		}
 	}
 
 	d.Set("name", name)
@@ -529,13 +602,11 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)
-	flattenAndSetTags(d, hub.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, hub.Tags)
 }
 
 func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -546,8 +617,8 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	name := id.Path["IotHubs"]
 	resourceGroup := id.ResourceGroup
 
-	azureRMLockByName(name, iothubResourceName)
-	defer azureRMUnlockByName(name, iothubResourceName)
+	locks.ByName(name, iothubResourceName)
+	defer locks.UnlockByName(name, iothubResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -560,7 +631,7 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return waitForIotHubToBeDeleted(ctx, client, resourceGroup, name)
 }
 
-func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) error {
+func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for IotHub (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
@@ -576,7 +647,7 @@ func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResource
 	return nil
 }
 
-func iothubStateStatusCodeRefreshFunc(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 
@@ -619,6 +690,40 @@ func expandIoTHubRoutes(d *schema.ResourceData) *[]devices.RouteProperties {
 	}
 
 	return &routeProperties
+}
+
+func expandIoTHubFileUpload(d *schema.ResourceData) (map[string]*devices.StorageEndpointProperties, map[string]*devices.MessagingEndpointProperties, bool, error) {
+	fileUploadList := d.Get("file_upload").([]interface{})
+
+	storageEndpointProperties := make(map[string]*devices.StorageEndpointProperties)
+	messagingEndpointProperties := make(map[string]*devices.MessagingEndpointProperties)
+	notifications := false
+
+	if len(fileUploadList) > 0 {
+		fileUploadMap := fileUploadList[0].(map[string]interface{})
+
+		connectionStr := fileUploadMap["connection_string"].(string)
+		containerName := fileUploadMap["container_name"].(string)
+		notifications = fileUploadMap["notifications"].(bool)
+		maxDeliveryCount := int32(fileUploadMap["max_delivery_count"].(int))
+		sasTTL := fileUploadMap["sas_ttl"].(string)
+		defaultTTL := fileUploadMap["default_ttl"].(string)
+		lockDuration := fileUploadMap["lock_duration"].(string)
+
+		storageEndpointProperties["$default"] = &devices.StorageEndpointProperties{
+			SasTTLAsIso8601:  &sasTTL,
+			ConnectionString: &connectionStr,
+			ContainerName:    &containerName,
+		}
+
+		messagingEndpointProperties["fileNotifications"] = &devices.MessagingEndpointProperties{
+			LockDurationAsIso8601: &lockDuration,
+			TTLAsIso8601:          &defaultTTL,
+			MaxDeliveryCount:      &maxDeliveryCount,
+		}
+	}
+
+	return storageEndpointProperties, messagingEndpointProperties, notifications, nil
 }
 
 func expandIoTHubEndpoints(d *schema.ResourceData, subscriptionId string) (*devices.RoutingEndpoints, error) {
@@ -765,6 +870,43 @@ func flattenIoTHubSharedAccessPolicy(input *[]devices.SharedAccessSignatureAutho
 			keyMap["permissions"] = string(key.Rights)
 			results = append(results, keyMap)
 		}
+	}
+
+	return results
+}
+
+func flattenIoTHubFileUpload(storageEndpoints map[string]*devices.StorageEndpointProperties, messagingEndpoints map[string]*devices.MessagingEndpointProperties, enableFileUploadNotifications *bool) []interface{} {
+	results := make([]interface{}, 0)
+	output := make(map[string]interface{})
+
+	if storageEndpointProperties, ok := storageEndpoints["$default"]; ok {
+		if connString := storageEndpointProperties.ConnectionString; connString != nil {
+			output["connection_string"] = *connString
+		}
+		if containerName := storageEndpointProperties.ContainerName; containerName != nil {
+			output["container_name"] = *containerName
+		}
+		if sasTTLAsIso8601 := storageEndpointProperties.SasTTLAsIso8601; sasTTLAsIso8601 != nil {
+			output["sas_ttl"] = *sasTTLAsIso8601
+		}
+
+		if messagingEndpointProperties, ok := messagingEndpoints["fileNotifications"]; ok {
+			if lockDurationAsIso8601 := messagingEndpointProperties.LockDurationAsIso8601; lockDurationAsIso8601 != nil {
+				output["lock_duration"] = *lockDurationAsIso8601
+			}
+			if ttlAsIso8601 := messagingEndpointProperties.TTLAsIso8601; ttlAsIso8601 != nil {
+				output["default_ttl"] = *ttlAsIso8601
+			}
+			if maxDeliveryCount := messagingEndpointProperties.MaxDeliveryCount; maxDeliveryCount != nil {
+				output["max_delivery_count"] = *maxDeliveryCount
+			}
+		}
+
+		if enableFileUploadNotifications != nil {
+			output["notifications"] = *enableFileUploadNotifications
+		}
+
+		results = append(results, output)
 	}
 
 	return results

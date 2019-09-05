@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
@@ -38,7 +39,7 @@ func TestAccAzureRMDataLakeStore_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMDataLakeStore_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -209,7 +210,7 @@ func testCheckAzureRMDataLakeStoreExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for data lake store: %s", accountName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreAccountClient
+		conn := testAccProvider.Meta().(*ArmClient).datalake.StoreAccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName)
@@ -226,7 +227,7 @@ func testCheckAzureRMDataLakeStoreExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMDataLakeStoreDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreAccountClient
+	conn := testAccProvider.Meta().(*ArmClient).datalake.StoreAccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -81,7 +81,7 @@ As such this Data Source will be removed in v2.0 of the AzureRM Provider.
 }
 
 func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
+	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

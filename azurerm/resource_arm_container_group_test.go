@@ -2,11 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -182,6 +182,38 @@ func TestAccAzureRMContainerGroup_imageRegistryCredentialsUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMContainerGroup_logTypeUnset(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMContainerGroup_logTypeUnset(ri, testLocation())
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.log_type", ""),
+					resource.TestCheckResourceAttr(resourceName, "diagnostics.0.log_analytics.0.metadata.%", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "diagnostics.0.log_analytics.0.workspace_key"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"diagnostics.0.log_analytics.0.workspace_key",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 	resourceName := "azurerm_container_group.test"
 	ri := tf.AccRandTimeInt()
@@ -216,7 +248,7 @@ func TestAccAzureRMContainerGroup_linuxBasic(t *testing.T) {
 }
 
 func TestAccAzureRMContainerGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -350,6 +382,33 @@ func TestAccAzureRMContainerGroup_linuxComplete(t *testing.T) {
 					"container.0.secure_environment_variables.secureFoo1",
 					"diagnostics.0.log_analytics.0.workspace_key",
 				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerGroup_virtualNetwork(t *testing.T) {
+	resourceName := "azurerm_container_group.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMContainerGroup_virtualNetwork(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerGroupExists(resourceName),
+					resource.TestCheckNoResourceAttr(resourceName, "dns_label_name"),
+					resource.TestCheckNoResourceAttr(resourceName, "identity"),
+					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "os_type", "Linux"),
+					resource.TestCheckResourceAttr(resourceName, "container.0.port", "80"),
+					resource.TestCheckResourceAttr(resourceName, "ip_address_type", "Private"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_profile_id"),
+				),
 			},
 		},
 	})
@@ -721,6 +780,49 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri)
 }
 
+func testAccAzureRMContainerGroup_logTypeUnset(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = 80
+  }
+
+  diagnostics {
+    log_analytics {
+      workspace_id  = "${azurerm_log_analytics_workspace.test.workspace_id}"
+      workspace_key = "${azurerm_log_analytics_workspace.test.primary_shared_key}"
+    }
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, ri, location, ri, ri)
+}
+
 func testAccAzureRMContainerGroup_linuxBasicUpdated(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -756,6 +858,74 @@ resource "azurerm_container_group" "test" {
     image  = "microsoft/aci-tutorial-sidecar"
     cpu    = "0.5"
     memory = "0.5"
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, ri, location, ri)
+}
+
+func testAccAzureRMContainerGroup_virtualNetwork(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "testvnet"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.1.0.0/24"
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+}
+
+resource "azurerm_network_profile" "test" {
+  name                = "testnetprofile"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  container_network_interface {
+    name = "testcnic"
+
+    ip_configuration {
+      name      = "testipconfig"
+      subnet_id = "${azurerm_subnet.test.id}"
+    }
+  }
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  ip_address_type     = "Private"
+  network_profile_id	=	"${azurerm_network_profile.test.id}"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "microsoft/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    port   = 80
   }
 
   tags = {
@@ -1082,7 +1252,7 @@ func testCheckAzureRMContainerGroupDestroy(s *terraform.State) error {
 		resp, err := conn.Get(ctx, resourceGroup, name)
 
 		if err != nil {
-			if resp.StatusCode != http.StatusNotFound {
+			if !utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Container Group still exists:\n%#v", resp)
 			}
 

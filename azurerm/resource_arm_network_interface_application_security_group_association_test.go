@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(t *testing.T) {
@@ -31,7 +32,7 @@ func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_basic(t *
 }
 
 func TestAccAzureRMNetworkInterfaceApplicationSecurityGroupAssociation_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -90,7 +91,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
+		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
 		if err != nil {
 			return err
 		}
@@ -100,7 +101,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -140,7 +141,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		nicID, err := parseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
+		nicID, err := azure.ParseAzureResourceID(rs.Primary.Attributes["network_interface_id"])
 		if err != nil {
 			return err
 		}
@@ -150,7 +151,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).ifaceClient
+		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")

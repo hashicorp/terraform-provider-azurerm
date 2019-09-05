@@ -8,6 +8,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -53,7 +55,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 				}, true),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"app_id": {
 				Type:     schema.TypeString,
@@ -78,7 +80,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -93,7 +95,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 	applicationType := d.Get("application_type").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
 		ApplicationID:   &name,
@@ -105,7 +107,7 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 		Location:                               &location,
 		Kind:                                   &applicationType,
 		ApplicationInsightsComponentProperties: &applicationInsightsComponentProperties,
-		Tags:                                   expandTags(tags),
+		Tags:                                   tags.Expand(t),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, insightProperties)
@@ -135,7 +137,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,16 +168,14 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("instrumentation_key", props.InstrumentationKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

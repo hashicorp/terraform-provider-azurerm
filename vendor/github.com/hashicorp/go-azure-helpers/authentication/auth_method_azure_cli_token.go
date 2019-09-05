@@ -14,7 +14,8 @@ import (
 )
 
 type azureCliTokenAuth struct {
-	profile *azureCLIProfile
+	profile                      *azureCLIProfile
+	servicePrincipalAuthDocsLink string
 }
 
 func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
@@ -25,6 +26,7 @@ func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
 			subscriptionId: b.SubscriptionID,
 			tenantId:       b.TenantID,
 		},
+		servicePrincipalAuthDocsLink: b.ClientSecretDocsLink,
 	}
 	profilePath, err := cli.ProfilePath()
 	if err != nil {
@@ -37,6 +39,17 @@ func (a azureCliTokenAuth) build(b Builder) (authMethod, error) {
 	}
 
 	auth.profile.profile = profile
+
+	// Authenticating as a Service Principal doesn't return all of the information we need for authentication purposes
+	// as such Service Principal authentication is supported using the specific auth method
+	if authenticatedAsAUser := auth.profile.verifyAuthenticatedAsAUser(); !authenticatedAsAUser {
+		return nil, fmt.Errorf(`Authenticating using the Azure CLI is only supported as a User (not a Service Principal).
+
+To authenticate to Azure using a Service Principal, you can use the separate 'Authenticate using a Service Principal'
+auth method - instructions for which can be found here: %s
+
+Alternatively you can authenticate using the Azure CLI by using a User Account.`, auth.servicePrincipalAuthDocsLink)
+	}
 
 	err = auth.profile.populateFields()
 	if err != nil {
@@ -55,7 +68,11 @@ func (a azureCliTokenAuth) isApplicable(b Builder) bool {
 	return b.SupportsAzureCliToken
 }
 
-func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauthConfig *adal.OAuthConfig, endpoint string) (*autorest.BearerAuthorizer, error) {
+func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *OAuthConfig, endpoint string) (autorest.Authorizer, error) {
+	if oauth.OAuth == nil {
+		return nil, fmt.Errorf("Error getting Authorization Token for cli auth: an OAuth token wasn't configured correctly; please file a bug with more details")
+	}
+
 	// the Azure CLI appears to cache these, so to maintain compatibility with the interface this method is intentionally not on the pointer
 	token, err := obtainAuthorizationToken(endpoint, a.profile.subscriptionId)
 	if err != nil {
@@ -67,7 +84,7 @@ func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauthCo
 		return nil, fmt.Errorf("Error converting Authorization Token to an ADAL Token: %s", err)
 	}
 
-	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauthConfig, a.profile.clientId, endpoint, adalToken)
+	spt, err := adal.NewServicePrincipalTokenFromManualToken(*oauth.OAuth, a.profile.clientId, endpoint, adalToken)
 	if err != nil {
 		return nil, err
 	}

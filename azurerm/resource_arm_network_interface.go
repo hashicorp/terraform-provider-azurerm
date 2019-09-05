@@ -12,6 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -238,13 +241,13 @@ func resourceArmNetworkInterface() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
@@ -252,7 +255,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -268,15 +271,15 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	enableIpForwarding := d.Get("enable_ip_forwarding").(bool)
 	enableAcceleratedNetworking := d.Get("enable_accelerated_networking").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := network.InterfacePropertiesFormat{
 		EnableIPForwarding:          &enableIpForwarding,
 		EnableAcceleratedNetworking: &enableAcceleratedNetworking,
 	}
 
-	azureRMLockByName(name, networkInterfaceResourceName)
-	defer azureRMUnlockByName(name, networkInterfaceResourceName)
+	locks.ByName(name, networkInterfaceResourceName)
+	defer locks.UnlockByName(name, networkInterfaceResourceName)
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		nsgId := v.(string)
@@ -284,13 +287,15 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 			ID: &nsgId,
 		}
 
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(nsgId)
+		parsedNsgID, err := azure.ParseAzureResourceID(nsgId)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", nsgId, err)
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
+
+		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	dns, hasDns := d.GetOk("dns_servers")
@@ -321,11 +326,11 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error Building list of Network Interface IP Configurations: %+v", sgErr)
 	}
 
-	azureRMLockMultipleByName(subnetnToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(subnetnToLock, subnetResourceName)
+	locks.MultipleByName(subnetnToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetnToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(vnnToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(vnnToLock, virtualNetworkResourceName)
+	locks.MultipleByName(vnnToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnnToLock, virtualNetworkResourceName)
 
 	if len(ipConfigs) > 0 {
 		properties.IPConfigurations = &ipConfigs
@@ -335,7 +340,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 		Name:                      &name,
 		Location:                  &location,
 		InterfacePropertiesFormat: &properties,
-		Tags:                      expandTags(tags),
+		Tags:                      tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, iface)
@@ -361,10 +366,10 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -395,7 +400,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 				if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
 					if v := ipProps.PrivateIPAddress; v != nil {
 						if i == 0 {
-							d.Set("private_ip_address", *v)
+							d.Set("private_ip_address", v)
 						}
 						addresses = append(addresses, *v)
 					}
@@ -445,34 +450,34 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
+	client := meta.(*ArmClient).network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["networkInterfaces"]
 
-	azureRMLockByName(name, networkInterfaceResourceName)
-	defer azureRMUnlockByName(name, networkInterfaceResourceName)
+	locks.ByName(name, networkInterfaceResourceName)
+	defer locks.UnlockByName(name, networkInterfaceResourceName)
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err2 != nil {
-			return err2
+		parsedNsgID, err := azure.ParseAzureResourceID(networkSecurityGroupId)
+		if err != nil {
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", networkSecurityGroupId, err)
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
+
+		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 	}
 
 	configs := d.Get("ip_configuration").([]interface{})
@@ -484,7 +489,7 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 
 		subnet_id := data["subnet_id"].(string)
 		if subnet_id != "" {
-			subnetId, err2 := parseAzureResourceID(subnet_id)
+			subnetId, err2 := azure.ParseAzureResourceID(subnet_id)
 			if err2 != nil {
 				return err2
 			}
@@ -500,11 +505,11 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	azureRMLockMultipleByName(&subnetNamesToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
+	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
@@ -614,7 +619,7 @@ func expandAzureRmNetworkInterfaceIpConfigurations(d *schema.ResourceData) ([]ne
 				ID: &subnet_id,
 			}
 
-			subnetId, err := parseAzureResourceID(subnet_id)
+			subnetId, err := azure.ParseAzureResourceID(subnet_id)
 			if err != nil {
 				return []network.InterfaceIPConfiguration{}, nil, nil, err
 			}

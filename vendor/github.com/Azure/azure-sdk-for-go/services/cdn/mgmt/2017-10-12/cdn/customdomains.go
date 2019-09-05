@@ -26,8 +26,7 @@ import (
 	"net/http"
 )
 
-// CustomDomainsClient is the use these APIs to manage Azure CDN resources through the Azure Resource Manager. You must
-// make sure that requests made to these resources are secure.
+// CustomDomainsClient is the cdn Management Client
 type CustomDomainsClient struct {
 	BaseClient
 }
@@ -114,9 +113,9 @@ func (client CustomDomainsClient) CreatePreparer(ctx context.Context, resourceGr
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) CreateSender(req *http.Request) (future CustomDomainsCreateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -203,9 +202,9 @@ func (client CustomDomainsClient) DeletePreparer(ctx context.Context, resourceGr
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) DeleteSender(req *http.Request) (future CustomDomainsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -298,8 +297,8 @@ func (client CustomDomainsClient) DisableCustomHTTPSPreparer(ctx context.Context
 // DisableCustomHTTPSSender sends the DisableCustomHTTPS request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) DisableCustomHTTPSSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DisableCustomHTTPSResponder handles the response to the DisableCustomHTTPS request. The method always
@@ -395,8 +394,8 @@ func (client CustomDomainsClient) EnableCustomHTTPSPreparer(ctx context.Context,
 // EnableCustomHTTPSSender sends the EnableCustomHTTPS request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) EnableCustomHTTPSSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // EnableCustomHTTPSResponder handles the response to the EnableCustomHTTPS request. The method always
@@ -484,8 +483,8 @@ func (client CustomDomainsClient) GetPreparer(ctx context.Context, resourceGroup
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -572,8 +571,8 @@ func (client CustomDomainsClient) ListByEndpointPreparer(ctx context.Context, re
 // ListByEndpointSender sends the ListByEndpoint request. The method will close the
 // http.Response Body if it receives an error.
 func (client CustomDomainsClient) ListByEndpointSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByEndpointResponder handles the response to the ListByEndpoint request. The method always

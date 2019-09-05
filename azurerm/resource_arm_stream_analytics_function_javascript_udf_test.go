@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
@@ -36,7 +37,7 @@ func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsFunctionJavaScriptUDF_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -112,7 +113,7 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsFunctionsClient
+		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.FunctionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -128,7 +129,7 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 }
 
 func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsOutputsClient
+	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_function_javascript_udf" {

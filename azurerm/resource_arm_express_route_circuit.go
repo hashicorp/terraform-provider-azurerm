@@ -8,7 +8,11 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,14 +43,14 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"peering_location": {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"bandwidth_in_mbps": {
@@ -67,7 +71,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 								string(network.ExpressRouteCircuitSkuTierStandard),
 								string(network.ExpressRouteCircuitSkuTierPremium),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"family": {
@@ -77,7 +81,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 								string(network.MeteredData),
 								string(network.UnlimitedData),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -100,13 +104,13 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRouteCircuitClient
+	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit creation.")
@@ -114,10 +118,10 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(name, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+	locks.ByName(name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -136,8 +140,8 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 	bandwidthInMbps := int32(d.Get("bandwidth_in_mbps").(int))
 	sku := expandExpressRouteCircuitSku(d)
 	allowRdfeOps := d.Get("allow_classic_operations").(bool)
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	// There is the potential for the express route circuit to become out of sync when the service provider updates
 	// the express route circuit. We'll get and update the resource in place as per https://aka.ms/erRefresh
@@ -209,15 +213,26 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
-	resp, resourceGroup, err := retrieveErcByResourceId(d.Id(), meta)
+	ercClient := meta.(*ArmClient).network.ExpressRouteCircuitsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error Parsing Azure Resource ID -: %+v", err)
 	}
 
-	if resp == nil {
-		log.Printf("[INFO] Express Route Circuit %q not found. Removing from state", d.Get("name").(string))
-		d.SetId("")
-		return nil
+	resourceGroup := id.ResourceGroup
+	name := id.Path["expressRouteCircuits"]
+
+	resp, err := ercClient.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Express Route Circuit %q (Resource Group %q) was not found - removing from state", name, resourceGroup)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Express Route Circuit %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -243,22 +258,23 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 	d.Set("service_key", resp.ServiceKey)
 	d.Set("allow_classic_operations", resp.AllowClassicOperations)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).expressRouteCircuitClient
+	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroup, name, err := extractResourceGroupAndErcName(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
+		return fmt.Errorf("Error Parsing Azure Resource ID -: %+v", err)
 	}
 
-	azureRMLockByName(name, expressRouteCircuitResourceName)
-	defer azureRMUnlockByName(name, expressRouteCircuitResourceName)
+	resourceGroup := id.ResourceGroup
+	name := id.Path["expressRouteCircuits"]
+
+	locks.ByName(name, expressRouteCircuitResourceName)
+	defer locks.UnlockByName(name, expressRouteCircuitResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

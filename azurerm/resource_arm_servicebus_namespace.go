@@ -7,7 +7,10 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -59,7 +62,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 					string(servicebus.Standard),
 					string(servicebus.Premium),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"capacity": {
@@ -93,7 +96,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -108,9 +111,9 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -129,7 +132,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 			Name: servicebus.SkuName(sku),
 			Tier: servicebus.SkuTier(sku),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
@@ -169,7 +172,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -206,16 +209,14 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("default_secondary_key", keys.SecondaryKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).servicebus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

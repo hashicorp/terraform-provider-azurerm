@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -75,7 +76,7 @@ func testAccAzureRMAppServiceCustomHostnameBinding_basic(t *testing.T, appServic
 }
 
 func testAccAzureRMAppServiceCustomHostnameBinding_requiresImport(t *testing.T, appServiceEnv, domainEnv string) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -131,7 +132,7 @@ func testAccAzureRMAppServiceCustomHostnameBinding_multiple(t *testing.T, appSer
 }
 
 func testCheckAzureRMAppServiceCustomHostnameBindingDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).appServicesClient
+	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_custom_hostname_binding" {
@@ -170,7 +171,7 @@ func testCheckAzureRMAppServiceCustomHostnameBindingExists(resourceName string) 
 		appServiceName := rs.Primary.Attributes["app_service_name"]
 		hostname := rs.Primary.Attributes["hostname"]
 
-		client := testAccProvider.Meta().(*ArmClient).appServicesClient
+		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 		if err != nil {

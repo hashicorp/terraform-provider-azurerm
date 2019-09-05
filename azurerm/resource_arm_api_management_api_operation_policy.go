@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -57,7 +58,7 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 	apiName := d.Get("api_name").(string)
 	operationID := d.Get("operation_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -113,7 +114,7 @@ func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta
 	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,7 +152,7 @@ func resourceArmApiManagementAPIOperationPolicyDelete(d *schema.ResourceData, me
 	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

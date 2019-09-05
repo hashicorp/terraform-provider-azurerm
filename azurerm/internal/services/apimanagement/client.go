@@ -2,106 +2,134 @@ package apimanagement
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/ar"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
-	ApiClient                  apimanagement.APIClient
-	ApiPoliciesClient          apimanagement.APIPolicyClient
-	ApiOperationsClient        apimanagement.APIOperationClient
-	ApiOperationPoliciesClient apimanagement.APIOperationPolicyClient
-	ApiSchemasClient           apimanagement.APISchemaClient
-	ApiVersionSetClient        apimanagement.APIVersionSetClient
-	AuthorizationServersClient apimanagement.AuthorizationServerClient
-	CertificatesClient         apimanagement.CertificateClient
-	GroupClient                apimanagement.GroupClient
-	GroupUsersClient           apimanagement.GroupUserClient
-	LoggerClient               apimanagement.LoggerClient
-	OpenIdConnectClient        apimanagement.OpenIDConnectProviderClient
-	PolicyClient               apimanagement.PolicyClient
-	ProductsClient             apimanagement.ProductClient
-	ProductApisClient          apimanagement.ProductAPIClient
-	ProductGroupsClient        apimanagement.ProductGroupClient
-	ProductPoliciesClient      apimanagement.ProductPolicyClient
-	PropertyClient             apimanagement.PropertyClient
-	ServiceClient              apimanagement.ServiceClient
-	SignInClient               apimanagement.SignInSettingsClient
-	SignUpClient               apimanagement.SignUpSettingsClient
-	SubscriptionsClient        apimanagement.SubscriptionClient
-	UsersClient                apimanagement.UserClient
+	ApiClient                  *apimanagement.APIClient
+	ApiPoliciesClient          *apimanagement.APIPolicyClient
+	ApiOperationsClient        *apimanagement.APIOperationClient
+	ApiOperationPoliciesClient *apimanagement.APIOperationPolicyClient
+	ApiSchemasClient           *apimanagement.APISchemaClient
+	ApiVersionSetClient        *apimanagement.APIVersionSetClient
+	AuthorizationServersClient *apimanagement.AuthorizationServerClient
+	BackendClient              *apimanagement.BackendClient
+	CertificatesClient         *apimanagement.CertificateClient
+	GroupClient                *apimanagement.GroupClient
+	GroupUsersClient           *apimanagement.GroupUserClient
+	LoggerClient               *apimanagement.LoggerClient
+	OpenIdConnectClient        *apimanagement.OpenIDConnectProviderClient
+	PolicyClient               *apimanagement.PolicyClient
+	ProductsClient             *apimanagement.ProductClient
+	ProductApisClient          *apimanagement.ProductAPIClient
+	ProductGroupsClient        *apimanagement.ProductGroupClient
+	ProductPoliciesClient      *apimanagement.ProductPolicyClient
+	PropertyClient             *apimanagement.PropertyClient
+	ServiceClient              *apimanagement.ServiceClient
+	SignInClient               *apimanagement.SignInSettingsClient
+	SignUpClient               *apimanagement.SignUpSettingsClient
+	SubscriptionsClient        *apimanagement.SubscriptionClient
+	UsersClient                *apimanagement.UserClient
 }
 
-func BuildClient(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer, skipProviderReg bool) *Client {
-	c := Client{}
-	c.ApiClient = apimanagement.NewAPIClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ApiClient.Client, auth, partnerId, skipProviderReg)
+func BuildClient(o *common.ClientOptions) *Client {
 
-	c.ApiPoliciesClient = apimanagement.NewAPIPolicyClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ApiPoliciesClient.Client, auth, partnerId, skipProviderReg)
+	ApiClient := apimanagement.NewAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApiClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ApiOperationsClient = apimanagement.NewAPIOperationClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ApiOperationsClient.Client, auth, partnerId, skipProviderReg)
+	ApiPoliciesClient := apimanagement.NewAPIPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApiPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ApiOperationPoliciesClient = apimanagement.NewAPIOperationPolicyClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ApiOperationPoliciesClient.Client, auth, partnerId, skipProviderReg)
+	ApiOperationsClient := apimanagement.NewAPIOperationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApiOperationsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ApiSchemasClient = apimanagement.NewAPISchemaClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ApiSchemasClient.Client, auth, partnerId, skipProviderReg)
+	ApiOperationPoliciesClient := apimanagement.NewAPIOperationPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApiOperationPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ApiVersionSetClient = apimanagement.NewAPIVersionSetClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ApiVersionSetClient.Client, auth, partnerId, skipProviderReg)
+	ApiSchemasClient := apimanagement.NewAPISchemaClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApiSchemasClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AuthorizationServersClient = apimanagement.NewAuthorizationServerClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.AuthorizationServersClient.Client, auth, partnerId, skipProviderReg)
+	ApiVersionSetClient := apimanagement.NewAPIVersionSetClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ApiVersionSetClient.Client, o.ResourceManagerAuthorizer)
 
-	c.CertificatesClient = apimanagement.NewCertificateClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.CertificatesClient.Client, auth, partnerId, skipProviderReg)
+	AuthorizationServersClient := apimanagement.NewAuthorizationServerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AuthorizationServersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.GroupClient = apimanagement.NewGroupClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.GroupClient.Client, auth, partnerId, skipProviderReg)
+	BackendClient := apimanagement.NewBackendClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BackendClient.Client, o.ResourceManagerAuthorizer)
 
-	c.GroupUsersClient = apimanagement.NewGroupUserClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.GroupUsersClient.Client, auth, partnerId, skipProviderReg)
+	CertificatesClient := apimanagement.NewCertificateClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CertificatesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.LoggerClient = apimanagement.NewLoggerClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.LoggerClient.Client, auth, partnerId, skipProviderReg)
+	GroupClient := apimanagement.NewGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&GroupClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PolicyClient = apimanagement.NewPolicyClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.PolicyClient.Client, auth, partnerId, skipProviderReg)
+	GroupUsersClient := apimanagement.NewGroupUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&GroupUsersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ServiceClient = apimanagement.NewServiceClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ServiceClient.Client, auth, partnerId, skipProviderReg)
+	LoggerClient := apimanagement.NewLoggerClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&LoggerClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SignInClient = apimanagement.NewSignInSettingsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.SignInClient.Client, auth, partnerId, skipProviderReg)
+	PolicyClient := apimanagement.NewPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PolicyClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SignUpClient = apimanagement.NewSignUpSettingsClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.SignUpClient.Client, auth, partnerId, skipProviderReg)
+	ServiceClient := apimanagement.NewServiceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServiceClient.Client, o.ResourceManagerAuthorizer)
 
-	c.OpenIdConnectClient = apimanagement.NewOpenIDConnectProviderClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.OpenIdConnectClient.Client, auth, partnerId, skipProviderReg)
+	SignInClient := apimanagement.NewSignInSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SignInClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProductsClient = apimanagement.NewProductClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ProductsClient.Client, auth, partnerId, skipProviderReg)
+	SignUpClient := apimanagement.NewSignUpSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SignUpClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProductApisClient = apimanagement.NewProductAPIClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ProductApisClient.Client, auth, partnerId, skipProviderReg)
+	OpenIdConnectClient := apimanagement.NewOpenIDConnectProviderClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&OpenIdConnectClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProductGroupsClient = apimanagement.NewProductGroupClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ProductGroupsClient.Client, auth, partnerId, skipProviderReg)
+	ProductsClient := apimanagement.NewProductClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProductsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProductPoliciesClient = apimanagement.NewProductPolicyClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ProductPoliciesClient.Client, auth, partnerId, skipProviderReg)
+	ProductApisClient := apimanagement.NewProductAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProductApisClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PropertyClient = apimanagement.NewPropertyClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.PropertyClient.Client, auth, partnerId, skipProviderReg)
+	ProductGroupsClient := apimanagement.NewProductGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProductGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SubscriptionsClient = apimanagement.NewSubscriptionClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.SubscriptionsClient.Client, auth, partnerId, skipProviderReg)
+	ProductPoliciesClient := apimanagement.NewProductPolicyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProductPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.UsersClient = apimanagement.NewUserClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.UsersClient.Client, auth, partnerId, skipProviderReg)
+	PropertyClient := apimanagement.NewPropertyClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PropertyClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	SubscriptionsClient := apimanagement.NewSubscriptionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SubscriptionsClient.Client, o.ResourceManagerAuthorizer)
+
+	UsersClient := apimanagement.NewUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&UsersClient.Client, o.ResourceManagerAuthorizer)
+
+	return &Client{
+		ApiClient:                  &ApiClient,
+		ApiPoliciesClient:          &ApiPoliciesClient,
+		ApiOperationsClient:        &ApiOperationsClient,
+		ApiOperationPoliciesClient: &ApiOperationPoliciesClient,
+		ApiSchemasClient:           &ApiSchemasClient,
+		ApiVersionSetClient:        &ApiVersionSetClient,
+		AuthorizationServersClient: &AuthorizationServersClient,
+		BackendClient:              &BackendClient,
+		CertificatesClient:         &CertificatesClient,
+		GroupClient:                &GroupClient,
+		GroupUsersClient:           &GroupUsersClient,
+		LoggerClient:               &LoggerClient,
+		OpenIdConnectClient:        &OpenIdConnectClient,
+		PolicyClient:               &PolicyClient,
+		ProductsClient:             &ProductsClient,
+		ProductApisClient:          &ProductApisClient,
+		ProductGroupsClient:        &ProductGroupsClient,
+		ProductPoliciesClient:      &ProductPoliciesClient,
+		PropertyClient:             &PropertyClient,
+		ServiceClient:              &ServiceClient,
+		SignInClient:               &SignInClient,
+		SignUpClient:               &SignUpClient,
+		SubscriptionsClient:        &SubscriptionsClient,
+		UsersClient:                &UsersClient,
+	}
 }

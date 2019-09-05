@@ -10,6 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -81,13 +83,13 @@ func resourceArmSharedImageVersion() *schema.Resource {
 				Default:  false,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImageVersionsClient
+	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	imageVersion := d.Get("name").(string)
@@ -98,7 +100,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	managedImageId := d.Get("managed_image_id").(string)
 	excludeFromLatest := d.Get("exclude_from_latest").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -112,7 +114,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	targetRegions := expandSharedImageVersionTargetRegions(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	version := compute.GalleryImageVersion{
 		Location: utils.String(location),
@@ -127,7 +129,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 				},
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, galleryName, imageName, imageVersion, version)
@@ -152,10 +154,10 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImageVersionsClient
+	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -201,16 +203,14 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImageVersionsClient
+	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -107,7 +108,7 @@ func TestAccAzureRMRedisFirewallRule_multi(t *testing.T) {
 }
 
 func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -188,7 +189,7 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).resource.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

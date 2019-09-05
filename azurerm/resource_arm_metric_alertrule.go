@@ -9,7 +9,11 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,7 +70,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 			"operator": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(insights.ConditionOperatorGreaterThan),
 					string(insights.ConditionOperatorGreaterThanOrEqual),
@@ -83,13 +87,13 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 			"period": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"aggregation": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(insights.TimeAggregationOperatorAverage),
 					string(insights.TimeAggregationOperatorLast),
@@ -159,7 +163,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 }
 
 func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorAlertRulesClient
+	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Alert Rule creation.")
@@ -167,7 +171,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -181,7 +185,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	alertRule, err := expandAzureRmMetricThresholdAlertRule(d)
 	if err != nil {
@@ -191,7 +195,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 	alertRuleResource := insights.AlertRuleResource{
 		Name:      &name,
 		Location:  &location,
-		Tags:      expandTags(tags),
+		Tags:      tags.Expand(t),
 		AlertRule: alertRule,
 	}
 
@@ -213,7 +217,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorAlertRulesClient
+	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
@@ -247,7 +251,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 		if ruleCondition != nil {
 			if thresholdRuleCondition, ok := ruleCondition.AsThresholdRuleCondition(); ok && thresholdRuleCondition != nil {
 				d.Set("operator", string(thresholdRuleCondition.Operator))
-				d.Set("threshold", *thresholdRuleCondition.Threshold)
+				d.Set("threshold", thresholdRuleCondition.Threshold)
 				d.Set("period", thresholdRuleCondition.WindowSize)
 				d.Set("aggregation", string(thresholdRuleCondition.TimeAggregation))
 
@@ -304,15 +308,13 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// Return a new tag map filtered by the specified tag names.
-	tagMap := filterTags(resp.Tags, "$type")
+	tagMap := tags.Filter(resp.Tags, "$type")
 
-	flattenAndSetTags(d, tagMap)
-
-	return nil
+	return tags.FlattenAndSet(d, tagMap)
 }
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorAlertRulesClient
+	client := meta.(*ArmClient).monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
@@ -433,7 +435,7 @@ func expandAzureRmMetricThresholdAlertRule(d *schema.ResourceData) (*insights.Al
 
 func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, errors []error) {
 	// Normal validation required by any AzureRM resource.
-	warnings, errors = validateAzureRMTags(v, f)
+	warnings, errors = tags.Validate(v, f)
 
 	tagsMap := v.(map[string]interface{})
 
@@ -447,7 +449,7 @@ func validateMetricAlertRuleTags(v interface{}, f string) (warnings []string, er
 }
 
 func resourceGroupAndAlertRuleNameFromId(alertRuleId string) (string, string, error) {
-	id, err := parseAzureResourceID(alertRuleId)
+	id, err := azure.ParseAzureResourceID(alertRuleId)
 	if err != nil {
 		return "", "", err
 	}
