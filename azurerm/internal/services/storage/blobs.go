@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
@@ -24,25 +25,35 @@ type BlobUpload struct {
 	BlobName      string
 	ContainerName string
 
-	BlobType    string
-	ContentType string
-	MetaData    map[string]string
-	Parallelism int
-	Size        int
-	Source      string
-	SourceUri   string
+	BlobType      string
+	ContentType   string
+	MetaData      map[string]string
+	Parallelism   int
+	Size          int
+	Source        string
+	SourceContent string
+	SourceUri     string
 }
 
 func (sbu BlobUpload) Create(ctx context.Context) error {
-	if sbu.SourceUri != "" {
-		return sbu.copy(ctx)
-	}
-
 	blobType := strings.ToLower(sbu.BlobType)
 
-	// TODO: new feature for 'append' blobs?
+	if blobType == "append" {
+		if sbu.Source != "" || sbu.SourceContent != "" || sbu.SourceUri != "" {
+			return fmt.Errorf("A source cannot be specified for an Append blob")
+		}
+
+		return sbu.createEmptyAppendBlob(ctx)
+	}
 
 	if blobType == "block" {
+		if sbu.SourceUri != "" {
+			return sbu.copy(ctx)
+		}
+
+		if sbu.SourceContent != "" {
+			return sbu.uploadBlockBlobFromContent(ctx)
+		}
 		if sbu.Source != "" {
 			return sbu.uploadBlockBlob(ctx)
 		}
@@ -51,6 +62,12 @@ func (sbu BlobUpload) Create(ctx context.Context) error {
 	}
 
 	if blobType == "page" {
+		if sbu.SourceUri != "" {
+			return sbu.copy(ctx)
+		}
+		if sbu.SourceContent != "" {
+			return fmt.Errorf("`source_content` cannot be specified for a Page blob")
+		}
 		if sbu.Source != "" {
 			return sbu.uploadPageBlob(ctx)
 		}
@@ -73,6 +90,18 @@ func (sbu BlobUpload) copy(ctx context.Context) error {
 	return nil
 }
 
+func (sbu BlobUpload) createEmptyAppendBlob(ctx context.Context) error {
+	input := blobs.PutAppendBlobInput{
+		ContentType: utils.String(sbu.ContentType),
+		MetaData:    sbu.MetaData,
+	}
+	if _, err := sbu.Client.PutAppendBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
+		return fmt.Errorf("Error PutAppendBlob: %s", err)
+	}
+
+	return nil
+}
+
 func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	input := blobs.PutBlockBlobInput{
 		ContentType: utils.String(sbu.ContentType),
@@ -83,6 +112,22 @@ func (sbu BlobUpload) createEmptyBlockBlob(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (sbu BlobUpload) uploadBlockBlobFromContent(ctx context.Context) error {
+	tmpFile, err := ioutil.TempFile(os.TempDir(), "upload-")
+	if err != nil {
+		return fmt.Errorf("Error creating temporary file: %s", err)
+	}
+	defer os.Remove(tmpFile.Name())
+
+	if _, err = tmpFile.Write([]byte(sbu.SourceContent)); err != nil {
+		return fmt.Errorf("Error writing Source Content to Temp File: %s", err)
+	}
+	defer tmpFile.Close()
+
+	sbu.Source = tmpFile.Name()
+	return sbu.uploadBlockBlob(ctx)
 }
 
 func (sbu BlobUpload) uploadBlockBlob(ctx context.Context) error {
@@ -147,7 +192,6 @@ func (sbu BlobUpload) uploadPageBlob(ctx context.Context) error {
 		ContentType:            utils.String(sbu.ContentType),
 		MetaData:               sbu.MetaData,
 	}
-	// TODO: access tiers?
 	if _, err := sbu.Client.PutPageBlob(ctx, sbu.AccountName, sbu.ContainerName, sbu.BlobName, input); err != nil {
 		return fmt.Errorf("Error PutPageBlob: %s", err)
 	}
