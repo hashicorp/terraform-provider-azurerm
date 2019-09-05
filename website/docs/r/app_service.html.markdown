@@ -323,7 +323,7 @@ A `microsoft` block supports the following:
 
 A `backup` block supports the following:
 
-* `backup_name` (Required) Specifies the name for this Backup.
+* `name` (Required) Specifies the name for this Backup.
 
 * `enabled` - (Required) Is this Backup enabled?
 
