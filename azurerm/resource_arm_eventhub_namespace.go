@@ -73,6 +73,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+				ForceNew: true,
 			},
 
 			"maximum_throughput_units": {
