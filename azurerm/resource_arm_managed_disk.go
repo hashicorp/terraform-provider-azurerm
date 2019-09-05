@@ -294,7 +294,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 
 	if props := resp.DiskProperties; props != nil {
 		d.Set("disk_size_gb", props.DiskSizeGB)
-		d.Set("os_type", string(osType))
+		d.Set("os_type", props.OsType)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 	}

@@ -93,7 +93,7 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("disk_size_gb", props.DiskSizeGB)
 		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
 		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
-		d.Set("os_type", string(osType))
+		d.Set("os_type", props.OsType)
 	}
 
 	if resp.CreationData != nil {
