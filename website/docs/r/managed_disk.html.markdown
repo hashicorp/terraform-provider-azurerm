@@ -116,7 +116,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
--> **Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+-> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 For more information on managed disks, such as sizing options and pricing, please check out the
 [azure documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
