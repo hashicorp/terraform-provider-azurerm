@@ -19,7 +19,7 @@ func Provider() terraform.ResourceProvider {
 	// However this requires that the following be done first:
 	//  1. (DONE) Migrating the top level functions into the internal package
 	//	2. (DONE) Finish migrating the SDK Clients into Packages
-	//	3. Switch the remaining resources over to the new Storage SDK
+	//	3. (DONE) Switch the remaining resources over to the new Storage SDK
 	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
 	//	4. Making the SDK Clients public in the ArmClient prior to moving
 	//  5. Introducing a parent struct which becomes a nested field in `config.go`
