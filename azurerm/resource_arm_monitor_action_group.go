@@ -50,7 +50,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"email_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -69,7 +69,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"itsm_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -104,7 +104,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"azure_app_push_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -123,7 +123,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"sms_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -147,7 +147,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"webhook_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -166,7 +166,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"automation_runbook_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -209,7 +209,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"voice_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -233,7 +233,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"logic_app_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -262,7 +262,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"azure_function_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
