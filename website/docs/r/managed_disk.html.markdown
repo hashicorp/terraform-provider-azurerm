@@ -84,6 +84,8 @@ The following arguments are supported:
 * `storage_account_type` - (Required) The type of storage to use for the managed disk.
     Allowable values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
 
+-> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not requested onboarding to `Azure Ultra Disk Storage` private preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
+
 * `create_option` - (Required) The method to use when creating the managed disk. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
  * `Empty` - Create an empty managed disk.
@@ -107,8 +109,6 @@ The following arguments are supported:
 * `disk_iops_read_write` - (Optional) The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
 
 * `disk_mbps_read_write` - (Optional) The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second.
-
--> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not requested onboarding to `Azure Ultra Disk Storage` private preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
 
 * `encryption_settings` - (Optional) an `encryption_settings` block as defined below.
 
