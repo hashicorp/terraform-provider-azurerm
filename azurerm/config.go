@@ -24,7 +24,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
-	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	MsSql "github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
@@ -78,6 +77,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/terraform-providers/terraform-provider-azurerm/version"
+	healthcare "github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -259,7 +259,7 @@ type ArmClient struct {
 	appServicesClient     web.AppsClient
 
 	//healthcare
-	healthcareServiceClient healthcareapis.ServicesClient
+	healthcareServiceClient healthcare.ServicesClient
 }
 
 func (c *ArmClient) configureClient(client *autorest.Client, auth autorest.Authorizer) {
@@ -839,7 +839,7 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 }
 
 func (c *ArmClient) registerHealtcareClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
-	healthcareServiceClient := healthcareapis.NewServicesClient(subscriptionId)
+	healthcareServiceClient := healthcare.NewServicesClient(subscriptionId)
 	c.configureClient(&healthcareServiceClient.Client, auth)
 	c.healthcareServiceClient = healthcareServiceClient
 }
