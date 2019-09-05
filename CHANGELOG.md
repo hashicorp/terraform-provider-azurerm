@@ -3,9 +3,11 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_network_ddos_protection_plan` [GH-4228]
+* **New Data Source:** `azurerm_proximity_placement_group` [GH-4020]
 * **New Data Source:** `azurerm_sql_database` [GH-4210]
 * **New Data Source:** `azurerm_storage_account_blob_container_sas` [GH-4195]
 * **New Resource:** `azurerm_app_service_certificate` [GH-4192]
+* **New Resource:** `azurerm_proximity_placement_group` [GH-4020]
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
 * **New Resource:** `azurerm_kusto_database` [GH-4149]
 * **New Resource:** `azurerm_stream_analytics_output_servicebus_topic` [GH-4164]
@@ -22,6 +24,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
+* `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
 * `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
@@ -33,6 +36,8 @@ IMPROVEMENTS:
 * `azurerm_storage_table` - using the correct storage account name when checking for the presence of an existing storage table [GH-4234]
 * `azurerm_subnet` - support for the actions `Microsoft.Network/virtualNetworks/subnets/join/action` and `Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action` [GH-4137]
 * `azurerm_virtual_machine` - support for `UltraSSD_LRS` managed disks [GH-3860]
+* `azurerm_virtual_machine` - support for the `proximity_placement_group_id` property [GH-4020]
+* `azurerm_virtual_machine_scale_set` - support for the `proximity_placement_group_id` property [GH-4020]
 
 BUG FIXES:
 
