@@ -63,14 +63,6 @@ func NormalizeCustomHTTPSProvisioningStateToBool(provisioningState frontdoor.Cus
 	return isEnabled
 }
 
-func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) string {
-	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(frontDoorName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
-		return ""
-	}
-
-	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s/%s/%s", subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)
-}
-
 func GetFrontDoorBasicRouteConfigurationType(i interface{}) string {
 	_, ok := i.(frontdoor.ForwardingConfiguration)
 	if !ok {
