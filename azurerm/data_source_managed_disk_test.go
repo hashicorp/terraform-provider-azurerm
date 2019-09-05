@@ -38,6 +38,31 @@ func TestAccDataSourceAzureRMManagedDisk_basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMManagedDisk_basic_withUltraSSD(t *testing.T) {
+	dataSourceName := "data.azurerm_managed_disk.test"
+	location := "eastus2"
+	ri := tf.AccRandTimeInt()
+
+	name := fmt.Sprintf("acctestmanageddisk-%d", ri)
+	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
+
+	config := testAccDataSourceAzureRMManagedDiskBasicWithUltraSSD(name, resourceGroupName, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "disk_iops_read_write", "101"),
+					resource.TestCheckResourceAttr(dataSourceName, "disk_mbps_read_write", "10"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDataSourceAzureRMManagedDiskBasic(name string, resourceGroupName string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -53,6 +78,36 @@ resource "azurerm_managed_disk" "test" {
   create_option        = "Empty"
   disk_size_gb         = "10"
   zones                = ["2"]
+
+  tags = {
+    environment = "acctest"
+  }
+}
+
+data "azurerm_managed_disk" "test" {
+  name                = "${azurerm_managed_disk.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+`, resourceGroupName, location, name)
+}
+
+func testAccDataSourceAzureRMManagedDiskBasicWithUltraSSD(name string, resourceGroupName string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "%s"
+  location = "%s"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "%s"
+  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_type = "UltraSSD_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = "4"
+  disk_iops_read_write = "101"
+  disk_mbps_read_write = "10"
+  zones                = ["3"]
 
   tags = {
     environment = "acctest"
