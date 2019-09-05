@@ -1232,31 +1232,6 @@ resource "azurerm_storage_blob" "import" {
 `, template)
 }
 
-func testAccAzureRMStorageBlob_templateBlockBlobStorage(rInt int, rString, location, accessLevel string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestacc%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
-  account_kind             = "StorageV2"
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "test" {
-  name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "%s"
-}
-`, rInt, location, rString, accessLevel)
-}
-
 func testAccAzureRMStorageBlob_update(rInt int, rString, location string) string {
 	template := testAccAzureRMStorageBlob_template(rInt, rString, location, "private")
 	return fmt.Sprintf(`
@@ -1309,6 +1284,31 @@ resource "azurerm_storage_account" "test" {
   name                     = "acctestacc%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "%s"
+}
+`, rInt, location, rString, accessLevel)
+}
+
+func testAccAzureRMStorageBlob_templateBlockBlobStorage(rInt int, rString, location, accessLevel string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
