@@ -25,6 +25,15 @@ func possibleArmApplicationGatewaySslCipherSuiteValues() []string {
 	return cipherSuites
 }
 
+func base64EncodedStateFunc(v interface{}) string {
+	switch s := v.(type) {
+	case string:
+		return utils.Base64EncodeIfNot(s)
+	default:
+		return ""
+	}
+}
+
 func resourceArmApplicationGateway() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmApplicationGatewayCreateUpdate,
@@ -1679,7 +1688,7 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 		data := v["data"].(string)
 
 		// data must be base64 encoded
-		encodedData := base64Encode(data)
+		encodedData := utils.Base64EncodeIfNot(data)
 
 		output := network.ApplicationGatewayAuthenticationCertificate{
 			Name: utils.String(name),
@@ -3118,7 +3127,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 		password := v["password"].(string)
 
 		// data must be base64 encoded
-		data = base64Encode(data)
+		data = utils.Base64EncodeIfNot(data)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
@@ -3169,7 +3178,7 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						v := base64Encode(data.(string))
+						v := utils.Base64EncodeIfNot(data.(string))
 						output["data"] = v
 					}
 
