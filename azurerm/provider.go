@@ -21,10 +21,24 @@ func Provider() terraform.ResourceProvider {
 	//	2. (DONE) Finish migrating the SDK Clients into Packages
 	//	3. Switch the remaining resources over to the new Storage SDK
 	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
-	//	4. Making the SDK Clients public in the ArmClient prior to moving
-	//  5. Introducing a parent struct which becomes a nested field in `config.go`
+	//  4. (DONE) Introducing a parent struct which becomes a nested field in `config.go`
 	//  	for those properties, to ease migration (probably internal/common/clients.go)
-	//	6. Migrating references from the `ArmClient` to the new parent client
+	//
+	//	5. Making the SDK Clients public in the ArmClient
+	//  6. Migrating the Fields from the `ArmClient` to the new base `Client`
+	//		But leaving the referencing accessing the top-level field e.g.
+	//			type Client struct { // ./azurerm/internal/common/client.go
+	//				Example example.Client
+	//			}
+	//			type ArmClient struct { // ./azurerm/config.go
+	//				common.Client
+	//			}
+	//		Then access the fields using: `meta.(*ArmClient).Example.Inner`
+	//		Rather than `meta.(*ArmClient).Client.Example.Inner`
+	//		This allows us to have less code changes in Step 7
+	//	7. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
+	//		Unfortunately this'll need to be in a big-bang, due to the fact this is cast
+	//		All over the place
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
 	supportedServices := []common.ServiceRegistration{}
@@ -577,11 +591,15 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, err
 		}
 
+		// TODO: clean this up when ArmClient is removed
 		client.StopContext = p.StopContext()
+		client.Client.StopContext = p.StopContext()
 
 		// replaces the context between tests
 		p.MetaReset = func() error {
+			// TODO: remove the old reference here
 			client.StopContext = p.StopContext()
+			client.Client.StopContext = p.StopContext()
 			return nil
 		}
 
