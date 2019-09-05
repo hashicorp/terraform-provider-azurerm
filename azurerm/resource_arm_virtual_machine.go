@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"strings"
@@ -25,6 +27,22 @@ import (
 )
 
 var virtualMachineResourceName = "azurerm_virtual_machine"
+
+// TODO move into internal/tf/suppress/base64.go
+func userDataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+	return userDataStateFunc(old) == new
+}
+
+func userDataStateFunc(v interface{}) string {
+	switch s := v.(type) {
+	case string:
+		s = utils.Base64EncodeIfNot(s)
+		hash := sha1.Sum([]byte(s))
+		return hex.EncodeToString(hash[:])
+	default:
+		return ""
+	}
+}
 
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
@@ -1457,7 +1475,7 @@ func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSPr
 	}
 
 	if v := osProfile["custom_data"].(string); v != "" {
-		v = base64Encode(v)
+		v = utils.Base64EncodeIfNot(v)
 		profile.CustomData = &v
 	}
 
