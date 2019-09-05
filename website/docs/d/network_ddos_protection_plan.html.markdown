@@ -16,7 +16,7 @@ Use this data source to access information about an existing Azure Network DDoS 
 ```hcl
 data "azurerm_network_ddos_protection_plan" "example" {
   name                = "${azurerm_network_ddos_protection_plan.example.name}"
-  resource_group_name = "${azurerm_network_ddos_protection_plan.test.resource_group_name}"
+  resource_group_name = "${azurerm_network_ddos_protection_plan.example.resource_group_name}"
 }
 
 output "ddos_protection_plan_id" {

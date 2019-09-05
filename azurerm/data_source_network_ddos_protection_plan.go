@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -47,7 +46,6 @@ func dataSourceNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interf
 	plan, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(plan.Response) {
-			log.Printf("[DEBUG] DDoS Protection Plan %q was not found in Resource Group %q - removing from state!", name, resourceGroup)
 			return fmt.Errorf("Error DDoS Protection Plan %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 
