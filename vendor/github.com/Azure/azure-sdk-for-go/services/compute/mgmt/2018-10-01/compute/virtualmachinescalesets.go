@@ -103,7 +103,7 @@ func (client VirtualMachineScaleSetsClient) CreateOrUpdatePreparer(ctx context.C
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -184,7 +184,7 @@ func (client VirtualMachineScaleSetsClient) DeallocatePreparer(ctx context.Conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -265,7 +265,7 @@ func (client VirtualMachineScaleSetsClient) DeletePreparer(ctx context.Context, 
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -348,7 +348,7 @@ func (client VirtualMachineScaleSetsClient) DeleteInstancesPreparer(ctx context.
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -434,7 +434,7 @@ func (client VirtualMachineScaleSetsClient) ForceRecoveryServiceFabricPlatformUp
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version":          APIVersion,
 		"platformUpdateDomain": autorest.Encode("query", platformUpdateDomain),
@@ -512,7 +512,7 @@ func (client VirtualMachineScaleSetsClient) GetPreparer(ctx context.Context, res
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -589,7 +589,7 @@ func (client VirtualMachineScaleSetsClient) GetInstanceViewPreparer(ctx context.
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -667,7 +667,7 @@ func (client VirtualMachineScaleSetsClient) GetOSUpgradeHistoryPreparer(ctx cont
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -780,7 +780,7 @@ func (client VirtualMachineScaleSetsClient) ListPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -892,7 +892,7 @@ func (client VirtualMachineScaleSetsClient) ListAllPreparer(ctx context.Context)
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1008,7 +1008,7 @@ func (client VirtualMachineScaleSetsClient) ListSkusPreparer(ctx context.Context
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1119,7 +1119,7 @@ func (client VirtualMachineScaleSetsClient) PerformMaintenancePreparer(ctx conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1202,7 +1202,7 @@ func (client VirtualMachineScaleSetsClient) PowerOffPreparer(ctx context.Context
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1284,7 +1284,7 @@ func (client VirtualMachineScaleSetsClient) RedeployPreparer(ctx context.Context
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1367,7 +1367,7 @@ func (client VirtualMachineScaleSetsClient) ReimagePreparer(ctx context.Context,
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1450,7 +1450,7 @@ func (client VirtualMachineScaleSetsClient) ReimageAllPreparer(ctx context.Conte
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1532,7 +1532,7 @@ func (client VirtualMachineScaleSetsClient) RestartPreparer(ctx context.Context,
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1614,7 +1614,7 @@ func (client VirtualMachineScaleSetsClient) StartPreparer(ctx context.Context, r
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1696,7 +1696,7 @@ func (client VirtualMachineScaleSetsClient) UpdatePreparer(ctx context.Context, 
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1782,7 +1782,7 @@ func (client VirtualMachineScaleSetsClient) UpdateInstancesPreparer(ctx context.
 		"vmScaleSetName":    autorest.Encode("path", VMScaleSetName),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2018-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

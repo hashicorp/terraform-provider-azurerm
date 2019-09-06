@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
@@ -839,9 +839,9 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
-			Mode:                 compute.UpgradeMode(upgradePolicy),
-			AutomaticOSUpgrade:   utils.Bool(automaticOsUpgrade),
-			RollingUpgradePolicy: expandAzureRmRollingUpgradePolicy(d),
+			Mode:                     compute.UpgradeMode(upgradePolicy),
+			AutomaticOSUpgradePolicy: utils.Bool(automaticOsUpgrade),
+			RollingUpgradePolicy:     expandAzureRmRollingUpgradePolicy(d),
 		},
 		VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
 			NetworkProfile:   expandAzureRmVirtualMachineScaleSetNetworkProfile(d),
@@ -963,7 +963,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
-			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgrade)
+			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgradePolicy)
 
 			if rollingUpgradePolicy := upgradePolicy.RollingUpgradePolicy; rollingUpgradePolicy != nil {
 				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
