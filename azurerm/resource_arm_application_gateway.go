@@ -1169,6 +1169,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"2.2.9",
 								"3.0",
+								"3.1",
 							}, false),
 						},
 						"file_upload_limit_mb": {
