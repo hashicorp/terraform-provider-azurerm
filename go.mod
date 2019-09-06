@@ -27,3 +27,5 @@ require (
 )
 
 replace github.com/tombuildsstuff/giovanni => github.com/tcz001/giovanni v0.5.0
+
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
