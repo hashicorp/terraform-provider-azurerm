@@ -1,7 +1,9 @@
 package azurerm
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -10,12 +12,13 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+
+	webmgmt "github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 )
 
 func dataSourceArmFunction() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmServiceBusNamespaceRead,
+		Read: dataSourceArmFunctionRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -27,7 +30,7 @@ func dataSourceArmFunction() *schema.Resource {
 
 			"function_name": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 
 			"key": {
@@ -58,31 +61,19 @@ func dataSourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
 		Timeout:                   10 * time.Minute,
 		Delay:                     30 * time.Second,
 		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 3,
+		ContinuousTargetOccurence: 2,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	resp, err := stateConf.WaitForState()
+	if err != nil {
 		return fmt.Errorf("Error waiting for Function %q in Function app %q (Resource Group %q) to become available", functionName, name, resourceGroup)
 	}
 
-	resp, err := webClient.AppServicesClient.ListFunctionSecrets(ctx, resourceGroup, name, functionName)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Function %q was not found in Function App %q in Resource Group %q", functionName, name, resourceGroup)
-		}
+	functionSecret := resp.(webmgmt.FunctionSecretsProperties)
+	d.SetId(*functionSecret.TriggerURL)
 
-		return fmt.Errorf("Error retrieving Function %q (Resource Group %q): %s", name, resourceGroup, err)
-	}
-
-	d.SetId(*resp.ID)
-
-	if triggerUrl := resp.TriggerURL; triggerUrl != nil {
-		d.Set("trigger_url", triggerUrl)
-	}
-
-	if key := resp.Key; key != nil {
-		d.Set("key", key)
-	}
+	d.Set("trigger_url", functionSecret.TriggerURL)
+	d.Set("key", functionSecret.Key)
 
 	return nil
 }
@@ -91,13 +82,24 @@ func functionAvailabilityChecker(ctx context.Context, name, functionName, resour
 	return func() (interface{}, string, error) {
 		log.Printf("[DEBUG] Checking to see if Function %q is available..", functionName)
 
-		_, err := client.AppServicesClient.GetFunction(ctx, name, functionName, resourceGroup)
-		if err != nil {
+		function, err := client.AppServicesClient.ListFunctionSecrets(ctx, resourceGroup, name, functionName)
+
+		// Workaround for https://github.com/Azure/azure-rest-api-specs/issues/7143
+		// Can be removed once definition is fixed.
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(function.Body)
+		jsonBody := buf.String()
+		// Doesn't work because the buffer has already be read.
+
+		var response webmgmt.FunctionSecretsProperties
+		json.Unmarshal([]byte(jsonBody), &response)
+
+		if err != nil || function.StatusCode != 200 || response.Key == nil {
 			log.Printf("[DEBUG] Didn't find Function at %q", name)
 			return nil, "pending", err
 		}
 
 		log.Printf("[DEBUG] Found function at %q", functionName)
-		return "available", "available", nil
+		return response, "available", nil
 	}
 }

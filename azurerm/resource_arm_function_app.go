@@ -577,20 +577,20 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	functions, err := client.ListFunctionsComplete(ctx, resGroup, name)
-	if err != nil {
-		return err
-	}
-	getSecretsFunc := func(functionName string) (web.FunctionSecrets, error) {
-		return client.ListFunctionSecrets(ctx, resGroup, name, functionName)
-	}
-	functionsFlattened, err := flattenFunctions(getSecretsFunc, functions.Response())
-	if err != nil {
-		return err
-	}
-	if err = d.Set("functions", functionsFlattened); err != nil {
-		return err
-	}
+	// functions, err := client.ListFunctionsComplete(ctx, resGroup, name)
+	// if err != nil {
+	// 	return err
+	// }
+	// getSecretsFunc := func(functionName string) (web.FunctionSecrets, error) {
+	// 	return client.ListFunctionSecrets(ctx, resGroup, name, functionName)
+	// }
+	// functionsFlattened, err := flattenFunctions(getSecretsFunc, functions.Response())
+	// if err != nil {
+	// 	return err
+	// }
+	// if err = d.Set("functions", functionsFlattened); err != nil {
+	// 	return err
+	// }
 
 	flattenAndSetTags(d, resp.Tags)
 
