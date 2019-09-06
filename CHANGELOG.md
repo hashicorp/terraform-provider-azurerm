@@ -26,6 +26,7 @@ IMPROVEMENTS:
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
+* `azurerm_application_gateway` - support OWASP version `3.1` for the `rule_set_version` property [GH-4263]
 * `azurerm_app_service` - fixing a bug where the `logs` block would get reset when `app_settings` were configured [GH-4243]
 * `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
 * `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
