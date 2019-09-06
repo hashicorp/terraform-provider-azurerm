@@ -141,6 +141,8 @@ The following attributes are exported:
 
 * `id` - The Role Assignment ID.
 
+* `principal_type` - The type of the `principal_id`, e.g. User, Group, Service Principal, Application, etc.
+
 ## Import
 
 Role Assignments can be imported using the `resource id`, e.g.

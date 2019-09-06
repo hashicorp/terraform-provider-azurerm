@@ -217,6 +217,7 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 }
 
 func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T) {
+	resourceName := "azurerm_role_assignment.test"
 	ri := tf.AccRandTimeInt()
 	id := uuid.New().String()
 
@@ -229,6 +230,7 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 				Config: testAccAzureRMRoleAssignment_servicePrincipal(ri, id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
+					resource.TestCheckResourceAttr(resourceName, "principal_type", "ServicePrincipal"),
 				),
 			},
 		},
