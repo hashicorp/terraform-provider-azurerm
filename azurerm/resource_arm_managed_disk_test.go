@@ -805,6 +805,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "4"
   disk_iops_read_write = "101"
   disk_mbps_read_write = "10"
+  zones                = ["1"]
 
   tags = {
     environment = "acctest"
@@ -830,6 +831,7 @@ resource "azurerm_managed_disk" "test" {
   disk_size_gb         = "4"
   disk_iops_read_write = "102"
   disk_mbps_read_write = "11"
+  zones                = ["1"]
 
   tags = {
     environment = "acctest"
