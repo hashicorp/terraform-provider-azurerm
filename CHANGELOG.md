@@ -35,6 +35,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
+* `azurerm_managed_disk` - add support for the UltraSSD `disk_iops_read_write` & `disk_mbps_read_write` properties [GH-4102]
 * `azurerm_postgresql_server` - support for `auto_grow` [GH-4220]
 * `azurerm_resource_group` - the `name` field can now be up to 90 characters [GH-4233]
 * `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account [GH-4248]
