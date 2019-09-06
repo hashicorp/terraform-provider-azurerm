@@ -33,6 +33,7 @@ IMPROVEMENTS:
 * `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
 * `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
+* `azurerm_eventhub_namespace` - added ForceNew property to `kafka_enabled` setting [GH-4264]
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
 * `azurerm_managed_disk` - add support for the UltraSSD `disk_iops_read_write` & `disk_mbps_read_write` properties [GH-4102]
