@@ -26,10 +26,12 @@ IMPROVEMENTS:
 * Data Source: `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account [GH-4248]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
-* `azurerm_application_gateway` - allowing `capacity` to be set to 32 [GH-4189]
+* `azurerm_application_gateway` - allowing `capacity` to be set to `32` [GH-4189]
 * `azurerm_application_gateway` - support OWASP version `3.1` for the `rule_set_version` property [GH-4263]
 * `azurerm_app_service` - fixing a bug where the Application `logs` block would get reset when `app_settings` were configured [GH-4243]
 * `azurerm_app_service` - support for sending HTTP Logs to Blob Storage [GH-4249]
+* `azurerm_app_service` - the `ip_restriction.ip_address` property is now optional [GH-4184]
+* `azurerm_app_service_slot` - the `ip_restriction.ip_address` property is now optional [GH-4184]
 * `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
 * `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
 * `azurerm_cosmosdb_sql_container` - the property `unique_key.paths` is now marked as ForceNew [GH-4163]
@@ -54,6 +56,8 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_app_service` - will no longer panic from when an access restriction rule involves a virtual network [GH-4184]
+* `azurerm_app_service_slot` - will no longer panic from when an access restriction rule involves a virtual network [GH-4184]
 * `azurerm_app_service_plan` and `azurerm_app_service_slot` crash fixes [GH-4184]
 * `azurerm_container_group` - make `storage_account_key` field in `volume` block sensitive [GH-4201]
 * `azurerm_keyvault_certificate` - prevented a panic caused by an empty element in `extended_key_usage` [GH-4272]
