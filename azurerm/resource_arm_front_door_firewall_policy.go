@@ -10,9 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/helper"
-	//"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -58,8 +57,9 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			},
 
 			"custom_block_response_status_code": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validate.CustomBlockResponseBody,
 			},
 
 			"redirect_url": {
@@ -331,19 +331,42 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	frontendEndpoints := d.Get("frontend_endpoint_ids").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
-	frontdoorWebApplicationFirewallPolicyProperties := frontdoor.WebApplicationFirewallPolicyProperties{
-		PolicySettings: &frontdoor.PolicySettings{
-			EnabledState:                  helper.ConvertToPolicyEnabledStateFromBool(enabled),
-			Mode:                          helper.ConvertToPolicyModeFromString(mode),
-			RedirectURL:                   utils.String(redirectUrl),
-			CustomBlockResponseStatusCode: &customBlockResponseStatusCode,
-			CustomBlockResponseBody:       utils.String(customBlockResponseBody),
+	frontdoorWebApplicationFirewallPolicy := frontdoor.WebApplicationFirewallPolicy{
+		Name:     utils.String(name),
+		Location: utils.String(location),
+		WebApplicationFirewallPolicyProperties: &frontdoor.WebApplicationFirewallPolicyProperties{
+			PolicySettings: &frontdoor.PolicySettings{
+				EnabledState:                  helper.ConvertToPolicyEnabledStateFromBool(enabled),
+				Mode:                          helper.ConvertToPolicyModeFromString(mode),
+				RedirectURL:                   utils.String(redirectUrl),
+				CustomBlockResponseStatusCode: &customBlockResponseStatusCode,
+				CustomBlockResponseBody:       utils.String(customBlockResponseBody),
+			},
+			customRules:           expandArmFrontDoorFirewallCustomRules(customRules),
+			ManagedRules:          expandArmFrontDoorFirewallManagedRules(managedRules),
+			FrontendEndpointLinks: expandArmFrontDoorFirewallManagedRules(frontendEndpoints),
 		},
-
 		Tags: expandTags(tags),
 	}
 
-	return nil
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontdoorWebApplicationFirewallPolicy)
+	if err != nil {
+		return fmt.Errorf("Error creating Front Door Firewall policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for creation of Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read Front Door Firewall %q (Resource Group %q) ID", name, resourceGroup)
+	}
+	d.SetId(*resp.ID)
+
+	return resourceArmFrontDoorFirewallPolicyRead(d, meta)
 }
 
 func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
@@ -352,6 +375,94 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).frontdoor.FrontDoorsPolicyClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["FrontDoorWebApplicationFirewallPolicies"]
+
+	future, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+		return fmt.Errorf("Error deleting Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if !response.WasNotFound(future.Response()) {
+			return fmt.Errorf("Error waiting for deleting Front Door Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
 
 	return nil
+}
+
+func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
+	//Rules *[]CustomRule `json:"rules,omitempty"`
+
+	if len(input) == 0 {
+		return nil
+	}
+
+	output := make([]frontdoor.CustomRule, 0)
+
+	for _, cr := range input {
+		customRule := cr.(map[string]interface{})
+
+		name := customRule["name"].(string)
+		priority := int32(customRule["priority"].(int))
+		enabled := customRule["enabled"].(bool)
+		ruleType := customRule["rule_type"].(string)
+		rateLimitDurationInMinutes := int32(customRule["rate_limit_duration_in_minutes"].(int))
+		rateLimitThreshold  := int32(customRule["rate_limit_threshold"].(int))
+		matchConditions := expandArmFrontDoorFirewallMatchConditions(customRule["rate_limit_duration_in_minutes"].([]interface{}))
+		action := expandArmFrontDoorFirewallActionType(customRule["action_type"].(string))
+
+
+
+
+		//Priority := utils.Int32(priority)
+		//EnabledState:      expandArmFrontDoorFirewallCustomRuleEnabledState(enabled),
+		//RuleType:          expandArmFrontDoorFirewallRuleType(ruleType)
+	}
+
+
+
+	frontdoor.CustomRuleList {
+		Rules: *output,
+	} 
+}
+
+func expandArmFrontDoorFirewallCustomRuleEnabledState(isEnabled bool) frontdoor.CustomRuleEnabledState {
+	if isEnabled {
+		return frontdoor.CustomRuleEnabledStateEnabled 
+	}
+
+	return frontdoor.CustomRuleEnabledStateDisabled 
+}
+
+func expandArmFrontDoorFirewallRuleType(ruleType string) frontdoor.RuleType  {
+	if ruleType == string(frontdoor.MatchRule) {
+		return frontdoor.MatchRule  
+	}
+
+	return frontdoor.RateLimitRule  
+}
+
+func expandArmFrontDoorFirewallActionType(actionType string) frontdoor.ActionType {
+	switch actionType {
+		case string(frontdoor.Allow):
+			return frontdoor.Allow
+		case string(frontdoor.Block):
+			return frontdoor.Block
+		case string(frontdoor.Log):
+			return frontdoor.Log
+		case string(frontdoor.Redirect):
+			return frontdoor.Redirect
+	}
 }

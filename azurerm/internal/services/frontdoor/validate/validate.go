@@ -2,6 +2,7 @@ package validate
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -26,11 +27,11 @@ func BackendPoolRoutingRuleName(i interface{}, k string) (_ []string, errors []e
 	return nil, errors
 }
 
-func CustomResponseBody(i interface{}, k string) (_ []string, errors []error) {
+func CustomBlockResponseBody(i interface{}, k string) (_ []string, errors []error) {
 	if m, regexErrs := validate.RegExHelper(i, k, `^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$`); !m {
-		errors = append(regexErrs, fmt.Errorf(`%q contains invalid characters, %q must contain only alphanumeric and equals sign characters.`, k))
+		errors = append(regexErrs, fmt.Errorf(`%q contains invalid characters, %q must be a valid base64 string.`, k))
 	}
-	CustomBlockResponseBody
+
 	return nil, errors
 }
 func FrontdoorSettings(d *schema.ResourceDiff) error {
@@ -176,4 +177,18 @@ func FrontdoorSettings(d *schema.ResourceDiff) error {
 	}
 
 	return nil
+}
+
+// NoEmptyStrings validates that the string is not just whitespace characters (equal to [\r\n\t\f\v ])
+func NoEmptyStrings(i interface{}, k string) ([]string, []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if strings.TrimSpace(v) == "" {
+		return nil, []error{fmt.Errorf("%q must not be empty", k)}
+	}
+
+	return nil, nil
 }
