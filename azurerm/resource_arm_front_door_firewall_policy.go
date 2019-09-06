@@ -420,15 +420,15 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		ruleType := customRule["rule_type"].(string)
 		rateLimitDurationInMinutes := int32(customRule["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold  := int32(customRule["rate_limit_threshold"].(int))
-		matchConditions := expandArmFrontDoorFirewallMatchConditions(customRule["rate_limit_duration_in_minutes"].([]interface{}))
-		action := expandArmFrontDoorFirewallActionType(customRule["action_type"].(string))
+		matchConditions := expandArmFrontDoorFirewallMatchConditions(customRule["match_condition"].([]interface{}))
+		action := helper.ConvertStringToActionType(customRule["action_type"].(string))
 
 
 
 
-		//Priority := utils.Int32(priority)
-		//EnabledState:      expandArmFrontDoorFirewallCustomRuleEnabledState(enabled),
-		//RuleType:          expandArmFrontDoorFirewallRuleType(ruleType)
+		//Priority :         utils.Int32(priority),
+		//EnabledState:      helper.ConvertBoolToCustomRuleEnabledState(enabled),
+		//RuleType:          helper.ConvertStringToRuleType(ruleType),
 	}
 
 
@@ -438,31 +438,20 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 	} 
 }
 
-func expandArmFrontDoorFirewallCustomRuleEnabledState(isEnabled bool) frontdoor.CustomRuleEnabledState {
-	if isEnabled {
-		return frontdoor.CustomRuleEnabledStateEnabled 
+func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor.MatchCondition {
+	if len(input) == 0 {
+		return nil
 	}
 
-	return frontdoor.CustomRuleEnabledStateDisabled 
-}
+	for _, mc := range input {
+		matchCondition := mc.(map[string]interface{})
 
-func expandArmFrontDoorFirewallRuleType(ruleType string) frontdoor.RuleType  {
-	if ruleType == string(frontdoor.MatchRule) {
-		return frontdoor.MatchRule  
+		matchVariable := matchCondition["match_variable"].(string)
+		selector := matchCondition["selector"].(string)
+		operator := matchCondition["operator"].(string)
+		negateCondition  := helper.ConvertConditionToBool(matchCondition["condition"])
+
+
 	}
-
-	return frontdoor.RateLimitRule  
-}
-
-func expandArmFrontDoorFirewallActionType(actionType string) frontdoor.ActionType {
-	switch actionType {
-		case string(frontdoor.Allow):
-			return frontdoor.Allow
-		case string(frontdoor.Block):
-			return frontdoor.Block
-		case string(frontdoor.Log):
-			return frontdoor.Log
-		case string(frontdoor.Redirect):
-			return frontdoor.Redirect
-	}
+	output := make([]frontdoor.MatchCondition, 0)
 }
