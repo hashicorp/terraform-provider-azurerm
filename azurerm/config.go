@@ -29,6 +29,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
@@ -102,6 +103,7 @@ type ArmClient struct {
 	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
+	frontdoor        *frontdoor.Client
 	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
@@ -226,6 +228,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.frontdoor = frontdoor.BuildClient(o)
 	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
