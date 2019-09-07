@@ -10,8 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/helper"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
+	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,7 +30,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorName,
+				ValidateFunc: afd.ValidateFrontDoorName,
 			},
 
 			"cname": {
@@ -78,7 +77,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -166,7 +165,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									"backend_pool_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.BackendPoolRoutingRuleName,
+										ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
@@ -216,7 +215,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"sample_size": {
 							Type:     schema.TypeInt,
@@ -250,7 +249,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"path": {
 							Type:     schema.TypeString,
@@ -332,7 +331,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"health_probe_name": {
 							Type:     schema.TypeString,
@@ -359,7 +358,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"host_name": {
 							Type:     schema.TypeString,
@@ -427,7 +426,7 @@ func resourceArmFrontDoor() *schema.Resource {
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := validate.FrontdoorSettings(d); err != nil {
+			if err := afd.ValidateFrontdoorSettings(d); err != nil {
 				return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 			}
 
@@ -523,8 +522,8 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
 				// Check to see if we are going to change the CustomHTTPSProvisioningState, if so check to
 				// see if its current state is configurable, if not return an error...
-				if customHttpsProvisioningEnabled != helper.NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
-					if err := helper.IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
+				if customHttpsProvisioningEnabled != afd.NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
+					if err := afd.IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
 						return err
 					}
 				}
@@ -1315,7 +1314,7 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 			}
 
 			brc := properties.RouteConfiguration
-			if routeConfigType := helper.GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
+			if routeConfigType := afd.GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
 				rc := make([]interface{}, 0)
 				c := make(map[string]interface{})
 
