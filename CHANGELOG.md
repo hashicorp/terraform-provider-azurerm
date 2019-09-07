@@ -41,6 +41,7 @@ IMPROVEMENTS:
 * `azurerm_managed_disk` - add support for the Ultra SSD `disk_iops_read_write` & `disk_mbps_read_write` properties [GH-4102]
 * `azurerm_postgresql_server` - support for `auto_grow` [GH-4220]
 * `azurerm_resource_group` - the `name` field can now be up to 90 characters [GH-4233]
+* `azurerm_role_assignment` - add `principal_type` and `skip_service_principal_aad_check` properties [GH-4168]
 * `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account [GH-4248]
 * `azurerm_storage_blob` - switching over to use the new Storage SDK [GH-4179]
 * `azurerm_storage_blob` - support for Append Blobs [GH-4238]
