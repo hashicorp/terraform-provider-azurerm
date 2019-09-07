@@ -25,14 +25,12 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 
 			"short_name": {
 				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				Computed:     true,
 			},
 
 			"enabled": {
 				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
+				Computed: true,
 			},
 
 			"email_receiver": {
@@ -42,13 +40,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"email_address": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 					},
 				},
@@ -61,29 +57,23 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"workspace_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.UUID,
+							Computed:     true,
 						},
 						"connection_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.UUID,
+							Computed:     true,
 						},
 						"ticket_configuration": {
 							Type:             schema.TypeString,
-							Required:         true,
-							ValidateFunc:     validation.ValidateJsonString,
-							DiffSuppressFunc: structure.SuppressJsonDiff,
+							Computed:     true,
 						},
 						"region": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 					},
 				},
@@ -96,13 +86,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"email_address": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 					},
 				},
@@ -115,18 +103,15 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"country_code": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 					},
 				},
@@ -139,13 +124,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"service_uri": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							Computed:     true,
 						},
 					},
 				},
@@ -158,32 +141,27 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"automation_account_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.UUID,
+							Computed:     true,
 						},
 						"runbook_name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"webhook_resource_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"is_global_runbook": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Computed: true,
 						},
 						"service_uri": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							Computed:     true,
 						},
 					},
 				},
@@ -196,18 +174,15 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"country_code": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"phone_number": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 					},
 				},
@@ -220,18 +195,15 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"resource_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"callback_url": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							Computed:     true,
 						},
 					},
 				},
@@ -244,23 +216,19 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"function_app_resource_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"function_name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"http_trigger_url": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							Computed:     true,
 						},
 					},
 				},
