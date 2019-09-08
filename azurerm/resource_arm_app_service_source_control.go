@@ -53,7 +53,8 @@ func resourceArmAppServiceSourceControl() *schema.Resource {
 					string(web.ScmTypeGitHub),
 					string(web.ScmTypeLocalGit),
 					string(web.ScmTypeOneDrive),
-					string(web.ScmTypeTfs),
+					// Setting this to `Tfs` will result in 500 InternalServerError from the API
+					// string(web.ScmTypeTfs),
 					string(web.ScmTypeVSO),
 					// Not in the specs, but is set by Azure Pipelines
 					// https://github.com/Microsoft/azure-pipelines-tasks/blob/master/Tasks/AzureRmWebAppDeploymentV4/operations/AzureAppServiceUtility.ts#L19
@@ -92,6 +93,9 @@ func resourceArmAppServiceSourceControl() *schema.Resource {
 				Computed: true,
 			},
 
+			// If `type` is set to `LocalGit`, then
+			// this returns the URL of the Kudu service.
+			// Is this really needful?
 			"local_repo_url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -137,8 +141,8 @@ func resourceArmAppServiceSourceControlCreateUpdate(d *schema.ResourceData, meta
 	if repoUrl != "" {
 		sourceControl := web.SiteSourceControl{
 			SiteSourceControlProperties: &web.SiteSourceControlProperties{
-				RepoURL: utils.String(repoUrl),
-				Branch:  utils.String(branch),
+				RepoURL:                   utils.String(repoUrl),
+				Branch:                    utils.String(branch),
 				DeploymentRollbackEnabled: utils.Bool(deploymentRollbackEnabled),
 			},
 		}
@@ -156,6 +160,7 @@ func resourceArmAppServiceSourceControlCreateUpdate(d *schema.ResourceData, meta
 		}
 	}
 
+	// This is normally only needed if ScmType is `LocalGit` or `None`
 	sitePatchResource := web.SitePatchResource{
 		SitePatchResourceProperties: &web.SitePatchResourceProperties{
 			SiteConfig: &web.SiteConfig{
@@ -216,7 +221,10 @@ func resourceArmAppServiceSourceControlRead(d *schema.ResourceData, meta interfa
 	}
 
 	if props := resp.SiteSourceControlProperties; props != nil {
-		if web.ScmType(siteConfigProps.ScmType) == web.ScmTypeLocalGit {
+		if siteConfigProps.ScmType == web.ScmTypeLocalGit {
+			// If `type` is set to `LocalGit`, then
+			// this returns the URL of the Kudu service.
+			// Is this really needful?
 			d.Set("local_repo_url", props.RepoURL)
 		} else {
 			d.Set("repo_url", props.RepoURL)
@@ -257,7 +265,7 @@ func resourceArmAppServiceSourceControlDelete(d *schema.ResourceData, meta inter
 	sitePatchResource := web.SitePatchResource{
 		SitePatchResourceProperties: &web.SitePatchResourceProperties{
 			SiteConfig: &web.SiteConfig{
-				ScmType: web.ScmType(web.ScmTypeNone),
+				ScmType: web.ScmTypeNone,
 			},
 		},
 	}
