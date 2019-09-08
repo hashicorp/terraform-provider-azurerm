@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -96,15 +97,12 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationExists(resourceName stri
 		}
 
 		id := rs.Primary.Attributes["id"]
-		parsedID, err := parseAzureResourceID(id)
+		parsedID, err := azure.ParseAzureResourceID(id)
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 		}
 		name := parsedID.Path["sites"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Azure App Service Virtual Network Association: %q", name)
-		}
+		resourceGroup := parsedID.ResourceGroup
 
 		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -130,15 +128,12 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationDisappears(resourceName 
 		}
 
 		id := rs.Primary.Attributes["id"]
-		parsedID, err := parseAzureResourceID(id)
+		parsedID, err := azure.ParseAzureResourceID(id)
 		if err != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 		}
 		name := parsedID.Path["sites"]
-		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Azure App Service Virtual Network Association: %q", name)
-		}
+		resourceGroup := parsedID.ResourceGroup
 
 		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -257,7 +252,6 @@ func testAccAzureRMAppServiceVirtualNetworkAssociation_basic(rInt int, location 
 resource "azurerm_app_service_virtual_network_association" "test" {
   app_service_id       = "${azurerm_app_service.test.id}"
   subnet_id            = "${azurerm_subnet.test1.id}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
 }
 `, template)
 }
@@ -270,7 +264,6 @@ func testAccAzureRMAppServiceVirtualNetworkAssociation_update(rInt int, location
 resource "azurerm_app_service_virtual_network_association" "test" {
   app_service_id       = "${azurerm_app_service.test.id}"
   subnet_id            = "${azurerm_subnet.test2.id}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
 }
 `, template)
 }

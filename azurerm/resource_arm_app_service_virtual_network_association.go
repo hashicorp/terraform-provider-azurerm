@@ -21,8 +21,6 @@ func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"app_service_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -43,15 +41,15 @@ func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.Resour
 	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Get("app_service_id").(string))
+	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 	}
-	subnetID, err := parseAzureResourceID(d.Get("subnet_id").(string))
+	subnetID, err := azure.ParseAzureResourceID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 	}
-	resourceGroup := d.Get("resource_group_name").(string)
+	resourceGroup := id.ResourceGroup
 	name := id.Path["sites"]
 	subnetName := subnetID.Path["subnets"]
 	virtualNetworkName := subnetID.Path["virtualNetworks"]
@@ -77,11 +75,11 @@ func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.Resour
 	}
 	_, err = client.CreateOrUpdateSwiftVirtualNetworkConnection(ctx, resourceGroup, name, connectionEnvelope)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
 	read, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving App Service VNet association between %q (Resource Group %q) and Virtual Network %q: %s", name, resourceGroup, virtualNetworkName, err)
 	}
 	d.SetId(*read.ID)
 	return resourceArmAppServiceVirtualNetworkAssociationRead(d, meta)
@@ -91,7 +89,7 @@ func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, 
 	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 	}
@@ -104,7 +102,7 @@ func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, 
 			d.SetId("")
 			return nil
 		}
-		return err
+		return fmt.Errorf("Error retrieving existing App Service %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 	resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 	if err != nil {
@@ -112,7 +110,7 @@ func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, 
 			d.SetId("")
 			return nil
 		}
-		return err
+		return fmt.Errorf("Error retrieving App Service VNet association for %q (Resource Group %q): %s", name, resourceGroup, err)
 	}
 
 	if resp.SwiftVirtualNetworkProperties == nil {
@@ -126,7 +124,6 @@ func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, 
 	}
 	d.Set("subnet_id", subnetID)
 	d.Set("app_service_id", appService.ID)
-	d.Set("resource_group_name", resourceGroup)
 	return nil
 }
 
@@ -134,11 +131,11 @@ func resourceArmAppServiceVirtualNetworkAssociationDelete(d *schema.ResourceData
 	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Get("app_service_id").(string))
+	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 	}
-	subnetID, err := parseAzureResourceID(d.Get("subnet_id").(string))
+	subnetID, err := azure.ParseAzureResourceID(d.Get("subnet_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error parsing Azure Resource ID %q", id)
 	}

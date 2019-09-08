@@ -63,7 +63,6 @@ resource "azurerm_app_service" "test" {
 resource "azurerm_app_service_virtual_network_association" "test" {
   app_service_id       = "${azurerm_app_service.test.id}"
   subnet_id            = "${azurerm_subnet.test1.id}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
 }
 ```
 
@@ -73,9 +72,7 @@ The following arguments are supported:
 
 * `app_service_id` - (Required) The ID of the App Service to associate to the VNet. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` to `Microsoft.Web/serverFarms`).
-
-* `resource_group_name` - (Required) The name of the resource group in which the App Service exists. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the subnet the app service will be associated to (the subnet must have a `service_delegation` configured for `Microsoft.Web/serverFarms`).
 
 ## Attributes Reference
 
