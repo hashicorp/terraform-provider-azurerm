@@ -29,7 +29,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"BitBucket",
+					"Bitbucket",
 					"Dropbox",
 					"GitHub",
 					"OneDrive",
