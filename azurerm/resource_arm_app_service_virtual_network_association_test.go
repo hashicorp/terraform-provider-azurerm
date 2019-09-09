@@ -156,8 +156,13 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationDestroy(s *terraform.Sta
 			continue
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+		id := rs.Primary.Attributes["id"]
+		parsedID, err := azure.ParseAzureResourceID(id)
+		if err != nil {
+			return fmt.Errorf("Error parsing Azure Resource ID %q", id)
+		}
+		name := parsedID.Path["sites"]
+		resourceGroup := parsedID.ResourceGroup
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
