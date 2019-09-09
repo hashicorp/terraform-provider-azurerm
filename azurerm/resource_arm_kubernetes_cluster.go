@@ -48,6 +48,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				dockerBridgeCidr := profile["docker_bridge_cidr"].(string)
 				dnsServiceIP := profile["dns_service_ip"].(string)
 				serviceCidr := profile["service_cidr"].(string)
+				podCidr := profile["pod_cidr"].(string)
+
+				// Azure network plugin is not compatible with pod_cidr
+				if podCidr != "" && networkPlugin == "azure" {
+					return fmt.Errorf("`pod_cidr` and `azure` cannot be set together.")
+				}
 
 				// All empty values.
 				if dockerBridgeCidr == "" && dnsServiceIP == "" && serviceCidr == "" {
