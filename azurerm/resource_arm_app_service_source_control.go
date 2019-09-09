@@ -107,7 +107,7 @@ func resourceArmAppServiceSourceControlCreate(d *schema.ResourceData, meta inter
 
 	sourceControl := web.SiteSourceControl{
 		SiteSourceControlProperties: &web.SiteSourceControlProperties{
-			RepoURL: 				   utils.String(repoUrl),
+			RepoURL:                   utils.String(repoUrl),
 			Branch:                    utils.String(branch),
 			DeploymentRollbackEnabled: utils.Bool(deploymentRollbackEnabled),
 			IsManualIntegration:       utils.Bool(manualIntegrationEnabled),
