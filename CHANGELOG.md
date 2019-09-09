@@ -65,6 +65,7 @@ BUG FIXES:
 * `azurerm_keyvault_certificate` - prevented a panic caused by an empty element in `extended_key_usage` [GH-4272]
 * `azurerm_log_analytics_linked_service` - will no longer panic if no items are passed into the property `linked_service_properties` [GH-4142]
 * `azurerm_log_analytics_workspace_linked_service` - will no longer panic if no items are passed into the property `linked_service_properties` [GH-4152]
+* `azurerm_network_interface` - changing the `ip_configuration` property to no longer force new resource [GH-4155]
 * `azurerm_virtual_network_peering` - prevent nil object from being read [GH-4180]
 
 ## 1.33.1 (August 27, 2019)
