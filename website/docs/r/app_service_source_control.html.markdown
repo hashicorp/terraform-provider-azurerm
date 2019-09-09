@@ -42,10 +42,10 @@ resource "azurerm_app_service" "example" {
 }
 
 resource "azurerm_app_service_source_control" "example" {
-  app_service_id = "${azurerm_app_service.example.id}"
-  type           = "ExternalGit"
-  repo_url       = "https://github.com/Azure-Samples/app-service-web-html-get-started"
-  branch         = "master"
+  app_service_id             = "${azurerm_app_service.example.id}"
+  repo_url                   = "https://github.com/Azure-Samples/app-service-web-html-get-started"
+  branch                     = "master"
+  manual_integration_enabled = true
 }
 ```
 
@@ -53,13 +53,13 @@ resource "azurerm_app_service_source_control" "example" {
 
 The following arguments are supported:
 
-* `type` - (Required) The source control type. Possible values are: `BitbucketGit`, `BitbucketHg`, `Dropbox`, `ExternalGit`, `ExternalHg`, `GitHub`, `LocalGit`, `OneDrive`, `Tfs`, `VSO` and `VSTSRM`.
+* `repo_url` - (Required) The repository or source control URL. Changing this forces a new resource to be created.
 
-* `repo_url` - (Optional) The repository or source control URL.
+* `branch` - (Optional) The name of branch to use for deployment. Changing this forces a new resource to be created.
 
-* `branch` - (Optional) The name of branch to use for deployment.
+* `deployment_rollback_enabled` - (Optional) Should deployment rollback be enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-* `deployment_rollback_enabled` - (Optional) Should deployment rollback be enabled?
+* `manual_integration_enabled` - (Optional) Should manual integration be enabled, rather than continuous integration (which configures webhooks into online repos like GitHub)? Defaults to `false`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -67,9 +67,7 @@ The following attributes are exported:
 
 * `id` - The ID of the App Service Source Control.
 
-* `is_mercurial` - Whether the repository is Mercurial.
-
-* `is_manual_integration` - Whether manual integration is enabled, rather than continuous integration (which configures webhooks into online repos like GitHub).
+* `is_mercurial` - Whether the repository is Mercurial, rather than Git.
 
 ## Import
 

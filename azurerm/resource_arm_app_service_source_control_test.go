@@ -11,13 +11,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMAppServiceSourceControl_ExternalGit(t *testing.T) {
+func TestAccAzureRMAppServiceSourceControl_ManualIntegration(t *testing.T) {
 	resourceName := "azurerm_app_service_source_control.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	repoUrl := "https://github.com/Azure-Samples/app-service-web-html-get-started"
 
-	config := testAccAzureRMAppServiceSourceControlExternalGit(ri, location, repoUrl)
+	config := testAccAzureRMAppServiceSourceControlManualIntegration(ri, location, repoUrl)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -28,7 +28,6 @@ func TestAccAzureRMAppServiceSourceControl_ExternalGit(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "repo_url", repoUrl),
-					resource.TestCheckResourceAttr(resourceName, "type", "ExternalGit"),
 				),
 			},
 			{
@@ -41,7 +40,7 @@ func TestAccAzureRMAppServiceSourceControl_ExternalGit(t *testing.T) {
 	})
 }
 
-func testAccAzureRMAppServiceSourceControlExternalGit(rInt int, location, repoUrl string) string {
+func testAccAzureRMAppServiceSourceControlManualIntegration(rInt int, location, repoUrl string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctest%d"
@@ -71,10 +70,10 @@ resource "azurerm_app_service" "test" {
 }
 
 resource "azurerm_app_service_source_control" "test" {
-  app_service_id = "${azurerm_app_service.test.id}"
-  type           = "ExternalGit"
-  repo_url       = "%s"
-  branch         = "master"
+  app_service_id             = "${azurerm_app_service.test.id}"
+  repo_url                   = "%s"
+  branch                     = "master"
+  manual_integration_enabled = true
 }
 `, rInt, location, rInt, rInt, repoUrl)
 }
