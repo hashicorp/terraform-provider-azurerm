@@ -14,6 +14,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestvnet-%d", ri)
+	location := testLocation()
 	config := testAccDataSourceArmVirtualNetwork_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,6 +25,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "dns_servers.0", "10.0.0.4"),
 					resource.TestCheckResourceAttr(dataSourceName, "address_spaces.0", "10.0.0.0/16"),
 					resource.TestCheckResourceAttr(dataSourceName, "subnets.0", "subnet1"),
@@ -51,7 +53,6 @@ func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 				Config: testAccDataSourceArmVirtualNetwork_peeringWithDataSource(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", virtualNetworkName),
-					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "address_spaces.0", "10.0.1.0/24"),
 					resource.TestCheckResourceAttr(dataSourceName, "vnet_peerings.%", "1"),
 				),
