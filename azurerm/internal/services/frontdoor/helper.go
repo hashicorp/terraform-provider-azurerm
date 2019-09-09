@@ -148,6 +148,59 @@ func VerifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadB
 	return nil
 }
 
+func ConvertToPolicyEnabledStateFromBool(isEnabled bool) frontdoor.PolicyEnabledState {
+	if isEnabled {
+		return frontdoor.PolicyEnabledStateEnabled 
+	}
+
+	return frontdoor.PolicyEnabledStateDisabled 
+}
+
+func ConvertBoolToCustomRuleEnabledState(isEnabled bool) frontdoor.CustomRuleEnabledState {
+	if isEnabled {
+		return frontdoor.CustomRuleEnabledStateEnabled 
+	}
+
+	return frontdoor.CustomRuleEnabledStateDisabled 
+}
+
+func ConvertToPolicyModeFromString(policyMode string) frontdoor.PolicyMode {
+	if policyMode == "Detection" {
+		return frontdoor.Detection  
+	}
+
+	return frontdoor.Prevention  
+}
+
+func ConvertStringToRuleType(ruleType string) frontdoor.RuleType  {
+	if ruleType == string(frontdoor.MatchRule) {
+		return frontdoor.MatchRule  
+	}
+
+	return frontdoor.RateLimitRule  
+}
+
+func ConvertStringToActionType(actionType string) frontdoor.ActionType {
+	switch actionType {
+		case string(frontdoor.Allow):
+			return frontdoor.Allow
+		case string(frontdoor.Block):
+			return frontdoor.Block
+		case string(frontdoor.Log):
+			return frontdoor.Log
+		case string(frontdoor.Redirect):
+			return frontdoor.Redirect
+	}
+}
+
+func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) string {
+	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(frontDoorName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
+		return ""
+	}
+
+	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s/%s/%s", subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)
+}
+
 func VerifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error {
 	for _, configFrontendEndpoint := range configFrontendEndpoints {
 		if configFrontend := configFrontendEndpoint.(map[string]interface{}); len(configFrontend) > 0 {
