@@ -10,8 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/helper"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
+	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,7 +30,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.FrontDoorName,
+				ValidateFunc: afd.ValidateFrontDoorName,
 			},
 
 			"cname": {
@@ -78,7 +77,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
@@ -166,7 +165,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									"backend_pool_name": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validate.BackendPoolRoutingRuleName,
+										ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 									},
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
@@ -216,7 +215,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"sample_size": {
 							Type:     schema.TypeInt,
@@ -250,7 +249,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"path": {
 							Type:     schema.TypeString,
@@ -332,7 +331,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"health_probe_name": {
 							Type:     schema.TypeString,
@@ -359,7 +358,7 @@ func resourceArmFrontDoor() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.BackendPoolRoutingRuleName,
+							ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 						},
 						"host_name": {
 							Type:     schema.TypeString,
@@ -427,7 +426,7 @@ func resourceArmFrontDoor() *schema.Resource {
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
-			if err := validate.FrontdoorSettings(d); err != nil {
+			if err := afd.ValidateFrontdoorSettings(d); err != nil {
 				return fmt.Errorf("Error creating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 			}
 
@@ -456,6 +455,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	frontDoorPath := fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s", subscriptionId, resourceGroup, name)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	friendlyName := d.Get("friendly_name").(string)
 	routingRules := d.Get("routing_rule").([]interface{})
@@ -471,12 +471,12 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		Location: utils.String(location),
 		Properties: &frontdoor.Properties{
 			FriendlyName:          utils.String(friendlyName),
-			RoutingRules:          expandArmFrontDoorRoutingRule(routingRules, subscriptionId, resourceGroup, name),
-			BackendPools:          expandArmFrontDoorBackendPools(backendPools, subscriptionId, resourceGroup, name),
+			RoutingRules:          expandArmFrontDoorRoutingRule(routingRules, frontDoorPath),
+			BackendPools:          expandArmFrontDoorBackendPools(backendPools, frontDoorPath),
 			BackendPoolsSettings:  expandArmFrontDoorBackendPoolsSettings(backendPoolsSettings),
-			FrontendEndpoints:     expandArmFrontDoorFrontendEndpoint(frontendEndpoints, subscriptionId, resourceGroup, name),
-			HealthProbeSettings:   expandArmFrontDoorHealthProbeSettingsModel(healthProbeSettings, subscriptionId, resourceGroup, name),
-			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, subscriptionId, resourceGroup, name),
+			FrontendEndpoints:     expandArmFrontDoorFrontendEndpoint(frontendEndpoints, frontDoorPath),
+			HealthProbeSettings:   expandArmFrontDoorHealthProbeSettingsModel(healthProbeSettings, frontDoorPath),
+			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorPath),
 			EnabledState:          expandArmFrontDoorEnabledState(enabledState),
 		},
 		Tags: expandTags(tags),
@@ -522,8 +522,8 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			if provisioningState := properties.CustomHTTPSProvisioningState; provisioningState != "" {
 				// Check to see if we are going to change the CustomHTTPSProvisioningState, if so check to
 				// see if its current state is configurable, if not return an error...
-				if customHttpsProvisioningEnabled != helper.NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
-					if err := helper.IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
+				if customHttpsProvisioningEnabled != afd.NormalizeCustomHTTPSProvisioningStateToBool(provisioningState) {
+					if err := afd.IsFrontDoorFrontendEndpointConfigurable(provisioningState, customHttpsProvisioningEnabled, frontendEndpointName, resourceGroup); err != nil {
 						return err
 					}
 				}
@@ -602,30 +602,36 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
 	if properties := resp.Properties; properties != nil {
 		if err := d.Set("backend_pool", flattenArmFrontDoorBackendPools(properties.BackendPools)); err != nil {
 			return fmt.Errorf("Error setting `backend_pool`: %+v", err)
 		}
+
 		if err := d.Set("enforce_backend_pools_certificate_name_check", flattenArmFrontDoorBackendPoolsSettings(properties.BackendPoolsSettings)); err != nil {
 			return fmt.Errorf("Error setting `enforce_backend_pools_certificate_name_check`: %+v", err)
 		}
+
 		d.Set("cname", properties.Cname)
-		if properties.EnabledState == frontdoor.EnabledStateEnabled {
-			d.Set("load_balancer_enabled", properties.EnabledState == frontdoor.EnabledStateEnabled)
-		} else {
-			d.Set("load_balancer_enabled", false)
-		}
+		d.Set("load_balancer_enabled", properties.EnabledState == frontdoor.EnabledStateEnabled)
 		d.Set("friendly_name", properties.FriendlyName)
 
-		if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(properties.FrontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
-			if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
-				return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
+		if frontendEndpoints := properties.FrontendEndpoints; frontendEndpoints != nil {
+			if resp.Name != nil {
+				if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(frontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
+					if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
+						return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
+					}
+				} else {
+					return fmt.Errorf("Error flattening `frontend_endpoint`: %+v", err)
+				}
+			} else {
+				return fmt.Errorf("Error flattening `frontend_endpoint`: Unable to read Frontdoor Name")
 			}
-		} else {
-			return fmt.Errorf("Error flattening `frontend_endpoint`: %+v", err)
 		}
 
 		if err := d.Set("backend_pool_health_probe", flattenArmFrontDoorHealthProbeSettingsModel(properties.HealthProbeSettings)); err != nil {
@@ -674,7 +680,7 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	return nil
 }
 
-func expandArmFrontDoorBackendPools(input []interface{}, subscriptionId string, resourceGroup string, frontDoorName string) *[]frontdoor.BackendPool {
+func expandArmFrontDoorBackendPools(input []interface{}, frontDoorPath string) *[]frontdoor.BackendPool {
 	if len(input) == 0 {
 		return &[]frontdoor.BackendPool{}
 	}
@@ -691,13 +697,16 @@ func expandArmFrontDoorBackendPools(input []interface{}, subscriptionId string, 
 		backends := backendPool["backend"].([]interface{})
 
 		result := frontdoor.BackendPool{
-			ID:   utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "BackendPools", backendPoolName)),
+			ID:   utils.String(frontDoorPath + "/BackendPools/" + backendPoolName),
 			Name: utils.String(backendPoolName),
 			BackendPoolProperties: &frontdoor.BackendPoolProperties{
-				// ResourceState
-				Backends:              expandArmFrontDoorBackend(backends),
-				LoadBalancingSettings: expandArmFrontDoorSubResource(subscriptionId, resourceGroup, frontDoorName, "LoadBalancingSettings", backendPoolLoadBalancingName),
-				HealthProbeSettings:   expandArmFrontDoorSubResource(subscriptionId, resourceGroup, frontDoorName, "HealthProbeSettings", backendPoolHealthProbeName),
+				Backends: expandArmFrontDoorBackend(backends),
+				LoadBalancingSettings: &frontdoor.SubResource{
+					ID: utils.String(frontDoorPath + "/LoadBalancingSettings/" + backendPoolLoadBalancingName),
+				},
+				HealthProbeSettings: &frontdoor.SubResource{
+					ID: utils.String(frontDoorPath + "/HealthProbeSettings/" + backendPoolHealthProbeName),
+				},
 			},
 		}
 
@@ -763,7 +772,7 @@ func expandArmFrontDoorBackendPoolsSettings(enforceCertificateNameCheck bool) *f
 	return &result
 }
 
-func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId string, resourceGroup string, frontDoorName string) *[]frontdoor.FrontendEndpoint {
+func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath string) *[]frontdoor.FrontendEndpoint {
 	if len(input) == 0 {
 		return &[]frontdoor.FrontendEndpoint{}
 	}
@@ -778,10 +787,9 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, subscriptionId stri
 		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
 		customHttpsConfiguration := frontendEndpoint["custom_https_configuration"].([]interface{})
 		name := frontendEndpoint["name"].(string)
-		id := utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "FrontendEndpoints", name))
+		id := utils.String(frontDoorPath + "/FrontendEndpoints/" + name)
 
 		sessionAffinityEnabled := frontdoor.SessionAffinityEnabledStateDisabled
-
 		if isSessionAffinityEnabled {
 			sessionAffinityEnabled = frontdoor.SessionAffinityEnabledStateEnabled
 		}
@@ -821,7 +829,7 @@ func expandArmFrontDoorCustomHTTPSConfiguration(input []interface{}) *frontdoor.
 	return &customHttpsConfiguration
 }
 
-func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, subscriptionId string, resourceGroup string, frontDoorName string) *[]frontdoor.HealthProbeSettingsModel {
+func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, frontDoorPath string) *[]frontdoor.HealthProbeSettingsModel {
 	if len(input) == 0 {
 		return &[]frontdoor.HealthProbeSettingsModel{}
 	}
@@ -837,7 +845,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, subscriptio
 		name := v["name"].(string)
 
 		result := frontdoor.HealthProbeSettingsModel{
-			ID:   utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "HealthProbeSettings", name)),
+			ID:   utils.String(frontDoorPath + "/HealthProbeSettings/" + name),
 			Name: utils.String(name),
 			HealthProbeSettingsProperties: &frontdoor.HealthProbeSettingsProperties{
 				IntervalInSeconds: utils.Int32(intervalInSeconds),
@@ -852,7 +860,7 @@ func expandArmFrontDoorHealthProbeSettingsModel(input []interface{}, subscriptio
 	return &output
 }
 
-func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, subscriptionId string, resourceGroup string, frontDoorName string) *[]frontdoor.LoadBalancingSettingsModel {
+func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, frontDoorPath string) *[]frontdoor.LoadBalancingSettingsModel {
 	if len(input) == 0 {
 		return &[]frontdoor.LoadBalancingSettingsModel{}
 	}
@@ -866,7 +874,7 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, subscript
 		sampleSize := int32(loadBalanceSetting["sample_size"].(int))
 		successfulSamplesRequired := int32(loadBalanceSetting["successful_samples_required"].(int))
 		additionalLatencyMilliseconds := int32(loadBalanceSetting["additional_latency_milliseconds"].(int))
-		id := utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "LoadBalancingSettings", name))
+		id := utils.String(frontDoorPath + "/LoadBalancingSettings/" + name)
 
 		result := frontdoor.LoadBalancingSettingsModel{
 			ID:   id,
@@ -884,7 +892,7 @@ func expandArmFrontDoorLoadBalancingSettingsModel(input []interface{}, subscript
 	return &output
 }
 
-func expandArmFrontDoorRoutingRule(input []interface{}, subscriptionId string, resourceGroup, frontDoorName string) *[]frontdoor.RoutingRule {
+func expandArmFrontDoorRoutingRule(input []interface{}, frontDoorPath string) *[]frontdoor.RoutingRule {
 	if len(input) == 0 {
 		return nil
 	}
@@ -912,22 +920,20 @@ func expandArmFrontDoorRoutingRule(input []interface{}, subscriptionId string, r
 		if rc := routingRule["redirect_configuration"].([]interface{}); len(rc) != 0 {
 			routingConfiguration = expandArmFrontDoorRedirectConfiguration(rc)
 		} else if fc := routingRule["forwarding_configuration"].([]interface{}); len(fc) != 0 {
-			routingConfiguration = expandArmFrontDoorForwardingConfiguration(fc, subscriptionId, resourceGroup, frontDoorName)
+			routingConfiguration = expandArmFrontDoorForwardingConfiguration(fc, frontDoorPath)
 		}
 
 		currentRoutingRule := frontdoor.RoutingRule{
 			ID:   utils.String(id),
 			Name: utils.String(name),
 			RoutingRuleProperties: &frontdoor.RoutingRuleProperties{
-				//ResourceState:
-				FrontendEndpoints:  expandArmFrontDoorFrontEndEndpoints(frontendEndpoints, subscriptionId, resourceGroup, frontDoorName),
+				FrontendEndpoints:  expandArmFrontDoorFrontEndEndpoints(frontendEndpoints, frontDoorPath),
 				AcceptedProtocols:  expandArmFrontDoorAcceptedProtocols(acceptedProtocols),
 				PatternsToMatch:    &patternsToMatch,
 				EnabledState:       frontdoor.RoutingRuleEnabledState(expandArmFrontDoorEnabledState(enabled)),
 				RouteConfiguration: routingConfiguration,
 			},
 		}
-
 		output = append(output, currentRoutingRule)
 	}
 
@@ -954,24 +960,17 @@ func expandArmFrontDoorAcceptedProtocols(input []interface{}) *[]frontdoor.Proto
 	return &output
 }
 
-func expandArmFrontDoorSubResource(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) *frontdoor.SubResource {
-	result := frontdoor.SubResource{
-		ID: utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)),
-	}
-
-	return &result
-}
-
-func expandArmFrontDoorFrontEndEndpoints(input []interface{}, subscriptionId string, resourceGroup string, frontDoorName string) *[]frontdoor.SubResource {
+func expandArmFrontDoorFrontEndEndpoints(input []interface{}, frontDoorPath string) *[]frontdoor.SubResource {
 	if len(input) == 0 {
 		return &[]frontdoor.SubResource{}
 	}
 
-	//v := input.(map[string]interface{})
 	output := make([]frontdoor.SubResource, 0)
 
 	for _, SubResource := range input {
-		result := *expandArmFrontDoorSubResource(subscriptionId, resourceGroup, frontDoorName, "FrontendEndpoints", SubResource.(string))
+		result := frontdoor.SubResource{
+			ID: utils.String(frontDoorPath + "/FrontendEndpoints/" + SubResource.(string)),
+		}
 		output = append(output, result)
 	}
 
@@ -1021,7 +1020,7 @@ func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redi
 	return redirectConfiguration
 }
 
-func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscriptionId string, resourceGroup, frontDoorName string) frontdoor.ForwardingConfiguration {
+func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPath string) frontdoor.ForwardingConfiguration {
 	if len(input) == 0 {
 		return frontdoor.ForwardingConfiguration{}
 	}
@@ -1045,7 +1044,7 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, subscription
 	}
 
 	backend := &frontdoor.SubResource{
-		ID: utils.String(helper.GetFrontDoorSubResourceId(subscriptionId, resourceGroup, frontDoorName, "BackendPools", backendPoolName)),
+		ID: utils.String(frontDoorPath + "/BackendPools/" + backendPoolName),
 	}
 
 	forwardingConfiguration := frontdoor.ForwardingConfiguration{
@@ -1085,7 +1084,6 @@ func flattenArmFrontDoorBackendPools(input *[]frontdoor.BackendPool) []map[strin
 			result["health_probe_name"] = flattenArmFrontDoorSubResource(properties.HealthProbeSettings, "HealthProbeSettings")
 			result["load_balancing_name"] = flattenArmFrontDoorSubResource(properties.LoadBalancingSettings, "LoadBalancingSettings")
 		}
-
 		output = append(output, result)
 	}
 
@@ -1125,11 +1123,7 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 			result["host_header"] = *backendHostHeader
 		}
 
-		if v.EnabledState == frontdoor.Enabled {
-			result["enabled"] = true
-		} else {
-			result["enabled"] = false
-		}
+		result["enabled"] = v.EnabledState == frontdoor.Enabled
 
 		if httpPort := v.HTTPPort; httpPort != nil {
 			result["http_port"] = int(*httpPort)
@@ -1229,10 +1223,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 						result["custom_https_configuration"] = customHttpsConfiguration
 					}
 				}
-
-				//result["web_application_firewall_policy_link"] = flattenArmFrontDoorFrontendEndpointUpdateParameters_webApplicationFirewallPolicyLink(properties.WebApplicationFirewallPolicyLink)
 			}
-
 		}
 
 		output = append(output, result)
@@ -1316,19 +1307,14 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 
 		if properties := v.RoutingRuleProperties; properties != nil {
 			result["accepted_protocols"] = flattenArmFrontDoorAcceptedProtocol(properties.AcceptedProtocols)
-
-			if properties.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled {
-				result["enabled"] = true
-			} else {
-				result["enabled"] = false
-			}
+			result["enabled"] = properties.EnabledState == frontdoor.RoutingRuleEnabledStateEnabled
 			result["frontend_endpoints"] = flattenArmFrontDoorFrontendEndpointsSubResources(properties.FrontendEndpoints)
 			if patternsToMatch := properties.PatternsToMatch; patternsToMatch != nil {
 				result["patterns_to_match"] = *patternsToMatch
 			}
 
 			brc := properties.RouteConfiguration
-			if routeConfigType := helper.GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
+			if routeConfigType := afd.GetFrontDoorBasicRouteConfigurationType(brc.(interface{})); routeConfigType != "" {
 				rc := make([]interface{}, 0)
 				c := make(map[string]interface{})
 

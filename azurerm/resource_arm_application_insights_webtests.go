@@ -10,6 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -106,7 +108,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				DiffSuppressFunc: suppress.XmlDiff,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"synthetic_monitor_id": {
 				Type:     schema.TypeString,
@@ -126,14 +128,14 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	resGroup := d.Get("resource_group_name").(string)
 	appInsightsID := d.Get("application_insights_id").(string)
 
-	id, err := parseAzureResourceID(appInsightsID)
+	id, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return err
 	}
 
 	appInsightsName := id.Path["components"]
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -157,9 +159,9 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
 	testConf := d.Get("configuration").(string)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName)
-	tags[tagKey] = "Resource"
+	t[tagKey] = "Resource"
 
 	webTest := insights.WebTest{
 		Name:     &name,
@@ -179,7 +181,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 				WebTest: &testConf,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)
@@ -196,7 +198,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).appInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,8 +219,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	}
 
 	appInsightsId := ""
-	tags := resp.Tags
-	for i := range tags {
+	for i := range resp.Tags {
 		if strings.HasPrefix(i, "hidden-link") {
 			appInsightsId = strings.Split(i, ":")[1]
 		}
@@ -249,16 +250,14 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).appInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

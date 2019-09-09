@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: refactor the test configs
@@ -40,7 +41,7 @@ func TestAccAzureRMCosmosDBAccount_eventualConsistency(t *testing.T) {
 	})
 }
 func TestAccAzureRMCosmosDBAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

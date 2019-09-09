@@ -12,7 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,7 +68,7 @@ func resourceArmLoadBalancerRule() *schema.Resource {
 			"protocol": {
 				Type:             schema.TypeString,
 				Required:         true,
-				StateFunc:        ignoreCaseStateFunc,
+				StateFunc:        state.IgnoreCase,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.TransportProtocolAll),
@@ -150,7 +152,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 	existingRule, existingRuleIndex, exists := findLoadBalancerRuleByName(loadBalancer, name)
 	if exists {
 		if name == *existingRule.Name {
-			if requireResourcesToBeImported && d.IsNewResource() {
+			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_rule", *existingRule.ID)
 			}
 
@@ -199,7 +201,7 @@ func resourceArmLoadBalancerRuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -240,7 +242,7 @@ func resourceArmLoadBalancerRuleRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		if properties.FrontendIPConfiguration != nil {
-			fipID, err := parseAzureResourceID(*properties.FrontendIPConfiguration.ID)
+			fipID, err := azure.ParseAzureResourceID(*properties.FrontendIPConfiguration.ID)
 			if err != nil {
 				return err
 			}

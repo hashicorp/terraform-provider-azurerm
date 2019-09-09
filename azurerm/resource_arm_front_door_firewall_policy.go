@@ -403,8 +403,6 @@ func resourceArmFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta inter
 }
 
 func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.CustomRuleList {
-	//Rules *[]CustomRule `json:"rules,omitempty"`
-
 	if len(input) == 0 {
 		return nil
 	}

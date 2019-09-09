@@ -6,6 +6,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -64,7 +65,7 @@ func resourceArmPostgreSQLFirewallRuleCreate(d *schema.ResourceData, meta interf
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -110,7 +111,7 @@ func resourceArmPostgreSQLFirewallRuleRead(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -142,7 +143,7 @@ func resourceArmPostgreSQLFirewallRuleDelete(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).postgres.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

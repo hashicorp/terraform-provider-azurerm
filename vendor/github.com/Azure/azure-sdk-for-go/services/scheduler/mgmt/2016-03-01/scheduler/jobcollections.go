@@ -111,8 +111,8 @@ func (client JobCollectionsClient) CreateOrUpdatePreparer(ctx context.Context, r
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
@@ -186,9 +186,9 @@ func (client JobCollectionsClient) DeletePreparer(ctx context.Context, resourceG
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) DeleteSender(req *http.Request) (future JobCollectionsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -266,9 +266,9 @@ func (client JobCollectionsClient) DisablePreparer(ctx context.Context, resource
 // DisableSender sends the Disable request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) DisableSender(req *http.Request) (future JobCollectionsDisableFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -346,9 +346,9 @@ func (client JobCollectionsClient) EnablePreparer(ctx context.Context, resourceG
 // EnableSender sends the Enable request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) EnableSender(req *http.Request) (future JobCollectionsEnableFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -432,8 +432,8 @@ func (client JobCollectionsClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
@@ -512,8 +512,8 @@ func (client JobCollectionsClient) ListByResourceGroupPreparer(ctx context.Conte
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
@@ -627,8 +627,8 @@ func (client JobCollectionsClient) ListBySubscriptionPreparer(ctx context.Contex
 // ListBySubscriptionSender sends the ListBySubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) ListBySubscriptionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.
@@ -751,8 +751,8 @@ func (client JobCollectionsClient) PatchPreparer(ctx context.Context, resourceGr
 // PatchSender sends the Patch request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCollectionsClient) PatchSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // Deprecated: Please use github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic instead.

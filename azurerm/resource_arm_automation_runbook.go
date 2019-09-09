@@ -10,7 +10,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -46,7 +49,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ForceNew:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(automation.Graph),
 					string(automation.GraphPowerShell),
@@ -115,7 +118,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -130,7 +133,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	accName := d.Get("account_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -144,7 +147,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	runbookType := automation.RunbookTypeEnum(d.Get("runbook_type").(string))
 	logProgress := d.Get("log_progress").(bool)
@@ -163,7 +166,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 		},
 
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
@@ -202,7 +205,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -234,10 +237,6 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("description", props.Description)
 	}
 
-	if tags := resp.Tags; tags != nil {
-		flattenAndSetTags(d, tags)
-	}
-
 	response, err := client.GetContent(ctx, resGroup, accName, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving content for Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
@@ -254,6 +253,10 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	if t := resp.Tags; t != nil {
+		return tags.FlattenAndSet(d, t)
+	}
+
 	return nil
 }
 
@@ -261,7 +264,7 @@ func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

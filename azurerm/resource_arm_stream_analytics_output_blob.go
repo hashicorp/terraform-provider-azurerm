@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -90,7 +91,7 @@ func resourceArmStreamAnalyticsOutputBlobCreateUpdate(d *schema.ResourceData, me
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -165,7 +166,7 @@ func resourceArmStreamAnalyticsOutputBlobRead(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -216,7 +217,7 @@ func resourceArmStreamAnalyticsOutputBlobDelete(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).streamanalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

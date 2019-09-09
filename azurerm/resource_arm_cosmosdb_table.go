@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,7 +52,7 @@ func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) er
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetTable(ctx, resourceGroup, account, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {

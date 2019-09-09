@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -89,7 +90,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHubCreateUpdate(d *schema.ResourceD
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -159,7 +160,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHubRead(d *schema.ResourceData, met
 	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -210,7 +211,7 @@ func resourceArmStreamAnalyticsStreamInputIoTHubDelete(d *schema.ResourceData, m
 	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

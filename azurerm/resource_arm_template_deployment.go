@@ -14,7 +14,9 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -61,7 +63,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 					string(resources.Complete),
 					string(resources.Incremental),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"outputs": {
@@ -81,7 +83,7 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 	resourceGroup := d.Get("resource_group_name").(string)
 	deploymentMode := d.Get("deployment_mode").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := deployClient.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -163,7 +165,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,7 +231,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 	deployClient := client.resource.DeploymentsClient
 	ctx := client.StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

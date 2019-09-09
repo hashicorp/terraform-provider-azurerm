@@ -5,6 +5,8 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -81,7 +83,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, rtName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -94,8 +96,8 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	azureRMLockByName(rtName, routeTableResourceName)
-	defer azureRMUnlockByName(rtName, routeTableResourceName)
+	locks.ByName(rtName, routeTableResourceName)
+	defer locks.UnlockByName(rtName, routeTableResourceName)
 
 	route := network.Route{
 		Name: &name,
@@ -134,7 +136,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -168,7 +170,7 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -176,8 +178,8 @@ func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	rtName := id.Path["routeTables"]
 	routeName := id.Path["routes"]
 
-	azureRMLockByName(rtName, routeTableResourceName)
-	defer azureRMUnlockByName(rtName, routeTableResourceName)
+	locks.ByName(rtName, routeTableResourceName)
+	defer locks.UnlockByName(rtName, routeTableResourceName)
 
 	future, err := client.Delete(ctx, resGroup, rtName, routeName)
 	if err != nil {

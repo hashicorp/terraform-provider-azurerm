@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -60,7 +62,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateCollation(),
+				ValidateFunc: validate.DatabaseCollation,
 			},
 		},
 	}
@@ -76,7 +78,7 @@ func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -125,7 +127,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 	client := meta.(*ArmClient).mariadb.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}
@@ -160,7 +162,7 @@ func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).mariadb.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("cannot parse MariaDB database %q ID:\n%+v", d.Id(), err)
 	}

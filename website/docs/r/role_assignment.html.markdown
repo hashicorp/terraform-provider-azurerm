@@ -133,11 +133,15 @@ The following arguments are supported:
 
 ~> **NOTE:** The Principal ID is also known as the Object ID (ie not the "Application ID" for applications).
 
+* `skip_service_principal_aad_check` - (Optional) If the `principal_id` is a newly provisioned `Service Principal` set this value to `true` to skip the `Azure Active Directory` check which may fail due to replication lag. This argument is only valid if the `principal_id` is a `Service Principal` identity. If it is not a `Service Principal` identity it will cause the role assignment to fail. Defaults to `false`.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The Role Assignment ID.
+
+* `principal_type` - The type of the `principal_id`, e.g. User, Group, Service Principal, Application, etc.
 
 ## Import
 

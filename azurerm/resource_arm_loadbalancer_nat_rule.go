@@ -11,7 +11,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,7 +50,7 @@ func resourceArmLoadBalancerNatRule() *schema.Resource {
 			"protocol": {
 				Type:             schema.TypeString,
 				Required:         true,
-				StateFunc:        ignoreCaseStateFunc,
+				StateFunc:        state.IgnoreCase,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.TransportProtocolAll),
@@ -123,7 +125,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 	existingNatRule, existingNatRuleIndex, exists := findLoadBalancerNatRuleByName(loadBalancer, name)
 	if exists {
 		if name == *existingNatRule.Name {
-			if requireResourcesToBeImported && d.IsNewResource() {
+			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_nat_rule", *existingNatRule.ID)
 			}
 
@@ -173,7 +175,7 @@ func resourceArmLoadBalancerNatRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -206,7 +208,7 @@ func resourceArmLoadBalancerNatRuleRead(d *schema.ResourceData, meta interface{}
 		d.Set("enable_floating_ip", props.EnableFloatingIP)
 
 		if ipconfiguration := props.FrontendIPConfiguration; ipconfiguration != nil {
-			fipID, err := parseAzureResourceID(*ipconfiguration.ID)
+			fipID, err := azure.ParseAzureResourceID(*ipconfiguration.ID)
 			if err != nil {
 				return err
 			}

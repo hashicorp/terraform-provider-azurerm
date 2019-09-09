@@ -390,6 +390,32 @@ func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard(t *testing.T) {
+	dataSourceName := "data.azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	config := testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard(ri, clientId, clientSecret, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(dataSourceName),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.0.kube_dashboard.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "addon_profile.0.kube_dashboard.0.enabled", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceAzureRMKubernetesCluster_addOnProfileRouting(t *testing.T) {
 	dataSourceName := "data.azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
@@ -645,6 +671,18 @@ data "azurerm_kubernetes_cluster" "test" {
 
 func testAccDataSourceAzureRMKubernetesCluster_addOnProfileOMS(rInt int, clientId string, clientSecret string, location string) string {
 	r := testAccAzureRMKubernetesCluster_addonProfileOMS(rInt, clientId, clientSecret, location)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_kubernetes_cluster" "test" {
+  name                = "${azurerm_kubernetes_cluster.test.name}"
+  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
+}
+`, r)
+}
+
+func testAccDataSourceAzureRMKubernetesCluster_addOnProfileKubeDashboard(rInt int, clientId string, clientSecret string, location string) string {
+	r := testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 

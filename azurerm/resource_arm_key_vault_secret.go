@@ -9,6 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,7 +68,7 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -101,7 +103,7 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 		d.Set("key_vault_id", id)
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -116,12 +118,12 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
 		Value:       utils.String(value),
 		ContentType: utils.String(contentType),
-		Tags:        expandTags(tags),
+		Tags:        tags.Expand(t),
 	}
 
 	if _, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
@@ -173,14 +175,14 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	if d.HasChange("value") {
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
 			Value:       utils.String(value),
 			ContentType: utils.String(contentType),
-			Tags:        expandTags(tags),
+			Tags:        tags.Expand(t),
 		}
 
 		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
@@ -202,7 +204,7 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
 			ContentType: utils.String(contentType),
-			Tags:        expandTags(tags),
+			Tags:        tags.Expand(t),
 		}
 
 		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
@@ -266,8 +268,7 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {

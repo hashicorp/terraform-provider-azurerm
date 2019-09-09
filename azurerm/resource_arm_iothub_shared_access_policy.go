@@ -13,6 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -124,8 +126,8 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -155,7 +157,7 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 		existingAccessPolicy := accessPolicyIterator.Value()
 
 		if strings.EqualFold(*existingAccessPolicy.KeyName, keyName) {
-			if d.IsNewResource() && requireResourcesToBeImported {
+			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_iothub_shared_access_policy", resourceId)
 			}
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)
@@ -191,7 +193,7 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
@@ -243,7 +245,7 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
@@ -253,8 +255,8 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	iothubName := parsedIothubSAPId.Path["IotHubs"]
 	keyName := parsedIothubSAPId.Path["IotHubKeys"]
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
