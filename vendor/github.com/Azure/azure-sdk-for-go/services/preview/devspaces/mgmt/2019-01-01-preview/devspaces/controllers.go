@@ -67,8 +67,7 @@ func (client ControllersClient) Create(ctx context.Context, resourceGroupName st
 				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9](-?[a-zA-Z0-9])*$`, Chain: nil}}},
 		{TargetValue: controller,
 			Constraints: []validation.Constraint{{Target: "controller.ControllerProperties", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "controller.ControllerProperties.HostSuffix", Name: validation.Null, Rule: true, Chain: nil},
-					{Target: "controller.ControllerProperties.TargetContainerHostResourceID", Name: validation.Null, Rule: true, Chain: nil},
+				Chain: []validation.Constraint{{Target: "controller.ControllerProperties.TargetContainerHostResourceID", Name: validation.Null, Rule: true, Chain: nil},
 					{Target: "controller.ControllerProperties.TargetContainerHostCredentialsBase64", Name: validation.Null, Rule: true, Chain: nil},
 				}},
 				{Target: "controller.Sku", Name: validation.Null, Rule: true,
@@ -99,7 +98,7 @@ func (client ControllersClient) CreatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -189,7 +188,7 @@ func (client ControllersClient) DeletePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -282,7 +281,7 @@ func (client ControllersClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -355,7 +354,7 @@ func (client ControllersClient) ListPreparer(ctx context.Context) (*http.Request
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -476,7 +475,7 @@ func (client ControllersClient) ListByResourceGroupPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -602,7 +601,7 @@ func (client ControllersClient) ListConnectionDetailsPreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -691,7 +690,7 @@ func (client ControllersClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

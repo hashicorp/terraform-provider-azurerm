@@ -21,6 +21,7 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -42,8 +43,9 @@ func NewContainerHostMappingsClientWithBaseURI(baseURI string, subscriptionID st
 
 // GetContainerHostMapping sends the get container host mapping request.
 // Parameters:
+// resourceGroupName - resource group to which the resource belongs.
 // location - location of the container host.
-func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Context, containerHostMapping ContainerHostMapping, location string) (result SetObject, err error) {
+func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Context, containerHostMapping ContainerHostMapping, resourceGroupName string, location string) (result SetObject, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerHostMappingsClient.GetContainerHostMapping")
 		defer func() {
@@ -54,7 +56,14 @@ func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Co
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	req, err := client.GetContainerHostMappingPreparer(ctx, containerHostMapping, location)
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("devspaces.ContainerHostMappingsClient", "GetContainerHostMapping", err.Error())
+	}
+
+	req, err := client.GetContainerHostMappingPreparer(ctx, containerHostMapping, resourceGroupName, location)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ContainerHostMappingsClient", "GetContainerHostMapping", nil, "Failure preparing request")
 		return
@@ -76,12 +85,14 @@ func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Co
 }
 
 // GetContainerHostMappingPreparer prepares the GetContainerHostMapping request.
-func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx context.Context, containerHostMapping ContainerHostMapping, location string) (*http.Request, error) {
+func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx context.Context, containerHostMapping ContainerHostMapping, resourceGroupName string, location string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"location": autorest.Encode("path", location),
+		"location":          autorest.Encode("path", location),
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01-preview"
+	const APIVersion = "2019-01-01-preview"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -91,7 +102,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx co
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/providers/Microsoft.DevSpaces/locations/{location}/checkContainerHostMapping", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevSpaces/locations/{location}/checkContainerHostMapping", pathParameters),
 		autorest.WithJSON(containerHostMapping),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -101,7 +112,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx co
 // http.Response Body if it receives an error.
 func (client ContainerHostMappingsClient) GetContainerHostMappingSender(req *http.Request) (*http.Response, error) {
 	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+		azure.DoRetryWithRegistration(client.Client))
 }
 
 // GetContainerHostMappingResponder handles the response to the GetContainerHostMapping request. The method always
