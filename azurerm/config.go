@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
@@ -28,6 +29,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
@@ -86,6 +88,7 @@ type ArmClient struct {
 	automation       *automation.Client
 	authorization    *authorization.Client
 	batch            *batch.Client
+	bot              *bot.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	compute          *compute.Client
@@ -100,6 +103,7 @@ type ArmClient struct {
 	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
+	frontdoor        *frontdoor.Client
 	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
@@ -210,6 +214,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.automation = automation.BuildClient(o)
 	client.authorization = authorization.BuildClient(o)
 	client.batch = batch.BuildClient(o)
+	client.bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
 	client.compute = compute.BuildClient(o)
@@ -223,6 +228,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.frontdoor = frontdoor.BuildClient(o)
 	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)

@@ -16,7 +16,6 @@ require (
 	github.com/hashicorp/terraform v0.12.6
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
-	github.com/sirupsen/logrus v1.2.0 // indirect
 	github.com/terraform-providers/terraform-provider-azuread v0.6.0
 	github.com/tombuildsstuff/giovanni v0.5.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
