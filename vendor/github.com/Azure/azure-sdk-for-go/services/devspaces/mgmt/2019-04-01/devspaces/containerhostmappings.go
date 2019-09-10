@@ -45,7 +45,7 @@ func NewContainerHostMappingsClientWithBaseURI(baseURI string, subscriptionID st
 // Parameters:
 // resourceGroupName - resource group to which the resource belongs.
 // location - location of the container host.
-func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Context, containerHostMapping ContainerHostMapping, resourceGroupName string, location string) (result SetObject, err error) {
+func (client ContainerHostMappingsClient) GetContainerHostMapping(ctx context.Context, containerHostMapping ContainerHostMapping, resourceGroupName string, location string) (result ContainerHostMapping, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ContainerHostMappingsClient.GetContainerHostMapping")
 		defer func() {
@@ -92,7 +92,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx co
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -111,18 +111,18 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx co
 // GetContainerHostMappingSender sends the GetContainerHostMapping request. The method will close the
 // http.Response Body if it receives an error.
 func (client ContainerHostMappingsClient) GetContainerHostMappingSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetContainerHostMappingResponder handles the response to the GetContainerHostMapping request. The method always
 // closes the http.Response Body.
-func (client ContainerHostMappingsClient) GetContainerHostMappingResponder(resp *http.Response) (result SetObject, err error) {
+func (client ContainerHostMappingsClient) GetContainerHostMappingResponder(resp *http.Response) (result ContainerHostMapping, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result.Value),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusNoContent),
+		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return

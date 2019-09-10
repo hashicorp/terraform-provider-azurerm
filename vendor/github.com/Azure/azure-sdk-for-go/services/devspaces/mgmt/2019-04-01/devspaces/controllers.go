@@ -62,9 +62,9 @@ func (client ControllersClient) Create(ctx context.Context, resourceGroupName st
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: name,
-			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 31, Chain: nil},
-				{Target: "name", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9](-?[a-zA-Z0-9])*$`, Chain: nil}}},
+			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "name", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]([_-]*[a-zA-Z0-9])*$`, Chain: nil}}},
 		{TargetValue: controller,
 			Constraints: []validation.Constraint{{Target: "controller.ControllerProperties", Name: validation.Null, Rule: true,
 				Chain: []validation.Constraint{{Target: "controller.ControllerProperties.TargetContainerHostResourceID", Name: validation.Null, Rule: true, Chain: nil},
@@ -98,7 +98,7 @@ func (client ControllersClient) CreatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -116,9 +116,9 @@ func (client ControllersClient) CreatePreparer(ctx context.Context, resourceGrou
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client ControllersClient) CreateSender(req *http.Request) (future ControllersCreateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -159,9 +159,9 @@ func (client ControllersClient) Delete(ctx context.Context, resourceGroupName st
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: name,
-			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 31, Chain: nil},
-				{Target: "name", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9](-?[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "name", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]([_-]*[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("devspaces.ControllersClient", "Delete", err.Error())
 	}
 
@@ -188,7 +188,7 @@ func (client ControllersClient) DeletePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -204,9 +204,9 @@ func (client ControllersClient) DeletePreparer(ctx context.Context, resourceGrou
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ControllersClient) DeleteSender(req *http.Request) (future ControllersDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -246,9 +246,9 @@ func (client ControllersClient) Get(ctx context.Context, resourceGroupName strin
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: name,
-			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 31, Chain: nil},
-				{Target: "name", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9](-?[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "name", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]([_-]*[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("devspaces.ControllersClient", "Get", err.Error())
 	}
 
@@ -281,7 +281,7 @@ func (client ControllersClient) GetPreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -297,8 +297,8 @@ func (client ControllersClient) GetPreparer(ctx context.Context, resourceGroupNa
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ControllersClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -354,7 +354,7 @@ func (client ControllersClient) ListPreparer(ctx context.Context) (*http.Request
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -370,8 +370,8 @@ func (client ControllersClient) ListPreparer(ctx context.Context) (*http.Request
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ControllersClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -475,7 +475,7 @@ func (client ControllersClient) ListByResourceGroupPreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -491,8 +491,8 @@ func (client ControllersClient) ListByResourceGroupPreparer(ctx context.Context,
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ControllersClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -550,7 +550,8 @@ func (client ControllersClient) ListByResourceGroupComplete(ctx context.Context,
 // Parameters:
 // resourceGroupName - resource group to which the resource belongs.
 // name - name of the resource.
-func (client ControllersClient) ListConnectionDetails(ctx context.Context, resourceGroupName string, name string) (result ControllerConnectionDetailsList, err error) {
+// listConnectionDetailsParameters - parameters for listing connection details of Azure Dev Spaces Controller.
+func (client ControllersClient) ListConnectionDetails(ctx context.Context, resourceGroupName string, name string, listConnectionDetailsParameters ListConnectionDetailsParameters) (result ControllerConnectionDetailsList, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ControllersClient.ListConnectionDetails")
 		defer func() {
@@ -566,13 +567,15 @@ func (client ControllersClient) ListConnectionDetails(ctx context.Context, resou
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: name,
-			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 31, Chain: nil},
-				{Target: "name", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9](-?[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "name", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]([_-]*[a-zA-Z0-9])*$`, Chain: nil}}},
+		{TargetValue: listConnectionDetailsParameters,
+			Constraints: []validation.Constraint{{Target: "listConnectionDetailsParameters.TargetContainerHostResourceID", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("devspaces.ControllersClient", "ListConnectionDetails", err.Error())
 	}
 
-	req, err := client.ListConnectionDetailsPreparer(ctx, resourceGroupName, name)
+	req, err := client.ListConnectionDetailsPreparer(ctx, resourceGroupName, name, listConnectionDetailsParameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "devspaces.ControllersClient", "ListConnectionDetails", nil, "Failure preparing request")
 		return
@@ -594,22 +597,24 @@ func (client ControllersClient) ListConnectionDetails(ctx context.Context, resou
 }
 
 // ListConnectionDetailsPreparer prepares the ListConnectionDetails request.
-func (client ControllersClient) ListConnectionDetailsPreparer(ctx context.Context, resourceGroupName string, name string) (*http.Request, error) {
+func (client ControllersClient) ListConnectionDetailsPreparer(ctx context.Context, resourceGroupName string, name string, listConnectionDetailsParameters ListConnectionDetailsParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"name":              autorest.Encode("path", name),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
 
 	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.DevSpaces/controllers/{name}/listConnectionDetails", pathParameters),
+		autorest.WithJSON(listConnectionDetailsParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -617,8 +622,8 @@ func (client ControllersClient) ListConnectionDetailsPreparer(ctx context.Contex
 // ListConnectionDetailsSender sends the ListConnectionDetails request. The method will close the
 // http.Response Body if it receives an error.
 func (client ControllersClient) ListConnectionDetailsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListConnectionDetailsResponder handles the response to the ListConnectionDetails request. The method always
@@ -655,9 +660,9 @@ func (client ControllersClient) Update(ctx context.Context, resourceGroupName st
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: name,
-			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 31, Chain: nil},
-				{Target: "name", Name: validation.MinLength, Rule: 3, Chain: nil},
-				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9](-?[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "name", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "name", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "name", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]([_-]*[a-zA-Z0-9])*$`, Chain: nil}}}}); err != nil {
 		return result, validation.NewError("devspaces.ControllersClient", "Update", err.Error())
 	}
 
@@ -690,7 +695,7 @@ func (client ControllersClient) UpdatePreparer(ctx context.Context, resourceGrou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-01-preview"
+	const APIVersion = "2019-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -708,8 +713,8 @@ func (client ControllersClient) UpdatePreparer(ctx context.Context, resourceGrou
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ControllersClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always
@@ -718,7 +723,7 @@ func (client ControllersClient) UpdateResponder(resp *http.Response) (result Con
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusCreated),
 		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}

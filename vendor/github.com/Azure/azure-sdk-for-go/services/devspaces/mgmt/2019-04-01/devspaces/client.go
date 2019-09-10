@@ -1,4 +1,4 @@
-// Package devspaces implements the Azure ARM Devspaces service API version 2019-01-01-preview.
+// Package devspaces implements the Azure ARM Devspaces service API version 2019-04-01.
 //
 // Dev Spaces Client
 package devspaces
