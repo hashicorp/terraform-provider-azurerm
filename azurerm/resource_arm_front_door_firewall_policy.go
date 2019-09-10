@@ -10,8 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/helper"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/validate"
+	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,7 +30,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validation.NoEmptyStrings,
 			},
 
 			"location": {
@@ -134,10 +133,10 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 							MaxItems: 100,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									// Conflicts with Selector
 									"match_variable": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ConflictsWith: []string{"selector"},
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.Cookies),
 											string(frontdoor.PostArgs),
@@ -149,10 +148,10 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											string(frontdoor.RequestURI),
 										}, false),
 									},
-									// Conflicts with match variable
 									"selector": {
 										Type:     schema.TypeString,
 										Optional: true,
+										ConflictsWith: []string{"match_variable"},
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.Cookies),
 											string(frontdoor.PostArgs),
@@ -419,14 +418,14 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		rateLimitDurationInMinutes := int32(customRule["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold  := int32(customRule["rate_limit_threshold"].(int))
 		matchConditions := expandArmFrontDoorFirewallMatchConditions(customRule["match_condition"].([]interface{}))
-		action := helper.ConvertStringToActionType(customRule["action_type"].(string))
+		action := afd.ConvertStringToActionType(customRule["action_type"].(string))
 
 
 
 
 		//Priority :         utils.Int32(priority),
-		//EnabledState:      helper.ConvertBoolToCustomRuleEnabledState(enabled),
-		//RuleType:          helper.ConvertStringToRuleType(ruleType),
+		//EnabledState:      afd.ConvertBoolToCustomRuleEnabledState(enabled),
+		//RuleType:          afd.ConvertStringToRuleType(ruleType),
 	}
 
 
@@ -441,15 +440,39 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		return nil
 	}
 
+	output := make([]frontdoor.MatchCondition, 0)
+
 	for _, mc := range input {
 		matchCondition := mc.(map[string]interface{})
 
 		matchVariable := matchCondition["match_variable"].(string)
 		selector := matchCondition["selector"].(string)
 		operator := matchCondition["operator"].(string)
-		negateCondition  := helper.ConvertConditionToBool(matchCondition["condition"])
+		negateCondition  := afd.ConvertConditionToBool(matchCondition["condition"])
 
+		mv := matchCondition["match_value"].([]interface{})
+		matchValues := make([]string, 0)
+		for _, v := range mv {
+			matchValues = append(matchValues, v.(string))
+		}
+		matchValue := &matchValues
 
+		ts := matchCondition["transforms"].([]interface{})
+		transform := make([]string, 0)
+		for _, t := range ts {
+			transform = append(transform, t.(string))
+		}
+		transforms := &transform
+
+		fdpMatchCondition := frontdoor.MatchCondition {
+			Operator: operator,
+			NegateCondition: &negateCondition,
+			MatchValue: &matchValue,
+			Transforms: &transforms,
+		}
+
+		if 
 	}
-	output := make([]frontdoor.MatchCondition, 0)
+	
+	return &output
 }

@@ -193,6 +193,14 @@ func ConvertStringToActionType(actionType string) frontdoor.ActionType {
 	}
 }
 
+func ConvertConditionToBool(condition string) bool {
+	if strings.Contains(strings.ToLower(condition), "not") {
+		return true
+	}
+
+	return false
+}
+
 func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) string {
 	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(frontDoorName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
 		return ""
