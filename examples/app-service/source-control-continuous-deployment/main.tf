@@ -29,7 +29,7 @@ resource "azurerm_app_service" "example" {
 # not on each App Service - as such this can only be configured Subscription-wide.
 resource "azurerm_app_service_source_control_token" "example" {
   type  = "GitHub"
-  token = "insert-personal-access-token-here"
+  token = "${var.github_token}"
 }
 
 resource "azurerm_app_service_source_control" "example" {
