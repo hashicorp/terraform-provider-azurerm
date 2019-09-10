@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"strings"
@@ -25,6 +27,22 @@ import (
 )
 
 var virtualMachineResourceName = "azurerm_virtual_machine"
+
+// TODO move into internal/tf/suppress/base64.go
+func userDataDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
+	return userDataStateFunc(old) == new
+}
+
+func userDataStateFunc(v interface{}) string {
+	switch s := v.(type) {
+	case string:
+		s = utils.Base64EncodeIfNot(s)
+		hash := sha1.Sum([]byte(s))
+		return hex.EncodeToString(hash[:])
+	default:
+		return ""
+	}
+}
 
 func resourceArmVirtualMachine() *schema.Resource {
 	return &schema.Resource{
@@ -83,6 +101,18 @@ func resourceArmVirtualMachine() *schema.Resource {
 					return strings.ToLower(id.(string))
 				},
 				ConflictsWith: []string{"zones"},
+			},
+
+			"proximity_placement_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+
+				// We have to ignore case due to incorrect capitalisation of resource group name in
+				// proximity placement group ID in the response we get from the API request
+				//
+				// todo can be removed when https://github.com/Azure/azure-sdk-for-go/issues/5699 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"identity": {
@@ -672,6 +702,12 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 		properties.AvailabilitySet = &availSet
 	}
 
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		properties.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	vm := compute.VirtualMachine{
 		Name:                     &name,
 		Location:                 &location,
@@ -774,8 +810,14 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 
 	if props := resp.VirtualMachineProperties; props != nil {
 		if availabilitySet := props.AvailabilitySet; availabilitySet != nil {
-			// TODO: why is this being lower-cased?
+			// Lowercase due to incorrect capitalisation of resource group name in
+			// availability set ID in response from get VM API request
+			// todo can be removed when https://github.com/Azure/azure-sdk-for-go/issues/5699 is fixed
 			d.Set("availability_set_id", strings.ToLower(*availabilitySet.ID))
+		}
+
+		if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
+			d.Set("proximity_placement_group_id", proximityPlacementGroup.ID)
 		}
 
 		if profile := props.HardwareProfile; profile != nil {
@@ -1433,7 +1475,7 @@ func expandAzureRmVirtualMachineOsProfile(d *schema.ResourceData) (*compute.OSPr
 	}
 
 	if v := osProfile["custom_data"].(string); v != "" {
-		v = base64Encode(v)
+		v = utils.Base64EncodeIfNot(v)
 		profile.CustomData = &v
 	}
 
