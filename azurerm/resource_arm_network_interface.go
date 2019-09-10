@@ -90,7 +90,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  string(network.IPv4),
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPv4),
 								string(network.IPv6),
