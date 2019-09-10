@@ -26,6 +26,7 @@ IMPROVEMENTS:
 * storage: switching to use SharedKey for authentication with Blobs/Containers rather than SharedKeyLite [GH-4235]
 * Data Source: `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account [GH-4248]
 * Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
+* Data Source: `azurerm_virtual_network` - support for the `location` property [GH-4281]
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to `32` [GH-4189]
 * `azurerm_application_gateway` - support OWASP version `3.1` for the `rule_set_version` property [GH-4263]
