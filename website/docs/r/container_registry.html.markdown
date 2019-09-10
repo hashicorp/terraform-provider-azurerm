@@ -62,6 +62,8 @@ The following arguments are supported:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
+* `virtual_network_subnet_id` - (Optional) One or more `virtual_network_subnet_id` blocks as defined below.
+
 ~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SDK at this time.
 
 `ip_rule` supports the following:
@@ -69,6 +71,12 @@ The following arguments are supported:
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+`virtual_network_subnet_id` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `id` - (Required) The subnet id from which requests will match the rule.
 
 
 ---
