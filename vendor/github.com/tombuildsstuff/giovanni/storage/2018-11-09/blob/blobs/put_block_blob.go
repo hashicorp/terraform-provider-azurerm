@@ -102,6 +102,9 @@ func (client Client) PutBlockBlobPreparer(ctx context.Context, accountName, cont
 	if input.LeaseID != nil {
 		headers["x-ms-lease-id"] = *input.LeaseID
 	}
+	if input.Content != nil {
+		headers["Content-Length"] = int(len(*input.Content))
+	}
 
 	headers = metadata.SetIntoHeaders(headers, input.MetaData)
 

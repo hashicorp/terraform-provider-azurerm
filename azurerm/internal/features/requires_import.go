@@ -20,7 +20,9 @@ import (
 // Operators wishing to adopt this behaviour can opt-into this behaviour in 1.x versions of the
 // Azure Provider by setting the Environment Variable 'ARM_PROVIDER_STRICT' to 'true'
 func ShouldResourcesBeImported() bool {
-	// NOTE: we'll need to add an infobox to MySQL|PostgreSQL Configuration when this goes live
+	// NOTE: we'll need to add an infobox to the following resources when this goes live:
+	// * App Service Source Control Token
+	// * MySQL|PostgreSQL Configuration
 	// since these resources can't support import
 	// in addition the virtual resources will need adjusting
 	return strings.EqualFold(os.Getenv("ARM_PROVIDER_STRICT"), "true")

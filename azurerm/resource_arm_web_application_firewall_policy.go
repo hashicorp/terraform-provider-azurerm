@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -156,7 +158,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -168,7 +170,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -183,7 +185,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	customRules := d.Get("custom_rules").([]interface{})
 	policySettings := d.Get("policy_settings").([]interface{})
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.WebApplicationFirewallPolicy{
 		Location: utils.String(location),
@@ -191,7 +193,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 			CustomRules:    expandArmWebApplicationFirewallPolicyWebApplicationFirewallCustomRule(customRules),
 			PolicySettings: expandArmWebApplicationFirewallPolicyPolicySettings(policySettings),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
@@ -214,7 +216,7 @@ func resourceArmWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).network.WebApplicationFirewallPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -244,16 +246,15 @@ func resourceArmWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta in
 			return fmt.Errorf("Error setting `policy_settings`: %+v", err)
 		}
 	}
-	flattenAndSetTags(d, resp.Tags)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmWebApplicationFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.WebApplicationFirewallPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

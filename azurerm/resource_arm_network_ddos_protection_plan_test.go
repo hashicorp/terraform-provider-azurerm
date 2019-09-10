@@ -21,6 +21,9 @@ func TestAccAzureRMNetworkDDoSProtectionPlan(t *testing.T) {
 			"withTags":       testAccAzureRMNetworkDDoSProtectionPlan_withTags,
 			"disappears":     testAccAzureRMNetworkDDoSProtectionPlan_disappears,
 		},
+		"datasource": {
+			"basic": testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic,
+		},
 		"deprecated": {
 			"basic":          testAccAzureRMDDoSProtectionPlan_basic,
 			"requiresImport": testAccAzureRMDDoSProtectionPlan_requiresImport,

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
@@ -132,6 +133,32 @@ func TestAccAzureRMAvailabilitySet_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAvailabilitySet_withPPG(t *testing.T) {
+	resourceName := "azurerm_availability_set.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAvailabilitySet_withPPG(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAvailabilitySetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAvailabilitySetExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "proximity_placement_group_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAvailabilitySet_withDomainCounts(t *testing.T) {
 	resourceName := "azurerm_availability_set.test"
 	ri := tf.AccRandTimeInt()
@@ -193,21 +220,24 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		availSetName := rs.Primary.Attributes["name"]
+		// Name of the actual scale set
+		name := rs.Primary.Attributes["name"]
+
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
+			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).compute.AvailabilitySetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := client.Get(ctx, resourceGroup, availSetName)
-		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Availability Set %q (resource group: %q) does not exist", availSetName, resourceGroup)
-			}
 
-			return fmt.Errorf("Bad: Get on availSetClient: %+v", err)
+		vmss, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
+		}
+
+		if vmss.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Bad: VirtualMachineScaleSet %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
@@ -332,6 +362,29 @@ resource "azurerm_availability_set" "test" {
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMAvailabilitySet_withPPG(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_proximity_placement_group" "test" {
+  name                = "acctestPPG-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_availability_set" "test" {
+  name                = "acctestavset-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+	proximity_placement_group_id = "${azurerm_proximity_placement_group.test.id}"
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMAvailabilitySet_withDomainCounts(rInt int, location string) string {
