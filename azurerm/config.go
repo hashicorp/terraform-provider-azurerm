@@ -10,6 +10,7 @@ import (
 	"time"
 
 	resourcesprofile "github.com/Azure/azure-sdk-for-go/profiles/2017-03-09/resources/mgmt/resources"
+	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
@@ -19,6 +20,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	keyVault "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	mapsSvc "github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
@@ -59,6 +61,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
@@ -113,6 +116,7 @@ type ArmClient struct {
 	logAnalytics     *loganalytics.Client
 	logic            *logic.Client
 	managementGroups *managementgroup.Client
+	maps             *maps.Client
 	media            *media.Client
 	msi              *msi.Client
 	notificationHubs *notificationhub.Client
@@ -258,6 +262,9 @@ type ArmClient struct {
 	appServicePlansClient web.AppServicePlansClient
 	appServicesClient     web.AppsClient
 
+	// Analysis Services
+	analysisServicesServerClient analysisservices.ServersClient
+
 	//healthcare
 	healthcareServiceClient healthcare.ServicesClient
 }
@@ -336,6 +343,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		return nil, err
 	}
 
+	// Storage Endpoints
+	storageEndpoint := env.ResourceIdentifiers.Storage
+	storageAuth, err := c.GetAuthorizationToken(sender, oauthConfig, storageEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	// Key Vault Endpoints
 	keyVaultAuth := autorest.NewBearerAuthorizerCallback(sender, func(tenantID, resource string) (*autorest.BearerAuthorizer, error) {
 		keyVaultSpt, err := c.GetAuthorizationToken(sender, oauthConfig, resource)
@@ -352,11 +366,13 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		KeyVaultAuthorizer:         keyVaultAuth,
 		ResourceManagerAuthorizer:  auth,
 		ResourceManagerEndpoint:    endpoint,
+		StorageAuthorizer:          storageAuth,
 		SubscriptionId:             c.SubscriptionID,
 		PartnerId:                  partnerId,
 		PollingDuration:            60 * time.Minute,
 		SkipProviderReg:            skipProviderRegistration,
 		EnableCorrelationRequestID: true,
+		Environment:                *env,
 	}
 
 	client.apiManagement = apimanagement.BuildClient(o)
@@ -400,12 +416,14 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.registerDatabases(endpoint, c.SubscriptionID, auth, sender)
 	client.registerDataLakeStoreClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
+	client.registerMapsClients(endpoint, c.SubscriptionID, auth)
 	client.registerMonitorClients(endpoint, c.SubscriptionID, auth)
 	client.registerNetworkingClients(endpoint, c.SubscriptionID, auth)
 	client.registerResourcesClients(endpoint, c.SubscriptionID, auth)
-	client.registerStorageClients(endpoint, c.SubscriptionID, auth)
+	client.registerStorageClients(endpoint, c.SubscriptionID, auth, o)
 	client.registerStreamAnalyticsClients(endpoint, c.SubscriptionID, auth)
 	client.registerWebClients(endpoint, c.SubscriptionID, auth)
+	client.registerAnalysisServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerHealtcareClients(endpoint, c.SubscriptionID, auth)
 
 	return &client, nil
@@ -631,6 +649,15 @@ func (c *ArmClient) registerKeyVaultClients(endpoint, subscriptionId string, aut
 	c.keyVaultManagementClient = keyVaultManagementClient
 }
 
+func (c *ArmClient) registerMapsClients(endpoint string, subscriptionId string, auth autorest.Authorizer) {
+	mapsAccountsClient := mapsSvc.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&mapsAccountsClient.Client, auth)
+
+	c.maps = &maps.Client{
+		AccountsClient: mapsAccountsClient,
+	}
+}
+
 func (c *ArmClient) registerMonitorClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
 	agc := insights.NewActionGroupsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&agc.Client, auth)
@@ -794,7 +821,7 @@ func (c *ArmClient) registerResourcesClients(endpoint, subscriptionId string, au
 	c.providersClient = providersClient
 }
 
-func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth autorest.Authorizer, options *common.ClientOptions) {
 	accountsClient := storage.NewAccountsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&accountsClient.Client, auth)
 	c.storageServiceClient = accountsClient
@@ -803,7 +830,7 @@ func (c *ArmClient) registerStorageClients(endpoint, subscriptionId string, auth
 	c.configureClient(&usageClient.Client, auth)
 	c.storageUsageClient = usageClient
 
-	c.storage = intStor.BuildClient(accountsClient)
+	c.storage = intStor.BuildClient(accountsClient, options)
 }
 
 func (c *ArmClient) registerStreamAnalyticsClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
@@ -836,6 +863,12 @@ func (c *ArmClient) registerWebClients(endpoint, subscriptionId string, auth aut
 	appsClient := web.NewAppsClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&appsClient.Client, auth)
 	c.appServicesClient = appsClient
+}
+
+func (c *ArmClient) registerAnalysisServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	analysisServicesServersClient := analysisservices.NewServersClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&analysisServicesServersClient.Client, auth)
+	c.analysisServicesServerClient = analysisServicesServersClient
 }
 
 func (c *ArmClient) registerHealtcareClients(endpoint, subscriptionId string, auth autorest.Authorizer) {

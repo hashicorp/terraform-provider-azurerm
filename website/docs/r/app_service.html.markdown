@@ -299,6 +299,32 @@ A `microsoft` block supports the following:
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
 
+---
+
+A `backup` block supports the following:
+
+* `backup_name` (Required) Specifies the name for this Backup.
+
+* `enabled` - (Required) Is this Backup enabled?
+
+* `storage_account_url` (Optional) The SAS URL to a Storage Container where Backups should be saved.
+
+* `schedule` - (Optional) A `schedule` block as defined below.
+
+---
+
+A `schedule` block supports the following:
+
+* `frequency_interval` - (Required) Sets how often the backup should be executed.
+
+* `frequency_unit` - (Optional) Sets the unit of time for how often the backup should be executed. Possible values are `Day` or `Hour`.
+
+* `keep_at_least_one_backup` - (Optional) Should at least one backup always be kept in the Storage Account by the Retention Policy, regardless of how old it is?
+
+* `retention_period_in_days` - (Optional) Specifies the number of days after which Backups should be deleted.
+
+* `start_time` - (Optional) Sets when the schedule should start working.
+
 ## Attributes Reference
 
 The following attributes are exported:

@@ -110,14 +110,14 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      5,
-							ValidateFunc: validation.IntBetween(5, 86400),
+							ValidateFunc: validation.IntBetween(5, 86400), // single region values
 						},
 
 						"max_staleness_prefix": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      100,
-							ValidateFunc: validation.IntBetween(10, 2147483647),
+							ValidateFunc: validation.IntBetween(10, 1000000), // single region values
 						},
 					},
 				},
@@ -373,6 +373,17 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		Tags: expandTags(tags),
 	}
 
+	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
+
+	if cp := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy; len(geoLocations) > 1 && cp != nil {
+		if msp := cp.MaxStalenessPrefix; msp != nil && *msp < 100000 {
+			return fmt.Errorf("Error max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
+		}
+		if mis := cp.MaxIntervalInSeconds; mis != nil && *mis < 300 {
+			return fmt.Errorf("Error max_interval_in_seconds (%d) must be greater then 300 (5min) when more then one geo_location is used", *mis)
+		}
+	}
+
 	resp, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account)
 	if err != nil {
 		return fmt.Errorf("Error creating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -619,20 +630,32 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 	}
 
+	readEndpoints := make([]string, 0)
 	if p := resp.ReadLocations; p != nil {
-		readEndpoints := make([]string, 0)
 		for _, l := range *p {
+			if l.DocumentEndpoint == nil {
+				continue
+			}
+
 			readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
 		}
-		d.Set("read_endpoints", readEndpoints)
+	}
+	if err := d.Set("read_endpoints", readEndpoints); err != nil {
+		return fmt.Errorf("Error setting `read_endpoints`: %s", err)
 	}
 
+	writeEndpoints := make([]string, 0)
 	if p := resp.WriteLocations; p != nil {
-		writeEndpoints := make([]string, 0)
 		for _, l := range *p {
+			if l.DocumentEndpoint == nil {
+				continue
+			}
+
 			writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 		}
-		d.Set("write_endpoints", writeEndpoints)
+	}
+	if err := d.Set("write_endpoints", writeEndpoints); err != nil {
+		return fmt.Errorf("Error setting `write_endpoints`: %s", err)
 	}
 
 	// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer

@@ -25,7 +25,19 @@ func resourceArmStorageShare() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 		SchemaVersion: 2,
-		MigrateState:  resourceStorageShareMigrateState,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				// this should have been applied from pre-0.12 migration system; backporting just in-case
+				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageShareStateUpgradeV0ToV1,
+				Version: 0,
+			},
+			{
+				Type:    resourceStorageShareStateResourceV0V1().CoreConfigSchema().ImpliedType(),
+				Upgrade: resourceStorageShareStateUpgradeV1ToV2,
+				Version: 1,
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -123,7 +135,7 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 	id := client.GetResourceID(accountName, shareName)
 
 	if requireResourcesToBeImported {
-		existing, err := client.GetProperties(ctx, *resourceGroup, shareName)
+		existing, err := client.GetProperties(ctx, accountName, shareName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for existence of existing Storage Share %q (Account %q / Resource Group %q): %+v", shareName, accountName, *resourceGroup, err)

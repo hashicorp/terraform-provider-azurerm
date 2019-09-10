@@ -156,23 +156,10 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		queueClient := testAccProvider.Meta().(*ArmClient).storage.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error locating Resource Group: %s", err)
-		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to determine Resource Group for Storage Account %q", accountName)
-		}
-
-		client, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
-		if err != nil {
-			return fmt.Errorf("Error building Queues Client: %s", err)
-		}
-
-		metaData, err := client.GetMetaData(ctx, accountName, name)
+		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(metaData.Response) {
 				return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) does not exist", name, accountName)
@@ -194,24 +181,10 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		queueClient := testAccProvider.Meta().(*ArmClient).storage.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
-		if err != nil {
-			return fmt.Errorf("Error locating Resource Group: %s", err)
-		}
-
-		if resourceGroup == nil {
-			return nil
-		}
-
-		client, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
-		if err != nil {
-			return fmt.Errorf("Error building Queues Client: %s", err)
-		}
-
-		metaData, err := client.GetMetaData(ctx, accountName, name)
+		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(metaData.Response) {
 				return nil

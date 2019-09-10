@@ -113,6 +113,8 @@ The following arguments are supported:
 
 * `identity` - (Optional) A Managed Service Identity block as defined below.
 
+* `queue_properties` - (Optional) A Queue Property block as defined below.
+
 ---
 
 * `custom_domain` supports the following:
@@ -141,6 +143,67 @@ any combination of `Logging`, `Metrics`, `AzureServices`, or `None`.
 * `type` - (Required) Specifies the identity type of the Storage Account. At this time the only allowed value is `SystemAssigned`.
 
 ~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned`  and Storage Account has been created. More details are available below.
+
+---
+
+`queue_properties` supports the following:
+
+* `cors_rule` - (Optional) A `cors_rule` block as defined below.
+
+* `logging` - (Optional) A `logging` block as defined below.
+
+* `minute_metrics` - (Optional) A `minute_metrics` block as defined below.
+
+* `hour_metrics` - (Optional) A `hour_metrics` block as defined below.
+
+---
+
+`cors_rule` supports the following:
+
+* `allowed_headers` - (Required) A list of headers that are allowed to be a part of the cross-origin request.
+
+* `allowed_methods` - (Required) A list of http headers that are allowed to be executed by the origin. Valid options are
+`DELETE`, `GET`, `HEAD`, `MERGE`, `POST`, `OPTIONS` or `PUT`.
+
+* `allowed_origins` - (Required) A list of origin domains that will be allowed by CORS. 
+
+* `exposed_headers` - (Required) A list of response headers that are exposed to CORS clients. 
+
+* `max_age_in_seconds` - (Required) The number of seconds the client should cache a preflight response.
+
+--- 
+
+`logging` supports the following:
+
+* `delete` - (Required) Indicates whether all delete requests should be logged. Changing this forces a new resource.
+
+* `read` - (Required) Indicates whether all read requests should be logged. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `write` - (Required) Indicates whether all write requests should be logged. Changing this forces a new resource.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
+`minute_metrics` supports the following:
+
+* `enabled` - (Required) Indicates whether minute metrics are enabled for the Queue service. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
+
+`hour_metrics` supports the following:
+
+* `enabled` - (Required) Indicates whether hour metrics are enabled for the Queue service. Changing this forces a new resource.
+
+* `version` - (Required) The version of storage analytics to configure. Changing this forces a new resource.
+
+* `include_apis` - (Optional) Indicates whether metrics should generate summary statistics for called API operations.
+
+* `retention_policy_days` - (Optional) Specifies the number of days that logs will be retained. Changing this forces a new resource. 
 
 ## Attributes Reference
 
