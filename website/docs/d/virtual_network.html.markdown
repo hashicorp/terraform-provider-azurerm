@@ -31,6 +31,7 @@ output "virtual_network_id" {
 ## Attributes Reference
 
 * `id` - The ID of the virtual network.
+* `location` - Location of the virtual network.
 * `address_space` - The list of address spaces used by the virtual network.
 * `dns_servers` - The list of DNS servers used by the virtual network.
 * `subnets` - The list of name of the subnets that are attached to this virtual network.
