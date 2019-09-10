@@ -103,8 +103,8 @@ func (client ServerAutomaticTuningClient) GetPreparer(ctx context.Context, resou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAutomaticTuningClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -184,8 +184,8 @@ func (client ServerAutomaticTuningClient) UpdatePreparer(ctx context.Context, re
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ServerAutomaticTuningClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always

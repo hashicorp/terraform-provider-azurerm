@@ -115,8 +115,8 @@ func (client SensitivityLabelsClient) CreateOrUpdatePreparer(ctx context.Context
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client SensitivityLabelsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -202,8 +202,8 @@ func (client SensitivityLabelsClient) DeletePreparer(ctx context.Context, resour
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client SensitivityLabelsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -288,8 +288,8 @@ func (client SensitivityLabelsClient) DisableRecommendationPreparer(ctx context.
 // DisableRecommendationSender sends the DisableRecommendation request. The method will close the
 // http.Response Body if it receives an error.
 func (client SensitivityLabelsClient) DisableRecommendationSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DisableRecommendationResponder handles the response to the DisableRecommendation request. The method always
@@ -375,8 +375,8 @@ func (client SensitivityLabelsClient) EnableRecommendationPreparer(ctx context.C
 // EnableRecommendationSender sends the EnableRecommendation request. The method will close the
 // http.Response Body if it receives an error.
 func (client SensitivityLabelsClient) EnableRecommendationSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // EnableRecommendationResponder handles the response to the EnableRecommendation request. The method always
@@ -462,8 +462,8 @@ func (client SensitivityLabelsClient) GetPreparer(ctx context.Context, resourceG
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client SensitivityLabelsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -547,8 +547,8 @@ func (client SensitivityLabelsClient) ListCurrentByDatabasePreparer(ctx context.
 // ListCurrentByDatabaseSender sends the ListCurrentByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client SensitivityLabelsClient) ListCurrentByDatabaseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListCurrentByDatabaseResponder handles the response to the ListCurrentByDatabase request. The method always
@@ -676,8 +676,8 @@ func (client SensitivityLabelsClient) ListRecommendedByDatabasePreparer(ctx cont
 // ListRecommendedByDatabaseSender sends the ListRecommendedByDatabase request. The method will close the
 // http.Response Body if it receives an error.
 func (client SensitivityLabelsClient) ListRecommendedByDatabaseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListRecommendedByDatabaseResponder handles the response to the ListRecommendedByDatabase request. The method always

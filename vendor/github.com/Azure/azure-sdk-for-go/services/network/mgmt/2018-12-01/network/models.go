@@ -20947,6 +20947,8 @@ type PublicIPPrefixPropertiesFormat struct {
 	IPPrefix *string `json:"ipPrefix,omitempty"`
 	// PublicIPAddresses - The list of all referenced PublicIPAddresses
 	PublicIPAddresses *[]ReferencedPublicIPAddress `json:"publicIPAddresses,omitempty"`
+	// LoadBalancerFrontendIPConfiguration - READ-ONLY; The reference to load balancer frontend IP configuration associated with the public IP prefix.
+	LoadBalancerFrontendIPConfiguration *SubResource `json:"loadBalancerFrontendIpConfiguration,omitempty"`
 	// ResourceGUID - The resource GUID property of the public IP prefix resource.
 	ResourceGUID *string `json:"resourceGuid,omitempty"`
 	// ProvisioningState - The provisioning state of the Public IP prefix resource. Possible values are: 'Updating', 'Deleting', and 'Failed'.

@@ -115,8 +115,8 @@ func (client JobTargetExecutionsClient) GetPreparer(ctx context.Context, resourc
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobTargetExecutionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -228,8 +228,8 @@ func (client JobTargetExecutionsClient) ListByJobExecutionPreparer(ctx context.C
 // ListByJobExecutionSender sends the ListByJobExecution request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobTargetExecutionsClient) ListByJobExecutionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByJobExecutionResponder handles the response to the ListByJobExecution request. The method always
@@ -380,8 +380,8 @@ func (client JobTargetExecutionsClient) ListByStepPreparer(ctx context.Context, 
 // ListByStepSender sends the ListByStep request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobTargetExecutionsClient) ListByStepSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByStepResponder handles the response to the ListByStep request. The method always
