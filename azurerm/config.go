@@ -141,58 +141,58 @@ type ArmClient struct {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
-	env, err := authentication.DetermineEnvironment(c.Environment)
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
 
 	// client declarations:
 	client := ArmClient{
-		clientId:                 c.ClientID,
-		tenantId:                 c.TenantID,
-		subscriptionId:           c.SubscriptionID,
+		clientId:                 authConfig.ClientID,
+		tenantId:                 authConfig.TenantID,
+		subscriptionId:           authConfig.SubscriptionID,
 		partnerId:                partnerId,
 		environment:              *env,
-		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
+		usingServicePrincipal:    authConfig.AuthenticatedAsAServicePrincipal,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
-	oauthConfig, err := c.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
+	oauthConfig, err := authConfig.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauthConfig == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
+		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", authConfig.TenantID)
 	}
 
 	sender := sender.BuildSender("AzureRM")
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
+	auth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := c.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
+	graphAuth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Storage Endpoints
-	storageAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
+	storageAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
 	// Key Vault Endpoints
-	keyVaultAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
+	keyVaultAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
 	o := &common.ClientOptions{
-		SubscriptionId:              c.SubscriptionID,
-		TenantID:                    c.TenantID,
+		SubscriptionId:              authConfig.SubscriptionID,
+		TenantID:                    authConfig.TenantID,
 		PartnerId:                   partnerId,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
