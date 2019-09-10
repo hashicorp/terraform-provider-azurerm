@@ -333,7 +333,7 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMContainerRegistry_networkAccessProfile_ip(t *testing.T) {
+func TestAccAzureRMContainerRegistry_networkAccessProfileIp(t *testing.T) {
 	rn := "azurerm_container_registry.test"
 	ri := tf.AccRandTimeInt()
 	l := testLocation()
@@ -360,7 +360,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_ip(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
+func TestAccAzureRMContainerRegistry_networkAccessProfileIp_update(t *testing.T) {
 	rn := "azurerm_container_registry.test"
 	ri := tf.AccRandTimeInt()
 	l := testLocation()
@@ -388,6 +388,33 @@ func TestAccAzureRMContainerRegistry_networkAccessProfile_update(t *testing.T) {
 				Config: testAccAzureRMContainerRegistry_basic_basic(ri, l),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(rn),
+				),
+			},
+			{
+				ResourceName:      rn,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
+	rn := "azurerm_container_registry.test"
+	ri := tf.AccRandTimeInt()
+	l := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMContainerRegistryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMContainerRegistry_networkAccessProfile_vnet(ri, l),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMContainerRegistryExists(rn),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Deny"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.virtual_network_subnet_id.#", "1"),
 				),
 			},
 			{
@@ -664,4 +691,46 @@ resource "azurerm_container_registry" "test" {
   }
 }
 `, rInt, location, sku)
+}
+
+func testAccAzureRMContainerRegistry_networkAccessProfile_vnet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "virtualNetwork1"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+
+  service_endpoints = ["Microsoft.ContainerRegistry"]
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testAccCr%[1]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "Premium"
+  admin_enabled       = false
+
+  network_rule_set {
+    default_action = "Deny"
+
+	virtual_network_subnet_id {
+      action = "Allow"
+      id 	 = "${azurerm_subnet.test.id}"
+    }
+  }
+}
+`, rInt, location)
 }
