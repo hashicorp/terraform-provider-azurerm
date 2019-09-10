@@ -557,12 +557,12 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
 
 		auxTenants := []string{}
-		if v, ok := d.Get("subscription_id").([]interface{}); ok && len(v) > 0 {
+		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
 		} else {
 			auxTenants = strings.Split(os.Getenv("ARM_AUXILIARY_TENANT_IDS"), ";")
 		}
-
+		
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),
 			ClientID:           d.Get("client_id").(string),
