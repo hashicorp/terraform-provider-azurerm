@@ -2,6 +2,7 @@ package compute
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -12,6 +13,7 @@ type Client struct {
 	GalleryImagesClient            *compute.GalleryImagesClient
 	GalleryImageVersionsClient     *compute.GalleryImageVersionsClient
 	ProximityPlacementGroupsClient *compute.ProximityPlacementGroupsClient
+	MarketplaceAgreementsClient    *marketplaceordering.MarketplaceAgreementsClient
 	ImagesClient                   *compute.ImagesClient
 	SnapshotsClient                *compute.SnapshotsClient
 	UsageClient                    *compute.UsageClient
@@ -23,63 +25,66 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
+	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 
-	AvailabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AvailabilitySetsClient.Client, o.ResourceManagerAuthorizer)
+	disksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
 
-	DisksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&DisksClient.Client, o.ResourceManagerAuthorizer)
+	galleriesClient := compute.NewGalleriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&galleriesClient.Client, o.ResourceManagerAuthorizer)
 
-	GalleriesClient := compute.NewGalleriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&GalleriesClient.Client, o.ResourceManagerAuthorizer)
+	galleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&galleryImagesClient.Client, o.ResourceManagerAuthorizer)
 
-	GalleryImagesClient := compute.NewGalleryImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&GalleryImagesClient.Client, o.ResourceManagerAuthorizer)
+	galleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&galleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
 
-	GalleryImageVersionsClient := compute.NewGalleryImageVersionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&GalleryImageVersionsClient.Client, o.ResourceManagerAuthorizer)
+	imagesClient := compute.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&imagesClient.Client, o.ResourceManagerAuthorizer)
 
-	ImagesClient := compute.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ImagesClient.Client, o.ResourceManagerAuthorizer)
+	marketplaceAgreementsClient := marketplaceordering.NewMarketplaceAgreementsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&marketplaceAgreementsClient.Client, o.ResourceManagerAuthorizer)
 
-	ProximityPlacementGroupsClient := compute.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ProximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
+	proximityPlacementGroupsClient := compute.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&proximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
 
-	SnapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&SnapshotsClient.Client, o.ResourceManagerAuthorizer)
+	snapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&snapshotsClient.Client, o.ResourceManagerAuthorizer)
 
-	UsageClient := compute.NewUsageClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&UsageClient.Client, o.ResourceManagerAuthorizer)
+	usageClient := compute.NewUsageClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&usageClient.Client, o.ResourceManagerAuthorizer)
 
-	VMExtensionImageClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VMExtensionImageClient.Client, o.ResourceManagerAuthorizer)
+	vmExtensionImageClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vmExtensionImageClient.Client, o.ResourceManagerAuthorizer)
 
-	VMExtensionClient := compute.NewVirtualMachineExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VMExtensionClient.Client, o.ResourceManagerAuthorizer)
+	vmExtensionClient := compute.NewVirtualMachineExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vmExtensionClient.Client, o.ResourceManagerAuthorizer)
 
-	VMImageClient := compute.NewVirtualMachineImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VMImageClient.Client, o.ResourceManagerAuthorizer)
+	vmImageClient := compute.NewVirtualMachineImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vmImageClient.Client, o.ResourceManagerAuthorizer)
 
-	VMScaleSetClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VMScaleSetClient.Client, o.ResourceManagerAuthorizer)
+	vmScaleSetClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vmScaleSetClient.Client, o.ResourceManagerAuthorizer)
 
-	VMClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VMClient.Client, o.ResourceManagerAuthorizer)
+	vmClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AvailabilitySetsClient:         &AvailabilitySetsClient,
-		DisksClient:                    &DisksClient,
-		GalleriesClient:                &GalleriesClient,
-		GalleryImagesClient:            &GalleryImagesClient,
-		GalleryImageVersionsClient:     &GalleryImageVersionsClient,
-		ImagesClient:                   &ImagesClient,
-		ProximityPlacementGroupsClient: &ProximityPlacementGroupsClient,
-		SnapshotsClient:                &SnapshotsClient,
-		UsageClient:                    &UsageClient,
-		VMExtensionImageClient:         &VMExtensionImageClient,
-		VMExtensionClient:              &VMExtensionClient,
-		VMScaleSetClient:               &VMScaleSetClient,
-		VMClient:                       &VMClient,
-		VMImageClient:                  &VMImageClient,
+		AvailabilitySetsClient:         &availabilitySetsClient,
+		DisksClient:                    &disksClient,
+		GalleriesClient:                &galleriesClient,
+		GalleryImagesClient:            &galleryImagesClient,
+		GalleryImageVersionsClient:     &galleryImageVersionsClient,
+		ImagesClient:                   &imagesClient,
+		MarketplaceAgreementsClient:    &marketplaceAgreementsClient,
+		ProximityPlacementGroupsClient: &proximityPlacementGroupsClient,
+		SnapshotsClient:                &snapshotsClient,
+		UsageClient:                    &usageClient,
+		VMExtensionImageClient:         &vmExtensionImageClient,
+		VMExtensionClient:              &vmExtensionClient,
+		VMScaleSetClient:               &vmScaleSetClient,
+		VMClient:                       &vmClient,
+		VMImageClient:                  &vmImageClient,
 	}
 }
