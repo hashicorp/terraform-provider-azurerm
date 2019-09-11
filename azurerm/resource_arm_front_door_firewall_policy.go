@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,7 +31,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoEmptyStrings,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": {
@@ -55,22 +56,22 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				}, false),
 			},
 
-			"custom_block_response_status_code": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validate.CustomBlockResponseBody,
-			},
-
 			"redirect_url": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
+			"custom_block_response_status_code": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(100, 530),
+			},
+
 			"custom_block_response_body": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.CustomBlockResponseBody,
+				ValidateFunc: afd.ValidateCustomBlockResponseBody,
 			},
 
 			"custom_rule": {
@@ -339,15 +340,15 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 		Location: utils.String(location),
 		WebApplicationFirewallPolicyProperties: &frontdoor.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &frontdoor.PolicySettings{
-				EnabledState:                  helper.ConvertToPolicyEnabledStateFromBool(enabled),
-				Mode:                          helper.ConvertToPolicyModeFromString(mode),
+				EnabledState:                  afd.ConvertToPolicyEnabledStateFromBool(enabled),
+				Mode:                          afd.ConvertToPolicyModeFromString(mode),
 				RedirectURL:                   utils.String(redirectUrl),
 				CustomBlockResponseStatusCode: &customBlockResponseStatusCode,
 				CustomBlockResponseBody:       utils.String(customBlockResponseBody),
 			},
-			customRules:           expandArmFrontDoorFirewallCustomRules(customRules),
+			CustomRules:           expandArmFrontDoorFirewallCustomRules(customRules),
 			ManagedRules:          expandArmFrontDoorFirewallManagedRules(managedRules),
-			FrontendEndpointLinks: expandArmFrontDoorFirewallManagedRules(frontendEndpoints),
+			FrontendEndpointLinks: expandArmFrontDoorFirewallFrontendEndpointLinks(frontendEndpoints),
 		},
 		Tags: expandTags(tags),
 	}
@@ -421,10 +422,10 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		ruleType := customRule["rule_type"].(string)
 		rateLimitDurationInMinutes := int32(customRule["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold := int32(customRule["rate_limit_threshold"].(int))
-		matchConditions := expandArmFrontDoorFirewallMatchConditions(customRule["match_condition"].([]interface{}))
+		matchConditions := customRule["match_condition"].([]interface{})
 		action := customRule["action_type"].(string)
 
-		afpCustomRule = frontdoor.CustomRule{
+		afpCustomRule := frontdoor.CustomRule{
 			Name:                       utils.String(name),
 			Priority:                   utils.Int32(priority),
 			EnabledState:               afd.ConvertBoolToCustomRuleEnabledState(enabled),
@@ -455,8 +456,8 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		matchCondition := mc.(map[string]interface{})
 		matchVariable := matchCondition["match_variable"].(string)
 		selector := matchCondition["selector"].(string)
-		operator := matchCondition["operator"].(string)
-		negateCondition := afd.ConvertConditionToBool(matchCondition["condition"])
+		operator := afd.ConvertStringToOperator(matchCondition["operator"].(string))
+		negateCondition := afd.ConvertConditionToBool(matchCondition["condition"].(string))
 
 		mv := matchCondition["match_value"].([]interface{})
 		matchValues := make([]string, 0)
@@ -475,12 +476,12 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		fdpMatchCondition := &frontdoor.MatchCondition{
 			Operator:        operator,
 			NegateCondition: &negateCondition,
-			MatchValue:      &matchValue,
-			Transforms:      &transforms,
+			MatchValue:      matchValue,
+			Transforms:      transforms,
 		}
 
-		if matchvariable != "" {
-			fdpMatchCondition.MatchVariable = matchVariable
+		if matchVariable != "" {
+			fdpMatchCondition.MatchVariable = afd.ConvertStringToMatchVariable(matchVariable)
 		} else {
 			fdpMatchCondition.Selector = utils.String(selector)
 		}
@@ -492,5 +493,9 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 }
 
 func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
+
+}
+
+func expandArmFrontDoorFirewallFrontendEndpointLinks(input []interface{}) *[]frontdoor.FrontendEnpointLink {
 
 }

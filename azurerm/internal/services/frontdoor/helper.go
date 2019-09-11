@@ -163,7 +163,7 @@ func VerifyCustomRules(input []interface{}) error {
 			matchVariable := matchCondition["match_variable"].(string)
 			selector := matchCondition["selector"].(string)
 
-			if matchvariable == "" && selector == "" {
+			if matchVariable == "" && selector == "" {
 				return fmt.Errorf(`"custom_rule":%q is invalid, either "match_variable" or "selector" must be defined`, ruleName)
 			}
 		}
@@ -204,6 +204,60 @@ func ConvertStringToRuleType(ruleType string) frontdoor.RuleType {
 	return frontdoor.RateLimitRule
 }
 
+func ConvertStringToMatchVariable(matchVariable string) frontdoor.MatchVariable {
+	switch matchVariable {
+	case "Cookies":
+		return frontdoor.Cookies
+	case "PostArgs":
+		return frontdoor.PostArgs
+	case "QueryString":
+		return frontdoor.QueryString
+	case  "RemoteAddr":
+		return frontdoor.RemoteAddr
+	case "RequestBody":
+		return frontdoor.RequestBody
+	case "RequestHeader":
+		return frontdoor.RequestHeader
+	case "RequestMethod":
+		return frontdoor.RequestMethod
+	case "RequestUri":
+		return frontdoor.RequestURI
+	default:
+		return frontdoor.RequestHeader
+	}
+}
+
+func ConvertStringToOperator(operator string) frontdoor.Operator {
+	switch operator {
+	case "Any":
+		return frontdoor.Any
+	case "BeginsWith":
+		return frontdoor.BeginsWith
+	case "Contains":
+		return frontdoor.Contains
+	case "EndsWith":
+		return frontdoor.EndsWith
+	case "Equal":
+		return frontdoor.Equal
+	case "GeoMatch":
+		return frontdoor.GeoMatch
+	case "GreaterThan":
+		return frontdoor.GreaterThan
+	case "GreaterThanOrEqual":
+		return frontdoor.GreaterThanOrEqual
+	case "IPMatch":
+		return frontdoor.IPMatch
+	case "LessThan":
+		return frontdoor.LessThan
+	case "LessThanOrEqual":
+		return frontdoor.LessThanOrEqual
+	case "RegEx":
+		return frontdoor.RegEx
+	default:
+		return frontdoor.Any
+	}
+}
+
 func ConvertStringToActionType(actionType string) frontdoor.ActionType {
 	switch actionType {
 	case string(frontdoor.Allow):
@@ -214,6 +268,8 @@ func ConvertStringToActionType(actionType string) frontdoor.ActionType {
 		return frontdoor.Log
 	case string(frontdoor.Redirect):
 		return frontdoor.Redirect
+	default:
+		return frontdoor.Block
 	}
 }
 
