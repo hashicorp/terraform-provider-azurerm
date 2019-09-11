@@ -75,6 +75,7 @@ func GetFrontDoorBasicRouteConfigurationType(i interface{}) string {
 		return "ForwardingConfiguration"
 	}
 }
+
 func VerifyRoutingRuleFrontendEndpoints(routingRuleFrontends []interface{}, configFrontendEndpoints []interface{}) error {
 	for _, routingRuleFrontend := range routingRuleFrontends {
 		// Get the name of the frontend defined in the routing rule
@@ -148,6 +149,38 @@ func VerifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadB
 	return nil
 }
 
+
+func VerifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error {
+	for _, configFrontendEndpoint := range configFrontendEndpoints {
+		if configFrontend := configFrontendEndpoint.(map[string]interface{}); len(configFrontend) > 0 {
+			FrontendName := configFrontend["name"]
+			customHttpsEnabled := configFrontend["custom_https_provisioning_enabled"].(bool)
+
+			if chc := configFrontend["custom_https_configuration"].([]interface{}); len(chc) > 0 {
+				if !customHttpsEnabled {
+					return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`, FrontendName)
+				}
+
+				customHttpsConfiguration := chc[0].(map[string]interface{})
+				certificateSource := customHttpsConfiguration["certificate_source"]
+				if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
+					if !AzureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
+						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
+					}
+				} else {
+					if AzureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
+						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
+					}
+				}
+			} else if customHttpsEnabled {
+				return fmt.Errorf(`"frontend_endpoint":%q configuration is invalid because "custom_https_provisioning_enabled" is set to "true" and the "custom_https_configuration" block is undefined. please add the "custom_https_configuration" block to the configuration file`, FrontendName)
+			}
+		}
+	}
+
+	return nil
+}
+
 func VerifyCustomRules(input []interface{}) error {
 	if len(input) == 0 {
 		return nil
@@ -188,134 +221,10 @@ func ConvertBoolToCustomRuleEnabledState(isEnabled bool) frontdoor.CustomRuleEna
 	return frontdoor.CustomRuleEnabledStateDisabled
 }
 
-func ConvertToPolicyModeFromString(policyMode string) frontdoor.PolicyMode {
-	if policyMode == "Detection" {
-		return frontdoor.Detection
-	}
-
-	return frontdoor.Prevention
-}
-
-func ConvertStringToRuleType(ruleType string) frontdoor.RuleType {
-	if ruleType == string(frontdoor.MatchRule) {
-		return frontdoor.MatchRule
-	}
-
-	return frontdoor.RateLimitRule
-}
-
-func ConvertStringToMatchVariable(matchVariable string) frontdoor.MatchVariable {
-	switch matchVariable {
-	case "Cookies":
-		return frontdoor.Cookies
-	case "PostArgs":
-		return frontdoor.PostArgs
-	case "QueryString":
-		return frontdoor.QueryString
-	case  "RemoteAddr":
-		return frontdoor.RemoteAddr
-	case "RequestBody":
-		return frontdoor.RequestBody
-	case "RequestHeader":
-		return frontdoor.RequestHeader
-	case "RequestMethod":
-		return frontdoor.RequestMethod
-	case "RequestUri":
-		return frontdoor.RequestURI
-	default:
-		return frontdoor.RequestHeader
-	}
-}
-
-func ConvertStringToOperator(operator string) frontdoor.Operator {
-	switch operator {
-	case "Any":
-		return frontdoor.Any
-	case "BeginsWith":
-		return frontdoor.BeginsWith
-	case "Contains":
-		return frontdoor.Contains
-	case "EndsWith":
-		return frontdoor.EndsWith
-	case "Equal":
-		return frontdoor.Equal
-	case "GeoMatch":
-		return frontdoor.GeoMatch
-	case "GreaterThan":
-		return frontdoor.GreaterThan
-	case "GreaterThanOrEqual":
-		return frontdoor.GreaterThanOrEqual
-	case "IPMatch":
-		return frontdoor.IPMatch
-	case "LessThan":
-		return frontdoor.LessThan
-	case "LessThanOrEqual":
-		return frontdoor.LessThanOrEqual
-	case "RegEx":
-		return frontdoor.RegEx
-	default:
-		return frontdoor.Any
-	}
-}
-
-func ConvertStringToActionType(actionType string) frontdoor.ActionType {
-	switch actionType {
-	case string(frontdoor.Allow):
-		return frontdoor.Allow
-	case string(frontdoor.Block):
-		return frontdoor.Block
-	case string(frontdoor.Log):
-		return frontdoor.Log
-	case string(frontdoor.Redirect):
-		return frontdoor.Redirect
-	default:
-		return frontdoor.Block
-	}
-}
-
 func ConvertConditionToBool(condition string) bool {
 	if strings.Contains(strings.ToLower(condition), "not") {
 		return true
 	}
 
 	return false
-}
-
-func GetFrontDoorSubResourceId(subscriptionId string, resourceGroup string, frontDoorName string, resourceType string, resourceName string) string {
-	if strings.TrimSpace(subscriptionId) == "" || strings.TrimSpace(resourceGroup) == "" || strings.TrimSpace(frontDoorName) == "" || strings.TrimSpace(resourceType) == "" || strings.TrimSpace(resourceName) == "" {
-		return ""
-	}
-
-	return fmt.Sprintf("/subscriptions/%s/resourcegroups/%s/providers/Microsoft.Network/Frontdoors/%s/%s/%s", subscriptionId, resourceGroup, frontDoorName, resourceType, resourceName)
-}
-
-func VerifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error {
-	for _, configFrontendEndpoint := range configFrontendEndpoints {
-		if configFrontend := configFrontendEndpoint.(map[string]interface{}); len(configFrontend) > 0 {
-			FrontendName := configFrontend["name"]
-			customHttpsEnabled := configFrontend["custom_https_provisioning_enabled"].(bool)
-
-			if chc := configFrontend["custom_https_configuration"].([]interface{}); len(chc) > 0 {
-				if !customHttpsEnabled {
-					return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid because "custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`, FrontendName)
-				}
-
-				customHttpsConfiguration := chc[0].(map[string]interface{})
-				certificateSource := customHttpsConfiguration["certificate_source"]
-				if certificateSource == string(frontdoor.CertificateSourceAzureKeyVault) {
-					if !AzureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
-						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must have values in the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
-					}
-				} else {
-					if AzureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
-						return fmt.Errorf(`"frontend_endpoint":%q "custom_https_configuration" is invalid, all of the following keys must be removed from the "custom_https_configuration" block: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`, FrontendName)
-					}
-				}
-			} else if customHttpsEnabled {
-				return fmt.Errorf(`"frontend_endpoint":%q configuration is invalid because "custom_https_provisioning_enabled" is set to "true" and the "custom_https_configuration" block is undefined. please add the "custom_https_configuration" block to the configuration file`, FrontendName)
-			}
-		}
-	}
-
-	return nil
 }

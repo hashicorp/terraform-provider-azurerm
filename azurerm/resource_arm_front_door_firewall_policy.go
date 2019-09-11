@@ -341,7 +341,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 		WebApplicationFirewallPolicyProperties: &frontdoor.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &frontdoor.PolicySettings{
 				EnabledState:                  afd.ConvertToPolicyEnabledStateFromBool(enabled),
-				Mode:                          afd.ConvertToPolicyModeFromString(mode),
+				Mode:                          frontdoor.PolicyMode(mode),
 				RedirectURL:                   utils.String(redirectUrl),
 				CustomBlockResponseStatusCode: &customBlockResponseStatusCode,
 				CustomBlockResponseBody:       utils.String(customBlockResponseBody),
@@ -429,11 +429,11 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 			Name:                       utils.String(name),
 			Priority:                   utils.Int32(priority),
 			EnabledState:               afd.ConvertBoolToCustomRuleEnabledState(enabled),
-			RuleType:                   afd.ConvertStringToRuleType(ruleType),
+			RuleType:                   frontdoor.RuleType(ruleType),
 			RateLimitDurationInMinutes: utils.Int32(rateLimitDurationInMinutes),
 			RateLimitThreshold:         utils.Int32(rateLimitThreshold),
 			MatchConditions:            expandArmFrontDoorFirewallMatchConditions(matchConditions),
-			Action:                     afd.ConvertStringToActionType(action),
+			Action:                     frontdoor.ActionType(action),
 		}
 		output = append(output, afpCustomRule)
 	}
@@ -456,7 +456,7 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		matchCondition := mc.(map[string]interface{})
 		matchVariable := matchCondition["match_variable"].(string)
 		selector := matchCondition["selector"].(string)
-		operator := afd.ConvertStringToOperator(matchCondition["operator"].(string))
+		operator := frontdoor.Operator(matchCondition["operator"].(string))
 		negateCondition := afd.ConvertConditionToBool(matchCondition["condition"].(string))
 
 		mv := matchCondition["match_value"].([]interface{})
@@ -467,13 +467,13 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		matchValue := &matchValues
 
 		ts := matchCondition["transforms"].([]interface{})
-		transform := make([]string, 0)
+		transform := make([]frontdoor.TransformType, 0)
 		for _, t := range ts {
-			transform = append(transform, t.(string))
+			transform = append(transform, frontdoor.TransformType(t.(string)))
 		}
 		transforms := &transform
 
-		fdpMatchCondition := &frontdoor.MatchCondition{
+		fdpMatchCondition := frontdoor.MatchCondition{
 			Operator:        operator,
 			NegateCondition: &negateCondition,
 			MatchValue:      matchValue,
@@ -481,7 +481,7 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		}
 
 		if matchVariable != "" {
-			fdpMatchCondition.MatchVariable = afd.ConvertStringToMatchVariable(matchVariable)
+			fdpMatchCondition.MatchVariable = frontdoor.MatchVariable(matchVariable)
 		} else {
 			fdpMatchCondition.Selector = utils.String(selector)
 		}
@@ -494,8 +494,10 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 
 func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
 
+	return nil
 }
 
-func expandArmFrontDoorFirewallFrontendEndpointLinks(input []interface{}) *[]frontdoor.FrontendEnpointLink {
+func expandArmFrontDoorFirewallFrontendEndpointLinks(input []interface{}) *[]frontdoor.FrontendEndpointLink {
 
+	return nil
 }
