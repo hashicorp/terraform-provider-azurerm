@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStorageShareDirectory_basic(t *testing.T) {
@@ -38,8 +39,34 @@ func TestAccAzureRMStorageShareDirectory_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageShareDirectory_uppercase(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(5))
+	location := testLocation()
+	resourceName := "azurerm_storage_share_directory.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageShareDirectoryDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageShareDirectory_uppercase(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageShareDirectoryExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageShareDirectory_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -168,7 +195,10 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", name, shareName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Share Directory %q (Share %s, Account %s) ", name, shareName, accountName)
 		}
 
 		client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
@@ -204,7 +234,7 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", name, shareName, accountName, err)
 		}
 
 		// not found, the account's gone
@@ -219,12 +249,10 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 
 		resp, err := client.Get(ctx, accountName, shareName, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on FileShareDirectoriesClient: %+v", err)
+			return nil
 		}
 
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("File Share still exists:\n%#v", resp)
-		}
+		return fmt.Errorf("File Share still exists:\n%#v", resp)
 	}
 
 	return nil
@@ -237,6 +265,19 @@ func testAccAzureRMStorageShareDirectory_basic(rInt int, rString string, locatio
 
 resource "azurerm_storage_share_directory" "test" {
   name                 = "dir"
+  share_name           = "${azurerm_storage_share.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
+}
+`, template)
+}
+
+func testAccAzureRMStorageShareDirectory_uppercase(rInt int, rString string, location string) string {
+	template := testAccAzureRMStorageShareDirectory_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_share_directory" "test" {
+  name                 = "UpperCaseCharacterS"
   share_name           = "${azurerm_storage_share.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
 }

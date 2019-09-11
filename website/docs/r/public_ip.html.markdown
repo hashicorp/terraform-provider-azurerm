@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_public_ip
 
-Manage a Public IP Address.
+Manages a Public IP Address.
 
 ## Example Usage
 
@@ -45,8 +45,6 @@ The following arguments are supported:
 * `sku` - (Optional) The SKU of the Public IP. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
 
 -> **Note** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
-
--> **Note:** The `Standard` SKU is currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions `Standard` SKU's are available in are available here](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-overview)
 
 * `allocation_method` - (Required)  Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 

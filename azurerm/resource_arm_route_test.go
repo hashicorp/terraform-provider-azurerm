@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +36,7 @@ func TestAccAzureRMRoute_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRoute_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -163,7 +164,7 @@ func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for route: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).network.RoutesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, rtName, name)
@@ -193,7 +194,7 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for route: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).routesClient
+		client := testAccProvider.Meta().(*ArmClient).network.RoutesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, rtName, name)
@@ -210,7 +211,7 @@ func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMRouteDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).routesClient
+	client := testAccProvider.Meta().(*ArmClient).network.RoutesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

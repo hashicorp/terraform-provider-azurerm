@@ -11,7 +11,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,7 +45,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 					string(trafficmanager.ProfileStatusEnabled),
 					string(trafficmanager.ProfileStatusDisabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"traffic_routing_method": {
@@ -97,7 +100,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 								string(trafficmanager.HTTPS),
 								string(trafficmanager.TCP),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -108,12 +111,30 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"interval_in_seconds": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntInSlice([]int{10, 30}),
+							Default:      30,
+						},
+						"timeout_in_seconds": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(5, 10),
+							Default:      10,
+						},
+						"tolerated_number_of_failures": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 9),
+							Default:      3,
+						},
 					},
 				},
 				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -122,15 +143,15 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
+	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
 
 	name := d.Get("name").(string)
 	// must be provided in request
 	location := "global"
 	resGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -143,11 +164,17 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
+	props, err := getArmTrafficManagerProfileProperties(d)
+	if err != nil {
+		// There isn't any additional messaging needed for this error
+		return err
+	}
+
 	profile := trafficmanager.Profile{
 		Name:              &name,
 		Location:          &location,
-		ProfileProperties: getArmTrafficManagerProfileProperties(d),
-		Tags:              expandTags(tags),
+		ProfileProperties: props,
+		Tags:              tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, profile); err != nil {
@@ -171,7 +198,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).trafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -204,15 +231,13 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	monitorFlat := flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig)
 	d.Set("monitor_config", schema.NewSet(resourceAzureRMTrafficManagerMonitorConfigHash, monitorFlat))
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).trafficManager.ProfilesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -230,12 +255,17 @@ func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func getArmTrafficManagerProfileProperties(d *schema.ResourceData) *trafficmanager.ProfileProperties {
+func getArmTrafficManagerProfileProperties(d *schema.ResourceData) (*trafficmanager.ProfileProperties, error) {
 	routingMethod := d.Get("traffic_routing_method").(string)
+
+	montiorConfig, err := expandArmTrafficManagerMonitorConfig(d)
+	if err != nil {
+		return nil, fmt.Errorf("Error expanding `montior_config`: %+v", err)
+	}
 	props := &trafficmanager.ProfileProperties{
 		TrafficRoutingMethod: trafficmanager.TrafficRoutingMethod(routingMethod),
 		DNSConfig:            expandArmTrafficManagerDNSConfig(d),
-		MonitorConfig:        expandArmTrafficManagerMonitorConfig(d),
+		MonitorConfig:        montiorConfig,
 	}
 
 	if status, ok := d.GetOk("profile_status"); ok {
@@ -243,22 +273,32 @@ func getArmTrafficManagerProfileProperties(d *schema.ResourceData) *trafficmanag
 		props.ProfileStatus = trafficmanager.ProfileStatus(s)
 	}
 
-	return props
+	return props, nil
 }
 
-func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) *trafficmanager.MonitorConfig {
+func expandArmTrafficManagerMonitorConfig(d *schema.ResourceData) (*trafficmanager.MonitorConfig, error) {
 	monitorSets := d.Get("monitor_config").(*schema.Set).List()
 	monitor := monitorSets[0].(map[string]interface{})
 
 	proto := monitor["protocol"].(string)
 	port := int64(monitor["port"].(int))
 	path := monitor["path"].(string)
+	interval := int64(monitor["interval_in_seconds"].(int))
+	timeout := int64(monitor["timeout_in_seconds"].(int))
+	tolerated := int64(monitor["tolerated_number_of_failures"].(int))
+
+	if interval == int64(10) && timeout == int64(10) {
+		return nil, fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+	}
 
 	return &trafficmanager.MonitorConfig{
-		Protocol: trafficmanager.MonitorProtocol(proto),
-		Port:     &port,
-		Path:     &path,
-	}
+		Protocol:                  trafficmanager.MonitorProtocol(proto),
+		Port:                      &port,
+		Path:                      &path,
+		IntervalInSeconds:         &interval,
+		TimeoutInSeconds:          &timeout,
+		ToleratedNumberOfFailures: &tolerated,
+	}, nil
 }
 
 func expandArmTrafficManagerDNSConfig(d *schema.ResourceData) *trafficmanager.DNSConfig {
@@ -293,6 +333,10 @@ func flattenAzureRMTrafficManagerProfileMonitorConfig(cfg *trafficmanager.Monito
 		result["path"] = *cfg.Path
 	}
 
+	result["interval_in_seconds"] = int(*cfg.IntervalInSeconds)
+	result["timeout_in_seconds"] = int(*cfg.TimeoutInSeconds)
+	result["tolerated_number_of_failures"] = int(*cfg.ToleratedNumberOfFailures)
+
 	return []interface{}{result}
 }
 
@@ -316,6 +360,18 @@ func resourceAzureRMTrafficManagerMonitorConfigHash(v interface{}) int {
 
 		if v, ok := m["path"]; ok && v != "" {
 			buf.WriteString(fmt.Sprintf("%s-", m["path"].(string)))
+		}
+
+		if v, ok := m["interval_in_seconds"]; ok && v != "" {
+			buf.WriteString(fmt.Sprintf("%d-", m["interval_in_seconds"].(int)))
+		}
+
+		if v, ok := m["timeout_in_seconds"]; ok && v != "" {
+			buf.WriteString(fmt.Sprintf("%d-", m["timeout_in_seconds"].(int)))
+		}
+
+		if v, ok := m["tolerated_number_of_failures"]; ok && v != "" {
+			buf.WriteString(fmt.Sprintf("%d-", m["tolerated_number_of_failures"].(int)))
 		}
 	}
 

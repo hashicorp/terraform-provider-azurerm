@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +36,7 @@ func TestAccAzureRMNetworkSecurityGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMNetworkSecurityGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -278,7 +279,7 @@ func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).secGroupClient
+		client := testAccProvider.Meta().(*ArmClient).network.SecurityGroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, sgName, "")
 		if err != nil {
@@ -307,7 +308,7 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).secGroupClient
+		client := testAccProvider.Meta().(*ArmClient).network.SecurityGroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, sgName)
 		if err != nil {
@@ -321,7 +322,7 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 }
 
 func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).secGroupClient
+	client := testAccProvider.Meta().(*ArmClient).network.SecurityGroupClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

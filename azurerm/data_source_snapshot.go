@@ -100,7 +100,7 @@ func dataSourceArmSnapshot() *schema.Resource {
 }
 
 func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
+	client := meta.(*ArmClient).compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -131,15 +131,9 @@ func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 
 	if data := resp.CreationData; data != nil {
 		d.Set("creation_option", string(data.CreateOption))
-		if data.SourceURI != nil {
-			d.Set("source_uri", *data.SourceURI)
-		}
-		if data.SourceResourceID != nil {
-			d.Set("source_resource_id", *data.SourceResourceID)
-		}
-		if data.StorageAccountID != nil {
-			d.Set("storage_account_id", *data.StorageAccountID)
-		}
+		d.Set("source_uri", data.SourceURI)
+		d.Set("source_resource_id", data.SourceResourceID)
+		d.Set("storage_account_id", data.StorageAccountID)
 	}
 
 	return nil

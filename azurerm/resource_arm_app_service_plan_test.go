@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -109,7 +110,7 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 }
 
 func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -324,7 +325,7 @@ func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
 }
 
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
+	conn := testAccProvider.Meta().(*ArmClient).web.AppServicePlansClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_plan" {
@@ -364,7 +365,7 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Service Plan: %s", appServicePlanName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
+		conn := testAccProvider.Meta().(*ArmClient).web.AppServicePlansClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {

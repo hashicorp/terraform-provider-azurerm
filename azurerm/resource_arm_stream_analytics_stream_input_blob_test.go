@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsStreamInputBlob_avro(t *testing.T) {
@@ -139,7 +140,7 @@ func TestAccAzureRMStreamAnalyticsStreamInputBlob_update(t *testing.T) {
 }
 
 func TestAccAzureRMStreamAnalyticsStreamInputBlob_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -180,7 +181,7 @@ func testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName string) r
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsInputsClient
+		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.InputsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -196,7 +197,7 @@ func testCheckAzureRMStreamAnalyticsStreamInputBlobExists(resourceName string) r
 }
 
 func testCheckAzureRMStreamAnalyticsStreamInputBlobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsInputsClient
+	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.InputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_stream_input_eventhub" {

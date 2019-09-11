@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -188,7 +189,7 @@ func TestAccAzureRMApplicationGateway_http2(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationGateway_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -983,7 +984,7 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Application Gateway: %q", gatewayName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+		client := testAccProvider.Meta().(*ArmClient).network.ApplicationGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
@@ -1000,7 +1001,7 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).applicationGatewayClient
+	client := testAccProvider.Meta().(*ArmClient).network.ApplicationGatewaysClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

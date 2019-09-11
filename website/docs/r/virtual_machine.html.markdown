@@ -116,6 +116,8 @@ The following arguments are supported:
 
 * `boot_diagnostics` - (Optional) A `boot_diagnostics` block.
 
+* `additional_capabilities` - (Optional) A `additional_capabilities` block.
+
 * `delete_os_disk_on_termination` - (Optional) Should the OS Disk (either the Managed Disk / VHD Blob) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
 
 * `delete_data_disks_on_termination` - (Optional) Should the Data Disks (either the Managed Disks / VHD Blobs) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
@@ -131,6 +133,8 @@ The following arguments are supported:
 * `plan` - (Optional) A `plan` block.
 
 * `primary_network_interface_id` - (Optional) The ID of the Network Interface (which must be attached to the Virtual Machine) which should be the Primary Network Interface for this Virtual Machine.
+
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
 * `storage_data_disk` - (Optional) One or more `storage_data_disk` blocks.
 
@@ -169,6 +173,14 @@ A `boot_diagnostics` block supports the following:
 * `storage_uri` - (Required) The Storage Account's Blob Endpoint which should hold the virtual machine's diagnostic files.
 
 ~> **NOTE:** This needs to be the root of a Storage Account and not a Storage Container.
+
+---
+
+A `additional_capabilities` block supports the following:
+
+* `ultra_ssd_enabled` - (Required) Should Ultra SSD disk be enabled for this Virtual Machine?
+
+-> **Note**: Azure Ultra Disk Storage is currently in preview and are not available to subscriptions that have not [requested](https://aka.ms/UltraSSDPreviewSignUp) onboarding to `Azure Ultra Disk Storage` preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
 
 ---
 
@@ -299,7 +311,9 @@ A `storage_data_disk` block supports the following:
 
 The following properties apply when using Managed Disks:
 
-* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS`, `StandardSSD_LRS` or `Premium_LRS`.
+* `managed_disk_type` - (Optional) Specifies the type of managed disk to create. Possible values are either `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS` or `UltraSSD_LRS`.
+
+-> **Note**: `managed_disk_type` of type `UltraSSD_LRS` is currently in preview and are not available to subscriptions that have not [requested](https://aka.ms/UltraSSDPreviewSignUp) onboarding to `Azure Ultra Disk Storage` preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks). You must also set `additional_capabilities.ultra_ssd_enabled` to `true`.
 
 * `managed_disk_id` - (Optional) Specifies the ID of an Existing Managed Disk which should be attached to this Virtual Machine. When this field is set `create_option` must be set to `Attach`.
 

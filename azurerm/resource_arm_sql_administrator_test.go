@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,7 +43,7 @@ func TestAccAzureRMSqlAdministrator_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlAdministrator_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -101,7 +102,7 @@ func testCheckAzureRMSqlAdministratorExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, err := client.Get(ctx, resourceGroup, serverName)
@@ -119,7 +120,7 @@ func testCheckAzureRMSqlAdministratorDisappears(resourceName string) resource.Te
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName); err != nil {
@@ -139,7 +140,7 @@ func testCheckAzureRMSqlAdministratorDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServerAzureADAdministratorsClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServerAzureADAdministratorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)

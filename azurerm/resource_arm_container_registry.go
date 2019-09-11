@@ -12,8 +12,11 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,7 +48,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          string(containerregistry.Classic),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerregistry.Classic),
 					string(containerregistry.Basic),
@@ -156,7 +159,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
@@ -180,7 +183,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -196,7 +199,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
@@ -215,7 +218,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 			NetworkRuleSet:   networkRuleSet,
 		},
 
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
@@ -275,7 +278,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	old, new := d.GetChange("georeplication_locations")
 	hasGeoReplicationChanges := d.HasChange("georeplication_locations")
@@ -296,7 +299,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 			Name: containerregistry.SkuName(sku),
 			Tier: containerregistry.SkuTier(sku),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
@@ -430,7 +433,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -487,8 +490,6 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("admin_password", "")
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	replications, err := replicationClient.List(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications: %s", name, err)
@@ -512,14 +513,14 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("georeplication_locations", georeplication_locations)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

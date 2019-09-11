@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -85,7 +86,7 @@ func resourceArmStreamAnalyticsStreamInputBlob() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
@@ -93,7 +94,7 @@ func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceDat
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -166,10 +167,10 @@ func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceDat
 }
 
 func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -222,10 +223,10 @@ func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta 
 }
 
 func resourceArmStreamAnalyticsStreamInputBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsInputsClient
+	client := meta.(*ArmClient).streamanalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

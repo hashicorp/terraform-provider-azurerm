@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -78,7 +80,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"unique_identifier": {
 				Type:     schema.TypeString,
@@ -98,7 +100,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 	labName := d.Get("lab_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, labName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -112,14 +114,14 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 	}
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
 	parameters := dtl.VirtualNetwork{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
 			Description:     utils.String(description),
 			SubnetOverrides: subnets,
@@ -153,7 +155,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -188,9 +190,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -204,14 +204,14 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
 	parameters := dtl.VirtualNetwork{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
 			Description:     utils.String(description),
 			SubnetOverrides: subnets,
@@ -245,7 +245,7 @@ func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -282,12 +282,12 @@ func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
 }
 
-func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
+func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, virtualNetworkName string) *[]dtl.SubnetOverride {
 	results := make([]dtl.SubnetOverride, 0)
 	// default found from the Portal
 	name := fmt.Sprintf("%sSubnet", virtualNetworkName)
-	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualnetworks/%s/subnets/%s"
-	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, labName, virtualNetworkName, name)
+	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s"
+	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, virtualNetworkName, name)
 	if len(input) == 0 {
 		result := dtl.SubnetOverride{
 			ResourceID:                   utils.String(subnetId),

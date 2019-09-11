@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func MariaDBFirewallRuleName(v interface{}, k string) (warnings []string, errors []error) {
+func MariaDBFirewallRuleName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// Firewall rule name can contain alphanumeric characters and hyphens and must be 1 - 128 characters long
@@ -16,7 +16,7 @@ func MariaDBFirewallRuleName(v interface{}, k string) (warnings []string, errors
 	return warnings, errors
 }
 
-func MariaDBServerName(v interface{}, k string) (warnings []string, errors []error) {
+func MariaDBServerName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	// MariaDB server name can contain alphanumeric characters and hyphens and must be 3 - 63 characters long

@@ -6,30 +6,35 @@ import (
 )
 
 type Client struct {
-	QueuesClient            servicebus.QueuesClient
-	NamespacesClient        servicebus.NamespacesClient
-	TopicsClient            servicebus.TopicsClient
-	SubscriptionsClient     servicebus.SubscriptionsClient
-	SubscriptionRulesClient servicebus.RulesClient
+	QueuesClient            *servicebus.QueuesClient
+	NamespacesClient        *servicebus.NamespacesClient
+	TopicsClient            *servicebus.TopicsClient
+	SubscriptionsClient     *servicebus.SubscriptionsClient
+	SubscriptionRulesClient *servicebus.RulesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.QueuesClient = servicebus.NewQueuesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.QueuesClient.Client, o.ResourceManagerAuthorizer)
+	QueuesClient := servicebus.NewQueuesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&QueuesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.NamespacesClient = servicebus.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.NamespacesClient.Client, o.ResourceManagerAuthorizer)
+	NamespacesClient := servicebus.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.TopicsClient = servicebus.NewTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.TopicsClient.Client, o.ResourceManagerAuthorizer)
+	TopicsClient := servicebus.NewTopicsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&TopicsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SubscriptionsClient = servicebus.NewSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.SubscriptionsClient.Client, o.ResourceManagerAuthorizer)
+	SubscriptionsClient := servicebus.NewSubscriptionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SubscriptionsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.SubscriptionRulesClient = servicebus.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.SubscriptionRulesClient.Client, o.ResourceManagerAuthorizer)
+	SubscriptionRulesClient := servicebus.NewRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&SubscriptionRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		QueuesClient:            &QueuesClient,
+		NamespacesClient:        &NamespacesClient,
+		TopicsClient:            &TopicsClient,
+		SubscriptionsClient:     &SubscriptionsClient,
+		SubscriptionRulesClient: &SubscriptionRulesClient,
+	}
 }

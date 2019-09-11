@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"time"
 
@@ -112,7 +113,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -295,7 +296,7 @@ func parseManagementGroupIdFromPolicyId(id string) string {
 	return ""
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 
@@ -322,7 +323,7 @@ func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{})
 	return schema.ImportStatePassthrough(d, meta)
 }
 
-func getPolicyDefinition(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
+func getPolicyDefinition(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 	} else {

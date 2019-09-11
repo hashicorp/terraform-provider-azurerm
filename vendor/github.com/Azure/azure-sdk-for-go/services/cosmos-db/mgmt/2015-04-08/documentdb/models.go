@@ -46,6 +46,19 @@ func PossibleConflictResolutionModeValues() []ConflictResolutionMode {
 	return []ConflictResolutionMode{Custom, LastWriterWins}
 }
 
+// ConnectorOffer enumerates the values for connector offer.
+type ConnectorOffer string
+
+const (
+	// Small ...
+	Small ConnectorOffer = "Small"
+)
+
+// PossibleConnectorOfferValues returns an array of possible values for the ConnectorOffer const type.
+func PossibleConnectorOfferValues() []ConnectorOffer {
+	return []ConnectorOffer{Small}
+}
+
 // DatabaseAccountKind enumerates the values for database account kind.
 type DatabaseAccountKind string
 
@@ -923,6 +936,10 @@ type DatabaseAccountCreateUpdateProperties struct {
 	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
 	// EnableMultipleWriteLocations - Enables the account to write in multiple locations
 	EnableMultipleWriteLocations *bool `json:"enableMultipleWriteLocations,omitempty"`
+	// EnableCassandraConnector - Enables the cassandra connector on the Cosmos DB C* account
+	EnableCassandraConnector *bool `json:"enableCassandraConnector,omitempty"`
+	// ConnectorOffer - The cassandra connector offer type for the Cosmos DB database C* account. Possible values include: 'Small'
+	ConnectorOffer ConnectorOffer `json:"connectorOffer,omitempty"`
 }
 
 // DatabaseAccountListConnectionStringsResult the connection strings for the given database account.
@@ -938,59 +955,11 @@ type DatabaseAccountListKeysResult struct {
 	// PrimaryMasterKey - READ-ONLY; Base 64 encoded value of the primary read-write key.
 	PrimaryMasterKey *string `json:"primaryMasterKey,omitempty"`
 	// SecondaryMasterKey - READ-ONLY; Base 64 encoded value of the secondary read-write key.
-	SecondaryMasterKey                     *string `json:"secondaryMasterKey,omitempty"`
-	*DatabaseAccountListReadOnlyKeysResult `json:"properties,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for DatabaseAccountListKeysResult.
-func (dalkr DatabaseAccountListKeysResult) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if dalkr.DatabaseAccountListReadOnlyKeysResult != nil {
-		objectMap["properties"] = dalkr.DatabaseAccountListReadOnlyKeysResult
-	}
-	return json.Marshal(objectMap)
-}
-
-// UnmarshalJSON is the custom unmarshaler for DatabaseAccountListKeysResult struct.
-func (dalkr *DatabaseAccountListKeysResult) UnmarshalJSON(body []byte) error {
-	var m map[string]*json.RawMessage
-	err := json.Unmarshal(body, &m)
-	if err != nil {
-		return err
-	}
-	for k, v := range m {
-		switch k {
-		case "primaryMasterKey":
-			if v != nil {
-				var primaryMasterKey string
-				err = json.Unmarshal(*v, &primaryMasterKey)
-				if err != nil {
-					return err
-				}
-				dalkr.PrimaryMasterKey = &primaryMasterKey
-			}
-		case "secondaryMasterKey":
-			if v != nil {
-				var secondaryMasterKey string
-				err = json.Unmarshal(*v, &secondaryMasterKey)
-				if err != nil {
-					return err
-				}
-				dalkr.SecondaryMasterKey = &secondaryMasterKey
-			}
-		case "properties":
-			if v != nil {
-				var databaseAccountListReadOnlyKeysResult DatabaseAccountListReadOnlyKeysResult
-				err = json.Unmarshal(*v, &databaseAccountListReadOnlyKeysResult)
-				if err != nil {
-					return err
-				}
-				dalkr.DatabaseAccountListReadOnlyKeysResult = &databaseAccountListReadOnlyKeysResult
-			}
-		}
-	}
-
-	return nil
+	SecondaryMasterKey *string `json:"secondaryMasterKey,omitempty"`
+	// PrimaryReadonlyMasterKey - READ-ONLY; Base 64 encoded value of the primary read-only key.
+	PrimaryReadonlyMasterKey *string `json:"primaryReadonlyMasterKey,omitempty"`
+	// SecondaryReadonlyMasterKey - READ-ONLY; Base 64 encoded value of the secondary read-only key.
+	SecondaryReadonlyMasterKey *string `json:"secondaryReadonlyMasterKey,omitempty"`
 }
 
 // DatabaseAccountListReadOnlyKeysResult the read-only access keys for the given database account.
@@ -1086,6 +1055,10 @@ type DatabaseAccountProperties struct {
 	VirtualNetworkRules *[]VirtualNetworkRule `json:"virtualNetworkRules,omitempty"`
 	// EnableMultipleWriteLocations - Enables the account to write in multiple locations
 	EnableMultipleWriteLocations *bool `json:"enableMultipleWriteLocations,omitempty"`
+	// EnableCassandraConnector - Enables the cassandra connector on the Cosmos DB C* account
+	EnableCassandraConnector *bool `json:"enableCassandraConnector,omitempty"`
+	// ConnectorOffer - The cassandra connector offer type for the Cosmos DB database C* account. Possible values include: 'Small'
+	ConnectorOffer ConnectorOffer `json:"connectorOffer,omitempty"`
 }
 
 // DatabaseAccountRegenerateKeyParameters parameters to regenerate the keys within the database account.

@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -44,8 +45,9 @@ func dataSourceArmDnsZone() *schema.Resource {
 			},
 
 			"zone_type": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "Private DNS Zones are now supported through a separate resource in Azure & Terraform",
 			},
 
 			"registration_virtual_network_ids": {
@@ -60,7 +62,7 @@ func dataSourceArmDnsZone() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -85,7 +87,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else {
-		rgClient := meta.(*ArmClient).resourceGroupsClient
+		rgClient := meta.(*ArmClient).resource.GroupsClient
 
 		resp, resourceGroup, err = findZone(client, rgClient, ctx, name)
 		if err != nil {
@@ -135,12 +137,10 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func findZone(client dns.ZonesClient, rgClient resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {
+func findZone(client *dns.ZonesClient, rgClient *resources.GroupsClient, ctx context.Context, name string) (dns.Zone, string, error) {
 	groups, err := rgClient.List(ctx, "", nil)
 	if err != nil {
 		return dns.Zone{}, "", fmt.Errorf("Error listing Resource Groups: %+v", err)

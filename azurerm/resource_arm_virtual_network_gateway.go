@@ -14,6 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -259,13 +261,13 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetGatewayClient
+	client := meta.(*ArmClient).network.VnetGatewayClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
@@ -273,7 +275,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -287,7 +289,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties, err := getArmVirtualNetworkGatewayProperties(d)
 	if err != nil {
@@ -297,7 +299,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 	gateway := network.VirtualNetworkGateway{
 		Name:                                  &name,
 		Location:                              &location,
-		Tags:                                  expandTags(tags),
+		Tags:                                  tags.Expand(t),
 		VirtualNetworkGatewayPropertiesFormat: properties,
 	}
 
@@ -324,7 +326,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetGatewayClient
+	client := meta.(*ArmClient).network.VnetGatewayClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
@@ -377,13 +379,11 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetGatewayClient
+	client := meta.(*ArmClient).network.VnetGatewayClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
@@ -710,7 +710,7 @@ func hashVirtualNetworkGatewayRevokedCert(v interface{}) int {
 }
 
 func resourceGroupAndVirtualNetworkGatewayFromId(virtualNetworkGatewayId string) (string, string, error) {
-	id, err := parseAzureResourceID(virtualNetworkGatewayId)
+	id, err := azure.ParseAzureResourceID(virtualNetworkGatewayId)
 	if err != nil {
 		return "", "", err
 	}
@@ -727,7 +727,7 @@ func validateArmVirtualNetworkGatewaySubnetId(i interface{}, k string) (warnings
 		return
 	}
 
-	id, err := parseAzureResourceID(value)
+	id, err := azure.ParseAzureResourceID(value)
 	if err != nil {
 		errors = append(errors, fmt.Errorf("expected %s to be an Azure resource id", k))
 		return

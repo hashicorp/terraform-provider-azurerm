@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -119,15 +121,15 @@ func resourceArmFirewallNatRuleCollection() *schema.Resource {
 }
 
 func resourceArmFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	firewallName := d.Get("azure_firewall_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(firewallName, azureFirewallResourceName)
-	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
@@ -179,7 +181,7 @@ func resourceArmFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, me
 
 		ruleCollections[index] = newRuleCollection
 	} else {
-		if requireResourcesToBeImported && d.IsNewResource() {
+		if features.ShouldResourcesBeImported() && d.IsNewResource() {
 			if index != -1 {
 				return tf.ImportAsExistsError("azurerm_firewall_nat_rule_collection", id)
 			}
@@ -229,10 +231,10 @@ func resourceArmFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmFirewallNatRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -301,10 +303,10 @@ func resourceArmFirewallNatRuleCollectionRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmFirewallNatRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -313,8 +315,8 @@ func resourceArmFirewallNatRuleCollectionDelete(d *schema.ResourceData, meta int
 	firewallName := id.Path["azureFirewalls"]
 	name := id.Path["natRuleCollections"]
 
-	azureRMLockByName(firewallName, azureFirewallResourceName)
-	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {

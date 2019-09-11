@@ -6,27 +6,31 @@ import (
 )
 
 type Client struct {
-	ContactsClient                 security.ContactsClient
-	PricingClient                  security.PricingsClient
-	WorkspaceClient                security.WorkspaceSettingsClient
-	AdvancedThreatProtectionClient security.AdvancedThreatProtectionClient
+	ContactsClient                 *security.ContactsClient
+	PricingClient                  *security.PricingsClient
+	WorkspaceClient                *security.WorkspaceSettingsClient
+	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
 	ascLocation := "Global"
-	c := Client{}
 
-	c.ContactsClient = security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&c.ContactsClient.Client, o.ResourceManagerAuthorizer)
+	ContactsClient := security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&ContactsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PricingClient = security.NewPricingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&c.PricingClient.Client, o.ResourceManagerAuthorizer)
+	PricingClient := security.NewPricingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&PricingClient.Client, o.ResourceManagerAuthorizer)
 
-	c.WorkspaceClient = security.NewWorkspaceSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&c.WorkspaceClient.Client, o.ResourceManagerAuthorizer)
+	WorkspaceClient := security.NewWorkspaceSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&WorkspaceClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AdvancedThreatProtectionClient = security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
-	o.ConfigureClient(&c.AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
+	AdvancedThreatProtectionClient := security.NewAdvancedThreatProtectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
+	o.ConfigureClient(&AdvancedThreatProtectionClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ContactsClient:                 &ContactsClient,
+		PricingClient:                  &PricingClient,
+		WorkspaceClient:                &WorkspaceClient,
+		AdvancedThreatProtectionClient: &AdvancedThreatProtectionClient,
+	}
 }

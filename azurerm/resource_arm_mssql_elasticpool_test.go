@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // TODO: add import tests
@@ -38,7 +39,7 @@ func TestAccAzureRMMsSqlElasticPool_basic_DTU(t *testing.T) {
 }
 
 func TestAccAzureRMMsSqlElasticPool_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -299,7 +300,7 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).msSqlElasticPoolsClient
+		client := testAccProvider.Meta().(*ArmClient).mssql.ElasticPoolsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
@@ -316,7 +317,7 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMMsSqlElasticPoolDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).msSqlElasticPoolsClient
+	client := testAccProvider.Meta().(*ArmClient).mssql.ElasticPoolsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -353,7 +354,7 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).msSqlElasticPoolsClient
+		client := testAccProvider.Meta().(*ArmClient).mssql.ElasticPoolsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {

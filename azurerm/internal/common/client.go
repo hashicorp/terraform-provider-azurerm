@@ -15,18 +15,21 @@ import (
 )
 
 type ClientOptions struct {
-	GraphAuthorizer            autorest.Authorizer
-	GraphEndpoint              string
-	KeyVaultAuthorizer         autorest.Authorizer
-	ResourceManagerAuthorizer  autorest.Authorizer
-	ResourceManagerEndpoint    string
-	StorageAuthorizer          autorest.Authorizer
-	SubscriptionId             string
-	PartnerId                  string
-	PollingDuration            time.Duration
-	SkipProviderReg            bool
-	EnableCorrelationRequestID bool
-	Environment                azure.Environment
+	SubscriptionId string
+	TenantID       string
+	PartnerId      string
+
+	GraphAuthorizer           autorest.Authorizer
+	GraphEndpoint             string
+	KeyVaultAuthorizer        autorest.Authorizer
+	ResourceManagerAuthorizer autorest.Authorizer
+	ResourceManagerEndpoint   string
+	StorageAuthorizer         autorest.Authorizer
+
+	PollingDuration             time.Duration
+	SkipProviderReg             bool
+	DisableCorrelationRequestID bool
+	Environment                 azure.Environment
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
@@ -38,7 +41,7 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	c.Sender = sender.BuildSender("AzureRM")
 	c.PollingDuration = o.PollingDuration
 	c.SkipResourceProviderRegistration = o.SkipProviderReg
-	if o.EnableCorrelationRequestID {
+	if !o.DisableCorrelationRequestID {
 		c.RequestInspector = WithCorrelationRequestID(CorrelationRequestID())
 	}
 }

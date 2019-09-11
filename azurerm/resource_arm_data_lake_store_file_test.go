@@ -12,8 +12,33 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func TestValidateAzureDataLakeStoreRemoteFilePath(t *testing.T) {
+	cases := []struct {
+		Value  string
+		Errors int
+	}{
+		{
+			Value:  "bad",
+			Errors: 1,
+		},
+		{
+			Value:  "/good/file/path",
+			Errors: 0,
+		},
+	}
+
+	for _, tc := range cases {
+		_, errors := validateDataLakeStoreRemoteFilePath()(tc.Value, "unittest")
+
+		if len(errors) != tc.Errors {
+			t.Fatalf("Expected validateDataLakeStoreRemoteFilePath to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+		}
+	}
+}
 
 func TestAccAzureRMDataLakeStoreFile_basic(t *testing.T) {
 	resourceName := "azurerm_data_lake_store_file.test"
@@ -87,7 +112,7 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 }
 
 func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -128,7 +153,7 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreFilesClient
+		conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
@@ -145,7 +170,7 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMDataLakeStoreFileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreFilesClient
+	conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFilesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

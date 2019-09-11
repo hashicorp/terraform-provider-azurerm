@@ -19,6 +19,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -201,19 +204,19 @@ func resourceArmIotHub() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateIso8601Duration(),
+							ValidateFunc: validate.ISO8601Duration,
 						},
 						"default_ttl": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateIso8601Duration(),
+							ValidateFunc: validate.ISO8601Duration,
 						},
 						"lock_duration": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							Computed:     true,
-							ValidateFunc: validateIso8601Duration(),
+							ValidateFunc: validate.ISO8601Duration,
 						},
 					},
 				},
@@ -411,7 +414,7 @@ func resourceArmIotHub() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 
@@ -425,10 +428,10 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(name, iothubResourceName)
-	defer azureRMUnlockByName(name, iothubResourceName)
+	locks.ByName(name, iothubResourceName)
+	defer locks.UnlockByName(name, iothubResourceName)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -457,7 +460,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	fallbackRoute := expandIoTHubFallbackRoute(d)
 
 	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
@@ -488,7 +491,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			MessagingEndpoints:            messagingEndpoints,
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties, "")
@@ -514,7 +517,7 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -599,13 +602,11 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 	d.Set("type", hub.Type)
-	flattenAndSetTags(d, hub.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, hub.Tags)
 }
 
 func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -616,8 +617,8 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	name := id.Path["IotHubs"]
 	resourceGroup := id.ResourceGroup
 
-	azureRMLockByName(name, iothubResourceName)
-	defer azureRMUnlockByName(name, iothubResourceName)
+	locks.ByName(name, iothubResourceName)
+	defer locks.UnlockByName(name, iothubResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -630,7 +631,7 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 	return waitForIotHubToBeDeleted(ctx, client, resourceGroup, name)
 }
 
-func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) error {
+func waitForIotHubToBeDeleted(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 404 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for IotHub (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
@@ -646,7 +647,7 @@ func waitForIotHubToBeDeleted(ctx context.Context, client devices.IotHubResource
 	return nil
 }
 
-func iothubStateStatusCodeRefreshFunc(ctx context.Context, client devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
+func iothubStateStatusCodeRefreshFunc(ctx context.Context, client *devices.IotHubResourceClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 

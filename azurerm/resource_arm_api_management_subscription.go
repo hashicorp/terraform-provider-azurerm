@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -89,7 +90,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 		subscriptionId = uuid.NewV4().String()
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -144,7 +145,7 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).apiManagement.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +184,7 @@ func resourceArmApiManagementSubscriptionDelete(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).apiManagement.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

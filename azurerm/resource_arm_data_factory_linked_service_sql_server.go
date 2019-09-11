@@ -11,14 +11,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate,
+		Create: resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate,
 		Read:   resourceArmDataFactoryLinkedServiceSQLServerRead,
-		Update: resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate,
+		Update: resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate,
 		Delete: resourceArmDataFactoryLinkedServiceSQLServerDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -87,7 +88,7 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -95,7 +96,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateOrUpdate(d *schema.Resour
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -163,7 +164,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,10 +192,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 	}
 
 	d.Set("additional_properties", sqlServer.AdditionalProperties)
-
-	if sqlServer.Description != nil {
-		d.Set("description", *sqlServer.Description)
-	}
+	d.Set("description", sqlServer.Description)
 
 	annotations := flattenDataFactoryAnnotations(sqlServer.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
@@ -232,7 +230,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, 
 	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

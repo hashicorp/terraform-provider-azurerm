@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/tables"
 )
@@ -107,7 +108,10 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", tableName, accountName)
 	}
 
 	client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
@@ -116,8 +120,8 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	id := client.GetResourceID(accountName, tableName)
-	if requireResourcesToBeImported {
-		existing, err := client.Exists(ctx, *resourceGroup, tableName)
+	if features.ShouldResourcesBeImported() {
+		existing, err := client.Exists(ctx, accountName, tableName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing) {
 				return fmt.Errorf("Error checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, *resourceGroup, err)
@@ -153,11 +157,11 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Account %q (assuming removed)", id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -205,11 +209,11 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Account %q (assuming removed)", id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		return nil
 	}
 
@@ -237,11 +241,11 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
 	}
 
 	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Account %q (assuming removed)", id.AccountName)
+		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

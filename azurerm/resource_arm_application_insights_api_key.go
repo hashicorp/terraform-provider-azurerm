@@ -6,6 +6,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -77,7 +78,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	appInsightsID := d.Get("application_insights_id").(string)
 
-	id, err := parseAzureResourceID(appInsightsID)
+	id, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return err
 	}
@@ -85,7 +86,7 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 	resGroup := id.ResourceGroup
 	appInsightsName := id.Path["components"]
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		var existing insights.ApplicationInsightsComponentAPIKey
 		existing, err = client.Get(ctx, resGroup, appInsightsName, name)
 		if err != nil {
@@ -126,7 +127,7 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).appInsights.APIKeyClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,7 +167,7 @@ func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).appInsights.APIKeyClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

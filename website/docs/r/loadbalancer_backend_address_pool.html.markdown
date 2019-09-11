@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb_backend_address_pool
 
-Manage a Load Balancer Backend Address Pool.
+Manages a Load Balancer Backend Address Pool.
 
 ~> **NOTE:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 

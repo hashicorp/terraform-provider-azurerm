@@ -27,6 +27,7 @@ func SchemaLocationOptional() *schema.Schema {
 	}
 }
 
+// todo should we change this to SchemaLocationComputed
 func SchemaLocationForDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeString,
@@ -54,7 +55,7 @@ func NormalizeLocation(location interface{}) string {
 	return strings.Replace(strings.ToLower(input), " ", "", -1)
 }
 
-func SuppressLocationDiff(k, old, new string, d *schema.ResourceData) bool {
+func SuppressLocationDiff(_, old, new string, _ *schema.ResourceData) bool {
 	return NormalizeLocation(old) == NormalizeLocation(new)
 }
 

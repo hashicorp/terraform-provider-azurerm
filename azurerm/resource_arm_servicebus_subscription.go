@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -117,7 +118,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresSession := d.Get("requires_session").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -176,7 +177,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -220,7 +221,7 @@ func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interf
 	client := meta.(*ArmClient).servicebus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

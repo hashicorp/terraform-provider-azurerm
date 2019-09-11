@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
@@ -89,7 +90,10 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group: %s", err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s)", containerName, accountName)
 	}
 
 	client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
@@ -98,7 +102,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	id := client.GetResourceID(accountName, containerName)
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -135,10 +139,10 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -184,10 +188,10 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
@@ -239,10 +243,10 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 
 	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
 	}
 	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Account %q - assuming removed & removing from state", id.AccountName)
+		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}

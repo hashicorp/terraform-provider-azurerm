@@ -353,7 +353,7 @@ resource "azurerm_analysis_services_server" "test" {
 }
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).analysisServicesServerClient
+	client := testAccProvider.Meta().(*ArmClient).analysisservices.ServerClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_analysis_services_server" {
@@ -393,7 +393,7 @@ func testCheckAzureRMAnalysisServicesServerExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Analysis Services Server: %s", analysisServicesServerName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).analysisServicesServerClient
+		client := testAccProvider.Meta().(*ArmClient).analysisservices.ServerClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.GetDetails(ctx, resourceGroup, analysisServicesServerName)
 		if err != nil {

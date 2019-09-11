@@ -9,6 +9,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -77,13 +80,13 @@ func resourceArmNetworkProfile() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netProfileClient
+	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Profile creation")
@@ -91,7 +94,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -105,7 +108,7 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	cniConfigs, err := expandNetworkProfileContainerNetworkInterface(d)
 	if err != nil {
@@ -117,18 +120,18 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureNetworkProfileResourceName)
-	defer azureRMUnlockByName(name, azureNetworkProfileResourceName)
+	locks.ByName(name, azureNetworkProfileResourceName)
+	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	azureRMLockMultipleByName(subnetsToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(subnetsToLock, subnetResourceName)
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 
 	parameters := network.Profile{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		ProfilePropertiesFormat: &network.ProfilePropertiesFormat{
 			ContainerNetworkInterfaceConfigurations: cniConfigs,
 		},
@@ -153,10 +156,10 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netProfileClient
+	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -192,16 +195,14 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, profile.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, profile.Tags)
 }
 
 func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netProfileClient
+	client := meta.(*ArmClient).network.ProfileClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -224,14 +225,14 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error extracting names of Subnet and Virtual Network: %+v", err)
 	}
 
-	azureRMLockByName(name, azureNetworkProfileResourceName)
-	defer azureRMUnlockByName(name, azureNetworkProfileResourceName)
+	locks.ByName(name, azureNetworkProfileResourceName)
+	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	azureRMLockMultipleByName(subnetsToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(subnetsToLock, subnetResourceName)
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(vnetsToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
 
 	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("Error deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -293,7 +294,7 @@ func expandNetworkProfileVirtualNetworkSubnetNames(d *schema.ResourceData) (*[]s
 			ipData := ipConfig.(map[string]interface{})
 			subnetID := ipData["subnet_id"].(string)
 
-			subnetResourceID, err := parseAzureResourceID(subnetID)
+			subnetResourceID, err := azure.ParseAzureResourceID(subnetID)
 			if err != nil {
 				return nil, nil, err
 			}

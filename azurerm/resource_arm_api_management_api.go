@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -190,7 +191,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	path := d.Get("path").(string)
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -287,7 +288,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).apiManagement.ApiClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -346,7 +347,7 @@ func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).apiManagement.ApiClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

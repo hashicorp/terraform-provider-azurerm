@@ -248,7 +248,7 @@ func (client Client) GetPropertiesResponder(resp *http.Response) (result GetProp
 		result.CopyCompletionTime = resp.Header.Get("x-ms-copy-completion-time")
 		result.CopyDestinationSnapshot = resp.Header.Get("x-ms-copy-destination-snapshot")
 		result.CopyID = resp.Header.Get("x-ms-copy-id")
-		result.CopyProgress = resp.Header.Get(" x-ms-copy-progress")
+		result.CopyProgress = resp.Header.Get("x-ms-copy-progress")
 		result.CopySource = resp.Header.Get("x-ms-copy-source")
 		result.CopyStatus = CopyStatus(resp.Header.Get("x-ms-copy-status"))
 		result.CopyStatusDescription = resp.Header.Get("x-ms-copy-status-description")

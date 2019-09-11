@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +41,7 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -249,7 +250,10 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", containerName, accountName)
 		}
 
 		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
@@ -285,7 +289,10 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+		}
+		if resourceGroup == nil {
+			return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", containerName, accountName)
 		}
 
 		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
@@ -315,7 +322,7 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error finding Resource Group: %s", err)
+			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
 		}
 
 		if resourceGroup == nil {
@@ -329,12 +336,10 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 
 		props, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Error retrieving Container %q in Storage Account %q: %s", containerName, accountName, err)
+			return nil
 		}
+
+		return fmt.Errorf("Container still exists: %+v", props)
 	}
 
 	return nil

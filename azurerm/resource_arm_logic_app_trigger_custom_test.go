@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogicAppTriggerCustom_basic(t *testing.T) {
@@ -33,7 +34,7 @@ func TestAccAzureRMLogicAppTriggerCustom_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLogicAppTriggerCustom_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}

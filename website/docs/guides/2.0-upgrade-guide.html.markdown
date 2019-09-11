@@ -145,6 +145,10 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Data Source: `azurerm_dns_zone`
+
+The deprecated field `zone_type` will be removed. Private DNS Zones are now a separate resource in both Azure and Terraform.
+
 ### Data Source: `azurerm_kubernetes_cluster`
 
 The deprecated field `dns_prefix` within the `agent_pool_profile` block will be removed.
@@ -226,6 +230,10 @@ The `preference` field in the `record` block will change from a String to an Int
 ### Resource: `azurerm_dns_ns_record`
 
 The deprecated `record` field will be removed. This has been replaced by the `records` field which accepts multiple values.
+
+### Resource: `azurerm_dns_zone`
+
+The deprecated `zone_type` field will be removed. This has been replaced by the `azurerm_private_dns_zone` resource.
 
 ### Resource: `azurerm_eventhub`
 
@@ -339,6 +347,12 @@ The deprecated `enable_filtering_messages_before_publishing` field will be remov
 
 The deprecated `account_type` field will be removed. This has been split into the fields `account_tier` and `account_replication_type`.
 
+### Resource: `azurerm_storage_blob`
+
+The deprecated `attempts` field will be removed, since Terraform now handles retries automatically.
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
 ### Resource: `azurerm_storage_container`
 
 The deprecated `resource_group_name` field will be removed, since this is no longer used.
@@ -378,6 +392,15 @@ The `azurerm_virtual_machine_scale_set` resource will be deprecated in favour of
 Splitting the Virtual Machine Scale Set resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
 The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_log_analytics_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
+### Resource: `azurerm_log_analytics_workspace_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
 
 ---
 

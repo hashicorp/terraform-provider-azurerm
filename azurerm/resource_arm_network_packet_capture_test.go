@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func testAccAzureRMNetworkPacketCapture_localDisk(t *testing.T) {
@@ -38,7 +39,7 @@ func testAccAzureRMNetworkPacketCapture_localDisk(t *testing.T) {
 }
 
 func testAccAzureRMNetworkPacketCapture_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -148,7 +149,7 @@ func testAccAzureRMNetworkPacketCapture_withFilters(t *testing.T) {
 
 func testCheckAzureRMNetworkPacketCaptureExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).packetCapturesClient
+		client := testAccProvider.Meta().(*ArmClient).network.PacketCapturesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -174,7 +175,7 @@ func testCheckAzureRMNetworkPacketCaptureExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMNetworkPacketCaptureDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).packetCapturesClient
+	client := testAccProvider.Meta().(*ArmClient).network.PacketCapturesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

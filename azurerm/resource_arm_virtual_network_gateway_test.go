@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMVirtualNetworkGateway_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkGateway_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -289,7 +290,7 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).vnetGatewayClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetGatewayClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
@@ -306,7 +307,7 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).vnetGatewayClient
+	client := testAccProvider.Meta().(*ArmClient).network.VnetGatewayClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

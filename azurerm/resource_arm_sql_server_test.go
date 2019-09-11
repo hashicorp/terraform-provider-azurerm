@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +36,7 @@ func TestAccAzureRMSqlServer_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlServer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -133,7 +134,7 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
+		conn := testAccProvider.Meta().(*ArmClient).sql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
@@ -148,7 +149,7 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).sqlServersClient
+	conn := testAccProvider.Meta().(*ArmClient).sql.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -187,7 +188,7 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlServersClient
+		client := testAccProvider.Meta().(*ArmClient).sql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)

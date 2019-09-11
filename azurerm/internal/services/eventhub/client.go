@@ -6,22 +6,25 @@ import (
 )
 
 type Client struct {
-	ConsumerGroupClient eventhub.ConsumerGroupsClient
-	EventHubsClient     eventhub.EventHubsClient
-	NamespacesClient    eventhub.NamespacesClient
+	ConsumerGroupClient *eventhub.ConsumerGroupsClient
+	EventHubsClient     *eventhub.EventHubsClient
+	NamespacesClient    *eventhub.NamespacesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
 
-	c.EventHubsClient = eventhub.NewEventHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.EventHubsClient.Client, o.ResourceManagerAuthorizer)
+	EventHubsClient := eventhub.NewEventHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&EventHubsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ConsumerGroupClient = eventhub.NewConsumerGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ConsumerGroupClient.Client, o.ResourceManagerAuthorizer)
+	ConsumerGroupClient := eventhub.NewConsumerGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ConsumerGroupClient.Client, o.ResourceManagerAuthorizer)
 
-	c.NamespacesClient = eventhub.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.NamespacesClient.Client, o.ResourceManagerAuthorizer)
+	NamespacesClient := eventhub.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		ConsumerGroupClient: &ConsumerGroupClient,
+		EventHubsClient:     &EventHubsClient,
+		NamespacesClient:    &NamespacesClient,
+	}
 }
