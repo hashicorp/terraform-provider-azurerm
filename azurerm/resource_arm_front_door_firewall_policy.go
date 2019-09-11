@@ -134,8 +134,8 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"match_variable": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:          schema.TypeString,
+										Optional:      true,
 										ConflictsWith: []string{"selector"},
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.Cookies),
@@ -149,8 +149,8 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										}, false),
 									},
 									"selector": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:          schema.TypeString,
+										Optional:      true,
 										ConflictsWith: []string{"match_variable"},
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.Cookies),
@@ -311,7 +311,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Front Door %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for present of existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
@@ -329,6 +329,10 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	managedRules := d.Get("managed_rule").([]interface{})
 	frontendEndpoints := d.Get("frontend_endpoint_ids").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
+
+	if err := afd.VerifyCustomRules(customRules); err != nil {
+		return fmt.Errorf(`Error validating "custom_rule" for Front Door Firewall Policy %q (Resource Group %q): %+v`, name, resourceGroup, err)
+	}
 
 	frontdoorWebApplicationFirewallPolicy := frontdoor.WebApplicationFirewallPolicy{
 		Name:     utils.String(name),
@@ -416,23 +420,28 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		enabled := customRule["enabled"].(bool)
 		ruleType := customRule["rule_type"].(string)
 		rateLimitDurationInMinutes := int32(customRule["rate_limit_duration_in_minutes"].(int))
-		rateLimitThreshold  := int32(customRule["rate_limit_threshold"].(int))
+		rateLimitThreshold := int32(customRule["rate_limit_threshold"].(int))
 		matchConditions := expandArmFrontDoorFirewallMatchConditions(customRule["match_condition"].([]interface{}))
-		action := afd.ConvertStringToActionType(customRule["action_type"].(string))
+		action := customRule["action_type"].(string)
 
-
-
-
-		//Priority :         utils.Int32(priority),
-		//EnabledState:      afd.ConvertBoolToCustomRuleEnabledState(enabled),
-		//RuleType:          afd.ConvertStringToRuleType(ruleType),
+		afpCustomRule = frontdoor.CustomRule{
+			Name:                       utils.String(name),
+			Priority:                   utils.Int32(priority),
+			EnabledState:               afd.ConvertBoolToCustomRuleEnabledState(enabled),
+			RuleType:                   afd.ConvertStringToRuleType(ruleType),
+			RateLimitDurationInMinutes: utils.Int32(rateLimitDurationInMinutes),
+			RateLimitThreshold:         utils.Int32(rateLimitThreshold),
+			MatchConditions:            expandArmFrontDoorFirewallMatchConditions(matchConditions),
+			Action:                     afd.ConvertStringToActionType(action),
+		}
+		output = append(output, afpCustomRule)
 	}
 
+	result := frontdoor.CustomRuleList{
+		Rules: &output,
+	}
 
-
-	frontdoor.CustomRuleList {
-		Rules: *output,
-	} 
+	return &result
 }
 
 func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor.MatchCondition {
@@ -444,11 +453,10 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 
 	for _, mc := range input {
 		matchCondition := mc.(map[string]interface{})
-
 		matchVariable := matchCondition["match_variable"].(string)
 		selector := matchCondition["selector"].(string)
 		operator := matchCondition["operator"].(string)
-		negateCondition  := afd.ConvertConditionToBool(matchCondition["condition"])
+		negateCondition := afd.ConvertConditionToBool(matchCondition["condition"])
 
 		mv := matchCondition["match_value"].([]interface{})
 		matchValues := make([]string, 0)
@@ -464,15 +472,25 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		}
 		transforms := &transform
 
-		fdpMatchCondition := frontdoor.MatchCondition {
-			Operator: operator,
+		fdpMatchCondition := &frontdoor.MatchCondition{
+			Operator:        operator,
 			NegateCondition: &negateCondition,
-			MatchValue: &matchValue,
-			Transforms: &transforms,
+			MatchValue:      &matchValue,
+			Transforms:      &transforms,
 		}
 
-		if 
+		if matchvariable != "" {
+			fdpMatchCondition.MatchVariable = matchVariable
+		} else {
+			fdpMatchCondition.Selector = utils.String(selector)
+		}
+
+		output = append(output, fdpMatchCondition)
 	}
-	
+
 	return &output
+}
+
+func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
+
 }

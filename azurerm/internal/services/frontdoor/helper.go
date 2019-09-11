@@ -148,48 +148,72 @@ func VerifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadB
 	return nil
 }
 
-func ConvertToPolicyEnabledStateFromBool(isEnabled bool) frontdoor.PolicyEnabledState {
-	if isEnabled {
-		return frontdoor.PolicyEnabledStateEnabled 
+func VerifyCustomRules(input []interface{}) error {
+	if len(input) == 0 {
+		return nil
 	}
 
-	return frontdoor.PolicyEnabledStateDisabled 
+	for _, cr := range input {
+		customRule := cr.(map[string]interface{})
+		matchConditions := customRule["match_condition"].([]interface{})
+		ruleName := customRule["name"]
+
+		for _, mc := range matchConditions {
+			matchCondition := mc.(map[string]interface{})
+			matchVariable := matchCondition["match_variable"].(string)
+			selector := matchCondition["selector"].(string)
+
+			if matchvariable == "" && selector == "" {
+				return fmt.Errorf(`"custom_rule":%q is invalid, either "match_variable" or "selector" must be defined`, ruleName)
+			}
+		}
+	}
+
+	return nil
+}
+
+func ConvertToPolicyEnabledStateFromBool(isEnabled bool) frontdoor.PolicyEnabledState {
+	if isEnabled {
+		return frontdoor.PolicyEnabledStateEnabled
+	}
+
+	return frontdoor.PolicyEnabledStateDisabled
 }
 
 func ConvertBoolToCustomRuleEnabledState(isEnabled bool) frontdoor.CustomRuleEnabledState {
 	if isEnabled {
-		return frontdoor.CustomRuleEnabledStateEnabled 
+		return frontdoor.CustomRuleEnabledStateEnabled
 	}
 
-	return frontdoor.CustomRuleEnabledStateDisabled 
+	return frontdoor.CustomRuleEnabledStateDisabled
 }
 
 func ConvertToPolicyModeFromString(policyMode string) frontdoor.PolicyMode {
 	if policyMode == "Detection" {
-		return frontdoor.Detection  
+		return frontdoor.Detection
 	}
 
-	return frontdoor.Prevention  
+	return frontdoor.Prevention
 }
 
-func ConvertStringToRuleType(ruleType string) frontdoor.RuleType  {
+func ConvertStringToRuleType(ruleType string) frontdoor.RuleType {
 	if ruleType == string(frontdoor.MatchRule) {
-		return frontdoor.MatchRule  
+		return frontdoor.MatchRule
 	}
 
-	return frontdoor.RateLimitRule  
+	return frontdoor.RateLimitRule
 }
 
 func ConvertStringToActionType(actionType string) frontdoor.ActionType {
 	switch actionType {
-		case string(frontdoor.Allow):
-			return frontdoor.Allow
-		case string(frontdoor.Block):
-			return frontdoor.Block
-		case string(frontdoor.Log):
-			return frontdoor.Log
-		case string(frontdoor.Redirect):
-			return frontdoor.Redirect
+	case string(frontdoor.Allow):
+		return frontdoor.Allow
+	case string(frontdoor.Block):
+		return frontdoor.Block
+	case string(frontdoor.Log):
+		return frontdoor.Log
+	case string(frontdoor.Redirect):
+		return frontdoor.Redirect
 	}
 }
 
