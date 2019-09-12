@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"testing"
 )
 
 func TestAccAzureRMDataSourceHealthcareService(t *testing.T) {
