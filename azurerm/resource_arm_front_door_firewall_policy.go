@@ -318,10 +318,6 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	frontendEndpoints := d.Get("frontend_endpoint_ids").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
-	if err := afd.VerifyCustomRules(customRules); err != nil {
-		return fmt.Errorf(`Error validating "custom_rule" for Front Door Firewall Policy %q (Resource Group %q): %+v`, name, resourceGroup, err)
-	}
-
 	frontdoorWebApplicationFirewallPolicy := frontdoor.WebApplicationFirewallPolicy{
 		Name:     utils.String(name),
 		Location: utils.String(location),
@@ -469,7 +465,8 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 
 		if matchVariable != "" {
 			fdpMatchCondition.MatchVariable = frontdoor.MatchVariable(matchVariable)
-		} else {
+		}
+		if selector != "" {
 			fdpMatchCondition.Selector = utils.String(selector)
 		}
 
