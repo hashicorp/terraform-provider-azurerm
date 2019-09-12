@@ -86,7 +86,7 @@ To configure Terraform to use the Default Subscription defined in the Azure CLI 
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.28.0"
+  version = "=1.34.0"
 }
 ```
 
@@ -101,7 +101,7 @@ It's also possible to configure Terraform to use a specific Subscription - for e
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.28.0"
+  version = "=1.34.0"
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
 }
@@ -118,7 +118,7 @@ If you're looking to use Terraform across Tenants - it's possible to do this by 
 ```hcl
 provider "azurerm" {
   # Whilst version is optional, we /strongly recommend/ using it to pin the version of the Provider being used
-  version = "=1.28.0"
+  version = "=1.34.0"
 
   subscription_id = "00000000-0000-0000-0000-000000000000"
   tenant_id       = "11111111-1111-1111-1111-111111111111"

@@ -6,7 +6,6 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.2.0
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dnaeon/go-vcr v1.0.1 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/hashicorp/go-azure-helpers v0.7.0
 	github.com/hashicorp/go-getter v1.3.1-0.20190627223108-da0323b9545e
@@ -22,3 +21,5 @@ require (
 	golang.org/x/net v0.0.0-20190502183928-7f726cade0ab
 	gopkg.in/yaml.v2 v2.2.2
 )
+
+go 1.13

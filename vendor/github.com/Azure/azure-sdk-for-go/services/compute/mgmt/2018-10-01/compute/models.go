@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 
 // AccessLevel enumerates the values for access level.
 type AccessLevel string
@@ -1230,10 +1230,18 @@ type APIErrorBase struct {
 	Message *string `json:"message,omitempty"`
 }
 
-// AutoOSUpgradePolicy the configuration parameters used for performing automatic OS upgrade.
-type AutoOSUpgradePolicy struct {
-	// DisableAutoRollback - Whether OS image rollback feature should be disabled. Default value is false.
-	DisableAutoRollback *bool `json:"disableAutoRollback,omitempty"`
+// AutomaticOSUpgradePolicy the configuration parameters used for performing automatic OS upgrade.
+type AutomaticOSUpgradePolicy struct {
+	// EnableAutomaticOSUpgrade - Indicates whether OS upgrades should automatically be applied to scale set instances in a rolling fashion when a newer version of the OS image becomes available. Default value is false. If this is set to true for Windows based scale sets, recommendation is to set [enableAutomaticUpdates](https://docs.microsoft.com/dotnet/api/microsoft.azure.management.compute.models.windowsconfiguration.enableautomaticupdates?view=azure-dotnet) to false.
+	EnableAutomaticOSUpgrade *bool `json:"enableAutomaticOSUpgrade,omitempty"`
+	// DisableAutomaticRollback - Whether OS image rollback feature should be disabled. Default value is false.
+	DisableAutomaticRollback *bool `json:"disableAutomaticRollback,omitempty"`
+}
+
+// AutomaticOSUpgradeProperties describes automatic OS upgrade properties on the image.
+type AutomaticOSUpgradeProperties struct {
+	// AutomaticOSUpgradeSupported - Specifies whether automatic OS upgrade is supported on the image.
+	AutomaticOSUpgradeSupported *bool `json:"automaticOSUpgradeSupported,omitempty"`
 }
 
 // AvailabilitySet specifies information about the availability set that the virtual machine should be
@@ -6314,10 +6322,8 @@ type UpgradePolicy struct {
 	Mode UpgradeMode `json:"mode,omitempty"`
 	// RollingUpgradePolicy - The configuration parameters used while performing a rolling upgrade.
 	RollingUpgradePolicy *RollingUpgradePolicy `json:"rollingUpgradePolicy,omitempty"`
-	// AutomaticOSUpgrade - Whether OS upgrades should automatically be applied to scale set instances in a rolling fashion when a newer version of the image becomes available.
-	AutomaticOSUpgrade *bool `json:"automaticOSUpgrade,omitempty"`
-	// AutoOSUpgradePolicy - Configuration parameters used for performing automatic OS Upgrade.
-	AutoOSUpgradePolicy *AutoOSUpgradePolicy `json:"autoOSUpgradePolicy,omitempty"`
+	// AutomaticOSUpgradePolicy - Configuration parameters used for performing automatic OS Upgrade.
+	AutomaticOSUpgradePolicy *AutomaticOSUpgradePolicy `json:"automaticOSUpgradePolicy,omitempty"`
 }
 
 // Usage describes Compute Resource Usage.
@@ -7104,9 +7110,10 @@ func (vmi *VirtualMachineImage) UnmarshalJSON(body []byte) error {
 
 // VirtualMachineImageProperties describes the properties of a Virtual Machine Image.
 type VirtualMachineImageProperties struct {
-	Plan           *PurchasePlan    `json:"plan,omitempty"`
-	OsDiskImage    *OSDiskImage     `json:"osDiskImage,omitempty"`
-	DataDiskImages *[]DataDiskImage `json:"dataDiskImages,omitempty"`
+	Plan                         *PurchasePlan                 `json:"plan,omitempty"`
+	OsDiskImage                  *OSDiskImage                  `json:"osDiskImage,omitempty"`
+	DataDiskImages               *[]DataDiskImage              `json:"dataDiskImages,omitempty"`
+	AutomaticOSUpgradeProperties *AutomaticOSUpgradeProperties `json:"automaticOSUpgradeProperties,omitempty"`
 }
 
 // VirtualMachineImageResource virtual machine image resource information.
@@ -8708,6 +8715,8 @@ type VirtualMachineScaleSetProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// Overprovision - Specifies whether the Virtual Machine Scale Set should be overprovisioned.
 	Overprovision *bool `json:"overprovision,omitempty"`
+	// DoNotRunExtensionsOnOverprovisionedVMs - When Overprovision is enabled, extensions are launched only on the requested number of VMs which are finally kept. This property will hence ensure that the extensions do not run on the extra overprovisioned VMs.
+	DoNotRunExtensionsOnOverprovisionedVMs *bool `json:"doNotRunExtensionsOnOverprovisionedVMs,omitempty"`
 	// UniqueID - READ-ONLY; Specifies the ID which uniquely identifies a Virtual Machine Scale Set.
 	UniqueID *string `json:"uniqueId,omitempty"`
 	// SinglePlacementGroup - When true this limits the scale set to a single placement group, of max size 100 virtual machines.
@@ -10745,7 +10754,7 @@ func (vmu *VirtualMachineUpdate) UnmarshalJSON(body []byte) error {
 type WindowsConfiguration struct {
 	// ProvisionVMAgent - Indicates whether virtual machine agent should be provisioned on the virtual machine. <br><br> When this property is not specified in the request body, default behavior is to set it to true.  This will ensure that VM Agent is installed on the VM so that extensions can be added to the VM later.
 	ProvisionVMAgent *bool `json:"provisionVMAgent,omitempty"`
-	// EnableAutomaticUpdates - Indicates whether virtual machine is enabled for automatic updates.
+	// EnableAutomaticUpdates - Indicates whether virtual machine is enabled for automatic Windows updates. Default value is true. <br><br> For virtual machine scale sets, this property can be updated and updates will take effect on OS reprovisioning.
 	EnableAutomaticUpdates *bool `json:"enableAutomaticUpdates,omitempty"`
 	// TimeZone - Specifies the time zone of the virtual machine. e.g. "Pacific Standard Time"
 	TimeZone *string `json:"timeZone,omitempty"`

@@ -160,6 +160,15 @@ func resourceArmMySqlServer() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(mysql.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(mysql.StorageAutogrowEnabled),
+								string(mysql.StorageAutogrowDisabled),
+							}, false),
+						},
 					},
 				},
 			},
@@ -409,11 +418,13 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &mysql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
 		GeoRedundantBackup:  mysql.GeoRedundantBackup(geoRedundantBackup),
 		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     mysql.StorageAutogrow(autoGrow),
 	}
 }
 
@@ -449,6 +460,8 @@ func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
 	}
 
 	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
+
+	values["auto_grow"] = string(resp.StorageAutogrow)
 
 	return []interface{}{values}
 }
