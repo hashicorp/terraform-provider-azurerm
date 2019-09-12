@@ -45,6 +45,7 @@ IMPROVEMENTS:
 * `azurerm_mariadb_server` - support for configuring `auto_grow` [GH-4302]
 * `azurerm_managed_disk` - add support for the Ultra SSD `disk_iops_read_write` & `disk_mbps_read_write` properties [GH-4102]
 * `azurerm_mysql_server` - support for configuring `auto_grow` [GH-4303]
+* `azurerm_private_dns_zone` - polling until the dns zone is marked as fully provisioned [GH-4307]
 * `azurerm_postgresql_server` - support for configuring `auto_grow` [GH-4220]
 * `azurerm_resource_group` - the `name` field can now be up to 90 characters [GH-4233]
 * `azurerm_role_assignment` - add `principal_type` and `skip_service_principal_aad_check` properties [GH-4168]
