@@ -24,8 +24,30 @@ func TestAccDataSourceAzureRMFunction_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceFunction_basic(rInt, location, rs),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "trigger_url", "configuration"),
-					resource.TestCheckResourceAttr(dataSourceName, "key", "stuff"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "trigger_url"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "key"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceAzureRMFunction_wait(t *testing.T) {
+	dataSourceName := "data.azurerm_function.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	rs := strings.ToLower(acctest.RandString(11))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDataSourceFunction_basic(rInt, location, rs),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(dataSourceName, "trigger_url"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "key"),
 				),
 			},
 		},

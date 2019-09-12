@@ -53,13 +53,12 @@ func dataSourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
 
 	log.Printf("[DEBUG] Waiting for Function %q in Function app %q (Resource Group %q) to become available", functionName, name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
-		Pending:                   []string{"pending"},
-		Target:                    []string{"available"},
-		Refresh:                   functionAvailabilityChecker(ctx, name, functionName, resourceGroup, webClient),
-		Timeout:                   10 * time.Minute,
-		Delay:                     30 * time.Second,
-		PollInterval:              10 * time.Second,
-		ContinuousTargetOccurence: 2,
+		Pending:      []string{"pending"},
+		Target:       []string{"available"},
+		Refresh:      functionAvailabilityChecker(ctx, name, functionName, resourceGroup, webClient),
+		Timeout:      10 * time.Minute,
+		Delay:        30 * time.Second,
+		PollInterval: 10 * time.Second,
 	}
 
 	resp, err := stateConf.WaitForState()
@@ -67,7 +66,15 @@ func dataSourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error waiting for Function %q in Function app %q (Resource Group %q) to become available", functionName, name, resourceGroup)
 	}
 
-	functionSecret := resp.(webmgmt.FunctionSecretsProperties)
+	functionSecret := resp.(webmgmt.FunctionSecrets)
+
+	if functionSecret.TriggerURL == nil {
+		return fmt.Errorf("Error retrieving key for Function %q in Function app %q (Resource Group %q). TriggerURL returned nil from API", functionName, name, resourceGroup)
+	}
+	if functionSecret.Key == nil {
+		return fmt.Errorf("Error retrieving key for Function %q in Function app %q (Resource Group %q). Key returned nil from API", functionName, name, resourceGroup)
+	}
+
 	d.SetId(*functionSecret.TriggerURL)
 
 	d.Set("trigger_url", functionSecret.TriggerURL)
