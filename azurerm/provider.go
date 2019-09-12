@@ -302,6 +302,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_mssql_elasticpool":                                     resourceArmMsSqlElasticPool(),
 		"azurerm_mssql_database_vulnerability_assessment_rule_baseline": resourceArmMssqlDatabaseVulnerabilityAssessmentRuleBaseline(),
 		"azurerm_mssql_server_security_alert_policy":                    resourceArmMssqlServerSecurityAlertPolicy(),
+		"azurerm_mssql_server_vulnerability_assessment":                 resourceArmMssqlServerVulnerabilityAssessment(),
 		"azurerm_mysql_configuration":                                   resourceArmMySQLConfiguration(),
 		"azurerm_mysql_database":                                        resourceArmMySqlDatabase(),
 		"azurerm_mysql_firewall_rule":                                   resourceArmMySqlFirewallRule(),

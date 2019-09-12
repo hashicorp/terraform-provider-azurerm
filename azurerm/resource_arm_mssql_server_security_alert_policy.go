@@ -111,7 +111,7 @@ func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceDat
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, serverName, *alertPolicy)
 	if err != nil {
-		return fmt.Errorf("error updataing mssql server security alert policy: %s", err)
+		return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -149,7 +149,7 @@ func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta 
 	result, err := client.Get(ctx, resourceGroupName, serverName)
 	if err != nil {
 		if utils.ResponseWasNotFound(result.Response) {
-			log.Printf("[WARN] mssql server security alert policy %s not found", id)
+			log.Printf("[WARN] mssql server security alert policy %v not found", id)
 			d.SetId("")
 			return nil
 		}
@@ -227,7 +227,7 @@ func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, met
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroupName, serverName, disabledPolicy)
 	if err != nil {
-		return fmt.Errorf("error updataing mssql server security alert policy: %s", err)
+		return fmt.Errorf("error updataing mssql server security alert policy: %v", err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -236,7 +236,7 @@ func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, met
 
 	_, err = client.Get(ctx, resourceGroupName, serverName)
 	if err != nil {
-		return fmt.Errorf("error deleting mssql server security alert policy: %s", err)
+		return fmt.Errorf("error deleting mssql server security alert policy: %v", err)
 	}
 
 	return nil
