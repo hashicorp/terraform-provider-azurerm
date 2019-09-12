@@ -72,6 +72,9 @@ func resourceArmBotConnection() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"tags": tags.Schema(),

@@ -61,16 +61,21 @@ func resourceArmStorageContainer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+
 			"has_legal_hold": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+
 			"properties": {
 				Type:       schema.TypeMap,
 				Computed:   true,
 				Deprecated: "This field will be removed in version 2.0 of the Azure Provider",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

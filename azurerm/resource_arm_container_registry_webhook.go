@@ -53,6 +53,9 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 			"custom_headers": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"status": {

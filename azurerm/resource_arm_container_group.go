@@ -288,6 +288,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeMap,
 							ForceNew: true,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"secure_environment_variables": {
@@ -295,6 +298,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional:  true,
 							ForceNew:  true,
 							Sensitive: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"command": {

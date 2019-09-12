@@ -248,6 +248,9 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"parameters": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -265,10 +268,16 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"placement_properties": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"capacities": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"instance_count": {
 							Type:     schema.TypeInt,

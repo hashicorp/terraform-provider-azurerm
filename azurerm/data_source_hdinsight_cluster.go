@@ -30,6 +30,9 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 			"component_versions": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"kind": {

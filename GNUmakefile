@@ -44,6 +44,7 @@ tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
         -R001 -R002 -R003 -R004\
+        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010\
         ./$(PKG_NAME)
 
 test-docker:
