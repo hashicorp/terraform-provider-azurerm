@@ -965,7 +965,9 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
-			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgradePolicy)
+			if policy := upgradePolicy.AutomaticOSUpgradePolicy; policy != nil {
+				d.Set("automatic_os_upgrade", policy.EnableAutomaticOSUpgrade)
+			}
 
 			if rollingUpgradePolicy := upgradePolicy.RollingUpgradePolicy; rollingUpgradePolicy != nil {
 				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {
