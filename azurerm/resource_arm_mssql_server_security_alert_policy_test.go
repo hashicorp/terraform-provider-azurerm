@@ -156,12 +156,5 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
 }
-
-resource "azurerm_storage_container" "test" {
-  name                  = "acctestsc%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
-  container_access_type = "private"
-}
-`, rInt, location, rInt, rInt, location, rInt)
+`, rInt, location, rInt, rInt, location)
 }
