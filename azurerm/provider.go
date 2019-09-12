@@ -3,12 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -475,6 +478,15 @@ func Provider() terraform.ResourceProvider {
 				Description: "The Tenant ID which should be used.",
 			},
 
+			"auxiliary_tenant_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 3,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"environment": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -562,11 +574,24 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
+
+		var auxTenants []string
+		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
+			auxTenants = *utils.ExpandStringSlice(v)
+		} else {
+			auxTenants = strings.Split(os.Getenv("ARM_AUXILIARY_TENANT_IDS"), ";")
+		}
+
+		if len(auxTenants) > 3 {
+			return nil, fmt.Errorf("The provider onlt supports 3 auxiliary tenant IDs")
+		}
+
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),
 			ClientID:           d.Get("client_id").(string),
 			ClientSecret:       d.Get("client_secret").(string),
 			TenantID:           d.Get("tenant_id").(string),
+			AuxiliaryTenantIDs: auxTenants,
 			Environment:        d.Get("environment").(string),
 			MsiEndpoint:        d.Get("msi_endpoint").(string),
 			ClientCertPassword: d.Get("client_certificate_password").(string),
@@ -577,6 +602,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsClientSecretAuth:       true,
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
+			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
 			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html",
