@@ -92,7 +92,7 @@ A `storage_profile` block supports the following:
 
 * `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`.
 
-* `storage_autogrow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
+* `auto_grow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
 
 -> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier.
 

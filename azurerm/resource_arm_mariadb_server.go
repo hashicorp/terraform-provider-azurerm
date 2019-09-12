@@ -154,9 +154,10 @@ func resourceArmMariaDbServer() *schema.Resource {
 							}, false),
 						},
 
-						"storage_autogrow": {
+						"auto_grow": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  string(mariadb.StorageAutogrowEnabled),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mariadb.StorageAutogrowEnabled),
 								string(mariadb.StorageAutogrowDisabled),
@@ -409,7 +410,7 @@ func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.Storage
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
-	autoGrow := storageprofile["storage_autogrow"].(string)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &mariadb.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
@@ -460,7 +461,7 @@ func flattenMariaDbStorageProfile(storage *mariadb.StorageProfile) []interface{}
 
 	values["geo_redundant_backup"] = string(storage.GeoRedundantBackup)
 
-	values["storage_autogrow"] = string(storage.StorageAutogrow)
+	values["auto_grow"] = string(storage.StorageAutogrow)
 
 	return []interface{}{values}
 }

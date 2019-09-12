@@ -278,14 +278,14 @@ func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_autogrow", "Disabled"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
 				),
 			},
 			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMMariaDbServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_autogrow", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
 				),
 			},
 		},
@@ -372,7 +372,6 @@ resource "azurerm_mariadb_server" "test" {
     storage_mb            = 51200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
-	storage_autogrow      = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -635,7 +634,7 @@ resource "azurerm_mariadb_server" "test" {
     storage_mb            = 51200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
-	storage_autogrow      = "Enabled"
+	auto_grow      		  = "Disabled"
   }
 
   administrator_login          = "acctestun"
