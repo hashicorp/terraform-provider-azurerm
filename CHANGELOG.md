@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_network_ddos_protection_plan` [GH-4228]
 * **New Data Source:** `azurerm_proximity_placement_group` [GH-4020]
+* **New Data source:** `azurerm_servicebus_namespace_authorization_rule` [GH-4294]
 * **New Data Source:** `azurerm_sql_database` [GH-4210]
 * **New Data Source:** `azurerm_storage_account_blob_container_sas` [GH-4195]
 * **New Resource:** `azurerm_app_service_certificate` [GH-4192]
