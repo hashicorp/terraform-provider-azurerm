@@ -557,6 +557,26 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 										},
 									},
 								},
+								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+							},
+							"azure_blob_storage": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"sas_url": {
+											Type:      schema.TypeString,
+											Required:  true,
+											Sensitive: true,
+										},
+										"retention_in_days": {
+											Type:     schema.TypeInt,
+											Required: true,
+										},
+									},
+								},
+								ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
 							},
 						},
 					},
@@ -1190,7 +1210,27 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 				fileSystem = append(fileSystem, fileSystemItem)
 			}
 		}
+
+		blobStorage := make([]interface{}, 0)
+		if blobStorageInput := input.HTTPLogs.AzureBlobStorage; blobStorageInput != nil {
+			blobStorageItem := make(map[string]interface{})
+
+			if blobStorageInput.SasURL != nil {
+				blobStorageItem["sas_url"] = *blobStorageInput.SasURL
+			}
+
+			if blobStorageInput.RetentionInDays != nil {
+				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
+			}
+
+			// The API returns a non nil blob logs object when other logs are specified so we'll check that this is disabled before adding it to the statefile.
+			if blobStorageInput.Enabled != nil && *blobStorageInput.Enabled {
+				blobStorage = append(blobStorage, blobStorageItem)
+			}
+		}
+
 		httpLogsItem["file_system"] = fileSystem
+		httpLogsItem["azure_blob_storage"] = blobStorage
 		httpLogs = append(httpLogs, httpLogsItem)
 	}
 	result["http_logs"] = httpLogs
@@ -1249,6 +1289,20 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 					logs.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
 						RetentionInMb:   utils.Int32(int32(fileSystemConfig["retention_in_mb"].(int))),
 						RetentionInDays: utils.Int32(int32(fileSystemConfig["retention_in_days"].(int))),
+						Enabled:         utils.Bool(true),
+					}
+				}
+			}
+
+			if v, ok := httpLogsConfig["azure_blob_storage"]; ok {
+				storageConfigs := v.([]interface{})
+
+				for _, config := range storageConfigs {
+					storageConfig := config.(map[string]interface{})
+
+					logs.HTTPLogs.AzureBlobStorage = &web.AzureBlobStorageHTTPLogsConfig{
+						SasURL:          utils.String(storageConfig["sas_url"].(string)),
+						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
 						Enabled:         utils.Bool(true),
 					}
 				}

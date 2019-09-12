@@ -129,6 +129,7 @@ A `tls` block supports the following:
 * `validate_certificate_chain` - (Optional) Flag indicating whether SSL certificate chain validation should be done when using self-signed certificates for the backend host.
 
 * `validate_certificate_name` - (Optional) Flag indicating whether SSL certificate name validation should be done when using self-signed certificates for the backend host.
+
 ---
 
 ## Attributes Reference

@@ -149,6 +149,8 @@ The following arguments are supported:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
+* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
+
 * `disabled_ssl_protocols` - (Optional / **Deprecated**) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
 ~> **NOTE:** `disabled_ssl_protocols ` has been deprecated in favour of `disabled_protocols` in the `ssl_policy` block.
 
@@ -177,6 +179,14 @@ The following arguments are supported:
 ---
 
 A `authentication_certificate` block supports the following:
+
+* `name` - (Required) The Name of the Authentication Certificate to use.
+
+* `data` - (Required) The contents of the Authentication Certificate which should be used.
+
+---
+
+A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Authentication Certificate to use.
 

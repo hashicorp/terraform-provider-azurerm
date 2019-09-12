@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -29,6 +28,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
@@ -70,6 +70,9 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
+	// inherit the fields from the parent, so that we should be able to set/access these at either level
+	common.Client
+
 	clientId                 string
 	tenantId                 string
 	subscriptionId           string
@@ -77,8 +80,6 @@ type ArmClient struct {
 	usingServicePrincipal    bool
 	environment              azure.Environment
 	skipProviderRegistration bool
-
-	StopContext context.Context
 
 	// Services
 	analysisservices *analysisservices.Client
@@ -102,6 +103,7 @@ type ArmClient struct {
 	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
+	frontdoor        *frontdoor.Client
 	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
@@ -149,6 +151,8 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 
 	// client declarations:
 	client := ArmClient{
+		Client: common.Client{},
+
 		clientId:                 authConfig.ClientID,
 		tenantId:                 authConfig.TenantID,
 		subscriptionId:           authConfig.SubscriptionID,
@@ -226,6 +230,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.frontdoor = frontdoor.BuildClient(o)
 	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)

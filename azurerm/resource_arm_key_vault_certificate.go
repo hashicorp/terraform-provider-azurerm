@@ -236,7 +236,8 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Computed: true,
 										ForceNew: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
 										},
 									},
 									"key_usage": {

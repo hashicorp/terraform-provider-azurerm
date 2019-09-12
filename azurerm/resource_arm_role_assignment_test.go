@@ -25,8 +25,9 @@ func TestAccAzureRMRoleAssignment(t *testing.T) {
 			"requiresImport": testAccAzureRMRoleAssignment_requiresImport,
 		},
 		"assignment": {
-			"sp":    testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal,
-			"group": testAccAzureRMActiveDirectoryServicePrincipal_group,
+			"sp":     testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal,
+			"spType": testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType,
+			"group":  testAccAzureRMActiveDirectoryServicePrincipal_group,
 		},
 		"management": {
 			"assign": testAccAzureRMRoleAssignment_managementGroup,
@@ -65,6 +66,9 @@ func testAccAzureRMRoleAssignment_emptyName(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -91,6 +95,9 @@ func testAccAzureRMRoleAssignment_roleName(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -146,6 +153,9 @@ func testAccAzureRMRoleAssignment_dataActions(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -170,6 +180,9 @@ func testAccAzureRMRoleAssignment_builtin(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
@@ -196,12 +209,16 @@ func testAccAzureRMRoleAssignment_custom(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"skip_service_principal_aad_check",
+				},
 			},
 		},
 	})
 }
 
 func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T) {
+	resourceName := "azurerm_role_assignment.test"
 	ri := tf.AccRandTimeInt()
 	id := uuid.New().String()
 
@@ -212,6 +229,26 @@ func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipal(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMRoleAssignment_servicePrincipal(ri, id),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
+					resource.TestCheckResourceAttr(resourceName, "principal_type", "ServicePrincipal"),
+				),
+			},
+		},
+	})
+}
+
+func testAccAzureRMActiveDirectoryServicePrincipal_servicePrincipalWithType(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	id := uuid.New().String()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleAssignmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleAssignment_servicePrincipalWithType(ri, id),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRoleAssignmentExists("azurerm_role_assignment.test"),
 				),
@@ -441,6 +478,28 @@ resource "azurerm_role_assignment" "test" {
 `, rInt, roleAssignmentID)
 }
 
+func testAccAzureRMRoleAssignment_servicePrincipalWithType(rInt int, roleAssignmentID string) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "current" {}
+
+resource "azuread_application" "test" {
+  name = "acctestspa-%d"
+}
+
+resource "azuread_service_principal" "test" {
+  application_id = "${azuread_application.test.application_id}"
+}
+
+resource "azurerm_role_assignment" "test" {
+  name                             = "%s"
+  scope                            = "${data.azurerm_subscription.current.id}"
+  role_definition_name             = "Reader"
+  principal_id                     = "${azuread_service_principal.test.id}"
+  skip_service_principal_aad_check = true
+}
+`, rInt, roleAssignmentID)
+}
+
 func testAccAzureRMRoleAssignment_group(rInt int, roleAssignmentID string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
@@ -465,17 +524,17 @@ data "azurerm_subscription" "primary" {}
 data "azurerm_client_config" "test" {}
 
 data "azurerm_role_definition" "test" {
-	name = "Monitoring Reader"
+  name = "Monitoring Reader"
 }
 
 resource "azurerm_management_group" "test" {
-	group_id = "%s"
+  group_id = "%s"
 }
 
 resource "azurerm_role_assignment" "test" {
-	scope              = "${azurerm_management_group.test.id}"
-	role_definition_id = "${data.azurerm_role_definition.test.id}"
-	principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
+  scope              = "${azurerm_management_group.test.id}"
+  role_definition_id = "${data.azurerm_role_definition.test.id}"
+  principal_id       = "${data.azurerm_client_config.test.service_principal_object_id}"
 }
 `, groupId)
 }
