@@ -45,6 +45,18 @@ func resourceArmAppService() *schema.Resource {
 				Required: true,
 			},
 
+			"kind": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "App",
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"app",
+					"apiapp",
+				}, true),
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
 			"site_config": azure.SchemaAppServiceSiteConfig(),
 
 			"auth_settings": azure.SchemaAppServiceAuthSettings(),
@@ -213,6 +225,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	appServicePlanId := d.Get("app_service_plan_id").(string)
+	kind := d.Get("kind").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
 	t := d.Get("tags").(map[string]interface{})
@@ -225,6 +238,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	siteEnvelope := web.Site{
 		Location: &location,
 		Tags:     tags.Expand(t),
+		Kind:     utils.String(kind),
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
