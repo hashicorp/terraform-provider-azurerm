@@ -2,7 +2,7 @@ package azurerm
 
 import (
 	"fmt"
-	"log"
+	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
 )
 
 func resourceArmHealthcareService() *schema.Resource {
@@ -25,9 +26,10 @@ func resourceArmHealthcareService() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -55,7 +57,7 @@ func resourceArmHealthcareService() *schema.Resource {
 						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 					},
 				},
@@ -96,11 +98,6 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	// create the cosmodb config object
-	cosmoDbConfig := healthcareapis.ServiceCosmosDbConfigurationInfo{
-		OfferThroughput: &cdba,
-	}
-
 	var svcAccessPolicyArray = []healthcareapis.ServiceAccessPolicyEntry{}
 	for _, objectId := range accessPolicyObjectIds {
 		objectIdMap := objectId.(map[string]interface{})
@@ -108,22 +105,17 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: &objectIdsStr}
 		svcAccessPolicyArray = append(svcAccessPolicyArray, svcAccessPolicyObjectId)
 	}
-	// create the service access policy array for the Service Properties
-	properties := healthcareapis.ServicesProperties{
-		AccessPolicies:        &svcAccessPolicyArray,
-		CosmosDbConfiguration: &cosmoDbConfig,
-	}
 
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
-		Location:   utils.String(location),
-		Tags:       expandedTags,
-		Kind:       &kind,
+		Location: utils.String(location),
+		Tags:     expandedTags,
+		Kind:     &kind,
 		Properties: &healthcareapis.ServicesProperties{
-		AccessPolicies:        &svcAccessPolicyArray,
-		CosmosDbConfiguration: & healthcareapis.ServiceCosmosDbConfigurationInfo{
-			OfferThroughput: &cdba,
+			AccessPolicies: &svcAccessPolicyArray,
+			CosmosDbConfiguration: &healthcareapis.ServiceCosmosDbConfigurationInfo{
+				OfferThroughput: &cdba,
+			},
 		},
-	}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
@@ -175,6 +167,32 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+	if kind := resp.Kind; kind != nil {
+		d.Set("kind", kind)
+	}
+	if properties := resp.Properties; properties != nil {
+		if provisioningState := properties.ProvisioningState; provisioningState != "" {
+			d.Set("provisioning_state", provisioningState)
+		}
+		if policies := properties.AccessPolicies; policies != nil {
+			d.Set("access_policy_object_ids", policies)
+		}
+		if cosmosDbThroughput := properties.CosmosDbConfiguration.OfferThroughput; cosmosDbThroughput != nil {
+			d.Set("cosmodb_throughput", fmt.Sprint(cosmosDbThroughput))
+		}
+		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
+			d.Set("authentication_configuration_authority", *authConfig.Authority)
+			d.Set("authentication_configuration_audience", *authConfig.Audience)
+			d.Set("authentication_configuration_smart_proxy_enabled", strconv.FormatBool(*authConfig.SmartProxyEnabled))
+		}
+		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
+			d.Set("cors_configuration_origins", corsConfig.Origins)
+			d.Set("cors_configuration_headers", corsConfig.Headers)
+			d.Set("cors_configuration_methods", corsConfig.Methods)
+			d.Set("cors_configuration_max_age", corsConfig.MaxAge)
+			d.Set("cors_configuration_allow_credentials", corsConfig.AllowCredentials)
+		}
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 
@@ -190,7 +208,6 @@ func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
 	resGroup := id.ResourceGroup
-	// ToDo Is services right here?
 	name := id.Path["services"]
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
