@@ -1,9 +1,7 @@
 package azurerm
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -84,22 +82,12 @@ func functionAvailabilityChecker(ctx context.Context, name, functionName, resour
 
 		function, err := client.AppServicesClient.ListFunctionSecrets(ctx, resourceGroup, name, functionName)
 
-		// Workaround for https://github.com/Azure/azure-rest-api-specs/issues/7143
-		// Can be removed once definition is fixed.
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(function.Body)
-		jsonBody := buf.String()
-		// Doesn't work because the buffer has already be read.
-
-		var response webmgmt.FunctionSecretsProperties
-		json.Unmarshal([]byte(jsonBody), &response)
-
-		if err != nil || function.StatusCode != 200 || response.Key == nil {
+		if err != nil || function.StatusCode != 200 {
 			log.Printf("[DEBUG] Didn't find Function at %q", name)
 			return nil, "pending", err
 		}
 
 		log.Printf("[DEBUG] Found function at %q", functionName)
-		return response, "available", nil
+		return function, "available", nil
 	}
 }
