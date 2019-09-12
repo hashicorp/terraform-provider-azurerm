@@ -2,8 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -50,7 +53,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 				Default:  false,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"tags": tagsSchema(),
 		},
@@ -117,7 +120,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 
 	d.SetId(*resp.ID)
 
-	return resourceArmPrivateDnsZoneRead(d, meta)
+	return resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d, meta)
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, meta interface{}) error {
@@ -173,19 +176,42 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, m
 	name := id.Path["virtualNetworkLinks"]
 
 	etag := ""
-	future, err := client.Delete(ctx, resGroup, dnsZoneName, name, etag)
-	if err != nil {
+	if future, err := client.Delete(ctx, resGroup, dnsZoneName, name, etag); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("error deleting Private DNS Zone Virtual network link %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("error deleting Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", name, dnsZoneName, resGroup, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
-		return fmt.Errorf("error waiting for deletion of Private DNS Zone Virtual network link %s (resource group %s): %+v", name, resGroup, err)
+	// whilst the Delete above returns a Future, the Azure API's broken such that even though it's marked as "gone"
+	// it's still kicking around - so we have to poll until this is actually gone
+	log.Printf("[DEBUG] Waiting for Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) to be deleted", name, dnsZoneName, resGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending: []string{"Available"},
+		Target:  []string{"NotFound"},
+		Refresh: func() (interface{}, string, error) {
+			log.Printf("[DEBUG] Checking to see if Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) is available", name, dnsZoneName, resGroup)
+			resp, err := client.Get(ctx, resGroup, dnsZoneName, name)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					log.Printf("[DEBUG] Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) was not found", name, dnsZoneName, resGroup)
+					return "NotFound", "NotFound", nil
+				}
+
+				return "", "error", err
+			}
+
+			log.Printf("[DEBUG] Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) still exists", name, dnsZoneName, resGroup)
+			return "Available", "Available", nil
+		},
+		Timeout:                   30 * time.Minute,
+		Delay:                     30 * time.Second,
+		PollInterval:              10 * time.Second,
+		ContinuousTargetOccurence: 5,
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("error waiting for deletion of Virtual Network Link %q (Private DNS Zone %q / Resource Group %q): %+v", name, dnsZoneName, resGroup, err)
 	}
 
 	return nil
