@@ -1758,7 +1758,7 @@ func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]ne
 				}*/
 
 		if data != "" {
-			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(base64Encode(data))
+			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
 		}
 		//	output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = &kvsid
 
