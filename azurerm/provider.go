@@ -580,7 +580,9 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)
 		} else {
-			auxTenants = strings.Split(os.Getenv("ARM_AUXILIARY_TENANT_IDS"), ";")
+			if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
+				auxTenants = strings.Split(v, ";")
+			}
 		}
 
 		if len(auxTenants) > 3 {
