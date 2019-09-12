@@ -117,7 +117,7 @@ resource "azurerm_healthcare_service" "test" {
   }
 
   access_policy_object_ids {
-    object_id          = "${data.azurerm_client_config.current.service_principal_object_id}"
+    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
   }
 }
 `, rInt, rInt)
