@@ -40,6 +40,7 @@ IMPROVEMENTS:
 * `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
 * `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
 * `azurerm_cosmosdb_account` - correctly validate `max_interval_in_seconds` & `max_staleness_prefix` for geo replicated accounts [GH-4273]
+* `azurerm_cosmosdb_account` - increase creation & deletion wait timeout to `3` hours [GH-4271]
 * `azurerm_cosmosdb_sql_container` - changing the `unique_key.paths` property now forces a new resource [GH-4163]
 * `azurerm_eventhub_namespace` - changing the `kafka_enabled` property now forces a new resource [GH-4264]
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
