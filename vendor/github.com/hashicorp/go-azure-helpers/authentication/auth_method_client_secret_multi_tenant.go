@@ -40,6 +40,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) getAuthorizationToken(sende
 		return nil, fmt.Errorf("Error getting Authorization Token for client cert: an MultiTenantOauth token wasn't configured correctly; please file a bug with more details")
 	}
 
+	panic("NOOOO")
 	spt, err := adal.NewMultiTenantServicePrincipalToken(*oauth.MultiTenantOauth, a.clientId, a.clientSecret, endpoint)
 	if err != nil {
 		return nil, err
