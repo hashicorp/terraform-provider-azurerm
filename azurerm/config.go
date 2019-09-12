@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
@@ -17,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
@@ -71,7 +71,7 @@ import (
 // resource classes' respective clients.
 type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
-	common.Client
+	clients.Client
 
 	clientId                 string
 	tenantId                 string
@@ -91,7 +91,7 @@ type ArmClient struct {
 	bot              *bot.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
-	compute          *compute.Client
+	compute          *clients.ComputeClient
 	containers       *containers.Client
 	cosmos           *cosmos.Client
 	databricks       *databricks.Client
@@ -151,7 +151,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 
 	// client declarations:
 	client := ArmClient{
-		Client: common.Client{},
+		Client: clients.Client{},
 
 		clientId:                 authConfig.ClientID,
 		tenantId:                 authConfig.TenantID,
@@ -219,7 +219,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
-	client.compute = compute.BuildClient(o)
+	client.compute = clients.NewComputeClient(o)
 	client.containers = containers.BuildClient(o)
 	client.cosmos = cosmos.BuildClient(o)
 	client.databricks = databricks.BuildClient(o)

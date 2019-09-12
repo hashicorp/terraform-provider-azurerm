@@ -1,4 +1,4 @@
-package compute
+package clients
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
@@ -6,7 +6,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
-type Client struct {
+type ComputeClient struct {
 	AvailabilitySetsClient         *compute.AvailabilitySetsClient
 	DisksClient                    *compute.DisksClient
 	GalleriesClient                *compute.GalleriesClient
@@ -24,7 +24,7 @@ type Client struct {
 	VMImageClient                  *compute.VirtualMachineImagesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewComputeClient(o *common.ClientOptions) *ComputeClient {
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -70,7 +70,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 	vmClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
 
-	return &Client{
+	return &ComputeClient{
 		AvailabilitySetsClient:         &availabilitySetsClient,
 		DisksClient:                    &disksClient,
 		GalleriesClient:                &galleriesClient,
