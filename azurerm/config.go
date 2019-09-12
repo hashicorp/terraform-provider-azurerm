@@ -1,7 +1,6 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -72,6 +71,9 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
+	// inherit the fields from the parent, so that we should be able to set/access these at either level
+	common.Client
+
 	clientId                 string
 	tenantId                 string
 	subscriptionId           string
@@ -79,8 +81,6 @@ type ArmClient struct {
 	usingServicePrincipal    bool
 	environment              azure.Environment
 	skipProviderRegistration bool
-
-	StopContext context.Context
 
 	// Services
 	analysisservices *analysisservices.Client
@@ -153,6 +153,8 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 
 	// client declarations:
 	client := ArmClient{
+		Client: common.Client{},
+
 		clientId:                 c.ClientID,
 		tenantId:                 c.TenantID,
 		subscriptionId:           c.SubscriptionID,
