@@ -461,7 +461,7 @@ func Provider() terraform.ResourceProvider {
 			},
 
 			"auxiliary_tenant_ids": {
-				Type:     schema.TypeList, // Can we make this work with a TypeList?
+				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
