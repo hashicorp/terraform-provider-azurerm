@@ -167,8 +167,7 @@ func resourceArmMySqlServer() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								string(mysql.StorageAutogrowEnabled),
 								string(mysql.StorageAutogrowDisabled),
-							}, true),
-							DiffSuppressFunc: suppress.CaseDifference,
+							}, false),
 						},
 					},
 				},
