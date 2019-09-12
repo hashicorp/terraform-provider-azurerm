@@ -8,7 +8,7 @@ import (
 type Client struct {
 	RecordSetsClient          *privatedns.RecordSetsClient
 	PrivateZonesClient        *privatedns.PrivateZonesClient
-	VirtualNetworkLinksClient privatedns.VirtualNetworkLinksClient
+	VirtualNetworkLinksClient *privatedns.VirtualNetworkLinksClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -24,6 +24,6 @@ func BuildClient(o *common.ClientOptions) *Client {
 	return &Client{
 		RecordSetsClient:          &RecordSetsClient,
 		PrivateZonesClient:        &PrivateZonesClient,
-		VirtualNetworkLinksClient: virtualNetworkLinksClient,
+		VirtualNetworkLinksClient: &virtualNetworkLinksClient,
 	}
 }
