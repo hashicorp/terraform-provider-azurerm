@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -119,8 +118,6 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 		client := testAccProvider.Meta().(*ArmClient).privateDns.VirtualNetworkLinksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		time.Sleep(time.Second * 20) // resource is slow to create / update, retry covers the create, sleeping to make update more reliable
-
 		resp, err := client.Get(ctx, resourceGroup, dnsZoneName, name)
 		if err != nil {
 			return fmt.Errorf("Bad: Get Private DNS zone virtual network link: %+v", err)
@@ -187,9 +184,9 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-	name                	= "acctest%d"
-	private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-	virtual_network_id 		= "${azurerm_virtual_network.test.id}"
+  name                	= "acctest%d"
+  private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
+  virtual_network_id 		= "${azurerm_virtual_network.test.id}"
   resource_group_name 	= "${azurerm_resource_group.test.name}"
 }
 
@@ -203,8 +200,8 @@ func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(rInt int, loc
 
 resource "azurerm_private_dns_zone_virtual_network_link" "import" {
   name                	= "${azurerm_private_dns_zone_virtual_network_link.name}
-	private_dns_zone_name = "${azurerm_private_dns_zone_virtual_network_link.private_dns_zone_name}"
-	virtual_network_id 		= "${azurerm_private_dns_zone_virtual_network_link.virtual_network_id}"
+  private_dns_zone_name = "${azurerm_private_dns_zone_virtual_network_link.private_dns_zone_name}"
+  virtual_network_id 		= "${azurerm_private_dns_zone_virtual_network_link.virtual_network_id}"
   resource_group_name 	= "${azurerm_private_dns_zone_virtual_network_link.resource_group_name}"
 }
 `, template)
@@ -235,12 +232,12 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-	name                	= "acctest%d"
-	private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-	virtual_network_id 		= "${azurerm_virtual_network.test.id}"
-	resource_group_name 	= "${azurerm_resource_group.test.name}"
+  name                	= "acctest%d"
+  private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
+  virtual_network_id 		= "${azurerm_virtual_network.test.id}"
+  resource_group_name 	= "${azurerm_resource_group.test.name}"
 	
-	tags = {
+  tags = {
     environment = "Production"
     cost_center = "MSFT"
   }
@@ -273,12 +270,12 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-	name                	= "acctestzone%d.com"
-	private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-	virtual_network_id 		= "${azurerm_virtual_network.test.id}"
-	resource_group_name 	= "${azurerm_resource_group.test.name}"
+  name                	= "acctestzone%d.com"
+  private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
+  virtual_network_id 		= "${azurerm_virtual_network.test.id}"
+  resource_group_name 	= "${azurerm_resource_group.test.name}"
 	
-	tags = {
+  tags = {
     environment = "staging"
   }
 }
