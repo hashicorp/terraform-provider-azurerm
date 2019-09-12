@@ -13,14 +13,14 @@ Use this data source to access information about an existing ServiceBus Namespac
 ## Example Usage
 
 ```hcl
-data "azurerm_servicebus_namespace_authorization_rule" "test" {
+data "azurerm_servicebus_namespace_authorization_rule" "example" {
   name                = "examplerule"
   namespace_name      = "examplenamespace"
   resource_group_name = "example-resources"
 }
 
 output "rule_id" {
-  value = "${data.azurerm_servicebus_namespace_authorization_rule.test.id}"
+  value = "${data.azurerm_servicebus_namespace_authorization_rule.example.id}"
 }
 ```
 
