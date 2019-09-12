@@ -10,6 +10,7 @@ FEATURES:
 * **New Resource:** `azurerm_app_service_certificate` [GH-4192]
 * **New Resource:** `azurerm_app_service_source_control_token` [GH-4214]
 * **New Resource:** `azurerm_bot_channels_registration` [GH-4245]
+* **New Resource:** `azurerm_bot_connection` [GH-4311]
 * **New Resource:** `azurerm_frontdoor` [GH-3933]
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
 * **New Resource:** `azurerm_kusto_database` [GH-4149]
