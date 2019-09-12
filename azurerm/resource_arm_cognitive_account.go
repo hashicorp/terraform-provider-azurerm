@@ -53,6 +53,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"Bing.Speech",
 					"Bing.SpellCheck",
 					"Bing.SpellCheck.v7",
+					"CognitiveServices",
 					"ComputerVision",
 					"ContentModerator",
 					"CustomSpeech",

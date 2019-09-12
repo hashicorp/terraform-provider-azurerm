@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -89,7 +90,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  string(network.IPv4),
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPv4),
 								string(network.IPv6),
@@ -104,7 +104,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 								string(network.Dynamic),
 								string(network.Static),
 							}, true),
-							StateFunc:        ignoreCaseStateFunc,
+							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -400,7 +400,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 				if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
 					if v := ipProps.PrivateIPAddress; v != nil {
 						if i == 0 {
-							d.Set("private_ip_address", *v)
+							d.Set("private_ip_address", v)
 						}
 						addresses = append(addresses, *v)
 					}

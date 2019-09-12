@@ -195,10 +195,10 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	}
 
 	if serverProps := server.ServerProperties; serverProps != nil {
-		if serverProps.AsAdministrators == nil || serverProps.AsAdministrators.Members == nil {
+		if serverProps.AsAdministrators == nil {
 			d.Set("admin_users", []string{})
 		} else {
-			d.Set("admin_users", *serverProps.AsAdministrators.Members)
+			d.Set("admin_users", serverProps.AsAdministrators.Members)
 		}
 
 		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)

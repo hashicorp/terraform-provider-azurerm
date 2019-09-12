@@ -38,7 +38,7 @@ resource "azurerm_sql_server" "secondary" {
 
 }
 
-resource azurerm_sql_database db1 {
+resource "azurerm_sql_database" "db1" {
   name                = "db1"
   resource_group_name = "${azurerm_sql_server.primary.resource_group_name}"
   location            = "${azurerm_sql_server.primary.location}"
@@ -54,7 +54,7 @@ resource "azurerm_sql_failover_group" "example" {
       id = "${azurerm_sql_server.secondary.id}"
   }
 
-  read_write_endpoint_failover_policy = {
+  read_write_endpoint_failover_policy {
     mode = "Automatic"
     grace_minutes = 60
   }
@@ -101,15 +101,17 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The failover group ID
-* `location` - the location of a SQL server in `partner_servers`
-* `role` - the current role of a SQL server in `partner_servers`
-* `role` - the current role of the SQL server named in `server_name`
+* `id` - The failover group ID.
+* `location` - the location of the failover group.
+* `server_name` - the name of the primary SQL Database Server.
+* `role` - local replication role of the failover group instance.
+* `databases` - list of databases in the failover group.
+* `partner_servers` - list of partner server information for the failover group.
 
 ## Import
 
 SQL Failover Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_sql_database.database1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failovergroups/group1
+terraform import azurerm_sql_failover_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/failovergroups/group1
 ```

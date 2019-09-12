@@ -212,9 +212,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 
 	d.Set("application_security_group_id", applicationSecurityGroupId)
 	d.Set("ip_configuration_name", ipConfigurationName)
-	if id := read.ID; id != nil {
-		d.Set("network_interface_id", *id)
-	}
+	d.Set("network_interface_id", read.ID)
 
 	return nil
 }

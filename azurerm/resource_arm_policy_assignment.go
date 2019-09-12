@@ -23,8 +23,8 @@ import (
 
 func resourceArmPolicyAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPolicyAssignmentCreateOrUpdate,
-		Update: resourceArmPolicyAssignmentCreateOrUpdate,
+		Create: resourceArmPolicyAssignmentCreateUpdate,
+		Update: resourceArmPolicyAssignmentCreateUpdate,
 		Read:   resourceArmPolicyAssignmentRead,
 		Delete: resourceArmPolicyAssignmentDelete,
 		Importer: &schema.ResourceImporter{
@@ -107,7 +107,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 

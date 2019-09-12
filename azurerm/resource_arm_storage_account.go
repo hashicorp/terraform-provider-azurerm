@@ -3,11 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -220,172 +222,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				},
 			},
 
-			"primary_location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_blob_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_blob_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_blob_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_blob_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_queue_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_queue_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_table_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_table_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_table_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_table_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_web_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_web_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_web_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_web_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_dfs_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_dfs_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_dfs_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_dfs_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_file_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_file_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_file_endpoint": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"secondary_file_host": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"primary_access_key": {
-				Type:      schema.TypeString,
-				Sensitive: true,
-				Computed:  true,
-			},
-
-			"secondary_access_key": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"primary_blob_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
-			"secondary_blob_connection_string": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
-			},
-
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -574,6 +410,172 @@ func resourceArmStorageAccount() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"primary_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_location": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_blob_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_queue_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_table_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_table_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_web_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_dfs_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_endpoint": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"secondary_file_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Sensitive: true,
+				Computed:  true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"primary_blob_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_blob_connection_string": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -973,12 +975,31 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
+	// handle the user not having permissions to list the keys
+	d.Set("primary_connection_string", "")
+	d.Set("secondary_connection_string", "")
+	d.Set("primary_blob_connection_string", "")
+	d.Set("secondary_blob_connection_string", "")
+	d.Set("primary_access_key", "")
+	d.Set("secondary_access_key", "")
+
 	keys, err := client.ListKeys(ctx, resGroup, name)
 	if err != nil {
-		return err
+		// the API returns a 200 with an inner error of a 409..
+		var hasWriteLock bool
+		var doesntHavePermissions bool
+		if e, ok := err.(azautorest.DetailedError); ok {
+			if status, ok := e.StatusCode.(int); ok {
+				hasWriteLock = status == http.StatusConflict
+				doesntHavePermissions = status == http.StatusUnauthorized
+			}
+		}
+
+		if !hasWriteLock && !doesntHavePermissions {
+			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resGroup, err)
+		}
 	}
 
-	accessKeys := *keys.Keys
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -1019,35 +1040,44 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if len(accessKeys) > 0 {
-			pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[0].Value, endpointSuffix)
-			d.Set("primary_connection_string", pcs)
-		}
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			if len(storageAccountKeys) > 0 {
+				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, endpointSuffix)
+				d.Set("primary_connection_string", pcs)
+			}
 
-		if len(accessKeys) > 1 {
-			scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[1].Value, endpointSuffix)
-			d.Set("secondary_connection_string", scs)
+			if len(storageAccountKeys) > 1 {
+				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, endpointSuffix)
+				d.Set("secondary_connection_string", scs)
+			}
 		}
 
 		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		var primaryBlobConnectStr string
-		if v := props.PrimaryEndpoints; v != nil {
-			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			var primaryBlobConnectStr string
+			if v := props.PrimaryEndpoints; v != nil {
+				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[0].Value)
+			}
+			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 		}
-		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 
 		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		var secondaryBlobConnectStr string
-		if v := props.SecondaryEndpoints; v != nil {
-			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			var secondaryBlobConnectStr string
+			if v := props.SecondaryEndpoints; v != nil {
+				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[1].Value)
+			}
+			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
-		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 
 		if networkRules := props.NetworkRuleSet; networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
@@ -1056,8 +1086,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	d.Set("primary_access_key", accessKeys[0].Value)
-	d.Set("secondary_access_key", accessKeys[1].Value)
+	if accessKeys := keys.Keys; accessKeys != nil {
+		storageAccountKeys := *accessKeys
+		d.Set("primary_access_key", storageAccountKeys[0].Value)
+		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	}
 
 	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
@@ -1100,7 +1133,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storage.AccountsClient
+	storageClient := meta.(*ArmClient).storage
+	client := storageClient.AccountsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -1149,6 +1183,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
+
+	// remove this from the cache
+	storageClient.ClearFromCache(resourceGroup, name)
 
 	return nil
 }
@@ -1638,7 +1675,9 @@ func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointTy
 		host = u.Host
 	}
 
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

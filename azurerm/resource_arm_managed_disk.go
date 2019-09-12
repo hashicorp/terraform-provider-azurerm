@@ -101,6 +101,18 @@ func resourceArmManagedDisk() *schema.Resource {
 				ValidateFunc: validateDiskSizeGB,
 			},
 
+			"disk_iops_read_write": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+
+			"disk_mbps_read_write": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Computed: true,
+			},
+
 			"encryption_settings": encryptionSettingsSchema(),
 
 			"tags": tags.Schema(),
@@ -173,6 +185,24 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	if v := d.Get("disk_size_gb"); v != 0 {
 		diskSize := int32(v.(int))
 		createDisk.DiskProperties.DiskSizeGB = &diskSize
+	}
+
+	if strings.EqualFold(storageAccountType, string(compute.UltraSSDLRS)) {
+		if d.HasChange("disk_iops_read_write") {
+			v := d.Get("disk_iops_read_write")
+			diskIOPS := int64(v.(int))
+			createDisk.DiskProperties.DiskIOPSReadWrite = &diskIOPS
+		}
+
+		if d.HasChange("disk_mbps_read_write") {
+			v := d.Get("disk_mbps_read_write")
+			diskMBps := int32(v.(int))
+			createDisk.DiskProperties.DiskMBpsReadWrite = &diskMBps
+		}
+	} else {
+		if d.HasChange("disk_iops_read_write") || d.HasChange("disk_mbps_read_write") {
+			return fmt.Errorf("[ERROR] disk_iops_read_write and disk_mbps_read_write are only available for UltraSSD disks")
+		}
 	}
 
 	createOption := d.Get("create_option").(string)
@@ -263,12 +293,10 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if props := resp.DiskProperties; props != nil {
-		if diskSize := props.DiskSizeGB; diskSize != nil {
-			d.Set("disk_size_gb", *diskSize)
-		}
-		if osType := props.OsType; osType != "" {
-			d.Set("os_type", string(osType))
-		}
+		d.Set("disk_size_gb", props.DiskSizeGB)
+		d.Set("os_type", props.OsType)
+		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
+		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
 	}
 
 	if resp.CreationData != nil {
@@ -314,13 +342,9 @@ func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) erro
 
 func flattenAzureRmManagedDiskCreationData(d *schema.ResourceData, creationData *compute.CreationData) {
 	d.Set("create_option", string(creationData.CreateOption))
+	d.Set("source_resource_id", creationData.SourceResourceID)
+	d.Set("source_uri", creationData.SourceURI)
 	if ref := creationData.ImageReference; ref != nil {
-		d.Set("image_reference_id", *ref.ID)
-	}
-	if id := creationData.SourceResourceID; id != nil {
-		d.Set("source_resource_id", *id)
-	}
-	if creationData.SourceURI != nil {
-		d.Set("source_uri", *creationData.SourceURI)
+		d.Set("image_reference_id", ref.ID)
 	}
 }

@@ -6,19 +6,20 @@ import (
 )
 
 type Client struct {
-	AvailabilitySetsClient     *compute.AvailabilitySetsClient
-	DisksClient                *compute.DisksClient
-	GalleriesClient            *compute.GalleriesClient
-	GalleryImagesClient        *compute.GalleryImagesClient
-	GalleryImageVersionsClient *compute.GalleryImageVersionsClient
-	ImagesClient               *compute.ImagesClient
-	SnapshotsClient            *compute.SnapshotsClient
-	UsageClient                *compute.UsageClient
-	VMExtensionImageClient     *compute.VirtualMachineExtensionImagesClient
-	VMExtensionClient          *compute.VirtualMachineExtensionsClient
-	VMScaleSetClient           *compute.VirtualMachineScaleSetsClient
-	VMClient                   *compute.VirtualMachinesClient
-	VMImageClient              *compute.VirtualMachineImagesClient
+	AvailabilitySetsClient         *compute.AvailabilitySetsClient
+	DisksClient                    *compute.DisksClient
+	GalleriesClient                *compute.GalleriesClient
+	GalleryImagesClient            *compute.GalleryImagesClient
+	GalleryImageVersionsClient     *compute.GalleryImageVersionsClient
+	ProximityPlacementGroupsClient *compute.ProximityPlacementGroupsClient
+	ImagesClient                   *compute.ImagesClient
+	SnapshotsClient                *compute.SnapshotsClient
+	UsageClient                    *compute.UsageClient
+	VMExtensionImageClient         *compute.VirtualMachineExtensionImagesClient
+	VMExtensionClient              *compute.VirtualMachineExtensionsClient
+	VMScaleSetClient               *compute.VirtualMachineScaleSetsClient
+	VMClient                       *compute.VirtualMachinesClient
+	VMImageClient                  *compute.VirtualMachineImagesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -40,6 +41,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	ImagesClient := compute.NewImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ImagesClient.Client, o.ResourceManagerAuthorizer)
+
+	ProximityPlacementGroupsClient := compute.NewProximityPlacementGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProximityPlacementGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	SnapshotsClient := compute.NewSnapshotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&SnapshotsClient.Client, o.ResourceManagerAuthorizer)
@@ -63,18 +67,19 @@ func BuildClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&VMClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AvailabilitySetsClient:     &AvailabilitySetsClient,
-		DisksClient:                &DisksClient,
-		GalleriesClient:            &GalleriesClient,
-		GalleryImagesClient:        &GalleryImagesClient,
-		GalleryImageVersionsClient: &GalleryImageVersionsClient,
-		ImagesClient:               &ImagesClient,
-		SnapshotsClient:            &SnapshotsClient,
-		UsageClient:                &UsageClient,
-		VMExtensionImageClient:     &VMExtensionImageClient,
-		VMExtensionClient:          &VMExtensionClient,
-		VMScaleSetClient:           &VMScaleSetClient,
-		VMClient:                   &VMClient,
-		VMImageClient:              &VMImageClient,
+		AvailabilitySetsClient:         &AvailabilitySetsClient,
+		DisksClient:                    &DisksClient,
+		GalleriesClient:                &GalleriesClient,
+		GalleryImagesClient:            &GalleryImagesClient,
+		GalleryImageVersionsClient:     &GalleryImageVersionsClient,
+		ImagesClient:                   &ImagesClient,
+		ProximityPlacementGroupsClient: &ProximityPlacementGroupsClient,
+		SnapshotsClient:                &SnapshotsClient,
+		UsageClient:                    &UsageClient,
+		VMExtensionImageClient:         &VMExtensionImageClient,
+		VMExtensionClient:              &VMExtensionClient,
+		VMScaleSetClient:               &VMScaleSetClient,
+		VMClient:                       &VMClient,
+		VMImageClient:                  &VMImageClient,
 	}
 }

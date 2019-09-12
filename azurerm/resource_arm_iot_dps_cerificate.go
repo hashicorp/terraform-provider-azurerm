@@ -15,9 +15,9 @@ import (
 
 func resourceArmIotDPSCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotDPSCertificateCreateOrUpdate,
+		Create: resourceArmIotDPSCertificateCreateUpdate,
 		Read:   resourceArmIotDPSCertificateRead,
-		Update: resourceArmIotDPSCertificateCreateOrUpdate,
+		Update: resourceArmIotDPSCertificateCreateUpdate,
 		Delete: resourceArmIotDPSCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -51,7 +51,7 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmIotDPSCertificateCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
