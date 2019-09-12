@@ -118,7 +118,12 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 		Location:   utils.String(location),
 		Tags:       expandedTags,
 		Kind:       &kind,
-		Properties: &properties,
+		Properties: &healthcareapis.ServicesProperties{
+		AccessPolicies:        &svcAccessPolicyArray,
+		CosmosDbConfiguration: & healthcareapis.ServiceCosmosDbConfigurationInfo{
+			OfferThroughput: &cdba,
+		},
+	}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, healthcareServiceDescription)
