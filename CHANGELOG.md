@@ -31,6 +31,7 @@ IMPROVEMENTS:
 * `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
 * `azurerm_application_gateway` - allowing `capacity` to be set to `32` [GH-4189]
 * `azurerm_application_gateway` - support OWASP version `3.1` for the `rule_set_version` property [GH-4263]
+* `azurerm_application_gateway` - support for the `trusted_root _certificate` property [GH-4206]
 * `azurerm_app_service` - fixing a bug where the Application `logs` block would get reset when `app_settings` were configured [GH-4243]
 * `azurerm_app_service` - support for sending HTTP Logs to Blob Storage [GH-4249]
 * `azurerm_app_service` - the `ip_restriction.ip_address` property is now optional [GH-4184]
