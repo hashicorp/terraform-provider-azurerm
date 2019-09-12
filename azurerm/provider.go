@@ -440,8 +440,16 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
+	// avoids this showing up in test output
+	var debugLog = func(f string, v ...interface{}) {
+		if os.Getenv("TF_LOG") == "" {
+			return
+		}
+
+		log.Printf(f, v...)
+	}
 	for _, service := range supportedServices {
-		log.Printf("[DEBUG] Registering Data Sources for %q..", service.Name())
+		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
 			if existing := dataSources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Data Source exists for %q", k))
@@ -450,7 +458,7 @@ func Provider() terraform.ResourceProvider {
 			dataSources[k] = v
 		}
 
-		log.Printf("[DEBUG] Registering Resources for %q..", service.Name())
+		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
 		for k, v := range service.SupportedResources() {
 			if existing := resources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Resource exists for %q", k))
