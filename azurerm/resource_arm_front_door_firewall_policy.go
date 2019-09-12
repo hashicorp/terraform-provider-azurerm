@@ -135,9 +135,8 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"match_variable": {
-										Type:          schema.TypeString,
-										Optional:      true,
-										ConflictsWith: []string{"selector"},
+										Type:     schema.TypeString,
+										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
 											string(frontdoor.Cookies),
 											string(frontdoor.PostArgs),
@@ -150,15 +149,9 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										}, false),
 									},
 									"selector": {
-										Type:          schema.TypeString,
-										Optional:      true,
-										ConflictsWith: []string{"match_variable"},
-										ValidateFunc: validation.StringInSlice([]string{
-											string(frontdoor.Cookies),
-											string(frontdoor.PostArgs),
-											string(frontdoor.QueryString),
-											string(frontdoor.RequestHeader),
-										}, false),
+										Type:     schema.TypeString,
+										Optional: true,
+										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"operator": {
 										Type:     schema.TypeString,
@@ -178,16 +171,10 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											string(frontdoor.RegEx),
 										}, false),
 									},
-									"condition": {
-										Type:     schema.TypeString,
+									"negation_condition": {
+										Type:     schema.TypeBool,
 										Optional: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Is",
-											"Is Not",
-											"Contains",
-											"Not Contains",
-										}, false),
-										Default: "Is",
+										Default: false,
 									},
 									"match_value": {
 										Type:     schema.TypeList,
@@ -323,8 +310,8 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	location := azure.NormalizeLocation("Global")
 	enabled := d.Get("enabled").(bool)
 	mode := d.Get("mode").(string)
-	redirectUrl := d.Get("redirect_url ").(string)
-	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int32)
+	redirectUrl := d.Get("redirect_url").(string)
+	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
 	managedRules := d.Get("managed_rule").([]interface{})
@@ -343,7 +330,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 				EnabledState:                  afd.ConvertToPolicyEnabledStateFromBool(enabled),
 				Mode:                          frontdoor.PolicyMode(mode),
 				RedirectURL:                   utils.String(redirectUrl),
-				CustomBlockResponseStatusCode: &customBlockResponseStatusCode,
+				CustomBlockResponseStatusCode: utils.Int32(int32(customBlockResponseStatusCode)),
 				CustomBlockResponseBody:       utils.String(customBlockResponseBody),
 			},
 			CustomRules:           expandArmFrontDoorFirewallCustomRules(customRules),
@@ -423,7 +410,7 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		rateLimitDurationInMinutes := int32(customRule["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold := int32(customRule["rate_limit_threshold"].(int))
 		matchConditions := customRule["match_condition"].([]interface{})
-		action := customRule["action_type"].(string)
+		action := customRule["action"].(string)
 
 		afpCustomRule := frontdoor.CustomRule{
 			Name:                       utils.String(name),
@@ -457,7 +444,7 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		matchVariable := matchCondition["match_variable"].(string)
 		selector := matchCondition["selector"].(string)
 		operator := frontdoor.Operator(matchCondition["operator"].(string))
-		negateCondition := afd.ConvertConditionToBool(matchCondition["condition"].(string))
+		negateCondition := matchCondition["negation_condition"].(bool)
 
 		mv := matchCondition["match_value"].([]interface{})
 		matchValues := make([]string, 0)
@@ -493,11 +480,86 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 }
 
 func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
+	if len(input) == 0 {
+		return nil
+	}
 
-	return nil
+	managedRuleSetList := make([]frontdoor.ManagedRuleSet, 0)
+
+	for _, mr := range input {
+		managedRule := mr.(map[string]interface{})
+
+		ruleType := managedRule["type"].(string)
+		version := managedRule["version"].(string)
+		overrides := managedRule["override"].([]interface{})
+
+		managedRuleSet := frontdoor.ManagedRuleSet{
+			RuleSetType:    utils.String(ruleType),
+			RuleSetVersion: utils.String(version),
+			//RuleGroupOverrides: *[]ManagedRuleGroupOverride
+		}
+
+		if len(overrides) > 0 {
+			for _, o := range overrides {
+				override := o.(map[string]interface{})
+
+				ruleGroupName := override["rule_group_name"].(string)
+				rules := override["rule"].([]interface{})
+
+				managedRuleGroupOverride := frontdoor.ManagedRuleGroupOverride{
+					RuleGroupName: utils.String(ruleGroupName),
+					//Rules: *[]ManagedRuleOverride
+				}
+
+				if len(rules) > 0 {
+					managedRuleOverrides := make([]frontdoor.ManagedRuleOverride, 0)
+
+					for _, r := range rules {
+						rule := r.(map[string]interface{})
+
+						ruleId := rule["rule_id"].(string)
+						enabled := rule["enabled"].(bool)
+						action := rule["action"].(string)
+
+						managedRuleOverride := frontdoor.ManagedRuleOverride{
+							RuleID:       utils.String(ruleId),
+							EnabledState: afd.ConvertBoolToManagedRuleEnabledState(enabled),
+							Action:       frontdoor.ActionType(action),
+						}
+
+						managedRuleOverrides = append(managedRuleOverrides, managedRuleOverride)
+					}
+
+					managedRuleGroupOverride.Rules = &managedRuleOverrides
+				}
+			}
+
+			// Done processing overrides now add them to the managed rule set array
+			managedRuleSetList = append(managedRuleSetList, managedRuleSet)
+		}
+	}
+
+	output := frontdoor.ManagedRuleSetList{
+		ManagedRuleSets: &managedRuleSetList,
+	}
+
+	return &output
 }
 
 func expandArmFrontDoorFirewallFrontendEndpointLinks(input []interface{}) *[]frontdoor.FrontendEndpointLink {
+	if len(input) == 0 {
+		return nil
+	}
 
-	return nil
+	frontendEndpointLinks := make([]frontdoor.FrontendEndpointLink, 0)
+
+	for _, frontendEndpointLink := range input {
+		fel := frontdoor.FrontendEndpointLink{
+			ID: utils.String(frontendEndpointLink.(string)),
+		}
+
+		frontendEndpointLinks = append(frontendEndpointLinks, fel)
+	}
+
+	return &frontendEndpointLinks
 }

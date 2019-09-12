@@ -149,7 +149,6 @@ func VerifyLoadBalancingAndHealthProbeSettings(backendPools []interface{}, loadB
 	return nil
 }
 
-
 func VerifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error {
 	for _, configFrontendEndpoint := range configFrontendEndpoints {
 		if configFrontend := configFrontendEndpoint.(map[string]interface{}); len(configFrontend) > 0 {
@@ -181,30 +180,6 @@ func VerifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error
 	return nil
 }
 
-func VerifyCustomRules(input []interface{}) error {
-	if len(input) == 0 {
-		return nil
-	}
-
-	for _, cr := range input {
-		customRule := cr.(map[string]interface{})
-		matchConditions := customRule["match_condition"].([]interface{})
-		ruleName := customRule["name"]
-
-		for _, mc := range matchConditions {
-			matchCondition := mc.(map[string]interface{})
-			matchVariable := matchCondition["match_variable"].(string)
-			selector := matchCondition["selector"].(string)
-
-			if matchVariable == "" && selector == "" {
-				return fmt.Errorf(`"custom_rule":%q is invalid, either "match_variable" or "selector" must be defined`, ruleName)
-			}
-		}
-	}
-
-	return nil
-}
-
 func ConvertToPolicyEnabledStateFromBool(isEnabled bool) frontdoor.PolicyEnabledState {
 	if isEnabled {
 		return frontdoor.PolicyEnabledStateEnabled
@@ -221,10 +196,10 @@ func ConvertBoolToCustomRuleEnabledState(isEnabled bool) frontdoor.CustomRuleEna
 	return frontdoor.CustomRuleEnabledStateDisabled
 }
 
-func ConvertConditionToBool(condition string) bool {
-	if strings.Contains(strings.ToLower(condition), "not") {
-		return true
+func ConvertBoolToManagedRuleEnabledState(isEnabled bool) frontdoor.ManagedRuleEnabledState {
+	if isEnabled {
+		return frontdoor.ManagedRuleEnabledStateEnabled
 	}
 
-	return false
+	return frontdoor.ManagedRuleEnabledStateDisabled
 }
