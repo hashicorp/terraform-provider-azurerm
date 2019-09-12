@@ -463,6 +463,7 @@ func Provider() terraform.ResourceProvider {
 			"auxiliary_tenant_ids": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 3,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -561,6 +562,10 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			auxTenants = *utils.ExpandStringSlice(v)
 		} else {
 			auxTenants = strings.Split(os.Getenv("ARM_AUXILIARY_TENANT_IDS"), ";")
+		}
+
+		if len(auxTenants) > 3 {
+			return nil, fmt.Errorf("The provider onlt supports 3 auxiliary tenant IDs")
 		}
 
 		builder := &authentication.Builder{
