@@ -90,7 +90,7 @@ func testCheckAzureRMHealthcareServiceDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("LoadBalancer still exists:\n%#v", resp.Status)
+			return fmt.Errorf("HealthCare Service still exists:\n%#v", resp.Status)
 		}
 	}
 
