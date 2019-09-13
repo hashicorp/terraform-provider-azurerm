@@ -69,7 +69,7 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] Healthcare Service %q was not found (Resource Group %q)", name, resourceGroup)
 			d.SetId("")
-			return nil
+			return fmt.Errorf("HealthCare Service %q was not found in Resource Group %q", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on Azure Healthcare Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
