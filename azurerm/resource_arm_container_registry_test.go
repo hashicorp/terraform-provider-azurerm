@@ -524,7 +524,7 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 func testAccAzureRMContainerRegistry_basic_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRg-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -544,7 +544,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_basicManaged(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRg-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -575,7 +575,7 @@ resource "azurerm_container_registry" "import" {
 func testAccAzureRMContainerRegistry_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRg-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -596,7 +596,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_completeUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRg-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -617,7 +617,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_geoReplication(rInt int, location string, sku string, georeplicationLocations string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -634,7 +634,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -650,7 +650,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
@@ -670,7 +670,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_networkAccessProfile_ip(rInt int, location string, sku string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%[1]d"
+  name     = "acctestrg-%[1]d"
   location = "%[2]s"
 }
 
@@ -696,7 +696,7 @@ resource "azurerm_container_registry" "test" {
 func testAccAzureRMContainerRegistry_networkAccessProfile_vnet(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRg-%[1]d"
+  name     = "acctestrg-%[1]d"
   location = "%[2]s"
 }
 
