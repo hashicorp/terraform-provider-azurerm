@@ -183,7 +183,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
 			d.Set("authentication_configuration_authority", authConfig.Authority)
 			d.Set("authentication_configuration_audience", authConfig.Audience)
-			d.Set("authentication_configuration_smart_proxy_enabled", strconv.FormatBool(*authConfig.SmartProxyEnabled))
+			d.Set("authentication_configuration_smart_proxy_enabled", authConfig.SmartProxyEnabled)
 		}
 		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
 			d.Set("cors_configuration_origins", corsConfig.Origins)
