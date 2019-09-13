@@ -262,7 +262,35 @@ func TestAccAzureRMMariaDbServer_updateSKU(t *testing.T) {
 	})
 }
 
-//
+func TestAccAzureRMMariaDbServer_storageAutogrow(t *testing.T) {
+	resourceName := "azurerm_mariadb_server.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	config := testAccAzureRMMariaDbServer_basic(ri, location)
+	updatedConfig := testAccAzureRMMariaDbServer_storageAutogrowUpdated(ri, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMariaDbServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMariaDbServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMariaDbServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
+				),
+			},
+		},
+	})
+}
 
 func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -573,6 +601,40 @@ resource "azurerm_mariadb_server" "test" {
     storage_mb            = 4096000
     backup_retention_days = 7
     geo_redundant_backup  = "Enabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "10.2"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMariaDbServer_storageAutogrowUpdated(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mariadb_server" "test" {
+  name                = "acctestmariadbsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "B_Gen5_2"
+    capacity = 2
+    tier     = "Basic"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+	auto_grow      		  = "Disabled"
   }
 
   administrator_login          = "acctestun"

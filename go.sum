@@ -130,8 +130,6 @@ github.com/dimchansky/utfbom v1.0.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQ
 github.com/dimchansky/utfbom v1.1.0 h1:FcM3g+nofKgUteL8dm/UpdRXNC9KmADgTpLKsu0TRo4=
 github.com/dimchansky/utfbom v1.1.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQvIirEdv+8=
 github.com/dnaeon/go-vcr v0.0.0-20180920040454-5637cf3d8a31/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
-github.com/dnaeon/go-vcr v1.0.1 h1:r8L/HqC0Hje5AXMu1ooW8oyQyOFv4GxqpL0nRP7SLLY=
-github.com/dnaeon/go-vcr v1.0.1/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
 github.com/dylanmei/iso8601 v0.1.0 h1:812NGQDBcqquTfH5Yeo7lwR0nzx/cKdsmf3qMjPURUI=
 github.com/dylanmei/iso8601 v0.1.0/go.mod h1:w9KhXSgIyROl1DefbMYIE7UVSIvELTbMrCfx+QkYnoQ=
@@ -440,12 +438,6 @@ github.com/terraform-providers/terraform-provider-azuread v0.6.0/go.mod h1:O4kN9
 github.com/terraform-providers/terraform-provider-openstack v1.15.0 h1:adpjqej+F8BAX9dHmuPF47sUIkgifeqBu6p7iCsyj0Y=
 github.com/terraform-providers/terraform-provider-openstack v1.15.0/go.mod h1:2aQ6n/BtChAl1y2S60vebhyJyZXBsuAI5G4+lHrT1Ew=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
-github.com/tombuildsstuff/giovanni v0.4.0 h1:MHJuSqcRkYqoNMIBpOjn3ljwAmABR5GPmtFH11bm/Vo=
-github.com/tombuildsstuff/giovanni v0.4.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
-github.com/tombuildsstuff/giovanni v0.4.1-0.20190903215726-2cef302b48fa h1:s49bFLgKvyf4HH+3Hk1Lfa1wuTmJ/0PQW9Jbhi3mgTw=
-github.com/tombuildsstuff/giovanni v0.4.1-0.20190903215726-2cef302b48fa/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
-github.com/tombuildsstuff/giovanni v0.4.1-0.20190904054847-5e2f814cba5a h1:Ucv3t1V9CERUzQTmdjzzgPnA0oRIdc+WYfry6BaL3P0=
-github.com/tombuildsstuff/giovanni v0.4.1-0.20190904054847-5e2f814cba5a/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
 github.com/tombuildsstuff/giovanni v0.5.0 h1:ih4qTvjOOAHubTdINDWtrTpHyHNzrqam4xcIWQY9A1A=
 github.com/tombuildsstuff/giovanni v0.5.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5 h1:cMjKdf4PxEBN9K5HaD9UMW8gkTbM0kMzkTa9SJe0WNQ=

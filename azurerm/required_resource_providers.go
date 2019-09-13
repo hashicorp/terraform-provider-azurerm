@@ -46,6 +46,7 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.ManagedIdentity":      {},
 		"Microsoft.Management":           {},
 		"Microsoft.Maps":                 {},
+		"Microsoft.MarketplaceOrdering":  {},
 		"Microsoft.Media":                {},
 		"Microsoft.Network":              {},
 		"Microsoft.NotificationHubs":     {},

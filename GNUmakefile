@@ -21,7 +21,7 @@ build: fmtcheck
 
 build-docker:
 	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.12 make build
+	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.13 make build
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -47,7 +47,7 @@ tflint:
         ./$(PKG_NAME)
 
 test-docker:
-	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.12 make test
+	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1

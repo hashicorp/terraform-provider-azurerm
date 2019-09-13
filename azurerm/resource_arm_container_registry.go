@@ -155,6 +155,28 @@ func resourceArmContainerRegistry() *schema.Resource {
 								},
 							},
 						},
+
+						"virtual_network": {
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Allow),
+										}, false),
+									},
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -574,16 +596,28 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 	ipRules := make([]containerregistry.IPRule, 0)
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
-		ipRules =
-			append(ipRules, containerregistry.IPRule{
-				Action:           containerregistry.Action(config["action"].(string)),
-				IPAddressOrRange: utils.String(config["ip_range"].(string)),
-			})
+		newIpRule := containerregistry.IPRule{
+			Action:           containerregistry.Action(config["action"].(string)),
+			IPAddressOrRange: utils.String(config["ip_range"].(string)),
+		}
+		ipRules = append(ipRules, newIpRule)
+	}
+
+	networkRuleConfigs := profile["virtual_network"].(*schema.Set).List()
+	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
+	for _, networkRuleInterface := range networkRuleConfigs {
+		config := networkRuleInterface.(map[string]interface{})
+		newVirtualNetworkRule := containerregistry.VirtualNetworkRule{
+			Action:                   containerregistry.Action(config["action"].(string)),
+			VirtualNetworkResourceID: utils.String(config["subnet_id"].(string)),
+		}
+		virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
 	}
 
 	networkRuleSet := containerregistry.NetworkRuleSet{
-		DefaultAction: containerregistry.DefaultAction(profile["default_action"].(string)),
-		IPRules:       &ipRules,
+		DefaultAction:       containerregistry.DefaultAction(profile["default_action"].(string)),
+		IPRules:             &ipRules,
+		VirtualNetworkRules: &virtualNetworkRules,
 	}
 	return &networkRuleSet
 }
@@ -612,6 +646,20 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 	}
 
 	values["ip_rule"] = ipRules
+
+	virtualNetworkRules := make([]interface{}, 0)
+
+	if networkRuleSet.VirtualNetworkRules != nil {
+		for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
+			value := make(map[string]interface{})
+			value["action"] = string(virtualNetworkRule.Action)
+
+			value["subnet_id"] = virtualNetworkRule.VirtualNetworkResourceID
+			virtualNetworkRules = append(virtualNetworkRules, value)
+		}
+	}
+
+	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
 }

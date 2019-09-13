@@ -1,13 +1,13 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
@@ -29,6 +28,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
@@ -70,6 +70,9 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
+	// inherit the fields from the parent, so that we should be able to set/access these at either level
+	clients.Client
+
 	clientId                 string
 	tenantId                 string
 	subscriptionId           string
@@ -77,8 +80,6 @@ type ArmClient struct {
 	usingServicePrincipal    bool
 	environment              azure.Environment
 	skipProviderRegistration bool
-
-	StopContext context.Context
 
 	// Services
 	analysisservices *analysisservices.Client
@@ -90,7 +91,7 @@ type ArmClient struct {
 	bot              *bot.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
-	compute          *compute.Client
+	compute          *clients.ComputeClient
 	containers       *containers.Client
 	cosmos           *cosmos.Client
 	databricks       *databricks.Client
@@ -102,6 +103,7 @@ type ArmClient struct {
 	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
+	frontdoor        *frontdoor.Client
 	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
@@ -141,58 +143,60 @@ type ArmClient struct {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
-	env, err := authentication.DetermineEnvironment(c.Environment)
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
 
 	// client declarations:
 	client := ArmClient{
-		clientId:                 c.ClientID,
-		tenantId:                 c.TenantID,
-		subscriptionId:           c.SubscriptionID,
+		Client: clients.Client{},
+
+		clientId:                 authConfig.ClientID,
+		tenantId:                 authConfig.TenantID,
+		subscriptionId:           authConfig.SubscriptionID,
 		partnerId:                partnerId,
 		environment:              *env,
-		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
+		usingServicePrincipal:    authConfig.AuthenticatedAsAServicePrincipal,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
-	oauthConfig, err := c.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
+	oauthConfig, err := authConfig.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauthConfig == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
+		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", authConfig.TenantID)
 	}
 
 	sender := sender.BuildSender("AzureRM")
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
+	auth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := c.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
+	graphAuth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Storage Endpoints
-	storageAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
+	storageAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
 	// Key Vault Endpoints
-	keyVaultAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
+	keyVaultAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
 	o := &common.ClientOptions{
-		SubscriptionId:              c.SubscriptionID,
-		TenantID:                    c.TenantID,
+		SubscriptionId:              authConfig.SubscriptionID,
+		TenantID:                    authConfig.TenantID,
 		PartnerId:                   partnerId,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
@@ -215,7 +219,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
-	client.compute = compute.BuildClient(o)
+	client.compute = clients.NewComputeClient(o)
 	client.containers = containers.BuildClient(o)
 	client.cosmos = cosmos.BuildClient(o)
 	client.databricks = databricks.BuildClient(o)
@@ -226,6 +230,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 	client.dns = dns.BuildClient(o)
 	client.eventGrid = eventgrid.BuildClient(o)
 	client.eventhub = eventhub.BuildClient(o)
+	client.frontdoor = frontdoor.BuildClient(o)
 	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)

@@ -65,6 +65,18 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
+			"principal_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"skip_service_principal_aad_check": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -126,6 +138,12 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
+	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
+
+	if skipPrincipalCheck {
+		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
+	}
+
 	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta)); err != nil {
 		return err
 	}
@@ -164,6 +182,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("scope", props.Scope)
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
+		d.Set("principal_type", props.PrincipalType)
 
 		//allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleId := props.RoleDefinitionID; roleId != nil {

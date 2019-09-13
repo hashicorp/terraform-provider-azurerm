@@ -593,9 +593,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
-	// remove DIAGNOSTICS* settings - Azure will sync these, so just maintain the logs block equivalents in the state
+	// remove DIAGNOSTICS*, WEBSITE_HTTPLOGGING* settings - Azure will sync these, so just maintain the logs block equivalents in the state
 	delete(appSettings, "DIAGNOSTICS_AZUREBLOBCONTAINERSASURL")
 	delete(appSettings, "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS")
+	delete(appSettings, "WEBSITE_HTTPLOGGING_CONTAINER_URL")
+	delete(appSettings, "WEBSITE_HTTPLOGGING_RETENTION_DAYS")
 
 	if err := d.Set("app_settings", appSettings); err != nil {
 		return fmt.Errorf("Error setting `app_settings`: %s", err)
