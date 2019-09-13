@@ -181,7 +181,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("cosmodb_throughput", fmt.Sprint(cosmosDbThroughput))
 		}
 		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
-			d.Set("authentication_configuration_authority", fmt.Sprint(*authConfig.Authority))
+			d.Set("authentication_configuration_authority", authConfig.Authority)
 			d.Set("authentication_configuration_audience", authConfig.Audience)
 			d.Set("authentication_configuration_smart_proxy_enabled", strconv.FormatBool(*authConfig.SmartProxyEnabled))
 		}
