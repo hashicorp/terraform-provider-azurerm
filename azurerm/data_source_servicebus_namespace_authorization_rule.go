@@ -54,7 +54,7 @@ func dataSourceArmServiceBusNamespaceAuthorizationRule() *schema.Resource {
 }
 
 func dataSourceArmServiceBusNamespaceAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.NamespacesClient
+	client := meta.(*ArmClient).ServiceBus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
