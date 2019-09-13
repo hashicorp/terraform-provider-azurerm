@@ -36,6 +36,7 @@ resource "azurerm_mariadb_server" "test" {
     storage_mb            = 5120
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    storage_autogrow      = "Disabled"
   }
 
   administrator_login          = "mariadbadmin"
@@ -90,6 +91,8 @@ A `storage_profile` block supports the following:
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
 * `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`.
+
+* `auto_grow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
 
 -> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier.
 

@@ -1,49 +1,21 @@
-AzureRM Terraform Provider
-==================
+# Terraform Provider for Azure (Resource Manager)
 
-- Website: https://www.terraform.io
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
-- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
-- Slack workspace: [Terraform on Azure](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LTJkZTJhNTg3NTE5ZTdjZjFhMThmMTVmOTg5YWJkMDU1YTMzN2YyOWJmZGM3MGI4OTQ0ODQxNTEyNjdjMDAxMjM))
+The AzureRM Provider supports Terraform 0.10.x and later - but Terraform 0.12.x is recommended.
 
-General Requirements
-------------
+* [Terraform Website](https://www.terraform.io)
+* [AzureRM Provider Documentation](https://www.terraform.io/docs/providers/azurerm/index.html)
+* [AzureRM Provider Usage Examples](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples)
+* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LTJkZTJhNTg3NTE5ZTdjZjFhMThmMTVmOTg5YWJkMDU1YTMzN2YyOWJmZGM3MGI4OTQ0ODQxNTEyNjdjMDAxMjM))
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
--	[Go](https://golang.org/doc/install) 1.12.x (to build the provider plugin)
-
-Windows Specific Requirements
------------------------------
-- [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
-- [Git Bash for Windows](https://git-scm.com/download/win)
-
-For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
-
-For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
-
-Building The Provider
----------------------
-
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm`
-
-```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-azurerm
-```
-
-Enter the provider directory and build the provider
-
-```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm
-$ make build
-```
-
-Using the provider
-----------------------
+## Usage Example
 
 ```
 # Configure the Microsoft Azure Provider
 provider "azurerm" {
+  # We recommend pinning to the specific version of the Azure Provider you're using
+  # since new versions are released frequently
+  version = "=1.34.0"
+
   # More information on the authentication methods supported by
   # the AzureRM Provider can be found here:
   # http://terraform.io/docs/providers/azurerm/index.html
@@ -71,12 +43,34 @@ resource "azurerm_virtual_network" "test" {
 
 Further [usage documentation is available on the Terraform website](https://www.terraform.io/docs/providers/azurerm/index.html).
 
-Developing the Provider
----------------------------
+## Developer Requirements
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.12+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+* [Terraform](https://www.terraform.io/downloads.html) version 0.10.x +
+* [Go](https://golang.org/doc/install) version 1.13.x (to build the provider plugin)
 
-To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+If you're on Windows you'll also need:
+* [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
+* [Git Bash for Windows](https://git-scm.com/download/win)
+
+For *GNU32 Make*, make sure its bin path is added to PATH environment variable.*
+
+For *Git Bash for Windows*, at the step of "Adjusting your PATH environment", please choose "Use Git and optional Unix tools from Windows Command Prompt".*
+
+## Developing the Provider
+
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.13+ is **required**). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+
+First clone the repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm`
+
+```sh
+$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
+$ git clone git@github.com:terraform-providers/terraform-provider-azurerm
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-azurerm
+```
+
+Once inside the provider directory, you can run `make tools` to install the dependent tooling required to compile the provider.
+
+At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 ```sh
 $ make build
@@ -85,7 +79,13 @@ $ $GOPATH/bin/terraform-provider-azurerm
 ...
 ```
 
-In order to run the unit tests for the provider, you can run:
+You can also cross-compile if necessary:
+
+```sh
+GOOS=windows GOARCH=amd64 make build
+```
+
+In order to run the Unit Tests for the provider, you can run:
 
 ```sh
 $ make test
@@ -110,8 +110,3 @@ The following Environment Variables must be set in your shell prior to running a
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
 
-Crosscompiling
---------------
-```sh
-GOOS=windows GOARCH=amd64 make build
-```

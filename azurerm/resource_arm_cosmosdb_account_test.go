@@ -477,6 +477,30 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_customId(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_geoReplicated_non_boundedStaleness_cp(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(ri, testLocation(), testAltLocation(), documentdb.Session),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.Session), 2),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_geoReplicated_add_remove(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -864,6 +888,18 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 `
 
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), co, fmt.Sprintf(`
+        geo_location {
+            prefix            = "acctest-%d-custom-id"
+            location          = "%s"
+            failover_priority = 1
+        }
+
+    `, rInt, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(rInt int, location string, altLocation string, cLevel documentdb.DefaultConsistencyLevel) string {
+
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(cLevel), "", fmt.Sprintf(`
         geo_location {
             prefix            = "acctest-%d-custom-id"
             location          = "%s"

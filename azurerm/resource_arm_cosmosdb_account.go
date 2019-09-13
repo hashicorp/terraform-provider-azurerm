@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -332,14 +331,11 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
-		// todo remove when https://github.com/Azure/azure-sdk-for-go/issues/5157 is fixed
-		if !utils.ResponseWasStatusCode(r, http.StatusInternalServerError) {
-			return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-	} else {
-		if !utils.ResponseWasNotFound(r) {
-			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
-		}
+		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if !utils.ResponseWasNotFound(r) {
+		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 	}
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
@@ -378,7 +374,8 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
 
-	if cp := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy; len(geoLocations) > 1 && cp != nil {
+	cp := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy
+	if len(geoLocations) > 1 && cp != nil && cp.DefaultConsistencyLevel == documentdb.BoundedStaleness {
 		if msp := cp.MaxStalenessPrefix; msp != nil && *msp < 100000 {
 			return fmt.Errorf("Error max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
 		}
@@ -736,7 +733,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"NotFound"},
-		Timeout:    60 * time.Minute,
+		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 
@@ -773,7 +770,7 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Deleting"},
 		Target:     []string{"Succeeded"},
-		Timeout:    60 * time.Minute,
+		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
