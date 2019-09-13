@@ -57,7 +57,7 @@ func resourceArmHealthcareService() *schema.Resource {
 						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: validate.UUID,
 						},
 					},
 				},
