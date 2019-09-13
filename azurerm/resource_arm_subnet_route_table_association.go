@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,12 +55,20 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 		return err
 	}
 
+	parsedRouteTableId, err := networkSvc.ParseRouteTableResourceID(routeTableId)
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
+
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	locks.ByName(subnetName, subnetResourceName)
-	defer locks.UnlockByName(subnetName, subnetResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -178,8 +187,17 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 		return nil
 	}
 
-	locks.ByName(subnetName, subnetResourceName)
-	defer locks.UnlockByName(subnetName, subnetResourceName)
+	// once we have the route table id to lock on, lock on that
+	parsedRouteTableId, err := networkSvc.ParseRouteTableResourceID(*props.RouteTable.ID)
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
+
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
