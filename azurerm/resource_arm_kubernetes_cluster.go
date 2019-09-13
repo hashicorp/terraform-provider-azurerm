@@ -1455,17 +1455,6 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	return []interface{}{values}
 }
 
-func resourceKubernetesClusterServicePrincipalProfileHash(v interface{}) int {
-	// TODO: this method should be able to be removed in time
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", m["client_id"].(string)))
-	}
-
-	return hashcode.String(buf.String())
-}
-
 func flattenKubernetesClusterKubeConfig(config kubernetes.KubeConfig) []interface{} {
 	values := make(map[string]interface{})
 
