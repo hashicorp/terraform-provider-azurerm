@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: bot_connection"
+page_title: "Azure Resource Manager: azurerm_bot_connection"
 sidebar_current: "docs-azurerm-resource-bot-connection"
 description: |-
   Manages a Bot Connection.

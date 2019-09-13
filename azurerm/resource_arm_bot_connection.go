@@ -161,11 +161,10 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 	if props := resp.Properties; props != nil {
 		d.Set("client_id", props.ClientID)
 		d.Set("scopes", props.Scopes)
-		if parameters := props.Parameters; parameters != nil {
-			if err := d.Set("parameters", flattenAzureRMBotConnectionParameters(parameters)); err != nil {
-				return fmt.Errorf("Error setting `parameters`: %+v", err)
-			}
+		if err := d.Set("parameters", flattenAzureRMBotConnectionParameters(props.Parameters)); err != nil {
+			return fmt.Errorf("Error setting `parameters`: %+v", err)
 		}
+
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -246,6 +245,9 @@ func expandAzureRMBotConnectionParameters(input map[string]interface{}) *[]botse
 
 func flattenAzureRMBotConnectionParameters(input *[]botservice.ConnectionSettingParameter) map[string]interface{} {
 	output := make(map[string]interface{})
+	if input == nil {
+		return output
+	}
 
 	for _, parameter := range *input {
 		if key := parameter.Key; key != nil {
