@@ -47,6 +47,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_sql_container` - changing the `unique_key.paths` property now forces a new resource [GH-4163]
 * `azurerm_eventhub_namespace` - changing the `kafka_enabled` property now forces a new resource [GH-4264]
 * `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
+* `azurerm_kubernetes_cluster` - prevent `pod_cidr` and azure `network_plugin` from being set at the same time causing a new resource to be created [GH-4286]
 * `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
 * `azurerm_mariadb_server` - support for configuring `auto_grow` [GH-4302]
 * `azurerm_managed_disk` - add support for the Ultra SSD `disk_iops_read_write` & `disk_mbps_read_write` properties [GH-4102]
