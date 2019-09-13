@@ -263,9 +263,6 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 	skuPremium := "Premium"
 	skuBasic := "Basic"
 
-	containerRegistryName := fmt.Sprintf("testacccr%d", ri)
-	resourceGroupName := fmt.Sprintf("testAccRg-%d", ri)
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -273,10 +270,9 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 		Steps: []resource.TestStep{
 			// first config creates an ACR with locations
 			{
+				// TODO: fix this to use dynamic locations
 				Config: testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `eastus", "westus`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "name", containerRegistryName),
-					resource.TestCheckResourceAttr(dsn, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
 					resource.TestCheckResourceAttr(dsn, "georeplication_locations.#", "2"),
 					testCheckAzureRMContainerRegistryExists(dsn),
@@ -287,8 +283,6 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 			{
 				Config: testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `centralus", "eastus`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "name", containerRegistryName),
-					resource.TestCheckResourceAttr(dsn, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
 					resource.TestCheckResourceAttr(dsn, "georeplication_locations.#", "2"),
 					testCheckAzureRMContainerRegistryExists(dsn),
@@ -299,8 +293,6 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 			{
 				Config: testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation(ri, testLocation(), skuPremium),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "name", containerRegistryName),
-					resource.TestCheckResourceAttr(dsn, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
 					testCheckAzureRMContainerRegistryExists(dsn),
 					testCheckAzureRMContainerRegistryGeoreplications(dsn, skuPremium, nil),
@@ -310,8 +302,6 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 			{
 				Config: testAccAzureRMContainerRegistry_geoReplication(ri, testLocation(), skuPremium, `eastus", "westus`),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "name", containerRegistryName),
-					resource.TestCheckResourceAttr(dsn, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dsn, "sku", skuPremium),
 					resource.TestCheckResourceAttr(dsn, "georeplication_locations.#", "2"),
 					testCheckAzureRMContainerRegistryExists(dsn),
@@ -322,8 +312,6 @@ func TestAccAzureRMContainerRegistry_geoReplication(t *testing.T) {
 			{
 				Config: testAccAzureRMContainerRegistry_geoReplicationUpdateWithNoLocation_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dsn, "name", containerRegistryName),
-					resource.TestCheckResourceAttr(dsn, "resource_group_name", resourceGroupName),
 					resource.TestCheckResourceAttr(dsn, "sku", skuBasic),
 					testCheckAzureRMContainerRegistryExists(dsn),
 					testCheckAzureRMContainerRegistryGeoreplications(dsn, skuBasic, nil),
