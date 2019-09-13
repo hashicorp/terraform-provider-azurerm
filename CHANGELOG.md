@@ -26,6 +26,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` [GH-4166]
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * compute: updating to API version `2018-10-01` [GH-4274]
+* network: updating to API version `2019-06-01` [GH-4291]
 * storage: caching the Resource Group Name / Account Key [GH-4205]
 * storage: switching to use SharedKey for authentication with Blobs/Containers rather than SharedKeyLite [GH-4235]
 * Data Source: `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account [GH-4248]
