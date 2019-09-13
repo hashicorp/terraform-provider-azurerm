@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"strconv"
+	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -10,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
 )
 
 func resourceArmHealthcareService() *schema.Resource {
