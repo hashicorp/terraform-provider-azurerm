@@ -6,7 +6,6 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,22 +30,48 @@ func dataSourceArmHealthcareService() *schema.Resource {
 				Default:  "fhir",
 			},
 
-			"cosmodb_throughput": {
+			"cosmosdb_throughput": {
 				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1000,
+				Computed: true,
 			},
 
 			"access_policy_object_ids": {
 				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"object_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"cors_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"origins": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"headers": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"methods": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"max_age": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"allow_credentials": {
+							Type:     schema.TypeBool,
+							Computed: true,
 						},
 					},
 				},

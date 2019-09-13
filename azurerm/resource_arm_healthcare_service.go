@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -42,22 +41,48 @@ func resourceArmHealthcareService() *schema.Resource {
 				Default:  "fhir",
 			},
 
-			"cosmodb_throughput": {
+			"cosmosdb_throughput": {
 				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1000,
+				Computed: true,
 			},
 
 			"access_policy_object_ids": {
 				Type:     schema.TypeList,
-				Required: true,
-				MinItems: 1,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"object_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.UUID,
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"cors_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"origins": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"headers": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"methods": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"max_age": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"allow_credentials": {
+							Type:     schema.TypeBool,
+							Computed: true,
 						},
 					},
 				},
@@ -98,7 +123,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	var svcAccessPolicyArray = []healthcareapis.ServiceAccessPolicyEntry{}
+	var svcAccessPolicyArray []healthcareapis.ServiceAccessPolicyEntry
 	for _, objectId := range accessPolicyObjectIds {
 		objectIdMap := objectId.(map[string]interface{})
 		objectIdsStr := objectIdMap["object_id"].(string)
@@ -171,26 +196,39 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("kind", kind)
 	}
 	if properties := resp.Properties; properties != nil {
-		if provisioningState := properties.ProvisioningState; provisioningState != "" {
-			d.Set("provisioning_state", provisioningState)
+		if err := d.Set("access_policy_object_ids", azure.FlattenHealthcareAccessPolicies(properties.AccessPolicies)); err != nil {
+			return fmt.Errorf("Error setting 'access_policy_object_ids': %+v", err)
 		}
-		if policies := azure.FlattenHealthcareAccessPolicies(properties.AccessPolicies); policies != nil {
-			d.Set("access_policy_object_ids", policies)
-		}
-		if cosmosDbThroughput := properties.CosmosDbConfiguration.OfferThroughput; cosmosDbThroughput != nil {
-			d.Set("cosmodb_throughput", fmt.Sprint(cosmosDbThroughput))
+		if config := properties.CosmosDbConfiguration; config != nil {
+			d.Set("cosmosdb_throughput", config.OfferThroughput)
 		}
 		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
 			d.Set("authentication_configuration_authority", authConfig.Authority)
 			d.Set("authentication_configuration_audience", authConfig.Audience)
 			d.Set("authentication_configuration_smart_proxy_enabled", authConfig.SmartProxyEnabled)
 		}
+		corsOutput := make([]interface{}, 0)
 		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
-			d.Set("cors_configuration_origins", corsConfig.Origins)
-			d.Set("cors_configuration_headers", corsConfig.Headers)
-			d.Set("cors_configuration_methods", corsConfig.Methods)
-			d.Set("cors_configuration_max_age", corsConfig.MaxAge)
-			d.Set("cors_configuration_allow_credentials", corsConfig.AllowCredentials)
+			output := make(map[string]interface{}, 0)
+			if corsConfig.Origins != nil {
+				output["origins"] = *corsConfig.Origins
+			}
+			if corsConfig.Headers != nil {
+				output["headers"] = *corsConfig.Headers
+			}
+			if corsConfig.Methods != nil {
+				output["methods"] = *corsConfig.Methods
+			}
+			if corsConfig.MaxAge != nil {
+				output["max_age"] = *corsConfig.MaxAge
+			}
+			if corsConfig.AllowCredentials != nil {
+				output["allow_credentials"] = *corsConfig.AllowCredentials
+			}
+			corsOutput = append(corsOutput, output)
+		}
+		if err := d.Set("cors_configuration", corsOutput); err != nil {
+			return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
 		}
 	}
 

@@ -32,7 +32,7 @@ func TestAccAzureRMHealthcareService(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					// since these are read from the existing state
 					"access_policy_object_ids",
-					"cosmodb_throughput",
+					"cosmosdb_throughput",
 					"kind",
 				},
 			},
@@ -50,7 +50,7 @@ func testCheckAzureRMHealthcareServiceExists(resourceName string, healthcareServ
 		healthcareServiceName := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for loadbalancer: %s", healthcareServiceName)
+			return fmt.Errorf("Bad: no resource group found in state for healthcare service: %s", healthcareServiceName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).healthcare.HealthcareServiceClient
@@ -62,7 +62,7 @@ func testCheckAzureRMHealthcareServiceExists(resourceName string, healthcareServ
 				return fmt.Errorf("Bad: Healthcare service %q (resource group: %q) does not exist", healthcareServiceName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on loadBalancerClient: %+v", err)
+			return fmt.Errorf("Bad: Get on healthcareServiceClient: %+v", err)
 		}
 
 		*healthcareServiceDescription = resp
