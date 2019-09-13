@@ -131,7 +131,7 @@ type ArmClient struct {
 	search           *search.Client
 	securityCenter   *securitycenter.Client
 	servicebus       *servicebus.Client
-	serviceFabric    *servicefabric.Client
+	ServiceFabric    *servicefabric.Client
 	SignalR          *signalr.Client
 	Storage          *storage.Client
 	streamanalytics  *streamanalytics.Client
@@ -258,7 +258,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.search = search.BuildClient(o)
 	client.securityCenter = securitycenter.BuildClient(o)
 	client.servicebus = servicebus.BuildClient(o)
-	client.serviceFabric = servicefabric.BuildClient(o)
+	client.ServiceFabric = servicefabric.BuildClient(o)
 	client.scheduler = scheduler.BuildClient(o)
 	client.SignalR = signalr.BuildClient(o)
 	client.streamanalytics = streamanalytics.BuildClient(o)
