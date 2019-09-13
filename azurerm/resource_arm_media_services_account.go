@@ -97,7 +97,7 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 	}
 	d.SetId(*service.ID)
 
-	return nil
+	return resourceArmMediaServicesAccountRead(d, meta)
 }
 
 func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
