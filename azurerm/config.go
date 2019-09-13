@@ -135,7 +135,7 @@ type ArmClient struct {
 	signalr          *signalr.Client
 	storage          *storage.Client
 	streamanalytics  *streamanalytics.Client
-	subscription     *subscription.Client
+	Subscription     *subscription.Client
 	Sql              *sql.Client
 	TrafficManager   *trafficmanager.Client
 	web              *web.Client
@@ -263,7 +263,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.signalr = signalr.BuildClient(o)
 	client.streamanalytics = streamanalytics.BuildClient(o)
 	client.storage = storage.BuildClient(o)
-	client.subscription = subscription.BuildClient(o)
+	client.Subscription = subscription.BuildClient(o)
 	client.Sql = sql.BuildClient(o)
 	client.TrafficManager = trafficmanager.BuildClient(o)
 	client.web = web.BuildClient(o)

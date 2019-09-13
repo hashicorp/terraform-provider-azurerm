@@ -233,7 +233,7 @@ func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subscription: %q", topicName)
+			return fmt.Errorf("Bad: no resource group found in state for Subscription: %q", topicName)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).servicebus.SubscriptionsClient
