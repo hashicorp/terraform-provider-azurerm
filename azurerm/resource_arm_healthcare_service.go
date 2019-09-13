@@ -175,14 +175,14 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("provisioning_state", provisioningState)
 		}
 		if policies := properties.AccessPolicies; policies != nil {
-			d.Set("access_policy_object_ids", *policies) //
+			d.Set("access_policy_object_ids", policies)
 		}
 		if cosmosDbThroughput := properties.CosmosDbConfiguration.OfferThroughput; cosmosDbThroughput != nil {
 			d.Set("cosmodb_throughput", fmt.Sprint(cosmosDbThroughput))
 		}
 		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
-			d.Set("authentication_configuration_authority", *authConfig.Authority) //
-			d.Set("authentication_configuration_audience", *authConfig.Audience) //
+			d.Set("authentication_configuration_authority", *authConfig.Authority)
+			d.Set("authentication_configuration_audience", *authConfig.Audience)
 			d.Set("authentication_configuration_smart_proxy_enabled", strconv.FormatBool(*authConfig.SmartProxyEnabled))
 		}
 		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
