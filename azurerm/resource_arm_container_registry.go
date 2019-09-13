@@ -156,7 +156,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 							},
 						},
 
-						"virtual_network_subnet_id": {
+						"virtual_network": {
 							Type:       schema.TypeSet,
 							Optional:   true,
 							ConfigMode: schema.SchemaConfigModeAttr,
@@ -169,9 +169,10 @@ func resourceArmContainerRegistry() *schema.Resource {
 											string(containerregistry.Allow),
 										}, false),
 									},
-									"id": {
-										Type:     schema.TypeString,
-										Required: true,
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
 							},
@@ -602,13 +603,13 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 		ipRules = append(ipRules, newIpRule)
 	}
 
-	networkRuleConfigs := profile["virtual_network_subnet_id"].(*schema.Set).List()
+	networkRuleConfigs := profile["virtual_network"].(*schema.Set).List()
 	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
 	for _, networkRuleInterface := range networkRuleConfigs {
 		config := networkRuleInterface.(map[string]interface{})
 		newVirtualNetworkRule := containerregistry.VirtualNetworkRule{
 			Action:                   containerregistry.Action(config["action"].(string)),
-			VirtualNetworkResourceID: utils.String(config["id"].(string)),
+			VirtualNetworkResourceID: utils.String(config["subnet_id"].(string)),
 		}
 		virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
 	}
@@ -647,15 +648,18 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 	values["ip_rule"] = ipRules
 
 	virtualNetworkRules := make([]interface{}, 0)
-	for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
-		value := make(map[string]interface{})
-		value["action"] = string(virtualNetworkRule.Action)
 
-		value["id"] = virtualNetworkRule.VirtualNetworkResourceID
-		virtualNetworkRules = append(virtualNetworkRules, value)
+	if networkRuleSet.VirtualNetworkRules != nil {
+		for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
+			value := make(map[string]interface{})
+			value["action"] = string(virtualNetworkRule.Action)
+
+			value["subnet_id"] = virtualNetworkRule.VirtualNetworkResourceID
+			virtualNetworkRules = append(virtualNetworkRules, value)
+		}
 	}
 
-	values["virtual_network_subnet_id"] = virtualNetworkRules
+	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
 }

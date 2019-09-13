@@ -414,7 +414,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerRegistryExists(rn),
 					resource.TestCheckResourceAttr(rn, "network_rule_set.0.default_action", "Deny"),
-					resource.TestCheckResourceAttr(rn, "network_rule_set.0.virtual_network_subnet_id.#", "1"),
+					resource.TestCheckResourceAttr(rn, "network_rule_set.0.virtual_network.#", "1"),
 				),
 			},
 			{
@@ -726,9 +726,9 @@ resource "azurerm_container_registry" "test" {
   network_rule_set {
     default_action = "Deny"
 
-	virtual_network_subnet_id {
-      action = "Allow"
-      id 	 = "${azurerm_subnet.test.id}"
+	virtual_network {
+      action    = "Allow"
+      subnet_id = "${azurerm_subnet.test.id}"
     }
   }
 }

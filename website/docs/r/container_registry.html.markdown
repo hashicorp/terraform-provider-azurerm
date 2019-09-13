@@ -72,11 +72,11 @@ The following arguments are supported:
 
 * `ip_range` - (Required) The CIDR block from which requests will match the rule.
 
-`virtual_network_subnet_id` supports the following:
+`virtual_network` supports the following:
 
 * `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
 
-* `id` - (Required) The subnet id from which requests will match the rule.
+* `subnet_id` - (Required) The subnet id from which requests will match the rule.
 
 
 ---
