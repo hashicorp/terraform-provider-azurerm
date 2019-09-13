@@ -21,8 +21,8 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 			"complete": testAccAzureRMBotChannelsRegistration_complete,
 		},
 		"connection": {
-			"basic": testAccAzureRMBotConnection_basic,
-			// "complete": testAccAzureRMBotConnection_complete,
+			"basic":    testAccAzureRMBotConnection_basic,
+			"complete": testAccAzureRMBotConnection_complete,
 		},
 	}
 

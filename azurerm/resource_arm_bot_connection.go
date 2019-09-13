@@ -164,7 +164,6 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 		if err := d.Set("parameters", flattenAzureRMBotConnectionParameters(props.Parameters)); err != nil {
 			return fmt.Errorf("Error setting `parameters`: %+v", err)
 		}
-
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

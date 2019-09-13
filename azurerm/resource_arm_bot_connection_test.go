@@ -40,7 +40,7 @@ func testAccAzureRMBotConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBotConnection_complete(t *testing.T) {
+func testAccAzureRMBotConnection_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMBotConnection_completeConfig(ri, testLocation())
 	config2 := testAccAzureRMBotConnection_completeUpdateConfig(ri, testLocation())
