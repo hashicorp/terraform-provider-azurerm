@@ -308,7 +308,10 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	}
 
 	location := azure.NormalizeLocation("Global")
-	enabled := d.Get("enabled").(bool)
+	enabled := frontdoor.PolicyEnabledStateDisabled
+	if d.Get("enabled").(bool) {
+		enabled = frontdoor.PolicyEnabledStateEnabled
+	}
 	mode := d.Get("mode").(string)
 	redirectUrl := d.Get("redirect_url").(string)
 	customBlockResponseStatusCode := d.Get("custom_block_response_status_code").(int)
@@ -323,7 +326,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 		Location: utils.String(location),
 		WebApplicationFirewallPolicyProperties: &frontdoor.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &frontdoor.PolicySettings{
-				EnabledState:                  afd.ConvertToPolicyEnabledStateFromBool(enabled),
+				EnabledState:                  enabled,
 				Mode:                          frontdoor.PolicyMode(mode),
 				RedirectURL:                   utils.String(redirectUrl),
 				CustomBlockResponseStatusCode: utils.Int32(int32(customBlockResponseStatusCode)),
@@ -397,28 +400,31 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 	output := make([]frontdoor.CustomRule, 0)
 
 	for _, cr := range input {
-		customRule := cr.(map[string]interface{})
+		custom := cr.(map[string]interface{})
 
-		name := customRule["name"].(string)
-		priority := int32(customRule["priority"].(int))
-		enabled := customRule["enabled"].(bool)
-		ruleType := customRule["rule_type"].(string)
-		rateLimitDurationInMinutes := int32(customRule["rate_limit_duration_in_minutes"].(int))
-		rateLimitThreshold := int32(customRule["rate_limit_threshold"].(int))
-		matchConditions := customRule["match_condition"].([]interface{})
-		action := customRule["action"].(string)
+		enabled := frontdoor.CustomRuleEnabledStateDisabled
+		if custom["enabled"].(bool) {
+			enabled = frontdoor.CustomRuleEnabledStateEnabled
+		}
+		name := custom["name"].(string)
+		priority := int32(custom["priority"].(int))
+		ruleType := custom["rule_type"].(string)
+		rateLimitDurationInMinutes := int32(custom["rate_limit_duration_in_minutes"].(int))
+		rateLimitThreshold := int32(custom["rate_limit_threshold"].(int))
+		matchConditions := custom["match_condition"].([]interface{})
+		action := custom["action"].(string)
 
-		afpCustomRule := frontdoor.CustomRule{
+		customRule := frontdoor.CustomRule{
 			Name:                       utils.String(name),
 			Priority:                   utils.Int32(priority),
-			EnabledState:               afd.ConvertBoolToCustomRuleEnabledState(enabled),
+			EnabledState:               enabled,
 			RuleType:                   frontdoor.RuleType(ruleType),
 			RateLimitDurationInMinutes: utils.Int32(rateLimitDurationInMinutes),
 			RateLimitThreshold:         utils.Int32(rateLimitThreshold),
 			MatchConditions:            expandArmFrontDoorFirewallMatchConditions(matchConditions),
 			Action:                     frontdoor.ActionType(action),
 		}
-		output = append(output, afpCustomRule)
+		output = append(output, customRule)
 	}
 
 	result := frontdoor.CustomRuleList{
@@ -433,47 +439,50 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		return nil
 	}
 
-	output := make([]frontdoor.MatchCondition, 0)
+	result := make([]frontdoor.MatchCondition, 0)
 
-	for _, mc := range input {
-		matchCondition := mc.(map[string]interface{})
-		matchVariable := matchCondition["match_variable"].(string)
-		selector := matchCondition["selector"].(string)
-		operator := frontdoor.Operator(matchCondition["operator"].(string))
-		negateCondition := matchCondition["negation_condition"].(bool)
+	for _, v := range input {
+		match := v.(map[string]interface{})
 
-		mv := matchCondition["match_value"].([]interface{})
-		matchValues := make([]string, 0)
-		for _, v := range mv {
-			matchValues = append(matchValues, v.(string))
-		}
-		matchValue := &matchValues
+		matchVariable := match["match_variable"].(string)
+		selector := match["selector"].(string)
+		operator := match["operator"].(string)
+		negateCondition := match["negation_condition"].(bool)
+		matchValues := match["match_value"].([]interface{})
+		transforms := match["transforms"].([]interface{})
 
-		ts := matchCondition["transforms"].([]interface{})
-		transform := make([]frontdoor.TransformType, 0)
-		for _, t := range ts {
-			transform = append(transform, frontdoor.TransformType(t.(string)))
-		}
-		transforms := &transform
-
-		fdpMatchCondition := frontdoor.MatchCondition{
-			Operator:        operator,
+		matchCondition := frontdoor.MatchCondition{
+			Operator:        frontdoor.Operator(operator),
 			NegateCondition: &negateCondition,
-			MatchValue:      matchValue,
-			Transforms:      transforms,
+			MatchValue:      utils.ExpandStringSlice(matchValues),
+			Transforms:      expandArmFrontDoorFirewallTransforms(transforms),
 		}
 
 		if matchVariable != "" {
-			fdpMatchCondition.MatchVariable = frontdoor.MatchVariable(matchVariable)
+			matchCondition.MatchVariable = frontdoor.MatchVariable(matchVariable)
 		}
 		if selector != "" {
-			fdpMatchCondition.Selector = utils.String(selector)
+			matchCondition.Selector = utils.String(selector)
 		}
 
-		output = append(output, fdpMatchCondition)
+		result = append(result, matchCondition)
 	}
 
-	return &output
+	return &result
+}
+
+func expandArmFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.TransformType {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := make([]frontdoor.TransformType, 0)
+
+	for _, v := range input {
+		result = append(result, frontdoor.TransformType(v.(string)))
+	}
+
+	return &result
 }
 
 func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.ManagedRuleSetList {
@@ -481,7 +490,7 @@ func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 		return nil
 	}
 
-	managedRuleSetList := make([]frontdoor.ManagedRuleSet, 0)
+	managedRules := make([]frontdoor.ManagedRuleSet, 0)
 
 	for _, mr := range input {
 		managedRule := mr.(map[string]interface{})
@@ -493,54 +502,76 @@ func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 		managedRuleSet := frontdoor.ManagedRuleSet{
 			RuleSetType:    utils.String(ruleType),
 			RuleSetVersion: utils.String(version),
-			//RuleGroupOverrides: *[]ManagedRuleGroupOverride
 		}
 
-		if len(overrides) > 0 {
-			for _, o := range overrides {
-				override := o.(map[string]interface{})
-
-				ruleGroupName := override["rule_group_name"].(string)
-				rules := override["rule"].([]interface{})
-
-				managedRuleGroupOverride := frontdoor.ManagedRuleGroupOverride{
-					RuleGroupName: utils.String(ruleGroupName),
-					//Rules: *[]ManagedRuleOverride
-				}
-
-				if len(rules) > 0 {
-					managedRuleOverrides := make([]frontdoor.ManagedRuleOverride, 0)
-
-					for _, r := range rules {
-						rule := r.(map[string]interface{})
-
-						ruleId := rule["rule_id"].(string)
-						enabled := rule["enabled"].(bool)
-						action := rule["action"].(string)
-
-						managedRuleOverride := frontdoor.ManagedRuleOverride{
-							RuleID:       utils.String(ruleId),
-							EnabledState: afd.ConvertBoolToManagedRuleEnabledState(enabled),
-							Action:       frontdoor.ActionType(action),
-						}
-
-						managedRuleOverrides = append(managedRuleOverrides, managedRuleOverride)
-					}
-
-					managedRuleGroupOverride.Rules = &managedRuleOverrides
-				}
-			}
-
-			// Done processing overrides now add them to the managed rule set array
-			managedRuleSetList = append(managedRuleSetList, managedRuleSet)
+		if ruleGroupOverrides := expandArmFrontDoorFirewallManagedRuleGroupOverride(overrides); ruleGroupOverrides != nil {
+			managedRuleSet.RuleGroupOverrides = ruleGroupOverrides
 		}
+
+		managedRules = append(managedRules, managedRuleSet)
 	}
 
-	output := frontdoor.ManagedRuleSetList{
-		ManagedRuleSets: &managedRuleSetList,
+	result := frontdoor.ManagedRuleSetList{
+		ManagedRuleSets: &managedRules,
 	}
 
-	return &output
+	return &result
+}
+
+func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
+	if len(input) == 0 {
+		return nil
+	}
+
+	managedRuleGroupOverrides := make([]frontdoor.ManagedRuleGroupOverride, 0)
+
+	for _, v := range input {
+		override := v.(map[string]interface{})
+
+		ruleGroupName := override["rule_group_name"].(string)
+		rules := override["rule"].([]interface{})
+
+		managedRuleGroupOverride := frontdoor.ManagedRuleGroupOverride{
+			RuleGroupName: utils.String(ruleGroupName),
+		}
+
+		if managedRuleOverride := expandArmFrontDoorFirewallRuleOverride(rules); managedRuleOverride != nil {
+			managedRuleGroupOverride.Rules = managedRuleOverride
+		}
+
+		managedRuleGroupOverrides = append(managedRuleGroupOverrides, managedRuleGroupOverride)
+	}
+
+	return &managedRuleGroupOverrides
+}
+
+func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.ManagedRuleOverride {
+	if len(input) == 0 {
+		return nil
+	}
+
+	managedRuleOverrides := make([]frontdoor.ManagedRuleOverride, 0)
+
+	for _, v := range input {
+		rule := v.(map[string]interface{})
+
+		enabled := frontdoor.ManagedRuleEnabledStateDisabled
+		if rule["enabled"].(bool) {
+			enabled = frontdoor.ManagedRuleEnabledStateEnabled
+		}
+		ruleId := rule["rule_id"].(string)
+		action := rule["action"].(string)
+
+		managedRuleOverride := frontdoor.ManagedRuleOverride{
+			RuleID:       utils.String(ruleId),
+			EnabledState: enabled,
+			Action:       frontdoor.ActionType(action),
+		}
+
+		managedRuleOverrides = append(managedRuleOverrides, managedRuleOverride)
+	}
+
+	return &managedRuleOverrides
 }
 
 func expandArmFrontDoorFirewallFrontendEndpointLinks(input []interface{}) *[]frontdoor.FrontendEndpointLink {

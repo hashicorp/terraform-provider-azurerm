@@ -180,26 +180,3 @@ func VerifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error
 	return nil
 }
 
-func ConvertToPolicyEnabledStateFromBool(isEnabled bool) frontdoor.PolicyEnabledState {
-	if isEnabled {
-		return frontdoor.PolicyEnabledStateEnabled
-	}
-
-	return frontdoor.PolicyEnabledStateDisabled
-}
-
-func ConvertBoolToCustomRuleEnabledState(isEnabled bool) frontdoor.CustomRuleEnabledState {
-	if isEnabled {
-		return frontdoor.CustomRuleEnabledStateEnabled
-	}
-
-	return frontdoor.CustomRuleEnabledStateDisabled
-}
-
-func ConvertBoolToManagedRuleEnabledState(isEnabled bool) frontdoor.ManagedRuleEnabledState {
-	if isEnabled {
-		return frontdoor.ManagedRuleEnabledStateEnabled
-	}
-
-	return frontdoor.ManagedRuleEnabledStateDisabled
-}
