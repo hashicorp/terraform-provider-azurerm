@@ -77,7 +77,7 @@ func resourceArmStorageContainer() *schema.Resource {
 }
 
 func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	containerName := d.Get("name").(string)
@@ -130,7 +130,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 
 func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
@@ -179,7 +179,7 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
@@ -234,7 +234,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {

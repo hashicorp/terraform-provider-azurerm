@@ -3023,7 +3023,7 @@ func testCheckAzureRMVirtualMachineVHDExistence(blobName string, shouldExist boo
 			accountName := rs.Primary.Attributes["storage_account_name"]
 			containerName := rs.Primary.Attributes["name"]
 
-			storageClient := testAccProvider.Meta().(*ArmClient).storage
+			storageClient := testAccProvider.Meta().(*ArmClient).Storage
 			ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 			client, err := storageClient.BlobsClient(ctx, resourceGroup, accountName)

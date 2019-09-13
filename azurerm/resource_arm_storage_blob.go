@@ -141,7 +141,7 @@ func resourceArmStorageBlob() *schema.Resource {
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	accountName := d.Get("storage_account_name").(string)
@@ -203,7 +203,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := blobs.ParseResourceID(d.Id())
@@ -263,7 +263,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := blobs.ParseResourceID(d.Id())
@@ -322,7 +322,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := blobs.ParseResourceID(d.Id())

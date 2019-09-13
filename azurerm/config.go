@@ -133,7 +133,7 @@ type ArmClient struct {
 	servicebus       *servicebus.Client
 	serviceFabric    *servicefabric.Client
 	signalr          *signalr.Client
-	storage          *storage.Client
+	Storage          *storage.Client
 	streamanalytics  *streamanalytics.Client
 	Subscription     *subscription.Client
 	Sql              *sql.Client
@@ -262,7 +262,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.scheduler = scheduler.BuildClient(o)
 	client.signalr = signalr.BuildClient(o)
 	client.streamanalytics = streamanalytics.BuildClient(o)
-	client.storage = storage.BuildClient(o)
+	client.Storage = storage.BuildClient(o)
 	client.Subscription = subscription.BuildClient(o)
 	client.Sql = sql.BuildClient(o)
 	client.TrafficManager = trafficmanager.BuildClient(o)
