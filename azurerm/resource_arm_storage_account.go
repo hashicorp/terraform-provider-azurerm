@@ -607,7 +607,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 
 	storageAccountName := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
@@ -762,7 +762,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -956,7 +956,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Storage.AccountsClient
-	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	id, err := azure.ParseAzureResourceID(d.Id())
