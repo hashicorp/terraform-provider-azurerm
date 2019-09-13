@@ -82,6 +82,7 @@ type ArmClient struct {
 	skipProviderRegistration bool
 
 	// Services
+	// NOTE: all new services should be Public as they're going to be relocated in the near-future
 	analysisservices *analysisservices.Client
 	apiManagement    *apimanagement.Client
 	appInsights      *applicationinsights.Client
