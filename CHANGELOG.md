@@ -43,6 +43,7 @@ IMPROVEMENTS:
 * `azurerm_app_service_slot` - the `ip_restriction.ip_address` property is now optional [GH-4184]
 * `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
 * `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
+* `azurerm_container_registry` - support for configuring Virtual Network Rules to Subnets [GH-4293]
 * `azurerm_cosmosdb_account` - correctly validate `max_interval_in_seconds` & `max_staleness_prefix` for geo replicated accounts [GH-4273]
 * `azurerm_cosmosdb_account` - increase creation & deletion wait timeout to `3` hours [GH-4271]
 * `azurerm_cosmosdb_sql_container` - changing the `unique_key.paths` property now forces a new resource [GH-4163]
