@@ -47,7 +47,7 @@ func dataSourceSqlServer() *schema.Resource {
 }
 
 func dataSourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.ServersClient
+	client := meta.(*ArmClient).Sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

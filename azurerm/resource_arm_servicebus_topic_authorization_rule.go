@@ -54,7 +54,7 @@ func resourceArmServiceBusTopicAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.TopicsClient
+	client := meta.(*ArmClient).ServiceBus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Topic Authorization Rule creation.")
 
@@ -102,7 +102,7 @@ func resourceArmServiceBusTopicAuthorizationRuleCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.TopicsClient
+	client := meta.(*ArmClient).ServiceBus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -150,7 +150,7 @@ func resourceArmServiceBusTopicAuthorizationRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmServiceBusTopicAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.TopicsClient
+	client := meta.(*ArmClient).ServiceBus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

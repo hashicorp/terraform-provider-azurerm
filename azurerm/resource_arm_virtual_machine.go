@@ -935,7 +935,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	deleteDataDisks := d.Get("delete_data_disks_on_termination").(bool)
 
 	if deleteOsDisk || deleteDataDisks {
-		storageClient := meta.(*ArmClient).storage
+		storageClient := meta.(*ArmClient).Storage
 
 		props := virtualMachine.VirtualMachineProperties
 		if props == nil {

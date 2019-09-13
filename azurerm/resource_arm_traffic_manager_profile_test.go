@@ -380,7 +380,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManager.ProfilesClient
+		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -396,7 +396,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).trafficManager.ProfilesClient
+	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_profile" {

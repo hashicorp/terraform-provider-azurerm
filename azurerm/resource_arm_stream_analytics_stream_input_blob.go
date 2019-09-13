@@ -86,7 +86,7 @@ func resourceArmStreamAnalyticsStreamInputBlob() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.InputsClient
+	client := meta.(*ArmClient).StreamAnalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Stream Input Blob creation.")
@@ -167,7 +167,7 @@ func resourceArmStreamAnalyticsStreamInputBlobCreateUpdate(d *schema.ResourceDat
 }
 
 func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.InputsClient
+	client := meta.(*ArmClient).StreamAnalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -223,7 +223,7 @@ func resourceArmStreamAnalyticsStreamInputBlobRead(d *schema.ResourceData, meta 
 }
 
 func resourceArmStreamAnalyticsStreamInputBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.InputsClient
+	client := meta.(*ArmClient).StreamAnalytics.InputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
