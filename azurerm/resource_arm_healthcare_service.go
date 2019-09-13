@@ -2,8 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	"strconv"
 	"log"
+	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
