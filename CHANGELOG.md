@@ -14,6 +14,7 @@ FEATURES:
 * **New Resource:** `azurerm_frontdoor` [GH-3933]
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
 * **New Resource:** `azurerm_kusto_database` [GH-4149]
+* **New Resource:** `azurerm_marketplace_agreement` [GH-4305]
 * **New Resource:** `azurerm_private_dns_zone_virtual_network_link` [GH-3789]
 * **New Resource:** `azurerm_proximity_placement_group` [GH-4020]
 * **New Resource:** `azurerm_stream_analytics_output_servicebus_topic` [GH-4164]
