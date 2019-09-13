@@ -209,7 +209,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 		}
 		corsOutput := make([]interface{}, 0)
 		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 			if corsConfig.Origins != nil {
 				output["origins"] = *corsConfig.Origins
 			}
