@@ -210,9 +210,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			// TODO: 2.0 - we should be able to make this a List to be able to detect changes in the Client Secret
 			"service_principal": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -233,7 +232,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceKubernetesClusterServicePrincipalProfileHash,
 			},
 
 			// Optional
@@ -1421,11 +1419,11 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 
 func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ManagedClusterServicePrincipalProfile {
 	value, exists := d.GetOk("service_principal")
-	if !exists {
+	configs := value.([]interface{})
+
+	if !exists || len(configs) == 0 {
 		return nil
 	}
-
-	configs := value.(*schema.Set).List()
 
 	config := configs[0].(map[string]interface{})
 
@@ -1440,13 +1438,9 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	return &principal
 }
 
-func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) *schema.Set {
+func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) []interface{} {
 	if profile == nil {
-		return nil
-	}
-
-	servicePrincipalProfiles := &schema.Set{
-		F: resourceKubernetesClusterServicePrincipalProfileHash,
+		return []interface{}{}
 	}
 
 	values := make(map[string]interface{})
@@ -1458,9 +1452,7 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 		values["client_secret"] = *secret
 	}
 
-	servicePrincipalProfiles.Add(values)
-
-	return servicePrincipalProfiles
+	return []interface{}{values}
 }
 
 func resourceKubernetesClusterServicePrincipalProfileHash(v interface{}) int {

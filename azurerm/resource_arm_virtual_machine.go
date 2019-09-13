@@ -166,6 +166,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			//lintignore:S018
 			"storage_image_reference": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -408,6 +409,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				},
 			},
 
+			//lintignore:S018
 			"os_profile": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -443,6 +445,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Set: resourceArmVirtualMachineStorageOsProfileHash,
 			},
 
+			//lintignore:S018
 			"os_profile_windows_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -529,6 +532,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
+			//lintignore:S018
 			"os_profile_linux_config": {
 				Type:     schema.TypeSet,
 				Optional: true,

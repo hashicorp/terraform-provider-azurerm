@@ -112,7 +112,9 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
+			//lintignore:S018
 			"source_application_security_group_ids": {
+				// todo: check? but it appears we only take one despite the API allowing multiple
 				Type:     schema.TypeSet,
 				MaxItems: 1,
 				Optional: true,
@@ -120,7 +122,9 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			//lintignore:S018
 			"destination_application_security_group_ids": {
+				// todo: check? but it appears we only take one despite the API allowing multiple
 				Type:     schema.TypeSet,
 				MaxItems: 1,
 				Optional: true,
