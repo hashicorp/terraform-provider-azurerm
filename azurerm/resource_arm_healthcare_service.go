@@ -57,7 +57,7 @@ func resourceArmHealthcareService() *schema.Resource {
 						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -174,7 +174,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 		if provisioningState := properties.ProvisioningState; provisioningState != "" {
 			d.Set("provisioning_state", provisioningState)
 		}
-		if policies := properties.AccessPolicies; policies != nil {
+		if policies := azure.FlattenHealthcareAccessPolicies(properties.AccessPolicies); policies != nil {
 			d.Set("access_policy_object_ids", policies)
 		}
 		if cosmosDbThroughput := properties.CosmosDbConfiguration.OfferThroughput; cosmosDbThroughput != nil {
