@@ -62,9 +62,9 @@ The following arguments are supported:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-* `virtual_network_subnet_id` - (Optional) One or more `virtual_network_subnet_id` blocks as defined below.
+* `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
 
-~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SDK at this time.
+~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
 
 `ip_rule` supports the following:
 
