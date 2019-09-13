@@ -128,7 +128,7 @@ type ArmClient struct {
 	relay            *relay.Client
 	resource         *resource.Client
 	scheduler        *scheduler.Client
-	search           *search.Client
+	Search           *search.Client
 	SecurityCenter   *securitycenter.Client
 	ServiceBus       *servicebus.Client
 	ServiceFabric    *servicefabric.Client
@@ -255,7 +255,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.redis = redis.BuildClient(o)
 	client.relay = relay.BuildClient(o)
 	client.resource = resource.BuildClient(o)
-	client.search = search.BuildClient(o)
+	client.Search = search.BuildClient(o)
 	client.SecurityCenter = securitycenter.BuildClient(o)
 	client.ServiceBus = servicebus.BuildClient(o)
 	client.ServiceFabric = servicefabric.BuildClient(o)
