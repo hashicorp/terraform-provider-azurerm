@@ -337,6 +337,9 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 									"properties": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},

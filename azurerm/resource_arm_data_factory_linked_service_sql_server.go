@@ -70,6 +70,9 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"annotations": {
@@ -83,6 +86,9 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 			"additional_properties": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

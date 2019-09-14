@@ -254,6 +254,9 @@ func resourceArmStorageAccount() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validateAzureRMStorageAccountTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"queue_properties": {

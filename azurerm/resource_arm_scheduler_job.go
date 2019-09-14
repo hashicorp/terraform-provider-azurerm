@@ -296,6 +296,9 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 			"headers": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			//authentication requires HTTPS

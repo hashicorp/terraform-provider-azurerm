@@ -41,6 +41,9 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"workflow_schema": {
