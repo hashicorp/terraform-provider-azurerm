@@ -273,7 +273,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 
 			"frontend_endpoint_ids": {
 				Type:     schema.TypeList,
-				Required: true,
+				Computed: true,
 				MaxItems: 1000,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
@@ -318,7 +318,6 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
 	managedRules := d.Get("managed_rule").([]interface{})
-	frontendEndpoints := d.Get("frontend_endpoint_ids").([]interface{})
 	tags := d.Get("tags").(map[string]interface{})
 
 	frontdoorWebApplicationFirewallPolicy := frontdoor.WebApplicationFirewallPolicy{
@@ -334,7 +333,6 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 			},
 			CustomRules:           expandArmFrontDoorFirewallCustomRules(customRules),
 			ManagedRules:          expandArmFrontDoorFirewallManagedRules(managedRules),
-			FrontendEndpointLinks: expandArmFrontDoorFirewallFrontendEndpointLinks(frontendEndpoints),
 		},
 		Tags: expandTags(tags),
 	}
@@ -358,8 +356,76 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 
 	return resourceArmFrontDoorFirewallPolicyRead(d, meta)
 }
-
+// *********************************************************************************************
+// *********************************************************************************************
+// *********************************************************************************************
+// *********************************************************************************************
+// *********************************************************************************************
+// *********************************************************************************************
+// *********************************************************************************************
 func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).frontdoor.FrontDoorsPolicyClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, err := parseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["frontdoorwebapplicationfirewallpolicies"]
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Front Door Firewall Policy %q does not exist - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error reading Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resourceGroup)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if properties := resp.WebApplicationFirewallPolicyProperties; properties != nil {
+		if properties.PolicySettings != nil {
+
+			if err := d.Set("enabled", properties.PolicySettings.EnabledState == frontdoor.PolicyEnabledStateEnabled); err != nil {
+				return fmt.Errorf("Error setting `enabled`: %+v", err)
+			}
+
+			if err := d.Set("mode", string(properties.PolicySettings.Mode)); err != nil {
+				return fmt.Errorf("Error setting `mode`: %+v", err)
+			}
+
+			if err := d.Set("redirect_url", properties.PolicySettings.RedirectURL); err != nil {
+				return fmt.Errorf("Error setting `redirect_url`: %+v", err)
+			}
+
+			if err := d.Set("custom_block_response_status_code", properties.PolicySettings.CustomBlockResponseStatusCode); err != nil {
+				return fmt.Errorf("Error setting `custom_block_response_status_code`: %+v", err)
+			}
+
+			if err := d.Set("custom_block_response_body", properties.PolicySettings.CustomBlockResponseBody); err != nil {
+				return fmt.Errorf("Error setting `custom_block_response_body`: %+v", err)
+			}
+		}
+
+		if err := d.Set("custom_rule", flattenArmFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
+			return fmt.Errorf("Error flattening `custom_rule`: %+v", err)
+		}
+	}
+
+
+
+
+
+
+
 
 	return nil
 }
@@ -574,20 +640,13 @@ func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 	return &managedRuleOverrides
 }
 
-func expandArmFrontDoorFirewallFrontendEndpointLinks(input []interface{}) *[]frontdoor.FrontendEndpointLink {
-	if len(input) == 0 {
-		return nil
+func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
+	if input == nil {
+		return  make([]interface{}, 0)
 	}
 
-	frontendEndpointLinks := make([]frontdoor.FrontendEndpointLink, 0)
+	result := make([]interface{}, 0)
 
-	for _, frontendEndpointLink := range input {
-		fel := frontdoor.FrontendEndpointLink{
-			ID: utils.String(frontendEndpointLink.(string)),
-		}
+	//for _, item := input.
 
-		frontendEndpointLinks = append(frontendEndpointLinks, fel)
-	}
-
-	return &frontendEndpointLinks
 }
