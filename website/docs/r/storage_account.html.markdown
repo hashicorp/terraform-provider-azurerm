@@ -13,15 +13,15 @@ Manages an Azure Storage Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "testrg" {
-  name     = "resourceGroupName"
-  location = "westus"
+resource "azurerm_resource_group" "test" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
-resource "azurerm_storage_account" "testsa" {
+resource "azurerm_storage_account" "test" {
   name                     = "storageaccountname"
-  resource_group_name      = "${azurerm_resource_group.testrg.name}"
-  location                 = "westus"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "GRS"
 
@@ -34,21 +34,21 @@ resource "azurerm_storage_account" "testsa" {
 ## Example Usage with Network Rules
 
 ```hcl
-resource "azurerm_resource_group" "testrg" {
-  name     = "resourceGroupName"
-  location = "westus"
+resource "azurerm_resource_group" "test" {
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "virtnetname"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.testrg.location}"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "subnetname"
-  resource_group_name  = "${azurerm_resource_group.testrg.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
   service_endpoints    = ["Microsoft.Sql", "Microsoft.Storage"]
@@ -56,9 +56,9 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_storage_account" "testsa" {
   name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-  location                 = "${azurerm_resource_group.testrg.location}"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -282,6 +282,8 @@ The following attributes are exported in addition to the arguments listed above:
 * `primary_blob_connection_string` - The connection string associated with the primary blob location.
 
 * `secondary_blob_connection_string` - The connection string associated with the secondary blob location.
+
+~> **NOTE:** If there's a Write Lock on the Storage Account, or the account doesn't have permission then these fields will have an empty value [due to a bug in the Azure API](https://github.com/Azure/azure-rest-api-specs/issues/6363)
 
 * `identity` - An `identity` block as defined below, which contains the Identity information for this Storage Account.
 

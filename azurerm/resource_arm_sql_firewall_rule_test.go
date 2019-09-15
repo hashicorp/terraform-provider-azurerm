@@ -105,7 +105,7 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sql.FirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -131,7 +131,7 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sql.FirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -161,7 +161,7 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sql.FirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, serverName, ruleName)

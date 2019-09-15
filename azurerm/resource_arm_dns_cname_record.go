@@ -41,7 +41,6 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 				Removed:  "Use `record` instead. This attribute will be removed in a future version",
 			},
 

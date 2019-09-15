@@ -150,6 +150,9 @@ func resourceArmMonitorMetricAlertRule() *schema.Resource {
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validateMetricAlertRuleTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

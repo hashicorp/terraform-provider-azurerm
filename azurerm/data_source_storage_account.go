@@ -2,8 +2,10 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 
+	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -257,7 +259,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storage.AccountsClient
+	client := meta.(*ArmClient).Storage.AccountsClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	name := d.Get("name").(string)
@@ -273,12 +275,32 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	d.SetId(*resp.ID)
 
+	// handle the user not having permissions to list the keys
+	d.Set("primary_connection_string", "")
+	d.Set("secondary_connection_string", "")
+	d.Set("primary_blob_connection_string", "")
+	d.Set("secondary_blob_connection_string", "")
+	d.Set("primary_access_key", "")
+	d.Set("secondary_access_key", "")
+
 	keys, err := client.ListKeys(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		// the API returns a 200 with an inner error of a 409..
+		var hasWriteLock bool
+		var doesntHavePermissions bool
+		if e, ok := err.(azautorest.DetailedError); ok {
+			if status, ok := e.StatusCode.(int); ok {
+				hasWriteLock = status == http.StatusConflict
+				doesntHavePermissions = status == http.StatusUnauthorized
+			}
+		}
+
+		if !hasWriteLock && !doesntHavePermissions {
+			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resourceGroup, err)
+		}
 	}
 
-	accessKeys := *keys.Keys
+	accountKeys := keys.Keys
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -316,39 +338,49 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if len(accessKeys) > 0 {
-			pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[0].Value, endpointSuffix)
-			d.Set("primary_connection_string", pcs)
-		}
+		if accessKeys := accountKeys; accessKeys != nil {
+			storageAccessKeys := *accessKeys
+			if len(storageAccessKeys) > 0 {
+				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[0].Value, endpointSuffix)
+				d.Set("primary_connection_string", pcs)
+			}
 
-		if len(accessKeys) > 1 {
-			scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[1].Value, endpointSuffix)
-			d.Set("secondary_connection_string", scs)
+			if len(storageAccessKeys) > 1 {
+				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccessKeys[1].Value, endpointSuffix)
+				d.Set("secondary_connection_string", scs)
+			}
 		}
 
 		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		var primaryBlobConnectStr string
-		if v := props.PrimaryEndpoints; v != nil {
-			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
+		if accessKeys := accountKeys; accessKeys != nil {
+			var primaryBlobConnectStr string
+			if v := props.PrimaryEndpoints; v != nil {
+				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[0].Value)
+			}
+			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 		}
-		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 
 		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		var secondaryBlobConnectStr string
-		if v := props.SecondaryEndpoints; v != nil {
-			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		if accessKeys := accountKeys; accessKeys != nil {
+			var secondaryBlobConnectStr string
+			if v := props.SecondaryEndpoints; v != nil {
+				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, (*accessKeys)[1].Value)
+			}
+			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
-		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 	}
 
-	d.Set("primary_access_key", accessKeys[0].Value)
-	d.Set("secondary_access_key", accessKeys[1].Value)
+	if accessKeys := accountKeys; accessKeys != nil {
+		storageAccountKeys := *accessKeys
+		d.Set("primary_access_key", storageAccountKeys[0].Value)
+		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

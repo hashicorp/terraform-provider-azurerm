@@ -72,8 +72,8 @@ func dataSourceArmStreamAnalyticsJob() *schema.Resource {
 }
 
 func dataSourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.JobsClient
-	transformationsClient := meta.(*ArmClient).streamanalytics.TransformationsClient
+	client := meta.(*ArmClient).StreamAnalytics.JobsClient
+	transformationsClient := meta.(*ArmClient).StreamAnalytics.TransformationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

@@ -128,6 +128,46 @@ func TestAccAzureRMStorageAccount_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStorageAccount_writeLock(t *testing.T) {
+	resourceName := "azurerm_storage_account.testsa"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStorageAccount_writeLock(ri, rs, location),
+			},
+			{
+				// works around a bug in the test suite where the Storage Account won't be re-read after the Lock's provisioned
+				Config: testAccAzureRMStorageAccount_writeLock(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "account_tier", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "account_replication_type", "LRS"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+					resource.TestCheckResourceAttr(resourceName, "primary_connection_string", ""),
+					resource.TestCheckResourceAttr(resourceName, "secondary_connection_string", ""),
+					resource.TestCheckResourceAttr(resourceName, "primary_blob_connection_string", ""),
+					resource.TestCheckResourceAttr(resourceName, "secondary_blob_connection_string", ""),
+					resource.TestCheckResourceAttr(resourceName, "primary_access_key", ""),
+					resource.TestCheckResourceAttr(resourceName, "secondary_access_key", ""),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStorageAccount_premium(t *testing.T) {
 	resourceName := "azurerm_storage_account.testsa"
 	ri := tf.AccRandTimeInt()
@@ -760,7 +800,7 @@ func testCheckAzureRMStorageAccountExists(resourceName string) resource.TestChec
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
+		conn := testAccProvider.Meta().(*ArmClient).Storage.AccountsClient
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, storageAccount, "")
 		if err != nil {
@@ -788,7 +828,7 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
+		conn := testAccProvider.Meta().(*ArmClient).Storage.AccountsClient
 
 		if _, err := conn.Delete(ctx, resourceGroup, storageAccount); err != nil {
 			return fmt.Errorf("Bad: Delete on storageServiceClient: %+v", err)
@@ -800,7 +840,7 @@ func testCheckAzureRMStorageAccountDisappears(resourceName string) resource.Test
 
 func testCheckAzureRMStorageAccountDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
-	conn := testAccProvider.Meta().(*ArmClient).storage.AccountsClient
+	conn := testAccProvider.Meta().(*ArmClient).Storage.AccountsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_storage_account" {
@@ -858,6 +898,19 @@ resource "azurerm_storage_account" "import" {
   account_replication_type = "${azurerm_storage_account.testrg.account_replication_type}"
 }
 `, template)
+}
+
+func testAccAzureRMStorageAccount_writeLock(rInt int, rString, location string) string {
+	template := testAccAzureRMStorageAccount_basic(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_management_lock" "test" {
+  name       = "acctestlock-%d"
+  scope      = "${azurerm_storage_account.testsa.id}"
+  lock_level = "ReadOnly"
+}
+`, template, rInt)
 }
 
 func testAccAzureRMStorageAccount_premium(rInt int, rString string, location string) string {

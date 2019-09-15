@@ -25,7 +25,7 @@ As the AzureAD and AzureRM Provider support the same authentication methods - it
 
 ```hcl
 provider "azurerm" {
-  version = "=1.28.0"
+  version = "=1.34.0"
 }
 ```
 

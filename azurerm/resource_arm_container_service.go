@@ -54,6 +54,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				ValidateFunc: validateArmContainerServiceOrchestrationPlatform,
 			},
 
+			//lintignore:S018
 			"master_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -81,6 +82,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceMasterProfileHash,
 			},
 
+			//lintignore:S018
 			"linux_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -109,6 +111,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceLinuxProfilesHash,
 			},
 
+			//lintignore:S018
 			"agent_pool_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -149,6 +152,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceAgentPoolProfilesHash,
 			},
 
+			//lintignore:S018
 			"service_principal": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -170,6 +174,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceServicePrincipalProfileHash,
 			},
 
+			//lintignore:S018
 			"diagnostics_profile": {
 				Type:     schema.TypeSet,
 				Required: true,

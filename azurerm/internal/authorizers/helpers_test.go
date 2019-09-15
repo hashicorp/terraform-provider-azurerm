@@ -77,54 +77,85 @@ func TestBuildCanonicalizedHeader(t *testing.T) {
 
 func TestBuildCanonicalizedResource(t *testing.T) {
 	testData := []struct {
-		name        string
-		accountName string
-		uri         string
-		expected    string
-		expectError bool
+		name          string
+		accountName   string
+		uri           string
+		sharedKeyLite bool
+		expected      string
+		expectError   bool
 	}{
 		{
-			name:        "invalid uri",
-			accountName: "example",
-			uri:         "://example.com",
-			expected:    "",
-			expectError: true,
+			name:          "invalid uri",
+			accountName:   "example",
+			uri:           "://example.com",
+			sharedKeyLite: true,
+			expected:      "",
+			expectError:   true,
 		},
 		{
-			name:        "storage emulator doesn't get prefix",
-			accountName: StorageEmulatorAccountName,
-			uri:         "http://www.example.com/foo",
-			expected:    "/foo",
+			name:          "storage emulator doesn't get prefix",
+			accountName:   StorageEmulatorAccountName,
+			uri:           "http://www.example.com/foo",
+			sharedKeyLite: true,
+			expected:      "/foo",
 		},
 		{
-			name:        "non storage emulator gets prefix",
-			accountName: StorageEmulatorAccountName + "test",
-			uri:         "http://www.example.com/foo",
-			expected:    "/" + StorageEmulatorAccountName + "test/foo",
+			name:          "non storage emulator gets prefix",
+			accountName:   StorageEmulatorAccountName + "test",
+			uri:           "http://www.example.com/foo",
+			sharedKeyLite: true,
+			expected:      "/" + StorageEmulatorAccountName + "test/foo",
 		},
 		{
-			name:        "uri encoding",
-			accountName: "example",
-			uri:         "<hello>",
-			expected:    "/example%3Chello%3E",
+			name:          "uri encoding",
+			accountName:   "example",
+			uri:           "<hello>",
+			sharedKeyLite: true,
+			expected:      "/example%3Chello%3E",
 		},
 		{
-			name:        "comp-arg",
-			accountName: "example",
-			uri:         "/endpoint?first=true&comp=bar&second=false&third=panda",
-			expected:    "/example/endpoint?comp=bar",
+			name:          "comp-arg",
+			accountName:   "example",
+			uri:           "/endpoint?first=true&comp=bar&second=false&third=panda",
+			sharedKeyLite: true,
+			expected:      "/example/endpoint?comp=bar",
 		},
 		{
-			name:        "arguments",
-			accountName: "example",
-			uri:         "/endpoint?first=true&second=false&third=panda",
-			expected:    "/example/endpoint",
+			name:          "arguments",
+			accountName:   "example",
+			uri:           "/endpoint?first=true&second=false&third=panda",
+			sharedKeyLite: true,
+			expected:      "/example/endpoint",
+		},
+		{
+			name:          "arguments-sharedkey",
+			accountName:   "example",
+			uri:           "/endpoint?first=true&second=false&third=panda",
+			sharedKeyLite: false,
+			expected:      "/example/endpoint\nfirst:true\nsecond:false\nthird:panda",
+			expectError:   false,
+		},
+		{
+			name:          "arguments-sharedkey",
+			accountName:   "example",
+			uri:           "/endpoint?comp=strawberries&restype=pandas",
+			sharedKeyLite: false,
+			expected:      "/example/endpoint\ncomp:strawberries\nrestype:pandas",
+			expectError:   false,
+		},
+		{
+			name:          "extra-arguments-sharedkey",
+			accountName:   "myaccount",
+			uri:           "/mycontainer?restype=container&comp=list&include=snapshots&include=metadata&include=uncommittedblobs",
+			expected:      "/myaccount/mycontainer\ncomp:list\ninclude:metadata,snapshots,uncommittedblobs\nrestype:container",
+			sharedKeyLite: false,
+			expectError:   false,
 		},
 	}
 
 	for _, test := range testData {
 		t.Logf("Test %q", test.name)
-		actual, err := buildCanonicalizedResource(test.uri, test.accountName)
+		actual, err := buildCanonicalizedResource(test.uri, test.accountName, test.sharedKeyLite)
 		if err != nil {
 			if test.expectError {
 				continue
