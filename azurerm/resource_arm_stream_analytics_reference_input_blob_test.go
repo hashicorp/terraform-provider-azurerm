@@ -180,7 +180,7 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName string
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsInputsClient
+		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.InputsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -196,10 +196,10 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobExists(resourceName string
 }
 
 func testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsInputsClient
+	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.InputsClient
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_stream_analytics_reference_input_eventhub" {
+		if rs.Type != "azurerm_stream_analytics_reference_input_blob" {
 			continue
 		}
 
@@ -213,7 +213,7 @@ func testCheckAzureRMStreamAnalyticsReferenceInputBlobDestroy(s *terraform.State
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Stream Analytics Stream Input EventHub still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Stream Analytics Stream Input Blob still exists:\n%#v", resp.Properties)
 		}
 	}
 
