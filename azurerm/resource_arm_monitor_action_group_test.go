@@ -1008,7 +1008,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 	logic_app_receiver {
 		name = "logicappaction"
-		resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"
+		resource_id = "${azurerm_logic_app_workflow.test.id}"
 		callback_url = "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%%2Fversions%%2F08587100027316071865%%2Ftriggers%%2FmanualTrigger%%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"
 	}
 }
@@ -1051,7 +1051,7 @@ resource "azurerm_monitor_action_group" "test" {
 
 	azure_function_receiver {
 		name = "funcaction"
-		function_app_resource_id = ""
+		function_app_resource_id = "${azurerm_function_app.test.id}"
 		function_name = "myfunc"
 		http_trigger_url = "https://example.com/trigger"
 	}
@@ -1172,7 +1172,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 
 		azure_function_receiver {
 			name = "funcaction"
-			function_app_resource_id = ""
+			function_app_resource_id = "${azurerm_function_app.test.id}"
 			function_name = "myfunc"
 			http_trigger_url = "https://example.com/trigger"
 		}
