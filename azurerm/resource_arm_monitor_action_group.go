@@ -198,11 +198,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
-						"use_common_alert_schema": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
 					},
 				},
 			},

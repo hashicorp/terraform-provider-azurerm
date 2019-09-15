@@ -220,16 +220,16 @@ resource "azurerm_monitor_action_group" "test" {
   webhook_receiver {
     name        = "callmybackupapi"
     service_uri = "https://backup.example.com/warning"
-	}
+  }
 
-	automation_runbook_receiver {
-		name = "action_name_1"
-		automation_account_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001"
-		runbook_name = "my runbook"
-		webhook_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"
-		is_global_runbook = true
-		service_uri = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
-	}
+  automation_runbook_receiver {
+    name = "action_name_1"
+    automation_account_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001"
+    runbook_name = "my runbook"
+    webhook_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"
+    is_global_runbook = true
+    service_uri = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
+  }
 
 	voice_receiver {
     name         = "oncallmsg"
