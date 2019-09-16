@@ -1455,7 +1455,7 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 
 	// client secret isn't returned by the API so pass the existing value along
 	if v, ok := d.GetOk("service_principal.0.client_secret"); ok {
-		values["client_id"] = v.(string)
+		values["client_secret"] = v.(string)
 	}
 
 	return []interface{}{values}
