@@ -2,6 +2,8 @@ package azurerm
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"time"
@@ -19,7 +21,7 @@ func dataSourceArmFunction() *schema.Resource {
 		Read: dataSourceArmFunctionRead,
 
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"function_app_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -32,12 +34,14 @@ func dataSourceArmFunction() *schema.Resource {
 			},
 
 			"key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 			"trigger_url": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true, // Note the trigger url contains the key
 			},
 		},
 	}
@@ -47,7 +51,7 @@ func dataSourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
 	webClient := meta.(*ArmClient).web
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
+	name := d.Get("function_app_name").(string)
 	functionName := d.Get("function_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
@@ -75,7 +79,8 @@ func dataSourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error retrieving key for Function %q in Function app %q (Resource Group %q). Key returned nil from API", functionName, name, resourceGroup)
 	}
 
-	d.SetId(*functionSecret.TriggerURL)
+	triggerUrlHash := sha256.Sum256([]byte(*functionSecret.TriggerURL))
+	d.SetId(hex.EncodeToString(triggerUrlHash[:]))
 
 	d.Set("trigger_url", functionSecret.TriggerURL)
 	d.Set("key", functionSecret.Key)
