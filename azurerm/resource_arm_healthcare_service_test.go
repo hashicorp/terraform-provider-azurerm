@@ -27,8 +27,8 @@ func TestAccAzureRMHealthcareService(t *testing.T) {
 				),
 			},
 			{
-				ResourceName: "azurerm_healthcare_service.test",
-				ImportState:  true,
+				ResourceName:            "azurerm_healthcare_service.test",
+				ImportState:             true,
 				ImportStateVerifyIgnore: []string{
 					// since these are read from the existing state
 				},
