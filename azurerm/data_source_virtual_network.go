@@ -60,6 +60,9 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 			"vnet_peerings": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

@@ -39,7 +39,7 @@ func resourceArmSecurityCenterSubscriptionPricing() *schema.Resource {
 }
 
 func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenter.PricingClient
+	client := meta.(*ArmClient).SecurityCenter.PricingClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterSubscriptionPricingName
@@ -71,7 +71,7 @@ func resourceArmSecurityCenterSubscriptionPricingUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmSecurityCenterSubscriptionPricingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenter.PricingClient
+	client := meta.(*ArmClient).SecurityCenter.PricingClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.GetSubscriptionPricing(ctx, securityCenterSubscriptionPricingName)

@@ -154,6 +154,9 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 				"additional_login_params": {
 					Type:     schema.TypeMap,
 					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 				"allowed_external_redirect_urls": {
 					Type:     schema.TypeList,

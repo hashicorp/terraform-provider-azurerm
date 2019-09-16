@@ -101,7 +101,7 @@ func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.FunctionsClient
+	client := meta.(*ArmClient).StreamAnalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Function Javascript UDF creation.")
@@ -169,7 +169,7 @@ func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.FunctionsClient
+	client := meta.(*ArmClient).StreamAnalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -223,7 +223,7 @@ func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStreamAnalyticsFunctionUDFDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.FunctionsClient
+	client := meta.(*ArmClient).StreamAnalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

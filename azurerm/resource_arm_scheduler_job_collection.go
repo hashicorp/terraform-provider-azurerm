@@ -127,7 +127,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 }
 
 func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobCollectionsClient
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -183,7 +183,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobCollectionsClient
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -229,7 +229,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobCollectionsClient
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

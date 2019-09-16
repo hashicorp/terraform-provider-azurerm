@@ -71,6 +71,8 @@ The following arguments are supported:
 
 * `parallelism` - (Optional) The number of workers per CPU core to run for concurrent uploads. Defaults to `8`.
 
+~> **NOTE:** `parallelism` is only applicable for Page blobs - support for [Block Blobs is blocked on the upstream issue](https://github.com/tombuildsstuff/giovanni/issues/15).
+
 * `metadata` - (Optional) A map of custom blob metadata.
 
 * `attempts` - (Optional / **Deprecated**) The number of attempts to make per page or block when uploading. Defaults to `1`.

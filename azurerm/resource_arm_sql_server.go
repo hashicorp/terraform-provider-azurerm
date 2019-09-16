@@ -71,7 +71,7 @@ func resourceArmSqlServer() *schema.Resource {
 }
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.ServersClient
+	client := meta.(*ArmClient).Sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -134,7 +134,7 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.ServersClient
+	client := meta.(*ArmClient).Sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -172,7 +172,7 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.ServersClient
+	client := meta.(*ArmClient).Sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
