@@ -218,10 +218,11 @@ func resourceArmDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resou
 	managedIntegrationRuntime := datafactory.ManagedIntegrationRuntime{
 		Description: &description,
 		Type:        datafactory.TypeManaged,
+		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
+			ComputeProperties: expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d),
+			SsisProperties:    expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d),
+		},
 	}
-
-	managedIntegrationRuntime.ComputeProperties = expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d)
-	managedIntegrationRuntime.SsisProperties = expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d)
 
 	basicIntegrationRuntime, _ := managedIntegrationRuntime.AsBasicIntegrationRuntime()
 
@@ -245,7 +246,7 @@ func resourceArmDataFactoryIntegrationRuntimeManagedCreateUpdate(d *schema.Resou
 
 	d.SetId(*resp.ID)
 
-	return resourceArmDataFactoryRead(d, meta)
+	return resourceArmDataFactoryIntegrationRuntimeManagedRead(d, meta)
 }
 
 func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData, meta interface{}) error {
@@ -258,7 +259,7 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 	}
 	resourceGroup := id.ResourceGroup
 	factoryName := id.Path["factories"]
-	name := id.Path["integrationRuntimes"]
+	name := id.Path["integrationruntimes"]
 
 	resp, err := client.Get(ctx, resourceGroup, factoryName, name, "")
 	if err != nil {
@@ -270,13 +271,13 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 		return fmt.Errorf("Error retrieving Data Factory Managed Integration Runtime %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", name)
 	d.Set("data_factory_name", factoryName)
 	d.Set("resource_group_name", resourceGroup)
 
-	managedIntegrationRuntime, convertErr := resp.Properties.AsManagedIntegrationRuntime()
-	if convertErr {
-		return fmt.Errorf("Error converting Data Factory Managed Integration Runtime basic properties to managed properties %q (Resource Group %q, Data Factory %q): %+v", name, resourceGroup, factoryName, err)
+	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
+	if !convertSuccess {
+		return fmt.Errorf("Error converting integration runtime to managed managed integration runtime %q (Resource Group %q, Data Factory %q)", name, resourceGroup, factoryName)
 	}
 
 	if managedIntegrationRuntime.Description != nil {
@@ -331,7 +332,7 @@ func resourceArmDataFactoryIntegrationRuntimeManagedDelete(d *schema.ResourceDat
 	}
 	resourceGroup := id.ResourceGroup
 	factoryName := id.Path["factories"]
-	name := id.Path["integrationRuntimes"]
+	name := id.Path["integrationruntimes"]
 
 	response, err := client.Delete(ctx, resourceGroup, factoryName, name)
 	if err != nil {
