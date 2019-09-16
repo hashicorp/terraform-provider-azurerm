@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -84,6 +85,30 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T
 	})
 }
 
+func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(6)
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(ri, testLocation(), rs)
+	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "custom_setup_script.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_setup_script.0.blob_container_uri"),
+					resource.TestCheckResourceAttrSet(resourceName, "custom_setup_script.0.sas_token"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -145,11 +170,7 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  node_size                        = "Standard_D8_v3"
-  number_of_nodes                  = 2
-  max_parallel_executions_per_node = 8
-  edition                          = "Standard"
-  license_type                     = "LicenseIncluded"
+  node_size = "Standard_D8_v3"
 
   vnet_integration {
     vnet_id     = "${azurerm_virtual_network.test.id}"
@@ -187,11 +208,7 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  node_size                        = "Standard_D8_v3"
-  number_of_nodes                  = 2
-  max_parallel_executions_per_node = 8
-  edition                          = "Standard"
-  license_type                     = "LicenseIncluded"
+  node_size = "Standard_D8_v3"
 
   catalog_info {
     server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
@@ -201,6 +218,70 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   }
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(rInt int, location string, rString string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                      = "acctestsa%s"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  location                  = "${azurerm_resource_group.test.location}"
+  account_kind              = "BlobStorage"
+  account_tier              = "Standard"
+  account_replication_type  = "LRS"
+  access_tier			    = "Hot"
+  enable_https_traffic_only = true
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "setup-files"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_blob_container_sas" "test" {
+  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  container_name    = "${azurerm_storage_container.test.name}"
+  https_only        = true
+
+  start  = "2017-03-21"
+  expiry = "2022-03-21"
+
+  permissions {
+    read   = true
+    add    = false
+    create = false
+    write  = true
+    delete = false
+    list   = true
+  }
+}
+
+resource "azurerm_data_factory_integration_runtime_managed" "test" {
+  name                = "managed-integration-runtime"
+  data_factory_name   = azurerm_data_factory.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  node_size = "Standard_D8_v3"
+
+  custom_setup_script {
+	blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}/${azurerm_storage_container.test.name}"
+    sas_token          = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
+  }
+}
+`, rInt, location, rInt, rString)
 }
 
 func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) resource.TestCheckFunc {
