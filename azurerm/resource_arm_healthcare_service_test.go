@@ -31,9 +31,6 @@ func TestAccAzureRMHealthcareService(t *testing.T) {
 				ImportState:  true,
 				ImportStateVerifyIgnore: []string{
 					// since these are read from the existing state
-					"access_policy_object_ids",
-					"cosmosdb_throughput",
-					"kind",
 				},
 			},
 		},

@@ -107,7 +107,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 	expandedTags := expandTags(tags)
 
 	kind := d.Get("kind").(string)
-	cdba := int32(d.Get("cosmodb_throughput").(int))
+	cdba := int32(d.Get("cosmosdb_throughput").(int))
 	accessPolicyObjectIds := d.Get("access_policy_object_ids").([]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
