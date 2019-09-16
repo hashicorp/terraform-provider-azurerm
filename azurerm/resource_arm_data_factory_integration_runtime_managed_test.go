@@ -59,6 +59,31 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testi
 	})
 }
 
+func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(ri, testLocation())
+	resourceName := "azurerm_data_factory_integration_runtime_managed.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMDataFactoryIntegrationRuntimeManagedDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "catalog_info.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "catalog_info.0.server_endpoint"),
+					resource.TestCheckResourceAttr(resourceName, "catalog_info.0.administrator_login", "ssis_catalog_admin"),
+					resource.TestCheckResourceAttr(resourceName, "catalog_info.0.administrator_password", "my-s3cret-p4ssword!"),
+					resource.TestCheckResourceAttr(resourceName, "catalog_info.0.pricing_tier", "Basic"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMDataFactoryIntegrationRuntimeManaged_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -132,6 +157,50 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdfirm%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsql%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "ssis_catalog_admin"
+  administrator_login_password = "my-s3cret-p4ssword!"
+}
+
+resource "azurerm_data_factory_integration_runtime_managed" "test" {
+  name                = "managed-integration-runtime"
+  data_factory_name   = azurerm_data_factory.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  node_size                        = "Standard_D8_v3"
+  number_of_nodes                  = 2
+  max_parallel_executions_per_node = 8
+  edition                          = "Standard"
+  license_type                     = "LicenseIncluded"
+
+  catalog_info {
+    server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+    administrator_login    = "ssis_catalog_admin"
+    administrator_password = "my-s3cret-p4ssword!"
+    pricing_tier           = "Basic"
+  }
+}
+`, rInt, location, rInt, rInt)
 }
 
 func testCheckAzureRMDataFactoryIntegrationRuntimeManagedExists(name string) resource.TestCheckFunc {
