@@ -64,7 +64,11 @@ func (client GalleryImageVersionsClient) CreateOrUpdate(ctx context.Context, res
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: galleryImageVersion,
 			Constraints: []validation.Constraint{{Target: "galleryImageVersion.GalleryImageVersionProperties", Name: validation.Null, Rule: false,
-				Chain: []validation.Constraint{{Target: "galleryImageVersion.GalleryImageVersionProperties.PublishingProfile", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
+				Chain: []validation.Constraint{{Target: "galleryImageVersion.GalleryImageVersionProperties.StorageProfile", Name: validation.Null, Rule: true,
+					Chain: []validation.Constraint{{Target: "galleryImageVersion.GalleryImageVersionProperties.StorageProfile.Source", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "galleryImageVersion.GalleryImageVersionProperties.StorageProfile.Source.ID", Name: validation.Null, Rule: true, Chain: nil}}},
+					}},
+				}}}}}); err != nil {
 		return result, validation.NewError("compute.GalleryImageVersionsClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -93,7 +97,7 @@ func (client GalleryImageVersionsClient) CreateOrUpdatePreparer(ctx context.Cont
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2019-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -176,7 +180,7 @@ func (client GalleryImageVersionsClient) DeletePreparer(ctx context.Context, res
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2019-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -263,7 +267,7 @@ func (client GalleryImageVersionsClient) GetPreparer(ctx context.Context, resour
 		"subscriptionId":          autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2019-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -347,7 +351,7 @@ func (client GalleryImageVersionsClient) ListByGalleryImagePreparer(ctx context.
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2018-06-01"
+	const APIVersion = "2019-07-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

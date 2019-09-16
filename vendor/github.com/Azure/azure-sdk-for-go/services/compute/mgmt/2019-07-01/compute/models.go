@@ -29,7 +29,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 
 // AccessLevel enumerates the values for access level.
 type AccessLevel string
@@ -39,11 +39,13 @@ const (
 	None AccessLevel = "None"
 	// Read ...
 	Read AccessLevel = "Read"
+	// Write ...
+	Write AccessLevel = "Write"
 )
 
 // PossibleAccessLevelValues returns an array of possible values for the AccessLevel const type.
 func PossibleAccessLevelValues() []AccessLevel {
-	return []AccessLevel{None, Read}
+	return []AccessLevel{None, Read, Write}
 }
 
 // AggregatedReplicationState enumerates the values for aggregated replication state.
@@ -234,6 +236,23 @@ func PossibleContainerServiceVMSizeTypesValues() []ContainerServiceVMSizeTypes {
 	return []ContainerServiceVMSizeTypes{StandardA0, StandardA1, StandardA10, StandardA11, StandardA2, StandardA3, StandardA4, StandardA5, StandardA6, StandardA7, StandardA8, StandardA9, StandardD1, StandardD11, StandardD11V2, StandardD12, StandardD12V2, StandardD13, StandardD13V2, StandardD14, StandardD14V2, StandardD1V2, StandardD2, StandardD2V2, StandardD3, StandardD3V2, StandardD4, StandardD4V2, StandardD5V2, StandardDS1, StandardDS11, StandardDS12, StandardDS13, StandardDS14, StandardDS2, StandardDS3, StandardDS4, StandardG1, StandardG2, StandardG3, StandardG4, StandardG5, StandardGS1, StandardGS2, StandardGS3, StandardGS4, StandardGS5}
 }
 
+// DedicatedHostLicenseTypes enumerates the values for dedicated host license types.
+type DedicatedHostLicenseTypes string
+
+const (
+	// DedicatedHostLicenseTypesNone ...
+	DedicatedHostLicenseTypesNone DedicatedHostLicenseTypes = "None"
+	// DedicatedHostLicenseTypesWindowsServerHybrid ...
+	DedicatedHostLicenseTypesWindowsServerHybrid DedicatedHostLicenseTypes = "Windows_Server_Hybrid"
+	// DedicatedHostLicenseTypesWindowsServerPerpetual ...
+	DedicatedHostLicenseTypesWindowsServerPerpetual DedicatedHostLicenseTypes = "Windows_Server_Perpetual"
+)
+
+// PossibleDedicatedHostLicenseTypesValues returns an array of possible values for the DedicatedHostLicenseTypes const type.
+func PossibleDedicatedHostLicenseTypesValues() []DedicatedHostLicenseTypes {
+	return []DedicatedHostLicenseTypes{DedicatedHostLicenseTypesNone, DedicatedHostLicenseTypesWindowsServerHybrid, DedicatedHostLicenseTypesWindowsServerPerpetual}
+}
+
 // DiffDiskOptions enumerates the values for diff disk options.
 type DiffDiskOptions string
 
@@ -263,11 +282,13 @@ const (
 	Import DiskCreateOption = "Import"
 	// Restore ...
 	Restore DiskCreateOption = "Restore"
+	// Upload ...
+	Upload DiskCreateOption = "Upload"
 )
 
 // PossibleDiskCreateOptionValues returns an array of possible values for the DiskCreateOption const type.
 func PossibleDiskCreateOptionValues() []DiskCreateOption {
-	return []DiskCreateOption{Attach, Copy, Empty, FromImage, Import, Restore}
+	return []DiskCreateOption{Attach, Copy, Empty, FromImage, Import, Restore, Upload}
 }
 
 // DiskCreateOptionTypes enumerates the values for disk create option types.
@@ -285,6 +306,29 @@ const (
 // PossibleDiskCreateOptionTypesValues returns an array of possible values for the DiskCreateOptionTypes const type.
 func PossibleDiskCreateOptionTypesValues() []DiskCreateOptionTypes {
 	return []DiskCreateOptionTypes{DiskCreateOptionTypesAttach, DiskCreateOptionTypesEmpty, DiskCreateOptionTypesFromImage}
+}
+
+// DiskState enumerates the values for disk state.
+type DiskState string
+
+const (
+	// ActiveSAS ...
+	ActiveSAS DiskState = "ActiveSAS"
+	// ActiveUpload ...
+	ActiveUpload DiskState = "ActiveUpload"
+	// Attached ...
+	Attached DiskState = "Attached"
+	// ReadyToUpload ...
+	ReadyToUpload DiskState = "ReadyToUpload"
+	// Reserved ...
+	Reserved DiskState = "Reserved"
+	// Unattached ...
+	Unattached DiskState = "Unattached"
+)
+
+// PossibleDiskStateValues returns an array of possible values for the DiskState const type.
+func PossibleDiskStateValues() []DiskState {
+	return []DiskState{ActiveSAS, ActiveUpload, Attached, ReadyToUpload, Reserved, Unattached}
 }
 
 // DiskStorageAccountTypes enumerates the values for disk storage account types.
@@ -321,6 +365,51 @@ const (
 // PossibleHostCachingValues returns an array of possible values for the HostCaching const type.
 func PossibleHostCachingValues() []HostCaching {
 	return []HostCaching{HostCachingNone, HostCachingReadOnly, HostCachingReadWrite}
+}
+
+// HyperVGeneration enumerates the values for hyper v generation.
+type HyperVGeneration string
+
+const (
+	// V1 ...
+	V1 HyperVGeneration = "V1"
+	// V2 ...
+	V2 HyperVGeneration = "V2"
+)
+
+// PossibleHyperVGenerationValues returns an array of possible values for the HyperVGeneration const type.
+func PossibleHyperVGenerationValues() []HyperVGeneration {
+	return []HyperVGeneration{V1, V2}
+}
+
+// HyperVGenerationType enumerates the values for hyper v generation type.
+type HyperVGenerationType string
+
+const (
+	// HyperVGenerationTypeV1 ...
+	HyperVGenerationTypeV1 HyperVGenerationType = "V1"
+	// HyperVGenerationTypeV2 ...
+	HyperVGenerationTypeV2 HyperVGenerationType = "V2"
+)
+
+// PossibleHyperVGenerationTypeValues returns an array of possible values for the HyperVGenerationType const type.
+func PossibleHyperVGenerationTypeValues() []HyperVGenerationType {
+	return []HyperVGenerationType{HyperVGenerationTypeV1, HyperVGenerationTypeV2}
+}
+
+// HyperVGenerationTypes enumerates the values for hyper v generation types.
+type HyperVGenerationTypes string
+
+const (
+	// HyperVGenerationTypesV1 ...
+	HyperVGenerationTypesV1 HyperVGenerationTypes = "V1"
+	// HyperVGenerationTypesV2 ...
+	HyperVGenerationTypesV2 HyperVGenerationTypes = "V2"
+)
+
+// PossibleHyperVGenerationTypesValues returns an array of possible values for the HyperVGenerationTypes const type.
+func PossibleHyperVGenerationTypesValues() []HyperVGenerationTypes {
+	return []HyperVGenerationTypes{HyperVGenerationTypesV1, HyperVGenerationTypesV2}
 }
 
 // InstanceViewTypes enumerates the values for instance view types.
@@ -710,6 +799,21 @@ const (
 // PossibleStatusLevelTypesValues returns an array of possible values for the StatusLevelTypes const type.
 func PossibleStatusLevelTypesValues() []StatusLevelTypes {
 	return []StatusLevelTypes{Error, Info, Warning}
+}
+
+// StorageAccountType enumerates the values for storage account type.
+type StorageAccountType string
+
+const (
+	// StorageAccountTypeStandardLRS ...
+	StorageAccountTypeStandardLRS StorageAccountType = "Standard_LRS"
+	// StorageAccountTypeStandardZRS ...
+	StorageAccountTypeStandardZRS StorageAccountType = "Standard_ZRS"
+)
+
+// PossibleStorageAccountTypeValues returns an array of possible values for the StorageAccountType const type.
+func PossibleStorageAccountTypeValues() []StorageAccountType {
+	return []StorageAccountType{StorageAccountTypeStandardLRS, StorageAccountTypeStandardZRS}
 }
 
 // StorageAccountTypes enumerates the values for storage account types.
@@ -1232,7 +1336,7 @@ type APIErrorBase struct {
 
 // AutomaticOSUpgradePolicy the configuration parameters used for performing automatic OS upgrade.
 type AutomaticOSUpgradePolicy struct {
-	// EnableAutomaticOSUpgrade - Indicates whether OS upgrades should automatically be applied to scale set instances in a rolling fashion when a newer version of the OS image becomes available. Default value is false. If this is set to true for Windows based scale sets, recommendation is to set [enableAutomaticUpdates](https://docs.microsoft.com/dotnet/api/microsoft.azure.management.compute.models.windowsconfiguration.enableautomaticupdates?view=azure-dotnet) to false.
+	// EnableAutomaticOSUpgrade - Indicates whether OS upgrades should automatically be applied to scale set instances in a rolling fashion when a newer version of the OS image becomes available. Default value is false. <br><br> If this is set to true for Windows based scale sets, [enableAutomaticUpdates](https://docs.microsoft.com/dotnet/api/microsoft.azure.management.compute.models.windowsconfiguration.enableautomaticupdates?view=azure-dotnet) is automatically set to false and cannot be set to true.
 	EnableAutomaticOSUpgrade *bool `json:"enableAutomaticOSUpgrade,omitempty"`
 	// DisableAutomaticRollback - Whether OS image rollback feature should be disabled. Default value is false.
 	DisableAutomaticRollback *bool `json:"disableAutomaticRollback,omitempty"`
@@ -2028,7 +2132,7 @@ type ContainerServiceWindowsProfile struct {
 
 // CreationData data used when creating a disk.
 type CreationData struct {
-	// CreateOption - This enumerates the possible sources of a disk's creation. Possible values include: 'Empty', 'Attach', 'FromImage', 'Import', 'Copy', 'Restore'
+	// CreateOption - This enumerates the possible sources of a disk's creation. Possible values include: 'Empty', 'Attach', 'FromImage', 'Import', 'Copy', 'Restore', 'Upload'
 	CreateOption DiskCreateOption `json:"createOption,omitempty"`
 	// StorageAccountID - If createOption is Import, the Azure Resource Manager identifier of the storage account containing the blob to import as a disk. Required only if the blob is in a different subscription
 	StorageAccountID *string `json:"storageAccountId,omitempty"`
@@ -2060,12 +2164,790 @@ type DataDisk struct {
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 	// ManagedDisk - The managed disk parameters.
 	ManagedDisk *ManagedDiskParameters `json:"managedDisk,omitempty"`
+	// ToBeDetached - Specifies whether the data disk is in process of detachment from the VirtualMachine/VirtualMachineScaleset
+	ToBeDetached *bool `json:"toBeDetached,omitempty"`
 }
 
 // DataDiskImage contains the data disk images information.
 type DataDiskImage struct {
 	// Lun - READ-ONLY; Specifies the logical unit number of the data disk. This value is used to identify data disks within the VM and therefore must be unique for each data disk attached to a VM.
 	Lun *int32 `json:"lun,omitempty"`
+}
+
+// DedicatedHost specifies information about the Dedicated host.
+type DedicatedHost struct {
+	autorest.Response        `json:"-"`
+	*DedicatedHostProperties `json:"properties,omitempty"`
+	// Sku - SKU of the dedicated host for Hardware Generation and VM family. Only name is required to be set. List Microsoft.Compute SKUs for a list of possible values.
+	Sku *Sku `json:"sku,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedHost.
+func (dh DedicatedHost) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dh.DedicatedHostProperties != nil {
+		objectMap["properties"] = dh.DedicatedHostProperties
+	}
+	if dh.Sku != nil {
+		objectMap["sku"] = dh.Sku
+	}
+	if dh.Location != nil {
+		objectMap["location"] = dh.Location
+	}
+	if dh.Tags != nil {
+		objectMap["tags"] = dh.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DedicatedHost struct.
+func (dh *DedicatedHost) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var dedicatedHostProperties DedicatedHostProperties
+				err = json.Unmarshal(*v, &dedicatedHostProperties)
+				if err != nil {
+					return err
+				}
+				dh.DedicatedHostProperties = &dedicatedHostProperties
+			}
+		case "sku":
+			if v != nil {
+				var sku Sku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				dh.Sku = &sku
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				dh.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				dh.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				dh.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				dh.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				dh.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// DedicatedHostAllocatableVM represents the dedicated host unutilized capacity in terms of a specific VM
+// size.
+type DedicatedHostAllocatableVM struct {
+	// VMSize - VM size in terms of which the unutilized capacity is represented.
+	VMSize *string `json:"vmSize,omitempty"`
+	// Count - Maximum number of VMs of size vmSize that can fit in the dedicated host's remaining capacity.
+	Count *float64 `json:"count,omitempty"`
+}
+
+// DedicatedHostAvailableCapacity dedicated host unutilized capacity.
+type DedicatedHostAvailableCapacity struct {
+	// AllocatableVMs - The unutilized capacity of the dedicated host represented in terms of each VM size that is allowed to be deployed to the dedicated host.
+	AllocatableVMs *[]DedicatedHostAllocatableVM `json:"allocatableVMs,omitempty"`
+}
+
+// DedicatedHostGroup specifies information about the dedicated host group that the dedicated hosts should
+// be assigned to. <br><br> Currently, a dedicated host can only be added to a dedicated host group at
+// creation time. An existing dedicated host cannot be added to another dedicated host group.
+type DedicatedHostGroup struct {
+	autorest.Response             `json:"-"`
+	*DedicatedHostGroupProperties `json:"properties,omitempty"`
+	// Zones - Availability Zone to use for this host group. Only single zone is supported. The zone can be assigned only during creation. If not provided, the group supports all zones in the region. If provided, enforces each host in the group to be in the same zone.
+	Zones *[]string `json:"zones,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedHostGroup.
+func (dhg DedicatedHostGroup) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dhg.DedicatedHostGroupProperties != nil {
+		objectMap["properties"] = dhg.DedicatedHostGroupProperties
+	}
+	if dhg.Zones != nil {
+		objectMap["zones"] = dhg.Zones
+	}
+	if dhg.Location != nil {
+		objectMap["location"] = dhg.Location
+	}
+	if dhg.Tags != nil {
+		objectMap["tags"] = dhg.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DedicatedHostGroup struct.
+func (dhg *DedicatedHostGroup) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var dedicatedHostGroupProperties DedicatedHostGroupProperties
+				err = json.Unmarshal(*v, &dedicatedHostGroupProperties)
+				if err != nil {
+					return err
+				}
+				dhg.DedicatedHostGroupProperties = &dedicatedHostGroupProperties
+			}
+		case "zones":
+			if v != nil {
+				var zones []string
+				err = json.Unmarshal(*v, &zones)
+				if err != nil {
+					return err
+				}
+				dhg.Zones = &zones
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				dhg.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				dhg.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				dhg.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				dhg.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				dhg.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// DedicatedHostGroupListResult the List Dedicated Host Group with resource group response.
+type DedicatedHostGroupListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of dedicated host groups
+	Value *[]DedicatedHostGroup `json:"value,omitempty"`
+	// NextLink - The URI to fetch the next page of Dedicated Host Groups. Call ListNext() with this URI to fetch the next page of Dedicated Host Groups.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DedicatedHostGroupListResultIterator provides access to a complete listing of DedicatedHostGroup values.
+type DedicatedHostGroupListResultIterator struct {
+	i    int
+	page DedicatedHostGroupListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DedicatedHostGroupListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DedicatedHostGroupListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DedicatedHostGroupListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DedicatedHostGroupListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DedicatedHostGroupListResultIterator) Response() DedicatedHostGroupListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DedicatedHostGroupListResultIterator) Value() DedicatedHostGroup {
+	if !iter.page.NotDone() {
+		return DedicatedHostGroup{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DedicatedHostGroupListResultIterator type.
+func NewDedicatedHostGroupListResultIterator(page DedicatedHostGroupListResultPage) DedicatedHostGroupListResultIterator {
+	return DedicatedHostGroupListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dhglr DedicatedHostGroupListResult) IsEmpty() bool {
+	return dhglr.Value == nil || len(*dhglr.Value) == 0
+}
+
+// dedicatedHostGroupListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dhglr DedicatedHostGroupListResult) dedicatedHostGroupListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if dhglr.NextLink == nil || len(to.String(dhglr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dhglr.NextLink)))
+}
+
+// DedicatedHostGroupListResultPage contains a page of DedicatedHostGroup values.
+type DedicatedHostGroupListResultPage struct {
+	fn    func(context.Context, DedicatedHostGroupListResult) (DedicatedHostGroupListResult, error)
+	dhglr DedicatedHostGroupListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DedicatedHostGroupListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DedicatedHostGroupListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.dhglr)
+	if err != nil {
+		return err
+	}
+	page.dhglr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DedicatedHostGroupListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DedicatedHostGroupListResultPage) NotDone() bool {
+	return !page.dhglr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DedicatedHostGroupListResultPage) Response() DedicatedHostGroupListResult {
+	return page.dhglr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DedicatedHostGroupListResultPage) Values() []DedicatedHostGroup {
+	if page.dhglr.IsEmpty() {
+		return nil
+	}
+	return *page.dhglr.Value
+}
+
+// Creates a new instance of the DedicatedHostGroupListResultPage type.
+func NewDedicatedHostGroupListResultPage(getNextPage func(context.Context, DedicatedHostGroupListResult) (DedicatedHostGroupListResult, error)) DedicatedHostGroupListResultPage {
+	return DedicatedHostGroupListResultPage{fn: getNextPage}
+}
+
+// DedicatedHostGroupProperties dedicated Host Group Properties.
+type DedicatedHostGroupProperties struct {
+	// PlatformFaultDomainCount - Number of fault domains that the host group can span.
+	PlatformFaultDomainCount *int32 `json:"platformFaultDomainCount,omitempty"`
+	// Hosts - READ-ONLY; A list of references to all dedicated hosts in the dedicated host group.
+	Hosts *[]SubResourceReadOnly `json:"hosts,omitempty"`
+}
+
+// DedicatedHostGroupUpdate specifies information about the dedicated host group that the dedicated host
+// should be assigned to. Only tags may be updated.
+type DedicatedHostGroupUpdate struct {
+	*DedicatedHostGroupProperties `json:"properties,omitempty"`
+	// Zones - Availability Zone to use for this host group. Only single zone is supported. The zone can be assigned only during creation. If not provided, the group supports all zones in the region. If provided, enforces each host in the group to be in the same zone.
+	Zones *[]string `json:"zones,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedHostGroupUpdate.
+func (dhgu DedicatedHostGroupUpdate) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dhgu.DedicatedHostGroupProperties != nil {
+		objectMap["properties"] = dhgu.DedicatedHostGroupProperties
+	}
+	if dhgu.Zones != nil {
+		objectMap["zones"] = dhgu.Zones
+	}
+	if dhgu.Tags != nil {
+		objectMap["tags"] = dhgu.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DedicatedHostGroupUpdate struct.
+func (dhgu *DedicatedHostGroupUpdate) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var dedicatedHostGroupProperties DedicatedHostGroupProperties
+				err = json.Unmarshal(*v, &dedicatedHostGroupProperties)
+				if err != nil {
+					return err
+				}
+				dhgu.DedicatedHostGroupProperties = &dedicatedHostGroupProperties
+			}
+		case "zones":
+			if v != nil {
+				var zones []string
+				err = json.Unmarshal(*v, &zones)
+				if err != nil {
+					return err
+				}
+				dhgu.Zones = &zones
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				dhgu.Tags = tags
+			}
+		}
+	}
+
+	return nil
+}
+
+// DedicatedHostInstanceView the instance view of a dedicated host.
+type DedicatedHostInstanceView struct {
+	// AssetID - READ-ONLY; Specifies the unique id of the dedicated physical machine on which the dedicated host resides.
+	AssetID *string `json:"assetId,omitempty"`
+	// AvailableCapacity - Unutilized capacity of the dedicated host.
+	AvailableCapacity *DedicatedHostAvailableCapacity `json:"availableCapacity,omitempty"`
+	// Statuses - The resource status information.
+	Statuses *[]InstanceViewStatus `json:"statuses,omitempty"`
+}
+
+// DedicatedHostListResult the list dedicated host operation response.
+type DedicatedHostListResult struct {
+	autorest.Response `json:"-"`
+	// Value - The list of dedicated hosts
+	Value *[]DedicatedHost `json:"value,omitempty"`
+	// NextLink - The URI to fetch the next page of dedicated hosts. Call ListNext() with this URI to fetch the next page of dedicated hosts.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DedicatedHostListResultIterator provides access to a complete listing of DedicatedHost values.
+type DedicatedHostListResultIterator struct {
+	i    int
+	page DedicatedHostListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DedicatedHostListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DedicatedHostListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DedicatedHostListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DedicatedHostListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DedicatedHostListResultIterator) Response() DedicatedHostListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DedicatedHostListResultIterator) Value() DedicatedHost {
+	if !iter.page.NotDone() {
+		return DedicatedHost{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DedicatedHostListResultIterator type.
+func NewDedicatedHostListResultIterator(page DedicatedHostListResultPage) DedicatedHostListResultIterator {
+	return DedicatedHostListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dhlr DedicatedHostListResult) IsEmpty() bool {
+	return dhlr.Value == nil || len(*dhlr.Value) == 0
+}
+
+// dedicatedHostListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dhlr DedicatedHostListResult) dedicatedHostListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if dhlr.NextLink == nil || len(to.String(dhlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dhlr.NextLink)))
+}
+
+// DedicatedHostListResultPage contains a page of DedicatedHost values.
+type DedicatedHostListResultPage struct {
+	fn   func(context.Context, DedicatedHostListResult) (DedicatedHostListResult, error)
+	dhlr DedicatedHostListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DedicatedHostListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DedicatedHostListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.dhlr)
+	if err != nil {
+		return err
+	}
+	page.dhlr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DedicatedHostListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DedicatedHostListResultPage) NotDone() bool {
+	return !page.dhlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DedicatedHostListResultPage) Response() DedicatedHostListResult {
+	return page.dhlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DedicatedHostListResultPage) Values() []DedicatedHost {
+	if page.dhlr.IsEmpty() {
+		return nil
+	}
+	return *page.dhlr.Value
+}
+
+// Creates a new instance of the DedicatedHostListResultPage type.
+func NewDedicatedHostListResultPage(getNextPage func(context.Context, DedicatedHostListResult) (DedicatedHostListResult, error)) DedicatedHostListResultPage {
+	return DedicatedHostListResultPage{fn: getNextPage}
+}
+
+// DedicatedHostProperties properties of the dedicated host.
+type DedicatedHostProperties struct {
+	// PlatformFaultDomain - Fault domain of the dedicated host within a dedicated host group.
+	PlatformFaultDomain *int32 `json:"platformFaultDomain,omitempty"`
+	// AutoReplaceOnFailure - Specifies whether the dedicated host should be replaced automatically in case of a failure. The value is defaulted to 'true' when not provided.
+	AutoReplaceOnFailure *bool `json:"autoReplaceOnFailure,omitempty"`
+	// HostID - READ-ONLY; A unique id generated and assigned to the dedicated host by the platform. <br><br> Does not change throughout the lifetime of the host.
+	HostID *string `json:"hostId,omitempty"`
+	// VirtualMachines - READ-ONLY; A list of references to all virtual machines in the Dedicated Host.
+	VirtualMachines *[]SubResourceReadOnly `json:"virtualMachines,omitempty"`
+	// LicenseType - Specifies the software license type that will be applied to the VMs deployed on the dedicated host. <br><br> Possible values are: <br><br> **None** <br><br> **Windows_Server_Hybrid** <br><br> **Windows_Server_Perpetual** <br><br> Default: **None**. Possible values include: 'DedicatedHostLicenseTypesNone', 'DedicatedHostLicenseTypesWindowsServerHybrid', 'DedicatedHostLicenseTypesWindowsServerPerpetual'
+	LicenseType DedicatedHostLicenseTypes `json:"licenseType,omitempty"`
+	// ProvisioningTime - READ-ONLY; The date when the host was first provisioned.
+	ProvisioningTime *date.Time `json:"provisioningTime,omitempty"`
+	// ProvisioningState - READ-ONLY; The provisioning state, which only appears in the response.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// InstanceView - READ-ONLY; The dedicated host instance view.
+	InstanceView *DedicatedHostInstanceView `json:"instanceView,omitempty"`
+}
+
+// DedicatedHostsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type DedicatedHostsCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DedicatedHostsCreateOrUpdateFuture) Result(client DedicatedHostsClient) (dh DedicatedHost, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DedicatedHostsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("compute.DedicatedHostsCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if dh.Response.Response, err = future.GetResult(sender); err == nil && dh.Response.Response.StatusCode != http.StatusNoContent {
+		dh, err = client.CreateOrUpdateResponder(dh.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.DedicatedHostsCreateOrUpdateFuture", "Result", dh.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DedicatedHostsDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DedicatedHostsDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DedicatedHostsDeleteFuture) Result(client DedicatedHostsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DedicatedHostsDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("compute.DedicatedHostsDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// DedicatedHostsUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type DedicatedHostsUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *DedicatedHostsUpdateFuture) Result(client DedicatedHostsClient) (dh DedicatedHost, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "compute.DedicatedHostsUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("compute.DedicatedHostsUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if dh.Response.Response, err = future.GetResult(sender); err == nil && dh.Response.Response.StatusCode != http.StatusNoContent {
+		dh, err = client.UpdateResponder(dh.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "compute.DedicatedHostsUpdateFuture", "Result", dh.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// DedicatedHostUpdate specifies information about the dedicated host. Only tags, autoReplaceOnFailure and
+// licenseType may be updated.
+type DedicatedHostUpdate struct {
+	*DedicatedHostProperties `json:"properties,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for DedicatedHostUpdate.
+func (dhu DedicatedHostUpdate) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if dhu.DedicatedHostProperties != nil {
+		objectMap["properties"] = dhu.DedicatedHostProperties
+	}
+	if dhu.Tags != nil {
+		objectMap["tags"] = dhu.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for DedicatedHostUpdate struct.
+func (dhu *DedicatedHostUpdate) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var dedicatedHostProperties DedicatedHostProperties
+				err = json.Unmarshal(*v, &dedicatedHostProperties)
+				if err != nil {
+					return err
+				}
+				dhu.DedicatedHostProperties = &dedicatedHostProperties
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				dhu.Tags = tags
+			}
+		}
+	}
+
+	return nil
 }
 
 // DiagnosticsProfile specifies the boot diagnostic settings state. <br><br>Minimum api-version:
@@ -2398,18 +3280,22 @@ type DiskProperties struct {
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
 	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'V1', 'V2'
+	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// CreationData - Disk source information. CreationData information cannot be changed after the disk has been created.
 	CreationData *CreationData `json:"creationData,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the VHD to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
-	// EncryptionSettings - Encryption settings for disk or snapshot
-	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
+	// EncryptionSettingsCollection - Encryption settings collection used for Azure Disk Encryption, can contain multiple encryption settings per disk or snapshot.
+	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	// ProvisioningState - READ-ONLY; The disk provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// DiskIOPSReadWrite - The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes. For a description of the range of values you can set, see [Ultra SSD Managed Disk Offerings](https://docs.microsoft.com/azure/virtual-machines/windows/disks-ultra-ssd#ultra-ssd-managed-disk-offerings).
+	// DiskIOPSReadWrite - The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
 	DiskIOPSReadWrite *int64 `json:"diskIOPSReadWrite,omitempty"`
-	// DiskMBpsReadWrite - The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second - MB here uses the ISO notation, of powers of 10. For a description of the range of values you can set, see [Ultra SSD Managed Disk Offerings](https://docs.microsoft.com/azure/virtual-machines/windows/disks-ultra-ssd#ultra-ssd-managed-disk-offerings).
+	// DiskMBpsReadWrite - The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second - MB here uses the ISO notation, of powers of 10.
 	DiskMBpsReadWrite *int32 `json:"diskMBpsReadWrite,omitempty"`
+	// DiskState - READ-ONLY; The state of the disk. Possible values include: 'Unattached', 'Attached', 'Reserved', 'ActiveSAS', 'ReadyToUpload', 'ActiveUpload'
+	DiskState DiskState `json:"diskState,omitempty"`
 }
 
 // DisksCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -2622,21 +3508,27 @@ type DiskUpdateProperties struct {
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the VHD to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
-	// EncryptionSettings - Encryption settings for disk or snapshot
-	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
+	// EncryptionSettingsCollection - Encryption settings collection used be Azure Disk Encryption, can contain multiple encryption settings per disk or snapshot.
+	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	// DiskIOPSReadWrite - The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
 	DiskIOPSReadWrite *int64 `json:"diskIOPSReadWrite,omitempty"`
 	// DiskMBpsReadWrite - The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second - MB here uses the ISO notation, of powers of 10.
 	DiskMBpsReadWrite *int32 `json:"diskMBpsReadWrite,omitempty"`
 }
 
-// EncryptionSettings encryption settings for disk or snapshot
-type EncryptionSettings struct {
+// EncryptionSettingsCollection encryption settings for disk or snapshot
+type EncryptionSettingsCollection struct {
 	// Enabled - Set this flag to true and provide DiskEncryptionKey and optional KeyEncryptionKey to enable encryption. Set this flag to false and remove DiskEncryptionKey and KeyEncryptionKey to disable encryption. If EncryptionSettings is null in the request object, the existing settings remain unchanged.
 	Enabled *bool `json:"enabled,omitempty"`
+	// EncryptionSettings - A collection of encryption settings, one for each disk volume.
+	EncryptionSettings *[]EncryptionSettingsElement `json:"encryptionSettings,omitempty"`
+}
+
+// EncryptionSettingsElement encryption settings for one disk volume.
+type EncryptionSettingsElement struct {
 	// DiskEncryptionKey - Key Vault Secret Url and vault id of the disk encryption key
 	DiskEncryptionKey *KeyVaultAndSecretReference `json:"diskEncryptionKey,omitempty"`
-	// KeyEncryptionKey - Key Vault Key Url and vault id of the key encryption key
+	// KeyEncryptionKey - Key Vault Key Url and vault id of the key encryption key. KeyEncryptionKey is optional and when provided is used to unwrap the disk encryption key.
 	KeyEncryptionKey *KeyVaultAndKeyReference `json:"keyEncryptionKey,omitempty"`
 }
 
@@ -2795,31 +3687,33 @@ func (g *Gallery) UnmarshalJSON(body []byte) error {
 // GalleryArtifactPublishingProfileBase describes the basic gallery artifact publishing profile.
 type GalleryArtifactPublishingProfileBase struct {
 	// TargetRegions - The target regions where the Image Version is going to be replicated to. This property is updatable.
-	TargetRegions *[]TargetRegion        `json:"targetRegions,omitempty"`
-	Source        *GalleryArtifactSource `json:"source,omitempty"`
+	TargetRegions *[]TargetRegion `json:"targetRegions,omitempty"`
 }
 
-// GalleryArtifactSource the source image from which the Image Version is going to be created.
-type GalleryArtifactSource struct {
-	ManagedImage *ManagedArtifact `json:"managedImage,omitempty"`
+// GalleryArtifactVersionSource the gallery artifact version source.
+type GalleryArtifactVersionSource struct {
+	// ID - The id of the gallery artifact version source. Can specify a disk uri, snapshot uri, or user image.
+	ID *string `json:"id,omitempty"`
 }
 
 // GalleryDataDiskImage this is the data disk image.
 type GalleryDataDiskImage struct {
-	// Lun - READ-ONLY; This property specifies the logical unit number of the data disk. This value is used to identify data disks within the Virtual Machine and therefore must be unique for each data disk attached to the Virtual Machine.
+	// Lun - This property specifies the logical unit number of the data disk. This value is used to identify data disks within the Virtual Machine and therefore must be unique for each data disk attached to the Virtual Machine.
 	Lun *int32 `json:"lun,omitempty"`
 	// SizeInGB - READ-ONLY; This property indicates the size of the VHD to be created.
 	SizeInGB *int32 `json:"sizeInGB,omitempty"`
-	// HostCaching - READ-ONLY; The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
-	HostCaching HostCaching `json:"hostCaching,omitempty"`
+	// HostCaching - The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
+	HostCaching HostCaching                   `json:"hostCaching,omitempty"`
+	Source      *GalleryArtifactVersionSource `json:"source,omitempty"`
 }
 
 // GalleryDiskImage this is the disk image base class.
 type GalleryDiskImage struct {
 	// SizeInGB - READ-ONLY; This property indicates the size of the VHD to be created.
 	SizeInGB *int32 `json:"sizeInGB,omitempty"`
-	// HostCaching - READ-ONLY; The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
-	HostCaching HostCaching `json:"hostCaching,omitempty"`
+	// HostCaching - The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
+	HostCaching HostCaching                   `json:"hostCaching,omitempty"`
+	Source      *GalleryArtifactVersionSource `json:"source,omitempty"`
 }
 
 // GalleryIdentifier describes the gallery unique name.
@@ -3096,8 +3990,10 @@ type GalleryImageProperties struct {
 	ReleaseNoteURI *string `json:"releaseNoteUri,omitempty"`
 	// OsType - This property allows you to specify the type of the OS that is included in the disk when creating a VM from a managed image. <br><br> Possible values are: <br><br> **Windows** <br><br> **Linux**. Possible values include: 'Windows', 'Linux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
-	// OsState - The allowed values for OS State are 'Generalized'. Possible values include: 'Generalized', 'Specialized'
+	// OsState - This property allows the user to specify whether the virtual machines created under this image are 'Generalized' or 'Specialized'. Possible values include: 'Generalized', 'Specialized'
 	OsState OperatingSystemStateTypes `json:"osState,omitempty"`
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'V1', 'V2'
+	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// EndOfLifeDate - The end of life date of the gallery Image Definition. This property can be used for decommissioning purposes. This property is updatable.
 	EndOfLifeDate *date.Time                       `json:"endOfLifeDate,omitempty"`
 	Identifier    *GalleryImageIdentifier          `json:"identifier,omitempty"`
@@ -3411,9 +4307,8 @@ func NewGalleryImageVersionListPage(getNextPage func(context.Context, GalleryIma
 type GalleryImageVersionProperties struct {
 	PublishingProfile *GalleryImageVersionPublishingProfile `json:"publishingProfile,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state, which only appears in the response. Possible values include: 'ProvisioningState2Creating', 'ProvisioningState2Updating', 'ProvisioningState2Failed', 'ProvisioningState2Succeeded', 'ProvisioningState2Deleting', 'ProvisioningState2Migrating'
-	ProvisioningState ProvisioningState2 `json:"provisioningState,omitempty"`
-	// StorageProfile - READ-ONLY
-	StorageProfile *GalleryImageVersionStorageProfile `json:"storageProfile,omitempty"`
+	ProvisioningState ProvisioningState2                 `json:"provisioningState,omitempty"`
+	StorageProfile    *GalleryImageVersionStorageProfile `json:"storageProfile,omitempty"`
 	// ReplicationStatus - READ-ONLY
 	ReplicationStatus *ReplicationStatus `json:"replicationStatus,omitempty"`
 }
@@ -3428,9 +4323,10 @@ type GalleryImageVersionPublishingProfile struct {
 	PublishedDate *date.Time `json:"publishedDate,omitempty"`
 	// EndOfLifeDate - The end of life date of the gallery Image Version. This property can be used for decommissioning purposes. This property is updatable.
 	EndOfLifeDate *date.Time `json:"endOfLifeDate,omitempty"`
+	// StorageAccountType - Specifies the storage account type to be used to store the image. This property is not updatable. Possible values include: 'StorageAccountTypeStandardLRS', 'StorageAccountTypeStandardZRS'
+	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 	// TargetRegions - The target regions where the Image Version is going to be replicated to. This property is updatable.
-	TargetRegions *[]TargetRegion        `json:"targetRegions,omitempty"`
-	Source        *GalleryArtifactSource `json:"source,omitempty"`
+	TargetRegions *[]TargetRegion `json:"targetRegions,omitempty"`
 }
 
 // GalleryImageVersionsCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
@@ -3485,11 +4381,11 @@ func (future *GalleryImageVersionsDeleteFuture) Result(client GalleryImageVersio
 	return
 }
 
-// GalleryImageVersionStorageProfile this is the storage profile of a gallery Image Version.
+// GalleryImageVersionStorageProfile this is the storage profile of a Gallery Image Version.
 type GalleryImageVersionStorageProfile struct {
-	// OsDiskImage - READ-ONLY
-	OsDiskImage *GalleryOSDiskImage `json:"osDiskImage,omitempty"`
-	// DataDiskImages - READ-ONLY; A list of data disk images.
+	Source      *GalleryArtifactVersionSource `json:"source,omitempty"`
+	OsDiskImage *GalleryOSDiskImage           `json:"osDiskImage,omitempty"`
+	// DataDiskImages - A list of data disk images.
 	DataDiskImages *[]GalleryDataDiskImage `json:"dataDiskImages,omitempty"`
 }
 
@@ -3643,8 +4539,9 @@ func NewGalleryListPage(getNextPage func(context.Context, GalleryList) (GalleryL
 type GalleryOSDiskImage struct {
 	// SizeInGB - READ-ONLY; This property indicates the size of the VHD to be created.
 	SizeInGB *int32 `json:"sizeInGB,omitempty"`
-	// HostCaching - READ-ONLY; The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
-	HostCaching HostCaching `json:"hostCaching,omitempty"`
+	// HostCaching - The host caching of the disk. Valid values are 'None', 'ReadOnly', and 'ReadWrite'. Possible values include: 'HostCachingNone', 'HostCachingReadOnly', 'HostCachingReadWrite'
+	HostCaching HostCaching                   `json:"hostCaching,omitempty"`
+	Source      *GalleryArtifactVersionSource `json:"source,omitempty"`
 }
 
 // GalleryProperties describes the properties of a Shared Image Gallery.
@@ -3658,7 +4555,7 @@ type GalleryProperties struct {
 
 // GrantAccessData data used for requesting a SAS.
 type GrantAccessData struct {
-	// Access - Possible values include: 'None', 'Read'
+	// Access - Possible values include: 'None', 'Read', 'Write'
 	Access AccessLevel `json:"access,omitempty"`
 	// DurationInSeconds - Time duration in seconds until the SAS access expires.
 	DurationInSeconds *int32 `json:"durationInSeconds,omitempty"`
@@ -3972,6 +4869,8 @@ type ImageProperties struct {
 	StorageProfile *ImageStorageProfile `json:"storageProfile,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// HyperVGeneration - Gets the HyperVGenerationType of the VirtualMachine created from the image. Possible values include: 'HyperVGenerationTypesV1', 'HyperVGenerationTypesV2'
+	HyperVGeneration HyperVGenerationTypes `json:"hyperVGeneration,omitempty"`
 }
 
 // ImagePurchasePlan describes the gallery Image Definition purchase plan. This is used by marketplace
@@ -4473,12 +5372,6 @@ type MaintenanceRedeployStatus struct {
 	LastOperationResultCode MaintenanceOperationResultCodeTypes `json:"lastOperationResultCode,omitempty"`
 	// LastOperationMessage - Message returned for the last Maintenance Operation.
 	LastOperationMessage *string `json:"lastOperationMessage,omitempty"`
-}
-
-// ManagedArtifact the managed artifact.
-type ManagedArtifact struct {
-	// ID - The managed artifact id.
-	ID *string `json:"id,omitempty"`
 }
 
 // ManagedDiskParameters the parameters of a managed disk.
@@ -5141,6 +6034,8 @@ type ResourceSkuLocationInfo struct {
 	Location *string `json:"location,omitempty"`
 	// Zones - READ-ONLY; List of availability zones where the SKU is supported.
 	Zones *[]string `json:"zones,omitempty"`
+	// ZoneDetails - READ-ONLY; Details of capabilities available to a SKU in specific zones.
+	ZoneDetails *[]ResourceSkuZoneDetails `json:"zoneDetails,omitempty"`
 }
 
 // ResourceSkuRestrictionInfo ...
@@ -5307,6 +6202,14 @@ func (page ResourceSkusResultPage) Values() []ResourceSku {
 // Creates a new instance of the ResourceSkusResultPage type.
 func NewResourceSkusResultPage(getNextPage func(context.Context, ResourceSkusResult) (ResourceSkusResult, error)) ResourceSkusResultPage {
 	return ResourceSkusResultPage{fn: getNextPage}
+}
+
+// ResourceSkuZoneDetails describes The zonal capabilities of a SKU.
+type ResourceSkuZoneDetails struct {
+	// Name - READ-ONLY; The set of zones that the SKU is available in with the specified capabilities.
+	Name *[]string `json:"name,omitempty"`
+	// Capabilities - READ-ONLY; A list of capabilities that are available for the SKU in the specified list of zones.
+	Capabilities *[]ResourceSkuCapabilities `json:"capabilities,omitempty"`
 }
 
 // RollbackStatusInfo information about rollback on failed VM instances after a OS Upgrade operation.
@@ -5970,12 +6873,14 @@ type SnapshotProperties struct {
 	TimeCreated *date.Time `json:"timeCreated,omitempty"`
 	// OsType - The Operating System type. Possible values include: 'Windows', 'Linux'
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
+	// HyperVGeneration - The hypervisor generation of the Virtual Machine. Applicable to OS disks only. Possible values include: 'V1', 'V2'
+	HyperVGeneration HyperVGeneration `json:"hyperVGeneration,omitempty"`
 	// CreationData - Disk source information. CreationData information cannot be changed after the disk has been created.
 	CreationData *CreationData `json:"creationData,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the VHD to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
-	// EncryptionSettings - Encryption settings for disk or snapshot
-	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
+	// EncryptionSettingsCollection - Encryption settings collection used be Azure Disk Encryption, can contain multiple encryption settings per disk or snapshot.
+	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 	// ProvisioningState - READ-ONLY; The disk provisioning state.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 }
@@ -6192,8 +7097,8 @@ type SnapshotUpdateProperties struct {
 	OsType OperatingSystemTypes `json:"osType,omitempty"`
 	// DiskSizeGB - If creationData.createOption is Empty, this field is mandatory and it indicates the size of the VHD to create. If this field is present for updates or creation with other options, it indicates a resize. Resizes are only allowed if the disk is not attached to a running VM, and can only increase the disk's size.
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
-	// EncryptionSettings - Encryption settings for disk or snapshot
-	EncryptionSettings *EncryptionSettings `json:"encryptionSettings,omitempty"`
+	// EncryptionSettingsCollection - Encryption settings collection used be Azure Disk Encryption, can contain multiple encryption settings per disk or snapshot.
+	EncryptionSettingsCollection *EncryptionSettingsCollection `json:"encryptionSettingsCollection,omitempty"`
 }
 
 // SourceVault the vault id is an Azure Resource Manager Resource id in the form
@@ -6246,6 +7151,8 @@ type TargetRegion struct {
 	Name *string `json:"name,omitempty"`
 	// RegionalReplicaCount - The number of replicas of the Image Version to be created per region. This property is updatable.
 	RegionalReplicaCount *int32 `json:"regionalReplicaCount,omitempty"`
+	// StorageAccountType - Specifies the storage account type to be used to store the image. This property is not updatable. Possible values include: 'StorageAccountTypeStandardLRS', 'StorageAccountTypeStandardZRS'
+	StorageAccountType StorageAccountType `json:"storageAccountType,omitempty"`
 }
 
 // ThrottledRequestsInput api request input for LogAnalytics getThrottledRequests Api.
@@ -7159,6 +8066,8 @@ type VirtualMachineInstanceView struct {
 	OsName *string `json:"osName,omitempty"`
 	// OsVersion - The version of Operating System running on the virtual machine.
 	OsVersion *string `json:"osVersion,omitempty"`
+	// HyperVGeneration - Specifies the HyperVGeneration Type associated with a resource. Possible values include: 'HyperVGenerationTypeV1', 'HyperVGenerationTypeV2'
+	HyperVGeneration HyperVGenerationType `json:"hyperVGeneration,omitempty"`
 	// RdpThumbPrint - The Remote desktop certificate thumbprint.
 	RdpThumbPrint *string `json:"rdpThumbPrint,omitempty"`
 	// VMAgent - The VM Agent running on the virtual machine.
@@ -7339,6 +8248,8 @@ type VirtualMachineProperties struct {
 	AvailabilitySet *SubResource `json:"availabilitySet,omitempty"`
 	// ProximityPlacementGroup - Specifies information about the proximity placement group that the virtual machine should be assigned to. <br><br>Minimum api-version: 2018-04-01.
 	ProximityPlacementGroup *SubResource `json:"proximityPlacementGroup,omitempty"`
+	// Host - Specifies information about the dedicated host that the virtual machine resides in. <br><br>Minimum api-version: 2018-10-01.
+	Host *SubResource `json:"host,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state, which only appears in the response.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// InstanceView - READ-ONLY; The virtual machine instance view.
@@ -8727,6 +9638,8 @@ type VirtualMachineScaleSetProperties struct {
 	PlatformFaultDomainCount *int32 `json:"platformFaultDomainCount,omitempty"`
 	// ProximityPlacementGroup - Specifies information about the proximity placement group that the virtual machine scale set should be assigned to. <br><br>Minimum api-version: 2018-04-01.
 	ProximityPlacementGroup *SubResource `json:"proximityPlacementGroup,omitempty"`
+	// AdditionalCapabilities - Specifies additional capabilities enabled or disabled on the Virtual Machines in the Virtual Machine Scale Set. For instance: whether the Virtual Machines have the capability to support attaching managed data disks with UltraSSD_LRS storage account type.
+	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 }
 
 // VirtualMachineScaleSetPublicIPAddressConfiguration describes a virtual machines scale set IP
@@ -9534,6 +10447,8 @@ type VirtualMachineScaleSetUpdateProperties struct {
 	Overprovision *bool `json:"overprovision,omitempty"`
 	// SinglePlacementGroup - When true this limits the scale set to a single placement group, of max size 100 virtual machines.
 	SinglePlacementGroup *bool `json:"singlePlacementGroup,omitempty"`
+	// AdditionalCapabilities - Specifies additional capabilities enabled or disabled on the Virtual Machines in the Virtual Machine Scale Set. For instance: whether the Virtual Machines have the capability to support attaching managed data disks with UltraSSD_LRS storage account type.
+	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 }
 
 // VirtualMachineScaleSetUpdatePublicIPAddressConfiguration describes a virtual machines scale set IP
@@ -9979,14 +10894,19 @@ func NewVirtualMachineScaleSetVMListResultPage(getNextPage func(context.Context,
 	return VirtualMachineScaleSetVMListResultPage{fn: getNextPage}
 }
 
+// VirtualMachineScaleSetVMNetworkProfileConfiguration describes a virtual machine scale set VM network
+// profile.
+type VirtualMachineScaleSetVMNetworkProfileConfiguration struct {
+	// NetworkInterfaceConfigurations - The list of network configurations.
+	NetworkInterfaceConfigurations *[]VirtualMachineScaleSetNetworkConfiguration `json:"networkInterfaceConfigurations,omitempty"`
+}
+
 // VirtualMachineScaleSetVMProfile describes a virtual machine scale set virtual machine profile.
 type VirtualMachineScaleSetVMProfile struct {
 	// OsProfile - Specifies the operating system settings for the virtual machines in the scale set.
 	OsProfile *VirtualMachineScaleSetOSProfile `json:"osProfile,omitempty"`
 	// StorageProfile - Specifies the storage settings for the virtual machine disks.
 	StorageProfile *VirtualMachineScaleSetStorageProfile `json:"storageProfile,omitempty"`
-	// AdditionalCapabilities - Specifies additional capabilities enabled or disabled on the virtual machine in the scale set. For instance: whether the virtual machine has the capability to support attaching managed data disks with UltraSSD_LRS storage account type.
-	AdditionalCapabilities *AdditionalCapabilities `json:"additionalCapabilities,omitempty"`
 	// NetworkProfile - Specifies properties of the network interfaces of the virtual machines in the scale set.
 	NetworkProfile *VirtualMachineScaleSetNetworkProfile `json:"networkProfile,omitempty"`
 	// DiagnosticsProfile - Specifies the boot diagnostic settings state. <br><br>Minimum api-version: 2015-06-15.
@@ -10020,6 +10940,8 @@ type VirtualMachineScaleSetVMProperties struct {
 	OsProfile *OSProfile `json:"osProfile,omitempty"`
 	// NetworkProfile - Specifies the network interfaces of the virtual machine.
 	NetworkProfile *NetworkProfile `json:"networkProfile,omitempty"`
+	// NetworkProfileConfiguration - Specifies the network profile configuration of the virtual machine.
+	NetworkProfileConfiguration *VirtualMachineScaleSetVMNetworkProfileConfiguration `json:"networkProfileConfiguration,omitempty"`
 	// DiagnosticsProfile - Specifies the boot diagnostic settings state. <br><br>Minimum api-version: 2015-06-15.
 	DiagnosticsProfile *DiagnosticsProfile `json:"diagnosticsProfile,omitempty"`
 	// AvailabilitySet - Specifies information about the availability set that the virtual machine should be assigned to. Virtual machines specified in the same availability set are allocated to different nodes to maximize availability. For more information about availability sets, see [Manage the availability of virtual machines](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-manage-availability?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json). <br><br> For more information on Azure planned maintenance, see [Planned maintenance for virtual machines in Azure](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-planned-maintenance?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json) <br><br> Currently, a VM can only be added to availability set at creation time. An existing VM cannot be added to an availability set.
@@ -10028,6 +10950,18 @@ type VirtualMachineScaleSetVMProperties struct {
 	ProvisioningState *string `json:"provisioningState,omitempty"`
 	// LicenseType - Specifies that the image or disk that is being used was licensed on-premises. This element is only used for images that contain the Windows Server operating system. <br><br> Possible values are: <br><br> Windows_Client <br><br> Windows_Server <br><br> If this element is included in a request for an update, the value must match the initial value. This value cannot be updated. <br><br> For more information, see [Azure Hybrid Use Benefit for Windows Server](https://docs.microsoft.com/azure/virtual-machines/virtual-machines-windows-hybrid-use-benefit-licensing?toc=%2fazure%2fvirtual-machines%2fwindows%2ftoc.json) <br><br> Minimum api-version: 2015-06-15
 	LicenseType *string `json:"licenseType,omitempty"`
+	// ModelDefinitionApplied - READ-ONLY; Specifies whether the model applied to the virtual machine is the model of the virtual machine scale set or the customized model for the virtual machine.
+	ModelDefinitionApplied *string `json:"modelDefinitionApplied,omitempty"`
+	// ProtectionPolicy - Specifies the protection policy of the virtual machine.
+	ProtectionPolicy *VirtualMachineScaleSetVMProtectionPolicy `json:"protectionPolicy,omitempty"`
+}
+
+// VirtualMachineScaleSetVMProtectionPolicy the protection policy of a virtual machine scale set VM.
+type VirtualMachineScaleSetVMProtectionPolicy struct {
+	// ProtectFromScaleIn - Indicates that the virtual machine scale set VM shouldn't be considered for deletion during a scale-in operation.
+	ProtectFromScaleIn *bool `json:"protectFromScaleIn,omitempty"`
+	// ProtectFromScaleSetActions - Indicates that model updates or actions (including scale-in) initiated on the virtual machine scale set should not be applied to the virtual machine scale set VM.
+	ProtectFromScaleSetActions *bool `json:"protectFromScaleSetActions,omitempty"`
 }
 
 // VirtualMachineScaleSetVMReimageParameters describes a Virtual Machine Scale Set VM Reimage Parameters.
@@ -10750,11 +11684,17 @@ func (vmu *VirtualMachineUpdate) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// VMScaleSetConvertToSinglePlacementGroupInput ...
+type VMScaleSetConvertToSinglePlacementGroupInput struct {
+	// ActivePlacementGroupID - Id of the placement group in which you want future virtual machine instances to be placed. To query placement group Id, please use Virtual Machine Scale Set VMs - Get API. If not provided, the platform will choose one with maximum number of virtual machine instances.
+	ActivePlacementGroupID *string `json:"activePlacementGroupId,omitempty"`
+}
+
 // WindowsConfiguration specifies Windows operating system settings on the virtual machine.
 type WindowsConfiguration struct {
 	// ProvisionVMAgent - Indicates whether virtual machine agent should be provisioned on the virtual machine. <br><br> When this property is not specified in the request body, default behavior is to set it to true.  This will ensure that VM Agent is installed on the VM so that extensions can be added to the VM later.
 	ProvisionVMAgent *bool `json:"provisionVMAgent,omitempty"`
-	// EnableAutomaticUpdates - Indicates whether virtual machine is enabled for automatic Windows updates. Default value is true. <br><br> For virtual machine scale sets, this property can be updated and updates will take effect on OS reprovisioning.
+	// EnableAutomaticUpdates - Indicates whether Automatic Updates is enabled for the Windows virtual machine. Default value is true. <br><br> For virtual machine scale sets, this property can be updated and updates will take effect on OS reprovisioning.
 	EnableAutomaticUpdates *bool `json:"enableAutomaticUpdates,omitempty"`
 	// TimeZone - Specifies the time zone of the virtual machine. e.g. "Pacific Standard Time"
 	TimeZone *string `json:"timeZone,omitempty"`
