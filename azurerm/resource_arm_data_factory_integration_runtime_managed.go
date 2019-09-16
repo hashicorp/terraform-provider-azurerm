@@ -89,7 +89,7 @@ func resourceArmDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
-				ValidateFunc: validation.IntBetween(1, 8),
+				ValidateFunc: validation.IntBetween(1, 16),
 			},
 
 			"edition": {
@@ -354,7 +354,7 @@ func expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.Re
 	}
 
 	if _, ok := d.GetOk("vnet_integration"); ok {
-		vnetProps := d.Get("vnet_integration").([]map[string]interface{})[0]
+		vnetProps := d.Get("vnet_integration").([]interface{})[0].(map[string]interface{})
 		computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
 			VNetID: utils.String(vnetProps["vnet_id"].(string)),
 			Subnet: utils.String(vnetProps["subnet_name"].(string)),
@@ -371,7 +371,7 @@ func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resou
 	}
 
 	if _, ok := d.GetOk("catalog_info"); ok {
-		catalogInfo := d.Get("catalog_info").([]map[string]interface{})[0]
+		catalogInfo := d.Get("catalog_info").([]interface{})[0].(map[string]interface{})
 
 		adminPassword := &datafactory.SecureString{
 			Value: utils.String(catalogInfo["administrator_password"].(string)),
