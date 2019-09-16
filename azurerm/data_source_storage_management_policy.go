@@ -106,7 +106,7 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 }
 
 func dataSourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).storage.ManagementPoliciesClient
+	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	storageAccountId := d.Get("storage_account_id").(string)

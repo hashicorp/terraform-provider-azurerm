@@ -125,7 +125,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 }
 
 func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).storage.ManagementPoliciesClient
+	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	storageAccountId := d.Get("storage_account_id").(string)
@@ -166,7 +166,7 @@ func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).storage.ManagementPoliciesClient
+	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	storageAccountId := d.Get("storage_account_id").(string)
@@ -197,7 +197,7 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).storage.ManagementPoliciesClient
+	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	storageAccountId := d.Get("storage_account_id").(string)
