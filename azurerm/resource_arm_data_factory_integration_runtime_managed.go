@@ -387,7 +387,7 @@ func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resou
 	}
 
 	if _, ok := d.GetOk("custom_setup_script"); ok {
-		customSetupScript := d.Get("custom_setup_script").([]map[string]interface{})[0]
+		customSetupScript := d.Get("custom_setup_script").([]interface{})[0].(map[string]interface{})
 
 		sasToken := &datafactory.SecureString{
 			Value: utils.String(customSetupScript["sas_token"].(string)),
