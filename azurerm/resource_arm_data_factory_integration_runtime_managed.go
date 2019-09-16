@@ -49,7 +49,7 @@ func resourceArmDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 				),
 			},
 
-			"resource_group": azure.SchemaResourceGroupName(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
