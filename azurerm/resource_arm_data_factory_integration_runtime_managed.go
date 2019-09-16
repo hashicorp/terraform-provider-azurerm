@@ -311,11 +311,11 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 		d.Set("license_type", string(ssisProps.LicenseType))
 
 		if catalogInfoProps := ssisProps.CatalogInfo; catalogInfoProps != nil {
-			d.Set("catalog_info", flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(catalogInfoProps))
+			d.Set("catalog_info", flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(catalogInfoProps, d))
 		}
 
 		if customSetupScriptProps := ssisProps.CustomSetupScriptProperties; customSetupScriptProps != nil {
-			d.Set("custom_setup_script", flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProps))
+			d.Set("custom_setup_script", flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProps, d))
 		}
 	}
 
@@ -412,20 +412,28 @@ func flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetPropertie
 	}
 }
 
-func flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo) []interface{} {
-	return []interface{}{
-		map[string]string{
-			"server_endpoint":     *ssisProperties.CatalogServerEndpoint,
-			"administrator_login": *ssisProperties.CatalogAdminUserName,
-			"pricing_tier":        string(ssisProperties.CatalogPricingTier),
-		},
+func flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
+	catalogInfo := map[string]string{
+		"server_endpoint":     *ssisProperties.CatalogServerEndpoint,
+		"administrator_login": *ssisProperties.CatalogAdminUserName,
+		"pricing_tier":        string(ssisProperties.CatalogPricingTier),
 	}
+
+	if adminPassword, ok := d.GetOk("catalog_info.0.administrator_password"); ok {
+		catalogInfo["administrator_password"] = adminPassword.(string)
+	}
+
+	return []interface{}{catalogInfo}
 }
 
-func flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties) []interface{} {
-	return []interface{}{
-		map[string]string{
-			"blob_container_uri": *customSetupScriptProperties.BlobContainerURI,
-		},
+func flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
+	customSetupScript := map[string]string{
+		"blob_container_uri": *customSetupScriptProperties.BlobContainerURI,
 	}
+
+	if sasToken, ok := d.GetOk("custom_setup_script.0.sas_token"); ok {
+		customSetupScript["sas_token"] = sasToken.(string)
+	}
+
+	return []interface{}{customSetupScript}
 }
