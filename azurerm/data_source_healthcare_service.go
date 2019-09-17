@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,8 +27,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 
 			"kind": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "fhir",
+				Computed: true,
 			},
 
 			"cosmosdb_throughput": {
@@ -37,46 +37,48 @@ func dataSourceArmHealthcareService() *schema.Resource {
 
 			"access_policy_object_ids": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Required: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"object_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
 			},
-
-			"cors_configuration": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"origins": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"headers": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"methods": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"max_age": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"allow_credentials": {
-							Type:     schema.TypeBool,
-							Computed: true,
+			/*
+				"cors_configuration": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"origins": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"headers": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"methods": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"max_age": {
+								Type:     schema.TypeInt,
+								Computed: true,
+							},
+							"allow_credentials": {
+								Type:     schema.TypeBool,
+								Computed: true,
+							},
 						},
 					},
 				},
-			},
-
+			*/
 			"tags": tagsSchema(),
 		},
 	}

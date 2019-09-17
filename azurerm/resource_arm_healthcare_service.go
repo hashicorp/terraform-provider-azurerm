@@ -43,51 +43,54 @@ func resourceArmHealthcareService() *schema.Resource {
 
 			"cosmosdb_throughput": {
 				Type:     schema.TypeInt,
-				Computed: true,
+				Optional: true,
+				Default:  1000,
 			},
 
 			"access_policy_object_ids": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Required: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"object_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
 			},
-
-			"cors_configuration": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"origins": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"headers": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"methods": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"max_age": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"allow_credentials": {
-							Type:     schema.TypeBool,
-							Computed: true,
+			/*
+				"cors_configuration": {
+					Type:     schema.TypeList,
+					Computed: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"origins": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"headers": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"methods": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"max_age": {
+								Type:     schema.TypeInt,
+								Computed: true,
+							},
+							"allow_credentials": {
+								Type:     schema.TypeBool,
+								Computed: true,
+							},
 						},
 					},
 				},
-			},
-
+			*/
 			"tags": tagsSchema(),
 		},
 	}
@@ -227,9 +230,9 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 			}
 			corsOutput = append(corsOutput, output)
 		}
-		if err := d.Set("cors_configuration", corsOutput); err != nil {
-			return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
-		}
+		/*		if err := d.Set("cors_configuration", corsOutput); err != nil {
+				return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
+			}*/
 	}
 
 	flattenAndSetTags(d, resp.Tags)

@@ -5,14 +5,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMHealthcareService(t *testing.T) {
-	var healthcareServiceDescription healthcareapis.ServicesDescription
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,7 +21,7 @@ func TestAccAzureRMHealthcareService(t *testing.T) {
 			{
 				Config: testAccAzureRMHealthcareService_basic(ri),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHealthcareServiceExists("azurerm_healthcare_service.test", &healthcareServiceDescription),
+					testCheckAzureRMHealthcareServiceExists("azurerm_healthcare_service.test"),
 				),
 			},
 			{
@@ -37,7 +35,7 @@ func TestAccAzureRMHealthcareService(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMHealthcareServiceExists(resourceName string, healthcareServiceDescription *healthcareapis.ServicesDescription) resource.TestCheckFunc {
+func testCheckAzureRMHealthcareServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -61,8 +59,6 @@ func testCheckAzureRMHealthcareServiceExists(resourceName string, healthcareServ
 
 			return fmt.Errorf("Bad: Get on healthcareServiceClient: %+v", err)
 		}
-
-		*healthcareServiceDescription = resp
 
 		return nil
 	}
@@ -95,12 +91,14 @@ func testCheckAzureRMHealthcareServiceDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMHealthcareService_basic(rInt int) string {
+	// currently only supported in "ukwest", "northcentralus", "westus2".
+	location := "westus2"
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
-  location = "westus2"
+  location = "%s"
 }
 
 resource "azurerm_healthcare_service" "test" {
@@ -117,5 +115,5 @@ resource "azurerm_healthcare_service" "test" {
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
   }
 }
-`, rInt, rInt)
+`, rInt, location, rInt)
 }
