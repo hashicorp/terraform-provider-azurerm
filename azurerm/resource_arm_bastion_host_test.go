@@ -76,7 +76,7 @@ resource "azurerm_bastion_host" "test" {
 
 func testCheckAzureRMBastionHostExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).bastionHostsClient
+		client := testAccProvider.Meta().(*ArmClient).network.BastionHostsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -101,7 +101,7 @@ func testCheckAzureRMBastionHostExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMBastionHostDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).bastionHostsClient
+	client := testAccProvider.Meta().(*ArmClient).network.BastionHostsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

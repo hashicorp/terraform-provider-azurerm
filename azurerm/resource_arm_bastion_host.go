@@ -71,7 +71,7 @@ func resourceArmBastionHost() *schema.Resource {
 }
 
 func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bastionHostsClient
+	client := meta.(*ArmClient).network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
@@ -156,7 +156,7 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bastionHostsClient
+	client := meta.(*ArmClient).network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -182,7 +182,7 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBastionHostDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bastionHostsClient
+	client := meta.(*ArmClient).network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

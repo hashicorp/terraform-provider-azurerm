@@ -13,7 +13,7 @@ Manages a Bastion Host Instance.
 
 ## Example Usage
 
-This example deploys an Azure Bastion Host Instance to a target virtual network.
+This example deploys an Azure Bastion Host Instance to a specified virtual network.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
