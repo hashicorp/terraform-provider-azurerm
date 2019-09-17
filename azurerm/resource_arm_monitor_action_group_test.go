@@ -132,7 +132,7 @@ func TestAccAzureRMMonitorActionGroup_itsmReceiver(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.workspace_id", "6eee3a18-aac3-40e4-b98e-1f309f329816"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.connection_id", "53de6956-42b4-41ba-be3c-b154cdf17b13"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.ticket_configuration", "{}"),
-					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "southcentralus"),
+					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "eastus"),
 					resource.TestCheckResourceAttr(resourceName, "azure_app_push_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
@@ -434,7 +434,7 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.workspace_id", "6eee3a18-aac3-40e4-b98e-1f309f329816"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.connection_id", "53de6956-42b4-41ba-be3c-b154cdf17b13"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.ticket_configuration", "{}"),
-					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "southcentralus"),
+					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "eastus"),
 					resource.TestCheckResourceAttr(resourceName, "azure_app_push_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "azure_app_push_receiver.0.email_address", "admin@contoso.com"),
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "2"),
@@ -451,11 +451,9 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.webhook_resource_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"),
 					resource.TestCheckResourceAttrSet(resourceName, "automation_runbook_receiver.is_global_runbook"),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.service_uri", "https://s13events.azure-automation.net/webhooks?token=randomtoken"),
-					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.0.country_code", "1"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.0.phone_number", "1231231234"),
-					resource.TestCheckResourceAttr(resourceName, "voice_receiver.1.country_code", "86"),
-					resource.TestCheckResourceAttr(resourceName, "voice_receiver.1.phone_number", "13888888888"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.resource_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.callback_url", "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
@@ -557,7 +555,7 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.workspace_id", "6eee3a18-aac3-40e4-b98e-1f309f329816"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.connection_id", "53de6956-42b4-41ba-be3c-b154cdf17b13"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.ticket_configuration", "{}"),
-					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "southcentralus"),
+					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "eastus"),
 					resource.TestCheckResourceAttr(resourceName, "azure_app_push_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
@@ -736,7 +734,7 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.workspace_id", "6eee3a18-aac3-40e4-b98e-1f309f329816"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.connection_id", "53de6956-42b4-41ba-be3c-b154cdf17b13"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.ticket_configuration", "{}"),
-					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "southcentralus"),
+					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "eastus"),
 					resource.TestCheckResourceAttr(resourceName, "azure_app_push_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "azure_app_push_receiver.0.email_address", "admin@contoso.com"),
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "2"),
@@ -851,7 +849,7 @@ resource "azurerm_monitor_action_group" "test" {
 		workspace_id = "6eee3a18-aac3-40e4-b98e-1f309f329816"
 		connection_id = "53de6956-42b4-41ba-be3c-b154cdf17b13"
 		ticket_configuration = "{}"
-		region = "southcentralus"
+		region = "eastus"
 	}
 }
 `, rInt, location, rInt)
@@ -941,7 +939,7 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_automation_account" "test" {
-	name                = "aaa001"
+	name                = "acctestAA-%d"
 	location            = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -964,7 +962,7 @@ resource "azurerm_automation_runbook" "test" {
 		uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
 	}
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMMonitorActionGroup_voiceReceiver(rInt int, location string) string {
@@ -983,12 +981,6 @@ resource "azurerm_monitor_action_group" "test" {
 		name         = "oncallmsg"
 		country_code = "1"
 		phone_number = "1231231234"
-	}
-
-	voice_receiver {
-		name         = "remotesupport"
-		country_code = "86"
-		phone_number = "13888888888"
 	}
 }
 `, rInt, location, rInt)
@@ -1014,7 +1006,7 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_logic_app_workflow" "test" {
-	name                = "workflow1"
+	name                = "acctestLA-%d"
 	location            = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -1034,7 +1026,7 @@ schema = <<SCHEMA
 }
 SCHEMA
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMMonitorActionGroup_azureFunctionReceiver(rInt int, location string) string {
@@ -1058,7 +1050,7 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "functionsapptestsa"
+	name                     = "acctestSA-%d"
 	resource_group_name      = "${azurerm_resource_group.test.name}"
 	location                 = "${azurerm_resource_group.test.location}"
 	account_tier             = "Standard"
@@ -1066,7 +1058,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_app_service_plan" "test" {
-	name                = "azure-functions-test-service-plan"
+	name                = "acctestSP-%d"
 	location            = "${azurerm_resource_group.test.location}"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -1077,13 +1069,13 @@ resource "azurerm_app_service_plan" "test" {
 }
 
 resource "azurerm_function_app" "test" {
-	name                      = "test-azure-functions"
+	name                      = "acctestFA-%d"
 	location                  = "${azurerm_resource_group.test.location}"
 	resource_group_name       = "${azurerm_resource_group.test.name}"
 	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
 	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt/1e12, rInt, rInt)
 }
 
 func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string {
@@ -1113,7 +1105,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 			workspace_id = "6eee3a18-aac3-40e4-b98e-1f309f329816"
 			connection_id = "53de6956-42b4-41ba-be3c-b154cdf17b13"
 			ticket_configuration = "{}"
-			region = "southcentralus"
+			region = "eastus"
 		}
 
 		azure_app_push_receiver {
@@ -1158,12 +1150,6 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 			phone_number = "1231231234"
 		}
 
-		voice_receiver {
-			name         = "remotesupport"
-			country_code = "86"
-			phone_number = "13888888888"
-		}
-
 		logic_app_receiver {
 			name = "logicappaction"
 			resource_id = "${azurerm_logic_app_workflow.test.id}"
@@ -1180,7 +1166,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 	}
 
 	resource "azurerm_automation_account" "test" {
-		name                = "aaa001"
+		name                = "acctestAA-%d"
 		location            = "${azurerm_resource_group.test.location}"
 		resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -1205,7 +1191,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 	}
 
 	resource "azurerm_logic_app_workflow" "test" {
-		name                = "workflow1"
+		name                = "acctestLA-%d"
 		location            = "${azurerm_resource_group.test.location}"
 		resource_group_name = "${azurerm_resource_group.test.name}"
 	}
@@ -1227,7 +1213,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 	}
 
 	resource "azurerm_storage_account" "test" {
-		name                     = "functionsapptestsa"
+		name                     = "acctestSA-%d"
 		resource_group_name      = "${azurerm_resource_group.test.name}"
 		location                 = "${azurerm_resource_group.test.location}"
 		account_tier             = "Standard"
@@ -1235,7 +1221,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 	}
 
 	resource "azurerm_app_service_plan" "test" {
-		name                = "azure-functions-test-service-plan"
+		name                = "acctestSP-%d"
 		location            = "${azurerm_resource_group.test.location}"
 		resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -1246,13 +1232,13 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 	}
 
 	resource "azurerm_function_app" "test" {
-		name                      = "test-azure-functions"
+		name                      = "acctestFA-%d"
 		location                  = "${azurerm_resource_group.test.location}"
 		resource_group_name       = "${azurerm_resource_group.test.name}"
 		app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
 		storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 	}
-`, rInt, location, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt/1e12, rInt, rInt)
 }
 
 func testAccAzureRMMonitorActionGroup_disabledBasic(rInt int, location string) string {
