@@ -101,17 +101,17 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
 
-* `enabled` - (Optional) Describes if the policy is in enabled state or disabled state Defaults to `Enabled`.
+* `enabled` - (Optional) Is the policy a enabled state or disabled state. Defaults to `true`.
 
-* `mode` - (Optional) Describes if it is in detection mode  or prevention mode at the policy level Defaults to `Prevention`.
+* `mode` - (Optional) The firewall policy mode. Possible values are `Detection`, `Prevention` and defaults to `Prevention`.
 
 * `redirect_url` - (Optional) If action type is redirect, this field represents redirect URL for the client.
 
-* `custom_block_response_status_code` - (Optional) If the `action` type is block, customer can override the response status code. Valid values for the `custom_block_response_status_code` are `200`, `403`, `405`, `406`, or `429`.
-
-* `custom_block_response_body` - (Optional) If the `action` type is block, customer can override the response body. The body must be specified in base64 encoding.
-
 * `custom_rule` - (Optional) One or more `custom_rule` blocks as defined below.
+
+* `custom_block_response_status_code` - (Optional) If a `custom_rule` block's action type is `block`, this is the response status code. Possible values are `200`, `403`, `405`, `406`, or `429`.
+
+* `custom_block_response_body` - (Optional) If a `custom_rule` block's action type is `block`, this is the response body. The body must be specified in base64 encoding.
 
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
@@ -123,13 +123,35 @@ The `custom_rule` block supports the following:
 
 * `name` - (Required) Gets name of the resource that is unique within a policy. This name can be used to access the resource.
 
-* `priority` - (Required) Describes priority of the rule. Rules with a lower value will be evaluated before rules with a higher value
+* `action` - (Required) The action to perform when the rule is matched. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
-* `rule_type` - (Required) Describes the type of rule
+* `enabled` - (Optional) Is the rule is enabled or disabled? Defaults to `true`.
+
+* `priority` - (Required) The priority of the rule. Rules with a lower value will be evaluated before rules with a higher value. Defaults to `1`.
+
+* `type` - (Required) The the type of rule. Possible values are `MatchRule` or `RateLimitRule`.
 
 * `match_condition` - (Required) One or more `match_condition` block defined below.
 
-* `action` - (Required) Type of Actions
+* `rate_limit_duration_in_minutes` - (Optional) The rate limit duration in minutes. Defaults to `1`.
+
+* `rate_limit_threshold` - (Optional) The rate limit threshold. Defaults to `10`.
+
+---
+
+The `match_condition` block supports the following:
+
+* `match_variable` - (Required) The request variable to compare with. Possible values are `Cookies`, `PostArgs`, `QueryString`, `RemoteAddr`, `RequestBody`, `RequestHeader`, `RequestMethod`, or `RequestURI`.
+
+* `match_values` - (Required) Up to `100` possible values to match. 
+
+* `operator` - (Required) Comparison type to use for matching with the variable value. Possible values are `Any`, `BeginsWith`, `Contains`, `EndsWith`, `Equal`, `GeoMatch`, `GreaterThan`, `GreaterThanOrEqual`, `IPMatch`, `LessThan`, `LessThanOrEqual` or `RegEx`.
+											
+* `selector` - (Optional) Match against a specific key if the `match_variable` is `QueryString`, `PostArgs`, `RequestHeader` or `Cookies`.
+
+* `negation_condition` - (Optional) Should the result of the condition be negated.
+
+* `transforms` - (Optional) Up to `5` transforms to apply. Possible values are `Lowercase`, `RemoveNulls`, `Trim`, `Uppercase`, `URLDecode` or`URLEncode`. 
 
 ---
 
@@ -143,25 +165,9 @@ The `managed_rule` block supports the following:
 
 ---
 
-The `match_condition` block supports the following:
-
-* `variable_name` - (Required) The name of the Match Variable
-
-* `selector` - (Optional) Match against a specific key from the `QueryString`, `PostArgs`, `RequestHeader` or `Cookies` variables.
-
-* `match_variable` - (Required) The request variable to compare with.
-
-* `operator` - (Required) Comparison type to use for matching with the variable value.
-
-* `negation_condition` - (Optional) Describes if the result of this condition should be negated.
-
-* `match_values` - (Required) A list of possible values to match.
-
----
-
 The `override` block supports the following:
 
-* `rule_group_name` - (Required) Describes the managed rule group to override.
+* `rule_group_name` - (Required) The managed rule group to override.
 
 * `rule` - (Optional) One or more `rule` blocks as defined below. If none are specified, all of the rules in the group will be disabled.
 
@@ -171,9 +177,9 @@ The `rule` block supports the following:
 
 * `rule_id` - (Required) Identifier for the managed rule.
 
-* `action` - (Required) Describes the override action to be applied when the rule matches.
+* `action` - (Required) The action to be applied when the rule matches. Possible values are `Allow`, `Block`, `Log`, or `Redirect`.
 
-* `enabled` - (Optional) Describes if the managed rule is in enabled or disabled state. Defaults to Disabled if not specified.
+* `enabled` - (Optional) Is the managed rule override enabled or disabled. Defaults to `false`
 
 ## Attributes Reference
 
@@ -183,7 +189,7 @@ The following attributes are exported:
 
 * `location` - Resource location.
 
-* `frontend_endpoint_ids` - Describes Frontend Endpoints associated with this Front Door Web Application Firewall policy.
+* `frontend_endpoint_ids` - the Frontend Endpoints associated with this Front Door Web Application Firewall policy.
 
 ## Import
 

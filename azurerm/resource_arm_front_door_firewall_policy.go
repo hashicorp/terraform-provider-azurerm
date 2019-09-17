@@ -35,10 +35,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -61,7 +58,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"redirect_url": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validate.URLIsHTTPOrHTTPS,
 			},
 
 			"custom_block_response_status_code": {
@@ -93,17 +90,20 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"priority": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  1,
-						},
+
 						"enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
-						"rule_type": {
+
+						"priority": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  1,
+						},
+
+						"type": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
@@ -111,16 +111,19 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 								string(frontdoor.RateLimitRule),
 							}, false),
 						},
+
 						"rate_limit_duration_in_minutes": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  1,
 						},
+
 						"rate_limit_threshold": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  10,
 						},
+
 						"action": {
 							Type:     schema.TypeString,
 							Required: true,
@@ -131,6 +134,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 								string(frontdoor.Redirect),
 							}, false),
 						},
+
 						"match_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -151,11 +155,17 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											string(frontdoor.RequestURI),
 										}, false),
 									},
-									"selector": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+
+									"match_values": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 100,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
 									},
+
 									"operator": {
 										Type:     schema.TypeString,
 										Required: true,
@@ -174,20 +184,19 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 											string(frontdoor.RegEx),
 										}, false),
 									},
+
+									"selector": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+
 									"negation_condition": {
 										Type:     schema.TypeBool,
 										Optional: true,
 										Default:  false,
 									},
-									"match_value": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 100,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
-										},
-									},
+
 									"transforms": {
 										Type:     schema.TypeList,
 										Optional: true,
@@ -222,11 +231,13 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
 						"version": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+
 						"override": {
 							Type:     schema.TypeList,
 							MaxItems: 100,
@@ -238,6 +249,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										Required:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
+
 									"rule": {
 										Type:     schema.TypeList,
 										MaxItems: 1000,
@@ -249,11 +261,13 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 													Required:     true,
 													ValidateFunc: validate.NoEmptyStrings,
 												},
+
 												"enabled": {
 													Type:     schema.TypeBool,
 													Optional: true,
 													Default:  false,
 												},
+
 												"action": {
 													Type:     schema.TypeString,
 													Required: true,
@@ -479,7 +493,7 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		}
 		name := custom["name"].(string)
 		priority := int32(custom["priority"].(int))
-		ruleType := custom["rule_type"].(string)
+		ruleType := custom["type"].(string)
 		rateLimitDurationInMinutes := int32(custom["rate_limit_duration_in_minutes"].(int))
 		rateLimitThreshold := int32(custom["rate_limit_threshold"].(int))
 		matchConditions := custom["match_condition"].([]interface{})
@@ -519,7 +533,7 @@ func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor
 		selector := match["selector"].(string)
 		operator := match["operator"].(string)
 		negateCondition := match["negation_condition"].(bool)
-		matchValues := match["match_value"].([]interface{})
+		matchValues := match["match_values"].([]interface{})
 		transforms := match["transforms"].([]interface{})
 
 		matchCondition := frontdoor.MatchCondition{
@@ -658,7 +672,7 @@ func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []i
 		output["name"] = v.Name
 		output["priority"] = int(*v.Priority)
 		output["enabled"] = v.EnabledState == frontdoor.CustomRuleEnabledStateEnabled
-		output["rule_type"] = string(v.RuleType)
+		output["type"] = string(v.RuleType)
 		output["rate_limit_duration_in_minutes"] = int(*v.RateLimitDurationInMinutes)
 		output["rate_limit_threshold"] = int(*v.RateLimitThreshold)
 		output["match_condition"] = flattenArmFrontDoorFirewallMatchConditions(v.MatchConditions)
@@ -688,7 +702,7 @@ func flattenArmFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchConditio
 		if negateCondition := v.NegateCondition; negateCondition != nil {
 			output["negation_condition"] = *v.NegateCondition
 		}
-		output["match_value"] = utils.FlattenStringSlice(v.MatchValue)
+		output["match_values"] = utils.FlattenStringSlice(v.MatchValue)
 		output["transforms"] = afd.FlattenTransformSlice(v.Transforms)
 
 		results = append(results, output)
