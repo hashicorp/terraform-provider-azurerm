@@ -303,6 +303,8 @@ A `storage_data_disk` block supports the following:
 
 * `create_option` - (Required) Specifies how the data disk should be created. Possible values are `Attach`, `FromImage` and `Empty`.
 
+~> **NOTE:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data. 
+
 * `disk_size_gb` - (Optional) Specifies the size of the data disk in gigabytes. 
 
 * `lun` - (Required) Specifies the logical unit number of the data disk. This needs to be unique within all the Data Disks on the Virtual Machine.
