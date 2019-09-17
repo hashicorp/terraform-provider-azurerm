@@ -196,7 +196,7 @@ func FlattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) [
 
 	if input != nil {
 		for _, item := range *input {
-			result = append(result, string(*item.ID))
+			result = append(result, *item.ID)
 		}
 	}
 	return result

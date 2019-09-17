@@ -50,11 +50,12 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 
 			"mode": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(frontdoor.Detection),
 					string(frontdoor.Prevention),
 				}, false),
+				Default: string(frontdoor.Prevention),
 			},
 
 			"redirect_url": {
@@ -64,9 +65,15 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			},
 
 			"custom_block_response_status_code": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				ValidateFunc: validation.IntBetween(100, 530),
+				Type:     schema.TypeInt,
+				Optional: true,
+				ValidateFunc: validate.IntInSlice([]int{
+					200,
+					403,
+					405,
+					406,
+					429,
+				}),
 			},
 
 			"custom_block_response_body": {
@@ -78,12 +85,12 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"custom_rule": {
 				Type:     schema.TypeList,
 				MaxItems: 100,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"priority": {
@@ -207,17 +214,17 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"managed_rule": {
 				Type:     schema.TypeList,
 				MaxItems: 100,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"version": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"override": {
@@ -228,7 +235,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"rule_group_name": {
 										Type:         schema.TypeString,
-										Optional:     true,
+										Required:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"rule": {
@@ -319,16 +326,23 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 		Location: utils.String(location),
 		WebApplicationFirewallPolicyProperties: &frontdoor.WebApplicationFirewallPolicyProperties{
 			PolicySettings: &frontdoor.PolicySettings{
-				EnabledState:                  enabled,
-				Mode:                          frontdoor.PolicyMode(mode),
-				RedirectURL:                   utils.String(redirectUrl),
-				CustomBlockResponseStatusCode: utils.Int32(int32(customBlockResponseStatusCode)),
-				CustomBlockResponseBody:       utils.String(customBlockResponseBody),
+				EnabledState: enabled,
+				Mode:         frontdoor.PolicyMode(mode),
 			},
 			CustomRules:  expandArmFrontDoorFirewallCustomRules(customRules),
 			ManagedRules: expandArmFrontDoorFirewallManagedRules(managedRules),
 		},
 		Tags: expandTags(tags),
+	}
+
+	if redirectUrl != "" {
+		frontdoorWebApplicationFirewallPolicy.WebApplicationFirewallPolicyProperties.PolicySettings.RedirectURL = utils.String(redirectUrl)
+	}
+	if customBlockResponseBody != "" {
+		frontdoorWebApplicationFirewallPolicy.WebApplicationFirewallPolicyProperties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
+	}
+	if customBlockResponseStatusCode > 0 {
+		frontdoorWebApplicationFirewallPolicy.WebApplicationFirewallPolicyProperties.PolicySettings.CustomBlockResponseStatusCode = utils.Int32(int32(customBlockResponseStatusCode))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontdoorWebApplicationFirewallPolicy)
@@ -430,7 +444,7 @@ func resourceArmFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta inter
 		return err
 	}
 	resourceGroup := id.ResourceGroup
-	name := id.Path["FrontDoorWebApplicationFirewallPolicies"]
+	name := id.Path["frontdoorwebapplicationfirewallpolicies"]
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -668,7 +682,7 @@ func flattenArmFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchConditio
 
 		output["match_variable"] = string(v.MatchVariable)
 		if selector := v.Selector; selector != nil {
-			output["selector"] = string(*v.Selector)
+			output["selector"] = *v.Selector
 		}
 		output["operator"] = string(v.Operator)
 		if negateCondition := v.NegateCondition; negateCondition != nil {
@@ -693,8 +707,8 @@ func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList
 	for _, v := range *input.ManagedRuleSets {
 		output := make(map[string]interface{})
 
-		output["type"] = string(*v.RuleSetType)
-		output["version"] = string(*v.RuleSetVersion)
+		output["type"] = *v.RuleSetType
+		output["version"] = *v.RuleSetVersion
 		if overrides := v.RuleGroupOverrides; overrides != nil {
 			output["override"] = flattenArmFrontDoorFirewallOverrides(overrides)
 		}
@@ -715,7 +729,7 @@ func flattenArmFrontDoorFirewallOverrides(input *[]frontdoor.ManagedRuleGroupOve
 	for _, v := range *input {
 		output := make(map[string]interface{})
 
-		output["rule_group_name"] = string(*v.RuleGroupName)
+		output["rule_group_name"] = *v.RuleGroupName
 		if rules := v.Rules; rules != nil {
 			output["rule"] = flattenArmFrontdoorFirewallRules(rules)
 		}
@@ -736,7 +750,7 @@ func flattenArmFrontdoorFirewallRules(input *[]frontdoor.ManagedRuleOverride) []
 	for _, v := range *input {
 		output := make(map[string]interface{})
 
-		output["rule_id"] = string(*v.RuleID)
+		output["rule_id"] = *v.RuleID
 		output["enabled"] = v.EnabledState == frontdoor.ManagedRuleEnabledStateEnabled
 		output["action"] = string(v.Action)
 
