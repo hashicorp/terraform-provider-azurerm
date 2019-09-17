@@ -180,3 +180,24 @@ func VerifyCustomHttpsConfiguration(configFrontendEndpoints []interface{}) error
 	return nil
 }
 
+func FlattenTransformSlice(input *[]frontdoor.TransformType) []interface{} {
+	result := make([]interface{}, 0)
+
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, string(item))
+		}
+	}
+	return result
+}
+
+func FlattenFrontendEndpointLinkSlice(input *[]frontdoor.FrontendEndpointLink) []interface{} {
+	result := make([]interface{}, 0)
+
+	if input != nil {
+		for _, item := range *input {
+			result = append(result, string(*item.ID))
+		}
+	}
+	return result
+}

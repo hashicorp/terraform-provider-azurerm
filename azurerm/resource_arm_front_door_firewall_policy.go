@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -123,11 +124,6 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 								string(frontdoor.Redirect),
 							}, false),
 						},
-						"custom_block_response_body": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
 						"match_condition": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -149,8 +145,8 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 										}, false),
 									},
 									"selector": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"operator": {
@@ -174,7 +170,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 									"negation_condition": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default: false,
+										Default:  false,
 									},
 									"match_value": {
 										Type:     schema.TypeList,
@@ -274,14 +270,12 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 			"frontend_endpoint_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1000,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					Type: schema.TypeString,
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -331,8 +325,8 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 				CustomBlockResponseStatusCode: utils.Int32(int32(customBlockResponseStatusCode)),
 				CustomBlockResponseBody:       utils.String(customBlockResponseBody),
 			},
-			CustomRules:           expandArmFrontDoorFirewallCustomRules(customRules),
-			ManagedRules:          expandArmFrontDoorFirewallManagedRules(managedRules),
+			CustomRules:  expandArmFrontDoorFirewallCustomRules(customRules),
+			ManagedRules: expandArmFrontDoorFirewallManagedRules(managedRules),
 		},
 		Tags: expandTags(tags),
 	}
@@ -356,13 +350,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 
 	return resourceArmFrontDoorFirewallPolicyRead(d, meta)
 }
-// *********************************************************************************************
-// *********************************************************************************************
-// *********************************************************************************************
-// *********************************************************************************************
-// *********************************************************************************************
-// *********************************************************************************************
-// *********************************************************************************************
+
 func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).frontdoor.FrontDoorsPolicyClient
 	ctx := meta.(*ArmClient).StopContext
@@ -418,14 +406,17 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 		if err := d.Set("custom_rule", flattenArmFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
 			return fmt.Errorf("Error flattening `custom_rule`: %+v", err)
 		}
+
+		if err := d.Set("managed_rule", flattenArmFrontDoorFirewallManagedRules(properties.ManagedRules)); err != nil {
+			return fmt.Errorf("Error flattening `managed_rule`: %+v", err)
+		}
+
+		if err := d.Set("frontend_endpoint_ids", afd.FlattenFrontendEndpointLinkSlice(properties.FrontendEndpointLinks)); err != nil {
+			return fmt.Errorf("Error flattening `frontend_endpoint_ids`: %+v", err)
+		}
 	}
 
-
-
-
-
-
-
+	flattenAndSetTags(d, resp.Tags)
 
 	return nil
 }
@@ -642,11 +633,115 @@ func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 
 func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
 	if input == nil {
-		return  make([]interface{}, 0)
+		return make([]interface{}, 0)
 	}
 
-	result := make([]interface{}, 0)
+	results := make([]interface{}, 0)
 
-	//for _, item := input.
+	for _, v := range *input.Rules {
+		output := make(map[string]interface{})
 
+		output["name"] = v.Name
+		output["priority"] = int(*v.Priority)
+		output["enabled"] = v.EnabledState == frontdoor.CustomRuleEnabledStateEnabled
+		output["rule_type"] = string(v.RuleType)
+		output["rate_limit_duration_in_minutes"] = int(*v.RateLimitDurationInMinutes)
+		output["rate_limit_threshold"] = int(*v.RateLimitThreshold)
+		output["match_condition"] = flattenArmFrontDoorFirewallMatchConditions(v.MatchConditions)
+		output["action"] = string(v.Action)
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func flattenArmFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchCondition) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		output := make(map[string]interface{})
+
+		output["match_variable"] = string(v.MatchVariable)
+		if selector := v.Selector; selector != nil {
+			output["selector"] = string(*v.Selector)
+		}
+		output["operator"] = string(v.Operator)
+		if negateCondition := v.NegateCondition; negateCondition != nil {
+			output["negation_condition"] = *v.NegateCondition
+		}
+		output["match_value"] = utils.FlattenStringSlice(v.MatchValue)
+		output["transforms"] = afd.FlattenTransformSlice(v.Transforms)
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input.ManagedRuleSets {
+		output := make(map[string]interface{})
+
+		output["type"] = string(*v.RuleSetType)
+		output["version"] = string(*v.RuleSetVersion)
+		if overrides := v.RuleGroupOverrides; overrides != nil {
+			output["override"] = flattenArmFrontDoorFirewallOverrides(overrides)
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func flattenArmFrontDoorFirewallOverrides(input *[]frontdoor.ManagedRuleGroupOverride) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		output := make(map[string]interface{})
+
+		output["rule_group_name"] = string(*v.RuleGroupName)
+		if rules := v.Rules; rules != nil {
+			output["rule"] = flattenArmFrontdoorFirewallRules(rules)
+		}
+
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func flattenArmFrontdoorFirewallRules(input *[]frontdoor.ManagedRuleOverride) []interface{} {
+	if input == nil {
+		return make([]interface{}, 0)
+	}
+
+	results := make([]interface{}, 0)
+
+	for _, v := range *input {
+		output := make(map[string]interface{})
+
+		output["rule_id"] = string(*v.RuleID)
+		output["enabled"] = v.EnabledState == frontdoor.ManagedRuleEnabledStateEnabled
+		output["action"] = string(v.Action)
+
+		results = append(results, output)
+	}
+
+	return results
 }
