@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -129,7 +130,7 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 	accountName := d.Get("automation_account_name").(string)
 	varTypeLower := strings.ToLower(varType)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -192,7 +193,7 @@ func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, va
 	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -283,7 +284,7 @@ func resourceAutomationVariableDelete(d *schema.ResourceData, meta interface{}, 
 	client := meta.(*ArmClient).automation.VariableClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

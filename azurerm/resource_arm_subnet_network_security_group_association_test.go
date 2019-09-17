@@ -6,7 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +39,7 @@ func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSubnetNetworkSecurityGroupAssociation_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -99,7 +101,7 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName st
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -108,7 +110,7 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationExists(resourceName st
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -141,7 +143,7 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationDisappears(resourceNam
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -150,7 +152,7 @@ func testCheckAzureRMSubnetNetworkSecurityGroupAssociationDisappears(resourceNam
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -182,7 +184,7 @@ func testCheckAzureRMSubnetHasNoNetworkSecurityGroup(resourceName string) resour
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -191,7 +193,7 @@ func testCheckAzureRMSubnetHasNoNetworkSecurityGroup(resourceName string) resour
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

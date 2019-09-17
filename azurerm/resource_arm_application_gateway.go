@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +23,15 @@ func possibleArmApplicationGatewaySslCipherSuiteValues() []string {
 		cipherSuites = append(cipherSuites, string(cipherSuite))
 	}
 	return cipherSuites
+}
+
+func base64EncodedStateFunc(v interface{}) string {
+	switch s := v.(type) {
+	case string:
+		return utils.Base64EncodeIfNot(s)
+	default:
+		return ""
+	}
 }
 
 func resourceArmApplicationGateway() *schema.Resource {
@@ -659,7 +670,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 						"capacity": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntBetween(1, 10),
+							ValidateFunc: validation.IntBetween(1, 32),
 						},
 					},
 				},
@@ -1158,6 +1169,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"2.2.9",
 								"3.0",
+								"3.1",
 							}, false),
 						},
 						"file_upload_limit_mb": {
@@ -1286,14 +1298,14 @@ func resourceArmApplicationGateway() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	client := armClient.applicationGatewayClient
+	client := armClient.network.ApplicationGatewaysClient
 	ctx := armClient.StopContext
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
@@ -1301,7 +1313,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -1316,7 +1328,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	enablehttp2 := d.Get("enable_http2").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	// Gateway ID is needed to link sub-resources together in expand functions
 	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
@@ -1357,7 +1369,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		Location: utils.String(location),
 		Zones:    zones,
 
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
 			AuthenticationCertificates:    authenticationCertificates,
 			BackendAddressPools:           backendAddressPools,
@@ -1461,10 +1473,10 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1596,16 +1608,14 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	flattenAndSetTags(d, applicationGateway.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, applicationGateway.Tags)
 }
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).applicationGatewayClient
+	client := meta.(*ArmClient).network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1679,7 +1689,7 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 		data := v["data"].(string)
 
 		// data must be base64 encoded
-		encodedData := base64Encode(data)
+		encodedData := utils.Base64EncodeIfNot(data)
 
 		output := network.ApplicationGatewayAuthenticationCertificate{
 			Name: utils.String(name),
@@ -1945,7 +1955,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 						continue
 					}
 
-					certId, err := parseAzureResourceID(*cert.ID)
+					certId, err := azure.ParseAzureResourceID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -1962,7 +1972,7 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {
-					id, err := parseAzureResourceID(*probe.ID)
+					id, err := azure.ParseAzureResourceID(*probe.ID)
 					if err != nil {
 						return results, err
 					}
@@ -2184,7 +2194,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 		if props := v.ApplicationGatewayHTTPListenerPropertiesFormat; props != nil {
 			if port := props.FrontendPort; port != nil {
 				if port.ID != nil {
-					portId, err := parseAzureResourceID(*port.ID)
+					portId, err := azure.ParseAzureResourceID(*port.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2196,7 +2206,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if feConfig := props.FrontendIPConfiguration; feConfig != nil {
 				if feConfig.ID != nil {
-					feConfigId, err := parseAzureResourceID(*feConfig.ID)
+					feConfigId, err := azure.ParseAzureResourceID(*feConfig.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2214,7 +2224,7 @@ func flattenApplicationGatewayHTTPListeners(input *[]network.ApplicationGatewayH
 
 			if cert := props.SslCertificate; cert != nil {
 				if cert.ID != nil {
-					certId, err := parseAzureResourceID(*cert.ID)
+					certId, err := azure.ParseAzureResourceID(*cert.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2267,7 +2277,7 @@ func expandApplicationGatewayIPConfigurations(d *schema.ResourceData) (*[]networ
 
 		// If we're creating the application gateway return the current gateway ip configuration.
 		if len(oldVS) == 0 {
-			return &results, stopApplicationGateway
+			return &results, false
 		}
 
 		// The application gateway needs to be stopped if a gateway ip configuration is added or removed
@@ -2675,7 +2685,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pool := props.BackendAddressPool; pool != nil {
 				if pool.ID != nil {
-					poolId, err := parseAzureResourceID(*pool.ID)
+					poolId, err := azure.ParseAzureResourceID(*pool.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2687,7 +2697,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if settings := props.BackendHTTPSettings; settings != nil {
 				if settings.ID != nil {
-					settingsId, err := parseAzureResourceID(*settings.ID)
+					settingsId, err := azure.ParseAzureResourceID(*settings.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2699,7 +2709,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if listener := props.HTTPListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := parseAzureResourceID(*listener.ID)
+					listenerId, err := azure.ParseAzureResourceID(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2711,7 +2721,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if pathMap := props.URLPathMap; pathMap != nil {
 				if pathMap.ID != nil {
-					pathMapId, err := parseAzureResourceID(*pathMap.ID)
+					pathMapId, err := azure.ParseAzureResourceID(*pathMap.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2723,7 +2733,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if redirect := props.RedirectConfiguration; redirect != nil {
 				if redirect.ID != nil {
-					redirectId, err := parseAzureResourceID(*redirect.ID)
+					redirectId, err := azure.ParseAzureResourceID(*redirect.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -2735,7 +2745,7 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 			if rewrite := props.RewriteRuleSet; rewrite != nil {
 				if rewrite.ID != nil {
-					rewriteId, err := parseAzureResourceID(*rewrite.ID)
+					rewriteId, err := azure.ParseAzureResourceID(*rewrite.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3009,7 +3019,7 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 
 			if listener := props.TargetListener; listener != nil {
 				if listener.ID != nil {
-					listenerId, err := parseAzureResourceID(*listener.ID)
+					listenerId, err := azure.ParseAzureResourceID(*listener.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -3118,7 +3128,7 @@ func expandApplicationGatewaySslCertificates(d *schema.ResourceData) *[]network.
 		password := v["password"].(string)
 
 		// data must be base64 encoded
-		data = base64Encode(data)
+		data = utils.Base64EncodeIfNot(data)
 
 		output := network.ApplicationGatewaySslCertificate{
 			Name: utils.String(name),
@@ -3169,7 +3179,7 @@ func flattenApplicationGatewaySslCertificates(input *[]network.ApplicationGatewa
 
 				if name == existingName {
 					if data := existingCerts["data"]; data != nil {
-						v := base64Encode(data.(string))
+						v := utils.Base64EncodeIfNot(data.(string))
 						output["data"] = v
 					}
 
@@ -3327,7 +3337,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 		if props := v.ApplicationGatewayURLPathMapPropertiesFormat; props != nil {
 			if backendPool := props.DefaultBackendAddressPool; backendPool != nil && backendPool.ID != nil {
-				poolId, err := parseAzureResourceID(*backendPool.ID)
+				poolId, err := azure.ParseAzureResourceID(*backendPool.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3337,7 +3347,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if settings := props.DefaultBackendHTTPSettings; settings != nil && settings.ID != nil {
-				settingsId, err := parseAzureResourceID(*settings.ID)
+				settingsId, err := azure.ParseAzureResourceID(*settings.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3347,7 +3357,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if redirect := props.DefaultRedirectConfiguration; redirect != nil && redirect.ID != nil {
-				settingsId, err := parseAzureResourceID(*redirect.ID)
+				settingsId, err := azure.ParseAzureResourceID(*redirect.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3357,7 +3367,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 			}
 
 			if rewrite := props.DefaultRewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-				settingsId, err := parseAzureResourceID(*rewrite.ID)
+				settingsId, err := azure.ParseAzureResourceID(*rewrite.ID)
 				if err != nil {
 					return nil, err
 				}
@@ -3381,7 +3391,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 
 					if ruleProps := rule.ApplicationGatewayPathRulePropertiesFormat; ruleProps != nil {
 						if pool := ruleProps.BackendAddressPool; pool != nil && pool.ID != nil {
-							poolId, err := parseAzureResourceID(*pool.ID)
+							poolId, err := azure.ParseAzureResourceID(*pool.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -3391,7 +3401,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if backend := ruleProps.BackendHTTPSettings; backend != nil && backend.ID != nil {
-							backendId, err := parseAzureResourceID(*backend.ID)
+							backendId, err := azure.ParseAzureResourceID(*backend.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -3401,7 +3411,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if redirect := ruleProps.RedirectConfiguration; redirect != nil && redirect.ID != nil {
-							redirectId, err := parseAzureResourceID(*redirect.ID)
+							redirectId, err := azure.ParseAzureResourceID(*redirect.ID)
 							if err != nil {
 								return nil, err
 							}
@@ -3411,7 +3421,7 @@ func flattenApplicationGatewayURLPathMaps(input *[]network.ApplicationGatewayURL
 						}
 
 						if rewrite := ruleProps.RewriteRuleSet; rewrite != nil && rewrite.ID != nil {
-							rewriteId, err := parseAzureResourceID(*rewrite.ID)
+							rewriteId, err := azure.ParseAzureResourceID(*rewrite.ID)
 							if err != nil {
 								return nil, err
 							}

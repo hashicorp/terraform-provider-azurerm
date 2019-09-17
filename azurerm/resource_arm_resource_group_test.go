@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMResourceGroup_basic(t *testing.T) {
@@ -35,7 +36,7 @@ func TestAccAzureRMResourceGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -137,7 +138,7 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).resource.GroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup)
@@ -164,7 +165,7 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).resource.GroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)
@@ -182,7 +183,7 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).resource.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

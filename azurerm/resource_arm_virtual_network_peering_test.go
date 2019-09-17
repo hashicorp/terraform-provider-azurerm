@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
@@ -41,7 +42,7 @@ func TestAccAzureRMVirtualNetworkPeering_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVirtualNetworkPeering_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -154,7 +155,7 @@ func testCheckAzureRMVirtualNetworkPeeringExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetPeeringsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vnetName, name)
@@ -186,7 +187,7 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 		}
 
 		// Ensure resource group/virtual network peering combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+		client := testAccProvider.Meta().(*ArmClient).network.VnetPeeringsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vnetName, name)
@@ -203,7 +204,7 @@ func testCheckAzureRMVirtualNetworkPeeringDisappears(resourceName string) resour
 }
 
 func testCheckAzureRMVirtualNetworkPeeringDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).vnetPeeringsClient
+	client := testAccProvider.Meta().(*ArmClient).network.VnetPeeringsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

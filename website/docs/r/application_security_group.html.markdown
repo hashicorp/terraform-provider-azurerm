@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_application_security_group
 
-Manage an Application Security Group.
+Manages an Application Security Group.
 
 ## Example Usage
 

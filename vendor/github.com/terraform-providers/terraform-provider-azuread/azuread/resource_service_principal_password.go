@@ -39,8 +39,8 @@ func resourceServicePrincipalPasswordCreate(d *schema.ResourceData, meta interfa
 	}
 	id := graph.PasswordCredentialIdFrom(objectId, *cred.KeyID)
 
-	azureADLockByName(servicePrincipalResourceName, id.ObjectId)
-	defer azureADUnlockByName(servicePrincipalResourceName, id.ObjectId)
+	tf.LockByName(servicePrincipalResourceName, id.ObjectId)
+	defer tf.UnlockByName(servicePrincipalResourceName, id.ObjectId)
 
 	existingCreds, err := client.ListPasswordCredentials(ctx, id.ObjectId)
 	if err != nil {
@@ -57,6 +57,13 @@ func resourceServicePrincipalPasswordCreate(d *schema.ResourceData, meta interfa
 	}
 
 	d.SetId(id.String())
+
+	_, err = graph.WaitForPasswordCredentialReplication(id.KeyId, func() (graphrbac.PasswordCredentialListResult, error) {
+		return client.ListPasswordCredentials(ctx, id.ObjectId)
+	})
+	if err != nil {
+		return fmt.Errorf("Error waiting for Service Principal Password replication (SP %q, KeyID %q: %+v", id.ObjectId, id.KeyId, err)
+	}
 
 	return resourceServicePrincipalPasswordRead(d, meta)
 }
@@ -118,8 +125,8 @@ func resourceServicePrincipalPasswordDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error parsing Application Password ID: %v", err)
 	}
 
-	azureADLockByName(servicePrincipalResourceName, id.ObjectId)
-	defer azureADUnlockByName(servicePrincipalResourceName, id.ObjectId)
+	tf.LockByName(servicePrincipalResourceName, id.ObjectId)
+	defer tf.UnlockByName(servicePrincipalResourceName, id.ObjectId)
 
 	// ensure the parent Service Principal exists
 	servicePrincipal, err := client.Get(ctx, id.ObjectId)

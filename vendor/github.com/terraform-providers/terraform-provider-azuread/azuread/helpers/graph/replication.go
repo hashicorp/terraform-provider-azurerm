@@ -19,18 +19,18 @@ func WaitForReplication(f func() (interface{}, error)) (interface{}, error) {
 		ContinuousTargetOccurence: 10,
 		Refresh: func() (interface{}, string, error) {
 			i, err := f()
-			if err != nil {
-				r, ok := i.(autorest.Response)
-				if !ok {
-					return i, "BadCast", nil // sometimes the SDK bubbles up an entirely empty object
-				}
-				if ar.ResponseWasNotFound(r) {
-					return i, "404", nil
-				}
-				return i, "Error", fmt.Errorf("Error calling f, response was not 404 (%d): %v", r.StatusCode, err)
+			if err == nil {
+				return i, "Found", nil
 			}
 
-			return i, "Found", nil
+			r, ok := i.(autorest.Response)
+			if !ok {
+				return i, "BadCast", nil // sometimes the SDK bubbles up an entirely empty object
+			}
+			if ar.ResponseWasNotFound(r) {
+				return i, "404", nil
+			}
+			return i, "Error", fmt.Errorf("Error calling f, response was not 404 (%d): %v", r.StatusCode, err)
 		},
 	}).WaitForState()
 }

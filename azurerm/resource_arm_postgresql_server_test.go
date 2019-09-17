@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -102,36 +103,6 @@ func TestAccAzureRMPostgreSQLServer_basicTenPointZero(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPostgreSQLServer_basicTenPointTwo(t *testing.T) {
-	resourceName := "azurerm_postgresql_server.test"
-	ri := tf.AccRandTimeInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPostgreSQLServerDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPostgreSQLServer_basicTenPointTwo(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
-					resource.TestCheckResourceAttr(resourceName, "version", "10.2"),
-					resource.TestCheckResourceAttr(resourceName, "ssl_enforcement", "Enabled"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"administrator_login_password", // not returned as sensitive
-				},
-			},
-		},
-	})
-}
-
 func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 	resourceName := "azurerm_postgresql_server.test"
 	ri := tf.AccRandTimeInt()
@@ -163,7 +134,7 @@ func TestAccAzureRMPostgreSQLServer_basicEleven(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLServer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -327,6 +298,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_2"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "51200"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -337,6 +309,7 @@ func TestAccAzureRMPostgreSQLServer_updated(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "GP_Gen5_4"),
 					resource.TestCheckResourceAttr(resourceName, "version", "9.6"),
 					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.storage_mb", "640000"),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "administrator_login", "acctestun"),
 				),
 			},
@@ -400,7 +373,7 @@ func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlServersClient
+		client := testAccProvider.Meta().(*ArmClient).postgres.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -417,7 +390,7 @@ func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgresqlServersClient
+	client := testAccProvider.Meta().(*ArmClient).postgres.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -467,6 +440,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb            = 51200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    auto_grow             = "Disabled"
   }
 
   administrator_login          = "acctestun"
@@ -487,10 +461,6 @@ func testAccAzureRMPostgreSQLServer_basicNinePointSix(rInt int, location string)
 
 func testAccAzureRMPostgreSQLServer_basicTenPointZero(rInt int, location string) string {
 	return testAccAzureRMPostgreSQLServer_basic(rInt, location, "10.0")
-}
-
-func testAccAzureRMPostgreSQLServer_basicTenPointTwo(rInt int, location string) string {
-	return testAccAzureRMPostgreSQLServer_basic(rInt, location, "10.2")
 }
 
 func testAccAzureRMPostgreSQLServer_basicEleven(rInt int, location string) string {
@@ -616,6 +586,7 @@ resource "azurerm_postgresql_server" "test" {
     storage_mb            = 947200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    auto_grow             = "Enabled"
   }
 
   administrator_login          = "acctestun"

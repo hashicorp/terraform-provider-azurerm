@@ -10,6 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -77,13 +80,13 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
@@ -91,7 +94,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -105,24 +108,24 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
 	if err != nil {
 		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", err)
 	}
 
-	azureRMLockByName(name, azureFirewallResourceName)
-	defer azureRMUnlockByName(name, azureFirewallResourceName)
+	locks.ByName(name, azureFirewallResourceName)
+	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	azureRMLockMultipleByName(subnetToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(subnetToLock, subnetResourceName)
+	locks.MultipleByName(subnetToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(vnetToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(vnetToLock, virtualNetworkResourceName)
+	locks.MultipleByName(vnetToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetToLock, virtualNetworkResourceName)
 
 	parameters := network.AzureFirewall{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
 			IPConfigurations: ipConfigs,
 		},
@@ -169,10 +172,10 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -203,16 +206,14 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -239,7 +240,7 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 					continue
 				}
 
-				parsedSubnetId, err2 := parseAzureResourceID(*config.Subnet.ID)
+				parsedSubnetId, err2 := azure.ParseAzureResourceID(*config.Subnet.ID)
 				if err2 != nil {
 					return err2
 				}
@@ -257,14 +258,14 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	azureRMLockByName(name, azureFirewallResourceName)
-	defer azureRMUnlockByName(name, azureFirewallResourceName)
+	locks.ByName(name, azureFirewallResourceName)
+	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	azureRMLockMultipleByName(&subnetNamesToLock, subnetResourceName)
-	defer azureRMUnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
+	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
 
-	azureRMLockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -298,7 +299,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 			return nil, nil, nil, fmt.Errorf("one of `ip_configuration.0.internal_public_ip_address_id` or `ip_configuration.0.public_ip_address_id` must be set")
 		}
 
-		subnetID, err := parseAzureResourceID(subnetId)
+		subnetID, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -382,7 +383,7 @@ func validateAzureFirewallName(v interface{}, k string) (warnings []string, erro
 }
 
 func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string, errors []error) {
-	parsed, err := parseAzureResourceID(v.(string))
+	parsed, err := azure.ParseAzureResourceID(v.(string))
 	if err != nil {
 		errors = append(errors, fmt.Errorf("Error parsing Azure Resource ID %q", v.(string)))
 		return warnings, errors

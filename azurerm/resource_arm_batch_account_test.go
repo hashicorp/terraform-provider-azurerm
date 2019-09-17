@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -64,7 +65,7 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -138,9 +139,8 @@ func TestAccAzureRMBatchAccount_userSubscription(t *testing.T) {
 	location := testLocation()
 
 	tenantID := os.Getenv("ARM_TENANT_ID")
-	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 
-	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID, subscriptionID)
+	config := testAccAzureRMBatchAccount_userSubscription(ri, rs, location, tenantID)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -171,7 +171,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchAccountClient
+		conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
 
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {
@@ -187,7 +187,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).batchAccountClient
+	conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -299,7 +299,7 @@ resource "azurerm_batch_account" "test" {
 `, rInt, location, rString, rString)
 }
 
-func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string, subscriptionID string) string {
+func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string) string {
 	return fmt.Sprintf(`
 data "azuread_service_principal" "test" {
 	display_name = "Microsoft Azure Batch"

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,7 +43,7 @@ func TestAccAzureRMMariaDbServer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDbServer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -277,7 +278,7 @@ func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mariadbServersClient
+		client := testAccProvider.Meta().(*ArmClient).mariadb.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -294,7 +295,7 @@ func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMMariaDbServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mariadbServersClient
+	client := testAccProvider.Meta().(*ArmClient).mariadb.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

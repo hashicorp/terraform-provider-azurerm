@@ -1346,14 +1346,14 @@ type CustomDomain struct {
 
 // DateAfterCreation object to define the number of days after creation.
 type DateAfterCreation struct {
-	// DaysAfterCreationGreaterThan - Integer value indicating the age in days after creation
-	DaysAfterCreationGreaterThan *int32 `json:"daysAfterCreationGreaterThan,omitempty"`
+	// DaysAfterCreationGreaterThan - Value indicating the age in days after creation
+	DaysAfterCreationGreaterThan *float64 `json:"daysAfterCreationGreaterThan,omitempty"`
 }
 
 // DateAfterModification object to define the number of days after last modification.
 type DateAfterModification struct {
-	// DaysAfterModificationGreaterThan - Integer value indicating the age in days after last modification
-	DaysAfterModificationGreaterThan *int32 `json:"daysAfterModificationGreaterThan,omitempty"`
+	// DaysAfterModificationGreaterThan - Value indicating the age in days after last modification
+	DaysAfterModificationGreaterThan *float64 `json:"daysAfterModificationGreaterThan,omitempty"`
 }
 
 // DeleteRetentionPolicy the blob service properties for soft delete.
@@ -1899,7 +1899,7 @@ type ListServiceSasResponse struct {
 // ManagementPolicy the Get Storage Account ManagementPolicies operation response.
 type ManagementPolicy struct {
 	autorest.Response `json:"-"`
-	// ManagementPolicyProperties - READ-ONLY; Returns the Storage Account Data Policies Rules.
+	// ManagementPolicyProperties - Returns the Storage Account Data Policies Rules.
 	*ManagementPolicyProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -1912,6 +1912,9 @@ type ManagementPolicy struct {
 // MarshalJSON is the custom marshaler for ManagementPolicy.
 func (mp ManagementPolicy) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if mp.ManagementPolicyProperties != nil {
+		objectMap["properties"] = mp.ManagementPolicyProperties
+	}
 	return json.Marshal(objectMap)
 }
 

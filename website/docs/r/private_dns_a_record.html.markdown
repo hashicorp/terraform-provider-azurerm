@@ -6,7 +6,7 @@ description: |-
   Manages a Private DNS A Record.
 ---
 
-# azurerm_dns_a_record
+# azurerm_private_dns_a_record
 
 Enables you to manage DNS A Records within Azure Private DNS.
 
@@ -25,7 +25,7 @@ resource "azurerm_private_dns_zone" "test" {
 
 resource "azurerm_private_dns_a_record" "test" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.test.name}"
+  zone_name           = "${azurerm_private_dns_zone.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ttl                 = 300
   records             = ["10.0.180.17"]

@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -92,7 +93,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_complete(ri, testLocation(), testAltLocation())
+	config := testAccAzureRMApiManagement_complete(ri, testLocation(), testAltLocation(), testAltLocation2())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -441,7 +442,7 @@ resource "azurerm_api_management" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string) string {
+func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string, altLocation2 string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-%d"
@@ -453,6 +454,11 @@ resource "azurerm_resource_group" "test2" {
   location = "%s"
 }
 
+resource "azurerm_resource_group" "test3" {
+	name     = "acctestRG3-%d"
+	location = "%s"
+}
+
 resource "azurerm_api_management" "test" {
   name                      = "acctestAM-%d"
   publisher_name            = "pub1"
@@ -461,6 +467,10 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     location = "${azurerm_resource_group.test2.location}"
+  }
+
+  additional_location {
+    location = "${azurerm_resource_group.test3.location}"
   }
 
   certificate {
@@ -515,5 +525,5 @@ resource "azurerm_api_management" "test" {
   location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
 }
-`, rInt, location, rInt, altLocation, rInt)
+`, rInt, location, rInt, altLocation, rInt, altLocation2, rInt)
 }

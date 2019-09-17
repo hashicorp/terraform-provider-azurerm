@@ -130,8 +130,8 @@ func (client BlobContainersClient) ClearLegalHoldPreparer(ctx context.Context, r
 // ClearLegalHoldSender sends the ClearLegalHold request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) ClearLegalHoldSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ClearLegalHoldResponder handles the response to the ClearLegalHold request. The method always
@@ -241,8 +241,8 @@ func (client BlobContainersClient) CreatePreparer(ctx context.Context, resourceG
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -360,8 +360,8 @@ func (client BlobContainersClient) CreateOrUpdateImmutabilityPolicyPreparer(ctx 
 // CreateOrUpdateImmutabilityPolicySender sends the CreateOrUpdateImmutabilityPolicy request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) CreateOrUpdateImmutabilityPolicySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateImmutabilityPolicyResponder handles the response to the CreateOrUpdateImmutabilityPolicy request. The method always
@@ -459,8 +459,8 @@ func (client BlobContainersClient) DeletePreparer(ctx context.Context, resourceG
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -565,8 +565,8 @@ func (client BlobContainersClient) DeleteImmutabilityPolicyPreparer(ctx context.
 // DeleteImmutabilityPolicySender sends the DeleteImmutabilityPolicy request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) DeleteImmutabilityPolicySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteImmutabilityPolicyResponder handles the response to the DeleteImmutabilityPolicy request. The method always
@@ -680,8 +680,8 @@ func (client BlobContainersClient) ExtendImmutabilityPolicyPreparer(ctx context.
 // ExtendImmutabilityPolicySender sends the ExtendImmutabilityPolicy request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) ExtendImmutabilityPolicySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ExtendImmutabilityPolicyResponder handles the response to the ExtendImmutabilityPolicy request. The method always
@@ -779,8 +779,8 @@ func (client BlobContainersClient) GetPreparer(ctx context.Context, resourceGrou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -887,8 +887,8 @@ func (client BlobContainersClient) GetImmutabilityPolicyPreparer(ctx context.Con
 // GetImmutabilityPolicySender sends the GetImmutabilityPolicy request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) GetImmutabilityPolicySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetImmutabilityPolicyResponder handles the response to the GetImmutabilityPolicy request. The method always
@@ -993,8 +993,8 @@ func (client BlobContainersClient) LeasePreparer(ctx context.Context, resourceGr
 // LeaseSender sends the Lease request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) LeaseSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // LeaseResponder handles the response to the Lease request. The method always
@@ -1099,8 +1099,8 @@ func (client BlobContainersClient) ListPreparer(ctx context.Context, resourceGro
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -1240,8 +1240,8 @@ func (client BlobContainersClient) LockImmutabilityPolicyPreparer(ctx context.Co
 // LockImmutabilityPolicySender sends the LockImmutabilityPolicy request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) LockImmutabilityPolicySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // LockImmutabilityPolicyResponder handles the response to the LockImmutabilityPolicy request. The method always
@@ -1346,8 +1346,8 @@ func (client BlobContainersClient) SetLegalHoldPreparer(ctx context.Context, res
 // SetLegalHoldSender sends the SetLegalHold request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) SetLegalHoldSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // SetLegalHoldResponder handles the response to the SetLegalHold request. The method always
@@ -1449,8 +1449,8 @@ func (client BlobContainersClient) UpdatePreparer(ctx context.Context, resourceG
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client BlobContainersClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always

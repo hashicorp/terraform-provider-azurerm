@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -340,7 +341,7 @@ func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFu
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
@@ -366,7 +367,7 @@ func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
@@ -396,7 +397,7 @@ func testCheckAzureRMSqlDatabaseDisappears(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, databaseName); err != nil {

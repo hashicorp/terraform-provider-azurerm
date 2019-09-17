@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -44,7 +45,7 @@ func TestAccAzureRMSqlFirewallRule_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlFirewallRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -104,7 +105,7 @@ func testCheckAzureRMSqlFirewallRuleExists(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -130,7 +131,7 @@ func testCheckAzureRMSqlFirewallRuleDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -160,7 +161,7 @@ func testCheckAzureRMSqlFirewallRuleDisappears(resourceName string) resource.Tes
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlFirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).sql.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, serverName, ruleName)

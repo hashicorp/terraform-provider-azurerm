@@ -91,7 +91,7 @@ The `backup` block supports:
 
 * `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`. 
 
-* `times` - (Required) The time of day to preform the backup in 24hour format.
+* `times` - (Required) The time of day to perform the backup in 24hour format.
 
 * `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
@@ -29,7 +30,7 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -190,7 +191,7 @@ func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).resource.DeploymentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -220,7 +221,7 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).resource.DeploymentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
@@ -232,7 +233,7 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 }
 
 func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).deploymentsClient
+	client := testAccProvider.Meta().(*ArmClient).resource.DeploymentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

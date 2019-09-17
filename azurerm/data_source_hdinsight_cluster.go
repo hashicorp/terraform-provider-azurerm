@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -63,7 +64,7 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"edge_ssh_endpoint": {
 				Type:     schema.TypeString,
@@ -137,9 +138,7 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenHDInsightsDataSourceComponentVersions(input map[string]*string) map[string]string {
