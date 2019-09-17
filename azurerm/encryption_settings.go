@@ -117,7 +117,9 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 		"enabled": *encryptionSettings.Enabled,
 	}
 
-	for _, settings := range *encryptionSettings.EncryptionSettings {
+	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
+		// at this time we only support a single element
+		settings := (*encryptionSettings.EncryptionSettings)[0]
 		if key := settings.DiskEncryptionKey; key != nil {
 			keys := make(map[string]interface{})
 
@@ -140,9 +142,6 @@ func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.Encryption
 
 			value["key_encryption_key"] = []interface{}{keys}
 		}
-
-		// at this time we only support a single element
-		break
 	}
 
 	return []interface{}{
