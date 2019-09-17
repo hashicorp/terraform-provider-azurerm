@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -668,6 +668,9 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 
 	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
+	apiServerAccessProfile := &containerservice.ManagedClusterAPIServerAccessProfile{
+		AuthorizedIPRanges: apiServerAuthorizedIPRanges,
+	}
 
 	nodeResourceGroup := d.Get("node_resource_group").(string)
 
@@ -677,19 +680,19 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
-			AadProfile:                  azureADProfile,
-			AddonProfiles:               addonProfiles,
-			AgentPoolProfiles:           &agentProfiles,
-			DNSPrefix:                   utils.String(dnsPrefix),
-			EnableRBAC:                  utils.Bool(rbacEnabled),
-			KubernetesVersion:           utils.String(kubernetesVersion),
-			LinuxProfile:                linuxProfile,
-			WindowsProfile:              windowsProfile,
-			NetworkProfile:              networkProfile,
-			ServicePrincipalProfile:     servicePrincipalProfile,
-			NodeResourceGroup:           utils.String(nodeResourceGroup),
-			EnablePodSecurityPolicy:     utils.Bool(enablePodSecurityPolicy),
+			APIServerAccessProfile:  apiServerAccessProfile,
+			AadProfile:              azureADProfile,
+			AddonProfiles:           addonProfiles,
+			AgentPoolProfiles:       &agentProfiles,
+			DNSPrefix:               utils.String(dnsPrefix),
+			EnableRBAC:              utils.Bool(rbacEnabled),
+			KubernetesVersion:       utils.String(kubernetesVersion),
+			LinuxProfile:            linuxProfile,
+			WindowsProfile:          windowsProfile,
+			NetworkProfile:          networkProfile,
+			ServicePrincipalProfile: servicePrincipalProfile,
+			NodeResourceGroup:       utils.String(nodeResourceGroup),
+			EnablePodSecurityPolicy: utils.Bool(enablePodSecurityPolicy),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -757,9 +760,11 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
-		apiServerAuthorizedIPRanges := utils.FlattenStringSlice(props.APIServerAuthorizedIPRanges)
-		if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
-			return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
+		if props.APIServerAccessProfile != nil {
+			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(props.APIServerAccessProfile.AuthorizedIPRanges)
+			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
+				return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
+			}
 		}
 
 		addonProfiles := flattenKubernetesClusterAddonProfiles(props.AddonProfiles)
