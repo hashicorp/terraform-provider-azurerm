@@ -39,10 +39,6 @@ data "azurerm_healthcare_service" "test" {
   name                = "${azurerm_healthcare_service.test.name}"
   resource_group_name = "${azurerm_healthcare_service.test.resource_group_name}"
   location            = "${azurerm_resource_group.test.location}"
-
-  access_policy_object_ids {
-    object_id          = "${data.azurerm_client_config.current.service_principal_object_id}"
-  }
 }
 `, resource)
 	return s
