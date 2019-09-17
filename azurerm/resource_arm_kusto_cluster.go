@@ -259,7 +259,7 @@ func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
 
 	azureSku := &kusto.AzureSku{
 		Name:     kusto.AzureSkuName(name),
-		Tier:     &tier,
+		Tier:     kusto.AzureSkuTier(tier),
 		Capacity: utils.Int32(int32(capacity)),
 	}
 
