@@ -408,27 +408,13 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 	}
 
 	if properties := resp.WebApplicationFirewallPolicyProperties; properties != nil {
-		if properties.PolicySettings != nil {
+		if policy := properties.PolicySettings; policy != nil {
 
-			if err := d.Set("enabled", properties.PolicySettings.EnabledState == frontdoor.PolicyEnabledStateEnabled); err != nil {
-				return fmt.Errorf("Error setting `enabled`: %+v", err)
-			}
-
-			if err := d.Set("mode", string(properties.PolicySettings.Mode)); err != nil {
-				return fmt.Errorf("Error setting `mode`: %+v", err)
-			}
-
-			if err := d.Set("redirect_url", properties.PolicySettings.RedirectURL); err != nil {
-				return fmt.Errorf("Error setting `redirect_url`: %+v", err)
-			}
-
-			if err := d.Set("custom_block_response_status_code", properties.PolicySettings.CustomBlockResponseStatusCode); err != nil {
-				return fmt.Errorf("Error setting `custom_block_response_status_code`: %+v", err)
-			}
-
-			if err := d.Set("custom_block_response_body", properties.PolicySettings.CustomBlockResponseBody); err != nil {
-				return fmt.Errorf("Error setting `custom_block_response_body`: %+v", err)
-			}
+			d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
+			d.Set("mode", string(policy.Mode))
+			d.Set("redirect_url", policy.RedirectURL)
+			d.Set("custom_block_response_status_code", policy.CustomBlockResponseStatusCode)
+			d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 		}
 
 		if err := d.Set("custom_rule", flattenArmFrontDoorFirewallCustomRules(properties.CustomRules)); err != nil {
@@ -444,9 +430,7 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
@@ -491,6 +475,7 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		if custom["enabled"].(bool) {
 			enabled = frontdoor.CustomRuleEnabledStateEnabled
 		}
+
 		name := custom["name"].(string)
 		priority := int32(custom["priority"].(int))
 		ruleType := custom["type"].(string)
@@ -512,11 +497,9 @@ func expandArmFrontDoorFirewallCustomRules(input []interface{}) *frontdoor.Custo
 		output = append(output, customRule)
 	}
 
-	result := frontdoor.CustomRuleList{
+	return &frontdoor.CustomRuleList{
 		Rules: &output,
 	}
-
-	return &result
 }
 
 func expandArmFrontDoorFirewallMatchConditions(input []interface{}) *[]frontdoor.MatchCondition {
@@ -562,7 +545,6 @@ func expandArmFrontDoorFirewallTransforms(input []interface{}) *[]frontdoor.Tran
 	}
 
 	result := make([]frontdoor.TransformType, 0)
-
 	for _, v := range input {
 		result = append(result, frontdoor.TransformType(v.(string)))
 	}
@@ -596,11 +578,9 @@ func expandArmFrontDoorFirewallManagedRules(input []interface{}) *frontdoor.Mana
 		managedRules = append(managedRules, managedRuleSet)
 	}
 
-	result := frontdoor.ManagedRuleSetList{
+	return &frontdoor.ManagedRuleSetList{
 		ManagedRuleSets: &managedRules,
 	}
-
-	return &result
 }
 
 func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]frontdoor.ManagedRuleGroupOverride {
@@ -609,7 +589,6 @@ func expandArmFrontDoorFirewallManagedRuleGroupOverride(input []interface{}) *[]
 	}
 
 	managedRuleGroupOverrides := make([]frontdoor.ManagedRuleGroupOverride, 0)
-
 	for _, v := range input {
 		override := v.(map[string]interface{})
 
@@ -636,7 +615,6 @@ func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 	}
 
 	managedRuleOverrides := make([]frontdoor.ManagedRuleOverride, 0)
-
 	for _, v := range input {
 		rule := v.(map[string]interface{})
 
@@ -660,23 +638,31 @@ func expandArmFrontDoorFirewallRuleOverride(input []interface{}) *[]frontdoor.Ma
 }
 
 func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []interface{} {
-	if input == nil {
+	if input == nil || input.Rules == nil {
 		return make([]interface{}, 0)
 	}
 
 	results := make([]interface{}, 0)
-
-	for _, v := range *input.Rules {
+	for _, r := range *input.Rules {
 		output := make(map[string]interface{})
 
-		output["name"] = v.Name
-		output["priority"] = int(*v.Priority)
-		output["enabled"] = v.EnabledState == frontdoor.CustomRuleEnabledStateEnabled
-		output["type"] = string(v.RuleType)
-		output["rate_limit_duration_in_minutes"] = int(*v.RateLimitDurationInMinutes)
-		output["rate_limit_threshold"] = int(*v.RateLimitThreshold)
-		output["match_condition"] = flattenArmFrontDoorFirewallMatchConditions(v.MatchConditions)
-		output["action"] = string(v.Action)
+		output["name"] = r.Name
+		output["type"] = string(r.RuleType)
+		output["action"] = string(r.Action)
+		output["enabled"] = r.EnabledState == frontdoor.CustomRuleEnabledStateEnabled
+		output["match_condition"] = flattenArmFrontDoorFirewallMatchConditions(r.MatchConditions)
+
+		if v := r.Priority; v != nil {
+			output["priority"] = int(*v)
+		}
+
+		if v := r.RateLimitDurationInMinutes; v != nil {
+			output["rate_limit_duration_in_minutes"] = int(*v)
+		}
+
+		if v := r.RateLimitThreshold; v != nil {
+			output["rate_limit_threshold"] = int(*v)
+		}
 
 		results = append(results, output)
 	}
@@ -684,26 +670,27 @@ func flattenArmFrontDoorFirewallCustomRules(input *frontdoor.CustomRuleList) []i
 	return results
 }
 
-func flattenArmFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchCondition) []interface{} {
-	if input == nil {
+func flattenArmFrontDoorFirewallMatchConditions(condition *[]frontdoor.MatchCondition) []interface{} {
+	if condition == nil {
 		return make([]interface{}, 0)
 	}
 
 	results := make([]interface{}, 0)
-
-	for _, v := range *input {
+	for _, c := range *condition {
 		output := make(map[string]interface{})
 
-		output["match_variable"] = string(v.MatchVariable)
-		if selector := v.Selector; selector != nil {
-			output["selector"] = *v.Selector
+		output["match_variable"] = string(c.MatchVariable)
+		output["operator"] = string(c.Operator)
+		output["match_values"] = utils.FlattenStringSlice(c.MatchValue)
+		output["transforms"] = afd.FlattenTransformSlice(c.Transforms)
+
+		if v := c.Selector; v != nil {
+			output["selector"] = *v
 		}
-		output["operator"] = string(v.Operator)
-		if negateCondition := v.NegateCondition; negateCondition != nil {
-			output["negation_condition"] = *v.NegateCondition
+
+		if v := c.NegateCondition; v != nil {
+			output["negation_condition"] = *v
 		}
-		output["match_values"] = utils.FlattenStringSlice(v.MatchValue)
-		output["transforms"] = afd.FlattenTransformSlice(v.Transforms)
 
 		results = append(results, output)
 	}
@@ -712,19 +699,24 @@ func flattenArmFrontDoorFirewallMatchConditions(input *[]frontdoor.MatchConditio
 }
 
 func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList) []interface{} {
-	if input == nil {
+	if input == nil || input.ManagedRuleSets == nil {
 		return make([]interface{}, 0)
 	}
 
 	results := make([]interface{}, 0)
-
-	for _, v := range *input.ManagedRuleSets {
+	for _, r := range *input.ManagedRuleSets {
 		output := make(map[string]interface{})
 
-		output["type"] = *v.RuleSetType
-		output["version"] = *v.RuleSetVersion
-		if overrides := v.RuleGroupOverrides; overrides != nil {
-			output["override"] = flattenArmFrontDoorFirewallOverrides(overrides)
+		if v := r.RuleSetType; v != nil {
+			output["type"] = *v
+		}
+
+		if v := r.RuleSetVersion; v != nil {
+			output["version"] = *v
+		}
+
+		if v := r.RuleGroupOverrides; v != nil {
+			output["override"] = flattenArmFrontDoorFirewallOverrides(v)
 		}
 
 		results = append(results, output)
@@ -733,18 +725,20 @@ func flattenArmFrontDoorFirewallManagedRules(input *frontdoor.ManagedRuleSetList
 	return results
 }
 
-func flattenArmFrontDoorFirewallOverrides(input *[]frontdoor.ManagedRuleGroupOverride) []interface{} {
-	if input == nil {
+func flattenArmFrontDoorFirewallOverrides(groupOverride *[]frontdoor.ManagedRuleGroupOverride) []interface{} {
+	if groupOverride == nil {
 		return make([]interface{}, 0)
 	}
 
 	results := make([]interface{}, 0)
-
-	for _, v := range *input {
+	for _, o := range *groupOverride {
 		output := make(map[string]interface{})
 
-		output["rule_group_name"] = *v.RuleGroupName
-		if rules := v.Rules; rules != nil {
+		if v := o.RuleGroupName; v != nil {
+			output["rule_group_name"] = *v
+		}
+
+		if rules := o.Rules; rules != nil {
 			output["rule"] = flattenArmFrontdoorFirewallRules(rules)
 		}
 
@@ -754,19 +748,21 @@ func flattenArmFrontDoorFirewallOverrides(input *[]frontdoor.ManagedRuleGroupOve
 	return results
 }
 
-func flattenArmFrontdoorFirewallRules(input *[]frontdoor.ManagedRuleOverride) []interface{} {
-	if input == nil {
+func flattenArmFrontdoorFirewallRules(override *[]frontdoor.ManagedRuleOverride) []interface{} {
+	if override == nil {
 		return make([]interface{}, 0)
 	}
 
 	results := make([]interface{}, 0)
-
-	for _, v := range *input {
+	for _, o := range *override {
 		output := make(map[string]interface{})
 
-		output["rule_id"] = *v.RuleID
-		output["enabled"] = v.EnabledState == frontdoor.ManagedRuleEnabledStateEnabled
-		output["action"] = string(v.Action)
+		output["enabled"] = o.EnabledState == frontdoor.ManagedRuleEnabledStateEnabled
+		output["action"] = string(o.Action)
+
+		if v := o.RuleID; v != nil {
+			output["rule_id"] = *v
+		}
 
 		results = append(results, output)
 	}
