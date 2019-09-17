@@ -33,15 +33,14 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
     priority                       = 1
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
-    rule_type                      = "MatchRule"
+    type                           = "MatchRule"
     action                         = "Block"
 
     match_condition {
       match_variable     = "RemoteAddr"
       operator           = "IPMatch"
       negation_condition = false
-      match_value        = ["192.168.1.0/24", "10.0.0.0/24"]
-      transforms         = ["Lowercase", "Trim"]
+      match_values       = ["192.168.1.0/24", "10.0.0.0/24"]
     }
   }
 
@@ -51,22 +50,22 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
     priority                       = 2
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
-    rule_type                      = "MatchRule"
+    type                           = "MatchRule"
     action                         = "Block"
 
     match_condition {
       match_variable     = "RemoteAddr"
       operator           = "IPMatch"
       negation_condition = false
-      match_value        = ["192.168.1.0/24"]
+      match_values       = ["192.168.1.0/24"]
     }
 
     match_condition {
-      variable_name      = "RequestHeaders"
+      match_variable     = "RequestHeader"
       selector           = "UserAgent"
       operator           = "Contains"
       negation_condition = false
-      match_value        = ["windows"]
+      match_values       = ["windows"]
       transforms         = ["Lowercase", "Trim"]
     }
   }
@@ -80,7 +79,7 @@ resource "azurerm_frontdoor_firewall_policy" "example" {
 
       rule {
         rule_id = "933111"
-        enable  = false
+        enabled = false
         action  = "Block"
       }
     }

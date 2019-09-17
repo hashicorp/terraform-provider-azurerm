@@ -134,6 +134,8 @@ The `frontend_endpoint` block supports the following:
 
 * `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
 
+* `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
+
 ---
 
 The `backend_pool_health_probe` block supports the following:
