@@ -1,0 +1,136 @@
+package azurerm
+
+import (
+	"fmt"
+	"encoding/json"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+)
+
+func resourceArmDashboard() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceArmDashboardCreateUpdate,
+		Read:   resourceArmDashboardRead,
+		Update: resourceArmDashboardCreateUpdate,
+		Delete: resourceArmDashboardDelete,	
+
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"resource_group_name": azure.SchemaResourceGroupName(),
+			"location": azure.SchemaLocation(),
+			"tags": tags.Schema(),
+			"dashboard_properties": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				StateFunc: normalizeJson,
+			},
+		},			
+	}
+}
+
+func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).portal.DashboardsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	t := d.Get("tags").(map[string]interface{})
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	dashboardProps := d.Get("dashboard_properties").(string)
+
+	dashboard := portal.Dashboard{
+		Location: &location,
+		Tags: tags.Expand(t),
+	}
+
+	var dashboardProperties portal.DashboardProperties
+
+	if err := json.Unmarshal([]byte(dashboardProps), &dashboardProperties); err != nil {
+		return fmt.Errorf("Error parsing JSON: %+v", err)
+	}
+	dashboard.DashboardProperties = &dashboardProperties
+
+	db, err := client.CreateOrUpdate(ctx, resourceGroup, name, dashboard);
+	if err != nil {
+		return fmt.Errorf("Error creating/updating Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	
+	d.SetId(*db.ID)
+
+	// get it back again to set the props
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error making Read request for Dashboard %q: %+v", name, err)
+	}
+
+	props, jsonErr := json.Marshal(resp.DashboardProperties)
+	if jsonErr != nil {
+		return fmt.Errorf("Error parsing DashboardProperties JSON: %+v", jsonErr)
+	}
+	d.Set("dashboard_properties", props)
+	d.Set("name", resp.Name)
+	d.Set("location", resp.Location)
+
+	return resourceArmDashboardRead(d, meta)
+}
+
+func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).portal.DashboardsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	resp, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error making Read request for Dashboard %q: %+v", name, err)
+	}
+
+	d.Set("name", resp.Name)
+	d.Set("location", resp.Location)
+	
+	props, jsonErr := json.Marshal(resp.DashboardProperties)
+	if jsonErr != nil {
+		return fmt.Errorf("Error parsing DashboardProperties JSON: %+v", jsonErr)
+	}
+	d.Set("dashboard_properties", string(props))
+
+	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func resourceArmDashboardDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).portal.DashboardsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	id, parseErr := azure.ParseAzureResourceID(d.Id())
+	if parseErr != nil {
+		return parseErr
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["dashboards"]
+
+	resp, err := client.Delete(ctx, resourceGroup, name)
+	if err != nil {
+		if !response.WasNotFound(resp.Response) {
+			return fmt.Errorf("Error retrieving Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+	}
+
+	return nil
+}
