@@ -116,8 +116,8 @@ func (client BaseClient) CheckFrontDoorNameAvailabilityPreparer(ctx context.Cont
 // CheckFrontDoorNameAvailabilitySender sends the CheckFrontDoorNameAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CheckFrontDoorNameAvailabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CheckFrontDoorNameAvailabilityResponder handles the response to the CheckFrontDoorNameAvailability request. The method always
@@ -198,8 +198,8 @@ func (client BaseClient) CheckFrontDoorNameAvailabilityWithSubscriptionPreparer(
 // CheckFrontDoorNameAvailabilityWithSubscriptionSender sends the CheckFrontDoorNameAvailabilityWithSubscription request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CheckFrontDoorNameAvailabilityWithSubscriptionSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CheckFrontDoorNameAvailabilityWithSubscriptionResponder handles the response to the CheckFrontDoorNameAvailabilityWithSubscription request. The method always

@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -21,6 +21,8 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
+			"location": azure.SchemaLocationForDataSource(),
 
 			"address_spaces": {
 				Type:       schema.TypeList,
@@ -58,6 +60,9 @@ func dataSourceArmVirtualNetwork() *schema.Resource {
 			"vnet_peerings": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -83,6 +88,10 @@ func dataSourceArmVnetRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("API returns a nil/empty id on Virtual Network %q (resource group %q): %+v", name, resGroup, err)
 	}
 	d.SetId(*resp.ID)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
 		if as := props.AddressSpace; as != nil {

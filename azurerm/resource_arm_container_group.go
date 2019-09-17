@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -288,6 +288,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeMap,
 							ForceNew: true,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"secure_environment_variables": {
@@ -295,6 +298,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional:  true,
 							ForceNew:  true,
 							Sensitive: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"command": {

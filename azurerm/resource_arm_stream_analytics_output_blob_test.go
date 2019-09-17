@@ -181,7 +181,7 @@ func testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName string) resour
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
+		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -197,7 +197,7 @@ func testCheckAzureRMStreamAnalyticsOutputBlobExists(resourceName string) resour
 }
 
 func testCheckAzureRMStreamAnalyticsOutputBlobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
+	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_output_blob" {

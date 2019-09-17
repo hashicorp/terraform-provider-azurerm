@@ -134,7 +134,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 }
 
 func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue creation/update.")
 
@@ -194,7 +194,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
-	namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
+	namespacesClient := meta.(*ArmClient).ServiceBus.NamespacesClient
 	namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 	if err != nil {
 		return fmt.Errorf("Error retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
@@ -224,7 +224,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -267,7 +267,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
 			// then the max size returned by the API will be 16 times greater than the value set.
 			if *props.EnablePartitioning {
-				namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
+				namespacesClient := meta.(*ArmClient).ServiceBus.NamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
 					return err
@@ -287,7 +287,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

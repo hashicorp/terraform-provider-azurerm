@@ -85,7 +85,7 @@ func resourceArmStreamAnalyticsOutputSql() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.OutputsClient
+	client := meta.(*ArmClient).StreamAnalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] Preparing arguments for Azure Stream Analytics SQL Output creation.")
@@ -150,7 +150,7 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.OutputsClient
+	client := meta.(*ArmClient).StreamAnalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -193,7 +193,7 @@ func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmStreamAnalyticsOutputSqlDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.OutputsClient
+	client := meta.(*ArmClient).StreamAnalytics.OutputsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -202,6 +202,9 @@ func dataSourceArmBatchPool() *schema.Resource {
 						"environment": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"user_identity": {

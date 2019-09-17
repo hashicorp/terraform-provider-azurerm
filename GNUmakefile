@@ -21,7 +21,7 @@ build: fmtcheck
 
 build-docker:
 	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.12 make build
+	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.13 make build
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -44,10 +44,11 @@ tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
         -R001 -R002 -R003 -R004\
+        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019\
         ./$(PKG_NAME)
 
 test-docker:
-	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.12 make test
+	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1

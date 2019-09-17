@@ -117,9 +117,9 @@ func (client LoadBalancingSettingsClient) CreateOrUpdatePreparer(ctx context.Con
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client LoadBalancingSettingsClient) CreateOrUpdateSender(req *http.Request) (future LoadBalancingSettingsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -212,9 +212,9 @@ func (client LoadBalancingSettingsClient) DeletePreparer(ctx context.Context, re
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client LoadBalancingSettingsClient) DeleteSender(req *http.Request) (future LoadBalancingSettingsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -312,8 +312,8 @@ func (client LoadBalancingSettingsClient) GetPreparer(ctx context.Context, resou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client LoadBalancingSettingsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -402,8 +402,8 @@ func (client LoadBalancingSettingsClient) ListByFrontDoorPreparer(ctx context.Co
 // ListByFrontDoorSender sends the ListByFrontDoor request. The method will close the
 // http.Response Body if it receives an error.
 func (client LoadBalancingSettingsClient) ListByFrontDoorSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByFrontDoorResponder handles the response to the ListByFrontDoor request. The method always

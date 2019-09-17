@@ -14,19 +14,29 @@ import (
 func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being able provision against one app id at a time
-	testCases := map[string]func(t *testing.T){
-		"basic":    testAccAzureRMBotChannelsRegistration_basic,
-		"update":   testAccAzureRMBotChannelsRegistration_update,
-		"complete": testAccAzureRMBotChannelsRegistration_complete,
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic":    testAccAzureRMBotChannelsRegistration_basic,
+			"update":   testAccAzureRMBotChannelsRegistration_update,
+			"complete": testAccAzureRMBotChannelsRegistration_complete,
+		},
+		"connection": {
+			"basic":    testAccAzureRMBotConnection_basic,
+			"complete": testAccAzureRMBotConnection_complete,
+		},
 	}
 
-	for name, tc := range testCases {
-		tc := tc
-		t.Run(name, func(t *testing.T) {
-			tc(t)
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
 		})
 	}
-
 }
 
 func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {

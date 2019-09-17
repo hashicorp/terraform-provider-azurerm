@@ -86,7 +86,7 @@ func resourceArmSqlElasticPool() *schema.Resource {
 }
 
 func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.ElasticPoolsClient
+	client := meta.(*ArmClient).Sql.ElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for SQL ElasticPool creation.")
@@ -140,7 +140,7 @@ func resourceArmSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.ElasticPoolsClient
+	client := meta.(*ArmClient).Sql.ElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
@@ -180,7 +180,7 @@ func resourceArmSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.ElasticPoolsClient
+	client := meta.(*ArmClient).Sql.ElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())
