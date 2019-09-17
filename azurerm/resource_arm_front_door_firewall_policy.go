@@ -311,14 +311,14 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	if requireResourcesToBeImported {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for present of existing Front Door Firewall Policy %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", *resp.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_frontdoor_firewall_policy", *existing.ID)
 		}
 	}
 
