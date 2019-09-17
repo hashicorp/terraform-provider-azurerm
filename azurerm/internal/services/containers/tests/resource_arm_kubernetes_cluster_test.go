@@ -54,6 +54,8 @@ func TestAccAzureRMKubernetes_all(t *testing.T) {
 			"internalNetwork":                             testAccAzureRMKubernetesCluster_internalNetwork,
 			"standardLoadBalancer":                        testAccAzureRMKubernetesCluster_standardLoadBalancer,
 			"standardLoadBalancerComplete":                testAccAzureRMKubernetesCluster_standardLoadBalancerComplete,
+			"standardLoadBalancerProfile":                 testAccAzureRMKubernetesCluster_standardLoadBalancerProfile,
+			"standardLoadBalancerProfileComplete":         testAccAzureRMKubernetesCluster_standardLoadBalancerProfileComplete,
 		},
 		"nodePool": {
 			"autoScale":                      testAccAzureRMKubernetesClusterNodePool_autoScale,

@@ -313,6 +313,20 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
 
+* `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `standard`.
+
+---
+
+A `load_balancer_profile` block supports the following:
+
+~> **NOTE:** These options are mutually exclusive. Note that when specifying `outbound_ip_address_ids` ([azurerm_public_ip](/docs/providers/azurerm/r/public_ip.html)) the SKU must be `Standard`. 
+
+* `managed_outbound_ips` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
+
+* `outbound_ip_prefixes_ids` - (Optional) The ID of the outbound Public IP Address Prefixes which should be used for the cluster load balancer.
+
+* `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
+
 ---
 
 A `oms_agent` block supports the following:
@@ -381,6 +395,12 @@ The following attributes are exported:
 A `http_application_routing` block exports the following:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
+
+---
+
+A `load_balancer_profile` block exports the following:
+
+* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
 
 ---
 
