@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * `azurerm_application_gateway` - support for key vault secret in `ssl_certificate` blocks ([#3935](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3935))
+* `azurerm_key_vault` - support for safe delete mode in key vaults
 
 BUG FIXES:
 
