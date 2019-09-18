@@ -28,7 +28,7 @@ matrix:
     - go: tip
   include:
     - name: "make lint"
-      script: GOGC=10 make lint
+      script: GOGC=15 make lint
     - name: "make tflint"
       script: make tflint
     - name: "make test"
