@@ -7,6 +7,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
@@ -20,12 +21,13 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy,
+		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery"),
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName, "testquery"),
+					resource.TestCheckResourceAttr(resourceName, "name", "testquery"),
 					resource.TestCheckResourceAttr(resourceName, "scope", "shared"),
 					resource.TestCheckResourceAttr(resourceName, "type", "query"),
 					resource.TestCheckResourceAttr(resourceName, "content", "requests #test"),
@@ -35,55 +37,78 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMApplicationInsightAnalyticsItemDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsights.AnalyticsItemsClient
-	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+func testCheckAzureRMApplicationInsightAnalyticsItemDestroy(queryName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "azurerm_application_insights_analytics_item" {
+				continue
+			}
+			name := rs.Primary.Attributes["name"]
+			resGroup := rs.Primary.Attributes["resource_group_name"]
 
-	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_application_insights_analytics_item" {
-			continue
+			exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs, queryName)
+			if err != nil {
+				return fmt.Errorf("Error checking if item has been destroyed: %s", err)
+			}
+			if exists {
+				return fmt.Errorf("Bad: Application Insights AnalyticsItem '%q' (resource group: '%q') still exists", name, resGroup)
+			}
 		}
 
-		name := rs.Primary.Attributes["name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
-
-		resp, err := conn.Get(ctx, resGroup, name, insights.AnalyticsItems, "", "testquery")
-
-		if err != nil {
-			return nil
-		}
-
-		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Application Insights AnalyticsItem still exists:\n%#v", resp)
-		}
+		return nil
 	}
-
-	return nil
 }
 
-func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string, queryName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
-
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
-		conn := testAccProvider.Meta().(*ArmClient).appInsights.AnalyticsItemsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := conn.Get(ctx, resGroup, name, insights.AnalyticsItems, "", "testquery")
+		exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs, queryName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on appInsightsAnalyticsItemsClient: %+v", err)
+			return fmt.Errorf("Error checking if item exists: %s", err)
 		}
-
-		if resp.StatusCode == http.StatusNotFound {
+		if !exists {
 			return fmt.Errorf("Bad: Application Insights AnalyticsItem '%q' (resource group: '%q') does not exist", name, resGroup)
 		}
 
 		return nil
 	}
+}
+
+func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState, queryName string) (bool, error) {
+	resGroup := rs.Primary.Attributes["resource_group_name"]
+
+	appInsightsID := rs.Primary.Attributes["application_insights_id"]
+	id, err := azure.ParseAzureResourceID(appInsightsID)
+	if err != nil {
+		return false, fmt.Errorf("Error parsing resource ID: %s", err)
+	}
+
+	appInsightsName := id.Path["components"]
+
+	conn := testAccProvider.Meta().(*ArmClient).appInsights.AnalyticsItemsClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	includeContent := false
+	resp, err := conn.List(ctx, resGroup, appInsightsName, insights.AnalyticsItems, insights.ItemScopeShared, insights.ItemTypeParameterQuery, &includeContent)
+	if resp.StatusCode == http.StatusNotFound {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("Bad: List on appInsightsAnalyticsItemsClient: %+v", err)
+	}
+	for _, item := range *resp.Value {
+		if *item.Name == queryName && item.Scope == insights.ItemScopeShared {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_basic(rInt int, location string) string {
