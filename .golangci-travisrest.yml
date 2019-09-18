@@ -19,7 +19,6 @@ linters:
     - interfacer
     - nakedret
     - misspell
-    - staticcheck
     - structcheck
     - typecheck
     - unused
