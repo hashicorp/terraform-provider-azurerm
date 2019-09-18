@@ -28,7 +28,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` [GH-4166]
 * dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
 * dependencies: updating `github.com/hashicorp/terraform` to `v0.12.8` [GH-4341]
-* compute: updating to API version `2018-10-01` [GH-4274]
+* compute: updating the API Version to `2019-07-01` [GH-4331]
 * network: updating to API version `2019-06-01` [GH-4291]
 * network: reverting the locking changes from #3673 [GH-3673]
 * storage: caching the Resource Group Name / Account Key [GH-4205]
