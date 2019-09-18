@@ -148,7 +148,6 @@ func resourceArmKeyVault() *schema.Resource {
 			"enable_soft_delete": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"network_acls": {
