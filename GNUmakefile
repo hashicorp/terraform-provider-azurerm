@@ -42,11 +42,11 @@ lint:
 
 lintvet:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --no-config --deadline=10m --disable-all --enable=vet --enable=govet
+	golangci-lint run ./... --no-config --deadline=10m10s --disable-all --enable=vet --enable=govet
 
-lintmega:
+lintstatic:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --no-config --deadline=10m --disable-all --enable=staticcheck
+	golangci-lint run ./... --no-config --deadline=10m10s --disable-all --enable=staticcheck
 
 lintrest:
 	@echo "==> Checking source code against linters..."
