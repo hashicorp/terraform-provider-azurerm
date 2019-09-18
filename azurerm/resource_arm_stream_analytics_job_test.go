@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
@@ -37,8 +38,35 @@ func TestAccAzureRMStreamAnalyticsJob_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMStreamAnalyticsJob_complete(t *testing.T) {
+	resourceName := "azurerm_stream_analytics_job.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStreamAnalyticsJobDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMStreamAnalyticsJob_complete(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStreamAnalyticsJobExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Test"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMStreamAnalyticsJob_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -108,7 +136,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsJobsClient
+		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.JobsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name, "")
 		if err != nil {
@@ -124,7 +152,7 @@ func testCheckAzureRMStreamAnalyticsJobExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMStreamAnalyticsJobDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamAnalyticsJobsClient
+	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.JobsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_job" {
@@ -158,8 +186,33 @@ resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
   location                                 = "${azurerm_resource_group.test.location}"
+  streaming_units                          = 3
+
+  tags = {
+    environment = "Test"
+  }  
+  
+  transformation_query = <<QUERY
+    SELECT *
+    INTO [YourOutputAlias]
+    FROM [YourInputAlias]
+QUERY
+}`, rInt, location, rInt)
+}
+
+func testAccAzureRMStreamAnalyticsJob_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_stream_analytics_job" "test" {
+  name                                     = "acctestjob-%d"
+  resource_group_name                      = "${azurerm_resource_group.test.name}"
+  location                                 = "${azurerm_resource_group.test.location}"
+  data_locale							   = "en-GB"
   compatibility_level                      = "1.0"
-  data_locale                              = "en-GB"
   events_late_arrival_max_delay_in_seconds = 60
   events_out_of_order_max_delay_in_seconds = 50
   events_out_of_order_policy               = "Adjust"
@@ -196,6 +249,7 @@ resource "azurerm_stream_analytics_job" "import" {
   output_error_policy                      = "${azurerm_stream_analytics_job.test.output_error_policy}"
   streaming_units                          = "${azurerm_stream_analytics_job.test.streaming_units}"
   transformation_query                     = "${azurerm_stream_analytics_job.test.transformation_query}"
+  tags				                       = "${azurerm_stream_analytics_job.test.tags}"
 }
 `, template)
 }
@@ -211,8 +265,8 @@ resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
   location                                 = "${azurerm_resource_group.test.location}"
+  data_locale							   = "en-GB"
   compatibility_level                      = "1.1"
-  data_locale                              = "en-US"
   events_late_arrival_max_delay_in_seconds = 10
   events_out_of_order_max_delay_in_seconds = 20
   events_out_of_order_policy               = "Drop"

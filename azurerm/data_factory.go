@@ -31,7 +31,7 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
-func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new string, d *schema.ResourceData) bool {
+func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *schema.ResourceData) bool {
 	oldSplit := strings.Split(strings.ToLower(old), ";")
 	newSplit := strings.Split(strings.ToLower(new), ";")
 

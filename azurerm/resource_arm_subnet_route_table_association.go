@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,7 +42,7 @@ func resourceArmSubnetRouteTableAssociation() *schema.Resource {
 }
 
 func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> Route Table Association creation.")
@@ -47,25 +50,25 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	subnetId := d.Get("subnet_id").(string)
 	routeTableId := d.Get("route_table_id").(string)
 
-	parsedSubnetId, err := parseAzureResourceID(subnetId)
+	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err
 	}
 
-	routeTableName, err := parseRouteTableName(routeTableId)
+	parsedRouteTableId, err := networkSvc.ParseRouteTableResourceID(routeTableId)
 	if err != nil {
 		return err
 	}
 
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -77,7 +80,7 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if requireResourcesToBeImported {
+		if features.ShouldResourcesBeImported() {
 			if rt := props.RouteTable; rt != nil {
 				// we're intentionally not checking the ID - if there's a RouteTable, it needs to be imported
 				if rt.ID != nil && subnet.ID != nil {
@@ -111,10 +114,10 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -152,10 +155,10 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -185,19 +188,16 @@ func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta i
 	}
 
 	// once we have the route table id to lock on, lock on that
-	routeTableName, err := parseRouteTableName(*props.RouteTable.ID)
+	parsedRouteTableId, err := networkSvc.ParseRouteTableResourceID(*props.RouteTable.ID)
 	if err != nil {
 		return err
 	}
 
-	azureRMLockByName(routeTableName, routeTableResourceName)
-	defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+	locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+	defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
-
-	azureRMLockByName(subnetName, subnetResourceName)
-	defer azureRMUnlockByName(subnetName, subnetResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

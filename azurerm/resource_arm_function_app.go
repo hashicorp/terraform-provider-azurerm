@@ -10,7 +10,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -71,6 +74,9 @@ func resourceArmFunctionApp() *schema.Resource {
 			"app_settings": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"enable_builtin_logging": {
@@ -110,7 +116,7 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.SQLAzure),
 								string(web.SQLServer),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -126,7 +132,7 @@ func resourceArmFunctionApp() *schema.Resource {
 						"type": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.ManagedServiceIdentityTypeSystemAssigned),
 							}, true),
@@ -143,7 +149,7 @@ func resourceArmFunctionApp() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"default_hostname": {
 				Type:     schema.TypeString,
@@ -199,9 +205,16 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
+						"virtual_network_name": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
 			},
+
+			"auth_settings": azure.SchemaAppServiceAuthSettings(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -226,7 +239,7 @@ func resourceArmFunctionApp() *schema.Resource {
 }
 
 func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
@@ -234,7 +247,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -266,7 +279,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
 	if err != nil {
 		return err
@@ -280,7 +293,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 	siteEnvelope := web.Site{
 		Kind:     &kind,
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
@@ -316,14 +329,25 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 
 	d.SetId(*read.ID)
 
+	authSettingsRaw := d.Get("auth_settings").([]interface{})
+	authSettings := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+
+	auth := web.SiteAuthSettings{
+		ID:                         read.ID,
+		SiteAuthSettingsProperties: &authSettings}
+
+	if _, err := client.UpdateAuthSettings(ctx, resourceGroup, name, auth); err != nil {
+		return fmt.Errorf("Error updating auth settings for Function App %q (resource group %q): %+s", name, resourceGroup, err)
+	}
+
 	return resourceArmFunctionAppUpdate(d, meta)
 }
 
 func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -337,7 +361,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	enabled := d.Get("enabled").(bool)
 	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	appServiceTier, err := getFunctionAppServiceTier(ctx, appServicePlanID, meta)
 
@@ -346,12 +370,13 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 	basicAppSettings := getBasicFunctionAppAppSettings(d, appServiceTier)
 	siteConfig := expandFunctionAppSiteConfig(d)
+
 	siteConfig.AppSettings = &basicAppSettings
 
 	siteEnvelope := web.Site{
 		Kind:     &kind,
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID:          utils.String(appServicePlanID),
 			Enabled:               utils.Bool(enabled),
@@ -396,6 +421,20 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
+	if d.HasChange("auth_settings") {
+		authSettingsRaw := d.Get("auth_settings").([]interface{})
+		authSettingsProperties := azure.ExpandAppServiceAuthSettings(authSettingsRaw)
+		id := d.Id()
+		authSettings := web.SiteAuthSettings{
+			ID:                         &id,
+			SiteAuthSettingsProperties: &authSettingsProperties,
+		}
+
+		if _, err := client.UpdateAuthSettings(ctx, resGroup, name, authSettings); err != nil {
+			return fmt.Errorf("Error updating Authentication Settings for Function App %q: %+v", name, err)
+		}
+	}
+
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
 		connectionStrings := expandFunctionAppConnectionStrings(d)
@@ -412,10 +451,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -456,9 +495,13 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 	if err != nil {
 		return err
 	}
-	siteCredResp, err := siteCredFuture.Result(client)
+	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
+	}
+	authResp, err := client.GetAuthSettings(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the AuthSettings for Function App %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", name)
@@ -514,20 +557,23 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
+	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
+	if err := d.Set("auth_settings", authSettings); err != nil {
+		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+	}
+
 	siteCred := flattenFunctionAppSiteCredential(siteCredResp.UserProperties)
 	if err = d.Set("site_credential", siteCred); err != nil {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -587,14 +633,14 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := parseAzureResourceID(appServicePlanId)
+	id, err := azure.ParseAzureResourceID(appServicePlanId)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
 	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
 
-	appServicePlansClient := meta.(*ArmClient).appServicePlansClient
+	appServicePlansClient := meta.(*ArmClient).web.AppServicePlansClient
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
@@ -645,6 +691,16 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["cors"]; ok {
+		corsSettings := v.(interface{})
+		expand := azure.ExpandWebCorsSettings(corsSettings)
+		siteConfig.Cors = &expand
+	}
+
+	if v, ok := config["virtual_network_name"]; ok {
+		siteConfig.VnetName = utils.String(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -672,6 +728,12 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.LinuxFxVersion != nil {
 		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
+
+	if input.VnetName != nil {
+		result["virtual_network_name"] = *input.VnetName
+	}
+
+	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
 	results = append(results, result)
 	return results

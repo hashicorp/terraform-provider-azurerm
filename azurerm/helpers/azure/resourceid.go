@@ -81,8 +81,6 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 		if resourceGroup, ok := componentMap["resourcegroups"]; ok {
 			idObj.ResourceGroup = resourceGroup
 			delete(componentMap, "resourcegroups")
-		} else {
-			return nil, fmt.Errorf("No resource group name found in: %q", path)
 		}
 	}
 

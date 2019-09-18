@@ -29,7 +29,6 @@ resource "azurerm_mysql_server" "test" {
     capacity = 2
     tier     = "Basic"
     family   = "Gen5"
-    capacity = "2"
   }
 
   storage_profile {
@@ -90,6 +89,8 @@ The following arguments are supported:
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
 * `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
+
+* `auto_grow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
 
 ## Attributes Reference
 

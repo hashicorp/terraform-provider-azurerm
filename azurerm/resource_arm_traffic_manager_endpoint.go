@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,7 +72,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 					string(trafficmanager.EndpointStatusDisabled),
 					string(trafficmanager.EndpointStatusEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"weight": {
@@ -110,12 +113,57 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"custom_header": {
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+						"value": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
+					},
+				},
+			},
+
+			"subnet": {
+				Type:     schema.TypeList,
+				ForceNew: true,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"first": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.IPv4Address,
+						},
+						"last": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.IPv4Address,
+						},
+						"scope": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 32),
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
 func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
@@ -126,7 +174,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -163,9 +211,9 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -207,15 +255,59 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 		d.Set("endpoint_monitor_status", props.EndpointMonitorStatus)
 		d.Set("min_child_endpoints", props.MinChildEndpoints)
 		d.Set("geo_mappings", props.GeoMapping)
+		if err := d.Set("subnet", flattenAzureRMTrafficManagerEndpointSubnetConfig(props.Subnets)); err != nil {
+			return fmt.Errorf("Error setting `subnet`: %s", err)
+		}
+		if err := d.Set("custom_header", flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(props.CustomHeaders)); err != nil {
+			return fmt.Errorf("Error setting `custom_header`: %s", err)
+		}
 	}
-
 	return nil
 }
 
-func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+func flattenAzureRMTrafficManagerEndpointSubnetConfig(input *[]trafficmanager.EndpointPropertiesSubnetsItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, subnet := range *input {
+		flatSubnet := make(map[string]interface{}, 3)
+		if subnet.First != nil {
+			flatSubnet["first"] = *subnet.First
+		}
+		if subnet.Last != nil {
+			flatSubnet["last"] = *subnet.Last
+		}
+		if subnet.Scope != nil {
+			flatSubnet["scope"] = int(*subnet.Scope)
+		}
+		result = append(result, flatSubnet)
+	}
+	return result
+}
 
-	id, err := parseAzureResourceID(d.Id())
+func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmanager.EndpointPropertiesCustomHeadersItem) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+	for _, header := range *input {
+		flatHeader := make(map[string]interface{}, 2)
+		if header.Name != nil {
+			flatHeader["name"] = *header.Name
+		}
+		if header.Value != nil {
+			flatHeader["value"] = *header.Value
+		}
+		result = append(result, flatHeader)
+	}
+	return result
+}
+
+func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
+
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -279,6 +371,37 @@ func getArmTrafficManagerEndpointProperties(d *schema.ResourceData) *trafficmana
 	if minChildEndpoints := d.Get("min_child_endpoints").(int); minChildEndpoints != 0 {
 		mci64 := int64(minChildEndpoints)
 		endpointProps.MinChildEndpoints = &mci64
+	}
+
+	subnetSlice := make([]trafficmanager.EndpointPropertiesSubnetsItem, 0)
+	for _, subnet := range d.Get("subnet").([]interface{}) {
+		subnetBlock := subnet.(map[string]interface{})
+		if subnetBlock["scope"].(int) == 0 && subnetBlock["first"].(string) != "0.0.0.0" {
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Last:  utils.String(subnetBlock["last"].(string)),
+			})
+		} else {
+			subnetSlice = append(subnetSlice, trafficmanager.EndpointPropertiesSubnetsItem{
+				First: utils.String(subnetBlock["first"].(string)),
+				Scope: utils.Int32(int32(subnetBlock["scope"].(int))),
+			})
+		}
+	}
+	if len(subnetSlice) > 0 {
+		endpointProps.Subnets = &subnetSlice
+	}
+
+	headerSlice := make([]trafficmanager.EndpointPropertiesCustomHeadersItem, 0)
+	for _, header := range d.Get("custom_header").([]interface{}) {
+		headerBlock := header.(map[string]interface{})
+		headerSlice = append(headerSlice, trafficmanager.EndpointPropertiesCustomHeadersItem{
+			Name:  utils.String(headerBlock["name"].(string)),
+			Value: utils.String(headerBlock["value"].(string)),
+		})
+	}
+	if len(headerSlice) > 0 {
+		endpointProps.CustomHeaders = &headerSlice
 	}
 
 	return &endpointProps

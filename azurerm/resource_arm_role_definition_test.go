@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMRoleDefinition_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRoleDefinition_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -125,6 +126,40 @@ func TestAccAzureRMRoleDefinition_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRoleDefinition_updateEmptyId(t *testing.T) {
+	resourceName := "azurerm_role_definition.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRoleDefinitionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRoleDefinition_emptyId(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleDefinitionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.0", "*"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.not_actions.#", "0"),
+				),
+			},
+			{
+				Config: testAccAzureRMRoleDefinition_updateEmptyId(ri),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRoleDefinitionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "permissions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.actions.0", "*"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.not_actions.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "permissions.0.not_actions.0", "Microsoft.Authorization/*/read"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRoleDefinition_emptyName(t *testing.T) {
 	resourceName := "azurerm_role_definition.test"
 	ri := tf.AccRandTimeInt()
@@ -156,7 +191,7 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).roleDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).authorization.RoleDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
@@ -180,7 +215,7 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).roleDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).authorization.RoleDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
@@ -295,6 +330,26 @@ resource "azurerm_role_definition" "test" {
   permissions {
     actions     = ["*"]
     not_actions = []
+  }
+
+  assignable_scopes = [
+    "${data.azurerm_subscription.primary.id}",
+  ]
+}
+`, rInt)
+}
+
+func testAccAzureRMRoleDefinition_updateEmptyId(rInt int) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "primary" {}
+
+resource "azurerm_role_definition" "test" {
+  name  = "acctestrd-%d"
+  scope = "${data.azurerm_subscription.primary.id}"
+
+  permissions {
+    actions     = ["*"]
+    not_actions = ["Microsoft.Authorization/*/read"]
   }
 
   assignable_scopes = [

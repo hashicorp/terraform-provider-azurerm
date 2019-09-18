@@ -9,7 +9,9 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -61,7 +63,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 					string(servicebus.FilterTypeSQLFilter),
 					string(servicebus.FilterTypeCorrelationFilter),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"action": {
@@ -121,7 +123,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 }
 
 func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
 
@@ -132,7 +134,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 	resourceGroup := d.Get("resource_group_name").(string)
 	filterType := d.Get("filter_type").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -191,10 +193,10 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -240,10 +242,10 @@ func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

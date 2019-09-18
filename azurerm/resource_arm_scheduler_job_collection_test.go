@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMSchedulerJobCollection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSchedulerJobCollection_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -97,7 +98,7 @@ func testCheckAzureRMSchedulerJobCollectionDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).scheduler.JobCollectionsClient
+		client := testAccProvider.Meta().(*ArmClient).Scheduler.JobCollectionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -130,7 +131,7 @@ func testCheckAzureRMSchedulerJobCollectionExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Scheduler Job Collection: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).scheduler.JobCollectionsClient
+		client := testAccProvider.Meta().(*ArmClient).Scheduler.JobCollectionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 

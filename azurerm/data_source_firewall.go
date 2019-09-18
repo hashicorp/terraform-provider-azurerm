@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,13 +56,13 @@ func dataSourceArmFirewall() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
+	client := meta.(*ArmClient).network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -93,7 +94,5 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }

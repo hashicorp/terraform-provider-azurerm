@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMSignalRService_basic(t *testing.T) {
@@ -44,7 +45,7 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -398,7 +399,7 @@ resource "azurerm_signalr_service" "test" {
 }
 
 func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).signalr.Client
+	conn := testAccProvider.Meta().(*ArmClient).SignalR.Client
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_signalr_service" {
@@ -433,7 +434,7 @@ func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).signalr.Client
+		conn := testAccProvider.Meta().(*ArmClient).SignalR.Client
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

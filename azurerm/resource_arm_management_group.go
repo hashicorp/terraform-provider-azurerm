@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,7 +73,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	recurse := false
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -282,7 +283,7 @@ func flattenArmManagementGroupSubscriptionIds(input *[]managementgroups.ChildInf
 
 		id, err := parseManagementGroupSubscriptionID(*child.ID)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse child subscription ID %+v", err)
+			return nil, fmt.Errorf("Unable to parse child Subscription ID %+v", err)
 		}
 
 		if id != nil {

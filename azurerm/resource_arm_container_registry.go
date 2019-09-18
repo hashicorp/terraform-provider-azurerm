@@ -7,13 +7,16 @@ import (
 
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2017-10-01/containerregistry"
+	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,7 +48,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          string(containerregistry.Classic),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerregistry.Classic),
 					string(containerregistry.Basic),
@@ -113,7 +116,72 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"network_rule_set": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				MaxItems:   1,
+				ConfigMode: schema.SchemaConfigModeAttr, // make sure we can set this to an empty array for Premium -> Basic
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"default_action": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  containerregistry.DefaultActionAllow,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerregistry.DefaultActionAllow),
+								string(containerregistry.DefaultActionDeny),
+							}, false),
+						},
+
+						"ip_rule": {
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Allow),
+										}, false),
+									},
+									"ip_range": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.CIDR,
+									},
+								},
+							},
+						},
+
+						"virtual_network": {
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Allow),
+										}, false),
+									},
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
@@ -137,7 +205,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -153,8 +221,13 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
+
+	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
+	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+	}
 
 	parameters := containerregistry.Registry{
 		Location: &location,
@@ -164,8 +237,10 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		},
 		RegistryProperties: &containerregistry.RegistryProperties{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
+			NetworkRuleSet:   networkRuleSet,
 		},
-		Tags: expandTags(tags),
+
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
@@ -225,22 +300,28 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	old, new := d.GetChange("georeplication_locations")
 	hasGeoReplicationChanges := d.HasChange("georeplication_locations")
 	oldGeoReplicationLocations := old.(*schema.Set)
 	newGeoReplicationLocations := new.(*schema.Set)
 
+	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
+	if networkRuleSet != nil && !strings.EqualFold(sku, string(containerregistry.Premium)) {
+		return fmt.Errorf("`network_rule_set_set` can only be specified for a Premium Sku. If you are reverting from a Premium to Basic SKU plese set network_rule_set = []")
+	}
+
 	parameters := containerregistry.RegistryUpdateParameters{
 		RegistryPropertiesUpdateParameters: &containerregistry.RegistryPropertiesUpdateParameters{
 			AdminUserEnabled: utils.Bool(adminUserEnabled),
+			NetworkRuleSet:   networkRuleSet,
 		},
 		Sku: &containerregistry.Sku{
 			Name: containerregistry.SkuName(sku),
 			Tier: containerregistry.SkuTier(sku),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
@@ -374,7 +455,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -402,6 +483,11 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("admin_enabled", resp.AdminUserEnabled)
 	d.Set("login_server", resp.LoginServer)
 
+	networkRuleSet := flattenNetworkRuleSet(resp.NetworkRuleSet)
+	if err := d.Set("network_rule_set", networkRuleSet); err != nil {
+		return fmt.Errorf("Error setting `network_rule_set`: %+v", err)
+	}
+
 	if sku := resp.Sku; sku != nil {
 		d.Set("sku", string(sku.Tier))
 	}
@@ -426,8 +512,6 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("admin_password", "")
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	replications, err := replicationClient.List(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications: %s", name, err)
@@ -451,14 +535,14 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("georeplication_locations", georeplication_locations)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -499,4 +583,83 @@ func validateAzureRMContainerRegistryName(v interface{}, k string) (warnings []s
 	}
 
 	return warnings, errors
+}
+
+func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRuleSet {
+	if len(profiles) == 0 {
+		return nil
+	}
+
+	profile := profiles[0].(map[string]interface{})
+
+	ipRuleConfigs := profile["ip_rule"].(*schema.Set).List()
+	ipRules := make([]containerregistry.IPRule, 0)
+	for _, ipRuleInterface := range ipRuleConfigs {
+		config := ipRuleInterface.(map[string]interface{})
+		newIpRule := containerregistry.IPRule{
+			Action:           containerregistry.Action(config["action"].(string)),
+			IPAddressOrRange: utils.String(config["ip_range"].(string)),
+		}
+		ipRules = append(ipRules, newIpRule)
+	}
+
+	networkRuleConfigs := profile["virtual_network"].(*schema.Set).List()
+	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
+	for _, networkRuleInterface := range networkRuleConfigs {
+		config := networkRuleInterface.(map[string]interface{})
+		newVirtualNetworkRule := containerregistry.VirtualNetworkRule{
+			Action:                   containerregistry.Action(config["action"].(string)),
+			VirtualNetworkResourceID: utils.String(config["subnet_id"].(string)),
+		}
+		virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
+	}
+
+	networkRuleSet := containerregistry.NetworkRuleSet{
+		DefaultAction:       containerregistry.DefaultAction(profile["default_action"].(string)),
+		IPRules:             &ipRules,
+		VirtualNetworkRules: &virtualNetworkRules,
+	}
+	return &networkRuleSet
+}
+
+func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []interface{} {
+	if networkRuleSet == nil {
+		return []interface{}{}
+	}
+
+	values := make(map[string]interface{})
+
+	values["default_action"] = string(networkRuleSet.DefaultAction)
+
+	ipRules := make([]interface{}, 0)
+	for _, ipRule := range *networkRuleSet.IPRules {
+		value := make(map[string]interface{})
+		value["action"] = string(ipRule.Action)
+
+		//When a /32 CIDR is passed as an ip rule, Azure will drop the /32 leading to the resource wanting to be re-created next run
+		if !strings.Contains(*ipRule.IPAddressOrRange, "/") {
+			*ipRule.IPAddressOrRange += "/32"
+		}
+
+		value["ip_range"] = ipRule.IPAddressOrRange
+		ipRules = append(ipRules, value)
+	}
+
+	values["ip_rule"] = ipRules
+
+	virtualNetworkRules := make([]interface{}, 0)
+
+	if networkRuleSet.VirtualNetworkRules != nil {
+		for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
+			value := make(map[string]interface{})
+			value["action"] = string(virtualNetworkRule.Action)
+
+			value["subnet_id"] = virtualNetworkRule.VirtualNetworkResourceID
+			virtualNetworkRules = append(virtualNetworkRules, value)
+		}
+	}
+
+	values["virtual_network"] = virtualNetworkRules
+
+	return []interface{}{values}
 }

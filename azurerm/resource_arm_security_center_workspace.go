@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -46,13 +47,13 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 }
 
 func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	priceClient := meta.(*ArmClient).securityCenter.PricingClient
-	client := meta.(*ArmClient).securityCenter.WorkspaceClient
+	priceClient := meta.(*ArmClient).SecurityCenter.PricingClient
+	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterWorkspaceName
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -132,7 +133,7 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenter.WorkspaceClient
+	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, securityCenterWorkspaceName)
@@ -155,7 +156,7 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmSecurityCenterWorkspaceDelete(_ *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenter.WorkspaceClient
+	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Delete(ctx, securityCenterWorkspaceName)

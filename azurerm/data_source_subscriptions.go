@@ -34,7 +34,7 @@ func dataSourceArmSubscriptions() *schema.Resource {
 
 func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	subClient := armClient.subscriptionsClient
+	subClient := armClient.Subscription.Client
 	ctx := armClient.StopContext
 
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
@@ -55,6 +55,9 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 
 		if v := val.SubscriptionID; v != nil {
 			s["subscription_id"] = *v
+		}
+		if v := val.TenantID; v != nil {
+			s["tenant_id"] = *v
 		}
 		if v := val.DisplayName; v != nil {
 			s["display_name"] = *v

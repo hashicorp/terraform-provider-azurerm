@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_analytics_firewall_rule"
 sidebar_current: "docs-azurerm-resource-data-lake-analytics-firewall-rule"
 description: |-
-  Manage a Azure Data Lake Analytics Firewall Rule.
+  Manages a Azure Data Lake Analytics Firewall Rule.
 ---
 
 # azurerm_data_lake_analytics_firewall_rule
 
-Manage a Azure Data Lake Analytics Firewall Rule.
+Manages a Azure Data Lake Analytics Firewall Rule.
 
 ## Example Usage
 

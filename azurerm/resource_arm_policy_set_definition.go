@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/go-autorest/autorest"
 
@@ -119,7 +120,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := getPolicySetDefinition(ctx, client, name, managementGroupID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -320,7 +321,7 @@ func parseManagementGroupIdFromPolicySetId(id string) string {
 	return ""
 }
 
-func policySetDefinitionRefreshFunc(ctx context.Context, client policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {
+func policySetDefinitionRefreshFunc(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupId string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicySetDefinition(ctx, client, name, managementGroupId)
 		if err != nil {
@@ -331,7 +332,7 @@ func policySetDefinitionRefreshFunc(ctx context.Context, client policy.SetDefini
 	}
 }
 
-func getPolicySetDefinition(ctx context.Context, client policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
+func getPolicySetDefinition(ctx context.Context, client *policy.SetDefinitionsClient, name string, managementGroupID string) (res policy.SetDefinition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 	} else {

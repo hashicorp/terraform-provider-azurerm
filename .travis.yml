@@ -4,11 +4,15 @@ services:
 - docker
 language: go
 go:
-- "1.12.x"
+- "1.13.x"
 
 branches:
   only:
     - master
+
+env:
+  global:
+    GOFLAGS=-mod=vendor
 
 install:
   # This script is used by the Travis build to install a cookie for
@@ -23,8 +27,10 @@ matrix:
   allow_failures:
     - go: tip
   include:
-    - name: "make lint"
-      script: GOGC=30 make lint
+    - name: "make lintrest"
+      script: GOGC=20 make lintrest
+    - name: "make tflint"
+      script: make tflint
     - name: "make test"
       script: make test
     - name: "make website-lint"

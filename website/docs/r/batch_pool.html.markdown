@@ -77,6 +77,13 @@ EOF
 
   container_configuration {
     type = "DockerCompatible"
+    container_registries = [
+      {
+        registry_server = "docker.io"
+        user_name       = "login"
+        password        = "apassword"
+      },
+    ]
   }
 
   start_task {
@@ -139,6 +146,24 @@ The following arguments are supported:
 
 ~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
+---
+A `storage_image_reference` block supports the following:
+
+This block provisions virtual machines in the Batch Pool from one of two sources: an Azure Platform Image (e.g. Ubuntu/Windows Server) or a Custom Image.
+
+To provision from an Azure Platform Image, the following fields are applicable:
+
+* `publisher` - (Required) Specifies the publisher of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `offer` - (Required) Specifies the offer of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `sku` - (Required) Specifies the SKU of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+* `version` - (Optional) Specifies the version of the image used to create the virtual machines. Changing this forces a new resource to be created.
+
+To provision a Custom Image, the following fields are applicable:
+
+* `id` - (Required) Specifies the ID of the Custom Image which the virtual machines should be created from. Changing this forces a new resource to be created. See [official documentation](https://docs.microsoft.com/en-us/azure/batch/batch-custom-images) for more details.
 ---
 
 A `fixed_scale` block supports the following:
@@ -211,6 +236,8 @@ A `container_configuration` block supports the following:
 
 * `type` - (Optional) The type of container configuration. Possible value is `DockerCompatible`.
 
+* `container_registries` - (Optional) Additional container registries from which container images can be pulled by the pool's VMs.
+
 ---
 
 A `resource_file` block supports the following:
@@ -228,6 +255,16 @@ A `resource_file` block supports the following:
 * `storage_container_url` - (Optional) The URL of the blob container within Azure Blob Storage. This URL must be readable and listable using anonymous access; that is, the Batch service does not present any credentials when downloading the blob. There are two ways to get such a URL for a blob in Azure storage: include a Shared Access Signature (SAS) granting read and list permissions on the blob, or set the ACL for the blob or its container to allow public access.
 
 ~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
+
+---
+
+A `container_registries` block supports the following:
+
+* `registry_server` - (Optional) The container registry URL. The default is "docker.io". Changing this forces a new resource to be created.
+
+* `user_name` - (Optional) The user name to log into the registry server. Changing this forces a new resource to be created.
+
+* `password` - (Optional) The password to log into the registry server. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

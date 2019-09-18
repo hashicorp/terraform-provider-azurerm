@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -86,7 +87,7 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 	subscriptionsLimit := d.Get("subscriptions_limit").(int)
 	published := d.Get("published").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, productId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -118,6 +119,8 @@ func resourceArmApiManagementProductCreateUpdate(d *schema.ResourceData, meta in
 	if subscriptionRequired && subscriptionsLimit > 0 {
 		properties.ProductContractProperties.ApprovalRequired = utils.Bool(approvalRequired)
 		properties.ProductContractProperties.SubscriptionsLimit = utils.Int32(int32(subscriptionsLimit))
+	} else if approvalRequired {
+		return fmt.Errorf("`subscription_required` must be true and `subscriptions_limit` must be greater than 0 to use `approval_required`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, productId, properties, ""); err != nil {
@@ -142,7 +145,7 @@ func resourceArmApiManagementProductRead(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +186,7 @@ func resourceArmApiManagementProductDelete(d *schema.ResourceData, meta interfac
 	client := meta.(*ArmClient).apiManagement.ProductsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

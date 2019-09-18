@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +41,7 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 	apiName := d.Get("api_name").(string)
 	productId := d.Get("product_id").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -70,7 +71,7 @@ func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).apiManagement.ProductApisClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -102,7 +103,7 @@ func resourceArmApiManagementProductApiDelete(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).apiManagement.ProductApisClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

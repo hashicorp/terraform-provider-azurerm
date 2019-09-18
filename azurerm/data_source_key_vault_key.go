@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -73,14 +74,14 @@ func dataSourceArmKeyVaultKey() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
+	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	keyVaultBaseUri := d.Get("vault_uri").(string)
@@ -140,9 +141,7 @@ func dataSourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("version", parsedId.Version)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenKeyVaultKeyDataSourceOptions(input *[]string) []interface{} {

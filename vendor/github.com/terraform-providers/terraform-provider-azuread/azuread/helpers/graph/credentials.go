@@ -8,8 +8,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/p"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
@@ -88,7 +90,7 @@ func ParsePasswordCredentialId(id string) (PasswordCredentialId, error) {
 	}
 
 	if _, err := uuid.ParseUUID(parts[1]); err != nil {
-		return PasswordCredentialId{}, fmt.Errorf("Object ID isn't a valid UUID (%q): %+v", id[1], err)
+		return PasswordCredentialId{}, fmt.Errorf("Credential ID isn't a valid UUID (%q): %+v", id[1], err)
 	}
 
 	return PasswordCredentialId{
@@ -209,4 +211,30 @@ func PasswordCredentialResultRemoveByKeyId(existing graphrbac.PasswordCredential
 	}
 
 	return &newCreds
+}
+
+func WaitForPasswordCredentialReplication(keyId string, f func() (graphrbac.PasswordCredentialListResult, error)) (interface{}, error) {
+	return (&resource.StateChangeConf{
+		Pending:                   []string{"404", "BadCast", "NotFound"},
+		Target:                    []string{"Found"},
+		Timeout:                   5 * time.Minute,
+		MinTimeout:                1 * time.Second,
+		ContinuousTargetOccurence: 10,
+		Refresh: func() (interface{}, string, error) {
+			creds, err := f()
+			if err != nil {
+				if ar.ResponseWasNotFound(creds.Response) {
+					return creds, "404", nil
+				}
+				return creds, "Error", fmt.Errorf("Error calling f, response was not 404 (%d): %v", creds.Response.StatusCode, err)
+			}
+
+			credential := PasswordCredentialResultFindByKeyId(creds, keyId)
+			if credential == nil {
+				return creds, "NotFound", nil
+			}
+
+			return creds, "Found", nil
+		},
+	}).WaitForState()
 }

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_eventhub_namespace
 
-Manage an EventHub Namespace.
+Manages an EventHub Namespace.
 
 ## Example Usage
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from 1 - 20.
 
-* `kafka_enabled` - (Optional) Is Kafka enabled for the EventHub Namespace? Defaults to `false`.
+* `kafka_enabled` - (Optional) Is Kafka enabled for the EventHub Namespace? Defaults to `false`. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

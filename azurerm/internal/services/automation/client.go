@@ -2,54 +2,64 @@ package automation
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/Azure/go-autorest/autorest"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/ar"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
-	AccountClient               automation.AccountClient
-	AgentRegistrationInfoClient automation.AgentRegistrationInformationClient
-	CredentialClient            automation.CredentialClient
-	DscConfigurationClient      automation.DscConfigurationClient
-	DscNodeConfigurationClient  automation.DscNodeConfigurationClient
-	ModuleClient                automation.ModuleClient
-	RunbookClient               automation.RunbookClient
-	RunbookDraftClient          automation.RunbookDraftClient
-	ScheduleClient              automation.ScheduleClient
-	VariableClient              automation.VariableClient
+	AccountClient               *automation.AccountClient
+	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
+	CredentialClient            *automation.CredentialClient
+	DscConfigurationClient      *automation.DscConfigurationClient
+	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
+	ModuleClient                *automation.ModuleClient
+	RunbookClient               *automation.RunbookClient
+	RunbookDraftClient          *automation.RunbookDraftClient
+	ScheduleClient              *automation.ScheduleClient
+	VariableClient              *automation.VariableClient
 }
 
-func BuildClient(endpoint, subscriptionId, partnerId string, auth autorest.Authorizer, skipProviderReg bool) *Client {
-	c := Client{}
-	c.AccountClient = automation.NewAccountClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.AccountClient.Client, auth, partnerId, skipProviderReg)
+func BuildClient(o *common.ClientOptions) *Client {
 
-	c.AgentRegistrationInfoClient = automation.NewAgentRegistrationInformationClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.AgentRegistrationInfoClient.Client, auth, partnerId, skipProviderReg)
+	AccountClient := automation.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AccountClient.Client, o.ResourceManagerAuthorizer)
 
-	c.CredentialClient = automation.NewCredentialClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.CredentialClient.Client, auth, partnerId, skipProviderReg)
+	AgentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AgentRegistrationInfoClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DscConfigurationClient = automation.NewDscConfigurationClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.DscConfigurationClient.Client, auth, partnerId, skipProviderReg)
+	CredentialClient := automation.NewCredentialClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CredentialClient.Client, o.ResourceManagerAuthorizer)
 
-	c.DscNodeConfigurationClient = automation.NewDscNodeConfigurationClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.DscNodeConfigurationClient.Client, auth, partnerId, skipProviderReg)
+	DscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DscConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ModuleClient = automation.NewModuleClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ModuleClient.Client, auth, partnerId, skipProviderReg)
+	DscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DscNodeConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
-	c.RunbookClient = automation.NewRunbookClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.RunbookClient.Client, auth, partnerId, skipProviderReg)
+	ModuleClient := automation.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ModuleClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ScheduleClient = automation.NewScheduleClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.ScheduleClient.Client, auth, partnerId, skipProviderReg)
+	RunbookClient := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RunbookClient.Client, o.ResourceManagerAuthorizer)
 
-	c.RunbookDraftClient = automation.NewRunbookDraftClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.RunbookDraftClient.Client, auth, partnerId, skipProviderReg)
+	ScheduleClient := automation.NewScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ScheduleClient.Client, o.ResourceManagerAuthorizer)
 
-	c.VariableClient = automation.NewVariableClientWithBaseURI(endpoint, subscriptionId)
-	ar.ConfigureClient(&c.VariableClient.Client, auth, partnerId, skipProviderReg)
+	RunbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RunbookDraftClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	VariableClient := automation.NewVariableClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VariableClient.Client, o.ResourceManagerAuthorizer)
+
+	return &Client{
+		AccountClient:               &AccountClient,
+		AgentRegistrationInfoClient: &AgentRegistrationInfoClient,
+		CredentialClient:            &CredentialClient,
+		DscConfigurationClient:      &DscConfigurationClient,
+		DscNodeConfigurationClient:  &DscNodeConfigurationClient,
+		ModuleClient:                &ModuleClient,
+		RunbookClient:               &RunbookClient,
+		RunbookDraftClient:          &RunbookDraftClient,
+		ScheduleClient:              &ScheduleClient,
+		VariableClient:              &VariableClient,
+	}
 }

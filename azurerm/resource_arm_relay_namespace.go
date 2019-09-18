@@ -8,6 +8,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"time"
 
@@ -101,7 +103,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -139,10 +141,10 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -188,7 +190,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,7 +219,7 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error setting 'sku': %+v", err)
 		}
 
-		if err := d.Set("sku_name", *sku.Name); err != nil {
+		if err := d.Set("sku_name", sku.Name); err != nil {
 			return fmt.Errorf("Error setting 'sku_name': %+v", err)
 		}
 	} else {
@@ -238,16 +240,14 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("secondary_connection_string", keysResp.SecondaryConnectionString)
 	d.Set("secondary_key", keysResp.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).relay.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -279,7 +279,7 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func relayNamespaceDeleteRefreshFunc(ctx context.Context, client relay.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+func relayNamespaceDeleteRefreshFunc(ctx context.Context, client *relay.NamespacesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, name)
 		if err != nil {
