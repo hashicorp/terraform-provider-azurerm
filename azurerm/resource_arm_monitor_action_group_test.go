@@ -131,9 +131,6 @@ func TestAccAzureRMMonitorActionGroup_itsmReceiver(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "email_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.workspace_id", "6eee3a18-aac3-40e4-b98e-1f309f329816"),
-					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.connection_id", "53de6956-42b4-41ba-be3c-b154cdf17b13"),
-					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.ticket_configuration", "{}"),
-					resource.TestCheckResourceAttr(resourceName, "itsm_receiver.0.region", "eastus"),
 					resource.TestCheckResourceAttr(resourceName, "azure_app_push_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
@@ -269,7 +266,6 @@ func TestAccAzureRMMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
 	aaName := fmt.Sprintf("acctestAA-%d", ri)
 	webhookName := "webhook_alert"
 	resGroup := fmt.Sprintf("acctestRG-%d", ri)
-	aaResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName)
 	aaWebhookResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s/webhooks/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName, webhookName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -288,11 +284,7 @@ func TestAccAzureRMMonitorActionGroup_automationRunbookReceiver(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.automation_account_id", aaResourceID),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.runbook_name", webhookName),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.webhook_resource_id", aaWebhookResourceID),
-					resource.TestCheckResourceAttrSet(resourceName, "automation_runbook_receiver.is_global_runbook"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.service_uri", "https://s13events.azure-automation.net/webhooks?token=randomtoken"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.#", "0"),
@@ -372,7 +364,6 @@ func TestAccAzureRMMonitorActionGroup_logicAppReceiver(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.resource_id", laResourceID),
-					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.callback_url", "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.#", "0"),
 				),
 			},
@@ -414,8 +405,6 @@ func TestAccAzureRMMonitorActionGroup_azureFunctionReceiver(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_app_resource_id", faResourceID),
-					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_name", "myfunc"),
-					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.http_trigger_url", "https://example.com/trigger"),
 				),
 			},
 			{
@@ -437,7 +426,6 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 	laName := fmt.Sprintf("acctestLA-%d", ri)
 	webhookName := "webhook_alert"
 	resGroup := fmt.Sprintf("acctestRG-%d", ri)
-	aaResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName)
 	aaWebhookResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s/webhooks/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName, webhookName)
 	faResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, faName)
 	laResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/workflows/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, laName)
@@ -471,21 +459,14 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.automation_account_id", aaResourceID),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.runbook_name", webhookName),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.webhook_resource_id", aaWebhookResourceID),
-					resource.TestCheckResourceAttrSet(resourceName, "automation_runbook_receiver.is_global_runbook"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.service_uri", "https://s13events.azure-automation.net/webhooks?token=randomtoken"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.0.country_code", "1"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.0.phone_number", "1231231234"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.resource_id", laResourceID),
-					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.callback_url", "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_app_resource_id", faResourceID),
-					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_name", "myfunc"),
-					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.http_trigger_url", "https://example.com/trigger"),
 				),
 			},
 			{
@@ -547,6 +528,16 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 	voiceConfig := testAccAzureRMMonitorActionGroup_voiceReceiver(ri, location)
 	logicAppConfig := testAccAzureRMMonitorActionGroup_logicAppReceiver(ri, location)
 	azureFunctionConfig := testAccAzureRMMonitorActionGroup_azureFunctionReceiver(ri, location)
+
+	aaName := fmt.Sprintf("acctestAA-%d", ri)
+	faName := fmt.Sprintf("acctestFA-%d", ri)
+	laName := fmt.Sprintf("acctestLA-%d", ri)
+	webhookName := "webhook_alert"
+	resGroup := fmt.Sprintf("acctestRG-%d", ri)
+	aaResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName)
+	aaWebhookResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s/webhooks/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName, webhookName)
+	faResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, faName)
+	laResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/workflows/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, laName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -653,9 +644,9 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.automation_account_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.runbook_name", "my runbook"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.webhook_resource_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"),
+					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.automation_account_id", aaResourceID),
+					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.runbook_name", webhookName),
+					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.webhook_resource_id", aaWebhookResourceID),
 					resource.TestCheckResourceAttrSet(resourceName, "automation_runbook_receiver.is_global_runbook"),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.service_uri", "https://s13events.azure-automation.net/webhooks?token=randomtoken"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "0"),
@@ -693,7 +684,7 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.resource_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"),
+					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.resource_id", laResourceID),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.callback_url", "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.#", "0"),
 				),
@@ -712,7 +703,7 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_app_resource_id", "1"),
+					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_app_resource_id", faResourceID),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_name", "myfunc"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.http_trigger_url", "https://example.com/trigger"),
 				),
@@ -727,6 +718,16 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 	location := testLocation()
 	basicConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
 	completeConfig := testAccAzureRMMonitorActionGroup_complete(ri, location)
+
+	aaName := fmt.Sprintf("acctestAA-%d", ri)
+	faName := fmt.Sprintf("acctestFA-%d", ri)
+	laName := fmt.Sprintf("acctestLA-%d", ri)
+	webhookName := "webhook_alert"
+	resGroup := fmt.Sprintf("acctestRG-%d", ri)
+	aaResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName)
+	aaWebhookResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Automation/AutomationAccounts/%s/webhooks/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, aaName, webhookName)
+	faResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Web/sites/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, faName)
+	laResourceID := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Logic/workflows/%s", os.Getenv("ARM_SUBSCRIPTION_ID"), resGroup, laName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -771,9 +772,9 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.automation_account_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.runbook_name", "my runbook"),
-					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.webhook_resource_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"),
+					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.automation_account_id", aaResourceID),
+					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.runbook_name", webhookName),
+					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.webhook_resource_id", aaWebhookResourceID),
 					resource.TestCheckResourceAttrSet(resourceName, "automation_runbook_receiver.is_global_runbook"),
 					resource.TestCheckResourceAttr(resourceName, "automation_runbook_receiver.service_uri", "https://s13events.azure-automation.net/webhooks?token=randomtoken"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.#", "2"),
@@ -782,10 +783,10 @@ func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.1.country_code", "86"),
 					resource.TestCheckResourceAttr(resourceName, "voice_receiver.1.phone_number", "13888888888"),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.resource_id", "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"),
+					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.resource_id", laResourceID),
 					resource.TestCheckResourceAttr(resourceName, "logic_app_receiver.callback_url", "http://test-host:100/workflows/fb9c8d79b15f41ce9b12861862f43546/versions/08587100027316071865/triggers/manualTrigger/paths/invoke?api-version=2015-08-01-preview&sp=%2Fversions%2F08587100027316071865%2Ftriggers%2FmanualTrigger%2Frun&sv=1.0&sig=IxEQ_ygZf6WNEQCbjV0Vs6p6Y4DyNEJVAa86U5B4xhk"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_app_resource_id", "1"),
+					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_app_resource_id", faResourceID),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.function_name", "myfunc"),
 					resource.TestCheckResourceAttr(resourceName, "azure_function_receiver.http_trigger_url", "https://example.com/trigger"),
 				),
