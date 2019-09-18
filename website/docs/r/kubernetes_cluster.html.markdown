@@ -141,8 +141,11 @@ resource "azurerm_subnet" "virtual" {
 A `addon_profile` block supports the following:
 
 * `aci_connector_linux` - (Optional) A `aci_connector_linux` block. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-portal).
+
 * `http_application_routing` - (Optional) A `http_application_routing` block.
+
 * `oms_agent` - (Optional) A `oms_agent` block. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
+
 * `kube_dashboard` - (Optional) A `kube_dashboard` block.
 
 ---
@@ -176,6 +179,8 @@ A `agent_pool_profile` block supports the following:
 ~> **NOTE:** A route table should be configured on this Subnet.
 
 * `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
+
+* `orchestrator_version` - (Optional) Kubernetes version for the worker nodes (e.g. `1.14.6`)
 
 ---
 

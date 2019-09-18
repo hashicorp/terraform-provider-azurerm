@@ -110,6 +110,8 @@ A `agent_pool_profile` block exports the following:
 
 * `node_taints` - The list of Kubernetes taints which are applied to nodes in the agent pool
 
+* `orchestrator_version` - (Optional) Kubernetes version for the worker nodes (e.g. `1.14.6`)
+
 ---
 
 A `azure_active_directory` block exports the following:
