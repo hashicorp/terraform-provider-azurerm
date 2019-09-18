@@ -12,6 +12,7 @@ FEATURES:
 * **New Resource:** `azurerm_bot_channels_registration` [GH-4245]
 * **New Resource:** `azurerm_bot_connection` [GH-4311]
 * **New Resource:** `azurerm_frontdoor` [GH-3933]
+* **New Resource:** `azurerm_frontdoor_firewall_policy` [GH-4125]
 * **New Resource:** `azurerm_kusto_cluster` [GH-4129]
 * **New Resource:** `azurerm_kusto_database` [GH-4149]
 * **New Resource:** `azurerm_marketplace_agreement` [GH-4305]
