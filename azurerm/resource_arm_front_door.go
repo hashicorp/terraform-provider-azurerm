@@ -811,9 +811,9 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 		}
 
 		if waf != "" {
-			result.FrontendEndpointProperties.WebApplicationFirewallPolicyLink = &frontdoor.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink {
+			result.FrontendEndpointProperties.WebApplicationFirewallPolicyLink = &frontdoor.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink{
 				ID: utils.String(waf),
-			} 
+			}
 		}
 
 		output = append(output, result)
