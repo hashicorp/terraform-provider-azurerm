@@ -161,6 +161,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+
+						"orchestrator_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -683,6 +688,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.NodeTaints != nil {
 			agentPoolProfile["node_taints"] = *profile.NodeTaints
+		}
+
+		if profile.OrchestratorVersion != nil {
+			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)

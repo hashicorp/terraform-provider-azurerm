@@ -210,6 +210,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
+
+						"orchestrator_version": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
 					},
 				},
 			},
@@ -1188,6 +1195,10 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]contain
 			profile.NodeTaints = nodeTaints
 		}
 
+		if orchestratorVersion, ok := config["orchestrator_version"]; ok {
+			profile.OrchestratorVersion = utils.String(orchestratorVersion.(string))
+		}
+
 		profiles = append(profiles, profile)
 	}
 
@@ -1265,6 +1276,10 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 
 			// TODO: remove in 2.0
 			"fqdn": fqdnVal,
+		}
+
+		if profile.OrchestratorVersion != nil {
+			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
