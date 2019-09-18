@@ -1,4 +1,9 @@
 ## 1.35.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read [GH-4344]
+
 ## 1.34.0 (September 18, 2019)
 
 FEATURES:
