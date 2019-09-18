@@ -46,11 +46,11 @@ lintvet:
 
 lintmega:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --no-config --deadline=10m --disable-all --enable=staticcheck
+	golangci-lint run ./... -v --no-config --deadline=10m --disable-all --enable=staticcheck
 
 lintrest:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --config .golangci-travisrest.yml
+	golangci-lint run ./... -v --config .golangci-travisrest.yml
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
