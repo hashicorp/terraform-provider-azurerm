@@ -25,7 +25,6 @@ linters:
     - unused
     - unconvert
     - varcheck
-    - vet
     - vetshadow
 
 linters-settings:
