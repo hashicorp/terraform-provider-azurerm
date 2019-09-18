@@ -42,8 +42,8 @@ lint:
 
 linttravis:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --concurrency 1 & pid=$$!; \
-		while kill -0 $$pid; do echo "(I'm still alive travis)" ; sleep 300; done
+	golangci-lint run ./... --concurrency 2 --deadline=30m10s & pid=$$!; \
+		while kill -0 $$pid; do sleep 300; echo "(Hey travis! I'm still alive and linting)"; done
 
 # golangci is running out of memory on travis so lets split it out
 lintvet:
