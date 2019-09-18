@@ -1,5 +1,9 @@
 ## 1.35.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_application_gateway` - support for key vault secret in `ssl_certificate` blocks ([#3935](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3935))
+
 BUG FIXES:
 
 * `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
