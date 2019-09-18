@@ -46,7 +46,7 @@ lintvet:
 
 lintmega:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --no-config --deadline=10m --disable-all --enable=gosimple --enable=unused --enable=staticcheck
+	golangci-lint run ./... --no-config --deadline=10m --disable-all --enable=staticcheck
 
 lintrest:
 	@echo "==> Checking source code against linters..."
