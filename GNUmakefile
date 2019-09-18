@@ -42,19 +42,15 @@ lint:
 
 lintvet:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run --no-config --deadline=10m --disable-all --enable=vet --enable=govet
+	golangci-lint run ./... --no-config --deadline=10m --disable-all --enable=vet --enable=govet
 
 lintmega:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run --no-config --deadline=10m --disable-all --enable=gosimple --enable=unused --enable=staticcheck
+	golangci-lint run ./... --no-config --deadline=10m --disable-all --enable=gosimple --enable=unused --enable=staticcheck
 
 lintrest:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run --no-config --deadline=10m \
-        --disable-all --enable=deadcode  --enable=errcheck --enable=gofmt --enable=goimports \
-        --enable=ineffassign --enable=interfacer --enable=nakedret --enable=misspell \
-        --enable=structcheck --enable=typecheck --enable=unconvert \
-        --enable=varcheck  --enable=vetshadow
+	golangci-lint run ./... --config .golangci-travisrest.yml
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
