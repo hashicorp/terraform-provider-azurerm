@@ -40,6 +40,18 @@ lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./...
 
+lintvet:
+	@echo "==> Checking source code against linters..."
+	golangci-lint run --no-config --deadline=10m --disable-all --enable=vet --enable=govet
+
+lintrest:
+	@echo "==> Checking source code against linters..."
+	golangci-lint run --no-config --deadline=10m \
+        --disable-all --enable=deadcode  --enable=errcheck --enable=gofmt --enable=goimports \
+        --enable=gosimple --enable=ineffassign --enable=interfacer --enable=nakedret --enable=misspell \
+        --enable=staticcheck --enable=structcheck --enable=typecheck --enable=unused --enable=unconvert \
+        --enable=varcheck  --enable=vetshadow
+
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
