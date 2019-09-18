@@ -11,7 +11,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	ClustersClient := kusto.NewClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ClustersClient.Client, o.ResourceManagerAuthorizer)
 

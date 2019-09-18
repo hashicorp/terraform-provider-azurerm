@@ -297,7 +297,6 @@ func testCheckAzureRMDnsNsRecordDestroy(s *terraform.State) error {
 		if resp.StatusCode != http.StatusNotFound {
 			return fmt.Errorf("DNS NS Record still exists:\n%#v", resp.RecordSetProperties)
 		}
-
 	}
 
 	return nil

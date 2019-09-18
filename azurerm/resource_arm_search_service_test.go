@@ -124,7 +124,6 @@ func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
 
 func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)

@@ -140,7 +140,6 @@ func testCheckAzureRMMariaDbConfigurationValue(resourceName string, value string
 
 func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmariadbsvr-%d", rInt)
 

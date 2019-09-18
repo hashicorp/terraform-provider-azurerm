@@ -58,7 +58,6 @@ func dataSourceLogAnalyticsWorkspace() *schema.Resource {
 			"tags": tags.SchemaDataSource(),
 		},
 	}
-
 }
 
 func dataSourceLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {

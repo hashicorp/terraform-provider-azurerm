@@ -51,7 +51,6 @@ func dataSourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, me
 	var servicePrincipal *graphrbac.ServicePrincipal
 
 	if v, ok := d.GetOk("object_id"); ok {
-
 		//use the object_id to find the Azure AD service principal
 		objectId := v.(string)
 		app, err := client.Get(ctx, objectId)
@@ -64,7 +63,6 @@ func dataSourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, me
 		}
 
 		servicePrincipal = &app
-
 	} else if _, ok := d.GetOk("display_name"); ok {
 
 		// use the display_name to find the Azure AD service principal
@@ -91,7 +89,6 @@ func dataSourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, me
 		if servicePrincipal == nil {
 			return fmt.Errorf("A Service Principal with the Display Name %q was not found", displayName)
 		}
-
 	} else {
 
 		// use the application_id to find the Azure AD service principal
@@ -118,7 +115,6 @@ func dataSourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, me
 		if servicePrincipal == nil {
 			return fmt.Errorf("A Service Principal for Application ID %q was not found", applicationId)
 		}
-
 	}
 
 	d.SetId(*servicePrincipal.ObjectID)

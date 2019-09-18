@@ -140,7 +140,6 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 
 func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
 

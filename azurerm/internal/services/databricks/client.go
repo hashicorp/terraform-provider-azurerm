@@ -10,7 +10,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	WorkspacesClient := databricks.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 

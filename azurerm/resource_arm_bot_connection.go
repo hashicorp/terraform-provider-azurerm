@@ -209,7 +209,6 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*resp.ID)
 
 	return resourceArmBotConnectionRead(d, meta)
-
 }
 
 func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) error {

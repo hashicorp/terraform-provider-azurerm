@@ -13,7 +13,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	AccountClient := batch.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AccountClient.Client, o.ResourceManagerAuthorizer)
 

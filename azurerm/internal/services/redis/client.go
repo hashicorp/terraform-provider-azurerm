@@ -12,7 +12,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	client := redis.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 

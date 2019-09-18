@@ -331,7 +331,6 @@ func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
 
 func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
