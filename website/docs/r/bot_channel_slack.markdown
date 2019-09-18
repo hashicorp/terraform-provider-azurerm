@@ -10,6 +10,8 @@ description: |-
 
 Manages a Bot Channel for Slack.
 
+~> **Note** A bot can only have a single Slack Channel associated with it.
+
 ## Example Usage
 
 ```hcl
