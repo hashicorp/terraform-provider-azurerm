@@ -1,14 +1,15 @@
 package azurerm
 
 import (
-	"fmt"
 	"encoding/json"
-	"github.com/hashicorp/terraform/helper/schema"
+	"fmt"
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"regexp"
 )
 
 func resourceArmDashboard() *schema.Resource {
@@ -16,23 +17,24 @@ func resourceArmDashboard() *schema.Resource {
 		Create: resourceArmDashboardCreateUpdate,
 		Read:   resourceArmDashboardRead,
 		Update: resourceArmDashboardCreateUpdate,
-		Delete: resourceArmDashboardDelete,	
+		Delete: resourceArmDashboardDelete,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validateDashboardName,
 			},
 			"resource_group_name": azure.SchemaResourceGroupName(),
-			"location": azure.SchemaLocation(),
-			"tags": tags.Schema(),
+			"location":            azure.SchemaLocation(),
+			"tags":                tags.Schema(),
 			"dashboard_properties": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				StateFunc: normalizeJson,
+				Type:      schema.TypeString,
+				Optional:  true,
+				Computed:  true,
+				StateFunc: normalizeJson, // this func is in the arm template resource... should i copy it here to own my own one?
 			},
-		},			
+		},
 	}
 }
 
@@ -48,7 +50,7 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	dashboard := portal.Dashboard{
 		Location: &location,
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
 	}
 
 	var dashboardProperties portal.DashboardProperties
@@ -58,11 +60,11 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	dashboard.DashboardProperties = &dashboardProperties
 
-	db, err := client.CreateOrUpdate(ctx, resourceGroup, name, dashboard);
+	db, err := client.CreateOrUpdate(ctx, resourceGroup, name, dashboard)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	
+
 	d.SetId(*db.ID)
 
 	// get it back again to set the props
@@ -104,7 +106,7 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 
 	d.Set("name", resp.Name)
 	d.Set("location", resp.Location)
-	
+
 	props, jsonErr := json.Marshal(resp.DashboardProperties)
 	if jsonErr != nil {
 		return fmt.Errorf("Error parsing DashboardProperties JSON: %+v", jsonErr)
@@ -133,4 +135,19 @@ func resourceArmDashboardDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
+}
+
+func validateDashboardName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if len(value) > 64 {
+		errors = append(errors, fmt.Errorf("%q may not exceed 64 characters in length", k))
+	}
+
+	// only alpanumeric and hyphens
+	if matched := regexp.MustCompile(`^[-\w]+$`).Match([]byte(value)); !matched {
+		errors = append(errors, fmt.Errorf("%q may only contain alphanumeric and hyphen characters", k))
+	}
+
+	return warnings, errors
 }

@@ -123,7 +123,7 @@ type ArmClient struct {
 	network          *network.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
-	portal			 *portal.Client
+	portal           *portal.Client
 	postgres         *postgres.Client
 	recoveryServices *recoveryservices.Client
 	redis            *redis.Client
