@@ -2,10 +2,8 @@ package azurerm
 
 import (
 	"fmt"
-	//"strings"
 	"testing"
 
-	//"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -168,7 +166,6 @@ func testCheckAzureRMFrontDoorFirewallPolicyDestroy(s *terraform.State) error {
 
 func testCheckAzureRMFrontDoorFirewallPolicyAttrNotExists(name string, attribute string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
