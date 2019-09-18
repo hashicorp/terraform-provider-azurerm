@@ -40,11 +40,11 @@ lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./...
 
-# we enable debugging and -v to force output to prevent travis from timing out
+# we have split off static check because it causes travis to fail with an OOM error
 lintstatic:
 	@echo "==> Checking source code against static check linters..."
 	(while true; do sleep 300; echo "(Hey travis! I'm still alive and linting)"; done) & PID=$$!; echo $$PID; \
-	golangci-lint run ./... --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=staticcheck; ES=$$?; kill -9 $$PID; exit $$ES
+	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=staticcheck; ES=$$?; kill -9 $$PID; exit $$ES
 
 lintrest:
 	@echo "==> Checking source code against linters..."
