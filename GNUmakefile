@@ -15,6 +15,8 @@ tools:
 	GO111MODULE=off go get -u github.com/client9/misspell/cmd/misspell
 	GO111MODULE=off go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 	GO111MODULE=off go get -u github.com/bflad/tfproviderlint/cmd/tfproviderlint
+	@echo "==> pinning golangci-lint version..."
+	@sh "$(CURDIR)/scripts/pin-golangci-lint.sh"
 
 build: fmtcheck
 	go install
