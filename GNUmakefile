@@ -38,7 +38,7 @@ goimports:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./...
+	golangci-lint run ./$(PKG_NAME)/
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
