@@ -38,7 +38,12 @@ goimports:
 
 lint:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --concurrency 1
+	golangci-lint run ./...
+
+linttravis:
+	@echo "==> Checking source code against linters..."
+	golangci-lint run ./... --concurrency 1 & pid=$$!; \
+		while kill -0 $$pid; do echo "(I'm still alive travis)" ; sleep 300; done
 
 # golangci is running out of memory on travis so lets split it out
 lintvet:
@@ -48,9 +53,8 @@ lintvet:
 # we enable debugging and -v to force output to prevent travis from timing out
 lintstatic:
 	@echo "==> Checking source code against static check linters..."
-	golangci-lint run ./... --no-config --deadline=30m10s --disable-all --enable=staticcheck &
-	pid=$!
-	while kill -0 $pid; do echo -n "." ; sleep 1; done
+	golangci-lint run ./... --no-config --deadline=30m10s --disable-all --enable=staticcheck & pid=$$!; \
+	while kill -0 $$pid; do echo "(I'm still alive travis)" ; sleep 300; done
 
 lintrest:
 	@echo "==> Checking source code against linters..."

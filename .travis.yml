@@ -28,13 +28,13 @@ matrix:
     - go: tip
   include:
     - name: "make lint"
-      script: GOGC=10 make lint
+      script: GOGC=5 make linttravis
     - name: "make lintvet"
       script: make lintvet
     - name: "make lintstatic"
       script: GOGC=10 make lintstatic
     - name: "make lintrest"
-      script: make lintrest
+      script: GOGC=50 make lintrest
     - name: "make tflint"
       script: make tflint
     - name: "make test"
