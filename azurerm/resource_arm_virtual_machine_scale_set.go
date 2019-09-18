@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
@@ -279,6 +279,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
+			//lintignore:S018
 			"os_profile_windows_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -339,6 +340,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 			},
 
+			//lintignore:S018
 			"os_profile_linux_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -373,6 +375,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetOsProfileLinuxConfigHash,
 			},
 
+			//lintignore:S018
 			"network_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -531,6 +534,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
+			//lintignore:S018
 			"storage_profile_os_disk": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -628,6 +632,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
+			//lintignore:S018
 			"storage_profile_image_reference": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -664,6 +669,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 			},
 
+			//lintignore:S018
 			"plan": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -688,6 +694,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
+			//lintignore:S018
 			"extension": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -839,8 +846,10 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 
 	scaleSetProps := compute.VirtualMachineScaleSetProperties{
 		UpgradePolicy: &compute.UpgradePolicy{
-			Mode:                 compute.UpgradeMode(upgradePolicy),
-			AutomaticOSUpgrade:   utils.Bool(automaticOsUpgrade),
+			Mode: compute.UpgradeMode(upgradePolicy),
+			AutomaticOSUpgradePolicy: &compute.AutomaticOSUpgradePolicy{
+				EnableAutomaticOSUpgrade: utils.Bool(automaticOsUpgrade),
+			},
 			RollingUpgradePolicy: expandAzureRmRollingUpgradePolicy(d),
 		},
 		VirtualMachineProfile: &compute.VirtualMachineScaleSetVMProfile{
@@ -963,7 +972,9 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 	if properties := resp.VirtualMachineScaleSetProperties; properties != nil {
 		if upgradePolicy := properties.UpgradePolicy; upgradePolicy != nil {
 			d.Set("upgrade_policy_mode", upgradePolicy.Mode)
-			d.Set("automatic_os_upgrade", upgradePolicy.AutomaticOSUpgrade)
+			if policy := upgradePolicy.AutomaticOSUpgradePolicy; policy != nil {
+				d.Set("automatic_os_upgrade", policy.EnableAutomaticOSUpgrade)
+			}
 
 			if rollingUpgradePolicy := upgradePolicy.RollingUpgradePolicy; rollingUpgradePolicy != nil {
 				if err := d.Set("rolling_upgrade_policy", flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy)); err != nil {

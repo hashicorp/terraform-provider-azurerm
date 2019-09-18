@@ -117,9 +117,9 @@ func (client FrontendEndpointsClient) CreateOrUpdatePreparer(ctx context.Context
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) CreateOrUpdateSender(req *http.Request) (future FrontendEndpointsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -212,9 +212,9 @@ func (client FrontendEndpointsClient) DeletePreparer(ctx context.Context, resour
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) DeleteSender(req *http.Request) (future FrontendEndpointsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -306,9 +306,9 @@ func (client FrontendEndpointsClient) DisableHTTPSPreparer(ctx context.Context, 
 // DisableHTTPSSender sends the DisableHTTPS request. The method will close the
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) DisableHTTPSSender(req *http.Request) (future FrontendEndpointsDisableHTTPSFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -403,9 +403,9 @@ func (client FrontendEndpointsClient) EnableHTTPSPreparer(ctx context.Context, r
 // EnableHTTPSSender sends the EnableHTTPS request. The method will close the
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) EnableHTTPSSender(req *http.Request) (future FrontendEndpointsEnableHTTPSFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -503,8 +503,8 @@ func (client FrontendEndpointsClient) GetPreparer(ctx context.Context, resourceG
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -593,8 +593,8 @@ func (client FrontendEndpointsClient) ListByFrontDoorPreparer(ctx context.Contex
 // ListByFrontDoorSender sends the ListByFrontDoor request. The method will close the
 // http.Response Body if it receives an error.
 func (client FrontendEndpointsClient) ListByFrontDoorSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByFrontDoorResponder handles the response to the ListByFrontDoor request. The method always

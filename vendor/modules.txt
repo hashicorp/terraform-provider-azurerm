@@ -15,7 +15,7 @@ github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices
-github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute
+github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute
 github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance
 github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice
@@ -36,7 +36,7 @@ github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
 github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media
 github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql
-github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network
+github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network
 github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs
 github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql
 github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization
@@ -44,6 +44,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/bo
 github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces
 github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns
 github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid
+github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor
 github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight
 github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices
 github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights
@@ -73,6 +74,7 @@ github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage
 github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web
+github.com/Azure/azure-sdk-for-go/services/marketplaceordering/mgmt/2015-06-01/marketplaceordering
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions
 github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
 github.com/Azure/azure-sdk-for-go/version
@@ -101,7 +103,7 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/textseg
 # github.com/armon/go-radix v1.0.0
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.21.7
+# github.com/aws/aws-sdk-go v1.22.0
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/credentials
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
@@ -144,6 +146,8 @@ github.com/bgentry/go-netrc/netrc
 github.com/bgentry/speakeasy
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
+# github.com/bmatcuk/doublestar v1.1.5
+github.com/bmatcuk/doublestar
 # github.com/btubbs/datetime v0.1.0
 github.com/btubbs/datetime
 # github.com/davecgh/go-spew v1.1.1
@@ -209,7 +213,7 @@ github.com/hashicorp/hcl/hcl/scanner
 github.com/hashicorp/hcl/hcl/strconv
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/hashicorp/hcl2 v0.0.0-20190725010614-0c3fe388e450
+# github.com/hashicorp/hcl2 v0.0.0-20190821123243-0c888d1241f6
 github.com/hashicorp/hcl2/hcl
 github.com/hashicorp/hcl2/hcl/hclsyntax
 github.com/hashicorp/hcl2/hcldec
@@ -221,13 +225,13 @@ github.com/hashicorp/hcl2/ext/dynblock
 github.com/hashicorp/hcl2/hcl/json
 github.com/hashicorp/hcl2/hclwrite
 # github.com/hashicorp/hil v0.0.0-20190212112733-ab17b08d6590
-github.com/hashicorp/hil
 github.com/hashicorp/hil/ast
+github.com/hashicorp/hil
 github.com/hashicorp/hil/parser
 github.com/hashicorp/hil/scanner
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform v0.12.6
+# github.com/hashicorp/terraform v0.12.8
 github.com/hashicorp/terraform/plugin
 github.com/hashicorp/terraform/helper/hashcode
 github.com/hashicorp/terraform/helper/resource
@@ -245,12 +249,11 @@ github.com/hashicorp/terraform/plugin/convert
 github.com/hashicorp/terraform/plugin/discovery
 github.com/hashicorp/terraform/providers
 github.com/hashicorp/terraform/provisioners
-github.com/hashicorp/terraform/version
 github.com/hashicorp/terraform/addrs
 github.com/hashicorp/terraform/command/format
-github.com/hashicorp/terraform/config/hcl2shim
 github.com/hashicorp/terraform/configs
 github.com/hashicorp/terraform/configs/configload
+github.com/hashicorp/terraform/configs/hcl2shim
 github.com/hashicorp/terraform/helper/config
 github.com/hashicorp/terraform/helper/logging
 github.com/hashicorp/terraform/internal/initwd
@@ -258,26 +261,26 @@ github.com/hashicorp/terraform/plans
 github.com/hashicorp/terraform/states
 github.com/hashicorp/terraform/tfdiags
 github.com/hashicorp/terraform/config
-github.com/hashicorp/terraform/config/module
 github.com/hashicorp/terraform/dag
-github.com/hashicorp/terraform/flatmap
 github.com/hashicorp/terraform/helper/didyoumean
 github.com/hashicorp/terraform/lang
 github.com/hashicorp/terraform/moduledeps
 github.com/hashicorp/terraform/plans/objchange
 github.com/hashicorp/terraform/states/statefile
+github.com/hashicorp/terraform/version
 github.com/hashicorp/terraform/registry
 github.com/hashicorp/terraform/registry/regsrc
 github.com/hashicorp/terraform/registry/response
 github.com/hashicorp/terraform/svchost/disco
 github.com/hashicorp/terraform/internal/modsdir
+github.com/hashicorp/terraform/flatmap
 github.com/hashicorp/terraform/internal/earlyconfig
 github.com/hashicorp/terraform/helper/hilmapstructure
 github.com/hashicorp/terraform/lang/blocktoattr
 github.com/hashicorp/terraform/lang/funcs
 github.com/hashicorp/terraform/svchost
 github.com/hashicorp/terraform/svchost/auth
-# github.com/hashicorp/terraform-config-inspect v0.0.0-20190327195015-8022a2663a70
+# github.com/hashicorp/terraform-config-inspect v0.0.0-20190821133035-82a99dc22ef4
 github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb
 github.com/hashicorp/yamux
@@ -405,11 +408,11 @@ golang.org/x/net/http/httpguts
 golang.org/x/net/context/ctxhttp
 # golang.org/x/oauth2 v0.0.0-20190226205417-e64efc72b421
 golang.org/x/oauth2
-golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
+golang.org/x/oauth2/google
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82
+# golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
 golang.org/x/sys/unix
 golang.org/x/sys/cpu
 # golang.org/x/text v0.3.2

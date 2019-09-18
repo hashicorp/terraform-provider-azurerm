@@ -61,7 +61,7 @@ func resourceArmSqlVirtualNetworkRule() *schema.Resource {
 }
 
 func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -120,7 +120,7 @@ func resourceArmSqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -156,7 +156,7 @@ func resourceArmSqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Sql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

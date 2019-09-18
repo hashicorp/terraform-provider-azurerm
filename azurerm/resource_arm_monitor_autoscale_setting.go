@@ -330,6 +330,9 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									"properties": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},

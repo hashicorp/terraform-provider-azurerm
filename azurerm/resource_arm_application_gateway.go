@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -678,20 +678,55 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 			// Optional
 			"authentication_certificate": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeList, // todo this should probably be a map
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"data": {
-							Type:      schema.TypeString,
-							Required:  true,
-							Sensitive: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+							Sensitive:    true,
 						},
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"trusted_root_certificate": {
+				Type:     schema.TypeList, // todo this should probably be a map
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"data": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+							Sensitive:    true,
+						},
+
+						// TODO required soft delete on the keyvault
+						/*"key_vault_secret_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateKeyVaultChildId,
+						},*/
 
 						"id": {
 							Type:     schema.TypeString,
@@ -1334,21 +1369,10 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
 	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.subscriptionId, resGroup, name)
 
-	authenticationCertificates := expandApplicationGatewayAuthenticationCertificates(d)
-	backendAddressPools := expandApplicationGatewayBackendAddressPools(d)
-	backendHTTPSettingsCollection := expandApplicationGatewayBackendHTTPSettings(d, gatewayID)
-	frontendIPConfigurations := expandApplicationGatewayFrontendIPConfigurations(d)
-	frontendPorts := expandApplicationGatewayFrontendPorts(d)
-	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
-	httpListeners := expandApplicationGatewayHTTPListeners(d, gatewayID)
-	probes := expandApplicationGatewayProbes(d)
-	sku := expandApplicationGatewaySku(d)
-	autoscaleConfiguration := expandApplicationGatewayAutoscaleConfiguration(d)
-	sslCertificates := expandApplicationGatewaySslCertificates(d)
-	sslPolicy := expandApplicationGatewaySslPolicy(d)
-	customErrorConfigurations := expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{}))
-	rewriteRuleSets := expandApplicationGatewayRewriteRuleSets(d)
-	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
+	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("Error expanding `trusted_root_certificate`: %+v", err)
+	}
 
 	requestRoutingRules, err := expandApplicationGatewayRequestRoutingRules(d, gatewayID)
 	if err != nil {
@@ -1365,30 +1389,34 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error expanding `redirect_configuration`: %+v", err)
 	}
 
+	gatewayIPConfigurations, stopApplicationGateway := expandApplicationGatewayIPConfigurations(d)
+
 	gateway := network.ApplicationGateway{
 		Location: utils.String(location),
-		Zones:    zones,
+		Zones:    azure.ExpandZones(d.Get("zones").([]interface{})),
 
 		Tags: tags.Expand(t),
 		ApplicationGatewayPropertiesFormat: &network.ApplicationGatewayPropertiesFormat{
-			AuthenticationCertificates:    authenticationCertificates,
-			BackendAddressPools:           backendAddressPools,
-			BackendHTTPSettingsCollection: backendHTTPSettingsCollection,
+			AutoscaleConfiguration:        expandApplicationGatewayAutoscaleConfiguration(d),
+			AuthenticationCertificates:    expandApplicationGatewayAuthenticationCertificates(d.Get("authentication_certificate").([]interface{})),
+			TrustedRootCertificates:       trustedRootCertificates,
+			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
+			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
+			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, gatewayID),
 			EnableHTTP2:                   utils.Bool(enablehttp2),
-			FrontendIPConfigurations:      frontendIPConfigurations,
-			FrontendPorts:                 frontendPorts,
+			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d),
+			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
 			GatewayIPConfigurations:       gatewayIPConfigurations,
-			HTTPListeners:                 httpListeners,
-			Probes:                        probes,
+			HTTPListeners:                 expandApplicationGatewayHTTPListeners(d, gatewayID),
+			Probes:                        expandApplicationGatewayProbes(d),
 			RequestRoutingRules:           requestRoutingRules,
 			RedirectConfigurations:        redirectConfigurations,
-			Sku:                           sku,
-			SslCertificates:               sslCertificates,
-			SslPolicy:                     sslPolicy,
-			CustomErrorConfigurations:     customErrorConfigurations,
-			RewriteRuleSets:               rewriteRuleSets,
-			URLPathMaps:                   urlPathMaps,
-			AutoscaleConfiguration:        autoscaleConfiguration,
+			Sku:                           expandApplicationGatewaySku(d),
+			SslCertificates:               expandApplicationGatewaySslCertificates(d),
+			SslPolicy:                     expandApplicationGatewaySslPolicy(d),
+
+			RewriteRuleSets: expandApplicationGatewayRewriteRuleSets(d),
+			URLPathMaps:     urlPathMaps,
 		},
 	}
 
@@ -1396,7 +1424,8 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		gateway.Identity = expandAzureRmApplicationGatewayIdentity(d)
 	}
 
-	for _, backendHttpSettings := range *backendHTTPSettingsCollection {
+	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
+	for _, backendHttpSettings := range *gateway.ApplicationGatewayPropertiesFormat.BackendHTTPSettingsCollection {
 		if props := backendHttpSettings.ApplicationGatewayBackendHTTPSettingsPropertiesFormat; props != nil {
 			if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
 				continue
@@ -1408,7 +1437,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	for _, probe := range *probes {
+	for _, probe := range *gateway.ApplicationGatewayPropertiesFormat.Probes {
 		if props := probe.ApplicationGatewayProbePropertiesFormat; props != nil {
 			if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
 				continue
@@ -1502,14 +1531,17 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 	d.Set("zones", applicationGateway.Zones)
 
 	identity := flattenRmApplicationGatewayIdentity(applicationGateway.Identity)
-	if err := d.Set("identity", identity); err != nil {
+	if err = d.Set("identity", identity); err != nil {
 		return err
 	}
 
 	if props := applicationGateway.ApplicationGatewayPropertiesFormat; props != nil {
-		flattenedCerts := flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)
-		if setErr := d.Set("authentication_certificate", flattenedCerts); setErr != nil {
-			return fmt.Errorf("Error setting `authentication_certificate`: %+v", setErr)
+		if err = d.Set("authentication_certificate", flattenApplicationGatewayAuthenticationCertificates(props.AuthenticationCertificates, d)); err != nil {
+			return fmt.Errorf("Error setting `authentication_certificate`: %+v", err)
+		}
+
+		if err = d.Set("trusted_root_certificate", flattenApplicationGatewayTrustedRootCertificates(props.TrustedRootCertificates, d)); err != nil {
+			return fmt.Errorf("Error setting `trusted_root_certificate`: %+v", err)
 		}
 
 		if setErr := d.Set("backend_address_pool", flattenApplicationGatewayBackendAddressPools(props.BackendAddressPools)); setErr != nil {
@@ -1678,11 +1710,10 @@ func flattenRmApplicationGatewayIdentity(identity *network.ManagedServiceIdentit
 	return []interface{}{result}
 }
 
-func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) *[]network.ApplicationGatewayAuthenticationCertificate {
-	vs := d.Get("authentication_certificate").([]interface{})
+func expandApplicationGatewayAuthenticationCertificates(certs []interface{}) *[]network.ApplicationGatewayAuthenticationCertificate {
 	results := make([]network.ApplicationGatewayAuthenticationCertificate, 0)
 
-	for _, raw := range vs {
+	for _, raw := range certs {
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
@@ -1704,31 +1735,112 @@ func expandApplicationGatewayAuthenticationCertificates(d *schema.ResourceData) 
 	return &results
 }
 
-func flattenApplicationGatewayAuthenticationCertificates(input *[]network.ApplicationGatewayAuthenticationCertificate, d *schema.ResourceData) []interface{} {
+func expandApplicationGatewayTrustedRootCertificates(certs []interface{}) (*[]network.ApplicationGatewayTrustedRootCertificate, error) {
+	results := make([]network.ApplicationGatewayTrustedRootCertificate, 0)
+
+	for _, raw := range certs {
+		v := raw.(map[string]interface{})
+
+		name := v["name"].(string)
+		data := v["data"].(string)
+		// kvsid := v["key_vault_secret_id"].(string)
+
+		output := network.ApplicationGatewayTrustedRootCertificate{
+			Name: utils.String(name),
+			ApplicationGatewayTrustedRootCertificatePropertiesFormat: &network.ApplicationGatewayTrustedRootCertificatePropertiesFormat{},
+		}
+
+		/*		if data == "" && kvsid == "" {
+					return nil, fmt.Errorf("Error: either `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
+				}
+				if data != "" && kvsid != "" {
+					return nil, fmt.Errorf("Error: only one of `key_vault_secret_id` or `data` must be specified for the `trusted_root_certificate` block %q", name)
+				}*/
+
+		if data != "" {
+			output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.Data = utils.String(utils.Base64EncodeIfNot(data))
+		}
+		//	output.ApplicationGatewayTrustedRootCertificatePropertiesFormat.KeyVaultSecretID = &kvsid
+
+		results = append(results, output)
+	}
+
+	return &results, nil
+}
+
+func flattenApplicationGatewayAuthenticationCertificates(certs *[]network.ApplicationGatewayAuthenticationCertificate, d *schema.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil {
+	if certs == nil {
 		return results
 	}
 
-	for i, v := range *input {
+	// since the certificate data isn't returned lets load any existing data
+	nameToDataMap := map[string]string{}
+	if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
+		for _, c := range existing.([]interface{}) {
+			b := c.(map[string]interface{})
+			nameToDataMap[b["name"].(string)] = b["data"].(string)
+		}
+	}
+
+	for _, cert := range *certs {
 		output := map[string]interface{}{}
 
-		if v.ID != nil {
-			output["id"] = *v.ID
+		if v := cert.ID; v != nil {
+			output["id"] = *v
 		}
 
-		if v.Name != nil {
-			output["name"] = *v.Name
+		if v := cert.Name; v != nil {
+			output["name"] = *v
+
+			// we have a name, so try and look up the old data to pass it along
+			if data, ok := nameToDataMap[*v]; ok && data != "" {
+				output["data"] = data
+			}
 		}
 
-		// since the certificate data isn't returned we have to load it from the same index
-		if existing, ok := d.GetOk("authentication_certificate"); ok && existing != nil {
-			existingVals := existing.([]interface{})
-			if len(existingVals) > i {
-				existingCerts := existingVals[i].(map[string]interface{})
-				if data := existingCerts["data"]; data != nil {
-					output["data"] = data.(string)
-				}
+		results = append(results, output)
+	}
+
+	return results
+}
+
+func flattenApplicationGatewayTrustedRootCertificates(certs *[]network.ApplicationGatewayTrustedRootCertificate, d *schema.ResourceData) []interface{} {
+	results := make([]interface{}, 0)
+	if certs == nil {
+		return results
+	}
+
+	// since the certificate data isn't returned lets load any existing data
+	nameToDataMap := map[string]string{}
+	if existing, ok := d.GetOk("trusted_root_certificate"); ok && existing != nil {
+		for _, c := range existing.([]interface{}) {
+			b := c.(map[string]interface{})
+			nameToDataMap[b["name"].(string)] = b["data"].(string)
+		}
+	}
+
+	for _, cert := range *certs {
+		output := map[string]interface{}{}
+
+		if v := cert.ID; v != nil {
+			output["id"] = *v
+		}
+
+		/*kvsid := ""
+		if props := cert.ApplicationGatewayTrustedRootCertificatePropertiesFormat; props != nil {
+			if v := props.KeyVaultSecretID; v != nil {
+				kvsid = *v
+				output["key_vault_secret_id"] = *v
+			}
+		}*/
+
+		if v := cert.Name; v != nil {
+			output["name"] = *v
+
+			// if theres no key vauld ID and we have a name, so try and look up the old data to pass it along
+			if data, ok := nameToDataMap[*v]; ok && data != "" {
+				output["data"] = data
 			}
 		}
 

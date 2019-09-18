@@ -62,6 +62,9 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 			"headers": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

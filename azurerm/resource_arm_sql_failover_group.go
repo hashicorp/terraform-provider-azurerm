@@ -128,7 +128,7 @@ func resourceArmSqlFailoverGroup() *schema.Resource {
 }
 
 func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.FailoverGroupsClient
+	client := meta.(*ArmClient).Sql.FailoverGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -189,7 +189,7 @@ func resourceArmSqlFailoverGroupCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.FailoverGroupsClient
+	client := meta.(*ArmClient).Sql.FailoverGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -241,7 +241,7 @@ func resourceArmSqlFailoverGroupRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSqlFailoverGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.FailoverGroupsClient
+	client := meta.(*ArmClient).Sql.FailoverGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
