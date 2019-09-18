@@ -14,6 +14,7 @@ linters:
     - gofmt
     - goimports
     - gosimple
+    - govet
     - ineffassign
     - interfacer
     - nakedret
@@ -23,6 +24,7 @@ linters:
     - unused
     - unconvert
     - varcheck
+    - vet
     - vetshadow
 
 linters-settings:
