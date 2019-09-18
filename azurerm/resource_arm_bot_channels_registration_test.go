@@ -24,6 +24,10 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 			"basic":    testAccAzureRMBotConnection_basic,
 			"complete": testAccAzureRMBotConnection_complete,
 		},
+		"channel": {
+			"slackBasic":  testAccAzureRMBotChannelSlack_basic,
+			"slackUpdate": testAccAzureRMBotChannelSlack_update,
+		},
 	}
 
 	for group, m := range testCases {
