@@ -53,6 +53,8 @@ The following attributes are exported:
 
 * `enabled_for_template_deployment` - Can Azure Resource Manager retrieve secrets from the Key Vault?
 
+* `enable_soft_delete` - Will Azure Resource Manager use the 'soft delete' functionality for this key vault?
+
 * `tags` - A mapping of tags assigned to the Key Vault.
 
 A `sku` block exports the following:
