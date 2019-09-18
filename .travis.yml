@@ -32,7 +32,7 @@ matrix:
     - name: "make lintvet"
       script: make lintvet
     - name: "make lintstatic"
-      script: GOGC=10 make lintstatic
+      script: GOGC=5 make lintstatic
     - name: "make lintrest"
       script: GOGC=20 make lintrest
     - name: "make tflint"
