@@ -40,13 +40,15 @@ lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./...
 
+# golangci is running out of memory on travis so lets split it out
 lintvet:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./... --no-config --deadline=10m10s --disable-all --enable=vet --enable=govet
 
+# we enable debugging and -v to force output to prevent travis from timing out
 lintstatic:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --no-config --deadline=10m10s --disable-all --enable=staticcheck
+	GL_DEBUG=loader,nolint golangci-lint run ./... --no-config --deadline=30m10s --disable-all --enable=staticcheck
 
 lintrest:
 	@echo "==> Checking source code against linters..."
