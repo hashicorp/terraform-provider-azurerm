@@ -47,12 +47,18 @@ lintvet:
 
 # we enable debugging and -v to force output to prevent travis from timing out
 lintstatic:
-	@echo "==> Checking source code against linters..."
-	GL_DEBUG=loader,nolint golangci-lint run ./... --no-config --deadline=30m10s --disable-all --enable=staticcheck
+	@echo "==> Checking source code against static check linters..."
+	golangci-lint run ./... --no-config --deadline=30m10s --disable-all --enable=staticcheck &
+	pid=$!
+	while kill -0 $pid
+	do
+	  echo -n "."
+	  sleep 0.5
+	done
 
 lintrest:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... --config .golangci-travisrest.yml
+	golangci-lint run ./... -v --config .golangci-travisrest.yml
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
