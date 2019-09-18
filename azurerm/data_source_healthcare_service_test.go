@@ -32,7 +32,7 @@ func TestAccAzureRMDataSourceHealthcareService(t *testing.T) {
 
 func testAccAzureRMDataSourceHealthcareService_basic(rInt int, location string) string {
 	resource := testAccAzureRMHealthcareService_basic(rInt)
-	s := fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 data "azurerm_healthcare_service" "test" {
@@ -41,5 +41,4 @@ data "azurerm_healthcare_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
 }
 `, resource)
-	return s
 }
