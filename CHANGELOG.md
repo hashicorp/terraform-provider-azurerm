@@ -2,6 +2,7 @@
 
 BUG FIXES:
 
+* `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
 * `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read [GH-4344]
 
 ## 1.34.0 (September 18, 2019)
