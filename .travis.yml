@@ -29,7 +29,7 @@ matrix:
   include:
     - name: "make lintvet"
       script: GOGC=20 make lintvet
-    - name: "make lintmega"
+    - name: "make lintstatic"
       script: GOGC=10 make lintstatic
     - name: "make lintrest"
       script: GOGC=30 make lintrest
