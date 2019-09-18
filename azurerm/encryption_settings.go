@@ -1,7 +1,7 @@
 package azurerm
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -63,18 +63,21 @@ func encryptionSettingsSchema() *schema.Schema {
 	}
 }
 
-func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compute.EncryptionSettings {
+func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compute.EncryptionSettingsCollection {
 	enabled := settings["enabled"].(bool)
-	config := &compute.EncryptionSettings{
+	config := &compute.EncryptionSettingsCollection{
 		Enabled: utils.Bool(enabled),
 	}
+
+	var diskEncryptionKey *compute.KeyVaultAndSecretReference
+	var keyEncryptionKey *compute.KeyVaultAndKeyReference
 
 	if v := settings["disk_encryption_key"].([]interface{}); len(v) > 0 {
 		dek := v[0].(map[string]interface{})
 
 		secretURL := dek["secret_url"].(string)
 		sourceVaultId := dek["source_vault_id"].(string)
-		config.DiskEncryptionKey = &compute.KeyVaultAndSecretReference{
+		diskEncryptionKey = &compute.KeyVaultAndSecretReference{
 			SecretURL: utils.String(secretURL),
 			SourceVault: &compute.SourceVault{
 				ID: utils.String(sourceVaultId),
@@ -87,7 +90,7 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compu
 
 		secretURL := kek["key_url"].(string)
 		sourceVaultId := kek["source_vault_id"].(string)
-		config.KeyEncryptionKey = &compute.KeyVaultAndKeyReference{
+		keyEncryptionKey = &compute.KeyVaultAndKeyReference{
 			KeyURL: utils.String(secretURL),
 			SourceVault: &compute.SourceVault{
 				ID: utils.String(sourceVaultId),
@@ -95,38 +98,53 @@ func expandManagedDiskEncryptionSettings(settings map[string]interface{}) *compu
 		}
 	}
 
+	// at this time we only support a single element
+	config.EncryptionSettings = &[]compute.EncryptionSettingsElement{
+		{
+			DiskEncryptionKey: diskEncryptionKey,
+			KeyEncryptionKey:  keyEncryptionKey,
+		},
+	}
 	return config
 }
 
-func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.EncryptionSettings) []interface{} {
+func flattenManagedDiskEncryptionSettings(encryptionSettings *compute.EncryptionSettingsCollection) []interface{} {
+	if encryptionSettings == nil {
+		return []interface{}{}
+	}
+
 	value := map[string]interface{}{
 		"enabled": *encryptionSettings.Enabled,
 	}
 
-	if key := encryptionSettings.DiskEncryptionKey; key != nil {
-		keys := make(map[string]interface{})
+	if encryptionSettings.EncryptionSettings != nil && len(*encryptionSettings.EncryptionSettings) > 0 {
+		// at this time we only support a single element
+		settings := (*encryptionSettings.EncryptionSettings)[0]
+		if key := settings.DiskEncryptionKey; key != nil {
+			keys := make(map[string]interface{})
 
-		keys["secret_url"] = *key.SecretURL
-		if vault := key.SourceVault; vault != nil {
-			keys["source_vault_id"] = *vault.ID
+			keys["secret_url"] = *key.SecretURL
+			if vault := key.SourceVault; vault != nil {
+				keys["source_vault_id"] = *vault.ID
+			}
+
+			value["disk_encryption_key"] = []interface{}{keys}
 		}
 
-		value["disk_encryption_key"] = []interface{}{keys}
-	}
+		if key := settings.KeyEncryptionKey; key != nil {
+			keys := make(map[string]interface{})
 
-	if key := encryptionSettings.KeyEncryptionKey; key != nil {
-		keys := make(map[string]interface{})
+			keys["key_url"] = *key.KeyURL
 
-		keys["key_url"] = *key.KeyURL
+			if vault := key.SourceVault; vault != nil {
+				keys["source_vault_id"] = *vault.ID
+			}
 
-		if vault := key.SourceVault; vault != nil {
-			keys["source_vault_id"] = *vault.ID
+			value["key_encryption_key"] = []interface{}{keys}
 		}
-
-		value["key_encryption_key"] = []interface{}{keys}
 	}
 
-	output := make([]interface{}, 0)
-	output = append(output, value)
-	return output
+	return []interface{}{
+		value,
+	}
 }
