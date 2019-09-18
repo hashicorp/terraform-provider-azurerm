@@ -21,7 +21,7 @@ linters:
     - misspell
     - staticcheck
     - structcheck
-    - typecheck
+    - typecheck 
     - unused
     - unconvert
     - varcheck
