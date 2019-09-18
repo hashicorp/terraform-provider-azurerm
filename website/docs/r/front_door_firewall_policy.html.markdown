@@ -6,7 +6,7 @@ description: |-
   Manages an Azure Front Door Web Application Firewall Policy instance.
 ---
 
-# azurerm_web_application_firewall_policy
+# azurerm_frontdoor_firewall_policy
 
 Manages an Azure Front Door Web Application Firewall Policy instance.
 
