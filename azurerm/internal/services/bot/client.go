@@ -8,6 +8,7 @@ import (
 type Client struct {
 	BotClient        *botservice.BotsClient
 	ConnectionClient *botservice.BotConnectionClient
+	ChannelClient    *botservice.ChannelsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -18,8 +19,12 @@ func BuildClient(o *common.ClientOptions) *Client {
 	connectionClient := botservice.NewBotConnectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&connectionClient.Client, o.ResourceManagerAuthorizer)
 
+	channelClient := botservice.NewChannelsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&channelClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		BotClient:        &botClient,
+		ChannelClient:    &channelClient,
 		ConnectionClient: &connectionClient,
 	}
 }
