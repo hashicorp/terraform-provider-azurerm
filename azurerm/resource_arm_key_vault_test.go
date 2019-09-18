@@ -312,6 +312,7 @@ func TestAccAzureRMKeyVault_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_deployment", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_disk_encryption", "true"),
 					resource.TestCheckResourceAttr(resourceName, "enabled_for_template_deployment", "true"),
+					resource.TestCheckResourceAttr(resourceName, "enable_soft_delete", "true"),
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "Staging"),
 				),
 			},
@@ -713,6 +714,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  enable_soft_delete              = true
 
   tags = {
     environment = "Staging"
@@ -743,6 +745,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  enable_soft_delete              = true
 
   tags = {
     environment = "Staging"
@@ -775,6 +778,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
+  enable_soft_delete              = true
 
   tags = {
     environment = "Staging"

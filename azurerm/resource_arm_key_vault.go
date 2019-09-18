@@ -145,6 +145,12 @@ func resourceArmKeyVault() *schema.Resource {
 				Optional: true,
 			},
 
+			"enable_soft_delete": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"network_acls": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -238,6 +244,8 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
+	enableSoftDelete := d.Get("enable_soft_delete").(bool)
+
 	t := d.Get("tags").(map[string]interface{})
 
 	networkAclsRaw := d.Get("network_acls").([]interface{})
@@ -258,6 +266,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			EnabledForDeployment:         &enabledForDeployment,
 			EnabledForDiskEncryption:     &enabledForDiskEncryption,
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
+			EnableSoftDelete:             &enableSoftDelete,
 			NetworkAcls:                  networkAcls,
 		},
 		Tags: tags.Expand(t),
@@ -355,6 +364,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
+		d.Set("enable_soft_delete", props.EnableSoftDelete)
 		d.Set("vault_uri", props.VaultURI)
 
 		if sku := props.Sku; sku != nil {
