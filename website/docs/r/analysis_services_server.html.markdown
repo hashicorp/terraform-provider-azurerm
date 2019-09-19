@@ -75,6 +75,8 @@ In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Analysis Services Server.
 
+* `server_full_name` - The full name of the Analysis Services Server.
+
 ## Import
 
 Analysis Services Server can be imported using the `resource id`, e.g.

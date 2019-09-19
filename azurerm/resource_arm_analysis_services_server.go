@@ -96,6 +96,11 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				ValidateFunc: validateQuerypoolConnectionMode(),
 			},
 
+			"server_full_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -208,6 +213,10 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		}
 
 		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
+
+		if serverFullName := serverProps.ServerFullName; serverFullName != nil {
+			d.Set("server_full_name", serverProps.ServerFullName)
+		}
 	}
 
 	return tags.FlattenAndSet(d, server.Tags)

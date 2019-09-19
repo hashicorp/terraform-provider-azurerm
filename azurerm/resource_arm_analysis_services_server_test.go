@@ -192,6 +192,31 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
+	resourceName := "azurerm_analysis_services_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAnalysisServicesServer_serverFullName(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "server_full_name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccAzureRMAnalysisServicesServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -350,6 +375,22 @@ resource "azurerm_analysis_services_server" "test" {
  admin_users 				= ["%s"]
 }
 `, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
+}
+
+func testAccAzureRMAnalysisServicesServer_serverFullName(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku 				  = "B1"
+}
+`, rInt, location, rInt)
 }
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {
