@@ -37,6 +37,41 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApplicationInsightsAnalyticsItem_basicWithUpdate(t *testing.T) {
+	resourceName := "azurerm_application_insights_analytics_item.test"
+	ri := tf.AccRandTimeInt()
+	config1 := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, testLocation())
+	config2 := testAccAzureRMApplicationInsightsAnalyticsItem_basic2(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery", insights.ItemScopeShared, insights.ItemTypeParameterQuery),
+		Steps: []resource.TestStep{
+			{
+				Config: config1,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName, "testquery", insights.ItemScopeShared, insights.ItemTypeParameterQuery),
+					resource.TestCheckResourceAttr(resourceName, "name", "testquery"),
+					resource.TestCheckResourceAttr(resourceName, "scope", "shared"),
+					resource.TestCheckResourceAttr(resourceName, "type", "query"),
+					resource.TestCheckResourceAttr(resourceName, "content", "requests #test"),
+				),
+			},
+			{
+				Config: config2,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName, "testquery", insights.ItemScopeShared, insights.ItemTypeParameterQuery),
+					resource.TestCheckResourceAttr(resourceName, "name", "testquery"),
+					resource.TestCheckResourceAttr(resourceName, "scope", "shared"),
+					resource.TestCheckResourceAttr(resourceName, "type", "query"),
+					resource.TestCheckResourceAttr(resourceName, "content", "requests #updated"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	resourceName1 := "azurerm_application_insights_analytics_item.test1"
 	resourceName2 := "azurerm_application_insights_analytics_item.test2"
@@ -171,6 +206,31 @@ resource "azurerm_application_insights_analytics_item" "test" {
   resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   content                 = "requests #test"
+  scope                   = "shared"
+  type                    = "query"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMApplicationInsightsAnalyticsItem_basic2(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type    = "web"
+}
+
+resource "azurerm_application_insights_analytics_item" "test" {
+  name                    = "testquery"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  application_insights_id = "${azurerm_application_insights.test.id}"
+  content                 = "requests #updated"
   scope                   = "shared"
   type                    = "query"
 }
