@@ -110,6 +110,7 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	content := d.Get("content").(string)
 	scopeName := d.Get("scope").(string)
 	typeName := d.Get("type").(string)
+	functionAlias := d.Get("function_alias").(string)
 
 	itemType := insights.ItemType(typeName)
 	itemScope := insights.ItemScope(scopeName)
@@ -119,6 +120,12 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 		Scope:   itemScope,
 		Content: &content,
 	}
+	if functionAlias != "" {
+		properties.Properties = &insights.ApplicationInsightsComponentAnalyticsItemProperties{
+			FunctionAlias: &functionAlias,
+		}
+	}
+
 	var itemScopePath insights.ItemScopePath
 	if itemScope == insights.ItemScopeUser {
 		itemScopePath = insights.MyanalyticsItems
@@ -169,6 +176,10 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 	d.Set("type", string(result.Type))
 	d.Set("time_created", result.TimeCreated)
 	d.Set("time_modified", result.TimeModified)
+
+	if result.Properties != nil {
+		d.Set("function_alias", result.Properties.FunctionAlias)
+	}
 
 	return nil
 }
