@@ -106,6 +106,7 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 
 	appInsightsName := id.Path["components"]
 
+	itemID := d.Id()
 	name := d.Get("name").(string)
 	content := d.Get("content").(string)
 	scopeName := d.Get("scope").(string)
@@ -115,6 +116,7 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	itemType := insights.ItemType(typeName)
 	itemScope := insights.ItemScope(scopeName)
 	properties := insights.ApplicationInsightsComponentAnalyticsItem{
+		ID:      &itemID,
 		Name:    &name,
 		Type:    itemType,
 		Scope:   itemScope,
