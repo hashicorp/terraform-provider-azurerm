@@ -195,7 +195,7 @@ func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, m
 
 	_, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
+		return fmt.Errorf("Error Deleting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 
 	return nil
