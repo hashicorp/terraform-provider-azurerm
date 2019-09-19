@@ -62,3 +62,5 @@ The following attributes are exported:
 * `time_created` - A string containing the time the Analytics Item was created.
 
 * `time_modified` - A string containing the time the Analytics Item was last modified.
+
+* `version` - A string indicating the version of the query format
