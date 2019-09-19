@@ -205,7 +205,7 @@ func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, m
 	name := d.Get("name").(string)
 
 	var scopePath insights.ItemScopePath
-	if scopeName == "user" {
+	if scopeName == string(insights.ItemScopeUser) {
 		scopePath = insights.MyanalyticsItems
 	} else {
 		scopePath = insights.AnalyticsItems
