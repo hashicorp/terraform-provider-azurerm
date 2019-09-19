@@ -158,7 +158,6 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string)
 }
 
 func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState) (bool, error) {
-	resGroup := rs.Primary.Attributes["resource_group_name"]
 	scopeName := rs.Primary.Attributes["scope"]
 	typeName := rs.Primary.Attributes["type"]
 	name := rs.Primary.Attributes["name"]
@@ -171,6 +170,7 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 	if err != nil {
 		return false, fmt.Errorf("Error parsing resource ID: %s", err)
 	}
+	resGroup := id.ResourceGroup
 
 	appInsightsName := id.Path["components"]
 
@@ -210,7 +210,6 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_application_insights_analytics_item" "test" {
   name                    = "testquery"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   content                 = "requests #test"
   scope                   = "shared"
@@ -235,7 +234,6 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_application_insights_analytics_item" "test" {
   name                    = "testquery"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   content                 = "requests #updated"
   scope                   = "shared"
@@ -260,7 +258,6 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_application_insights_analytics_item" "test1" {
   name                    = "testquery1"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   content                 = "requests #test1"
   scope                   = "shared"
@@ -269,7 +266,6 @@ resource "azurerm_application_insights_analytics_item" "test1" {
 
 resource "azurerm_application_insights_analytics_item" "test2" {
   name                    = "testquery2"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   content                 = "requests #test2"
   scope                   = "user"
@@ -278,7 +274,6 @@ resource "azurerm_application_insights_analytics_item" "test2" {
 
 resource "azurerm_application_insights_analytics_item" "test3" {
   name                    = "testfunction1"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   content                 = "requests #test3"
   scope                   = "shared"

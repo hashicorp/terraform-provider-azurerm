@@ -29,8 +29,6 @@ func resourceArmApplicationInsightsAnalyticsItem() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"application_insights_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -98,14 +96,13 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
 	appInsightsID := d.Get("application_insights_id").(string)
 
 	resourceID, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return fmt.Errorf("Error parsing resource ID: %s", err)
 	}
-
+	resourceGroupName := resourceID.ResourceGroup
 	appInsightsName := resourceID.Path["components"]
 
 	id := d.Id()
@@ -174,7 +171,6 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 	idSuffix := resourcesArmApplicationInsightsAnalyticsItemGenerateIDSuffix(result.Scope, itemID)
 	appInsightsID := id[0 : len(id)-len(idSuffix)]
 	d.Set("application_insights_id", appInsightsID)
-	d.Set("resource_group_name", resourceGroupName)
 	d.Set("name", result.Name)
 	d.Set("version", result.Version)
 	d.Set("content", result.Content)

@@ -27,7 +27,6 @@ resource "azurerm_application_insights" "test" {
 
 resource "azurerm_application_insights_analytics_item" "test" {
   name                    = "testquery"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
   content                 = "requests //simple example query"
   scope                   = "shared"
@@ -40,8 +39,6 @@ resource "azurerm_application_insights_analytics_item" "test" {
 The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Application Insights Analytics Item. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which to create the Application Insights component.
 
 * `application_insights_id` - (Required) The ID of the Application Insights component on which the Analytics Item exists. Changing this forces a new resource to be created.
 
