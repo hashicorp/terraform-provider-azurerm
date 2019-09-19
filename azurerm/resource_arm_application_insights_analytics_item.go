@@ -106,13 +106,21 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	scopeName := d.Get("scope").(string)
 	typeName := d.Get("type").(string)
 
+	itemType := insights.ItemType(typeName)
+	itemScope := insights.ItemScope(scopeName)
 	properties := insights.ApplicationInsightsComponentAnalyticsItem{
 		Name:    &name,
-		Type:    insights.ItemType(typeName),
-		Scope:   insights.ItemScope(scopeName),
+		Type:    itemType,
+		Scope:   itemScope,
 		Content: &content,
 	}
-	result, err := client.Put(ctx, resourceGroupName, appInsightsName, insights.AnalyticsItems, properties, &overwrite)
+	var itemScopePath insights.ItemScopePath
+	if itemScope == insights.ItemScopeUser {
+		itemScopePath = insights.MyanalyticsItems
+	} else {
+		itemScopePath = insights.AnalyticsItems
+	}
+	result, err := client.Put(ctx, resourceGroupName, appInsightsName, itemScopePath, properties, &overwrite)
 	if err != nil {
 		return fmt.Errorf("Error Putting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", name, resourceGroupName, appInsightsName, err)
 	}
