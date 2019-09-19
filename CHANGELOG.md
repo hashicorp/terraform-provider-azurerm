@@ -2,6 +2,8 @@
 
 IMPROVEMENTS:
 
+* dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
+* kusto: updating to API version `2019-05-15` [GH-4376]
 * `azurerm_application_gateway` - support for key vault secret in `ssl_certificate` blocks ([#3935](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3935))
 * `azurerm_key_vault` - support for safe delete mode in key vaults
 

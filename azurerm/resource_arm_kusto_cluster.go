@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -46,9 +46,22 @@ func resourceArmKustoCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validateAzureRMKustoClusterSkuName(),
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(kusto.DevNoSLAStandardD11V2),
+								string(kusto.StandardD11V2),
+								string(kusto.StandardD12V2),
+								string(kusto.StandardD13V2),
+								string(kusto.StandardD14V2),
+								string(kusto.StandardDS13V21TBPS),
+								string(kusto.StandardDS13V22TBPS),
+								string(kusto.StandardDS14V23TBPS),
+								string(kusto.StandardDS14V24TBPS),
+								string(kusto.StandardL16s),
+								string(kusto.StandardL4s),
+								string(kusto.StandardL8s),
+							}, false),
 						},
 
 						"capacity": {
@@ -218,27 +231,6 @@ func validateAzureRMKustoClusterName(v interface{}, k string) (warnings []string
 	return warnings, errors
 }
 
-func validateAzureRMKustoClusterSkuName() schema.SchemaValidateFunc {
-	// using hard coded values because they're not like this in the sdk as constants
-	// found them here: https://docs.microsoft.com/en-us/rest/api/azurerekusto/clusters/createorupdate#azureskuname
-	possibleSkuNames := []string{
-		"Dev(No SLA)_Standard_D11_v2",
-		"Standard_D11_v2",
-		"Standard_D12_v2",
-		"Standard_D13_v2",
-		"Standard_D14_v2",
-		"Standard_DS13_v2+1TB_PS",
-		"Standard_DS13_v2+2TB_PS",
-		"Standard_DS14_v2+3TB_PS",
-		"Standard_DS14_v2+4TB_PS",
-		"Standard_L16s",
-		"Standard_L4s",
-		"Standard_L8s",
-	}
-
-	return validation.StringInSlice(possibleSkuNames, false)
-}
-
 func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
 	skuList := d.Get("sku").([]interface{})
 
@@ -259,7 +251,7 @@ func expandKustoClusterSku(d *schema.ResourceData) (*kusto.AzureSku, error) {
 
 	azureSku := &kusto.AzureSku{
 		Name:     kusto.AzureSkuName(name),
-		Tier:     &tier,
+		Tier:     kusto.AzureSkuTier(tier),
 		Capacity: utils.Int32(int32(capacity)),
 	}
 
