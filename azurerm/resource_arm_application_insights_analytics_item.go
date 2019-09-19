@@ -101,14 +101,22 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	resourceGroupName := d.Get("resource_group_name").(string)
 	appInsightsID := d.Get("application_insights_id").(string)
 
-	id, err := azure.ParseAzureResourceID(appInsightsID)
+	resourceID, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return fmt.Errorf("Error parsing resource ID: %s", err)
 	}
 
-	appInsightsName := id.Path["components"]
+	appInsightsName := resourceID.Path["components"]
 
-	itemID := d.Id()
+	id := d.Id()
+	itemID := ""
+	if id != "" {
+		_, _, _, itemID, err = resourcesArmApplicationInsightsAnalyticsItemParseID(id)
+		if err != nil {
+			return fmt.Errorf("Error parsing Application Insights Analytics Item ID %s: %s", id, err)
+		}
+	}
+
 	name := d.Get("name").(string)
 	content := d.Get("content").(string)
 	scopeName := d.Get("scope").(string)
