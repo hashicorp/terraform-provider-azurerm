@@ -33,6 +33,11 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "content", "requests #test"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
