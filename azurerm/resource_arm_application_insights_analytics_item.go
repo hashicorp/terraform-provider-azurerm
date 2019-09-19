@@ -141,7 +141,14 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 		return fmt.Errorf("Error Putting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", name, resourceGroupName, appInsightsName, err)
 	}
 
-	d.SetId(*result.ID)
+	// See comments in Read method about ID format
+	var generatedID string
+	if itemScope == insights.ItemScopeShared {
+		generatedID = appInsightsID + "/analyticsItems/" + *result.ID
+	} else {
+		generatedID = appInsightsID + "/myanalyticsItems/" + *result.ID
+	}
+	d.SetId(generatedID)
 
 	return resourceArmApplicationInsightsAnalyticsItemRead(d, meta)
 }
@@ -150,28 +157,30 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	appInsightsID := d.Get("application_insights_id").(string)
-	scopeName := d.Get("scope").(string)
-	itemID := d.Id()
+	id := d.Id()
 
-	id, err := azure.ParseAzureResourceID(appInsightsID)
+	resourceID, err := azure.ParseAzureResourceID(id)
 	if err != nil {
 		return fmt.Errorf("Error parsing resource ID: %s", err)
 	}
+	resourceGroupName := resourceID.Path["resourceGroups"]
+	appInsightsName := resourceID.Path["components"]
 
-	appInsightsName := id.Path["components"]
-	name := d.Get("name").(string)
-
-	var scopePath insights.ItemScopePath
-	if scopeName == "user" {
-		scopePath = insights.MyanalyticsItems
-	} else {
-		scopePath = insights.AnalyticsItems
+	// Use the following generated ID format:
+	//  <appinsightsID>/analyticsItems/<itemID>     [for shared scope items]
+	//  <appinsightsID>/myanalyticsItems/<itemID>   [for user scope items]
+	// Pull out the itemID and note the scope used
+	itemID := resourceID.Path["analyticsItems"]
+	itemScopePath := insights.AnalyticsItems
+	if itemID == "" {
+		// no "analyticsItems" component - try "myanalyticsItems" and set scope path
+		itemID = resourceID.Path["myanalyticsItems"]
+		itemScopePath = insights.MyanalyticsItems
 	}
-	result, err := client.Get(ctx, resourceGroupName, appInsightsName, scopePath, itemID, name)
+
+	result, err := client.Get(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
-		return fmt.Errorf("Error Getting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", name, resourceGroupName, appInsightsName, err)
+		return fmt.Errorf("Error Getting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 
 	d.Set("version", result.Version)
