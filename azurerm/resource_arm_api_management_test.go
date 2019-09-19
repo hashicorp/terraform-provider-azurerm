@@ -404,10 +404,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy {
     xml_content = <<XML
@@ -436,10 +433,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy {
     xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
@@ -462,10 +456,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy = []
 }
@@ -527,10 +518,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   sign_in {
     enabled = true

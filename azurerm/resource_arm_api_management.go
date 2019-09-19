@@ -98,6 +98,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"sku_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:      true, // Remove computed in 2.0
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
 					string(apimanagement.SkuTypeDeveloper),
@@ -529,7 +530,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 	resourceGroup := id.ResourceGroup
 	name := id.Path["service"]
-	
+
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -599,7 +600,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	if sku := resp.Sku; sku != nil {
-			// Remove in 2.0
+		// Remove in 2.0
 		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
