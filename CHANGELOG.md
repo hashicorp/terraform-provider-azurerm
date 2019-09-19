@@ -1,5 +1,9 @@
 ## 1.35.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource:** `azurerm_bot_channel_slack` [GH-4367]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
