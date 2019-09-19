@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `type` - (Required) The type of Analytics Item to create. Can be one of `query`, `function`, `folder`, `recent`. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The scope for the Analytics Item. Can be `shared` or `user`. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope for the Analytics Item. Can be `shared` or `user`. Changing this forces a new resource to be created. Must be `shared` for for functions.
 
 * `content` - (Required) The content for the Analytics Item, for example the query text if `type` is `query`.
 
