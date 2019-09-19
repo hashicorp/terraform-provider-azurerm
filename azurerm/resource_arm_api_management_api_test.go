@@ -46,7 +46,7 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 // Remove in 2.0
 func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{

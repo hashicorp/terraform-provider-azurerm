@@ -24,11 +24,11 @@ func SplitSku(sku string) (string, int32, error) {
 	return skuParts[0], int32(capacity), nil
 }
 
-// SkuNameStringInSlice returns a SchemaValidateFunc which tests if the provided value
+// MinCapacitySkuNameInSlice returns a SchemaValidateFunc which tests if the provided value
 // is of type string and matches the value of an element in the valid slice
 // will test with in lower case if ignoreCase is true will also validate if the
 // capacity if above passed minCapacity value
-func SkuNameStringInSlice(valid []string, minCapacity int32, ignoreCase bool) schema.SchemaValidateFunc {
+func MinCapacitySkuNameInSlice(valid []string, minCapacity int32, ignoreCase bool) schema.SchemaValidateFunc {
 	return func(i interface{}, k string) (s []string, es []error) {
 		v, ok := i.(string)
 		if !ok {
