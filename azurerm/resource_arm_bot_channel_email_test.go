@@ -1,0 +1,170 @@
+package azurerm
+
+import (
+	"fmt"
+	"net/http"
+	"testing"
+
+	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMBotChannelEmail_basicConfig(ri, testLocation())
+	resourceName := "azurerm_bot_channel_email.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBotChannelEmailExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"email_password",
+				},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMBotChannelEmail_basicConfig(ri, testLocation())
+	config2 := testAccAzureRMBotChannelEmail_basicUpdate(ri, testLocation())
+	resourceName := "azurerm_bot_channel_email.test"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBotChannelEmailDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBotChannelEmailExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"email_password",
+				},
+			},
+			{
+				Config: config2,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBotChannelEmailExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"email_password",
+				},
+			},
+		},
+	})
+}
+
+func testCheckAzureRMBotChannelEmailExists(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("Not found: %s", name)
+		}
+
+		botName := rs.Primary.Attributes["bot_name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Email")
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameEmailChannel))
+		if err != nil {
+			return fmt.Errorf("Bad: Get on botChannelClient: %+v", err)
+		}
+
+		if utils.ResponseWasNotFound(resp.Response) {
+			return fmt.Errorf("Bad: Bot Channel Email %q (resource group: %q / bot: %q) does not exist", name, resourceGroup, botName)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMBotChannelEmailDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_bot_channel_email" {
+			continue
+		}
+
+		botName := rs.Primary.Attributes["bot_name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameEmailChannel))
+
+		if err != nil {
+			return nil
+		}
+
+		if resp.StatusCode != http.StatusNotFound {
+			return fmt.Errorf("Bot Channel Email still exists:\n%#v", resp.Properties)
+		}
+	}
+
+	return nil
+}
+
+func testAccAzureRMBotChannelEmail_basicConfig(rInt int, location string) string {
+	template := testAccAzureRMBotChannelsRegistration_basicConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_email" "test" {
+  bot_name            = "${azurerm_bot_channels_registration.test.name}"
+  location            = "${azurerm_bot_channels_registration.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  email_address       = "example@test.com"
+  email_password      = "password1"
+}
+`, template)
+}
+
+func testAccAzureRMBotChannelEmail_basicUpdate(rInt int, location string) string {
+	template := testAccAzureRMBotChannelsRegistration_basicConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_bot_channel_email" "test" {
+  bot_name            = "${azurerm_bot_channels_registration.test.name}"
+  location            = "${azurerm_bot_channels_registration.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  email_address       = "test@example.com"
+  email_password      = "password2"
+}
+`, template)
+}
