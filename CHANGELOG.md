@@ -1,5 +1,9 @@
 ## 1.35.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
+
 BUG FIXES:
 
 * `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
