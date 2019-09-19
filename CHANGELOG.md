@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
+* kusto: updating to API version `2019-05-15` [GH-4376]
 
 BUG FIXES:
 
