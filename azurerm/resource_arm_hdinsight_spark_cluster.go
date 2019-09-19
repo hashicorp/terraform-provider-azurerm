@@ -243,7 +243,7 @@ func resourceArmHDInsightSparkClusterRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("Error flattening `component_version`: %+v", err)
 			}
 
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(d, configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 		}

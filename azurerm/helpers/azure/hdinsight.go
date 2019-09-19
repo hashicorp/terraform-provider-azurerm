@@ -117,7 +117,7 @@ func ExpandHDInsightsConfigurations(input []interface{}) map[string]interface{} 
 	}
 }
 
-func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
+func FlattenHDInsightsConfigurations(d *schema.ResourceData, input map[string]*string) []interface{} {
 	enabled := false
 	if v, exists := input["restAuthCredential.isEnabled"]; exists && v != nil {
 		e, err := strconv.ParseBool(*v)
@@ -131,7 +131,12 @@ func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
 		username = *v
 	}
 
+	// password is returned as `****` so let's look it up
 	password := ""
+	if v, ok := d.GetOk("gateway.0.password"); ok {
+		password = v.(string)
+	}
+
 	if v, exists := input["restAuthCredential.password"]; exists && v != nil {
 		password = *v
 	}

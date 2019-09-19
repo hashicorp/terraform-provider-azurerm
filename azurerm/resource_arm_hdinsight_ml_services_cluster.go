@@ -261,7 +261,7 @@ func resourceArmHDInsightMLServicesClusterRead(d *schema.ResourceData, meta inte
 		d.Set("tier", string(props.Tier))
 
 		if def := props.ClusterDefinition; def != nil {
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(d, configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 

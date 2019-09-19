@@ -128,7 +128,7 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 			if kind := def.Kind; kind != nil {
 				d.Set("kind", strings.ToLower(*kind))
 			}
-			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
+			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(d, configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
 			}
 		}
