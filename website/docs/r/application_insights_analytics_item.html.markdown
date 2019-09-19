@@ -29,7 +29,7 @@ resource "azurerm_application_insights_analytics_item" "test" {
   name                    = "testquery"
   resource_group_name     = "${azurerm_resource_group.test.name}"
   application_insights_id = "${azurerm_application_insights.test.id}"
-  content                 = "requests #simple example query"
+  content                 = "requests //simple example query"
   scope                   = "shared"
   type                    = "query"
 }
