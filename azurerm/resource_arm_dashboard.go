@@ -32,7 +32,7 @@ func resourceArmDashboard() *schema.Resource {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Computed:  true,
-				StateFunc: normalizeJson, // this func is in the arm template resource... should i copy it here to own my own one?
+				StateFunc: normalizeJson,
 			},
 		},
 	}
@@ -70,20 +70,13 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	// get it back again to set the props
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
-		}
-		return fmt.Errorf("Error making Read request for Dashboard %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request for Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	props, jsonErr := json.Marshal(resp.DashboardProperties)
 	if jsonErr != nil {
 		return fmt.Errorf("Error parsing DashboardProperties JSON: %+v", jsonErr)
 	}
-	d.Set("dashboard_properties", props)
-	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
 
 	return resourceArmDashboardRead(d, meta)
 }
@@ -101,11 +94,14 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request for Dashboard %q: %+v", name, err)
+		return fmt.Errorf("Error making Read request for Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*resp.Location))
+	}
+	
 
 	props, jsonErr := json.Marshal(resp.DashboardProperties)
 	if jsonErr != nil {

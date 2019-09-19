@@ -10,9 +10,6 @@ description: |-
 
 Manages a shared dashboard in the Azure Portal.
 
-It is recommended to follow the steps outlined 
-[here](https://docs.microsoft.com/en-us/azure/azure-portal/azure-portal-dashboards-create-programmatically#fetch-the-json-representation-of-the-dashboard) to create a Dashboard in the Portal and extract the relevant JSON to use in this resource. From the extracted JSON, the content within the `properties: {}` object can used. Variables can be injected as needed - see below example.
-
 ## Example Usage
 
 ```hcl
@@ -153,6 +150,8 @@ DASH
     }
 
 ```
+It is recommended to follow the steps outlined 
+[here](https://docs.microsoft.com/en-us/azure/azure-portal/azure-portal-dashboards-create-programmatically#fetch-the-json-representation-of-the-dashboard) to create a Dashboard in the Portal and extract the relevant JSON to use in this resource. From the extracted JSON, the content within the `properties: {}` object can used. Variables can be injected as needed - see above example.
 
 ## Argument Reference
 
