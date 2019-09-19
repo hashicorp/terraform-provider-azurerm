@@ -862,7 +862,6 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 			output = append(output, ev)
 		}
 	} else {
-
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:  utils.String(k),
