@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
@@ -51,46 +52,90 @@ func resourceArmHealthcareService() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				MinItems: 1,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.UUID,
+				},
+			},
+
+			"authentication_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 3,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"object_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+						"authority": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"audience": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"smart_proxy_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
 			},
-			/*
-				"cors_configuration": {
-					Type:     schema.TypeList,
-					Computed: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"origins": {
-								Type:     schema.TypeString,
-								Computed: true,
+
+			"cors_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 5,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allowed_origins": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 64,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
-							"headers": {
-								Type:     schema.TypeString,
-								Computed: true,
+						},
+						"allowed_headers": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 64,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
-							"methods": {
-								Type:     schema.TypeString,
-								Computed: true,
+						},
+						"allowed_methods": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 64,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								Elem: &schema.Schema{
+									Type: schema.TypeString,
+									ValidateFunc: validation.StringInSlice([]string{
+										"DELETE",
+										"GET",
+										"HEAD",
+										"MERGE",
+										"POST",
+										"OPTIONS",
+										"PUT"}, false),
+								},
 							},
-							"max_age": {
-								Type:     schema.TypeInt,
-								Computed: true,
-							},
-							"allow_credentials": {
-								Type:     schema.TypeBool,
-								Computed: true,
-							},
+						},
+						"max_age_in_seconds": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 2000000000),
+						},
+						"allow_credentials": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
-			*/
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -111,7 +156,6 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 
 	kind := d.Get("kind").(string)
 	cdba := int32(d.Get("cosmosdb_throughput").(int))
-	accessPolicyObjectIds := d.Get("access_policy_object_ids").([]interface{})
 
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
@@ -126,23 +170,17 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 		}
 	}
 
-	var svcAccessPolicyArray []healthcareapis.ServiceAccessPolicyEntry
-	for _, objectId := range accessPolicyObjectIds {
-		objectIdMap := objectId.(map[string]interface{})
-		objectIdsStr := objectIdMap["object_id"].(string)
-		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: &objectIdsStr}
-		svcAccessPolicyArray = append(svcAccessPolicyArray, svcAccessPolicyObjectId)
-	}
-
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
 		Location: utils.String(location),
 		Tags:     expandedTags,
 		Kind:     &kind,
 		Properties: &healthcareapis.ServicesProperties{
-			AccessPolicies: &svcAccessPolicyArray,
+			AccessPolicies: expandAzureRMhealthcareapisAccessPolicyEntries(d),
 			CosmosDbConfiguration: &healthcareapis.ServiceCosmosDbConfigurationInfo{
 				OfferThroughput: &cdba,
 			},
+			CorsConfiguration:           expandAzureRMhealthcareapisCorsConfiguration(d),
+			AuthenticationConfiguration: expandAzureRMhealthcareapisAuthentication(d),
 		},
 	}
 
@@ -199,40 +237,56 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("kind", kind)
 	}
 	if properties := resp.Properties; properties != nil {
-		if err := d.Set("access_policy_object_ids", azure.FlattenHealthcareAccessPolicies(properties.AccessPolicies)); err != nil {
-			return fmt.Errorf("Error setting 'access_policy_object_ids': %+v", err)
+		if config := properties.AccessPolicies; config != nil {
+			d.Set("access_policy_object_ids", config)
 		}
 		if config := properties.CosmosDbConfiguration; config != nil {
 			d.Set("cosmosdb_throughput", config.OfferThroughput)
 		}
+
+		authOutput := make([]interface{}, 0)
 		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
-			d.Set("authentication_configuration_authority", authConfig.Authority)
-			d.Set("authentication_configuration_audience", authConfig.Audience)
-			d.Set("authentication_configuration_smart_proxy_enabled", authConfig.SmartProxyEnabled)
+			output := make(map[string]interface{})
+			if authConfig.Authority != nil {
+				output["authority"] = *authConfig.Authority
+			}
+			if authConfig.Audience != nil {
+				output["audience"] = *authConfig.Audience
+			}
+			if authConfig.SmartProxyEnabled != nil {
+				output["smart_proxy_enabled"] = *authConfig.SmartProxyEnabled
+			}
+			authOutput = append(authOutput, output)
 		}
+
+		if err := d.Set("authentication_configuration", authOutput); err != nil {
+			return fmt.Errorf("Error setting `authentication_configuration`: %+v", authOutput)
+		}
+
 		corsOutput := make([]interface{}, 0)
 		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
 			output := make(map[string]interface{})
 			if corsConfig.Origins != nil {
-				output["origins"] = *corsConfig.Origins
+				output["allowed_origins"] = *corsConfig.Origins
 			}
 			if corsConfig.Headers != nil {
-				output["headers"] = *corsConfig.Headers
+				output["allowed_headers"] = *corsConfig.Headers
 			}
 			if corsConfig.Methods != nil {
-				output["methods"] = *corsConfig.Methods
+				output["allowed_methods"] = *corsConfig.Methods
 			}
 			if corsConfig.MaxAge != nil {
-				output["max_age"] = *corsConfig.MaxAge
+				output["max_age_in_seconds"] = *corsConfig.MaxAge
 			}
 			if corsConfig.AllowCredentials != nil {
 				output["allow_credentials"] = *corsConfig.AllowCredentials
 			}
 			corsOutput = append(corsOutput, output)
 		}
-		/*		if err := d.Set("cors_configuration", corsOutput); err != nil {
-				return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
-			}*/
+
+		if err := d.Set("cors_configuration", corsOutput); err != nil {
+			return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
@@ -260,4 +314,77 @@ func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func expandAzureRMhealthcareapisAccessPolicyEntries(d *schema.ResourceData) *[]healthcareapis.ServiceAccessPolicyEntry {
+	accessPolicyObjectIds := d.Get("access_policy_object_ids").([]interface{})
+	svcAccessPolicyArray := make([]healthcareapis.ServiceAccessPolicyEntry, 0)
+
+	for _, objectId := range accessPolicyObjectIds {
+		objectIdsStr := objectId.(string)
+		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: &objectIdsStr}
+		svcAccessPolicyArray = append(svcAccessPolicyArray, svcAccessPolicyObjectId)
+	}
+
+	return &svcAccessPolicyArray
+}
+
+func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healthcareapis.ServiceCorsConfigurationInfo {
+	corsConfigRaw := d.Get("cors_configuration").([]interface{})
+
+	if len(corsConfigRaw) == 0 {
+		return &healthcareapis.ServiceCorsConfigurationInfo{}
+	}
+
+	allowedOrigins := make([]string, 0)
+	allowedHeaders := make([]string, 0)
+	allowedMethods := make([]string, 0)
+	maxAgeInSeconds := int32(0)
+	allowCredentials := true
+
+	for _, attr := range corsConfigRaw {
+		corsConfigAttr := attr.(map[string]interface{})
+
+		allowedOrigins = *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].([]interface{}))
+		allowedHeaders = *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].([]interface{}))
+		allowedMethods = *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
+		maxAgeInSeconds = int32(corsConfigAttr["max_age_in_seconds"].(int))
+		allowCredentials = corsConfigAttr["allow_credentials"].(bool)
+	}
+
+	cors := &healthcareapis.ServiceCorsConfigurationInfo{
+		Origins:          &allowedOrigins,
+		Headers:          &allowedHeaders,
+		Methods:          &allowedMethods,
+		MaxAge:           &maxAgeInSeconds,
+		AllowCredentials: &allowCredentials,
+	}
+	return cors
+}
+
+func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthcareapis.ServiceAuthenticationConfigurationInfo {
+	authConfigRaw := d.Get("authentication_configuration").([]interface{})
+
+	if len(authConfigRaw) == 0 {
+		return &healthcareapis.ServiceAuthenticationConfigurationInfo{}
+	}
+
+	authority := ""
+	audience := ""
+	smart_proxy_enabled := true
+
+	for _, attr := range authConfigRaw {
+		authConfigAttr := attr.(map[string]interface{})
+
+		authority = authConfigAttr["authority"].(string)
+		audience = authConfigAttr["audience"].(string)
+		smart_proxy_enabled = authConfigAttr["smart_proxy_enabled"].(bool)
+	}
+
+	auth := &healthcareapis.ServiceAuthenticationConfigurationInfo{
+		Authority:         &authority,
+		Audience:          &audience,
+		SmartProxyEnabled: &smart_proxy_enabled,
+	}
+	return auth
 }

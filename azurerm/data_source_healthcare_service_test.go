@@ -22,7 +22,14 @@ func TestAccAzureRMDataSourceHealthcareService(t *testing.T) {
 				Config: testAccAzureRMDataSourceHealthcareService_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "location"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "kind"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cosmosdb_throughput"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy_object_ids"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "authentication_configuration"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "cors_configuration"),
+
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "2"),
 				),
 			},

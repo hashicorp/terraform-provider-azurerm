@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,45 +38,78 @@ func dataSourceArmHealthcareService() *schema.Resource {
 			"access_policy_object_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.UUID,
+				},
+			},
+
+			"authentication_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"object_id": {
+						"authority": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"audience": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"smart_proxy_enabled": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 					},
 				},
 			},
-			/*
-				"cors_configuration": {
-					Type:     schema.TypeList,
-					Computed: true,
-					Elem: &schema.Resource{
-						Schema: map[string]*schema.Schema{
-							"origins": {
-								Type:     schema.TypeString,
-								Computed: true,
+
+			"cors_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allowed_origins": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
-							"headers": {
-								Type:     schema.TypeString,
-								Computed: true,
+						},
+						"allowed_headers": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
-							"methods": {
-								Type:     schema.TypeString,
-								Computed: true,
+						},
+						"allowed_methods": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
-							"max_age": {
-								Type:     schema.TypeInt,
-								Computed: true,
+						},
+						"max_age_in_seconds": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
-							"allow_credentials": {
-								Type:     schema.TypeBool,
-								Computed: true,
-							},
+						},
+						"allow_credentials": {
+							Type:     schema.TypeBool,
+							Computed: true,
 						},
 					},
 				},
-			*/
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -89,6 +123,7 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
+
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] Healthcare Service %q was not found (Resource Group %q)", name, resourceGroup)
@@ -99,6 +134,58 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(*resp.ID)
+	if kind := resp.Kind; kind != nil {
+		d.Set("kind", kind)
+	}
+
+	if properties := resp.Properties; properties != nil {
+		if config := properties.AccessPolicies; config != nil {
+			d.Set("access_policy_object_ids", config)
+		}
+		if config := properties.CosmosDbConfiguration; config != nil {
+			d.Set("cosmosdb_throughput", config.OfferThroughput)
+		}
+
+		authOutput := make([]interface{}, 0)
+		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
+			output := make(map[string]interface{})
+			if authConfig.Authority != nil {
+				output["authority"] = *authConfig.Authority
+			}
+			if authConfig.Audience != nil {
+				output["audience"] = *authConfig.Audience
+			}
+			if authConfig.SmartProxyEnabled != nil {
+				output["smart_proxy_enabled"] = *authConfig.SmartProxyEnabled
+			}
+			authOutput = append(authOutput, output)
+		}
+
+		if err := d.Set("authentication_configuration", authOutput); err != nil {
+			return fmt.Errorf("Error setting `authentication_configuration`: %+v", authOutput)
+		}
+
+		corsOutput := make([]interface{}, 0)
+		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
+			output := make(map[string]interface{})
+			if corsConfig.Origins != nil {
+				output["allowed_origins"] = *corsConfig.Origins
+			}
+			if corsConfig.Headers != nil {
+				output["allowed_headers"] = *corsConfig.Headers
+			}
+			if corsConfig.Methods != nil {
+				output["allowed_methods"] = *corsConfig.Methods
+			}
+			if corsConfig.MaxAge != nil {
+				output["max_age_in_seconds"] = *corsConfig.MaxAge
+			}
+			if corsConfig.AllowCredentials != nil {
+				output["allow_credentials"] = *corsConfig.AllowCredentials
+			}
+			corsOutput = append(corsOutput, output)
+		}
+	}
 
 	flattenAndSetTags(d, resp.Tags)
 

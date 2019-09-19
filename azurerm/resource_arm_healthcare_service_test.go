@@ -111,8 +111,23 @@ resource "azurerm_healthcare_service" "test" {
     purpose     = "AcceptanceTests"
   }
 
-  access_policy_object_ids {
-    object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
+  access_policy_object_ids = [
+     "f96779be-755e-4274-a54f-41de522cee1c",
+     "5fa61245-b31c-4cad-92ca-2ffc0f43d4e1"
+  ]
+
+  authentication_configuration {
+    authority = "https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}"
+    audience  = "https://azurehealthcareapis.com"
+    smart_proxy_enabled = "true"
+  }
+
+  cors_configuration {
+      allowed_origins    = ["http://www.example.com","http://www.example2.com"]
+      allowed_headers    = ["x-tempo-*","x-tempo2-*"]
+      allowed_methods    = ["GET", "PUT"]
+      max_age_in_seconds = "500"
+	  allow_credentials = "true"
   }
 }
 `, rInt, location, rInt)
