@@ -34,10 +34,6 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
-				},
 			},
 		},
 	})
@@ -67,10 +63,6 @@ func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
-				},
 			},
 		},
 	})
@@ -97,10 +89,6 @@ func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
-				},
 			},
 		},
 	})
@@ -155,10 +143,6 @@ func TestAccAzureRMApiManagementApi_soapPassthrough(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
-				},
 			},
 		},
 	})
@@ -185,8 +169,6 @@ func TestAccAzureRMApiManagementApi_importSwagger(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
 					// not returned from the API
 					"import",
 				},
@@ -216,8 +198,6 @@ func TestAccAzureRMApiManagementApi_importWsdl(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
 					// not returned from the API
 					"import",
 				},
@@ -247,8 +227,6 @@ func TestAccAzureRMApiManagementApi_importUpdate(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
 					// not returned from the API
 					"import",
 				},
@@ -264,8 +242,6 @@ func TestAccAzureRMApiManagementApi_importUpdate(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
 					// not returned from the API
 					"import",
 				},
@@ -294,10 +270,6 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"sku",
-					"sku_name",
-				},
 			},
 		},
 	})
