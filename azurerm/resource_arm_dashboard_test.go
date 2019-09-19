@@ -13,7 +13,6 @@ import (
 func TestAccResourceArmDashboard_basic(t *testing.T) {
 	resourceName := "azurerm_dashboard.test"
 	ri := tf.AccRandTimeInt()
-	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 	config := testResourceArmDashboard_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -25,8 +24,12 @@ func TestAccResourceArmDashboard_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDashboardExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "resource_group_name", resourceGroupName),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

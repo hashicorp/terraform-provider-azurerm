@@ -19,6 +19,10 @@ func resourceArmDashboard() *schema.Resource {
 		Update: resourceArmDashboardCreateUpdate,
 		Delete: resourceArmDashboardDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -73,7 +77,7 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error making Read request for Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	props, jsonErr := json.Marshal(resp.DashboardProperties)
+	_, jsonErr := json.Marshal(resp.DashboardProperties)
 	if jsonErr != nil {
 		return fmt.Errorf("Error parsing DashboardProperties JSON: %+v", jsonErr)
 	}
@@ -85,8 +89,12 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).portal.DashboardsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, parseErr := azure.ParseAzureResourceID(d.Id())
+	if parseErr != nil {
+		return parseErr
+	}
+	resourceGroup := id.ResourceGroup
+	name := id.Path["dashboards"]
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -98,10 +106,10 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
-	
 
 	props, jsonErr := json.Marshal(resp.DashboardProperties)
 	if jsonErr != nil {
