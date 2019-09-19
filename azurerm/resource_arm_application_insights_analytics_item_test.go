@@ -42,7 +42,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMApplicationInsightsAnalyticsItem_basicWithUpdate(t *testing.T) {
+func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 	resourceName := "azurerm_application_insights_analytics_item.test"
 	ri := tf.AccRandTimeInt()
 	config1 := testAccAzureRMApplicationInsightsAnalyticsItem_basic(ri, testLocation())
