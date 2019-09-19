@@ -137,10 +137,6 @@ func FlattenHDInsightsConfigurations(d *schema.ResourceData, input map[string]*s
 		password = v.(string)
 	}
 
-	if v, exists := input["restAuthCredential.password"]; exists && v != nil {
-		password = *v
-	}
-
 	return []interface{}{
 		map[string]interface{}{
 			"enabled":  enabled,
