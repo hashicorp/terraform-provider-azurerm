@@ -25,6 +25,7 @@ func resourceArmApplicationInsightsAnalyticsItem() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.NoEmptyStrings,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
