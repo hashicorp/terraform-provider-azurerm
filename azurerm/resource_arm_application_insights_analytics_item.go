@@ -68,6 +68,11 @@ func resourceArmApplicationInsightsAnalyticsItem() *schema.Resource {
 				}, false),
 			},
 
+			"function_alias": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"time_created": {
 				Type:     schema.TypeString,
 				Computed: true,

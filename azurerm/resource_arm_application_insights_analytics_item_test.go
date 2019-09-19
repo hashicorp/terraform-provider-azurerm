@@ -40,6 +40,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	resourceName1 := "azurerm_application_insights_analytics_item.test1"
 	resourceName2 := "azurerm_application_insights_analytics_item.test2"
+	resourceName3 := "azurerm_application_insights_analytics_item.test3"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMApplicationInsightsAnalyticsItem_multiple(ri, testLocation())
 
@@ -49,6 +50,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 		CheckDestroy: resource.ComposeTestCheckFunc(
 			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery1", insights.ItemScopeShared),
 			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery2", insights.ItemScopeUser),
+			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testfunction1", insights.ItemScopeShared),
 		),
 		Steps: []resource.TestStep{
 			{
@@ -56,6 +58,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName1, "testquery1", insights.ItemScopeShared),
 					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName2, "testquery2", insights.ItemScopeUser),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName3, "testfunction1", insights.ItemScopeShared),
 					resource.TestCheckResourceAttr(resourceName1, "name", "testquery1"),
 					resource.TestCheckResourceAttr(resourceName1, "scope", "shared"),
 					resource.TestCheckResourceAttr(resourceName1, "type", "query"),
@@ -64,6 +67,11 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName2, "scope", "user"),
 					resource.TestCheckResourceAttr(resourceName2, "type", "query"),
 					resource.TestCheckResourceAttr(resourceName2, "content", "requests #test2"),
+					resource.TestCheckResourceAttr(resourceName3, "name", "testfunction1"),
+					resource.TestCheckResourceAttr(resourceName3, "scope", "shared"),
+					resource.TestCheckResourceAttr(resourceName3, "type", "function"),
+					resource.TestCheckResourceAttr(resourceName3, "content", "requests #test3"),
+					resource.TestCheckResourceAttr(resourceName3, "function_alias", "myfunction"),
 				),
 			},
 		},
@@ -199,6 +207,16 @@ resource "azurerm_application_insights_analytics_item" "test2" {
   content                 = "requests #test2"
   scope                   = "user"
   type                    = "query"
+}
+
+resource "azurerm_application_insights_analytics_item" "test3" {
+  name                    = "testfunction1"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  application_insights_id = "${azurerm_application_insights.test.id}"
+  content                 = "requests #test3"
+  scope                   = "shared"
+  type                    = "function"
+  function_alias          = "myfunction"
 }
 `, rInt, location, rInt)
 }
