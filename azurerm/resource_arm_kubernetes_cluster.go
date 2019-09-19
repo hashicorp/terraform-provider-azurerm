@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"golang.org/x/tools/container/intsets"
 	"log"
 	"strings"
 
@@ -446,6 +447,48 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"load_balancer_profile": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							ForceNew: true,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"managed_outbound_ips": {
+										Type:          schema.TypeInt,
+										Optional:      true,
+										ValidateFunc:  validate.IntBetweenAndNot(1, 100, intsets.MaxInt),
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefixes", "network_profile.0.load_balancer_profile.0.outbound_ips"},
+									},
+									"outbound_ip_prefixes": {
+										Type:          schema.TypeSet,
+										Optional:      true,
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ips"},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: azure.ValidateResourceID,
+										},
+									},
+									"outbound_ips": {
+										Type:          schema.TypeSet,
+										Optional:      true,
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ip_prefixes"},
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: azure.ValidateResourceID,
+										},
+									},
+									"effective_outbound_ips": {
+										Type:     schema.TypeSet,
+										Optional: true,
+										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -658,7 +701,10 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 	}
 	windowsProfile := expandKubernetesClusterWindowsProfile(d)
 	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
-	networkProfile := expandKubernetesClusterNetworkProfile(d)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(d)
+	if err != nil {
+		return err
+	}
 	addonProfiles := expandKubernetesClusterAddonProfiles(d)
 
 	t := d.Get("tags").(map[string]interface{})
@@ -1264,10 +1310,10 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	return []interface{}{values}
 }
 
-func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfileType {
+func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) (*containerservice.NetworkProfileType, error) {
 	configs := d.Get("network_profile").([]interface{})
 	if len(configs) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	config := configs[0].(map[string]interface{})
@@ -1278,10 +1324,16 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerser
 
 	loadBalancerSku := config["load_balancer_sku"].(string)
 
+	loadBalancerProfile, err := expandLoadBalancerProfile(config["load_balancer_profile"].([]interface{}), loadBalancerSku)
+	if err != nil {
+		return nil, err
+	}
+
 	networkProfile := containerservice.NetworkProfileType{
-		NetworkPlugin:   containerservice.NetworkPlugin(networkPlugin),
-		NetworkPolicy:   containerservice.NetworkPolicy(networkPolicy),
-		LoadBalancerSku: containerservice.LoadBalancerSku(loadBalancerSku),
+		NetworkPlugin:       containerservice.NetworkPlugin(networkPlugin),
+		NetworkPolicy:       containerservice.NetworkPolicy(networkPolicy),
+		LoadBalancerSku:     containerservice.LoadBalancerSku(loadBalancerSku),
+		LoadBalancerProfile: loadBalancerProfile,
 	}
 
 	if v, ok := config["dns_service_ip"]; ok && v.(string) != "" {
@@ -1304,7 +1356,62 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerser
 		networkProfile.ServiceCidr = utils.String(serviceCidr)
 	}
 
-	return &networkProfile
+	return &networkProfile, nil
+}
+
+func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
+	if d == nil || len(d) == 0 {
+		return nil, nil
+	}
+
+	if strings.ToLower(loadBalancerType) != "standard" {
+		return nil, fmt.Errorf("Only load balancer SKU 'Standard' supports load balancer profiles. Provided load balancer type: %s", loadBalancerType)
+	}
+
+	config := d[0].(map[string]interface{})
+
+	var managedOutboundIps *containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs
+	var outboundIpPrefixes *containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes
+	var outboundIps *containerservice.ManagedClusterLoadBalancerProfileOutboundIPs
+
+	if ipCount := config["managed_outbound_ips"]; ipCount != nil {
+		c := int32(ipCount.(int))
+		managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
+	}
+
+	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefixes"]); ipPrefixes != nil {
+		outboundIpPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
+	}
+
+	if outIps := idsToResourceReferences(config["outbound_ips"]); outIps != nil {
+		outboundIps = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
+	}
+
+	return &containerservice.ManagedClusterLoadBalancerProfile{
+		ManagedOutboundIPs: managedOutboundIps,
+		OutboundIPPrefixes: outboundIpPrefixes,
+		OutboundIPs:        outboundIps,
+	}, nil
+}
+
+func idsToResourceReferences(set interface{}) *[]containerservice.ResourceReference {
+	if set == nil {
+		return nil
+	}
+
+	s := set.(*schema.Set)
+	results := make([]containerservice.ResourceReference, 0)
+
+	for _, element := range s.List() {
+		id := element.(string)
+		results = append(results, containerservice.ResourceReference{ID: &id})
+	}
+
+	if len(results) > 0 {
+		return &results
+	}
+
+	return nil
 }
 
 func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
@@ -1339,6 +1446,38 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 	if profile.LoadBalancerSku != "" {
 		values["load_balancer_sku"] = string(profile.LoadBalancerSku)
 	}
+
+	lbProfiles := make([]interface{}, 0)
+
+	if profile.LoadBalancerProfile != nil {
+		lb := make(map[string]interface{})
+
+		if profile.LoadBalancerProfile.ManagedOutboundIPs != nil {
+			lb["managed_outbound_ips"] = profile.LoadBalancerProfile.ManagedOutboundIPs.Count
+		}
+
+		if profile.LoadBalancerProfile.OutboundIPs != nil {
+			lb["outbound_ips"] = profile.LoadBalancerProfile.OutboundIPs.PublicIPs
+		}
+
+		if profile.LoadBalancerProfile.OutboundIPPrefixes != nil {
+			lb["outbound_ip_prefixes"] = profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes
+		}
+
+		if profile.LoadBalancerProfile.EffectiveOutboundIPs != nil {
+			effectiveIps := make([]string, 0)
+
+			for _, ip := range *profile.LoadBalancerProfile.EffectiveOutboundIPs {
+				effectiveIps = append(effectiveIps, *ip.ID)
+			}
+
+			lb["effective_outbound_ips"] = effectiveIps
+		}
+
+		lbProfiles = append(lbProfiles, lb)
+	}
+
+	values["load_balancer_profile"] = lbProfiles
 
 	return []interface{}{values}
 }

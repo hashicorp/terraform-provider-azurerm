@@ -235,6 +235,24 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
 
+* `load_balancer_profile` - (Optional) A `load_balancer_profile` block. Dependent upon `load_balancer_sku` being `standard`.
+
+---
+
+A `load_balancer_profile` block supports the following:
+
+~> **NOTE:** These options are mutually exclusive.
+
+* `managed_outbound_ips` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
+
+* `outbound_ip_prefixes` - (Optional) Desired outbound IP Prefix resources for the cluster load balancer.
+
+* `outbound_ips` - (Optional) Desired outbound IP resources for the cluster load balancer.
+
+The following attributes are exported:
+
+* `effective_outbound_ips` - The outcome of the specified arguments.
+
 ---
 
 A `oms_agent` block supports the following:
