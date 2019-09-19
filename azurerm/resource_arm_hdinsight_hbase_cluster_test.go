@@ -36,6 +36,7 @@ func TestAccAzureRMHDInsightHBaseCluster_basic(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"roles.0.head_node.0.password",
+					"gateway.0.password",
 					"roles.0.head_node.0.vm_size",
 					"roles.0.worker_node.0.password",
 					"roles.0.worker_node.0.vm_size",
@@ -105,6 +106,7 @@ func TestAccAzureRMHDInsightHBaseCluster_update(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"roles.0.head_node.0.password",
+					"gateway.0.password",
 					"roles.0.head_node.0.vm_size",
 					"roles.0.worker_node.0.password",
 					"roles.0.worker_node.0.vm_size",
@@ -127,6 +129,7 @@ func TestAccAzureRMHDInsightHBaseCluster_update(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"roles.0.head_node.0.password",
+					"gateway.0.password",
 					"roles.0.head_node.0.vm_size",
 					"roles.0.worker_node.0.password",
 					"roles.0.worker_node.0.vm_size",
@@ -201,6 +204,7 @@ func TestAccAzureRMHDInsightHBaseCluster_virtualNetwork(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"roles.0.head_node.0.password",
+					"gateway.0.password",
 					"roles.0.head_node.0.vm_size",
 					"roles.0.worker_node.0.password",
 					"roles.0.worker_node.0.vm_size",
@@ -238,6 +242,7 @@ func TestAccAzureRMHDInsightHBaseCluster_complete(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"roles.0.head_node.0.password",
+					"gateway.0.password",
 					"roles.0.head_node.0.vm_size",
 					"roles.0.worker_node.0.password",
 					"roles.0.worker_node.0.vm_size",
