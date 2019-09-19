@@ -21,12 +21,12 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery", insights.ItemScopeShared),
+		CheckDestroy: testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery", insights.ItemScopeShared, insights.ItemTypeParameterQuery),
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName, "testquery", insights.ItemScopeShared),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName, "testquery", insights.ItemScopeShared, insights.ItemTypeParameterQuery),
 					resource.TestCheckResourceAttr(resourceName, "name", "testquery"),
 					resource.TestCheckResourceAttr(resourceName, "scope", "shared"),
 					resource.TestCheckResourceAttr(resourceName, "type", "query"),
@@ -48,17 +48,17 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		CheckDestroy: resource.ComposeTestCheckFunc(
-			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery1", insights.ItemScopeShared),
-			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery2", insights.ItemScopeUser),
-			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testfunction1", insights.ItemScopeShared),
+			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery1", insights.ItemScopeShared, insights.ItemTypeParameterQuery),
+			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testquery2", insights.ItemScopeUser, insights.ItemTypeParameterQuery),
+			testCheckAzureRMApplicationInsightAnalyticsItemDestroy("testfunction1", insights.ItemScopeShared, insights.ItemTypeParameterFunction),
 		),
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName1, "testquery1", insights.ItemScopeShared),
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName2, "testquery2", insights.ItemScopeUser),
-					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName3, "testfunction1", insights.ItemScopeShared),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName1, "testquery1", insights.ItemScopeShared, insights.ItemTypeParameterQuery),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName2, "testquery2", insights.ItemScopeUser, insights.ItemTypeParameterQuery),
+					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName3, "testfunction1", insights.ItemScopeShared, insights.ItemTypeParameterFunction),
 					resource.TestCheckResourceAttr(resourceName1, "name", "testquery1"),
 					resource.TestCheckResourceAttr(resourceName1, "scope", "shared"),
 					resource.TestCheckResourceAttr(resourceName1, "type", "query"),
@@ -78,7 +78,7 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMApplicationInsightAnalyticsItemDestroy(queryName string, itemScope insights.ItemScope) resource.TestCheckFunc {
+func testCheckAzureRMApplicationInsightAnalyticsItemDestroy(queryName string, itemScope insights.ItemScope, itemType insights.ItemTypeParameter) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "azurerm_application_insights_analytics_item" {
@@ -87,7 +87,7 @@ func testCheckAzureRMApplicationInsightAnalyticsItemDestroy(queryName string, it
 			name := rs.Primary.Attributes["name"]
 			resGroup := rs.Primary.Attributes["resource_group_name"]
 
-			exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs, queryName, itemScope)
+			exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs, queryName, itemScope, itemType)
 			if err != nil {
 				return fmt.Errorf("Error checking if item has been destroyed: %s", err)
 			}
@@ -100,7 +100,7 @@ func testCheckAzureRMApplicationInsightAnalyticsItemDestroy(queryName string, it
 	}
 }
 
-func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string, queryName string, itemScope insights.ItemScope) resource.TestCheckFunc {
+func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string, queryName string, itemScope insights.ItemScope, itemType insights.ItemTypeParameter) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -109,7 +109,7 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string,
 		name := rs.Primary.Attributes["name"]
 		resGroup := rs.Primary.Attributes["resource_group_name"]
 
-		exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs, queryName, itemScope)
+		exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs, queryName, itemScope, itemType)
 		if err != nil {
 			return fmt.Errorf("Error checking if item exists: %s", err)
 		}
@@ -121,7 +121,7 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string,
 	}
 }
 
-func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState, queryName string, itemScope insights.ItemScope) (bool, error) {
+func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState, queryName string, itemScope insights.ItemScope, itemType insights.ItemTypeParameter) (bool, error) {
 	resGroup := rs.Primary.Attributes["resource_group_name"]
 
 	appInsightsID := rs.Primary.Attributes["application_insights_id"]
@@ -136,7 +136,7 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	includeContent := false
-	resp, err := conn.List(ctx, resGroup, appInsightsName, insights.AnalyticsItems, itemScope, insights.ItemTypeParameterQuery, &includeContent)
+	resp, err := conn.List(ctx, resGroup, appInsightsName, insights.AnalyticsItems, itemScope, itemType, &includeContent)
 	if resp.StatusCode == http.StatusNotFound {
 		return false, nil
 	}
