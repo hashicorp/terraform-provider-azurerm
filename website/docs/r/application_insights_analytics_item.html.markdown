@@ -53,6 +53,8 @@ The following arguments are supported:
 
 * `content` - (Required) The content for the Analytics Item, for example the query text if `type` is `query`.
 
+* `function_alias` - (Optional) The alias to use for the function. Required when `type` is `function`.
+
 TODO!!
 
 ## Attributes Reference
