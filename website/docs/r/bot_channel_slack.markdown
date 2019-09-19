@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_slack"
 sidebar_current: "docs-azurerm-resource-bot-channel-slack"
 description: |-
-  Manages a Bot Channel for Slack.
+  Manages a Slack integration for a Bot Channel
 ---
 
 # azurerm_bot_connection
 
-Manages a Bot Channel for Slack.
+Manages a Slack integration for a Bot Channel
 
 ~> **Note** A bot can only have a single Slack Channel associated with it.
 
@@ -67,7 +67,7 @@ The following attributes are exported:
 
 ## Import
 
-Bot Channel can be imported using the `resource id`, e.g.
+The Slack Channel for a Bot can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_bot_channel_slack.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.BotService/botServices/example/channels/SlackChannel

@@ -76,7 +76,7 @@ func resourceArmBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) 
 		existing, err := client.Get(ctx, resourceGroup, string(botservice.ChannelNameSlackChannel), botName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of creating Bot Channel Slack (Resource Group %q / Bot %q): %+v", resourceGroup, botName, err)
+				return fmt.Errorf("Error checking for presence of creating Channel Slack for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
@@ -96,21 +96,21 @@ func resourceArmBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) 
 			},
 			ChannelName: botservice.ChannelNameSlackChannel1,
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, botName, botservice.ChannelNameSlackChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Bot Channel Slack (Resource Group %q / Bot %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Error issuing create request for Channel Slack for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
-		return fmt.Errorf("Error making get request for Bot Channel Slack (Resource Group %q / Bot %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Error making get request for Channel Slack for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Bot Channel Slack (Resource Group %q / Bot %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Cannot read Channel Slack for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -131,12 +131,12 @@ func resourceArmBotChannelSlackRead(d *schema.ResourceData, meta interface{}) er
 	resp, err := client.Get(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading Bot Channel Slack (Resource Group %q / Bot %q): %+v", id.ResourceGroup, botName, err)
+			log.Printf("[INFO] Channel Slack for Bot %q (Resource Group %q) was not found - removing from state!", id.ResourceGroup, botName)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading Bot Channel Slack (Resource Group %q / Bot %q): %+v", id.ResourceGroup, botName, err)
+		return fmt.Errorf("Error reading Channel Slack for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
 	}
 
 	d.Set("resource_group_name", id.ResourceGroup)
@@ -145,10 +145,8 @@ func resourceArmBotChannelSlackRead(d *schema.ResourceData, meta interface{}) er
 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsSlackChannel(); ok {
-			if channel != nil {
-				if channelProps := channel.Properties; channelProps != nil {
-					d.Set("client_id", channelProps.ClientID)
-				}
+			if channelProps := channel.Properties; channelProps != nil {
+				d.Set("client_id", channelProps.ClientID)
 			}
 		}
 	}
@@ -175,21 +173,21 @@ func resourceArmBotChannelSlackUpdate(d *schema.ResourceData, meta interface{}) 
 			},
 			ChannelName: botservice.ChannelNameSlackChannel1,
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
 		Kind:     botservice.KindBot,
 	}
 
 	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameSlackChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Bot Channel Slack (Resource Group %q / Bot %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Error issuing create request for Channel Slack for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
-		return fmt.Errorf("Error making get request for Bot Channel Slack (Resource Group %q / Bot %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Error making get request for Channel Slack for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Bot Channel Slack (Resource Group %q / Bot %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Cannot read Channel Slack for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -211,7 +209,7 @@ func resourceArmBotChannelSlackDelete(d *schema.ResourceData, meta interface{}) 
 	resp, err := client.Delete(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameSlackChannel))
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error deleting Bot Channel Slack (Resource Group %q / Bot %q): %+v", id.ResourceGroup, botName, err)
+			return fmt.Errorf("Error deleting Channel Slack for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
 		}
 	}
 
