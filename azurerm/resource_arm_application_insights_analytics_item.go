@@ -142,12 +142,7 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 	}
 
 	// See comments in resourcesArmApplicationInsightsAnalyticsItemParseID method about ID format
-	var generatedID string
-	if itemScope == insights.ItemScopeShared {
-		generatedID = appInsightsID + "/analyticsItems/" + *result.ID
-	} else {
-		generatedID = appInsightsID + "/myanalyticsItems/" + *result.ID
-	}
+	generatedID := appInsightsID + resourcesArmApplicationInsightsAnalyticsItemGenerateIDSuffix(itemScope, *result.ID)
 	d.SetId(generatedID)
 
 	return resourceArmApplicationInsightsAnalyticsItemRead(d, meta)
@@ -168,6 +163,11 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 		return fmt.Errorf("Error Getting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 
+	idSuffix := resourcesArmApplicationInsightsAnalyticsItemGenerateIDSuffix(result.Scope, itemID)
+	appInsightsID := id[0 : len(id)-len(idSuffix)]
+	d.Set("application_insights_id", appInsightsID)
+	d.Set("resource_group_name", resourceGroupName)
+	d.Set("name", result.Name)
 	d.Set("version", result.Version)
 	d.Set("content", result.Content)
 	d.Set("scope", string(result.Scope))
@@ -195,7 +195,7 @@ func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, m
 
 	_, err = client.Delete(ctx, resourceGroupName, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
-		return fmt.Errorf("Error Deleting Application Insights Analytics Item %s (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
+		return fmt.Errorf("Error Deleting Application Insights Analytics Item '%s' (Resource Group %s, App Insights Name: %s): %s", itemID, resourceGroupName, appInsightsName, err)
 	}
 
 	return nil
@@ -206,7 +206,7 @@ func resourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, str
 	if err != nil {
 		return "", "", "", "", fmt.Errorf("Error parsing resource ID: %s", err)
 	}
-	resourceGroupName := resourceID.Path["resourceGroups"]
+	resourceGroupName := resourceID.ResourceGroup
 	appInsightsName := resourceID.Path["components"]
 
 	// Use the following generated ID format:
@@ -222,4 +222,13 @@ func resourcesArmApplicationInsightsAnalyticsItemParseID(id string) (string, str
 	}
 
 	return resourceGroupName, appInsightsName, itemScopePath, itemID, nil
+}
+
+func resourcesArmApplicationInsightsAnalyticsItemGenerateIDSuffix(itemScope insights.ItemScope, itemID string) string {
+	// See comments in resourcesArmApplicationInsightsAnalyticsItemParseID method about ID format
+	if itemScope == insights.ItemScopeShared {
+		return "/analyticsItems/" + itemID
+	} else {
+		return "/myanalyticsItems/" + itemID
+	}
 }
