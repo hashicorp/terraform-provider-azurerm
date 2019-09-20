@@ -93,7 +93,7 @@ func (client ClustersClient) CheckNameAvailabilityPreparer(ctx context.Context, 
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -146,7 +146,20 @@ func (client ClustersClient) CreateOrUpdate(ctx context.Context, resourceGroupNa
 	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.ClusterProperties", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "parameters.ClusterProperties.OptimizedAutoscale", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.ClusterProperties.OptimizedAutoscale.Version", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "parameters.ClusterProperties.OptimizedAutoscale.IsEnabled", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "parameters.ClusterProperties.OptimizedAutoscale.Minimum", Name: validation.Null, Rule: true, Chain: nil},
+							{Target: "parameters.ClusterProperties.OptimizedAutoscale.Maximum", Name: validation.Null, Rule: true, Chain: nil},
+						}},
+						{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration.SubnetID", Name: validation.Null, Rule: true, Chain: nil},
+								{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration.EnginePublicIPID", Name: validation.Null, Rule: true, Chain: nil},
+								{Target: "parameters.ClusterProperties.VirtualNetworkConfiguration.DataManagementPublicIPID", Name: validation.Null, Rule: true, Chain: nil},
+							}},
+					}}}}}); err != nil {
 		return result, validation.NewError("kusto.ClustersClient", "CreateOrUpdate", err.Error())
 	}
 
@@ -173,7 +186,7 @@ func (client ClustersClient) CreateOrUpdatePreparer(ctx context.Context, resourc
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -252,7 +265,7 @@ func (client ClustersClient) DeletePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -334,7 +347,7 @@ func (client ClustersClient) GetPreparer(ctx context.Context, resourceGroupName 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -406,7 +419,7 @@ func (client ClustersClient) ListPreparer(ctx context.Context) (*http.Request, e
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -481,7 +494,7 @@ func (client ClustersClient) ListByResourceGroupPreparer(ctx context.Context, re
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -515,7 +528,7 @@ func (client ClustersClient) ListByResourceGroupResponder(resp *http.Response) (
 }
 
 // ListSkus lists eligible SKUs for Kusto resource provider.
-func (client ClustersClient) ListSkus(ctx context.Context) (result ListSkusResult, err error) {
+func (client ClustersClient) ListSkus(ctx context.Context) (result SkuDescriptionList, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/ClustersClient.ListSkus")
 		defer func() {
@@ -553,7 +566,7 @@ func (client ClustersClient) ListSkusPreparer(ctx context.Context) (*http.Reques
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -575,7 +588,7 @@ func (client ClustersClient) ListSkusSender(req *http.Request) (*http.Response, 
 
 // ListSkusResponder handles the response to the ListSkus request. The method always
 // closes the http.Response Body.
-func (client ClustersClient) ListSkusResponder(resp *http.Response) (result ListSkusResult, err error) {
+func (client ClustersClient) ListSkusResponder(resp *http.Response) (result SkuDescriptionList, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -630,7 +643,7 @@ func (client ClustersClient) ListSkusByResourcePreparer(ctx context.Context, res
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -701,7 +714,7 @@ func (client ClustersClient) StartPreparer(ctx context.Context, resourceGroupNam
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -777,7 +790,7 @@ func (client ClustersClient) StopPreparer(ctx context.Context, resourceGroupName
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -854,7 +867,7 @@ func (client ClustersClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-01-21"
+	const APIVersion = "2019-05-15"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
