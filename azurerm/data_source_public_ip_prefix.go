@@ -38,9 +38,9 @@ func dataSourceArmPublicIpPrefix() *schema.Resource {
 				Computed: true,
 			},
 
-			"zones": azure.SchemaSingleZone(),
+			"zones": azure.SchemaZonesComputed(),
 
-			"tags": tags.Schema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -50,16 +50,26 @@ func dataSourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) e
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	resp, err := client.Get(ctx, resGroup, name, "")
+	resourceGroup := d.Get("resource_group_name").(string)
+	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: Public IP prefix %q was not found", name)
+			return fmt.Errorf("Error: Public IP prefix %q was not found in Resource Group %q", name, resourceGroup)
 		}
-		return err
+		return fmt.Errorf("Error retrieving Public IP Prefix %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
-
-	return resourceArmPublicIpPrefixRead(d, meta)
+	d.Set("zones", resp.Zones)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+	}
+	if props := resp.PublicIPPrefixPropertiesFormat; props != nil {
+		d.Set("prefix_length", props.PrefixLength)
+		d.Set("ip_prefix", props.IPPrefix)
+	}
+	return tags.FlattenAndSet(d, resp.Tags)
 }
