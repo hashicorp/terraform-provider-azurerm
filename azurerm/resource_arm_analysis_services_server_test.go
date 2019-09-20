@@ -235,11 +235,6 @@ func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "backup_blob_container_uri"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
 		},
 	})
 }
@@ -447,8 +442,8 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   container_name    = "${azurerm_storage_container.test.name}"
   https_only        = true
 
-  start  = "${timeadd(timestamp(), "-24h")}"
-  expiry = "${timeadd(timestamp(), "48h")}"
+  start  = "2018-06-01"
+  expiry = "2048-06-01"
 
   permissions {
     read   = true
