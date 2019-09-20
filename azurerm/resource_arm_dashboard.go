@@ -1,8 +1,8 @@
 package azurerm
 
 import (
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
