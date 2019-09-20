@@ -1,15 +1,16 @@
 package azurerm
 
 import (
-	"encoding/json"
 	"fmt"
+	"encoding/json"
+	"regexp"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"regexp"
 )
 
 func resourceArmDashboard() *schema.Resource {
