@@ -2,6 +2,7 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_public_ip_prefix` [GH-4340]
 * **New Resource:** `azurerm_bot_channel_slack` [GH-4367]
 
 IMPROVEMENTS:
