@@ -378,6 +378,10 @@ func resourceArmFrontDoor() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+						"web_application_firewall_policy_link_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
 						"custom_https_configuration": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -786,6 +790,7 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 		isSessionAffinityEnabled := frontendEndpoint["session_affinity_enabled"].(bool)
 		sessionAffinityTtlSeconds := int32(frontendEndpoint["session_affinity_ttl_seconds"].(int))
 		customHttpsConfiguration := frontendEndpoint["custom_https_configuration"].([]interface{})
+		waf := frontendEndpoint["web_application_firewall_policy_link_id"].(string)
 		name := frontendEndpoint["name"].(string)
 		id := utils.String(frontDoorPath + "/FrontendEndpoints/" + name)
 
@@ -803,6 +808,12 @@ func expandArmFrontDoorFrontendEndpoint(input []interface{}, frontDoorPath strin
 				SessionAffinityEnabledState: sessionAffinityEnabled,
 				SessionAffinityTTLSeconds:   utils.Int32(sessionAffinityTtlSeconds),
 			},
+		}
+
+		if waf != "" {
+			result.FrontendEndpointProperties.WebApplicationFirewallPolicyLink = &frontdoor.FrontendEndpointUpdateParametersWebApplicationFirewallPolicyLink{
+				ID: utils.String(waf),
+			}
 		}
 
 		output = append(output, result)
@@ -1183,15 +1194,15 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 				}
 
 				if sessionAffinityEnabled := properties.SessionAffinityEnabledState; sessionAffinityEnabled != "" {
-					if sessionAffinityEnabled == frontdoor.SessionAffinityEnabledStateEnabled {
-						result["session_affinity_enabled"] = true
-					} else {
-						result["session_affinity_enabled"] = false
-					}
+					result["session_affinity_enabled"] = sessionAffinityEnabled == frontdoor.SessionAffinityEnabledStateEnabled
 				}
 
 				if sessionAffinityTtlSeconds := properties.SessionAffinityTTLSeconds; sessionAffinityTtlSeconds != nil {
 					result["session_affinity_ttl_seconds"] = *sessionAffinityTtlSeconds
+				}
+
+				if waf := properties.WebApplicationFirewallPolicyLink; waf != nil {
+					result["web_application_firewall_policy_link_id"] = *waf.ID
 				}
 
 				if properties.CustomHTTPSConfiguration != nil {

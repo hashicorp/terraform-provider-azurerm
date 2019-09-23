@@ -792,7 +792,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `role_based_access_control`: %+v", err)
 		}
 
-		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(props.ServicePrincipalProfile)
+		servicePrincipal := flattenAzureRmKubernetesClusterServicePrincipalProfile(props.ServicePrincipalProfile, d)
 		if err := d.Set("service_principal", servicePrincipal); err != nil {
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
@@ -1442,7 +1442,7 @@ func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *con
 	return &principal
 }
 
-func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile) []interface{} {
+func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile, d *schema.ResourceData) []interface{} {
 	if profile == nil {
 		return []interface{}{}
 	}
@@ -1452,8 +1452,10 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 	if clientId := profile.ClientID; clientId != nil {
 		values["client_id"] = *clientId
 	}
-	if secret := profile.Secret; secret != nil {
-		values["client_secret"] = *secret
+
+	// client secret isn't returned by the API so pass the existing value along
+	if v, ok := d.GetOk("service_principal.0.client_secret"); ok {
+		values["client_secret"] = v.(string)
 	}
 
 	return []interface{}{values}

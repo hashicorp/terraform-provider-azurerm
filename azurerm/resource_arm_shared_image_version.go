@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -122,10 +122,10 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 			PublishingProfile: &compute.GalleryImageVersionPublishingProfile{
 				ExcludeFromLatest: utils.Bool(excludeFromLatest),
 				TargetRegions:     targetRegions,
-				Source: &compute.GalleryArtifactSource{
-					ManagedImage: &compute.ManagedArtifact{
-						ID: utils.String(managedImageId),
-					},
+			},
+			StorageProfile: &compute.GalleryImageVersionStorageProfile{
+				Source: &compute.GalleryArtifactVersionSource{
+					ID: utils.String(managedImageId),
 				},
 			},
 		},
@@ -140,8 +140,6 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the creation of Shared Image Version %q (Image %q / Gallery %q / Resource Group %q): %+v", imageVersion, imageName, galleryName, resourceGroup, err)
 	}
-
-	// TODO: poll?
 
 	read, err := client.Get(ctx, resourceGroup, galleryName, imageName, imageVersion, "")
 	if err != nil {
@@ -194,11 +192,11 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 			if err := d.Set("target_region", flattenedRegions); err != nil {
 				return fmt.Errorf("Error setting `target_region`: %+v", err)
 			}
+		}
 
+		if profile := props.StorageProfile; profile != nil {
 			if source := profile.Source; source != nil {
-				if image := source.ManagedImage; image != nil {
-					d.Set("managed_image_id", image.ID)
-				}
+				d.Set("managed_image_id", source.ID)
 			}
 		}
 	}

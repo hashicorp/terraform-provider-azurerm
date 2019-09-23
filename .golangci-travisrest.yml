@@ -1,0 +1,35 @@
+run:
+  deadline: 30m10s
+  modules-download-mode: vendor
+
+issues:
+  max-per-linter: 0
+  max-same-issues: 0
+
+linters:
+  disable-all: true
+  enable:
+    - deadcode
+    - errcheck
+    - gofmt
+    - goimports
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - nakedret
+    - misspell
+    - structcheck
+    - typecheck
+    - unused
+    - unconvert
+    - varcheck
+    - vet
+    - vetshadow
+
+linters-settings:
+  errcheck:
+    ignore: github.com/hashicorp/terraform/helper/schema:ForceNew|Set,fmt:.*,io:Close
+  misspell:
+    ignore-words:
+      - hdinsight
