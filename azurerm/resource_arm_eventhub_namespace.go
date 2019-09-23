@@ -101,13 +101,17 @@ func resourceArmEventHubNamespace() *schema.Resource {
 
 						"virtual_network_rule": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+
+									// the API returns the subnet ID's resource group name in lowercase
+									// https://github.com/Azure/azure-sdk-for-go/issues/5855
 									"subnet_id": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateFunc:     azure.ValidateResourceID,
+										DiffSuppressFunc: suppress.CaseDifference,
 									},
 
 									"ignore_missing_virtual_network_service_endpoint": {
@@ -120,7 +124,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 
 						"ip_rule": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -129,9 +133,10 @@ func resourceArmEventHubNamespace() *schema.Resource {
 										Required: true,
 									},
 
-									"default_action": {
+									"action": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  string(eventhub.NetworkRuleIPActionAllow),
 										ValidateFunc: validation.StringInSlice([]string{
 											string(eventhub.NetworkRuleIPActionAllow),
 										}, false),
@@ -398,8 +403,8 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.Networ
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
 				rules = append(rules, eventhub.NWRuleSetIPRules{
-					IPMask: utils.String(rblock["subnet_id"].(string)),
-					Action: eventhub.NetworkRuleIPAction(rblock["action"].(bool)),
+					IPMask: utils.String(rblock["ip_mask"].(string)),
+					Action: eventhub.NetworkRuleIPAction(rblock["action"].(string)),
 				})
 			}
 
@@ -415,52 +420,42 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []i
 		return nil
 	}
 
-	results := make([]interface{}, 0)
-	if description != nil {
-		output := make(map[string]interface{})
+	vnetBlocks := make([]interface{}, 0)
+	if vnetRules := ruleset.NetworkRuleSetProperties.VirtualNetworkRules; vnetRules != nil {
+		for _, vnetRule := range *vnetRules {
+			block := make(map[string]interface{})
 
-		if enabled := description.Enabled; enabled != nil {
-			output["enabled"] = *enabled
-		}
-
-		if skipEmptyArchives := description.SkipEmptyArchives; skipEmptyArchives != nil {
-			output["skip_empty_archives"] = *skipEmptyArchives
-		}
-
-		output["encoding"] = string(description.Encoding)
-
-		if interval := description.IntervalInSeconds; interval != nil {
-			output["interval_in_seconds"] = *interval
-		}
-
-		if size := description.SizeLimitInBytes; size != nil {
-			output["size_limit_in_bytes"] = *size
-		}
-
-		if destination := description.Destination; destination != nil {
-			destinationOutput := make(map[string]interface{})
-
-			if name := destination.Name; name != nil {
-				destinationOutput["name"] = *name
-			}
-
-			if props := destination.DestinationProperties; props != nil {
-				if archiveNameFormat := props.ArchiveNameFormat; archiveNameFormat != nil {
-					destinationOutput["archive_name_format"] = *archiveNameFormat
-				}
-				if blobContainerName := props.BlobContainer; blobContainerName != nil {
-					destinationOutput["blob_container_name"] = *blobContainerName
-				}
-				if storageAccountId := props.StorageAccountResourceID; storageAccountId != nil {
-					destinationOutput["storage_account_id"] = *storageAccountId
+			if s := vnetRule.Subnet; s != nil {
+				if v := s.ID; v != nil {
+					block["subnet_id"] = *v
 				}
 			}
 
-			output["destination"] = []interface{}{destinationOutput}
-		}
+			if v := vnetRule.IgnoreMissingVnetServiceEndpoint; v != nil {
+				block["ignore_missing_virtual_network_service_endpoint"] = *v
+			}
 
-		results = append(results, output)
+			vnetBlocks = append(vnetBlocks, block)
+		}
+	}
+	ipBlocks := make([]interface{}, 0)
+	if ipRules := ruleset.NetworkRuleSetProperties.IPRules; ipRules != nil {
+		for _, ipRule := range *ipRules {
+			block := make(map[string]interface{})
+
+			block["action"] = string(ipRule.Action)
+
+			if v := ipRule.IPMask; v != nil {
+				block["ip_mask"] = *v
+			}
+
+			ipBlocks = append(ipBlocks, block)
+		}
 	}
 
-	return results
+	return []interface{}{map[string]interface{}{
+		"default_action":       string(ruleset.DefaultAction),
+		"virtual_network_rule": vnetBlocks,
+		"ip_rule":              ipBlocks,
+	}}
 }
