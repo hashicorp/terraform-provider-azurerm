@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"golang.org/x/tools/container/intsets"
 	"log"
 	"strings"
+
+	"golang.org/x/tools/container/intsets"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -1360,7 +1361,7 @@ func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) (*containerse
 }
 
 func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*containerservice.ManagedClusterLoadBalancerProfile, error) {
-	if d == nil || len(d) == 0 {
+	if len(d) == 0 {
 		return nil, nil
 	}
 
