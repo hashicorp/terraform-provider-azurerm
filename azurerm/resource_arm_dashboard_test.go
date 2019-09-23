@@ -93,7 +93,6 @@ func testCheckAzureRMDashboardDestroy(s *terraform.State) error {
 
 func testResourceArmDashboard_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-	data "azurerm_subscription" "current" {}
     resource "azurerm_resource_group" "test-group"{
         name = "acctestRG-%d"
         location = "%s"

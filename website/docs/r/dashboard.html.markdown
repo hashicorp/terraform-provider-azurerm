@@ -150,6 +150,7 @@ DASH
     }
 
 ```
+
 It is recommended to follow the steps outlined 
 [here](https://docs.microsoft.com/en-us/azure/azure-portal/azure-portal-dashboards-create-programmatically#fetch-the-json-representation-of-the-dashboard) to create a Dashboard in the Portal and extract the relevant JSON to use in this resource. From the extracted JSON, the contents of the `properties: {}` object can used. Variables can be injected as needed - see above example.
 
@@ -187,6 +188,7 @@ Since the contents of the dashboard JSON can be quite lengthy, use a template fi
                  ...
                  ...
 ```
+
 This is then referenced in the `.tf` file by using a [`template_file`](https://www.terraform.io/docs/providers/template/d/file.html) data source (terraform 0.11 or earlier), or the [`templatefile`](https://www.terraform.io/docs/configuration/functions/templatefile.html) function (terraform 0.12+).
 
 `main.tf` (terraform 0.11 or earlier):
@@ -260,6 +262,6 @@ The following attributes are exported:
 Dashboards can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dashboard.my-board /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Portal/dashboards/00000000-0000-0000-0000-000000000000?api-version=2015-08-01-preview
+terraform import azurerm_dashboard.my-board /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Portal/dashboards/00000000-0000-0000-0000-000000000000
 ```
 Note the URI in the above sample can be found using the Resource Explorer tool in the Azure Portal. 

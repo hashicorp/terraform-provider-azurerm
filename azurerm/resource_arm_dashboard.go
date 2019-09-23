@@ -65,12 +65,10 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	dashboard.DashboardProperties = &dashboardProperties
 
-	db, err := client.CreateOrUpdate(ctx, resourceGroup, name, dashboard)
+	_, err := client.CreateOrUpdate(ctx, resourceGroup, name, dashboard)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
-	d.SetId(*db.ID)
 
 	// get it back again to set the props
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -78,10 +76,7 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Error making Read request for Dashboard %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	_, jsonErr := json.Marshal(resp.DashboardProperties)
-	if jsonErr != nil {
-		return fmt.Errorf("Error parsing DashboardProperties JSON: %+v", jsonErr)
-	}
+	d.SetId(*resp.ID)
 
 	return resourceArmDashboardRead(d, meta)
 }
