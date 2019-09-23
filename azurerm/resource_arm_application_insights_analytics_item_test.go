@@ -156,6 +156,9 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terrafor
 	id := rs.Primary.Attributes["id"]
 
 	resGroup, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)
+	if err != nil {
+		return false, fmt.Errorf("Failed to parse ID (id: %s): %+v", id, err)
+	}
 
 	conn := testAccProvider.Meta().(*ArmClient).appInsights.AnalyticsItemsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
