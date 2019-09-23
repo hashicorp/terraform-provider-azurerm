@@ -82,6 +82,7 @@ type ArmClient struct {
 	skipProviderRegistration bool
 
 	// Services
+	// NOTE: all new services should be Public as they're going to be relocated in the near-future
 	analysisservices *analysisservices.Client
 	apiManagement    *apimanagement.Client
 	appInsights      *applicationinsights.Client
@@ -127,17 +128,17 @@ type ArmClient struct {
 	redis            *redis.Client
 	relay            *relay.Client
 	resource         *resource.Client
-	scheduler        *scheduler.Client
-	search           *search.Client
-	securityCenter   *securitycenter.Client
-	servicebus       *servicebus.Client
-	serviceFabric    *servicefabric.Client
-	signalr          *signalr.Client
-	storage          *storage.Client
-	streamanalytics  *streamanalytics.Client
-	subscription     *subscription.Client
-	sql              *sql.Client
-	trafficManager   *trafficmanager.Client
+	Scheduler        *scheduler.Client
+	Search           *search.Client
+	SecurityCenter   *securitycenter.Client
+	ServiceBus       *servicebus.Client
+	ServiceFabric    *servicefabric.Client
+	SignalR          *signalr.Client
+	Storage          *storage.Client
+	StreamAnalytics  *streamanalytics.Client
+	Subscription     *subscription.Client
+	Sql              *sql.Client
+	TrafficManager   *trafficmanager.Client
 	web              *web.Client
 }
 
@@ -255,17 +256,17 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.redis = redis.BuildClient(o)
 	client.relay = relay.BuildClient(o)
 	client.resource = resource.BuildClient(o)
-	client.search = search.BuildClient(o)
-	client.securityCenter = securitycenter.BuildClient(o)
-	client.servicebus = servicebus.BuildClient(o)
-	client.serviceFabric = servicefabric.BuildClient(o)
-	client.scheduler = scheduler.BuildClient(o)
-	client.signalr = signalr.BuildClient(o)
-	client.streamanalytics = streamanalytics.BuildClient(o)
-	client.storage = storage.BuildClient(o)
-	client.subscription = subscription.BuildClient(o)
-	client.sql = sql.BuildClient(o)
-	client.trafficManager = trafficmanager.BuildClient(o)
+	client.Search = search.BuildClient(o)
+	client.SecurityCenter = securitycenter.BuildClient(o)
+	client.ServiceBus = servicebus.BuildClient(o)
+	client.ServiceFabric = servicefabric.BuildClient(o)
+	client.Scheduler = scheduler.BuildClient(o)
+	client.SignalR = signalr.BuildClient(o)
+	client.StreamAnalytics = streamanalytics.BuildClient(o)
+	client.Storage = storage.BuildClient(o)
+	client.Subscription = subscription.BuildClient(o)
+	client.Sql = sql.BuildClient(o)
+	client.TrafficManager = trafficmanager.BuildClient(o)
 	client.web = web.BuildClient(o)
 
 	return &client, nil

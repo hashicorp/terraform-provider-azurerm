@@ -57,7 +57,7 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 }
 
 func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenter.ContactsClient
+	client := meta.(*ArmClient).SecurityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName
@@ -119,7 +119,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenter.ContactsClient
+	client := meta.(*ArmClient).SecurityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName
@@ -146,7 +146,7 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSecurityCenterContactDelete(_ *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenter.ContactsClient
+	client := meta.(*ArmClient).SecurityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName

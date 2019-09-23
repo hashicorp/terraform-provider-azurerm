@@ -98,7 +98,7 @@ func flattenArmManagementGroupDataSourceSubscriptionIds(input *[]managementgroup
 
 		id, err := parseManagementGroupSubscriptionID(*child.ID)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse child subscription ID %+v", err)
+			return nil, fmt.Errorf("Unable to parse child Subscription ID %+v", err)
 		}
 
 		if id != nil {

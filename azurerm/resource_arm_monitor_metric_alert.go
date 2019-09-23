@@ -42,6 +42,8 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
 			// But to prevent potential state migration in the future, let's stick to use Set now
+
+			//lintignore:S018
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,

@@ -20,9 +20,13 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 			"update":   testAccAzureRMBotChannelsRegistration_update,
 			"complete": testAccAzureRMBotChannelsRegistration_complete,
 		},
-		"coonection": {
+		"connection": {
 			"basic":    testAccAzureRMBotConnection_basic,
 			"complete": testAccAzureRMBotConnection_complete,
+		},
+		"channel": {
+			"slackBasic":  testAccAzureRMBotChannelSlack_basic,
+			"slackUpdate": testAccAzureRMBotChannelSlack_update,
 		},
 	}
 

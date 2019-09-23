@@ -157,6 +157,9 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validateMetricAlertRuleTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}

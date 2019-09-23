@@ -208,6 +208,34 @@ func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFrontDoor_waf(t *testing.T) {
+	resourceName := "azurerm_frontdoor.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(5))
+	config := testAccAzureRMFrontDoor_waf(ri, rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFrontDoorExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
+					resource.TestCheckResourceAttrSet(resourceName, "frontend_endpoint.0.web_application_firewall_policy_link_id"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMFrontDoorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -390,6 +418,67 @@ resource "azurerm_frontdoor" "test" {
     session_affinity_enabled                     = true
     session_affinity_ttl_seconds                 = 0
     custom_https_provisioning_enabled            = false
+  }
+}
+`, rInt, rString, location)
+}
+
+func testAccAzureRMFrontDoor_waf(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testAccRG-%[1]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%[1]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  mode                              = "Prevention"
+}
+
+resource "azurerm_frontdoor" "test" {
+  name                                         = "testAccFrontDoor-%[1]d"
+  location                                     = "${azurerm_resource_group.test.location}"
+  resource_group_name                          = "${azurerm_resource_group.test.name}"
+  enforce_backend_pools_certificate_name_check = false
+
+  routing_rule {
+      name                    = "testAccRoutingRule1-%[1]d"
+      accepted_protocols      = ["Http", "Https"]
+      patterns_to_match       = ["/*"]
+      frontend_endpoints      = ["testAccFrontendEndpoint1-%[1]d"]
+      forwarding_configuration {
+          forwarding_protocol = "MatchRequest"
+          backend_pool_name   = "testAccBackendBing-%[1]d"
+      }
+  }
+
+  backend_pool_load_balancing {
+    name = "testAccLoadBalancingSettings1-%[1]d"
+  }
+
+  backend_pool_health_probe {
+    name = "testAccHealthProbeSetting1-%[1]d"
+  }
+
+  backend_pool {
+      name            = "testAccBackendBing-%[1]d"
+      backend {
+          host_header = "www.bing.com"
+          address     = "www.bing.com"
+          http_port   = 80
+          https_port  = 443
+      }
+
+      load_balancing_name = "testAccLoadBalancingSettings1-%[1]d"
+      health_probe_name   = "testAccHealthProbeSetting1-%[1]d"
+  }
+
+  frontend_endpoint {
+    name                                    = "testAccFrontendEndpoint1-%[1]d"
+    host_name                               = "testAccFrontDoor-%[1]d.azurefd.net"
+    custom_https_provisioning_enabled       = false
+    web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.test.id
   }
 }
 `, rInt, rString, location)

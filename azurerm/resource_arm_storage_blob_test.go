@@ -623,7 +623,7 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		name := rs.Primary.Attributes["name"]
@@ -665,7 +665,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		name := rs.Primary.Attributes["name"]
@@ -703,7 +703,7 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind blobs.Blob
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		name := rs.Primary.Attributes["name"]
@@ -763,7 +763,7 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 			continue
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		name := rs.Primary.Attributes["name"]

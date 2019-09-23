@@ -15,7 +15,7 @@ github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation
 github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch
 github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn
 github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices
-github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute
+github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute
 github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance
 github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry
 github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice
@@ -30,7 +30,7 @@ github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub
 github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac
 github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault
 github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault
-github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto
+github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto
 github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic
 github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps
 github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb
@@ -107,7 +107,7 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/textseg
 # github.com/armon/go-radix v1.0.0
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.21.7
+# github.com/aws/aws-sdk-go v1.22.0
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -150,6 +150,8 @@ github.com/bgentry/go-netrc/netrc
 github.com/bgentry/speakeasy
 # github.com/blang/semver v3.5.1+incompatible
 github.com/blang/semver
+# github.com/bmatcuk/doublestar v1.1.5
+github.com/bmatcuk/doublestar
 # github.com/btubbs/datetime v0.1.0
 github.com/btubbs/datetime
 # github.com/davecgh/go-spew v1.1.1
@@ -215,7 +217,7 @@ github.com/hashicorp/hcl/hcl/token
 github.com/hashicorp/hcl/json/parser
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/hashicorp/hcl2 v0.0.0-20190725010614-0c3fe388e450
+# github.com/hashicorp/hcl2 v0.0.0-20190821123243-0c888d1241f6
 github.com/hashicorp/hcl2/ext/dynblock
 github.com/hashicorp/hcl2/ext/typeexpr
 github.com/hashicorp/hcl2/gohcl
@@ -233,15 +235,14 @@ github.com/hashicorp/hil/parser
 github.com/hashicorp/hil/scanner
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform v0.12.6
+# github.com/hashicorp/terraform v0.12.8
 github.com/hashicorp/terraform/addrs
 github.com/hashicorp/terraform/command/format
 github.com/hashicorp/terraform/config
-github.com/hashicorp/terraform/config/hcl2shim
-github.com/hashicorp/terraform/config/module
 github.com/hashicorp/terraform/configs
 github.com/hashicorp/terraform/configs/configload
 github.com/hashicorp/terraform/configs/configschema
+github.com/hashicorp/terraform/configs/hcl2shim
 github.com/hashicorp/terraform/dag
 github.com/hashicorp/terraform/flatmap
 github.com/hashicorp/terraform/helper/acctest
@@ -283,7 +284,7 @@ github.com/hashicorp/terraform/svchost/disco
 github.com/hashicorp/terraform/terraform
 github.com/hashicorp/terraform/tfdiags
 github.com/hashicorp/terraform/version
-# github.com/hashicorp/terraform-config-inspect v0.0.0-20190327195015-8022a2663a70
+# github.com/hashicorp/terraform-config-inspect v0.0.0-20190821133035-82a99dc22ef4
 github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb
 github.com/hashicorp/yamux
@@ -415,7 +416,7 @@ golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.0.0-20190502175342-a43fa875dd82
+# golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
 # golang.org/x/text v0.3.2

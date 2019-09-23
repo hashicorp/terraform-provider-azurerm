@@ -1,6 +1,6 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: bot_connection"
+page_title: "Azure Resource Manager: azurerm_bot_connection"
 sidebar_current: "docs-azurerm-resource-bot-connection"
 description: |-
   Manages a Bot Connection.
@@ -35,7 +35,7 @@ resource "azurerm_bot_connection" "example" {
   resource_group_name   = "${azurerm_resource_group.example.name}"
   service_provider_name = "box"
   client_id             = "exampleId"
-  client_secret         = "exampleSecrete"
+  client_secret         = "exampleSecret"
 }
 ```
 
