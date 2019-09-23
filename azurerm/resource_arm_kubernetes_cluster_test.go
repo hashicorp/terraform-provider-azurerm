@@ -729,8 +729,8 @@ func TestAccAzureRMKubernetesCluster_conflictingLoadBalancerProfile(t *testing.T
 				Config: config,
 				ExpectError: regexp.MustCompile(`errors during apply: 2 problems:
 
-- "network_profile.0.load_balancer_profile.0.managed_outbound_ips": conflicts with network_profile.0.load_balancer_profile.0.outbound_ips
-- "network_profile.0.load_balancer_profile.0.outbound_ips": conflicts with network_profile.0.load_balancer_profile.0.managed_outbound_ips`),
+- "network_profile.0.load_balancer_profile.0.managed_outbound_ips": conflicts with network_profile.0.load_balancer_profile.0.outbound_ip_address_ids
+- "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids": conflicts with network_profile.0.load_balancer_profile.0.managed_outbound_ips`),
 			},
 			{
 				ResourceName:      "azurerm_public_ip.test",
@@ -2260,7 +2260,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     load_balancer_sku = "standard"
     load_balancer_profile {
       managed_outbound_ips = 3
-      outbound_ips = [ "${azurerm_public_ip.test.id}", "${azurerm_public_ip.test2.id}" ]
+      outbound_ip_address_ids = [ "${azurerm_public_ip.test.id}", "${azurerm_public_ip.test2.id}" ]
     }
   }
 }

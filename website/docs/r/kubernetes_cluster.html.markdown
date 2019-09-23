@@ -235,7 +235,7 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
 
-* `load_balancer_profile` - (Optional) A `load_balancer_profile` block. Dependent upon `load_balancer_sku` being `standard`.
+* `load_balancer_profile` - (Optional) A `load_balancer_profile` block. This can only be specified when `load_balancer_sku` is set to `standard`.
 
 ---
 
@@ -245,13 +245,9 @@ A `load_balancer_profile` block supports the following:
 
 * `managed_outbound_ips` - (Optional) Count of desired managed outbound IPs for the cluster load balancer. Must be in the range of [1, 100].
 
-* `outbound_ip_prefixes` - (Optional) Desired outbound IP Prefix resources for the cluster load balancer.
+* `outbound_ip_prefixes_ids` - (Optional) The ID of the outbound Public IP Address Prefixes which should be used for the cluster load balancer.
 
-* `outbound_ips` - (Optional) Desired outbound IP resources for the cluster load balancer.
-
-The following attributes are exported:
-
-* `effective_outbound_ips` - The outcome of the specified arguments.
+* `outbound_ip_address_ids` - (Optional) The ID of the Public IP Addresses which should be used for outbound communication for the cluster load balancer.
 
 ---
 
@@ -315,6 +311,12 @@ The following attributes are exported:
 A `http_application_routing` block exports the following:
 
 * `http_application_routing_zone_name` - The Zone Name of the HTTP Application Routing.
+
+---
+
+A `load_balancer_profile` block exports the following:
+
+* `effective_outbound_ips` - The outcome (resource IDs) of the specified arguments.
 
 ---
 

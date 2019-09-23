@@ -5,8 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"golang.org/x/tools/container/intsets"
-
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-08-01/containerservice"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -458,22 +456,22 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									"managed_outbound_ips": {
 										Type:          schema.TypeInt,
 										Optional:      true,
-										ValidateFunc:  validate.IntBetweenAndNot(1, 100, intsets.MaxInt),
-										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefixes", "network_profile.0.load_balancer_profile.0.outbound_ips"},
+										ValidateFunc:  validation.IntBetween(1, 100),
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.outbound_ip_prefixes_ids", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 									},
-									"outbound_ip_prefixes": {
+									"outbound_ip_prefixes_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
-										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ips"},
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ip_address_ids"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
 										},
 									},
-									"outbound_ips": {
+									"outbound_ip_address_ids": {
 										Type:          schema.TypeSet,
 										Optional:      true,
-										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ip_prefixes"},
+										ConflictsWith: []string{"network_profile.0.load_balancer_profile.0.managed_outbound_ips", "network_profile.0.load_balancer_profile.0.outbound_ip_prefixes_ids"},
 										Elem: &schema.Schema{
 											Type:         schema.TypeString,
 											ValidateFunc: azure.ValidateResourceID,
@@ -481,7 +479,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 									"effective_outbound_ips": {
 										Type:     schema.TypeSet,
-										Optional: true,
 										Computed: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
@@ -1380,11 +1377,11 @@ func expandLoadBalancerProfile(d []interface{}, loadBalancerType string) (*conta
 		managedOutboundIps = &containerservice.ManagedClusterLoadBalancerProfileManagedOutboundIPs{Count: &c}
 	}
 
-	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefixes"]); ipPrefixes != nil {
+	if ipPrefixes := idsToResourceReferences(config["outbound_ip_prefixes_ids"]); ipPrefixes != nil {
 		outboundIpPrefixes = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPPrefixes{PublicIPPrefixes: ipPrefixes}
 	}
 
-	if outIps := idsToResourceReferences(config["outbound_ips"]); outIps != nil {
+	if outIps := idsToResourceReferences(config["outbound_ip_address_ids"]); outIps != nil {
 		outboundIps = &containerservice.ManagedClusterLoadBalancerProfileOutboundIPs{PublicIPs: outIps}
 	}
 
@@ -1458,23 +1455,24 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		}
 
 		if profile.LoadBalancerProfile.OutboundIPs != nil {
-			lb["outbound_ips"] = profile.LoadBalancerProfile.OutboundIPs.PublicIPs
+			lb["outbound_ip_address_ids"] = profile.LoadBalancerProfile.OutboundIPs.PublicIPs
 		}
 
 		if profile.LoadBalancerProfile.OutboundIPPrefixes != nil {
-			lb["outbound_ip_prefixes"] = profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes
+			lb["outbound_ip_prefixes_ids"] = profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes
 		}
+
+		effectiveIps := make([]string, 0)
 
 		if profile.LoadBalancerProfile.EffectiveOutboundIPs != nil {
-			effectiveIps := make([]string, 0)
-
 			for _, ip := range *profile.LoadBalancerProfile.EffectiveOutboundIPs {
-				effectiveIps = append(effectiveIps, *ip.ID)
+				if ip.ID != nil {
+					effectiveIps = append(effectiveIps, *ip.ID)
+				}
 			}
-
-			lb["effective_outbound_ips"] = effectiveIps
 		}
 
+		lb["effective_outbound_ips"] = effectiveIps
 		lbProfiles = append(lbProfiles, lb)
 	}
 

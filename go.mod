@@ -19,7 +19,6 @@ require (
 	github.com/tombuildsstuff/giovanni v0.5.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190502183928-7f726cade0ab
-	golang.org/x/tools v0.0.0-20190425150028-36563e24a262
 	gopkg.in/yaml.v2 v2.2.2
 )
 
