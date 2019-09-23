@@ -66,7 +66,7 @@ A `network_rulesets` block supports the following:
 * `ip_rule` - (Optional) One or more `network_rulesets` blocks as defined below.
 
 ---
-
+    
 A `virtual_network_rule` block supports the following:
 
 * `subnet_id` - (Required) The id of the subnet to match on.
