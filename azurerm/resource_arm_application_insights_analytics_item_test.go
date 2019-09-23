@@ -2,15 +2,11 @@ package azurerm
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
 )
 
 func TestAccAzureRMApplicationInsightsAnalyticsItem_basic(t *testing.T) {
@@ -121,14 +117,13 @@ func testCheckAzureRMApplicationInsightAnalyticsItemDestroy() resource.TestCheck
 				continue
 			}
 			name := rs.Primary.Attributes["name"]
-			resGroup := rs.Primary.Attributes["resource_group_name"]
 
 			exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs)
 			if err != nil {
 				return fmt.Errorf("Error checking if item has been destroyed: %s", err)
 			}
 			if exists {
-				return fmt.Errorf("Bad: Application Insights AnalyticsItem '%q' (resource group: '%q') still exists", name, resGroup)
+				return fmt.Errorf("Bad: Application Insights AnalyticsItem '%q' still exists", name)
 			}
 		}
 
@@ -143,14 +138,13 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string)
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 		name := rs.Primary.Attributes["name"]
-		resGroup := rs.Primary.Attributes["resource_group_name"]
 
 		exists, err := testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs)
 		if err != nil {
 			return fmt.Errorf("Error checking if item exists: %s", err)
 		}
 		if !exists {
-			return fmt.Errorf("Bad: Application Insights AnalyticsItem '%q' (resource group: '%q') does not exist", name, resGroup)
+			return fmt.Errorf("Bad: Application Insights AnalyticsItem '%q' does not exist", name)
 		}
 
 		return nil
@@ -158,40 +152,24 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string)
 }
 
 func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState) (bool, error) {
-	scopeName := rs.Primary.Attributes["scope"]
-	typeName := rs.Primary.Attributes["type"]
-	name := rs.Primary.Attributes["name"]
 
-	itemScope := insights.ItemScope(scopeName)
-	itemType := insights.ItemTypeParameter(typeName)
+	id := rs.Primary.Attributes["id"]
 
-	appInsightsID := rs.Primary.Attributes["application_insights_id"]
-	id, err := azure.ParseAzureResourceID(appInsightsID)
-	if err != nil {
-		return false, fmt.Errorf("Error parsing resource ID: %s", err)
-	}
-	resGroup := id.ResourceGroup
-
-	appInsightsName := id.Path["components"]
+	resGroup, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)
 
 	conn := testAccProvider.Meta().(*ArmClient).appInsights.AnalyticsItemsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-	includeContent := false
-	resp, err := conn.List(ctx, resGroup, appInsightsName, insights.AnalyticsItems, itemScope, itemType, &includeContent)
-	if resp.StatusCode == http.StatusNotFound {
-		return false, nil
-	}
+	response, err := conn.Get(ctx, resGroup, appInsightsName, itemScopePath, itemID, "")
 	if err != nil {
-		return false, fmt.Errorf("Bad: List on appInsightsAnalyticsItemsClient: %+v", err)
-	}
-	for _, item := range *resp.Value {
-		if *item.Name == name && item.Scope == itemScope {
-			return true, nil
+		if response.Response.IsHTTPStatus(404) {
+			return false, nil
 		}
+		return false, fmt.Errorf("Bad: Get on appInsightsAnalyticsItemsClient (id: %s): %+v", id, err)
 	}
+	_ = response
 
-	return false, nil
+	return true, nil
 }
 
 func testAccAzureRMApplicationInsightsAnalyticsItem_basic(rInt int, location string) string {
