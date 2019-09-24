@@ -299,16 +299,6 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	return results
 }
 
-func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) string {
-	if profile == nil {
-		return ""
-	}
-
-	skuName := fmt.Sprintf("%s_%d", string(profile.Name), *profile.Capacity)
-
-	return skuName
-}
-
 func apiManagementDataSourceHostnameSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"host_name": {

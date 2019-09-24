@@ -194,7 +194,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true, // todo remove in 2.0 ?
+				Computed: true, // TODO: Remove in 2.0 ?
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -216,15 +216,15 @@ func resourceArmApiManagementService() *schema.Resource {
 						"disable_triple_des_chipers": {
 							Type:          schema.TypeBool,
 							Optional:      true,
-							Computed:      true, // todo remove in 2.0
+							Computed:      true, // TODO: Remove in 2.0
 							Deprecated:    "This field has been deprecated in favour of the `disable_triple_des_ciphers` property to correct the spelling. it will be removed in version 2.0 of the provider",
 							ConflictsWith: []string{"security.0.disable_triple_des_ciphers"},
 						},
 						"disable_triple_des_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							// Default:       false, // todo remove in 2.0
-							Computed:      true, // todo remove in 2.0
+							// Default:       false, // TODO: Remove in 2.0
+							Computed:      true, // TODO: Remove in 2.0
 							ConflictsWith: []string{"security.0.disable_triple_des_chipers"},
 						},
 						"disable_frontend_ssl30": {
@@ -500,7 +500,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if d.HasChange("policy") {
-		// TODO: Remove the existing policy
+		// remove the existing policy
 		if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Error removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -1008,7 +1008,7 @@ func flattenApiManagementCustomProperties(input map[string]*string) []interface{
 	output["disable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["disable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["disable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // todo remove in 2.0
+	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // TODO: Remove in 2.0
 	output["disable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 
 	return []interface{}{output}
