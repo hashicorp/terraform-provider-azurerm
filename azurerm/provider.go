@@ -342,6 +342,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),
 		"azurerm_network_security_rule":                                                  resourceArmNetworkSecurityRule(),
 		"azurerm_network_watcher":                                                        resourceArmNetworkWatcher(),
+		"azurerm_netapp_account":                                                         resourceArmNetAppAccount(),
 		"azurerm_notification_hub_authorization_rule":                                    resourceArmNotificationHubAuthorizationRule(),
 		"azurerm_notification_hub_namespace":                                             resourceArmNotificationHubNamespace(),
 		"azurerm_notification_hub":                                                       resourceArmNotificationHub(),

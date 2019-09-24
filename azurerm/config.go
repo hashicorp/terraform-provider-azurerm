@@ -44,6 +44,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
@@ -121,6 +122,7 @@ type ArmClient struct {
 	msi              *msi.Client
 	mssql            *mssql.Client
 	network          *network.Client
+	netapp           *netapp.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
 	postgres         *postgres.Client
@@ -248,6 +250,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.mysql = mysql.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
 	client.network = network.BuildClient(o)
+	client.netapp = netapp.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
 	client.policy = policy.BuildClient(o)
 	client.postgres = postgres.BuildClient(o)
