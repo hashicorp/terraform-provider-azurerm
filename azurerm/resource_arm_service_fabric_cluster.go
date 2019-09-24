@@ -248,6 +248,9 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"parameters": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -265,10 +268,16 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"placement_properties": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"capacities": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"instance_count": {
 							Type:     schema.TypeInt,
@@ -354,7 +363,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 }
 
 func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabric.ClustersClient
+	client := meta.(*ArmClient).ServiceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Service Fabric Cluster creation.")
@@ -454,7 +463,7 @@ func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabric.ClustersClient
+	client := meta.(*ArmClient).ServiceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -540,7 +549,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabric.ClustersClient
+	client := meta.(*ArmClient).ServiceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

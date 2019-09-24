@@ -9,6 +9,9 @@ func SchemaDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeMap,
 		Computed: true,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
 

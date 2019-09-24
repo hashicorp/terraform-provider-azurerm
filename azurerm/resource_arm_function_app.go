@@ -74,6 +74,9 @@ func resourceArmFunctionApp() *schema.Resource {
 			"app_settings": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"enable_builtin_logging": {

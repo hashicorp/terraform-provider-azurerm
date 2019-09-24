@@ -1,7 +1,7 @@
 package kusto
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 

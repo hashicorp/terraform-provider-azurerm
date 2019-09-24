@@ -99,7 +99,7 @@ func resourceArmStorageTable() *schema.Resource {
 
 func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	tableName := d.Get("name").(string)
 	accountName := d.Get("storage_account_name").(string)
@@ -147,7 +147,7 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := tables.ParseResourceID(d.Id())
@@ -199,7 +199,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := tables.ParseResourceID(d.Id())
@@ -231,7 +231,7 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := tables.ParseResourceID(d.Id())

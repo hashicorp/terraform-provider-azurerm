@@ -494,7 +494,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("secret_id", cert.Sid)
 
 	if contents := cert.Cer; contents != nil {
-		d.Set("certificate_data", string(*contents))
+		d.Set("certificate_data", strings.ToUpper(hex.EncodeToString(*contents)))
 	}
 
 	if v := cert.X509Thumbprint; v != nil {

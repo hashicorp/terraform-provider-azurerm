@@ -104,7 +104,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 }
 
 func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionsClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Subscription creation.")
 
@@ -174,7 +174,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionsClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -218,7 +218,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionsClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -296,6 +296,9 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 			"headers": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			//authentication requires HTTPS
@@ -464,7 +467,7 @@ func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface
 }
 
 func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobsClient
+	client := meta.(*ArmClient).Scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -521,7 +524,7 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobsClient
+	client := meta.(*ArmClient).Scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -615,7 +618,7 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobsClient
+	client := meta.(*ArmClient).Scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

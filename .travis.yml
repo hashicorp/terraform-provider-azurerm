@@ -4,7 +4,7 @@ services:
 - docker
 language: go
 go:
-- "1.12.x"
+- "1.13.x"
 
 branches:
   only:
@@ -27,8 +27,8 @@ matrix:
   allow_failures:
     - go: tip
   include:
-    - name: "make lint"
-      script: GOGC=20 make lint
+    - name: "make lintrest"
+      script: GOGC=20 make lintrest
     - name: "make tflint"
       script: make tflint
     - name: "make test"

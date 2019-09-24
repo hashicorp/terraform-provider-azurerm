@@ -140,7 +140,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 }
 
 func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.ProfilesClient
+	client := meta.(*ArmClient).TrafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
@@ -195,7 +195,7 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.ProfilesClient
+	client := meta.(*ArmClient).TrafficManager.ProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -235,7 +235,7 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.ProfilesClient
+	client := meta.(*ArmClient).TrafficManager.ProfilesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

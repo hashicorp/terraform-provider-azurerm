@@ -21,7 +21,7 @@ build: fmtcheck
 
 build-docker:
 	mkdir -p bin
-	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.12 make build
+	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.13 make build
 
 fmt:
 	@echo "==> Fixing source code with gofmt..."
@@ -40,14 +40,25 @@ lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./...
 
+# we have split off static check because it causes travis to fail with an OOM error
+lintstatic:
+	@echo "==> Checking source code against static check linters..."
+	(while true; do sleep 300; echo "(Hey travis! I'm still alive and linting)"; done) & PID=$$!; echo $$PID; \
+	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=staticcheck; ES=$$?; kill -9 $$PID; exit $$ES
+
+lintrest:
+	@echo "==> Checking source code against linters..."
+	golangci-lint run ./... -v --config .golangci-travisrest.yml
+
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
         -R001 -R002 -R003 -R004\
+        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019\
         ./$(PKG_NAME)
 
 test-docker:
-	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.12 make test
+	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test
 
 test: fmtcheck
 	go test -i $(TEST) || exit 1

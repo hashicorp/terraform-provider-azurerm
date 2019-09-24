@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -290,6 +290,10 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("public_ip_address_allocation", string(props.PublicIPAllocationMethod))
 		d.Set("allocation_method", string(props.PublicIPAllocationMethod))
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
+
+		if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
+			d.Set("public_ip_prefix_id", publicIpPrefix.ID)
+		}
 
 		if settings := props.DNSSettings; settings != nil {
 			d.Set("fqdn", settings.Fqdn)

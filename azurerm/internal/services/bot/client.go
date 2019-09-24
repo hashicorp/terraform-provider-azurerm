@@ -6,15 +6,25 @@ import (
 )
 
 type Client struct {
-	BotClient *botservice.BotsClient
+	BotClient        *botservice.BotsClient
+	ConnectionClient *botservice.BotConnectionClient
+	ChannelClient    *botservice.ChannelsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
 
-	BotClient := botservice.NewBotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&BotClient.Client, o.ResourceManagerAuthorizer)
+	botClient := botservice.NewBotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&botClient.Client, o.ResourceManagerAuthorizer)
+
+	connectionClient := botservice.NewBotConnectionClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&connectionClient.Client, o.ResourceManagerAuthorizer)
+
+	channelClient := botservice.NewChannelsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&channelClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		BotClient: &BotClient,
+		BotClient:        &botClient,
+		ChannelClient:    &channelClient,
+		ConnectionClient: &connectionClient,
 	}
 }

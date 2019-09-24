@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -112,6 +112,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
+			//lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     schema.TypeSet,
 				MaxItems: 1,
@@ -120,6 +121,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			//lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     schema.TypeSet,
 				MaxItems: 1,

@@ -54,7 +54,7 @@ func resourceArmStorageShareDirectory() *schema.Resource {
 
 func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	accountName := d.Get("storage_account_name").(string)
 	shareName := d.Get("share_name").(string)
@@ -117,7 +117,7 @@ func resourceArmStorageShareDirectoryCreate(d *schema.ResourceData, meta interfa
 
 func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := directories.ParseResourceID(d.Id())
 	if err != nil {
@@ -151,7 +151,7 @@ func resourceArmStorageShareDirectoryUpdate(d *schema.ResourceData, meta interfa
 
 func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := directories.ParseResourceID(d.Id())
 	if err != nil {
@@ -191,7 +191,7 @@ func resourceArmStorageShareDirectoryRead(d *schema.ResourceData, meta interface
 
 func resourceArmStorageShareDirectoryDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := directories.ParseResourceID(d.Id())
 	if err != nil {
