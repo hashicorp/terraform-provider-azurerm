@@ -112,8 +112,7 @@ resource "azurerm_healthcare_service" "test" {
   }
 
   access_policy_object_ids = [
-     "f96779be-755e-4274-a54f-41de522cee1c",
-     "5fa61245-b31c-4cad-92ca-2ffc0f43d4e1"
+     "${data.azurerm_client_config.current.service_principal_object_id}",
   ]
 
   authentication_configuration {

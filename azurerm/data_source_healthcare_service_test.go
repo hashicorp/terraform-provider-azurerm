@@ -12,7 +12,6 @@ func TestAccAzureRMDataSourceHealthcareService(t *testing.T) {
 	dataSourceName := "data.azurerm_healthcare_service.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -26,10 +25,6 @@ func TestAccAzureRMDataSourceHealthcareService(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "kind"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "cosmosdb_throughput"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "access_policy_object_ids"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "authentication_configuration"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "cors_configuration"),
-
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "2"),
 				),
 			},

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -39,8 +40,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.UUID,
+					Type: schema.TypeString,
 				},
 			},
 
@@ -139,9 +139,10 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	if properties := resp.Properties; properties != nil {
-		if config := properties.AccessPolicies; config != nil {
-			d.Set("access_policy_object_ids", config)
+		if accessPolicies := properties.AccessPolicies; accessPolicies != nil {
+			d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(accessPolicies))
 		}
+
 		if config := properties.CosmosDbConfiguration; config != nil {
 			d.Set("cosmosdb_throughput", config.OfferThroughput)
 		}
@@ -185,9 +186,29 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 			}
 			corsOutput = append(corsOutput, output)
 		}
+
+		if err := d.Set("cors_configuration", corsOutput); err != nil {
+			return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
+		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
+}
+
+func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPolicyEntry) []string {
+	result := make([]string, 0)
+
+	if policies == nil {
+		return result
+	}
+
+	for _, policy := range *policies {
+		if objectId := policy.ObjectID; objectId != nil {
+			result = append(result, *objectId)
+		}
+	}
+
+	return result
 }
