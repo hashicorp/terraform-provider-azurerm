@@ -40,6 +40,24 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			// Remove in 2.0
+			"sku": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{ 
+					Schema: map[string]*schema.Schema{ 
+						"name": { 
+							Type:     schema.TypeString, 
+							Computed: true, 
+						}, 
+						"capacity": { 
+							Type:     schema.TypeInt, 
+							Computed: true, 
+						}, 
+					}, 
+				},
+			},
+
 			"sku_name": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -187,8 +205,14 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if err := d.Set("sku_name", flattenDataSourceApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku_name`: %+v", err)
+	if sku := resp.Sku; sku != nil {
+		// Remove in 2.0
+		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+		if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
