@@ -35,7 +35,7 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_ppdate(t *testing.T) {
+func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace_disaster_recovery_config.test"
 	ri := tf.AccRandTimeInt()
 
