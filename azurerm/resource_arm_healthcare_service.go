@@ -241,7 +241,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("access_policy_object_ids", config)
 		}
 		if config := properties.CosmosDbConfiguration; config != nil {
-			d.Set("cosmosdb_throughput", config)
+			d.Set("cosmosdb_throughput", config.OfferThroughput)
 		}
 
 		authOutput := make([]interface{}, 0)
