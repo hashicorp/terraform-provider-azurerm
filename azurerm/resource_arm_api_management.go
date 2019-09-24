@@ -64,7 +64,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				ValidateFunc: validate.ApiManagementServicePublisherEmail,
 			},
 
-			// Remove in 2.0
+			// TODO: Remove in 2.0
 			"sku": {
 				Type:          schema.TypeList,
 				Optional:      true,
@@ -88,8 +88,7 @@ func resourceArmApiManagementService() *schema.Resource {
 						"capacity": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ValidateFunc: validation.IntAtLeast(1),
-							Default:      1,
+							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},
@@ -98,7 +97,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"sku_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:      true, // Remove computed in 2.0
+				Computed:      true, // TODO: Remove computed in 2.0
 				ConflictsWith: []string{"sku"},
 				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
 					string(apimanagement.SkuTypeDeveloper),
@@ -397,7 +396,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).apiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	// Remove in 2.0
+	// TODO: Remove in 2.0
 	sku := expandAzureRmApiManagementSku(d)
 	if sku == nil {
 		if sku = expandAzureRmApiManagementSkuName(d); sku == nil {
@@ -501,7 +500,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	if d.HasChange("policy") {
-		// remove the existing policy
+		// TODO: Remove the existing policy
 		if resp, err := policyClient.Delete(ctx, resourceGroup, name, ""); err != nil {
 			if !utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Error removing Policies from API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -600,7 +599,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	if sku := resp.Sku; sku != nil {
-		// Remove in 2.0
+		// TODO: Remove in 2.0
 		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
 			return fmt.Errorf("Error setting `sku`: %+v", err)
 		}
@@ -890,7 +889,7 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	return []interface{}{result}
 }
 
-// Remove in 2.0 timeframe
+// TODO: Remove in 2.0 timeframe
 func expandAzureRmApiManagementSku(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
 	var name string
 	var capacity int32
