@@ -187,7 +187,6 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("publisher_email", props.PublisherEmail)
 		d.Set("publisher_name", props.PublisherName)
-
 		d.Set("notification_sender_email", props.NotificationSenderEmail)
 		d.Set("gateway_url", props.GatewayURL)
 		d.Set("gateway_regional_url", props.GatewayRegionalURL)
