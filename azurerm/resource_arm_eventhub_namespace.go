@@ -251,7 +251,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resGroup, name, rulesets); err != nil {
 			return fmt.Errorf("Error setting network ruleset properties for EventHub Namespace %q (resource group %q): %v", name, resGroup, err)
 		}
-	}{}
+	}
 
 	return resourceArmEventHubNamespaceRead(d, meta)
 }
