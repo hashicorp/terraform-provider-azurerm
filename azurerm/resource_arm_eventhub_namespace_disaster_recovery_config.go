@@ -47,12 +47,14 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfig() *schema.Resource {
 			"partner_namespace_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"alternate_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 
