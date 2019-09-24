@@ -54,6 +54,9 @@ func dataSourceArmAppService() *schema.Resource {
 			"app_settings": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"connection_string": {

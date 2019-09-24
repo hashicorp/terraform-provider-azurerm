@@ -182,7 +182,7 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).servicebus.NamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -221,7 +221,7 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).servicebus.NamespacesClient
+		client := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName)

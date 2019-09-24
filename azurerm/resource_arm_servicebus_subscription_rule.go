@@ -123,7 +123,7 @@ func resourceArmServiceBusSubscriptionRule() *schema.Resource {
 }
 
 func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure Service Bus Subscription Rule creation.")
 
@@ -193,7 +193,7 @@ func resourceArmServiceBusSubscriptionRuleCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -242,7 +242,7 @@ func resourceArmServiceBusSubscriptionRuleRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmServiceBusSubscriptionRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionRulesClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

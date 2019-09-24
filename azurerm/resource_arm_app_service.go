@@ -80,6 +80,9 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"storage_account": azure.SchemaAppServiceStorageAccounts(),

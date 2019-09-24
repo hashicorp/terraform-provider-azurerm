@@ -323,8 +323,8 @@ The following attributes are exported:
 * `id` - The Key Vault Certificate ID.
 * `secret_id` - The ID of the associated Key Vault Secret.
 * `version` - The current version of the Key Vault Certificate.
-* `certificate_data` - The raw Key Vault Certificate.
-* `thumbprint` - The X509 Thumbprint of the Key Vault Certificate returned as hex string.
+* `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
+* `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 
 
 ## Import

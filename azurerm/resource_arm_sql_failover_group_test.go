@@ -124,7 +124,7 @@ func testCheckAzureRMSqlFailoverGroupExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sql.FailoverGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.FailoverGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -152,7 +152,7 @@ func testCheckAzureRMSqlFailoverGroupDisappears(resourceName string) resource.Te
 		serverName := rs.Primary.Attributes["server_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sql.FailoverGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.FailoverGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, name)
@@ -178,7 +178,7 @@ func testCheckAzureRMSqlFailoverGroupDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sql.FailoverGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.FailoverGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)

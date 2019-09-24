@@ -3,12 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 // Provider returns a terraform.ResourceProvider.
@@ -41,7 +45,9 @@ func Provider() terraform.ResourceProvider {
 	//		All over the place
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
-	supportedServices := []common.ServiceRegistration{}
+	supportedServices := []common.ServiceRegistration{
+		compute.Registration{},
+	}
 
 	dataSources := map[string]*schema.Resource{
 		"azurerm_api_management":                          dataSourceApiManagementService(),
@@ -106,6 +112,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_proximity_placement_group":               dataSourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                               dataSourceArmPublicIP(),
 		"azurerm_public_ips":                              dataSourceArmPublicIPs(),
+		"azurerm_public_ip_prefix":                        dataSourceArmPublicIpPrefix(),
 		"azurerm_recovery_services_vault":                 dataSourceArmRecoveryServicesVault(),
 		"azurerm_recovery_services_protection_policy_vm":  dataSourceArmRecoveryServicesProtectionPolicyVm(),
 		"azurerm_redis_cache":                             dataSourceArmRedisCache(),
@@ -190,7 +197,9 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_batch_account":                                      resourceArmBatchAccount(),
 		"azurerm_batch_application":                                  resourceArmBatchApplication(),
 		"azurerm_batch_certificate":                                  resourceArmBatchCertificate(),
+		"azurerm_bot_channel_slack":                                  resourceArmBotChannelSlack(),
 		"azurerm_bot_channels_registration":                          resourceArmBotChannelsRegistration(),
+		"azurerm_bot_connection":                                     resourceArmBotConnection(),
 		"azurerm_batch_pool":                                         resourceArmBatchPool(),
 		"azurerm_cdn_endpoint":                                       resourceArmCdnEndpoint(),
 		"azurerm_cdn_profile":                                        resourceArmCdnProfile(),
@@ -207,6 +216,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_cosmosdb_sql_container":                             resourceArmCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":                              resourceArmCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_table":                                     resourceArmCosmosDbTable(),
+		"azurerm_dashboard":                                          resourceArmDashboard(),
 		"azurerm_data_factory":                                       resourceArmDataFactory(),
 		"azurerm_data_factory_dataset_mysql":                         resourceArmDataFactoryDatasetMySQL(),
 		"azurerm_data_factory_dataset_postgresql":                    resourceArmDataFactoryDatasetPostgreSQL(),
@@ -256,6 +266,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_firewall_network_rule_collection":                   resourceArmFirewallNetworkRuleCollection(),
 		"azurerm_firewall":                                           resourceArmFirewall(),
 		"azurerm_frontdoor":                                          resourceArmFrontDoor(),
+		"azurerm_frontdoor_firewall_policy":                          resourceArmFrontDoorFirewallPolicy(),
 		"azurerm_function_app":                                       resourceArmFunctionApp(),
 		"azurerm_hdinsight_hadoop_cluster":                           resourceArmHDInsightHadoopCluster(),
 		"azurerm_hdinsight_hbase_cluster":                            resourceArmHDInsightHBaseCluster(),
@@ -307,6 +318,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_mariadb_firewall_rule":                              resourceArmMariaDBFirewallRule(),
 		"azurerm_mariadb_server":                                     resourceArmMariaDbServer(),
 		"azurerm_mariadb_virtual_network_rule":                       resourceArmMariaDbVirtualNetworkRule(),
+		"azurerm_marketplace_agreement":                              resourceArmMarketplaceAgreement(),
 		"azurerm_media_services_account":                             resourceArmMediaServicesAccount(),
 		"azurerm_metric_alertrule":                                   resourceArmMetricAlertRule(),
 		"azurerm_monitor_autoscale_setting":                          resourceArmMonitorAutoScaleSetting(),
@@ -434,8 +446,16 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
+	// avoids this showing up in test output
+	var debugLog = func(f string, v ...interface{}) {
+		if os.Getenv("TF_LOG") == "" {
+			return
+		}
+
+		log.Printf(f, v...)
+	}
 	for _, service := range supportedServices {
-		log.Printf("[DEBUG] Registering Data Sources for %q..", service.Name())
+		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
 			if existing := dataSources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Data Source exists for %q", k))
@@ -444,7 +464,7 @@ func Provider() terraform.ResourceProvider {
 			dataSources[k] = v
 		}
 
-		log.Printf("[DEBUG] Registering Resources for %q..", service.Name())
+		debugLog("[DEBUG] Registering Resources for %q..", service.Name())
 		for k, v := range service.SupportedResources() {
 			if existing := resources[k]; existing != nil {
 				panic(fmt.Sprintf("An existing Resource exists for %q", k))
@@ -475,6 +495,15 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("ARM_TENANT_ID", ""),
 				Description: "The Tenant ID which should be used.",
+			},
+
+			"auxiliary_tenant_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 3,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"environment": {
@@ -564,11 +593,26 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
+
+		var auxTenants []string
+		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
+			auxTenants = *utils.ExpandStringSlice(v)
+		} else {
+			if v := os.Getenv("ARM_AUXILIARY_TENANT_IDS"); v != "" {
+				auxTenants = strings.Split(v, ";")
+			}
+		}
+
+		if len(auxTenants) > 3 {
+			return nil, fmt.Errorf("The provider onlt supports 3 auxiliary tenant IDs")
+		}
+
 		builder := &authentication.Builder{
 			SubscriptionID:     d.Get("subscription_id").(string),
 			ClientID:           d.Get("client_id").(string),
 			ClientSecret:       d.Get("client_secret").(string),
 			TenantID:           d.Get("tenant_id").(string),
+			AuxiliaryTenantIDs: auxTenants,
 			Environment:        d.Get("environment").(string),
 			MsiEndpoint:        d.Get("msi_endpoint").(string),
 			ClientCertPassword: d.Get("client_certificate_password").(string),
@@ -579,6 +623,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsClientSecretAuth:       true,
 			SupportsManagedServiceIdentity: d.Get("use_msi").(bool),
 			SupportsAzureCliToken:          true,
+			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
 			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html",

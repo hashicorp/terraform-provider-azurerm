@@ -63,6 +63,9 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"description": {
@@ -88,6 +91,9 @@ func resourceArmDataFactoryDatasetSQLServerTable() *schema.Resource {
 			"additional_properties": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"schema_column": {

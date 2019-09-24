@@ -32,7 +32,7 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -53,7 +53,7 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"display_name": {
@@ -109,17 +109,12 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of creating Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
-		} else {
-			id, err := azure.CosmosGetIDFromResponse(existing.Response)
-			if err != nil {
-				return fmt.Errorf("Error generating import ID for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-
-			return tf.ImportAsExistsError("azurerm_bot", id)
+		}
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_bot_channels_registration", *existing.ID)
 		}
 	}
 
-	t := d.Get("tags").(map[string]interface{})
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
 		displayName = name
@@ -139,7 +134,7 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
 		Kind: botservice.KindBot,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, bot); err != nil {

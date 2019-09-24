@@ -133,7 +133,7 @@ func TestAccAzureRMServiceBusNamespaceAuthorizationRule_requiresImport(t *testin
 }
 
 func testCheckAzureRMServiceBusNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).servicebus.NamespacesClient
+	conn := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -171,7 +171,7 @@ func testCheckAzureRMServiceBusNamespaceAuthorizationRuleExists(resourceName str
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Namespace: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).servicebus.NamespacesClient
+		conn := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {

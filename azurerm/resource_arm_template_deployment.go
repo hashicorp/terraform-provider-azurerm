@@ -47,6 +47,9 @@ func resourceArmTemplateDeployment() *schema.Resource {
 				Type:          schema.TypeMap,
 				Optional:      true,
 				ConflictsWith: []string{"parameters_body"},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"parameters_body": {
@@ -69,6 +72,9 @@ func resourceArmTemplateDeployment() *schema.Resource {
 			"outputs": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
