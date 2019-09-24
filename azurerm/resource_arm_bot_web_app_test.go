@@ -11,57 +11,20 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being able provision against one app id at a time
-	testCases := map[string]map[string]func(t *testing.T){
-		"basic": {
-			"basic":    testAccAzureRMBotChannelsRegistration_basic,
-			"update":   testAccAzureRMBotChannelsRegistration_update,
-			"complete": testAccAzureRMBotChannelsRegistration_complete,
-		},
-		"connection": {
-			"basic":    testAccAzureRMBotConnection_basic,
-			"complete": testAccAzureRMBotConnection_complete,
-		},
-		"channel": {
-			"slackBasic":  testAccAzureRMBotChannelSlack_basic,
-			"slackUpdate": testAccAzureRMBotChannelSlack_update,
-		},
-		"web_app": {
-			"basic":    testAccAzureRMBotWebApp_basic,
-			"update":   testAccAzureRMBotWebApp_update,
-			"complete": testAccAzureRMBotWebApp_complete,
-		},
-	}
-
-	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
-				t.Run(name, func(t *testing.T) {
-					tc(t)
-				})
-			}
-		})
-	}
-}
-
-func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
+func testAccAzureRMBotWebApp_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, testLocation())
-	resourceName := "azurerm_bot_channels_registration.test"
+	config := testAccAzureRMBotWebApp_basicConfig(ri, testLocation())
+	resourceName := "azurerm_bot_web_app.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotWebAppExists(resourceName),
 				),
 			},
 			{
@@ -74,21 +37,21 @@ func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
+func testAccAzureRMBotWebApp_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_basicConfig(ri, testLocation())
-	config2 := testAccAzureRMBotChannelsRegistration_updateConfig(ri, testLocation())
-	resourceName := "azurerm_bot_channels_registration.test"
+	config := testAccAzureRMBotWebApp_basicConfig(ri, testLocation())
+	config2 := testAccAzureRMBotWebApp_updateConfig(ri, testLocation())
+	resourceName := "azurerm_bot_web_app.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotWebAppExists(resourceName),
 				),
 			},
 			{
@@ -100,7 +63,7 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotWebAppExists(resourceName),
 				),
 			},
 			{
@@ -113,20 +76,20 @@ func testAccAzureRMBotChannelsRegistration_update(t *testing.T) {
 	})
 }
 
-func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
+func testAccAzureRMBotWebApp_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMBotChannelsRegistration_completeConfig(ri, testLocation())
-	resourceName := "azurerm_bot_channels_registration.test"
+	config := testAccAzureRMBotWebApp_completeConfig(ri, testLocation())
+	resourceName := "azurerm_bot_web_app.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMBotChannelsRegistrationDestroy,
+		CheckDestroy: testCheckAzureRMBotWebAppDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMBotChannelsRegistrationExists(resourceName),
+					testCheckAzureRMBotWebAppExists(resourceName),
 				),
 			},
 			{
@@ -139,7 +102,7 @@ func testAccAzureRMBotChannelsRegistration_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMBotWebAppExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
@@ -150,7 +113,7 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 		name := rs.Primary.Attributes["name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
+			return fmt.Errorf("Bad: no resource group found in state for Bot Web App: %s", name)
 		}
 
 		client := testAccProvider.Meta().(*ArmClient).bot.BotClient
@@ -162,14 +125,14 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 		}
 
 		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Bad: Bot Channels Registration %q (resource group: %q) does not exist", name, resourceGroup)
+			return fmt.Errorf("Bad: Bot Web App %q (resource group: %q) does not exist", name, resourceGroup)
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
+func testCheckAzureRMBotWebAppDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).bot.BotClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -188,14 +151,14 @@ func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Bot Channels Registration still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Bot Web App still exists:\n%#v", resp.Properties)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMBotChannelsRegistration_basicConfig(rInt int, location string) string {
+func testAccAzureRMBotWebApp_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -204,7 +167,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_bot_channels_registration" "test" {
+resource "azurerm_bot_web_app" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -218,7 +181,7 @@ resource "azurerm_bot_channels_registration" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMBotChannelsRegistration_updateConfig(rInt int, location string) string {
+func testAccAzureRMBotWebApp_updateConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -227,7 +190,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_bot_channels_registration" "test" {
+resource "azurerm_bot_web_app" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -241,7 +204,7 @@ resource "azurerm_bot_channels_registration" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMBotChannelsRegistration_completeConfig(rInt int, location string) string {
+func testAccAzureRMBotWebApp_completeConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -263,7 +226,7 @@ resource "azurerm_application_insights_api_key" "test" {
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
-resource "azurerm_bot_channels_registration" "test" {
+resource "azurerm_bot_web_app" "test" {
   name                = "acctestdf%d"
   location            = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
