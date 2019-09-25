@@ -252,8 +252,19 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 		rulesets := eventhub.NetworkRuleSet{
 			NetworkRuleSetProperties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
 		}
-		if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resGroup, name, rulesets); err != nil {
-			return fmt.Errorf("Error setting network ruleset properties for EventHub Namespace %q (resource group %q): %v", name, resGroup, err)
+
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name != eventhub.Basic {
+			if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resGroup, name, rulesets); err != nil {
+				return fmt.Errorf("Error setting network ruleset properties for EventHub Namespace %q (resource group %q): %v", name, resGroup, err)
+			}
+		} else {
+			// so if the user has specified the non default rule sets throw a validation error
+			if rulesets.DefaultAction != eventhub.Deny ||
+				(rulesets.IPRules != nil && len(*rulesets.IPRules) > 0) ||
+				(rulesets.VirtualNetworkRules != nil && len(*rulesets.VirtualNetworkRules) > 0) {
+				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+			}
 		}
 	}
 
