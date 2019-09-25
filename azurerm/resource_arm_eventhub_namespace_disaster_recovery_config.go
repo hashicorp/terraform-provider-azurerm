@@ -291,8 +291,8 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 
 func resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.Context, client *eventhub.DisasterRecoveryConfigsClient, resourceGroup, namespaceName, name string) error {
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{string(eventhub.Accepted)},
-		Target:     []string{string(eventhub.Succeeded)},
+		Pending: []string{string(eventhub.Accepted)},
+		Target:  []string{string(eventhub.Succeeded)},
 		// Delay:      15 * time.Second,
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,

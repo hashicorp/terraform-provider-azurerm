@@ -87,6 +87,12 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"wait_for_replication"},
 			},
+			{
+				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(ri, testLocation(), testAltLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
+				),
+			},
 		},
 	})
 }
@@ -237,5 +243,28 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   wait_for_replication   = true
 }
 
+`, rInt, location, altlocation)
+}
+
+func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(rInt int, location string, altlocation string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "testa" {
+  name                = "acctest-EHN-%[1]d-a"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub_namespace" "testc" {
+  name                = "acctest-EHN-%[1]d-c"
+  location            = "%[3]s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
 `, rInt, location, altlocation)
 }
