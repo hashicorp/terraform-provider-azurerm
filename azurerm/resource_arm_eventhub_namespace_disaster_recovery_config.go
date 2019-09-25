@@ -62,6 +62,12 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfig() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"wait_for_name_to_be_available_on_deletion": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -259,7 +265,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 
 	// it can take some time for the name to become availible again. So lets wait if asked
 	// this is mainly here to enable updating the resource in place
-	/*	if v, ok := d.GetOkExists("wait_for_name_to_be_available_on_deletion"); ok && v.(bool) {
+	if v, ok := d.GetOkExists("wait_for_name_to_be_available_on_deletion"); ok && v.(bool) {
 		nameFreeWait := &resource.StateChangeConf{
 			Pending:    []string{"NameInUse"},
 			Target:     []string{"None1"},
@@ -278,7 +284,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 		if _, err := nameFreeWait.WaitForState(); err != nil {
 			return fmt.Errorf("Error waiting the the EventHub Namespace Disaster Recovery Configs %q name to be availible (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
 		}
-	}*/
+	}
 
 	return nil
 }
@@ -287,7 +293,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{string(eventhub.Accepted)},
 		Target:     []string{string(eventhub.Succeeded)},
-		Delay:      15 * time.Second,
+		// Delay:      15 * time.Second,
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
