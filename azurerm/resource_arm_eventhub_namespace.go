@@ -240,6 +240,15 @@ func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}
 	resGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
+	resp, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("Error making Read request on EventHub Namespace %q: %+v", name, err)
+	}
+
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
