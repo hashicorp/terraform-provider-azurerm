@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
+* `private_link_service_network_policies` - (Optional) Enable or Disable apply network policies on private link service in the subnet.
+
 * `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 
 -> **NOTE:** At this time Subnet `<->` Network Security Group associations need to be configured both using this field (which is now Deprecated) and/or using the `azurerm_subnet_network_security_group_association` resource. This field is deprecated and will be removed in favour of that resource in the next major version (2.0) of the AzureRM Provider.
@@ -99,6 +101,7 @@ The following attributes are exported:
 * `resource_group_name` - The name of the resource group in which the subnet is created in.
 * `virtual_network_name` - The name of the virtual network in which the subnet is created in
 * `address_prefix` - The address prefix for the subnet
+* `private_link_service_network_policies` - Enable or Disable apply network policies on private link service in the subnet.
 
 ## Import
 

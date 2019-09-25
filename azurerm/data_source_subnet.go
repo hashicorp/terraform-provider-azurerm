@@ -56,6 +56,11 @@ func dataSourceArmSubnet() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
+
+			"private_link_service_network_policies": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -83,6 +88,12 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
+
+		if props.PrivateLinkServiceNetworkPolicies != nil {
+			d.Set("private_link_service_network_policies", props.PrivateLinkServiceNetworkPolicies)
+		} else {
+			d.Set("private_link_service_network_policies", "")
+		}
 
 		if props.NetworkSecurityGroup != nil {
 			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)

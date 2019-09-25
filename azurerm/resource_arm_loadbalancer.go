@@ -134,6 +134,11 @@ func resourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"zones": azure.SchemaSingleZone(),
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -356,6 +361,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 
 		if config.Name != nil {
 			ipConfig["name"] = *config.Name
+		}
+
+		if config.ID != nil {
+			ipConfig["id"] = *config.ID
 		}
 
 		zones := make([]string, 0)

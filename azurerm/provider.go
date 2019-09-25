@@ -111,7 +111,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_proximity_placement_group":               dataSourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                               dataSourceArmPublicIP(),
 		"azurerm_public_ips":                              dataSourceArmPublicIPs(),
-		"azurerm_public_ip_prefix":                        dataSourceArmPublicIpPrefix(),
 		"azurerm_recovery_services_vault":                 dataSourceArmRecoveryServicesVault(),
 		"azurerm_recovery_services_protection_policy_vm":  dataSourceArmRecoveryServicesProtectionPolicyVm(),
 		"azurerm_redis_cache":                             dataSourceArmRedisCache(),
@@ -140,6 +139,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_gateway":                 dataSourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":      dataSourceArmVirtualNetworkGatewayConnection(),
 		"azurerm_virtual_network":                         dataSourceArmVirtualNetwork(),
+		"azurerm_private_link_service":                    dataSourceArmPrivateLinkService(),
 	}
 
 	resources := map[string]*schema.Resource{
@@ -199,7 +199,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_bot_channel_slack":                                  resourceArmBotChannelSlack(),
 		"azurerm_bot_channels_registration":                          resourceArmBotChannelsRegistration(),
 		"azurerm_bot_connection":                                     resourceArmBotConnection(),
-		"azurerm_bot_web_app":                                        resourceArmBotWebApp(),
 		"azurerm_batch_pool":                                         resourceArmBatchPool(),
 		"azurerm_cdn_endpoint":                                       resourceArmCdnEndpoint(),
 		"azurerm_cdn_profile":                                        resourceArmCdnProfile(),
@@ -216,7 +215,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_cosmosdb_sql_container":                             resourceArmCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":                              resourceArmCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_table":                                     resourceArmCosmosDbTable(),
-		"azurerm_dashboard":                                          resourceArmDashboard(),
 		"azurerm_data_factory":                                       resourceArmDataFactory(),
 		"azurerm_data_factory_dataset_mysql":                         resourceArmDataFactoryDatasetMySQL(),
 		"azurerm_data_factory_dataset_postgresql":                    resourceArmDataFactoryDatasetPostgreSQL(),
@@ -443,6 +441,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
+		"azurerm_private_link_service":                                                   resourceArmPrivateLinkService(),
 	}
 
 	// avoids this showing up in test output

@@ -53,6 +53,7 @@ The following attributes are exported:
 A `frontend_ip_configuration` block exports the following:
 
 * `name` - The name of the Frontend IP Configuration.
+* `id` - The id of the Frontend IP Configuration.
 * `subnet_id` - The ID of the Subnet which is associated with the IP Configuration.
 * `private_ip_address` - Private IP Address to assign to the Load Balancer.
 * `private_ip_address_allocation` - The allocation method for the Private IP Address used by this Load Balancer.

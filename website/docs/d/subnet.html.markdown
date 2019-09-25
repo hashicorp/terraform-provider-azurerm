@@ -34,6 +34,7 @@ output "subnet_id" {
 
 * `id` - The ID of the Subnet.
 * `address_prefix` - The address prefix used for the subnet.
+* `private_link_service_network_policies` - Enable or Disable apply network policies on private link service in the subnet.
 * `network_security_group_id` - The ID of the Network Security Group associated with the subnet.
 * `route_table_id` - The ID of the Route Table associated with this subnet.
 * `ip_configurations` - The collection of IP Configurations with IPs within this subnet.

@@ -125,6 +125,11 @@ func resourceArmSubnet() *schema.Resource {
 					},
 				},
 			},
+
+			"private_link_service_network_policies": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -159,6 +164,11 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
+	}
+
+	if v, ok := d.GetOk("private_link_service_network_policies"); ok {
+		privateLinkServiceNetworkPolicies := v.(string)
+		properties.PrivateLinkServiceNetworkPolicies = &privateLinkServiceNetworkPolicies
 	}
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
@@ -256,6 +266,12 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
+
+		var privateLinkServiceNetworkPolicies *string
+		if props.PrivateLinkServiceNetworkPolicies != nil {
+			privateLinkServiceNetworkPolicies = props.PrivateLinkServiceNetworkPolicies
+		}
+		d.Set("private_link_service_network_policies", privateLinkServiceNetworkPolicies)
 
 		var securityGroupId *string
 		if props.NetworkSecurityGroup != nil {
