@@ -7003,17 +7003,17 @@ type ServiceTierAdvisorProperties struct {
 	Confidence *float64 `json:"confidence,omitempty"`
 }
 
-// Sku the resource model definition representing SKU
+// Sku an ARM Resource SKU.
 type Sku struct {
-	// Name - The name of the SKU. Ex - P3. It is typically a letter+number code
+	// Name - The name of the SKU, typically, a letter + Number code, e.g. P3.
 	Name *string `json:"name,omitempty"`
-	// Tier - This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT.
+	// Tier - The tier or edition of the particular SKU, e.g. Basic, Premium.
 	Tier *string `json:"tier,omitempty"`
-	// Size - The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code.
+	// Size - Size of the particular SKU
 	Size *string `json:"size,omitempty"`
 	// Family - If the service has different generations of hardware, for the same SKU, then that can be captured here.
 	Family *string `json:"family,omitempty"`
-	// Capacity - If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted.
+	// Capacity - Capacity of the particular SKU.
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
