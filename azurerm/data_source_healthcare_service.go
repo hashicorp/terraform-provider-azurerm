@@ -134,7 +134,7 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.SetId(*resp.ID)
-	if kind := resp.Kind; kind != nil {
+	if kind := resp.Kind; kind != "" {
 		d.Set("kind", kind)
 	}
 

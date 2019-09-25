@@ -2,9 +2,9 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/validation"
 	"log"
 
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -173,7 +173,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
 		Location: utils.String(location),
 		Tags:     expandedTags,
-		Kind:     &kind,
+		Kind:     healthcareapis.Kind(kind),
 		Properties: &healthcareapis.ServicesProperties{
 			AccessPolicies: expandAzureRMhealthcareapisAccessPolicyEntries(d),
 			CosmosDbConfiguration: &healthcareapis.ServiceCosmosDbConfigurationInfo{
@@ -233,7 +233,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if kind := resp.Kind; kind != nil {
+	if kind := resp.Kind; kind != "" {
 		d.Set("kind", kind)
 	}
 	if properties := resp.Properties; properties != nil {
