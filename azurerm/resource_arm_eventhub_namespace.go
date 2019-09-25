@@ -84,9 +84,11 @@ func resourceArmEventHubNamespace() *schema.Resource {
 			},
 
 			"network_rulesets": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:       schema.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 
@@ -100,8 +102,9 @@ func resourceArmEventHubNamespace() *schema.Resource {
 						},
 
 						"virtual_network_rule": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 
@@ -123,9 +126,10 @@ func resourceArmEventHubNamespace() *schema.Resource {
 						},
 
 						"ip_rule": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"ip_mask": {
