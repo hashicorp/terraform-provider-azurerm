@@ -284,10 +284,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -332,10 +329,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -365,10 +359,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -398,10 +389,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_product" "test" {

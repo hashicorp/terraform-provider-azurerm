@@ -171,8 +171,6 @@ A `agent_pool_profile` block supports the following:
 
 * `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
 
-~> **NOTE:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
-
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A route table should be configured on this Subnet.
@@ -236,8 +234,6 @@ A `network_profile` block supports the following:
 Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
-
-~> **NOTE:** Support for using a `standard` load balancer is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` and `AKSAzureStandardLoadBalancer` for `namespace Microsoft.ContainerService`. For additional information please visit [Standard SKU LoadBalancer](https://docs.microsoft.com/en-us/azure/aks/load-balancer-standard).
 
 ---
 
