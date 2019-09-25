@@ -122,11 +122,9 @@ func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Res
 			},
 		},
 	}
-
 }
 
 func dataSourceArmStorageContainerSasRead(d *schema.ResourceData, _ interface{}) error {
-
 	connString := d.Get("connection_string").(string)
 	containerName := d.Get("container_name").(string)
 	httpsOnly := d.Get("https_only").(bool)

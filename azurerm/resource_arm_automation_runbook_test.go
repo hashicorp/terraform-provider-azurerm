@@ -153,7 +153,6 @@ func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 }
 
 func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

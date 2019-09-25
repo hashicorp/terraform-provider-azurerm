@@ -184,7 +184,6 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := resp.SnapshotProperties; props != nil {
-
 		if data := props.CreationData; data != nil {
 			d.Set("create_option", string(data.CreateOption))
 

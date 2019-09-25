@@ -26,6 +26,7 @@ linters:
     - varcheck
     - vet
     - vetshadow
+    - whitespace
 
 linters-settings:
   errcheck:

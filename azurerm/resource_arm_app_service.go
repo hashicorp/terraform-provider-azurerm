@@ -397,7 +397,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("client_affinity_enabled") {
-
 		affinity := d.Get("client_affinity_enabled").(bool)
 
 		sitePatchResource := web.SitePatchResource{

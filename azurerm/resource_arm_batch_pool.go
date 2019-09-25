@@ -628,7 +628,6 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		if props.DeploymentConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-
 			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))

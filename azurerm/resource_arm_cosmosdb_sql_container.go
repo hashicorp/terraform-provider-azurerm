@@ -248,7 +248,6 @@ func flattenCosmosSQLContainerUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[st
 
 	slice := make([]map[string]interface{}, 0)
 	for _, k := range *keys {
-
 		if k.Paths == nil {
 			continue
 		}

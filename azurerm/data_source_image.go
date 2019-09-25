@@ -176,7 +176,6 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 			})
 		}
 		img = list[0]
-
 	}
 
 	d.SetId(*img.ID)

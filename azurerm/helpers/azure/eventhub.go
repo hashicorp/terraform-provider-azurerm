@@ -81,7 +81,6 @@ func FlattenEventHubAuthorizationRuleRights(rights *[]eventhub.AccessRights) (li
 }
 
 func EventHubAuthorizationRuleSchemaFrom(s map[string]*schema.Schema) map[string]*schema.Schema {
-
 	authSchema := map[string]*schema.Schema{
 		"listen": {
 			Type:     schema.TypeBool,

@@ -161,7 +161,6 @@ func testCheckAzureRMIotDPSCertificateExists(resourceName string) resource.TestC
 		}
 
 		return nil
-
 	}
 }
 

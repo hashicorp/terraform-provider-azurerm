@@ -64,10 +64,14 @@ func resourceArmApiManagementService() *schema.Resource {
 				ValidateFunc: validate.ApiManagementServicePublisherEmail,
 			},
 
+			// TODO: Remove in 2.0
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				ConflictsWith: []string{"sku_name"},
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -80,13 +84,27 @@ func resourceArmApiManagementService() *schema.Resource {
 								string(apimanagement.SkuTypePremium),
 							}, false),
 						},
+
 						"capacity": {
 							Type:         schema.TypeInt,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true, // TODO: Remove computed in 2.0
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
+					string(apimanagement.SkuTypeDeveloper),
+					string(apimanagement.SkuTypeBasic),
+					string(apimanagement.SkuTypeStandard),
+					string(apimanagement.SkuTypePremium),
+				}, 1, false),
 			},
 
 			"identity": {
@@ -176,7 +194,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true, // todo remove in 2.0 ?
+				Computed: true, // TODO: Remove in 2.0 ?
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -198,15 +216,15 @@ func resourceArmApiManagementService() *schema.Resource {
 						"disable_triple_des_chipers": {
 							Type:          schema.TypeBool,
 							Optional:      true,
-							Computed:      true, // todo remove in 2.0
+							Computed:      true, // TODO: Remove in 2.0
 							Deprecated:    "This field has been deprecated in favour of the `disable_triple_des_ciphers` property to correct the spelling. it will be removed in version 2.0 of the provider",
 							ConflictsWith: []string{"security.0.disable_triple_des_ciphers"},
 						},
 						"disable_triple_des_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							// Default:       false, // todo remove in 2.0
-							Computed:      true, // todo remove in 2.0
+							// Default:       false, // TODO: Remove in 2.0
+							Computed:      true, // TODO: Remove in 2.0
 							ConflictsWith: []string{"security.0.disable_triple_des_chipers"},
 						},
 						"disable_frontend_ssl30": {
@@ -378,6 +396,14 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	client := meta.(*ArmClient).apiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
+	// TODO: Remove in 2.0
+	sku := expandAzureRmApiManagementSku(d)
+	if sku == nil {
+		if sku = expandAzureRmApiManagementSkuName(d); sku == nil {
+			return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+		}
+	}
+
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
 	name := d.Get("name").(string)
@@ -398,8 +424,6 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
-
-	sku := expandAzureRmApiManagementSku(d)
 
 	publisherName := d.Get("publisher_name").(string)
 	publisherEmail := d.Get("publisher_email").(string)
@@ -574,8 +598,14 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+	if sku := resp.Sku; sku != nil {
+		// TODO: Remove in 2.0
+		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+		if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		}
 	}
 
 	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
@@ -859,18 +889,57 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	return []interface{}{result}
 }
 
+// TODO: Remove in 2.0 timeframe
 func expandAzureRmApiManagementSku(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
+	var name string
+	var capacity int32
+
 	vs := d.Get("sku").([]interface{})
+
+	if len(vs) == 0 {
+		return nil
+	}
+
 	// guaranteed by MinItems in the schema
 	v := vs[0].(map[string]interface{})
 
-	name := apimanagement.SkuType(v["name"].(string))
-	capacity := int32(v["capacity"].(int))
+	name = v["name"].(string)
+	capacity = int32(v["capacity"].(int))
 
 	sku := &apimanagement.ServiceSkuProperties{
-		Name:     name,
+		Name:     apimanagement.SkuType(name),
 		Capacity: utils.Int32(capacity),
 	}
+
+	return sku
+}
+
+func expandAzureRmApiManagementSkuName(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
+	vs := d.Get("sku_name").(string)
+
+	if len(vs) == 0 {
+		return nil
+	}
+
+	name, capacity, err := azure.SplitSku(vs)
+	if err != nil {
+		return nil
+	}
+
+	sku := &apimanagement.ServiceSkuProperties{
+		Name:     apimanagement.SkuType(name),
+		Capacity: utils.Int32(capacity),
+	}
+
+	return sku
+}
+
+func flattenApiManagementServiceSkuName(input *apimanagement.ServiceSkuProperties) string {
+	if input == nil {
+		return ""
+	}
+
+	sku := fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 
 	return sku
 }
@@ -939,7 +1008,7 @@ func flattenApiManagementCustomProperties(input map[string]*string) []interface{
 	output["disable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["disable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["disable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // todo remove in 2.0
+	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // TODO: Remove in 2.0
 	output["disable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 
 	return []interface{}{output}

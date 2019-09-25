@@ -199,6 +199,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_bot_channel_slack":                                  resourceArmBotChannelSlack(),
 		"azurerm_bot_channels_registration":                          resourceArmBotChannelsRegistration(),
 		"azurerm_bot_connection":                                     resourceArmBotConnection(),
+		"azurerm_bot_web_app":                                        resourceArmBotWebApp(),
 		"azurerm_batch_pool":                                         resourceArmBatchPool(),
 		"azurerm_cdn_endpoint":                                       resourceArmCdnEndpoint(),
 		"azurerm_cdn_profile":                                        resourceArmCdnProfile(),
@@ -592,7 +593,6 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)

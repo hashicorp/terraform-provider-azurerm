@@ -277,7 +277,6 @@ func resourceArmLoadBalancerNatRuleDelete(d *schema.ResourceData, meta interface
 }
 
 func expandAzureRmLoadBalancerNatRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.InboundNatRule, error) {
-
 	properties := network.InboundNatRulePropertiesFormat{
 		Protocol:     network.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort: utils.Int32(int32(d.Get("frontend_port").(int))),

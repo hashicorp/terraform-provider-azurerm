@@ -130,7 +130,6 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
@@ -589,7 +588,6 @@ DEPLOY
   depends_on      = ["azurerm_key_vault_secret.test-secret"]
 }
 `, rInt, location, location, rInt, rInt, rInt, rInt)
-
 }
 
 func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) string {

@@ -170,7 +170,6 @@ func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
 }
 
 func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

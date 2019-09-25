@@ -132,7 +132,6 @@ func TestAccAzureRMStorageTable_acl(t *testing.T) {
 
 func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)

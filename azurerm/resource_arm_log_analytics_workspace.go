@@ -150,7 +150,6 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	d.SetId(*read.ID)
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
-
 }
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
