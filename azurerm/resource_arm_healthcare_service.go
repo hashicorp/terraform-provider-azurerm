@@ -233,7 +233,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if kind := resp.Kind; kind != "" {
+	if kind := resp.Kind; string(kind) != "" {
 		d.Set("kind", kind)
 	}
 	if properties := resp.Properties; properties != nil {
