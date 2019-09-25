@@ -285,7 +285,6 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 	d.Set("task_type", resp.TaskType)
 
 	if props := resp.ScheduleProperties; props != nil {
-
 		d.Set("time_zone_id", props.TimeZoneID)
 
 		d.Set("status", string(props.Status))
@@ -415,7 +414,6 @@ func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *dtl.Hour
 }
 
 func expandArmDevTestLabScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
-
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)

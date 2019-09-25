@@ -211,7 +211,6 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
-
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMEventHubNamespaceNonStandardCasing(ri, testLocation())
 

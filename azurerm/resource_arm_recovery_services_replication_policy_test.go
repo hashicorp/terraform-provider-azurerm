@@ -37,7 +37,6 @@ func TestAccAzureRMRecoveryReplicationPolicy_basic(t *testing.T) {
 }
 
 func testAccAzureRMRecoveryReplicationPolicy_basic(rInt int, location string) string {
-
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

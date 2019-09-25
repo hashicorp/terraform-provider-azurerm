@@ -149,7 +149,6 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 			},
 		},
 	})
-
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
@@ -180,7 +179,6 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error {

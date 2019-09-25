@@ -11,7 +11,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	GroupsClient := managementgroups.NewClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&GroupsClient.Client, o.ResourceManagerAuthorizer)
 

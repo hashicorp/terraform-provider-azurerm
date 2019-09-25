@@ -869,7 +869,6 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 	result := make(map[string]interface{})
 
 	if schedule := input.Schedule; schedule != nil {
-
 		if timezone := schedule.TimeZone; timezone != nil {
 			result["timezone"] = *timezone
 		}

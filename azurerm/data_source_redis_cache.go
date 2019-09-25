@@ -267,5 +267,4 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("secondary_access_key", keys.SecondaryKey)
 
 	return tags.FlattenAndSet(d, resp.Tags)
-
 }

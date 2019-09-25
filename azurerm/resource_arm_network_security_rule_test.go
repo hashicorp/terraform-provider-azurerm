@@ -159,7 +159,6 @@ func TestAccAzureRMNetworkSecurityRule_applicationSecurityGroups(t *testing.T) {
 
 func testCheckAzureRMNetworkSecurityRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -189,7 +188,6 @@ func testCheckAzureRMNetworkSecurityRuleExists(resourceName string) resource.Tes
 
 func testCheckAzureRMNetworkSecurityRuleDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -220,7 +218,6 @@ func testCheckAzureRMNetworkSecurityRuleDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-
 		if rs.Type != "azurerm_network_security_rule" {
 			continue
 		}

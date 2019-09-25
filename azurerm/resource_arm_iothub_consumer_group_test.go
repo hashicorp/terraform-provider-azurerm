@@ -144,7 +144,6 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 		}
 
 		return nil
-
 	}
 }
 

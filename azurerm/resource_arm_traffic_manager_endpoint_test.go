@@ -431,7 +431,6 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-
 	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
 
 	for _, rs := range s.RootModule().Resources {

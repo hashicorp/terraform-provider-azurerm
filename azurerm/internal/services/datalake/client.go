@@ -19,7 +19,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	StoreAccountsClient := store.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&StoreAccountsClient.Client, o.ResourceManagerAuthorizer)
 

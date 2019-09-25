@@ -396,7 +396,6 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 				for _, rule := range *rules {
 					inboundNatRules = append(inboundNatRules, *rule.ID)
 				}
-
 			}
 			ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
 
@@ -405,7 +404,6 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 				for _, rule := range *rules {
 					outboundRules = append(outboundRules, *rule.ID)
 				}
-
 			}
 			ipConfig["outbound_rules"] = schema.NewSet(schema.HashString, outboundRules)
 		}

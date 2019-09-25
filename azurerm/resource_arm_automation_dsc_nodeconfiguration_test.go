@@ -95,14 +95,12 @@ func testCheckAzureRMAutomationDscNodeConfigurationDestroy(s *terraform.State) e
 		}
 
 		return fmt.Errorf("Automation Dsc Node Configuration still exists:\n%#v", resp)
-
 	}
 
 	return nil
 }
 
 func testCheckAzureRMAutomationDscNodeConfigurationExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

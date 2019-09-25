@@ -849,12 +849,10 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 }
 
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
-
 	envVars := input.(map[string]interface{})
 	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
 
 	if secure {
-
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:        utils.String(k),
@@ -863,9 +861,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 
 			output = append(output, ev)
 		}
-
 	} else {
-
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:  utils.String(k),
@@ -1009,7 +1005,6 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 
 		httpRaw := probeConfig["http_get"].([]interface{})
 		if len(httpRaw) > 0 {
-
 			for _, httpget := range httpRaw {
 				x := httpget.(map[string]interface{})
 
@@ -1090,7 +1085,6 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 }
 
 func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
-
 	//map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
 	for i, c := range d.Get("container").([]interface{}) {
@@ -1100,7 +1094,6 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 	containerCfg := make([]interface{}, 0, len(*containers))
 	for _, container := range *containers {
-
 		//TODO fix this crash point
 		name := *container.Name
 
@@ -1221,7 +1214,6 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 
 	if isSecure {
 		for _, envVar := range *input {
-
 			if envVar.Name != nil && envVar.Value == nil {
 				if v, ok := d.GetOk(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name)); ok {
 					log.Printf("[DEBUG] SECURE    : Name: %s - Value: %s", *envVar.Name, v.(string))
