@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
@@ -61,12 +62,6 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"wait_for_replication"},
-			},
-			{
-				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_remove(ri, testLocation(), testAltLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
-				),
 			},
 		},
 	})
@@ -156,30 +151,8 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
 `, rInt, location, altlocation)
 }
 
-func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic_removed(rInt int, location string, altlocation string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_eventhub_namespace" "testa" {
-  name                = "acctest-EHN-%[1]d-a"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-}
-
-resource "azurerm_eventhub_namespace" "testb" {
-  name                = "acctest-EHN-%[1]d-b"
-  location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-}
-`, rInt, location, altlocation)
-}
-
 func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated(rInt int, location string, altlocation string) string {
+	time.Sleep(time.Minute * 5)
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
@@ -206,30 +179,6 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   namespace_name         = "${azurerm_eventhub_namespace.testa.name}"
   partner_namespace_id   = "${azurerm_eventhub_namespace.testc.id}"
   wait_for_replication   = true
-}
-
-`, rInt, location, altlocation)
-}
-
-func testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_remove(rInt int, location string, altlocation string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_eventhub_namespace" "testa" {
-  name                = "acctest-EHN-%[1]d-a"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-}
-
-resource "azurerm_eventhub_namespace" "testc" {
-  name                = "acctest-EHN-%[1]d-c"
-  location            = "%[3]s"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
 }
 
 `, rInt, location, altlocation)

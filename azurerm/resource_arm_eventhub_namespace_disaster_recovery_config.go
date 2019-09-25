@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
@@ -182,6 +183,31 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 	delete, err := client.Delete(ctx, resourceGroup, namespaceName, name)
 	if delete.StatusCode != http.StatusOK {
 		return fmt.Errorf("Error issuing delete request for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+	}
+
+	// no future for deletion so wait for it to vanish
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"200"},
+		Target:     []string{"404"},
+		Timeout:    30 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+
+			resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
+
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return resp, strconv.Itoa(resp.StatusCode), nil
+				}
+				return nil, "nil", fmt.Errorf("Error polling for the status of the EventHub Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
+			}
+
+			return resp, strconv.Itoa(resp.StatusCode), nil
+		},
+	}
+
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting the deletion of EventHub Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
 	}
 
 	return nil
