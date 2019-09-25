@@ -398,7 +398,6 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.Networ
 
 	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
 		if len(v) > 0 {
-
 			var rules []eventhub.NWRuleSetVirtualNetworkRules
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
@@ -416,7 +415,6 @@ func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.Networ
 
 	if v, ok := block["ip_rule"].([]interface{}); ok {
 		if len(v) > 0 {
-
 			var rules []eventhub.NWRuleSetIPRules
 			for _, r := range v {
 				rblock := r.(map[string]interface{})
