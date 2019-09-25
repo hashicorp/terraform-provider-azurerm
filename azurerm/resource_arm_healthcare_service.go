@@ -239,7 +239,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 	}
 	if properties := resp.Properties; properties != nil {
 		if config := properties.AccessPolicies; config != nil {
-			d.Set("access_policy_object_ids", config)
+			d.Set("access_policy_object_ids", flattenHealthcareAccessPolicies(config))
 		}
 		if config := properties.CosmosDbConfiguration; config != nil {
 			d.Set("cosmosdb_throughput", config.OfferThroughput)
