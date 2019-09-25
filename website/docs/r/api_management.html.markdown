@@ -126,6 +126,18 @@ A `management`, `portal` and `scm` block supports the following:
 
 A `policy` block supports the following:
 
+```hcl
+  policy {
+  xml_content = <<XML
+  <policies>
+    <inbound />
+    <backend />
+    <outbound />
+    <on-error />
+  </policies>
+XML
+  }
+```
 * `xml_content` - (Optional) The XML Content for this Policy.
 
 * `xml_link` - (Optional) A link to an API Management Policy XML Document, which must be publicly available.
