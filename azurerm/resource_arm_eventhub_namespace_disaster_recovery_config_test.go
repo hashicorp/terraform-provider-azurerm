@@ -26,10 +26,9 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_replication"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -38,6 +37,10 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_basic(t *testing.T) {
 func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace_disaster_recovery_config.test"
 	ri := tf.AccRandTimeInt()
+
+	// skipping due to there being no way to delete a DRC once an alternate name has been set
+	// sdk bug: https://github.com/Azure/azure-sdk-for-go/issues/5893
+	t.Skip()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -51,10 +54,9 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_complete(t *testing.T
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_replication"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -82,16 +84,12 @@ func TestAccAzureRMEventHubNamespaceDisasterRecoveryConfig_update(t *testing.T) 
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"wait_for_replication"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMEventHubNamespaceDisasterRecoveryConfig_updated_removed(ri, testLocation(), testAltLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceDisasterRecoveryConfigExists(resourceName),
-				),
 			},
 		},
 	})
@@ -175,7 +173,6 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   resource_group_name    = "${azurerm_resource_group.test.name}"
   namespace_name         = "${azurerm_eventhub_namespace.testa.name}"
   partner_namespace_id   = "${azurerm_eventhub_namespace.testb.id}"
-  wait_for_replication   = true
 }
 
 `, rInt, location, altlocation)
@@ -208,7 +205,6 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   namespace_name         = "${azurerm_eventhub_namespace.testa.name}"
   partner_namespace_id   = "${azurerm_eventhub_namespace.testb.id}"
   alternate_name         = "acctest-EHN-DRC-%[1]d-alt"
-  wait_for_replication   = true
 }
 
 `, rInt, location, altlocation)
@@ -228,6 +224,13 @@ resource "azurerm_eventhub_namespace" "testa" {
   sku                 = "Standard"
 }
 
+resource "azurerm_eventhub_namespace" "testb" {
+  name                = "acctest-EHN-%[1]d-b"
+  location            = "%[3]s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
 resource "azurerm_eventhub_namespace" "testc" {
   name                = "acctest-EHN-%[1]d-c"
   location            = "%[3]s"
@@ -240,7 +243,6 @@ resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
   resource_group_name    = "${azurerm_resource_group.test.name}"
   namespace_name         = "${azurerm_eventhub_namespace.testa.name}"
   partner_namespace_id   = "${azurerm_eventhub_namespace.testc.id}"
-  wait_for_replication   = true
 }
 
 `, rInt, location, altlocation)
@@ -256,6 +258,13 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_eventhub_namespace" "testa" {
   name                = "acctest-EHN-%[1]d-a"
   location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+}
+
+resource "azurerm_eventhub_namespace" "testb" {
+  name                = "acctest-EHN-%[1]d-b"
+  location            = "%[3]s"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }

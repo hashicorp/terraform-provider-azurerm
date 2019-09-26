@@ -48,25 +48,13 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfig() *schema.Resource {
 			"partner_namespace_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: azure.ValidateResourceIDOrEmpty,
 			},
 
 			"alternate_name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ValidateFunc: azure.ValidateEventHubNamespaceName(),
-			},
-
-			"wait_for_replication": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
-			"wait_for_name_to_be_available_on_deletion": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
 			},
 		},
 	}
@@ -109,11 +97,10 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigCreate(d *schema.Resource
 		return fmt.Errorf("Error creating/updating EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 	}
 
-	if v, ok := d.GetOkExists("wait_for_replication"); ok && v.(bool) {
-		if err := resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, resourceGroup, namespaceName, name); err != nil {
-			return fmt.Errorf("Error waiting for replication to compelte for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
-		}
+	if err := resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, resourceGroup, namespaceName, name); err != nil {
+		return fmt.Errorf("Error waiting for replication to complete for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 	}
+
 	read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 	if err != nil {
 		return fmt.Errorf("Error reading EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
@@ -142,7 +129,6 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigUpdate(d *schema.Resource
 	namespaceName := id.Path["namespaces"]
 
 	if d.HasChange("partner_namespace_id") {
-
 		// break pairing
 		breakPair, err := client.BreakPairing(ctx, resourceGroup, namespaceName, name)
 		if breakPair.StatusCode != http.StatusOK {
@@ -150,9 +136,8 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigUpdate(d *schema.Resource
 		}
 
 		if err := resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, resourceGroup, namespaceName, name); err != nil {
-			return fmt.Errorf("Error waiting for break pairing request to compelte for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+			return fmt.Errorf("Error waiting for break pairing request to complete for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 		}
-
 	}
 
 	parameters := eventhub.ArmDisasterRecovery{
@@ -169,10 +154,8 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigUpdate(d *schema.Resource
 		return fmt.Errorf("Error creating/updating EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 	}
 
-	if v, ok := d.GetOkExists("wait_for_replication"); ok && v.(bool) {
-		if err := resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, resourceGroup, namespaceName, name); err != nil {
-			return fmt.Errorf("Error waiting for replication to compelte for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
-		}
+	if err := resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, resourceGroup, namespaceName, name); err != nil {
+		return fmt.Errorf("Error waiting for replication to complete for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 	}
 
 	return resourceArmEventHubNamespaceDisasterRecoveryConfigRead(d, meta)
@@ -226,16 +209,18 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 	namespaceName := id.Path["namespaces"]
 
 	breakPair, err := client.BreakPairing(ctx, resourceGroup, namespaceName, name)
-	if breakPair.StatusCode != http.StatusOK {
+	if err != nil {
 		return fmt.Errorf("Error issuing break pairing request for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+	}
+	if breakPair.StatusCode != http.StatusOK {
+		return fmt.Errorf("Error breaking pairing for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 	}
 
 	if err := resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx, client, resourceGroup, namespaceName, name); err != nil {
-		return fmt.Errorf("Error waiting for break pairing request to compelte for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for break pairing request to complete for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 	}
 
-	delete, err := client.Delete(ctx, resourceGroup, namespaceName, name)
-	if delete.StatusCode != http.StatusOK {
+	if _, err := client.Delete(ctx, resourceGroup, namespaceName, name); err != nil {
 		return fmt.Errorf("Error issuing delete request for EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %s", name, namespaceName, resourceGroup, err)
 	}
 
@@ -246,7 +231,6 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err := client.Get(ctx, resourceGroup, namespaceName, name)
 
 			if err != nil {
@@ -263,27 +247,24 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.Resource
 		return fmt.Errorf("Error waiting the deletion of EventHub Namespace Disaster Recovery Configs %q deletion (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
 	}
 
-	// it can take some time for the name to become availible again. So lets wait if asked
-	// this is mainly here to enable updating the resource in place
-	if v, ok := d.GetOkExists("wait_for_name_to_be_available_on_deletion"); ok && v.(bool) {
-		nameFreeWait := &resource.StateChangeConf{
-			Pending:    []string{"NameInUse"},
-			Target:     []string{"None1"},
-			Timeout:    30 * time.Minute,
-			MinTimeout: 30 * time.Second,
-			Refresh: func() (interface{}, string, error) {
+	// it can take some time for the name to become available again
+	// this is mainly here 	to enable updating the resource in place
+	nameFreeWait := &resource.StateChangeConf{
+		Pending:    []string{"NameInUse"},
+		Target:     []string{"None"},
+		Timeout:    30 * time.Minute,
+		MinTimeout: 30 * time.Second,
+		Refresh: func() (interface{}, string, error) {
+			resp, err := client.CheckNameAvailability(ctx, resourceGroup, namespaceName, eventhub.CheckNameAvailabilityParameter{Name: utils.String(name)})
+			if err != nil {
+				return resp, "Error", fmt.Errorf("Error checking if the EventHub Namespace Disaster Recovery Configs %q name has been freed (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
+			}
 
-				resp, err := client.CheckNameAvailability(ctx, resourceGroup, namespaceName, eventhub.CheckNameAvailabilityParameter{Name: utils.String(name)})
-				if err != nil {
-					return resp, "Error", fmt.Errorf("Error checking if the EventHub Namespace Disaster Recovery Configs %q name has been freed (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
-				}
-
-				return resp, string(resp.Reason), nil
-			},
-		}
-		if _, err := nameFreeWait.WaitForState(); err != nil {
-			return fmt.Errorf("Error waiting the the EventHub Namespace Disaster Recovery Configs %q name to be availible (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
-		}
+			return resp, string(resp.Reason), nil
+		},
+	}
+	if _, err := nameFreeWait.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting the the EventHub Namespace Disaster Recovery Configs %q name to be available (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
 	}
 
 	return nil
@@ -297,7 +278,6 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigWaitForState(ctx context.
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			read, err := client.Get(ctx, resourceGroup, namespaceName, name)
 			if err != nil {
 				return nil, "error", fmt.Errorf("Wait read EventHub Namespace Disaster Recovery Configs %q (Namespace %q / Resource Group %q): %v", name, namespaceName, resourceGroup, err)
