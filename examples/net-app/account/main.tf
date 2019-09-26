@@ -10,7 +10,7 @@ resource "azurerm_netapp_account" "test" {
 
   active_directories {
     username            = "aduser"
-    password            = "aduser"
+    password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
     dns                 = "1.2.3.4"
     domain              = "westcentralus.com"

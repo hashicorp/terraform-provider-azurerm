@@ -26,7 +26,7 @@ resource "azurerm_netapp_account" "example" {
 
   active_directories {
     username            = "aduser"
-    password            = "aduser"
+    password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
     dns                 = "1.2.3.4"
     domain              = "westcentralus.com"
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The resource group name of the NetApp Account. Changing this forces a new resource to be created.
 
-* `location` - (Optional) Resource location. Changing this forces a new resource to be created.
+* `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
 * `active_directories` - (Optional) One or more `active_directories` block defined below.
 
@@ -57,17 +57,17 @@ The following arguments are supported:
 
 The `active_directories` block supports the following:
 
-* `dns` - (Optional) Comma separated list of DNS server IP addresses for the Active Directory domain.
+* `dns` - (Required) Comma separated list of DNS server IP addresses for the Active Directory domain.
 
-* `domain` - (Optional) Name of the Active Directory domain.
+* `domain` - (Required) Name of the Active Directory domain.
 
 * `organizational_unit` - (Optional) The Organizational Unit (OU) within the Windows Active Directory.
 
-* `password` - (Optional) Plain text password of Active Directory domain administrator.
+* `password` - (Required) Plain text password of Active Directory domain administrator.
 
-* `smb_server_name` - (Optional) NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
+* `smb_server_name` - (Required) NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
 
-* `username` - (Optional) Username of Active Directory domain administrator.
+* `username` - (Required) Username of Active Directory domain administrator.
 
 ---
 

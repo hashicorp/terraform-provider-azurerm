@@ -50,12 +50,12 @@ func resourceArmNetAppAccount() *schema.Resource {
 						},
 						"dns": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"domain": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"organizational_unit": {
@@ -65,7 +65,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 						},
 						"password": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -75,7 +75,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 						},
 						"smb_server_name": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"status": {
@@ -84,7 +84,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 						},
 						"username": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
