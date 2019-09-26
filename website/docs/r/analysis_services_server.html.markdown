@@ -54,6 +54,8 @@ The following arguments are supported:
 
 * `querypool_connection_mode` - (Optional) Controls how the read-write server is used in the query pool. If this values is set to `All` then read-write servers are also used for queries. Otherwise with `ReadOnly` these servers do not participate in query operations.
 
+* `backup_blob_container_uri` - (Optional) URI and SAS token for a blob container to store backups.
+
 * `enable_power_bi_service` - (Optional) Indicates if the Power BI service is allowed to access or not.
 
 * `ipv4_firewall_rule` - (Optional) One or more `ipv4_firewall_rule` block(s) as defined below.
@@ -74,6 +76,8 @@ A `ipv4_firewall_rule` block supports the following:
 In addition to all arguments above, the following attributes are exported:
 
 * `id` - The ID of the Analysis Services Server.
+
+* `server_full_name` - The full name of the Analysis Services Server.
 
 ## Import
 
