@@ -221,9 +221,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 
 		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
 
-		if serverFullName := serverProps.ServerFullName; serverFullName != nil {
-			d.Set("server_full_name", serverProps.ServerFullName)
-	d.Set("server_full_name", serverProps.ServerFullName)
+		d.Set("server_full_name", serverProps.ServerFullName)
 
 		if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
 			d.Set("backup_blob_container_uri", containerUri)
