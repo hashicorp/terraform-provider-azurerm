@@ -13,7 +13,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	AnalyticsItemsClient := insights.NewAnalyticsItemsClient(o.SubscriptionId)
 	o.ConfigureClient(&AnalyticsItemsClient.Client, o.ResourceManagerAuthorizer)
 

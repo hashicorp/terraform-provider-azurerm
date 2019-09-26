@@ -187,7 +187,6 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 }
 
 func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
 	ctx := meta.(*ArmClient).StopContext
 

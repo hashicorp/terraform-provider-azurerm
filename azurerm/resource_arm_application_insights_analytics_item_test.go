@@ -177,7 +177,6 @@ func testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName string)
 }
 
 func testCheckAzureRMApplicationInsightsAnalyticsItemExistsInternal(rs *terraform.ResourceState) (bool, error) {
-
 	id := rs.Primary.Attributes["id"]
 
 	resGroup, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)
