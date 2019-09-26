@@ -1,0 +1,63 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_healthcare_service"
+sidebar_current: "docs-azurerm-datasource-healthcare-service-x"
+description: |-
+  Get information about an existing Healthcare Service
+
+---
+
+# Data Source: azurerm_healthcare_service
+
+Use this data source to access information about an existing Healthcare Service
+
+## Example Usage
+
+```hcl
+data "azurerm_healthcare_service" "test" {
+  name                = "example-healthcare_service"
+  resource_group_name = "example-resources"
+  location            = "westus2"
+}
+
+output "healthcare_service_id" {
+    name                = "uniquefhirname"
+    resource_group_name = "sample-resource-group"
+    kind = "fhir-R4"
+    cosmosdb_throughput = "2000"
+    access_policy_object_ids = [ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
+    tags = {
+     "environment" = "testenv"
+     "purpose"     = "AcceptanceTests"
+    }
+}
+```
+
+## Argument Reference
+
+* `name` - (Required) Specifies the name of the Healthcare Service.
+* `resource_group_name` - (Required) The name of the Resource Group in which the Healthcare Service exists.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `location` - The Azure Region where the Service is located.
+* `kind` - The type of the service. i.e.: "fhir", "fhir-Stu3" and "fhir-R4".
+* `cosmosdb_offer_throughput` - The provisioned throughput for the backing database.
+* `tags` - A mapping of tags to assign to the resource.
+
+Authentication Configuration
+
+* `authority` - The Azure AD Tenant.
+* `audience` - The audience of the Service.
+* `smart_proxy_enabled` - If the service is using the SMART on FHIR proxy.
+
+CORS Configuration
+
+* `allowed_origins` - The origins to be allowed via CORS.
+* `allowed_headers` - The headers to be allowed via CORS.
+* `allowed_methods` - The methods to be allowed via CORS.
+* `max_age_in_seconds` - The max age to be allowed via CORS.
+* `allow_credentials` - If credentials are allowed via CORS.
+
