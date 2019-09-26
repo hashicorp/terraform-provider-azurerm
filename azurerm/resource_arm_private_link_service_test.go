@@ -232,7 +232,7 @@ resource "azurerm_private_link_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   fqdns               = ["testFqdns"]
 
-  ip_configurations {
+  nat_ip_configuration {
     name                         = "${azurerm_public_ip.test.name}"
     subnet_id                    = "${azurerm_subnet.test.id}"
     private_ip_address           = "10.5.1.17"
@@ -240,9 +240,9 @@ resource "azurerm_private_link_service" "test" {
     private_ip_allocation_method = "Static"
   }
 
-  load_balancer_frontend_ip_configurations {
-    id = "${azurerm_lb.test.frontend_ip_configuration.0.id}"
-  }
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
@@ -295,7 +295,7 @@ resource "azurerm_private_link_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   fqdns               = ["testFqdns2"]
 
-  ip_configurations {
+  nat_ip_configuration {
     name                         = "${azurerm_public_ip.test.name}"
     subnet_id                    = "${azurerm_subnet.test.id}"
     private_ip_address           = "10.5.1.17"
@@ -303,9 +303,9 @@ resource "azurerm_private_link_service" "test" {
     private_ip_allocation_method = "Static"
   }
 
-  load_balancer_frontend_ip_configurations {
-    id = "${azurerm_lb.test.frontend_ip_configuration.0.id}"
-  }
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
 
   tags = {
     env = "test"

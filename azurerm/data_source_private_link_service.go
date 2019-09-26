@@ -21,28 +21,23 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": azure.SchemaLocationForDataSource(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"alias": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"auto_approval": {
+			"auto_approval_subscription_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"subscriptions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
+				Elem: &schema.Schema{
+						Type: schema.TypeString,
+				},
+			},
+
+			"visibility_subscription_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+						Type: schema.TypeString,
 				},
 			},
 
@@ -54,62 +49,48 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"ip_configurations": {
+			"nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         schema.TypeString,
+							Computed:     true,
 						},
 						"private_ip_allocation_method": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"private_ip_address": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         schema.TypeString,
+							Computed:     true,
 						},
 						"private_ip_address_version": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"primary": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
 						"subnet_id": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:         schema.TypeString,
+							Computed:     true,
 						},
 					},
 				},
 			},
 
-			"load_balancer_frontend_ip_configurations": {
+			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
+				Elem: &schema.Schema{
+						Type: schema.TypeString,
 				},
 			},
 
-			"network_interfaces": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"private_endpoint_connections": {
+			"private_endpoint_connection": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -160,28 +141,25 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
+			"alias": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"network_interface_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
 			"type": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"visibility": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"subscriptions": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
-				},
-			},
-
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

@@ -99,6 +99,11 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							}, false),
 							Default: string(network.IPv4),
 						},
+						"primary": {
+							Type:         schema.TypeBool,
+							Optional:     true,
+							Default: true,
+						},
 						"subnet_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -373,6 +378,7 @@ func expandArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input []interf
 		subnetId := v["subnet_id"].(string)
 		privateIpAddressVersion := v["private_ip_address_version"].(string)
 		name := v["name"].(string)
+		primary := v["primary"].(bool)
 
 		result := network.PrivateLinkServiceIPConfiguration{
 			Name: utils.String(name),
@@ -383,6 +389,7 @@ func expandArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input []interf
 				Subnet: &network.Subnet{
 					ID: utils.String(subnetId),
 				},
+				Primary: utils.Bool(primary),
 			},
 		}
 
@@ -486,12 +493,11 @@ func expandArmPrivateLinkServicePrivateLinkServiceConnectionState(input []interf
 	return &result
 }
 
-func flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input *network.PrivateLinkServicePropertiesAutoApproval) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
+func flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input *network.PrivateLinkServicePropertiesAutoApproval) []string {
 	result := make([]string, 0)
+	if input == nil {
+		return result
+	}
 
 	for _, v := range *input.Subscriptions {
 		if subscription := v; subscription != "" {
@@ -499,7 +505,7 @@ func flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input 
 		}
 	}
 
-	return []interface{}{result}
+	return result
 }
 
 func flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
@@ -525,6 +531,7 @@ func flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input *[]netw
 					v["subnet_id"] = *subnetId
 				}
 			}
+			v["primary"] = bool(*item.PrivateLinkServiceIPConfigurationProperties.Primary)
 		}
 
 		results = append(results, v)
@@ -533,12 +540,11 @@ func flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input *[]netw
 	return results
 }
 
-func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
+func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
 	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
 
 	for _, item := range *input {
 		if id := item.ID; id != nil {
@@ -546,15 +552,14 @@ func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.Fronte
 		}
 	}
 
-	return []interface{}{results}
+	return results
 }
 
-func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
+func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) []string {
 	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
 
 	for _, item := range *input {
 		if id := item.ID; id != nil {
@@ -562,7 +567,7 @@ func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) []interfa
 		}
 	}
 
-	return []interface{}{results}
+	return results
 }
 
 func flattenArmPrivateLinkServicePrivateEndpointConnection(input *[]network.PrivateEndpointConnection) []interface{} {
@@ -588,12 +593,11 @@ func flattenArmPrivateLinkServicePrivateEndpointConnection(input *[]network.Priv
 	return results
 }
 
-func flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input *network.PrivateLinkServicePropertiesVisibility) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
+func flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input *network.PrivateLinkServicePropertiesVisibility) []string {
 	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
 
 	for _, v := range *input.Subscriptions {
 		if subscription := v; subscription != "" {
@@ -601,7 +605,7 @@ func flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input *n
 		}
 	}
 
-	return []interface{}{results}
+	return results
 }
 
 func flattenArmPrivateLinkServicePrivateEndpoint(input *network.PrivateEndpoint) []interface{} {
