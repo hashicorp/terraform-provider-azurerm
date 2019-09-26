@@ -43,8 +43,8 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
-						Type: schema.TypeString,
-						ValidateFunc: validate.NoEmptyStrings,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
@@ -52,8 +52,8 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
-						Type: schema.TypeString,
-						ValidateFunc: validate.NoEmptyStrings,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
@@ -61,7 +61,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
@@ -100,9 +100,9 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							Default: string(network.IPv4),
 						},
 						"primary": {
-							Type:         schema.TypeBool,
-							Optional:     true,
-							Default: true,
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,
@@ -117,8 +117,8 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
-						Type: schema.TypeString,
-						ValidateFunc: validate.NoEmptyStrings,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 
@@ -128,13 +128,13 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"private_endpoint": {
@@ -144,8 +144,8 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"location": azure.SchemaLocation(),
@@ -160,18 +160,18 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"action_required": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"description": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 									"status": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:         schema.TypeString,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
@@ -350,7 +350,7 @@ func expandArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input [
 	if len(input) == 0 {
 		return nil
 	}
-	
+
 	subscriptions := make([]string, 0)
 
 	for _, v := range input {

@@ -29,7 +29,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Type: schema.TypeString,
 				},
 			},
 
@@ -37,7 +37,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Type: schema.TypeString,
 				},
 			},
 
@@ -55,16 +55,16 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"private_ip_allocation_method": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"private_ip_address": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"private_ip_address_version": {
 							Type:     schema.TypeString,
@@ -75,8 +75,8 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 							Computed: true,
 						},
 						"subnet_id": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -86,7 +86,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
-						Type: schema.TypeString,
+					Type: schema.TypeString,
 				},
 			},
 
