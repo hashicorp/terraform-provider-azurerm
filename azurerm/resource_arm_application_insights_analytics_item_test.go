@@ -60,6 +60,11 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: config2,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationInsightsAnalyticsItemExists(resourceName),
@@ -68,6 +73,11 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "type", "query"),
 					resource.TestCheckResourceAttr(resourceName, "content", "requests #updated"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -105,6 +115,21 @@ func TestAccAzureRMApplicationInsightsAnalyticsItem_multiple(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName3, "content", "requests #test3"),
 					resource.TestCheckResourceAttr(resourceName3, "function_alias", "myfunction"),
 				),
+			},
+			{
+				ResourceName:      resourceName1,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName2,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName3,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
