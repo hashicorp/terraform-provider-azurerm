@@ -1451,15 +1451,21 @@ func flattenKubernetesClusterNetworkProfile(profile *containerservice.NetworkPro
 		lb := make(map[string]interface{})
 
 		if profile.LoadBalancerProfile.ManagedOutboundIPs != nil {
-			lb["managed_outbound_ips"] = profile.LoadBalancerProfile.ManagedOutboundIPs.Count
+			if profile.LoadBalancerProfile.ManagedOutboundIPs.Count != nil {
+				lb["managed_outbound_ips"] = profile.LoadBalancerProfile.ManagedOutboundIPs.Count
+			}
 		}
 
 		if profile.LoadBalancerProfile.OutboundIPs != nil {
-			lb["outbound_ip_address_ids"] = profile.LoadBalancerProfile.OutboundIPs.PublicIPs
+			if profile.LoadBalancerProfile.OutboundIPs.PublicIPs != nil {
+				lb["outbound_ip_address_ids"] = profile.LoadBalancerProfile.OutboundIPs.PublicIPs
+			}
 		}
 
 		if profile.LoadBalancerProfile.OutboundIPPrefixes != nil {
-			lb["outbound_ip_prefixes_ids"] = profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes
+			if profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes != nil {
+				lb["outbound_ip_prefixes_ids"] = profile.LoadBalancerProfile.OutboundIPPrefixes.PublicIPPrefixes
+			}
 		}
 
 		effectiveIps := make([]string, 0)
