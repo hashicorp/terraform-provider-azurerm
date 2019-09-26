@@ -11,6 +11,7 @@ IMPROVEMENTS:
 
 * dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
 * kusto: updating to API version `2019-05-15` [GH-4376]
+* `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` [GH-4397]
 * `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property [GH-3154]
 * `azurerm_eventhub_namespace` - support for the `network_rulesets` property [GH-4409]
 * `azurerm_servicebus_namespace` - support for `zone_redundant` [GH-4432]
