@@ -1,0 +1,300 @@
+package azurerm
+
+import (
+	"fmt"
+	"testing"
+
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+)
+
+func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
+	resourceName := "azurerm_app_service_certificate_order.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "csr"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
+					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "standard"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
+	resourceName := "azurerm_app_service_certificate_order.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceCertificateOrder_wildcard(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "csr"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
+					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "wildcard"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_app_service_certificate_order.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMAppServiceCertificateOrder_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_app_service_certificate_order"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
+	resourceName := "azurerm_app_service_certificate_order.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "csr"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
+					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "validatity_in_years", "1"),
+					resource.TestCheckResourceAttr(resourceName, "auto_renew", "false"),
+					resource.TestCheckResourceAttr(resourceName, "key_size", "4096"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
+	resourceName := "azurerm_app_service_certificate_order.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "csr"),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
+					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "standard"),
+				),
+			},
+			{
+				Config: testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_renew", "false"),
+					resource.TestCheckResourceAttr(resourceName, "key_size", "2048"), // key size can not be updated
+				),
+			},
+			{
+				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_renew", "true"),
+					resource.TestCheckResourceAttr(resourceName, "key_size", "2048"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).web.CertificatesOrderClient
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_app_service" {
+			continue
+		}
+
+		name := rs.Primary.Attributes["name"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, name)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+			return err
+		}
+
+		return nil
+	}
+
+	return nil
+}
+
+func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		// Ensure we have enough information in state to look up in API
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		appServiceName := rs.Primary.Attributes["name"]
+		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
+		if !hasResourceGroup {
+			return fmt.Errorf("Bad: no resource group found in state for App Service Certificate Order: %s", appServiceName)
+		}
+
+		client := testAccProvider.Meta().(*ArmClient).web.CertificatesOrderClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		resp, err := client.Get(ctx, resourceGroup, appServiceName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return fmt.Errorf("Bad: App Service Certificate Order %q (resource group: %q) does not exist", appServiceName, resourceGroup)
+			}
+
+			return fmt.Errorf("Bad: Get on appServicesCertificateOrderClient: %+v", err)
+		}
+
+		return nil
+	}
+}
+
+func testAccAzureRMAppServiceCertificateOrder_basic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_certificate_order" "test" {
+  name = "acctestASCO-%d"
+  location = "global"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  distinguished_name = "CN=example.com"
+  product_type = "standard"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServiceCertificateOrder_wildcard(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_certificate_order" "test" {
+  name = "acctestASCO-%d"
+  location = "global"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  distinguished_name = "CN=example.com"
+  product_type = "wildcard"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServiceCertificateOrder_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMAppServiceCertificateOrder_basic(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_app_service_certificate_order" "import" {
+  name                = "${azurerm_app_service_certificate_order.test.name}"
+  location            = "${azurerm_app_service_certificate_order.test.location}"
+  resource_group_name = "${azurerm_app_service.test_certificate_order.resource_group_name}"
+  distinguished_name = "${azurerm_app_service.test_certificate_order.distinguished_name}"
+  product_type = "${azurerm_app_service.test_certificate_order.product_type}"
+}
+`, template)
+}
+
+func testAccAzureRMAppServiceCertificateOrder_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_certificate_order" "test" {
+  name = "acctestASCO-%d"
+  location = "global"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  distinguished_name = "CN=example.com"
+  product_type = "standard"
+  auto_renew = false
+  validatity_in_years = 1
+  key_size = 4096
+}
+`, rInt, location, rInt)
+}

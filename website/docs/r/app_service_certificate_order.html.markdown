@@ -1,0 +1,169 @@
+---
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_app_service_certificate_order"
+sidebar_current: "docs-azurerm-resource-app-service-certificate-order"
+description: |-
+  Manages an App Service Certificate Order.
+
+---
+
+# azurerm_app_service_certificate_order
+
+Manages an App Service Certificate Order.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_app_service_certificate_order" "example" {
+  name                = "example-cert-order"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "global"
+  distinguished_name = "CN=example.com"
+  product_type = "standard"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required) Specifies the name of the certificate. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the resource group in which to create the certificate. Changing this forces a new resource to be created.
+
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `auto_renew` - (Optional) true if the certificate should be automatically renewed when it expires; otherwise, false.
+
+* `csr` - (Optional) Last CSR that was created for this order.
+
+* `distinguished_name` - (Optional) Certificate distinguished name.
+
+-> **NOTE:** Either `csr` or `distinguished_name` must be set - but not both.
+
+* `key_size` - (Optional) Certificate key size.
+
+* `product_type` - (Optional) Certificate product type.
+
+* `validity_in_years` - (Optional) Duration in years (must be between 1 and 3).
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The App Service Certificate Order ID.
+
+* `certificates` - State of the Key Vault secret. A `certificates` block as defined below.
+
+* `domain_verification_token` - Domain verification token.
+
+* `status` - Current order status.
+
+* `serial_number` - Current serial number of the certificate.
+
+* `last_certificate_issuance_time` - Certificate last issuance time.
+
+* `next_auto_renewal_time_stamp` - Time stamp when the certificate would be auto renewed next
+
+* `expiration_time` - Certificate expiration time.
+
+* `is_private_key_external` - true if private key is external; otherwise, false.
+
+* `app_service_certificate_not_renewable_reasons` - Reasons why App Service Certificate is not renewable at the current moment.
+
+* `signed_certificate` - Signed certificate. A `signed_certificate` block as defined below.
+
+* `root` - Root certificate. A `root` block as defined below.
+
+* `intermediate` - Intermediate certificate. An `intermediate` block as defined below.
+
+* `tags` - A mapping of tags to assign to the resource.
+
+---
+
+* `certificate_name` - The name of the App Service Certificate.
+
+* `key_vault_id` - Key Vault resource Id.
+
+* `key_vault_secret_name` - Key Vault secret name.
+
+* `provisioning_state` - Status of the Key Vault secret.
+
+---
+
+`signed_certificate` supports the following:
+
+* `issuer` - Certificate Issuer.
+
+* `not_after` - Date Certificate is valid to.
+
+* `not_before` - Date Certificate is valid from.
+
+* `raw_data` - Raw certificate data.
+
+* `serial_number` - Certificate Serial Number.
+
+* `signature_algorithm` - Certificate Signature algorithm.
+
+* `subject` - Certificate Subject.
+
+* `thumbprint` - Certificate Thumbprint.
+
+* `version` - Certificate Version.
+
+---
+
+`root` supports the following:
+
+* `issuer` - Certificate Issuer.
+
+* `not_after` - Date Certificate is valid to.
+
+* `not_before` - Date Certificate is valid from.
+
+* `raw_data` - Raw certificate data.
+
+* `serial_number` - Certificate Serial Number.
+
+* `signature_algorithm` - Certificate Signature algorithm.
+
+* `subject` - Certificate Subject.
+
+* `thumbprint` - Certificate Thumbprint.
+
+* `version` - Certificate Version.
+
+---
+
+`intermediate` supports the following:
+
+* `issuer` - Certificate Issuer.
+
+* `not_after` - Date Certificate is valid to.
+
+* `not_before` - Date Certificate is valid from.
+
+* `raw_data` - Raw certificate data.
+
+* `serial_number` - Certificate Serial Number.
+
+* `signature_algorithm` - Certificate Signature algorithm.
+
+* `subject` - Certificate Subject.
+
+* `thumbprint` - Certificate Thumbprint.
+
+* `version` - Certificate Version.
+
+## Import
+
+App Service certificate order can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_app_certificate_order.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1
+```

@@ -46,22 +46,44 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 			},
 
 			"certificates": {
-				Type:     schema.TypeMap,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: appServiceCertificateSchema(),
+					Schema: map[string]*schema.Schema{
+						"certificate_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"key_vault_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"key_vault_secret_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"provisioning_state": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
 				},
 			},
 
 			"csr": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:	   true,
 				ConflictsWith: []string{"distinguished_name"},
 			},
 
 			"distinguished_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
+				Computed:	   true,
 				ConflictsWith: []string{"csr"},
 			},
 
@@ -185,7 +207,6 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	kind := d.Get("kind").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	// if v, ok := d.GetOk("certificates"); ok { }
@@ -229,7 +250,6 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 	certificateOrder := web.AppServiceCertificateOrder{
 		AppServiceCertificateOrderProperties: &properties,
 		Location:                             utils.String(location),
-		Kind:                                 utils.String(kind),
 		Tags:                                 tags.Expand(t),
 	}
 
@@ -364,11 +384,13 @@ func expandArmCertificateOrderCertificate(input map[string]interface{}) map[stri
 	return result
 }
 
-func flattenArmCertificateOrderCertificate(input map[string]*web.AppServiceCertificate) map[string]interface{} {
-	results := make(map[string]interface{})
+func flattenArmCertificateOrderCertificate(input map[string]*web.AppServiceCertificate) []interface{} {
+	results := make([]interface{}, 0)
 
 	for k, v := range input {
 		result := make(map[string]interface{})
+
+		result["certificate_name"] = k
 
 		if keyVaultID := v.KeyVaultID; keyVaultID != nil {
 			result["key_vault_id"] = *keyVaultID
@@ -376,20 +398,22 @@ func flattenArmCertificateOrderCertificate(input map[string]*web.AppServiceCerti
 		if keyVaultSecretName := v.KeyVaultSecretName; keyVaultSecretName != nil {
 			result["key_vault_secret_name"] = *keyVaultSecretName
 		}
-		result["key_vault_secret_name"] = string(v.ProvisioningState)
+		result["provisioning_state"] = string(v.ProvisioningState)
 
-		results[k] = result
+		results = append(results, result)
 	}
 
 	return results
 }
 
-func flattenArmCertificateOrderCertificateDetails(input *web.CertificateDetails) map[string]interface{} {
-	result := make(map[string]interface{})
+func flattenArmCertificateOrderCertificateDetails(input *web.CertificateDetails) []interface{} {
+	results := make([]interface{}, 0)
 
 	if input == nil {
-		return result
+		return results
 	}
+
+	result := make(map[string]interface{})
 
 	if version := input.Version; version != nil {
 		result["version"] = version
@@ -427,26 +451,9 @@ func flattenArmCertificateOrderCertificateDetails(input *web.CertificateDetails)
 		result["raw_data"] = rawData
 	}
 
-	return result
-}
+	results = append(results, result)
 
-func appServiceCertificateSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"key_vault_id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"key_vault_secret_name": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"provisioning_state": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
+	return results
 }
 
 func appServiceCertificateDetailsSchema() map[string]*schema.Schema {
