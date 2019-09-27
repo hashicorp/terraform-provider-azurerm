@@ -48,7 +48,8 @@ lintstatic:
 
 linttravis:
 	@echo "==> Checking source code against linters..."
-	golangci-lint run ./... -v
+	(while true; do sleep 300; echo "(Hey travis! I'm still alive and linting)"; done) & PID=$$!; echo $$PID; \
+    golangci-lint run ./... -v --concurrency 1 --deadline=30m10s ; ES=$$?; kill -9 $$PID; exit $$ES
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
