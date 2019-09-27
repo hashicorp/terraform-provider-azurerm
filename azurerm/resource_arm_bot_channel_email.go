@@ -33,6 +33,7 @@ func resourceArmBotChannelEmail() *schema.Resource {
 			"bot_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
@@ -142,8 +143,12 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
-	botName := d.Get("bot_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	botName := id.Path["botServices"]
 
 	channel := botservice.BotChannel{
 		Properties: botservice.EmailChannel{
@@ -158,17 +163,17 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 		Kind:     botservice.KindBot,
 	}
 
-	if _, err := client.Update(ctx, resourceGroup, botName, botservice.ChannelNameEmailChannel, channel); err != nil {
-		return fmt.Errorf("Error issuing create request for Channel Email for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+	if _, err := client.Update(ctx, id.ResourceGroup, botName, botservice.ChannelNameEmailChannel, channel); err != nil {
+		return fmt.Errorf("Error issuing create request for Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
 	}
 
-	resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameEmailChannel))
+	resp, err := client.Get(ctx, id.ResourceGroup, botName, string(botservice.ChannelNameEmailChannel))
 	if err != nil {
-		return fmt.Errorf("Error making get request for Channel Email for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Error making get request for Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read Channel Email for Bot %q (Resource Group %q): %+v", resourceGroup, botName, err)
+		return fmt.Errorf("Cannot read Channel Email for Bot %q (Resource Group %q): %+v", id.ResourceGroup, botName, err)
 	}
 
 	d.SetId(*resp.ID)

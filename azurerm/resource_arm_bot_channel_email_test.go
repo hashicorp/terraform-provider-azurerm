@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
@@ -13,6 +14,9 @@ import (
 )
 
 func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
+	if ok := skipEmailChannel(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
+	}
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMBotChannelEmail_basicConfig(ri, testLocation())
 	resourceName := "azurerm_bot_channel_email.test"
@@ -41,6 +45,12 @@ func TestAccAzureRMBotChannelEmail_basic(t *testing.T) {
 }
 
 func TestAccAzureRMBotChannelEmail_update(t *testing.T) {
+	if ok := skipEmailChannel(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_EMAIL`, AND `ARM_TEST_EMAIL_PASSWORD` was not specified")
+	}
+	if ok := skipSlackChannel(); ok {
+		t.Skip("Skipping as one of `ARM_TEST_SLACK_CLIENT_ID`, `ARM_TEST_SLACK_CLIENT_SECRET`, or `ARM_TEST_SLACK_VERIFICATION_TOKEN` was not specified")
+	}
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMBotChannelEmail_basicConfig(ri, testLocation())
 	config2 := testAccAzureRMBotChannelEmail_basicUpdate(ri, testLocation())
@@ -148,10 +158,10 @@ resource "azurerm_bot_channel_email" "test" {
   bot_name            = "${azurerm_bot_channels_registration.test.name}"
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  email_address       = "example@test.com"
-  email_password      = "password1"
+  email_address       = "%s"
+  email_password      = "%s"
 }
-`, template)
+`, template, os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_EMAIL_PASSWORD"))
 }
 
 func testAccAzureRMBotChannelEmail_basicUpdate(rInt int, location string) string {
@@ -163,8 +173,16 @@ resource "azurerm_bot_channel_email" "test" {
   bot_name            = "${azurerm_bot_channels_registration.test.name}"
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  email_address       = "test@example.com"
-  email_password      = "password2"
+  email_address       = "%s"
+  email_password      = "%s"
 }
-`, template)
+`, template, os.Getenv("ARM_TEST_EMAIL"), os.Getenv("ARM_TEST_EMAIL_PASSWORD"))
+}
+
+func skipEmailChannel() bool {
+	if os.Getenv("ARM_TEST_EMAIL") == "" || os.Getenv("ARM_TEST_EMAIL_PASSWORD") == "" {
+		return true
+	}
+
+	return false
 }
