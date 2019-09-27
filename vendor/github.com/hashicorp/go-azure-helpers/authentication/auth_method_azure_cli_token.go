@@ -102,6 +102,8 @@ func (a azureCliTokenAuth) populateConfig(c *Config) error {
 	c.Environment = a.profile.environment
 	c.SubscriptionID = a.profile.subscriptionId
 	c.TenantID = a.profile.tenantId
+
+	//get object ID by shelling out
 	return nil
 }
 

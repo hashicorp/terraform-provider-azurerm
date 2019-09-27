@@ -16,6 +16,8 @@ type Config struct {
 	TenantID                         string
 	AuxiliaryTenantIDs               []string
 	Environment                      string
+
+	AuthenticatedObjectID 			 string
 	AuthenticatedAsAServicePrincipal bool
 
 	// A Custom Resource Manager Endpoint

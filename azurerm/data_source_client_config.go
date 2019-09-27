@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+
 func dataSourceArmClientConfig() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmClientConfigRead,
@@ -32,6 +33,7 @@ func dataSourceArmClientConfig() *schema.Resource {
 			"service_principal_object_id": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Deprecated: "This has been deprecated in favour of the unified `object_id` property",
 			},
 		},
 	}
@@ -59,6 +61,9 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 
 		servicePrincipal = &(listResult.Values())[0]
 	}
+	// else CLI auth
+
+	// MSI?
 
 	d.SetId(time.Now().UTC().String())
 	d.Set("client_id", client.clientId)
