@@ -19,7 +19,6 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 		Read:          resourceArmStorageManagementPolicyRead,
 		Update:        resourceArmStorageManagementPolicyCreateOrUpdate,
 		Delete:        resourceArmStorageManagementPolicyDelete,
-		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
