@@ -156,7 +156,6 @@ func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
 	}
 
 	return nil
-
 }
 
 func testAccAzureRMMapsAccount_basic(rInt int, location string) string {

@@ -74,8 +74,7 @@ func resourceArmRoleAssignment() *schema.Resource {
 			"skip_service_principal_aad_check": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
-				Default:  false,
+				Computed: true,
 			},
 		},
 	}

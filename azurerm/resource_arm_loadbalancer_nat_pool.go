@@ -266,7 +266,6 @@ func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface
 }
 
 func expandAzureRmLoadBalancerNatPool(d *schema.ResourceData, lb *network.LoadBalancer) (*network.InboundNatPool, error) {
-
 	properties := network.InboundNatPoolPropertiesFormat{
 		Protocol:               network.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPortRangeStart: utils.Int32(int32(d.Get("frontend_port_start").(int))),

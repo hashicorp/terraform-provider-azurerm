@@ -186,7 +186,6 @@ func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interf
 		d.Set("database", v.Database)
 		d.Set("table", v.Table)
 		d.Set("user", v.User)
-
 	}
 
 	return nil

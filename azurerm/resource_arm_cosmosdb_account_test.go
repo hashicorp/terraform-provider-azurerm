@@ -898,7 +898,6 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(rInt int, location string, altLocation string, cLevel documentdb.DefaultConsistencyLevel) string {
-
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(cLevel), "", fmt.Sprintf(`
         geo_location {
             prefix            = "acctest-%d-custom-id"

@@ -1538,7 +1538,6 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 	linuxKeys := linuxConfig["ssh_keys"].([]interface{})
 	sshPublicKeys := make([]compute.SSHPublicKey, 0)
 	for _, key := range linuxKeys {
-
 		sshKey, ok := key.(map[string]interface{})
 		if !ok {
 			continue
@@ -1990,7 +1989,6 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 	if props := networkInterface.InterfacePropertiesFormat; props != nil {
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
-
 				if config.PublicIPAddress != nil {
 					id, err := azure.ParseAzureResourceID(*config.PublicIPAddress.ID)
 					if err != nil {

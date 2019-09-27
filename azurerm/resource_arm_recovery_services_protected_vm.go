@@ -203,7 +203,6 @@ func resourceArmRecoveryServicesProtectedVmWaitForState(client *backup.Protected
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {

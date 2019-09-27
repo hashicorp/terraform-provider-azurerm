@@ -417,7 +417,6 @@ func resourceArmIotHub() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 	}
-
 }
 
 func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -548,7 +547,6 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if properties := hub.Properties; properties != nil {
-
 		for k, v := range properties.EventHubEndpoints {
 			if v == nil {
 				continue
@@ -561,7 +559,6 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("event_hub_operations_endpoint", v.Endpoint)
 				d.Set("event_hub_operations_path", v.Path)
 			}
-
 		}
 
 		d.Set("hostname", properties.HostName)
@@ -916,7 +913,6 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil && input.Endpoints != nil {
-
 		if containers := input.Endpoints.StorageContainers; containers != nil {
 			for _, container := range *containers {
 				output := make(map[string]interface{})

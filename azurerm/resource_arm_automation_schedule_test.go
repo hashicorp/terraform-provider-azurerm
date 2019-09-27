@@ -506,7 +506,6 @@ func checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName str
 }
 
 func testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(rInt int, location string, weekDay string, weekDayOccurrence int) string {
-
 	return fmt.Sprintf(`
 %s
 

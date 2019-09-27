@@ -181,8 +181,34 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusNamespace_zoneRedundant(t *testing.T) {
+	resourceName := "azurerm_servicebus_namespace.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMServiceBusNamespace_zoneRedundant(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusNamespaceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "zone_redundant", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClientPreview
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -221,7 +247,7 @@ func testCheckAzureRMServiceBusNamespaceExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for Service Bus Namespace: %s", namespaceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClient
+		client := testAccProvider.Meta().(*ArmClient).ServiceBus.NamespacesClientPreview
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName)
@@ -329,6 +355,24 @@ resource "azurerm_servicebus_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Premium"
   capacity            = 0
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMServiceBusNamespace_zoneRedundant(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                = "acctestservicebusnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Premium"
+  capacity            = 1
+  zone_redundant      = true
 }
 `, rInt, location, rInt)
 }

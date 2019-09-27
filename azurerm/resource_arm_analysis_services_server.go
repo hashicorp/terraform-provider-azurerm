@@ -96,6 +96,18 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				ValidateFunc: validateQuerypoolConnectionMode(),
 			},
 
+			"backup_blob_container_uri": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"server_full_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -208,6 +220,12 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		}
 
 		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
+
+		d.Set("server_full_name", serverProps.ServerFullName)
+
+		if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
+			d.Set("backup_blob_container_uri", containerUri)
+		}
 	}
 
 	return tags.FlattenAndSet(d, server.Tags)
@@ -303,6 +321,10 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 		serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(querypoolConnectionMode.(string))
 	}
 
+	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
+		serverProperties.BackupBlobContainerURI = utils.String(containerUri.(string))
+	}
+
 	return &serverProperties
 }
 
@@ -314,6 +336,10 @@ func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *anal
 	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(d.Get("querypool_connection_mode").(string))
+
+	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
+		serverProperties.BackupBlobContainerURI = utils.String(containerUri.(string))
+	}
 
 	return &serverProperties
 }

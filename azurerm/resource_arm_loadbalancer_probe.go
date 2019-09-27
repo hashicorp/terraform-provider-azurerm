@@ -271,7 +271,6 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 }
 
 func expandAzureRmLoadBalancerProbe(d *schema.ResourceData) *network.Probe {
-
 	properties := network.ProbePropertiesFormat{
 		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
 		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),

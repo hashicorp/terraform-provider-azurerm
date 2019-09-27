@@ -202,7 +202,6 @@ func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 
 func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -231,7 +230,6 @@ func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestChec
 
 func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -262,7 +260,6 @@ func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.Test
 
 func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-
 		if rs.Type != "azurerm_network_watcher" {
 			continue
 		}

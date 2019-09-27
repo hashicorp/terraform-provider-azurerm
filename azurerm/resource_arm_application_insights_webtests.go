@@ -301,7 +301,6 @@ func flattenApplicationInsightsWebTestGeoLocations(input *[]insights.WebTestGeol
 		if prop.Location != nil {
 			results = append(results, azure.NormalizeLocation(*prop.Location))
 		}
-
 	}
 
 	return results

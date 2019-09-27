@@ -285,7 +285,6 @@ func expandAzureArmSchedulerJobCollectionQuota(d *schema.ResourceData) *schedule
 }
 
 func flattenAzureArmSchedulerJobCollectionQuota(quota *scheduler.JobCollectionQuota) []interface{} {
-
 	if quota == nil {
 		return nil
 	}

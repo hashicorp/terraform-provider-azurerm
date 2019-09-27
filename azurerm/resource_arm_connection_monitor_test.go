@@ -71,7 +71,6 @@ func testAccAzureRMConnectionMonitor_requiresImport(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccAzureRMConnectionMonitor_addressComplete(t *testing.T) {

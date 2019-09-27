@@ -1,13 +1,28 @@
 ## 1.35.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_public_ip_prefix` [GH-4340]
+* **New Resource:** `azurerm_bot_channel_slack` [GH-4367]
+* **New Resource:** `azurerm_bot_web_app` [GH-4411]
+* **New Resource:** `azurerm_dashboard` [GH-4357]
+* **New Resource:** `azurerm_eventhub_namespace_disaster_recovery_config` [GH-4425]
+
 IMPROVEMENTS:
 
 * dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
+* kusto: updating to API version `2019-05-15` [GH-4376]
+* `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` [GH-4397]
+* `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property [GH-3154]
+* `azurerm_eventhub_namespace` - support for the `network_rulesets` property [GH-4409]
+* `azurerm_servicebus_namespace` - support for `zone_redundant` [GH-4432]
 
 BUG FIXES:
 
+* `azurerm_container_registry` - checking the `name` is globally unique during creation [GH-4424]
 * `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
 * `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read [GH-4344]
+* `azurerm_role_assignment` - changing the `skip_service_principal_aad_check` property no longer forces a new resource [GH-4412]
 
 ## 1.34.0 (September 18, 2019)
 

@@ -142,7 +142,6 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 			return fmt.Errorf("key_value_id does not contain `vaults`: %q", vaultId)
 		}
 		vaultName = vaultNameTemp
-
 	} else if resourceGroup == "" {
 		return fmt.Errorf("one of `resource_group_name` must be set when `vault_name` is used")
 	}

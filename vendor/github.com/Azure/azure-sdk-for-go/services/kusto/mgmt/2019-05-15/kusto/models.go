@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
 
 // AzureScaleType enumerates the values for azure scale type.
 type AzureScaleType string
@@ -180,11 +180,13 @@ const (
 	KindEventGrid Kind = "EventGrid"
 	// KindEventHub ...
 	KindEventHub Kind = "EventHub"
+	// KindIotHub ...
+	KindIotHub Kind = "IotHub"
 )
 
 // PossibleKindValues returns an array of possible values for the Kind const type.
 func PossibleKindValues() []Kind {
-	return []Kind{KindDataConnection, KindEventGrid, KindEventHub}
+	return []Kind{KindDataConnection, KindEventGrid, KindEventHub, KindIotHub}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
@@ -197,6 +199,8 @@ const (
 	Deleting ProvisioningState = "Deleting"
 	// Failed ...
 	Failed ProvisioningState = "Failed"
+	// Moving ...
+	Moving ProvisioningState = "Moving"
 	// Running ...
 	Running ProvisioningState = "Running"
 	// Succeeded ...
@@ -205,7 +209,7 @@ const (
 
 // PossibleProvisioningStateValues returns an array of possible values for the ProvisioningState const type.
 func PossibleProvisioningStateValues() []ProvisioningState {
-	return []ProvisioningState{Creating, Deleting, Failed, Running, Succeeded}
+	return []ProvisioningState{Creating, Deleting, Failed, Moving, Running, Succeeded}
 }
 
 // Reason enumerates the values for reason.
@@ -256,9 +260,9 @@ func PossibleStateValues() []State {
 type AzureCapacity struct {
 	// ScaleType - Scale type. Possible values include: 'Automatic', 'Manual', 'None'
 	ScaleType AzureScaleType `json:"scaleType,omitempty"`
-	// Minimum - Minimum allowed instances count.
+	// Minimum - Minimum allowed capacity.
 	Minimum *int32 `json:"minimum,omitempty"`
-	// Maximum - Maximum allowed instances count.
+	// Maximum - Maximum allowed capacity.
 	Maximum *int32 `json:"maximum,omitempty"`
 	// Default - The default capacity that would be used.
 	Default *int32 `json:"default,omitempty"`
@@ -332,6 +336,8 @@ type Cluster struct {
 	autorest.Response `json:"-"`
 	// Sku - The SKU of the cluster.
 	Sku *AzureSku `json:"sku,omitempty"`
+	// Zones - The availability zones of the cluster.
+	Zones *[]string `json:"zones,omitempty"`
 	// ClusterProperties - The cluster properties.
 	*ClusterProperties `json:"properties,omitempty"`
 	// Tags - Resource tags.
@@ -351,6 +357,9 @@ func (c Cluster) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if c.Sku != nil {
 		objectMap["sku"] = c.Sku
+	}
+	if c.Zones != nil {
+		objectMap["zones"] = c.Zones
 	}
 	if c.ClusterProperties != nil {
 		objectMap["properties"] = c.ClusterProperties
@@ -381,6 +390,15 @@ func (c *Cluster) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				c.Sku = &sku
+			}
+		case "zones":
+			if v != nil {
+				var zones []string
+				err = json.Unmarshal(*v, &zones)
+				if err != nil {
+					return err
+				}
+				c.Zones = &zones
 			}
 		case "properties":
 			if v != nil {
@@ -461,7 +479,7 @@ type ClusterListResult struct {
 type ClusterProperties struct {
 	// State - READ-ONLY; The state of the resource. Possible values include: 'StateCreating', 'StateUnavailable', 'StateRunning', 'StateDeleting', 'StateDeleted', 'StateStopping', 'StateStopped', 'StateStarting', 'StateUpdating'
 	State State `json:"state,omitempty"`
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed'
+	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// URI - READ-ONLY; The cluster URI.
 	URI *string `json:"uri,omitempty"`
@@ -469,6 +487,14 @@ type ClusterProperties struct {
 	DataIngestionURI *string `json:"dataIngestionUri,omitempty"`
 	// TrustedExternalTenants - The cluster's external tenants.
 	TrustedExternalTenants *[]TrustedExternalTenant `json:"trustedExternalTenants,omitempty"`
+	// OptimizedAutoscale - Optimized auto scale definition.
+	OptimizedAutoscale *OptimizedAutoscale `json:"optimizedAutoscale,omitempty"`
+	// EnableDiskEncryption - A boolean value that indicates if the cluster's disks are encrypted.
+	EnableDiskEncryption *bool `json:"enableDiskEncryption,omitempty"`
+	// EnableStreamingIngest - A boolean value that indicates if the streaming ingest is enabled.
+	EnableStreamingIngest *bool `json:"enableStreamingIngest,omitempty"`
+	// VirtualNetworkConfiguration - Virtual network definition.
+	VirtualNetworkConfiguration *VirtualNetworkConfiguration `json:"virtualNetworkConfiguration,omitempty"`
 }
 
 // ClustersCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -827,6 +853,8 @@ type DatabasePrincipal struct {
 	Email *string `json:"email,omitempty"`
 	// AppID - Application id - relevant only for application principal type.
 	AppID *string `json:"appId,omitempty"`
+	// TenantName - READ-ONLY; The tenant name of the principal
+	TenantName *string `json:"tenantName,omitempty"`
 }
 
 // DatabasePrincipalListRequest the list Kusto database principals operation request.
@@ -844,11 +872,11 @@ type DatabasePrincipalListResult struct {
 
 // DatabaseProperties class representing the Kusto database properties.
 type DatabaseProperties struct {
-	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed'
+	// ProvisioningState - READ-ONLY; The provisioned state of the resource. Possible values include: 'Running', 'Creating', 'Deleting', 'Succeeded', 'Failed', 'Moving'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
 	// SoftDeletePeriod - The time the data should be kept before it stops being accessible to queries in TimeSpan.
 	SoftDeletePeriod *string `json:"softDeletePeriod,omitempty"`
-	// HotCachePeriod - The time the data that should be kept in cache for fast queries in TimeSpan.
+	// HotCachePeriod - The time the data should be kept in cache for fast queries in TimeSpan.
 	HotCachePeriod *string `json:"hotCachePeriod,omitempty"`
 	// Statistics - The statistics of the database.
 	Statistics *DatabaseStatistics `json:"statistics,omitempty"`
@@ -1030,6 +1058,7 @@ func (du *DatabaseUpdate) UnmarshalJSON(body []byte) error {
 // BasicDataConnection class representing an data connection.
 type BasicDataConnection interface {
 	AsEventHubDataConnection() (*EventHubDataConnection, bool)
+	AsIotHubDataConnection() (*IotHubDataConnection, bool)
 	AsEventGridDataConnection() (*EventGridDataConnection, bool)
 	AsDataConnection() (*DataConnection, bool)
 }
@@ -1039,7 +1068,7 @@ type DataConnection struct {
 	autorest.Response `json:"-"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
-	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindEventGrid'
+	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
 	Kind Kind `json:"kind,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -1061,6 +1090,10 @@ func unmarshalBasicDataConnection(body []byte) (BasicDataConnection, error) {
 		var ehdc EventHubDataConnection
 		err := json.Unmarshal(body, &ehdc)
 		return ehdc, err
+	case string(KindIotHub):
+		var ihdc IotHubDataConnection
+		err := json.Unmarshal(body, &ihdc)
+		return ihdc, err
 	case string(KindEventGrid):
 		var egdc EventGridDataConnection
 		err := json.Unmarshal(body, &egdc)
@@ -1105,6 +1138,11 @@ func (dc DataConnection) MarshalJSON() ([]byte, error) {
 
 // AsEventHubDataConnection is the BasicDataConnection implementation for DataConnection.
 func (dc DataConnection) AsEventHubDataConnection() (*EventHubDataConnection, bool) {
+	return nil, false
+}
+
+// AsIotHubDataConnection is the BasicDataConnection implementation for DataConnection.
+func (dc DataConnection) AsIotHubDataConnection() (*IotHubDataConnection, bool) {
 	return nil, false
 }
 
@@ -1335,7 +1373,7 @@ type EventGridDataConnection struct {
 	*EventGridConnectionProperties `json:"properties,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
-	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindEventGrid'
+	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
 	Kind Kind `json:"kind,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -1363,6 +1401,11 @@ func (egdc EventGridDataConnection) MarshalJSON() ([]byte, error) {
 
 // AsEventHubDataConnection is the BasicDataConnection implementation for EventGridDataConnection.
 func (egdc EventGridDataConnection) AsEventHubDataConnection() (*EventHubDataConnection, bool) {
+	return nil, false
+}
+
+// AsIotHubDataConnection is the BasicDataConnection implementation for EventGridDataConnection.
+func (egdc EventGridDataConnection) AsIotHubDataConnection() (*IotHubDataConnection, bool) {
 	return nil, false
 }
 
@@ -1462,6 +1505,8 @@ type EventHubConnectionProperties struct {
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
 	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO'
 	DataFormat DataFormat `json:"dataFormat,omitempty"`
+	// EventSystemProperties - System properties of the event hub
+	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
 }
 
 // EventHubDataConnection class representing an event hub data connection.
@@ -1470,7 +1515,7 @@ type EventHubDataConnection struct {
 	*EventHubConnectionProperties `json:"properties,omitempty"`
 	// Location - Resource location.
 	Location *string `json:"location,omitempty"`
-	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindEventGrid'
+	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
 	Kind Kind `json:"kind,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -1499,6 +1544,11 @@ func (ehdc EventHubDataConnection) MarshalJSON() ([]byte, error) {
 // AsEventHubDataConnection is the BasicDataConnection implementation for EventHubDataConnection.
 func (ehdc EventHubDataConnection) AsEventHubDataConnection() (*EventHubDataConnection, bool) {
 	return &ehdc, true
+}
+
+// AsIotHubDataConnection is the BasicDataConnection implementation for EventHubDataConnection.
+func (ehdc EventHubDataConnection) AsIotHubDataConnection() (*IotHubDataConnection, bool) {
+	return nil, false
 }
 
 // AsEventGridDataConnection is the BasicDataConnection implementation for EventHubDataConnection.
@@ -1585,18 +1635,155 @@ func (ehdc *EventHubDataConnection) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
-// ListResourceSkusResult list of available SKUs for an existing Kusto Cluster.
+// IotHubConnectionProperties class representing the Kusto iot hub connection properties.
+type IotHubConnectionProperties struct {
+	// IotHubResourceID - The resource ID of the Iot hub to be used to create a data connection.
+	IotHubResourceID *string `json:"iotHubResourceId,omitempty"`
+	// ConsumerGroup - The iot hub consumer group.
+	ConsumerGroup *string `json:"consumerGroup,omitempty"`
+	// TableName - The table where the data should be ingested. Optionally the table information can be added to each message.
+	TableName *string `json:"tableName,omitempty"`
+	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
+	MappingRuleName *string `json:"mappingRuleName,omitempty"`
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO'
+	DataFormat DataFormat `json:"dataFormat,omitempty"`
+	// EventSystemProperties - System properties of the iot hub
+	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
+	// SharedAccessPolicyName - The name of the share access policy name
+	SharedAccessPolicyName *string `json:"sharedAccessPolicyName,omitempty"`
+}
+
+// IotHubDataConnection class representing an iot hub data connection.
+type IotHubDataConnection struct {
+	// IotHubConnectionProperties - The Iot Hub data connection properties.
+	*IotHubConnectionProperties `json:"properties,omitempty"`
+	// Location - Resource location.
+	Location *string `json:"location,omitempty"`
+	// Kind - Possible values include: 'KindDataConnection', 'KindEventHub', 'KindIotHub', 'KindEventGrid'
+	Kind Kind `json:"kind,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IotHubDataConnection.
+func (ihdc IotHubDataConnection) MarshalJSON() ([]byte, error) {
+	ihdc.Kind = KindIotHub
+	objectMap := make(map[string]interface{})
+	if ihdc.IotHubConnectionProperties != nil {
+		objectMap["properties"] = ihdc.IotHubConnectionProperties
+	}
+	if ihdc.Location != nil {
+		objectMap["location"] = ihdc.Location
+	}
+	if ihdc.Kind != "" {
+		objectMap["kind"] = ihdc.Kind
+	}
+	return json.Marshal(objectMap)
+}
+
+// AsEventHubDataConnection is the BasicDataConnection implementation for IotHubDataConnection.
+func (ihdc IotHubDataConnection) AsEventHubDataConnection() (*EventHubDataConnection, bool) {
+	return nil, false
+}
+
+// AsIotHubDataConnection is the BasicDataConnection implementation for IotHubDataConnection.
+func (ihdc IotHubDataConnection) AsIotHubDataConnection() (*IotHubDataConnection, bool) {
+	return &ihdc, true
+}
+
+// AsEventGridDataConnection is the BasicDataConnection implementation for IotHubDataConnection.
+func (ihdc IotHubDataConnection) AsEventGridDataConnection() (*EventGridDataConnection, bool) {
+	return nil, false
+}
+
+// AsDataConnection is the BasicDataConnection implementation for IotHubDataConnection.
+func (ihdc IotHubDataConnection) AsDataConnection() (*DataConnection, bool) {
+	return nil, false
+}
+
+// AsBasicDataConnection is the BasicDataConnection implementation for IotHubDataConnection.
+func (ihdc IotHubDataConnection) AsBasicDataConnection() (BasicDataConnection, bool) {
+	return &ihdc, true
+}
+
+// UnmarshalJSON is the custom unmarshaler for IotHubDataConnection struct.
+func (ihdc *IotHubDataConnection) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var iotHubConnectionProperties IotHubConnectionProperties
+				err = json.Unmarshal(*v, &iotHubConnectionProperties)
+				if err != nil {
+					return err
+				}
+				ihdc.IotHubConnectionProperties = &iotHubConnectionProperties
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				ihdc.Location = &location
+			}
+		case "kind":
+			if v != nil {
+				var kind Kind
+				err = json.Unmarshal(*v, &kind)
+				if err != nil {
+					return err
+				}
+				ihdc.Kind = kind
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ihdc.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ihdc.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ihdc.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// ListResourceSkusResult list of available SKUs for a Kusto Cluster.
 type ListResourceSkusResult struct {
 	autorest.Response `json:"-"`
 	// Value - The collection of available SKUs for an existing resource.
 	Value *[]AzureResourceSku `json:"value,omitempty"`
-}
-
-// ListSkusResult list of available SKUs for a new Kusto Cluster.
-type ListSkusResult struct {
-	autorest.Response `json:"-"`
-	// Value - The collection of available SKUs for new resources.
-	Value *[]AzureSku `json:"value,omitempty"`
 }
 
 // Operation ...
@@ -1761,6 +1948,18 @@ func NewOperationListResultPage(getNextPage func(context.Context, OperationListR
 	return OperationListResultPage{fn: getNextPage}
 }
 
+// OptimizedAutoscale a class that contains the optimized auto scale definition.
+type OptimizedAutoscale struct {
+	// Version - The version of the template defined, for instance 1.
+	Version *int32 `json:"version,omitempty"`
+	// IsEnabled - A boolean value that indicate if the optimized autoscale feature is enabled or not.
+	IsEnabled *bool `json:"isEnabled,omitempty"`
+	// Minimum - Minimum allowed instances count.
+	Minimum *int32 `json:"minimum,omitempty"`
+	// Maximum - Maximum allowed instances count.
+	Maximum *int32 `json:"maximum,omitempty"`
+}
+
 // ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
 // required location and tags
 type ProxyResource struct {
@@ -1780,6 +1979,37 @@ type Resource struct {
 	Name *string `json:"name,omitempty"`
 	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
 	Type *string `json:"type,omitempty"`
+}
+
+// SkuDescription the Kusto SKU description of given resource type
+type SkuDescription struct {
+	// ResourceType - READ-ONLY; The resource type
+	ResourceType *string `json:"resourceType,omitempty"`
+	// Name - READ-ONLY; The name of the SKU
+	Name *string `json:"name,omitempty"`
+	// Tier - READ-ONLY; The tier of the SKU
+	Tier *string `json:"tier,omitempty"`
+	// Locations - READ-ONLY; The set of locations that the SKU is available
+	Locations *[]string `json:"locations,omitempty"`
+	// LocationInfo - READ-ONLY; Locations and zones
+	LocationInfo *[]SkuLocationInfoItem `json:"locationInfo,omitempty"`
+	// Restrictions - READ-ONLY; The restrictions because of which SKU cannot be used
+	Restrictions *[]interface{} `json:"restrictions,omitempty"`
+}
+
+// SkuDescriptionList the list of the EngagementFabric SKU descriptions
+type SkuDescriptionList struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; SKU descriptions
+	Value *[]SkuDescription `json:"value,omitempty"`
+}
+
+// SkuLocationInfoItem the locations and zones info for SKU.
+type SkuLocationInfoItem struct {
+	// Location - The available location of the SKU.
+	Location *string `json:"location,omitempty"`
+	// Zones - The available zone of the SKU.
+	Zones *[]string `json:"zones,omitempty"`
 }
 
 // TrackedResource the resource model definition for a ARM tracked top level resource
@@ -1812,4 +2042,14 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 type TrustedExternalTenant struct {
 	// Value - GUID representing an external tenant.
 	Value *string `json:"value,omitempty"`
+}
+
+// VirtualNetworkConfiguration a class that contains virtual network definition.
+type VirtualNetworkConfiguration struct {
+	// SubnetID - The subnet resource id.
+	SubnetID *string `json:"subnetId,omitempty"`
+	// EnginePublicIPID - Engine service's public IP address resource id.
+	EnginePublicIPID *string `json:"enginePublicIpId,omitempty"`
+	// DataManagementPublicIPID - Data management's service public IP address resource id.
+	DataManagementPublicIPID *string `json:"dataManagementPublicIpId,omitempty"`
 }
