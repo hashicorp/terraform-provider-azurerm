@@ -56,7 +56,7 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 					testCheckAzureRMAppServiceExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
-					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
+					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=*.example.com"),
 					resource.TestCheckResourceAttr(resourceName, "product_type", "wildcard"),
 				),
 			},
@@ -101,7 +101,7 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation())
+	config := testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation(), 4096)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -116,7 +116,7 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
 					resource.TestCheckResourceAttr(resourceName, "product_type", "standard"),
-					resource.TestCheckResourceAttr(resourceName, "validatity_in_years", "1"),
+					resource.TestCheckResourceAttr(resourceName, "validity_in_years", "1"),
 					resource.TestCheckResourceAttr(resourceName, "auto_renew", "false"),
 					resource.TestCheckResourceAttr(resourceName, "key_size", "4096"),
 				),
@@ -150,17 +150,20 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation()),
+				Config: testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation(), 2048), // keySize cannot be updated
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
+					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
 					resource.TestCheckResourceAttr(resourceName, "auto_renew", "false"),
-					resource.TestCheckResourceAttr(resourceName, "key_size", "2048"), // key size can not be updated
 				),
 			},
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
+					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
 					resource.TestCheckResourceAttr(resourceName, "auto_renew", "true"),
 					resource.TestCheckResourceAttr(resourceName, "key_size", "2048"),
 				),
@@ -258,7 +261,7 @@ resource "azurerm_app_service_certificate_order" "test" {
   name = "acctestASCO-%d"
   location = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  distinguished_name = "CN=example.com"
+  distinguished_name = "CN=*.example.com"
   product_type = "wildcard"
 }
 `, rInt, location, rInt)
@@ -272,14 +275,14 @@ func testAccAzureRMAppServiceCertificateOrder_requiresImport(rInt int, location 
 resource "azurerm_app_service_certificate_order" "import" {
   name                = "${azurerm_app_service_certificate_order.test.name}"
   location            = "${azurerm_app_service_certificate_order.test.location}"
-  resource_group_name = "${azurerm_app_service.test_certificate_order.resource_group_name}"
-  distinguished_name = "${azurerm_app_service.test_certificate_order.distinguished_name}"
-  product_type = "${azurerm_app_service.test_certificate_order.product_type}"
+  resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
+  distinguished_name = "${azurerm_app_service_certificate_order.test.distinguished_name}"
+  product_type = "${azurerm_app_service_certificate_order.test.product_type}"
 }
 `, template)
 }
 
-func testAccAzureRMAppServiceCertificateOrder_complete(rInt int, location string) string {
+func testAccAzureRMAppServiceCertificateOrder_complete(rInt int, location string, keySize int) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -293,8 +296,8 @@ resource "azurerm_app_service_certificate_order" "test" {
   distinguished_name = "CN=example.com"
   product_type = "standard"
   auto_renew = false
-  validatity_in_years = 1
-  key_size = 4096
+  validity_in_years = 1
+  key_size = %d
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, keySize)
 }

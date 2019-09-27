@@ -76,14 +76,14 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 			"csr": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:	   true,
+				Computed:      true,
 				ConflictsWith: []string{"distinguished_name"},
 			},
 
 			"distinguished_name": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				Computed:	   true,
+				Computed:      true,
 				ConflictsWith: []string{"csr"},
 			},
 
@@ -237,10 +237,8 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 		properties.KeySize = utils.Int32(int32(keySize))
 	}
 
-	if v, ok := d.GetOk("auto_renew"); ok {
-		autoRenew := v.(bool)
-		properties.AutoRenew = utils.Bool(autoRenew)
-	}
+	autoRenew := d.Get("auto_renew").(bool)
+	properties.AutoRenew = utils.Bool(autoRenew)
 
 	if v, ok := d.GetOk("validity_in_years"); ok {
 		validityInYears := v.(int)

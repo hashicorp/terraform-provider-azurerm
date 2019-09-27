@@ -44,7 +44,7 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "csr"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "domain_verification_token"),
-					resource.TestCheckResourceAttr(dataSourceName, "distinguished_name", "CN=example.com"),
+					resource.TestCheckResourceAttr(dataSourceName, "distinguished_name", "CN=*.example.com"),
 					resource.TestCheckResourceAttr(dataSourceName, "product_type", "wildcard"),
 				),
 			},
@@ -68,7 +68,7 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(dataSourceName, "distinguished_name", "CN=example.com"),
 					resource.TestCheckResourceAttr(dataSourceName, "product_type", "standard"),
-					resource.TestCheckResourceAttr(dataSourceName, "validatity_in_years", ""),
+					resource.TestCheckResourceAttr(dataSourceName, "validity_in_years", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "auto_renew", "false"),
 					resource.TestCheckResourceAttr(dataSourceName, "key_size", "4096"),
 				),
@@ -102,7 +102,7 @@ data "azurerm_app_service_certificate_order" "test" {
 }
 
 func testAccDataSourceAppServiceCertificateOrder_complete(rInt int, location string) string {
-	config := testAccAzureRMAppServiceCertificateOrder_complete(rInt, location)
+	config := testAccAzureRMAppServiceCertificateOrder_complete(rInt, location, 4096)
 	return fmt.Sprintf(`
 %s
 
