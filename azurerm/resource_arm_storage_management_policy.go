@@ -6,6 +6,8 @@ import (
 
 	"github.com/hashicorp/terraform/helper/validation"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 
 	"github.com/hashicorp/terraform/helper/schema"
