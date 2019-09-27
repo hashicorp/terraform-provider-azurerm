@@ -27,7 +27,6 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.type", "Lifecycle"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.prefix_match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.prefix_match.3439697764", "container1/prefix1"),
@@ -65,7 +64,6 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 					// Rule1
 					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "rule.0.type", "Lifecycle"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.prefix_match.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.filters.0.prefix_match.3439697764", "container1/prefix1"),
@@ -82,7 +80,6 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 					// Rule2
 					resource.TestCheckResourceAttr(resourceName, "rule.1.name", "rule2"),
 					resource.TestCheckResourceAttr(resourceName, "rule.1.enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "rule.1.type", "Lifecycle"),
 					resource.TestCheckResourceAttr(resourceName, "rule.1.filters.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.1.filters.0.prefix_match.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "rule.1.filters.0.prefix_match.4102595489", "container2/prefix1"),
@@ -124,7 +121,6 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 	rule {
 		name    = "rule1"
 		enabled = true
-		type    = "Lifecycle"
 		filters {
 			prefix_match = [ "container1/prefix1" ]
 			blob_types   = [ "blockBlob" ]
@@ -167,7 +163,6 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 	rule {
 		name    = "rule1"
 		enabled = true
-		type    = "Lifecycle"
 		filters {
 			prefix_match = [ "container1/prefix1" ]
 			blob_types   = [ "blockBlob" ]
@@ -186,7 +181,6 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 	rule {
 		name    = "rule2"
 		enabled = false
-		type    = "Lifecycle"
 		filters {
 		  prefix_match = [ "container2/prefix1", "container2/prefix2" ]
 		  blob_types   = [ "blockBlob" ]

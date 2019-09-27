@@ -47,11 +47,6 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
-						"type": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{"Lifecycle"}, false),
-						},
 						"filters": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -239,7 +234,7 @@ func expandStorageManagementPolicyRule(ref map[string]interface{}) (*storage.Man
 
 	name := ref["name"].(string)
 	enabled := ref["enabled"].(bool)
-	typeVal := ref["type"].(string)
+	typeVal := "Lifecycle"
 
 	definition := storage.ManagementPolicyDefinition{
 		Filters: &storage.ManagementPolicyFilter{},
@@ -321,9 +316,6 @@ if armRules == nil {
 
 		if armRule.Name != nil {
 			rule["name"] = *armRule.Name
-		}
-		if armRule.Type != nil {
-			rule["type"] = *armRule.Type
 		}
 		if armRule.Enabled != nil {
 			rule["enabled"] = *armRule.Enabled

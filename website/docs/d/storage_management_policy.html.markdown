@@ -40,7 +40,6 @@ The following arguments are supported:
 
 * `name` - (Required) A rule name can contain any combination of alpha numeric characters. Rule name is case-sensitive. It must be unique within a policy.
 * `enabled` - (Required)  Boolean to specify whether the rule is enabled.
-* `type` - (Required) Must be set to `Lifecycle`.
 * `filters` - A `filter` block as documented below.
 * `actions` - An `actions` block as documented below.
 

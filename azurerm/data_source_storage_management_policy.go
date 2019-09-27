@@ -29,10 +29,6 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 							Type:     schema.TypeBool,
 							Computed: true,
 						},
-						"type": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 						"filters": {
 							Type:     schema.TypeList,
 							Computed: true,

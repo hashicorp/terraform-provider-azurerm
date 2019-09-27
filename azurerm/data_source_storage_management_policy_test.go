@@ -27,7 +27,6 @@ func TestAccDataSourceAzureRMStorageManagementPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "rule.0.name", "rule1"),
 					resource.TestCheckResourceAttr(dataSourceName, "rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(dataSourceName, "rule.0.type", "Lifecycle"),
 					resource.TestCheckResourceAttr(dataSourceName, "rule.0.filters.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "rule.0.filters.0.prefix_match.#", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "rule.0.filters.0.prefix_match.3439697764", "container1/prefix1"),
@@ -69,7 +68,6 @@ resource "azurerm_storage_management_policy" "testpolicy" {
   rule {
 	name    = "rule1"
 	enabled = true
-	type    = "Lifecycle"
 	filters {
 	  prefix_match = [ "container1/prefix1" ]
 	  blob_types   = [ "blockBlob" ]
