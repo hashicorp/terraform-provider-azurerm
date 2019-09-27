@@ -59,7 +59,6 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
 
 func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("resource not found: %s", resourceName)
@@ -95,7 +94,6 @@ func testCheckAzureRMStorageAccountSqlServerDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMMssqlServerSecurityAlertPolicy_basic(rInt int, location string) string {
-
 	server := testAccAzureRMMssqlServerSecurityAlertPolicy_server(rInt, location)
 
 	return fmt.Sprintf(`
@@ -117,7 +115,6 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 }
 
 func testAccAzureRMMssqlServerSecurityAlertPolicy_update(rInt int, location string) string {
-
 	server := testAccAzureRMMssqlServerSecurityAlertPolicy_server(rInt, location)
 
 	return fmt.Sprintf(`

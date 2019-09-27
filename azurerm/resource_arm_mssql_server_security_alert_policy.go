@@ -243,7 +243,6 @@ func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, met
 }
 
 func expandSecurityAlertPolicy(d *schema.ResourceData) *sql.ServerSecurityAlertPolicy {
-
 	state := sql.SecurityAlertPolicyState(d.Get("state").(string))
 
 	policy := sql.ServerSecurityAlertPolicy{
