@@ -127,7 +127,7 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 		type    = "Lifecycle"
 		filters {
 			prefix_match = [ "container1/prefix1" ]
-			blob_types  = [ "blockBlob" ]
+			blob_types   = [ "blockBlob" ]
 		}
 		actions {
 			base_blob {
@@ -170,7 +170,7 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 		type    = "Lifecycle"
 		filters {
 			prefix_match = [ "container1/prefix1" ]
-			blob_types  = [ "blockBlob" ]
+			blob_types   = [ "blockBlob" ]
 		}
 		actions {
 			base_blob {
@@ -189,7 +189,7 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 		type    = "Lifecycle"
 		filters {
 		  prefix_match = [ "container2/prefix1", "container2/prefix2" ]
-		  blob_types  = [ "blockBlob" ]
+		  blob_types   = [ "blockBlob" ]
 		}
 		actions {
   		base_blob {
