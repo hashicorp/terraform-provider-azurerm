@@ -91,7 +91,6 @@ func TestIPv6Address(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestIPv4Address(t *testing.T) {

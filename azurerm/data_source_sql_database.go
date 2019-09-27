@@ -91,7 +91,6 @@ func dataSourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.DatabaseProperties; props != nil {
-
 		d.Set("collation", props.Collation)
 
 		d.Set("default_secondary_location", props.DefaultSecondaryLocation)

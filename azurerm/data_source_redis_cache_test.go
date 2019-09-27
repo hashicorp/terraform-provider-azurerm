@@ -33,7 +33,6 @@ func TestAccDataSourceAzureRMRedisCache_standard(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccDataSourceAzureRMRedisCache_standardWithDataSource(rInt int, location string) string {

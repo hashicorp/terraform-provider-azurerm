@@ -920,7 +920,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("enable_advanced_threat_protection") {
-
 		opts := security.AdvancedThreatProtectionSetting{
 			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
 				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
@@ -1364,7 +1363,6 @@ func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
 	}
 
 	return logging
-
 }
 
 func expandQueuePropertiesCors(input []interface{}) *queues.Cors {

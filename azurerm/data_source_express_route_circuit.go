@@ -148,7 +148,6 @@ func dataSourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("Error setting `service_provider_properties`: %+v", err)
 			}
 		}
-
 	}
 
 	if resp.Sku != nil {

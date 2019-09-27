@@ -245,7 +245,6 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 		if properties.AllocatedOutboundPorts != nil {
 			d.Set("allocated_outbound_ports", properties.AllocatedOutboundPorts)
 		}
-
 	}
 
 	return nil
@@ -303,7 +302,6 @@ func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta inte
 }
 
 func expandAzureRmLoadBalancerOutboundRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.OutboundRule, error) {
-
 	properties := network.OutboundRulePropertiesFormat{
 		Protocol: network.LoadBalancerOutboundRuleProtocol(d.Get("protocol").(string)),
 	}

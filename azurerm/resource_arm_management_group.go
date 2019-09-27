@@ -197,7 +197,6 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil

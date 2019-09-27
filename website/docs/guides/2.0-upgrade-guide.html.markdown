@@ -145,6 +145,10 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Data Soure: `azurerm_api_management`
+
+The depricated field `sku` will be removed in favour of the `sku_name` property.
+
 ### Data Source: `azurerm_dns_zone`
 
 The deprecated field `zone_type` will be removed. Private DNS Zones are now a separate resource in both Azure and Terraform.
@@ -164,6 +168,10 @@ Azure Scheduler is being retired in favour of Logic Apps ([more information can 
 ### Data Source: `azurerm_virtual_network`
 
 The deprecated field `address_space` will be removed.
+
+### Resource: `azurerm_api_management`
+
+The depricated field `sku` will be removed in favour of the `sku_name` property.
 
 ### Resource: `azurerm_app_service_plan`
 

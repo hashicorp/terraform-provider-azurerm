@@ -144,7 +144,6 @@ func resourceArmLogAnalyticsSolutionCreateUpdate(d *schema.ResourceData, meta in
 	d.SetId(*solution.ID)
 
 	return resourceArmLogAnalyticsSolutionRead(d, meta)
-
 }
 
 func resourceArmLogAnalyticsSolutionRead(d *schema.ResourceData, meta interface{}) error {

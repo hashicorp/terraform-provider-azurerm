@@ -111,6 +111,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_proximity_placement_group":               dataSourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                               dataSourceArmPublicIP(),
 		"azurerm_public_ips":                              dataSourceArmPublicIPs(),
+		"azurerm_public_ip_prefix":                        dataSourceArmPublicIpPrefix(),
 		"azurerm_recovery_services_vault":                 dataSourceArmRecoveryServicesVault(),
 		"azurerm_recovery_services_protection_policy_vm":  dataSourceArmRecoveryServicesProtectionPolicyVm(),
 		"azurerm_redis_cache":                             dataSourceArmRedisCache(),
@@ -196,8 +197,10 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_batch_account":                                      resourceArmBatchAccount(),
 		"azurerm_batch_application":                                  resourceArmBatchApplication(),
 		"azurerm_batch_certificate":                                  resourceArmBatchCertificate(),
+		"azurerm_bot_channel_slack":                                  resourceArmBotChannelSlack(),
 		"azurerm_bot_channels_registration":                          resourceArmBotChannelsRegistration(),
 		"azurerm_bot_connection":                                     resourceArmBotConnection(),
+		"azurerm_bot_web_app":                                        resourceArmBotWebApp(),
 		"azurerm_batch_pool":                                         resourceArmBatchPool(),
 		"azurerm_cdn_endpoint":                                       resourceArmCdnEndpoint(),
 		"azurerm_cdn_profile":                                        resourceArmCdnProfile(),
@@ -214,6 +217,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_cosmosdb_sql_container":                             resourceArmCosmosDbSQLContainer(),
 		"azurerm_cosmosdb_sql_database":                              resourceArmCosmosDbSQLDatabase(),
 		"azurerm_cosmosdb_table":                                     resourceArmCosmosDbTable(),
+		"azurerm_dashboard":                                          resourceArmDashboard(),
 		"azurerm_data_factory":                                       resourceArmDataFactory(),
 		"azurerm_data_factory_dataset_mysql":                         resourceArmDataFactoryDatasetMySQL(),
 		"azurerm_data_factory_dataset_postgresql":                    resourceArmDataFactoryDatasetPostgreSQL(),
@@ -253,6 +257,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_eventhub_authorization_rule":                        resourceArmEventHubAuthorizationRule(),
 		"azurerm_eventhub_consumer_group":                            resourceArmEventHubConsumerGroup(),
 		"azurerm_eventhub_namespace_authorization_rule":              resourceArmEventHubNamespaceAuthorizationRule(),
+		"azurerm_eventhub_namespace_disaster_recovery_config":        resourceArmEventHubNamespaceDisasterRecoveryConfig(),
 		"azurerm_eventhub_namespace":                                 resourceArmEventHubNamespace(),
 		"azurerm_eventhub":                                           resourceArmEventHub(),
 		"azurerm_express_route_circuit_authorization":                resourceArmExpressRouteCircuitAuthorization(),
@@ -589,7 +594,6 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)

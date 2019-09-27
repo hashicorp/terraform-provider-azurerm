@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -192,6 +193,52 @@ func TestAccAzureRMAnalysisServicesServer_adminUsers(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAnalysisServicesServer_serverFullName(t *testing.T) {
+	resourceName := "azurerm_analysis_services_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAnalysisServicesServer_serverFullName(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "server_full_name"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAnalysisServicesServer_backupBlobContainerUri(t *testing.T) {
+	resourceName := "azurerm_analysis_services_server.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(6)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAnalysisServicesServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(ri, testLocation(), rs),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAnalysisServicesServerExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "backup_blob_container_uri"),
+				),
+			},
+		},
+	})
+}
+
 func testAccAzureRMAnalysisServicesServer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -350,6 +397,73 @@ resource "azurerm_analysis_services_server" "test" {
  admin_users 				= ["%s"]
 }
 `, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
+}
+
+func testAccAzureRMAnalysisServicesServer_serverFullName(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku 				  = "B1"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAnalysisServicesServer_backupBlobContainerUri(rInt int, location string, rString string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestass%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_kind			   = "BlobStorage"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "assbackup"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_blob_container_sas" "test" {
+  connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+  container_name    = "${azurerm_storage_container.test.name}"
+  https_only        = true
+
+  start  = "2018-06-01"
+  expiry = "2048-06-01"
+
+  permissions {
+    read   = true
+    add    = true
+    create = true
+    write  = true
+    delete = true
+    list   = true
+  }
+}
+
+resource "azurerm_analysis_services_server" "test" {
+  name                = "acctestass%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku 				  = "B1"
+
+  backup_blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}${data.azurerm_storage_account_blob_container_sas.test.sas}"
+}
+`, rInt, location, rString, rInt)
 }
 
 func testCheckAzureRMAnalysisServicesServerDestroy(s *terraform.State) error {

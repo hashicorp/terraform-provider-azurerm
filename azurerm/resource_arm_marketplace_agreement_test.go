@@ -85,7 +85,6 @@ func testAccAzureRMMarketplaceAgreement_requiresImport(t *testing.T) {
 
 func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)

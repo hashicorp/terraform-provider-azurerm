@@ -319,7 +319,6 @@ func resourceArmLoadBalancerRuleDelete(d *schema.ResourceData, meta interface{})
 }
 
 func expandAzureRmLoadBalancerRule(d *schema.ResourceData, lb *network.LoadBalancer) (*network.LoadBalancingRule, error) {
-
 	properties := network.LoadBalancingRulePropertiesFormat{
 		Protocol:            network.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort:        utils.Int32(int32(d.Get("frontend_port").(int))),

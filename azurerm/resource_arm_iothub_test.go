@@ -246,7 +246,6 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		return nil
-
 	}
 }
 
