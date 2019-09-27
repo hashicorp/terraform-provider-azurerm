@@ -171,7 +171,7 @@ func testAccAzureRMSharedImageVersion_setup(rInt int, location, username, passwo
 }
 
 func testAccAzureRMSharedImageVersion_provision(rInt int, location, username, password, hostname string) string {
-	template := testAccAzureRMImage_standaloneImage_provision(rInt, username, password, hostname, location, "LRS")
+	template := testAccAzureRMImage_standaloneImage_provision(rInt, username, password, hostname, location, "LRS", "")
 	return fmt.Sprintf(`
 %s
 

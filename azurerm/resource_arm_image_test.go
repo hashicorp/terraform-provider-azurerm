@@ -25,7 +25,47 @@ func TestAccAzureRMImage_standaloneImage(t *testing.T) {
 	sshPort := "22"
 	location := testLocation()
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS")
-	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS", "")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				//need to create a vm and then reference it in the image creation
+				Config:  preConfig,
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, location),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMImageExists("azurerm_image.test", true),
+				),
+			},
+			{
+				ResourceName:      "azurerm_image.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMImage_standaloneImage_hyperVGeneration_V2(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+	location := testLocation()
+	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "LRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS", "V2")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -65,7 +105,7 @@ func TestAccAzureRMImage_standaloneImageZoneRedundant(t *testing.T) {
 	sshPort := "22"
 	location := testLocation()
 	preConfig := testAccAzureRMImage_standaloneImage_setup(ri, userName, password, hostName, location, "ZRS")
-	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "ZRS")
+	postConfig := testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "ZRS", "")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -125,7 +165,7 @@ func TestAccAzureRMImage_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS"),
+				Config: testAccAzureRMImage_standaloneImage_provision(ri, userName, password, hostName, location, "LRS", ""),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMImageExists("azurerm_image.test", true),
 				),
@@ -504,12 +544,12 @@ resource "azurerm_virtual_machine" "testsource" {
   location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
-  vm_size               = "Standard_F2"
+  vm_size               = "Standard_D1_v2"
 
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "16.04-LTS"
+    sku       = "18.04-LTS"
     version   = "latest"
   }
 
@@ -539,7 +579,12 @@ resource "azurerm_virtual_machine" "testsource" {
 `, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password)
 }
 
-func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string, storageType string) string {
+func testAccAzureRMImage_standaloneImage_provision(rInt int, userName string, password string, hostName string, location string, storageType string, hyperVGen string) string {
+	hyperVGenAtt := ""
+	if hyperVGen != "" {
+		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
+	}
+
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -643,6 +688,7 @@ resource "azurerm_image" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   zone_resilient      = %t
+  %s
 
   os_disk {
     os_type  = "Linux"
@@ -657,11 +703,11 @@ resource "azurerm_image" "test" {
     cost-center = "Ops"
   }
 }
-`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password, storageType == "ZRS")
+`, rInt, location, rInt, rInt, rInt, hostName, rInt, rInt, storageType, userName, password, storageType == "ZRS", hyperVGenAtt)
 }
 
 func testAccAzureRMImage_standaloneImage_requiresImport(rInt int, userName string, password string, hostName string, location string) string {
-	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location, "LRS")
+	template := testAccAzureRMImage_standaloneImage_provision(rInt, userName, password, hostName, location, "LRS", "")
 	return fmt.Sprintf(`
 %s
 
