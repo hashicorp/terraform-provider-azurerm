@@ -27,6 +27,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 			"rule": {
 				Type:     schema.TypeList,
@@ -184,9 +185,9 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 	}
 	d.SetId(*result.ID)
 
-	if result.Policy != nil {
+	if policy := result.Policy; policy != nil {
 		policy := result.Policy
-		if policy.Rules != nil {
+		if rules := policy.Rules != nil; rules != nil {
 			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
 				return fmt.Errorf("Error flattening `rule`: %+v", err)
 			}
@@ -311,7 +312,9 @@ func expandStorageManagementPolicyRule(ref map[string]interface{}) (*storage.Man
 
 func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRule) []interface{} {
 	rules := make([]interface{}, 0)
-
+if armRules == nil {
+  return rules
+}
 	for _, armRule := range *armRules {
 		rule := make(map[string]interface{})
 

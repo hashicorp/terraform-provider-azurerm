@@ -3,16 +3,16 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_management_policy"
 sidebar_current: "docs-azurerm-resource-storage-management-policy"
 description: |-
-  Manage Azure Storage Account Management Policies.
+  Manages an Azure Storage Account Management Policy.
 ---
 
 # azurerm_storage_management_policy
 
-Manage Azure Storage Account Management Policies.
+Manages an Azure Storage Account Management Policy.
 
 ## Example Usage
 
-```terraform
+```hcl
 resource "azurerm_resource_group" "testrg" {
   name     = "resourceGroupName"
   location = "westus"
@@ -37,7 +37,7 @@ resource "azurerm_storage_management_policy" "testpolicy" {
     type    = "Lifecycle"
     filters {
       prefix_match = [ "container1/prefix1" ]
-      blob_types  = [ "blockBlob" ]
+      blob_types   = [ "blockBlob" ]
     }
     actions {
       base_blob {
