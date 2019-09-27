@@ -256,6 +256,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_eventhub_authorization_rule":                           resourceArmEventHubAuthorizationRule(),
 		"azurerm_eventhub_consumer_group":                               resourceArmEventHubConsumerGroup(),
 		"azurerm_eventhub_namespace_authorization_rule":                 resourceArmEventHubNamespaceAuthorizationRule(),
+		"azurerm_eventhub_namespace_disaster_recovery_config":           resourceArmEventHubNamespaceDisasterRecoveryConfig(),
 		"azurerm_eventhub_namespace":                                    resourceArmEventHubNamespace(),
 		"azurerm_eventhub":                                              resourceArmEventHub(),
 		"azurerm_express_route_circuit_authorization":                   resourceArmExpressRouteCircuitAuthorization(),
@@ -595,7 +596,6 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-
 		var auxTenants []string
 		if v, ok := d.Get("auxiliary_tenant_ids").([]interface{}); ok && len(v) > 0 {
 			auxTenants = *utils.ExpandStringSlice(v)

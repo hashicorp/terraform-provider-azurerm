@@ -136,7 +136,6 @@ func resourceArmApiManagementCertificateRead(d *schema.ResourceData, meta interf
 	d.Set("api_management_name", serviceName)
 
 	if props := resp.CertificateContractProperties; props != nil {
-
 		if expiration := props.ExpirationDate; expiration != nil {
 			formatted := expiration.Format(time.RFC3339)
 			d.Set("expiration", formatted)

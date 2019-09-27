@@ -185,7 +185,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			if err := azure.MSSQLElasticPoolValidateSKU(diff); err != nil {
 				return err
 			}

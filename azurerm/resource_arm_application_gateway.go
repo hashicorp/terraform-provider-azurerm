@@ -2782,7 +2782,6 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
-
 			output := map[string]interface{}{
 				"rule_type": string(props.RuleType),
 			}
@@ -2953,7 +2952,6 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRewriteRuleSetPropertiesFormat; props != nil {
-
 			output := map[string]interface{}{}
 
 			if config.ID != nil {
@@ -2967,7 +2965,6 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 			if rulesConfig := props.RewriteRules; rulesConfig != nil {
 				rules := make([]interface{}, 0)
 				for _, rule := range *rulesConfig {
-
 					ruleOutput := map[string]interface{}{}
 
 					if rule.Name != nil {
@@ -3056,7 +3053,6 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 }
 
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
-
 	vs := d.Get("redirect_configuration").([]interface{})
 	results := make([]network.ApplicationGatewayRedirectConfiguration, 0)
 
@@ -3116,7 +3112,6 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRedirectConfigurationPropertiesFormat; props != nil {
-
 			output := map[string]interface{}{
 				"redirect_type": string(props.RedirectType),
 			}
@@ -3681,7 +3676,6 @@ func flattenApplicationGateWayDisabledRuleGroups(input *[]network.ApplicationGat
 		ruleGroupOutput["rules"] = ruleOutputs
 
 		ruleGroups = append(ruleGroups, ruleGroupOutput)
-
 	}
 	return ruleGroups
 }
@@ -3728,7 +3722,6 @@ func flattenApplicationGatewayFirewallExclusion(input *[]network.ApplicationGate
 			exclusionListOutput["selector"] = *exclusionList.Selector
 		}
 		exclusionLists = append(exclusionLists, exclusionListOutput)
-
 	}
 	return exclusionLists
 }

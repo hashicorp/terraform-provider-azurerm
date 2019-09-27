@@ -493,7 +493,6 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 func testAccAzureRMVirtualNetworkGateway_activeActive(rInt int, location string) string {
-
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -562,7 +561,6 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
-
 }
 
 func testAccAzureRMVirtualNetworkGateway_vpnClientConfig(rInt int, location string) string {

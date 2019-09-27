@@ -1020,7 +1020,6 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 }
 
 func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
-
 	configs := d.Get("agent_pool_profile").([]interface{})
 
 	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0)

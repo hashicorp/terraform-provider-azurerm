@@ -136,7 +136,6 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resGroup, accName, name)
 			if err2 != nil {
 				return resp, "Error", fmt.Errorf("Error retrieving Module %q (Automation Account %q / Resource Group %q): %+v", name, accName, resGroup, err2)

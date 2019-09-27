@@ -1427,7 +1427,6 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 }
 
 func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}) frontdoor.CustomHTTPSConfiguration {
-
 	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
 		ProtocolType: frontdoor.ServerNameIndication,
 	}

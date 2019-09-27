@@ -86,7 +86,6 @@ func TestAccAzureRMMediaServicesAccount_multiplePrimaries(t *testing.T) {
 
 func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
