@@ -125,6 +125,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"private_endpoint_connection": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {

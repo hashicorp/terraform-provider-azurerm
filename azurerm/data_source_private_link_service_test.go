@@ -39,8 +39,8 @@ func testAccDataSourcePrivateLinkService_basic(rInt int, location string) string
 %s
 
 data "azurerm_private_link_service" "test" {
-  resource_group_name = "${azurerm_private_link_service.test.resource_group_name}"
-  name                = "${azurerm_private_link_service.test.name}"
+  resource_group_name = azurerm_private_link_service.test.resource_group_name
+  name                = azurerm_private_link_service.test.name
 }
 `, config)
 }
