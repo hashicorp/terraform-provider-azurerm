@@ -3,73 +3,73 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service"
 sidebar_current: "docs-azurerm-resource-private-link-service"
 description: |-
-  Manage Azure PrivateLinkService instance.
+  Manages a Azure PrivateLinkService instance.
 ---
 
 # azurerm_private_link_service
 
-Manage Azure PrivateLinkService instance.
+Managea a Azure PrivateLinkService instance.
 
 
 ## Private Link Service Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
+  name     = "exampleRG"
   location = "Eastus2"
 }
 
 resource "azurerm_virtual_network" "example" {
-  name                = "acctestvnet-%d"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
+  name                = "example-avn"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
   address_space       = ["10.5.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "acctestsnet-%d"
-  resource_group_name  = "${azurerm_resource_group.example.name}"
-  virtual_network_name = "${azurerm_virtual_network.example.name}"
+  name                 = "example-snet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.5.1.0/24"
 }
 
 resource "azurerm_public_ip" "example" {
-  name                = "acctestpip-%d"
+  name                = "example-api"
   sku                 = "Standard"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "example" {
-  name                = "acctestlb-%d"
+  name                = "example-lb"
   sku                 = "Standard"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   frontend_ip_configuration {
-    name                 = "${azurerm_public_ip.example.name}"
-    public_ip_address_id = "${azurerm_public_ip.example.id}"
+    name                 = azurerm_public_ip.example.name
+    public_ip_address_id = azurerm_public_ip.example.id
   }
 }
 
 resource "azurerm_private_link_service" "example" {
-  name                = "acctestpls-%d"
-  location            = "${azurerm_resource_group.example.location}"
-  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = "example-pls"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   fqdns               = ["testFqdns"]
 
-  ip_configurations {
-    name                         = "${azurerm_public_ip.example.name}"
-    subnet_id                    = "${azurerm_subnet.example.id}"
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration"
+    subnet_id                    = azurerm_subnet.example.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
     private_ip_allocation_method = "Static"
   }
 
-  load_balancer_frontend_ip_configurations {
-    id = "${azurerm_lb.example.frontend_ip_configuration.0.id}"
-  }
+  load_balancer_frontend_ip_configuration_ids = [
+    id = azurerm_lb.example.frontend_ip_configuration.0.id
+  ]
 }
 ```
 
@@ -106,6 +106,8 @@ The `auto_approval` block supports the following:
 ---
 
 The `ip_configuration` block supports the following:
+
+* `primary` - (Optional) If the `ip_configuration` is the primary ip configuration or not. Defaults to true.
 
 * `private_ip_address` - (Optional) The private IP address of the IP configuration.
 
