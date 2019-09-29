@@ -366,22 +366,6 @@ func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func expandArmCertificateOrderCertificate(input map[string]interface{}) map[string]*web.AppServiceCertificate {
-	result := make(map[string]*web.AppServiceCertificate)
-
-	for k, v := range input {
-		d := v.(map[string]interface{})
-		keyVaultID := d["key_vault_id"].(string)
-		keyVaultSecretName := d["key_vault_secret_name"].(string)
-
-		result[k] = &web.AppServiceCertificate{
-			KeyVaultID:         utils.String(keyVaultID),
-			KeyVaultSecretName: utils.String(keyVaultSecretName),
-		}
-	}
-	return result
-}
-
 func flattenArmCertificateOrderCertificate(input map[string]*web.AppServiceCertificate) []interface{} {
 	results := make([]interface{}, 0)
 

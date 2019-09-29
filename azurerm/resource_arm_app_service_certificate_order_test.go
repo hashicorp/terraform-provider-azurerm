@@ -19,12 +19,12 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
+					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
@@ -48,12 +48,12 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
+					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=*.example.com"),
@@ -82,12 +82,12 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
+					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 				),
 			},
 			{
@@ -106,12 +106,12 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
+					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
@@ -137,12 +137,12 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		CheckDestroy: testCheckAzureRMAppServiceCertificateOrderDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
+					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
@@ -152,7 +152,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation(), 2048), // keySize cannot be updated
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
+					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
 					resource.TestCheckResourceAttr(resourceName, "auto_renew", "false"),
@@ -161,7 +161,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 			{
 				Config: testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceExists(resourceName),
+					testCheckAzureRMAppServiceCertificateOrderExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
 					resource.TestCheckResourceAttr(resourceName, "auto_renew", "true"),
