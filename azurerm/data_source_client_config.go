@@ -8,7 +8,6 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-
 func dataSourceArmClientConfig() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmClientConfigRead,
@@ -18,22 +17,30 @@ func dataSourceArmClientConfig() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"tenant_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"subscription_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"authenticated_object_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"service_principal_application_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"service_principal_object_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Deprecated: "This has been deprecated in favour of the unified `object_id` property",
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "This has been deprecated in favour of the unified `authenticated_object_id` property",
 			},
 		},
 	}
@@ -61,21 +68,21 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 
 		servicePrincipal = &(listResult.Values())[0]
 	}
-	// else CLI auth
-
-	// MSI?
 
 	d.SetId(time.Now().UTC().String())
 	d.Set("client_id", client.clientId)
 	d.Set("tenant_id", client.tenantId)
 	d.Set("subscription_id", client.subscriptionId)
+	d.Set("authenticated_object_id", client.authenticatedObjectID)
 
 	if principal := servicePrincipal; principal != nil {
 		d.Set("service_principal_application_id", principal.AppID)
 		d.Set("service_principal_object_id", principal.ObjectID)
+		d.Set("authenticated_object_id", principal.ObjectID)
 	} else {
 		d.Set("service_principal_application_id", "")
 		d.Set("service_principal_object_id", "")
+		d.Set("authenticated_object_id", client.authenticatedObjectID)
 	}
 
 	return nil

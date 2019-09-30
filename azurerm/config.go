@@ -74,11 +74,14 @@ type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
 	clients.Client
 
-	clientId                 string
-	tenantId                 string
-	subscriptionId           string
-	partnerId                string
-	usingServicePrincipal    bool
+	clientId       string
+	tenantId       string
+	subscriptionId string
+	partnerId      string
+
+	authenticatedObjectID string
+	usingServicePrincipal bool
+
 	environment              azure.Environment
 	skipProviderRegistration bool
 
@@ -162,6 +165,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		partnerId:                partnerId,
 		environment:              *env,
 		usingServicePrincipal:    authConfig.AuthenticatedAsAServicePrincipal,
+		authenticatedObjectID:    authConfig.AuthenticatedObjectID,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
