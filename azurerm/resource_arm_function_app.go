@@ -49,7 +49,6 @@ func resourceArmFunctionApp() *schema.Resource {
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"enabled": {
