@@ -20,9 +20,9 @@ import (
 
 func resourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmKubernetesClusterCreateUpdate,
+		Create: resourceArmKubernetesClusterCreate,
 		Read:   resourceArmKubernetesClusterRead,
-		Update: resourceArmKubernetesClusterCreateUpdate,
+		Update: resourceArmKubernetesClusterUpdate,
 		Delete: resourceArmKubernetesClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -624,17 +624,17 @@ func resourceArmKubernetesCluster() *schema.Resource {
 	}
 }
 
-func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 	tenantId := meta.(*ArmClient).tenantId
 
-	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create/update.")
+	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -710,6 +710,91 @@ func resourceArmKubernetesClusterCreateUpdate(d *schema.ResourceData, meta inter
 
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resGroup)
+	}
+
+	d.SetId(*read.ID)
+
+	return resourceArmKubernetesClusterRead(d, meta)
+}
+
+func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).containers.KubernetesClustersClient
+	ctx := meta.(*ArmClient).StopContext
+	tenantId := meta.(*ArmClient).tenantId
+
+	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resourceGroup := id.ResourceGroup
+	name := id.Path["managedClusters"]
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	dnsPrefix := d.Get("dns_prefix").(string)
+	kubernetesVersion := d.Get("kubernetes_version").(string)
+
+	linuxProfile := expandKubernetesClusterLinuxProfile(d)
+	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+	if err != nil {
+		return err
+	}
+	windowsProfile := expandKubernetesClusterWindowsProfile(d)
+	networkProfile := expandKubernetesClusterNetworkProfile(d)
+	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+	addonProfiles := expandKubernetesClusterAddonProfiles(d)
+
+	t := d.Get("tags").(map[string]interface{})
+
+	rbacRaw := d.Get("role_based_access_control").([]interface{})
+	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+
+	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
+	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
+
+	nodeResourceGroup := d.Get("node_resource_group").(string)
+
+	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
+
+	parameters := containerservice.ManagedCluster{
+		Name:     &name,
+		Location: &location,
+		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
+			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
+			AadProfile:                  azureADProfile,
+			AddonProfiles:               addonProfiles,
+			AgentPoolProfiles:           &agentProfiles,
+			DNSPrefix:                   utils.String(dnsPrefix),
+			EnableRBAC:                  utils.Bool(rbacEnabled),
+			KubernetesVersion:           utils.String(kubernetesVersion),
+			LinuxProfile:                linuxProfile,
+			WindowsProfile:              windowsProfile,
+			NetworkProfile:              networkProfile,
+			ServicePrincipalProfile:     servicePrincipalProfile,
+			NodeResourceGroup:           utils.String(nodeResourceGroup),
+			EnablePodSecurityPolicy:     utils.Bool(enablePodSecurityPolicy),
+		},
+		Tags: tags.Expand(t),
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error creating/updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
