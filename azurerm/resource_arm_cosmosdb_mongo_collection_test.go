@@ -51,6 +51,7 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "shard_key", "day"),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
 					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
 				),
 			},
 			{
@@ -84,6 +85,7 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "shard_key", "day"),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
 					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
 				),
 			},
 			{
@@ -97,6 +99,7 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "70707"),
 					resource.TestCheckResourceAttr(resourceName, "indexes.#", "3"),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
 				),
 			},
 			{
@@ -191,6 +194,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
 
   default_ttl_seconds = 707
   shard_key           = "day"
+  throughput          = 600
 
   indexes {
     key    = "seven"
@@ -216,6 +220,7 @@ resource "azurerm_cosmosdb_mongo_collection" "test" {
   database_name       = "${azurerm_cosmosdb_mongo_database.test.name}"
 
   default_ttl_seconds = 70707
+  throughput          = 400
 
   indexes {
     key    = "seven"
