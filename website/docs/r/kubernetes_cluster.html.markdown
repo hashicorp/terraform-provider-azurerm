@@ -24,8 +24,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestagent1"
 
   agent_pool_profile {
@@ -261,16 +261,15 @@ A `role_based_access_control` block supports the following:
 
 A `service_principal` block supports the following:
 
-* `client_id` - (Required) The Client ID for the Service Principal. Changing this forces a new resource to be created.
+* `client_id` - (Required) The Client ID for the Service Principal.
 
-* `client_secret` - (Required) The Client Secret for the Service Principal. Changing this forces a new resource to be created.
+* `client_secret` - (Required) The Client Secret for the Service Principal.
 
 ---
 
 A `ssh_key` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
-
 
 ## Attributes Reference
 

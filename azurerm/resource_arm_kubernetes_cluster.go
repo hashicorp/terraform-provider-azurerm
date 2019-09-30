@@ -223,13 +223,11 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"client_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"client_secret": {
 							Type:         schema.TypeString,
-							ForceNew:     true,
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
@@ -732,6 +730,29 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["managedClusters"]
 
+	if d.HasChange("service_principal") {
+		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
+		servicePrincipals := d.Get("service_principal").([]interface{})
+		servicePrincipalRaw := servicePrincipals[0].(map[string]interface{})
+
+		clientId := servicePrincipalRaw["client_id"].(string)
+		clientSecret := servicePrincipalRaw["client_secret"].(string)
+
+		params := containerservice.ManagedClusterServicePrincipalProfile{
+			ClientID: utils.String(clientId),
+			Secret:   utils.String(clientSecret),
+		}
+		future, err := client.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
+		if err != nil {
+			return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
@@ -758,10 +779,12 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
 
+	// TODO: should these values be conditionally updated?
 	parameters := containerservice.ManagedCluster{
 		Name:     &name,
 		Location: &location,
 		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
+			// TODO: should this be conditionally updated
 			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
 			AadProfile:                  azureADProfile,
 			AddonProfiles:               addonProfiles,
