@@ -25,6 +25,7 @@ type ClientOptions struct {
 	ResourceManagerAuthorizer autorest.Authorizer
 	ResourceManagerEndpoint   string
 	StorageAuthorizer         autorest.Authorizer
+	FilesystemAuthorizer      autorest.Authorizer
 
 	PollingDuration             time.Duration
 	SkipProviderReg             bool

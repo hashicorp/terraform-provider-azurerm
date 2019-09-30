@@ -194,6 +194,13 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	// Storage Endpoints
 	storageAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
+	// Filesystem Endpoints
+	filesystemEndpoint := env.ResourceIdentifiers.Storage
+	filesystemAuth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, filesystemEndpoint)
+	if err != nil {
+		return nil, err
+	}
+
 	// Key Vault Endpoints
 	keyVaultAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
@@ -207,6 +214,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
+		FilesystemAuthorizer:        filesystemAuth,
 		PollingDuration:             180 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
