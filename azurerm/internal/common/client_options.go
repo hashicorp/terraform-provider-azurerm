@@ -33,9 +33,7 @@ type ClientOptions struct {
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
-	if o.PartnerId != "" {
-		setUserAgent(c, o.PartnerId)
-	}
+	setUserAgent(c, o.PartnerId)
 
 	c.Authorizer = authorizer
 	c.Sender = sender.BuildSender("AzureRM")
