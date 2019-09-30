@@ -21,6 +21,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* provider: ensuring the user agent is configured [GH-4463]
 * `azurerm_container_registry` - checking the `name` is globally unique during creation [GH-4424]
 * `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
 * `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read [GH-4344]
