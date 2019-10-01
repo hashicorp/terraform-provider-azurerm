@@ -197,6 +197,8 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	// Key Vault Endpoints
 	keyVaultAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
+	timeout := 180 * time.Minute
+
 	o := &common.ClientOptions{
 		SubscriptionId:              authConfig.SubscriptionID,
 		TenantID:                    authConfig.TenantID,
@@ -208,7 +210,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		ResourceManagerAuthorizer:   auth,
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
-		PollingDuration:             180 * time.Minute,
+		PollingDuration:             &timeout,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
 		Environment:                 *env,
