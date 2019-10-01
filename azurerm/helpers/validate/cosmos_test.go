@@ -36,7 +36,7 @@ func TestCosmosAccountName(t *testing.T) {
 	for _, tc := range cases {
 		_, errors := CosmosAccountName(tc.Value, "throughput")
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected DatabaseCollation to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+			t.Fatalf("Expected CosmosAccountName to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}
 	}
 }
@@ -63,7 +63,7 @@ func TestCosmosEntityName(t *testing.T) {
 	for _, tc := range cases {
 		_, errors := CosmosEntityName(tc.Value, "throughput")
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected DatabaseCollation to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
+			t.Fatalf("Expected CosmosEntityName to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}
 	}
 }
@@ -94,7 +94,7 @@ func TestCosmosThroughput(t *testing.T) {
 	for _, tc := range cases {
 		_, errors := CosmosThroughput(tc.Value, "throughput")
 		if len(errors) != tc.Errors {
-			t.Fatalf("Expected DatabaseCollation to trigger '%d' errors for '%d' - got '%d'", tc.Errors, tc.Value, len(errors))
+			t.Fatalf("Expected CosmosThroughput to trigger '%d' errors for '%d' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}
 	}
 }
