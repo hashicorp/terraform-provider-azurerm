@@ -1500,7 +1500,6 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 
 	results := make([]interface{}, 0)
 	if profile := input.AadProfile; profile != nil {
-
 		clientAppId := ""
 		if profile.ClientAppID != nil {
 			clientAppId = *profile.ClientAppID
