@@ -1272,7 +1272,9 @@ resource "azurerm_subnet" "test" {
   address_prefix       = "172.0.2.0/24"
 
   # TODO: remove in 2.0
-  ignore_changes = ["route_table_id"]
+  lifecycle {
+    ignore_changes = ["route_table_id"]
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1590,8 +1592,10 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.1.0.0/24"
 
-  # required until 2.0
-  ignore_changes = ["route_table_id"]
+  # TODO: remove in 2.0
+  lifecycle {
+    ignore_changes = ["route_table_id"]
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
