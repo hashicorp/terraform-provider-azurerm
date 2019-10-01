@@ -197,7 +197,7 @@ func testAccAzureRMPrivateLinkService_update(rInt int, location string) string {
 func testAccAzureRMPrivateLinkService_complete(rInt int, location string) string {
 	subscriptionDataSource := testAccAzureRMPrivateLinkServiceTemplate_subscriptionDataSource()
 	standardResources := testAccAzureRMPrivateLinkServiceTemplate_standardResources(rInt, location)
-	privateLink := testAccAzureRMPrivateLinkServiceTemplate_basic(rInt)
+	privateLink := testAccAzureRMPrivateLinkServiceTemplate_complete(rInt)
 
 	return testAccAzureRMPrivateLinkServiceTemplate(subscriptionDataSource, standardResources, privateLink)
 }
@@ -213,9 +213,7 @@ func testAccAzureRMPrivateLinkServiceTemplate(subscriptionDataSourceTemplate str
 }
 
 func testAccAzureRMPrivateLinkServiceTemplate_subscriptionDataSource() string {
-	return `data "azurerm_subscription" "current" {}
-
-`
+	return `data "azurerm_subscription" "current" {}`
 }
 
 func testAccAzureRMPrivateLinkServiceTemplate_standardResources(rInt int, location string) string {

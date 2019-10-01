@@ -534,7 +534,7 @@ func flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input *[]netw
 					v["subnet_id"] = *subnetId
 				}
 			}
-			v["primary"] = bool(*item.PrivateLinkServiceIPConfigurationProperties.Primary)
+			v["primary"] = *item.PrivateLinkServiceIPConfigurationProperties.Primary
 		}
 
 		results = append(results, v)
