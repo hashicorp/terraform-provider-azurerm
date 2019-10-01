@@ -22,10 +22,6 @@ import (
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
 )
 
-var (
-	maxrst = int32(1000)
-)
-
 func resourceArmStorageFilesystem() *schema.Resource {
 	return &schema.Resource{
 		Create:        resourceArmStorageFilesystemCreate,
@@ -236,7 +232,7 @@ func createIfNotExists(ctx context.Context, filesystemClient *filesystems.Client
 }
 
 func drainRespBody(resp *http.Response) {
-	io.Copy(ioutil.Discard, resp.Body)
+	_, _ = io.Copy(ioutil.Discard, resp.Body)
 	resp.Body.Close()
 }
 
