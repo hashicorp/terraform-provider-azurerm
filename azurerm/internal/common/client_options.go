@@ -32,7 +32,8 @@ type ClientOptions struct {
 	DisableCorrelationRequestID bool
 	Environment                 azure.Environment
 
-	PollingDuration *time.Duration
+	// TODO: remove me in 2.0
+	PollingDuration time.Duration
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
@@ -47,8 +48,7 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 
 	// TODO: remove in 2.0
 	if !features.SupportsCustomTimeouts() {
-		// this is intentionally de-referencing the timeout since this should be nil when timeouts are enabled by default
-		c.PollingDuration = *o.PollingDuration
+		c.PollingDuration = o.PollingDuration
 	}
 }
 
