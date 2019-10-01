@@ -25,10 +25,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_user" "test" {

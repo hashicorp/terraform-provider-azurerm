@@ -392,7 +392,6 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.InterfacePropertiesFormat; props != nil {
-
 		d.Set("mac_address", props.MacAddress)
 		addresses := make([]interface{}, 0)
 		if configs := props.IPConfigurations; configs != nil {

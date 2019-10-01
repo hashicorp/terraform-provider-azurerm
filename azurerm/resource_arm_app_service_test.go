@@ -527,7 +527,6 @@ func TestAccAzureRMAppService_virtualNetwork(t *testing.T) {
 }
 
 func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
-
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppService_mangedServiceIdentity(ri, testLocation())
@@ -551,7 +550,6 @@ func TestAccAzureRMAppService_enableManageServiceIdentity(t *testing.T) {
 }
 
 func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *testing.T) {
-
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
 
@@ -584,7 +582,6 @@ func TestAccAzureRMAppService_updateResourceByEnablingManageServiceIdentity(t *t
 }
 
 func TestAccAzureRMAppService_userAssignedIdentity(t *testing.T) {
-
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppService_userAssignedIdentity(ri, testLocation())
@@ -609,7 +606,6 @@ func TestAccAzureRMAppService_userAssignedIdentity(t *testing.T) {
 }
 
 func TestAccAzureRMAppService_multipleAssignedIdentities(t *testing.T) {
-
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppService_multipleAssignedIdentities(ri, testLocation())

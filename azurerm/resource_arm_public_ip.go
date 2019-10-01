@@ -291,6 +291,10 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("allocation_method", string(props.PublicIPAllocationMethod))
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
 
+		if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
+			d.Set("public_ip_prefix_id", publicIpPrefix.ID)
+		}
+
 		if settings := props.DNSSettings; settings != nil {
 			d.Set("fqdn", settings.Fqdn)
 			d.Set("reverse_fqdn", settings.ReverseFqdn)

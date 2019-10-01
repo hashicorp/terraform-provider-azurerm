@@ -179,11 +179,9 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 		},
 	}
-
 }
 
 func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
-
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
 	resourceTypesIface := d.Get("resource_types").([]interface{})

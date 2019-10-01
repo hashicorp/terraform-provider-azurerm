@@ -24,8 +24,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestagent1"
 
   agent_pool_profile {
@@ -171,8 +171,6 @@ A `agent_pool_profile` block supports the following:
 
 * `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
 
-~> **NOTE:** Support for the `type` of `VirtualMachineScaleSets` is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
-
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A route table should be configured on this Subnet.
@@ -237,8 +235,6 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
 
-~> **NOTE:** Support for using a `standard` load balancer is currently in Public Preview on an opt-in basis. To use it, enable feature `VMSSPreview` and `AKSAzureStandardLoadBalancer` for `namespace Microsoft.ContainerService`. For additional information please visit [Standard SKU LoadBalancer](https://docs.microsoft.com/en-us/azure/aks/load-balancer-standard).
-
 ---
 
 A `oms_agent` block supports the following:
@@ -265,16 +261,15 @@ A `role_based_access_control` block supports the following:
 
 A `service_principal` block supports the following:
 
-* `client_id` - (Required) The Client ID for the Service Principal. Changing this forces a new resource to be created.
+* `client_id` - (Required) The Client ID for the Service Principal.
 
-* `client_secret` - (Required) The Client Secret for the Service Principal. Changing this forces a new resource to be created.
+* `client_secret` - (Required) The Client Secret for the Service Principal.
 
 ---
 
 A `ssh_key` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
-
 
 ## Attributes Reference
 

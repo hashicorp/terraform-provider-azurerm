@@ -6,15 +6,18 @@ import (
 )
 
 type Client struct {
-	ConsumerGroupClient *eventhub.ConsumerGroupsClient
-	EventHubsClient     *eventhub.EventHubsClient
-	NamespacesClient    *eventhub.NamespacesClient
+	ConsumerGroupClient           *eventhub.ConsumerGroupsClient
+	DisasterRecoveryConfigsClient *eventhub.DisasterRecoveryConfigsClient
+	EventHubsClient               *eventhub.EventHubsClient
+	NamespacesClient              *eventhub.NamespacesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	EventHubsClient := eventhub.NewEventHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&EventHubsClient.Client, o.ResourceManagerAuthorizer)
+
+	DisasterRecoveryConfigsClient := eventhub.NewDisasterRecoveryConfigsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&DisasterRecoveryConfigsClient.Client, o.ResourceManagerAuthorizer)
 
 	ConsumerGroupClient := eventhub.NewConsumerGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ConsumerGroupClient.Client, o.ResourceManagerAuthorizer)
@@ -23,8 +26,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		ConsumerGroupClient: &ConsumerGroupClient,
-		EventHubsClient:     &EventHubsClient,
-		NamespacesClient:    &NamespacesClient,
+		ConsumerGroupClient:           &ConsumerGroupClient,
+		DisasterRecoveryConfigsClient: &DisasterRecoveryConfigsClient,
+		EventHubsClient:               &EventHubsClient,
+		NamespacesClient:              &NamespacesClient,
 	}
 }

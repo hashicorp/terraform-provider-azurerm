@@ -37,6 +37,8 @@ output "location" {
 
 * `capacity` - The capacity of the ServiceBus Namespace.
 
+* `zone_redundant` - Whether or not this ServiceBus Namespace is zone redundant.
+
 * `tags` - A mapping of tags assigned to the resource.
 
 The following attributes are exported only if there is an authorization rule named

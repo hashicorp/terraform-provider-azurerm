@@ -218,6 +218,19 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	availabilityRequest := containerregistry.RegistryNameCheckRequest{
+		Name: utils.String(name),
+		Type: utils.String("Microsoft.ContainerRegistry/registries"),
+	}
+	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
+	if err != nil {
+		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+	}
+
+	if !*available.NameAvailable {
+		return fmt.Errorf("The name %q used for the Container Registry needs to be globally unique and isn't available: %s", name, *available.Message)
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)

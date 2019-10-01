@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -235,7 +235,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		createDisk.EncryptionSettings = expandManagedDiskEncryptionSettings(settings)
+		createDisk.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, createDisk)
@@ -303,11 +303,9 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 		flattenAzureRmManagedDiskCreationData(d, resp.CreationData)
 	}
 
-	if settings := resp.EncryptionSettings; settings != nil {
-		flattened := flattenManagedDiskEncryptionSettings(settings)
-		if err := d.Set("encryption_settings", flattened); err != nil {
-			return fmt.Errorf("Error setting encryption settings: %+v", err)
-		}
+	flattened := flattenManagedDiskEncryptionSettings(resp.EncryptionSettingsCollection)
+	if err := d.Set("encryption_settings", flattened); err != nil {
+		return fmt.Errorf("Error setting encryption settings: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

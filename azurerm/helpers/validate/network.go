@@ -27,7 +27,6 @@ func validateIpv6Address(i interface{}, k string, allowEmpty bool) (warnings []s
 	}
 
 	return warnings, errors
-
 }
 
 func CIDR(i interface{}, k string) (warnings []string, errors []error) {

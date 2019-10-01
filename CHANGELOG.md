@@ -1,92 +1,128 @@
-## 1.34.0 (Unreleased)
+## 1.35.0 (Unreleased)
 
 FEATURES:
 
-* **New Data Source:** `azurerm_network_ddos_protection_plan` [GH-4228]
-* **New Data Source:** `azurerm_proximity_placement_group` [GH-4020]
-* **New Data Source:** `azurerm_servicebus_namespace_authorization_rule` [GH-4294]
-* **New Data Source:** `azurerm_sql_database` [GH-4210]
-* **New Data Source:** `azurerm_storage_account_blob_container_sas` [GH-4195]
-* **New Resource:** `azurerm_app_service_certificate` [GH-4192]
-* **New Resource:** `azurerm_app_service_source_control_token` [GH-4214]
-* **New Resource:** `azurerm_bot_channels_registration` [GH-4245]
-* **New Resource:** `azurerm_bot_connection` [GH-4311]
-* **New Resource:** `azurerm_frontdoor` [GH-3933]
-* **New Resource:** `azurerm_kusto_cluster` [GH-4129]
-* **New Resource:** `azurerm_kusto_database` [GH-4149]
-* **New Resource:** `azurerm_marketplace_agreement` [GH-4305]
-* **New Resource:** `azurerm_private_dns_zone_virtual_network_link` [GH-3789]
-* **New Resource:** `azurerm_proximity_placement_group` [GH-4020]
-* **New Resource:** `azurerm_stream_analytics_output_servicebus_topic` [GH-4164]
-* **New Resource:** `azurerm_web_application_firewall_policy` [GH-4119]
+* **New Data Source:** `azurerm_app_service_certificate` [GH-4468]
+* **New Data Source:** `azurerm_public_ip_prefix` [GH-4340]
+* **New Resource:** `azurerm_bot_channel_slack` [GH-4367]
+* **New Resource:** `azurerm_bot_channel_email` [GH-4389]
+* **New Resource:** `azurerm_bot_web_app` [GH-4411]
+* **New Resource:** `azurerm_dashboard` [GH-4357]
+* **New Resource:** `azurerm_eventhub_namespace_disaster_recovery_config` [GH-4425]
 
 IMPROVEMENTS:
 
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v32.5.0` [GH-4166]
-* dependencies: updating `github.com/Azure/go-autorest` to `v0.9.0` [GH-4166]
-* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` [GH-4166]
-* dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` [GH-4166]
-* compute: updating to API version `2018-10-01` [GH-4274]
-* network: updating to API version `2019-06-01` [GH-4291]
-* network: reverting the locking changes from #3673 [GH-3673]
-* storage: caching the Resource Group Name / Account Key [GH-4205]
-* storage: switching to use SharedKey for authentication with Blobs/Containers rather than SharedKeyLite [GH-4235]
-* Data Source: `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account [GH-4248]
-* Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates [GH-4064]
-* Data Source: `azurerm_virtual_network` - support for the `location` property [GH-4281]
-* `azurerm_api_management` - support for multiple `additional_location` blocks [GH-4175]
-* `azurerm_application_gateway` - allowing `capacity` to be set to `32` [GH-4189]
-* `azurerm_application_gateway` - support OWASP version `3.1` for the `rule_set_version` property [GH-4263]
-* `azurerm_application_gateway` - support for the `trusted_root _certificate` property [GH-4206]
-* `azurerm_app_service` - fixing a bug where the Application `logs` block would get reset when `app_settings` were configured [GH-4243]
-* `azurerm_app_service` - support for sending HTTP Logs to Blob Storage [GH-4249]
-* `azurerm_app_service` - the `ip_restriction.ip_address` property is now optional [GH-4184]
-* `azurerm_app_service_slot` - the `ip_restriction.ip_address` property is now optional [GH-4184]
-* `azurerm_availability_set` - support for the `proximity_placement_group_id` property [GH-4020]
-* `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` [GH-4209]
-* `azurerm_container_registry` - support for configuring Virtual Network Rules to Subnets [GH-4293]
-* `azurerm_cosmosdb_account` - correctly validate `max_interval_in_seconds` & `max_staleness_prefix` for geo replicated accounts [GH-4273]
-* `azurerm_cosmosdb_account` - increase creation & deletion wait timeout to `3` hours [GH-4271]
-* `azurerm_cosmosdb_sql_container` - changing the `unique_key.paths` property now forces a new resource [GH-4163]
-* `azurerm_eventhub_namespace` - changing the `kafka_enabled` property now forces a new resource [GH-4264]
-* `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block [GH-4139]
-* `azurerm_kubernetes_cluster` - prevent `pod_cidr` and azure `network_plugin` from being set at the same time causing a new resource to be created [GH-4286]
-* `azurerm_mariadb_server` - support for version `10.3` [GH-4170]
-* `azurerm_mariadb_server` - support for configuring `auto_grow` [GH-4302]
-* `azurerm_managed_disk` - add support for the Ultra SSD `disk_iops_read_write` & `disk_mbps_read_write` properties [GH-4102]
-* `azurerm_mysql_server` - support for configuring `auto_grow` [GH-4303]
-* `azurerm_private_dns_zone` - polling until the dns zone is marked as fully provisioned [GH-4307]
-* `azurerm_postgresql_server` - support for configuring `auto_grow` [GH-4220]
-* `azurerm_resource_group` - the `name` field can now be up to 90 characters [GH-4233]
-* `azurerm_role_assignment` - add `principal_type` and `skip_service_principal_aad_check` properties [GH-4168]
-* `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account [GH-4248]
-* `azurerm_storage_blob` - switching over to use the new Storage SDK [GH-4179]
-* `azurerm_storage_blob` - support for Append Blobs [GH-4238]
-* `azurerm_storage_blob` - support for configuring the `access_tier` [GH-4238]
-* `azurerm_storage_blob` - support for specifying Block Blob content via `source_content` [GH-4238]
-* `azurerm_storage_blob` - the `type` field is now Required, since it had to be set anyway [GH-4238]
-* `azurerm_storage_share_directory` - support for upper-case characters in the `name` field [GH-4178]
-* `azurerm_storage_table` - using the correct storage account name when checking for the presence of an existing storage table [GH-4234]
-* `azurerm_stream_analytics_job` - the field `data_locale` is now optional [GH-4190]
-* `azurerm_stream_analytics_job` - the field `events_late_arrival_max_delay_in_seconds` is now optional [GH-4190]
-* `azurerm_stream_analytics_job` - the field `events_out_of_order_policy` is now optional [GH-4190]
-* `azurerm_stream_analytics_job` - the field `output_error_policy` is now optional [GH-4190]
-* `azurerm_subnet` - support for the actions `Microsoft.Network/virtualNetworks/subnets/join/action` and `Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action` [GH-4137]
-* `azurerm_virtual_machine` - support for `UltraSSD_LRS` managed disks [GH-3860]
-* `azurerm_virtual_machine` - support for the `proximity_placement_group_id` property [GH-4020]
-* `azurerm_virtual_machine_scale_set` - support for the `proximity_placement_group_id` property [GH-4020]
+* dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
+* kusto: updating to API version `2019-05-15` [GH-4376]
+* `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` [GH-4397]
+* `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property [GH-3154]
+* `azurerm_kubernetes_cluster` - support for updating the Service Principal [GH-4469]
+* `azurerm_function_app` - changes to `app_service_plan_id` no longer force a new resource [GH-4439]
+* `azurerm_eventhub_namespace` - support for the `network_rulesets` property [GH-4409]
+* `azurerm_servicebus_namespace` - support for `zone_redundant` [GH-4432]
 
 BUG FIXES:
 
-* `azurerm_app_service` - will no longer panic from when an access restriction rule involves a virtual network [GH-4184]
-* `azurerm_app_service_slot` - will no longer panic from when an access restriction rule involves a virtual network [GH-4184]
-* `azurerm_app_service_plan` and `azurerm_app_service_slot` crash fixes [GH-4184]
-* `azurerm_container_group` - make `storage_account_key` field in `volume` block sensitive [GH-4201]
-* `azurerm_key_vault_certificate` - prevented a panic caused by an empty element in `extended_key_usage` [GH-4272]
-* `azurerm_log_analytics_linked_service` - will no longer panic if no items are passed into the property `linked_service_properties` [GH-4142]
-* `azurerm_log_analytics_workspace_linked_service` - will no longer panic if no items are passed into the property `linked_service_properties` [GH-4152]
-* `azurerm_network_interface` - changing the `ip_configuration` property to no longer force new resource [GH-4155]
-* `azurerm_virtual_network_peering` - prevent nil object from being read [GH-4180]
+* provider: Ensuring the user agent is configured [GH-4463]
+* provider: Use real Terraform version [GH-4464]
+* `azurerm_container_registry` - checking the `name` is globally unique during creation [GH-4424]
+* `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
+* `azurerm_kubernetes_cluster` - fixing a bug where upgrading to 1.34.0 would require resource recreation [GH-4469]
+* `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read [GH-4344]
+* `azurerm_role_assignment` - changing the `skip_service_principal_aad_check` property no longer forces a new resource [GH-4412]
+* `azurerm_storage_blob` - reading the properties after an update [GH-4452]
+
+## 1.34.0 (September 18, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_network_ddos_protection_plan` ([#4228](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4228))
+* **New Data Source:** `azurerm_proximity_placement_group` ([#4020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4020))
+* **New Data Source:** `azurerm_servicebus_namespace_authorization_rule` ([#4294](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4294))
+* **New Data Source:** `azurerm_sql_database` ([#4210](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4210))
+* **New Data Source:** `azurerm_storage_account_blob_container_sas` ([#4195](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4195))
+* **New Resource:** `azurerm_app_service_certificate` ([#4192](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4192))
+* **New Resource:** `azurerm_app_service_source_control_token` ([#4214](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4214))
+* **New Resource:** `azurerm_bot_channels_registration` ([#4245](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4245))
+* **New Resource:** `azurerm_bot_connection` ([#4311](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4311))
+* **New Resource:** `azurerm_frontdoor` ([#3933](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3933))
+* **New Resource:** `azurerm_frontdoor_firewall_policy` ([#4125](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4125))
+* **New Resource:** `azurerm_kusto_cluster` ([#4129](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4129))
+* **New Resource:** `azurerm_kusto_database` ([#4149](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4149))
+* **New Resource:** `azurerm_marketplace_agreement` ([#4305](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4305))
+* **New Resource:** `azurerm_private_dns_zone_virtual_network_link` ([#3789](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3789))
+* **New Resource:** `azurerm_proximity_placement_group` ([#4020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4020))
+* **New Resource:** `azurerm_stream_analytics_output_servicebus_topic` ([#4164](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4164))
+* **New Resource:** `azurerm_web_application_firewall_policy` ([#4119](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4119))
+
+IMPROVEMENTS:
+
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v32.5.0` ([#4166](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4166))
+* dependencies: updating `github.com/Azure/go-autorest` to `v0.9.0` ([#4166](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4166))
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.7.0` ([#4166](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4166))
+* dependencies: updating `github.com/terraform-providers/terraform-provider-azuread` to `v0.6.0` ([#4166](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4166))
+* dependencies: updating `github.com/hashicorp/terraform` to `v0.12.8` ([#4341](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4341))
+* compute: updating the API Version to `2019-07-01` ([#4331](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4331))
+* network: updating to API version `2019-06-01` ([#4291](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4291))
+* network: reverting the locking changes from #3673 ([#3673](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3673))
+* storage: caching the Resource Group Name / Account Key ([#4205](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4205))
+* storage: switching to use SharedKey for authentication with Blobs/Containers rather than SharedKeyLite ([#4235](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4235))
+* Data Source: `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account ([#4248](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4248))
+* Data Source: `azurerm_storage_account_sas` - adding an `ISO8601` validator to the `start` and `end` dates ([#4064](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4064))
+* Data Source: `azurerm_virtual_network` - support for the `location` property ([#4281](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4281))
+* `azurerm_api_management` - support for multiple `additional_location` blocks ([#4175](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4175))
+* `azurerm_application_gateway` - allowing `capacity` to be set to `32` ([#4189](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4189))
+* `azurerm_application_gateway` - support OWASP version `3.1` for the `rule_set_version` property ([#4263](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4263))
+* `azurerm_application_gateway` - support for the `trusted_root _certificate` property ([#4206](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4206))
+* `azurerm_app_service` - fixing a bug where the Application `logs` block would get reset when `app_settings` were configured ([#4243](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4243))
+* `azurerm_app_service` - support for sending HTTP Logs to Blob Storage ([#4249](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4249))
+* `azurerm_app_service` - the `ip_restriction.ip_address` property is now optional ([#4184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4184))
+* `azurerm_app_service_slot` - the `ip_restriction.ip_address` property is now optional ([#4184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4184))
+* `azurerm_availability_set` - support for the `proximity_placement_group_id` property ([#4020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4020))
+* `azurerm_cognitive_account` - supporting `CognitiveServices` as a `kind` ([#4209](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4209))
+* `azurerm_container_registry` - support for configuring Virtual Network Rules to Subnets ([#4293](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4293))
+* `azurerm_cosmosdb_account` - correctly validate `max_interval_in_seconds` & `max_staleness_prefix` for geo replicated accounts ([#4273](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4273))
+* `azurerm_cosmosdb_account` - increase creation & deletion wait timeout to `3` hours ([#4271](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4271))
+* `azurerm_cosmosdb_sql_container` - changing the `unique_key.paths` property now forces a new resource ([#4163](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4163))
+* `azurerm_eventhub_namespace` - changing the `kafka_enabled` property now forces a new resource ([#4264](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4264))
+* `azurerm_kubernetes_cluster` - support for configuring the `kube_dashboard` within the `addon_profile` block ([#4139](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4139))
+* `azurerm_kubernetes_cluster` - prevent `pod_cidr` and azure `network_plugin` from being set at the same time causing a new resource to be created ([#4286](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4286))
+* `azurerm_mariadb_server` - support for version `10.3` ([#4170](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4170))
+* `azurerm_mariadb_server` - support for configuring `auto_grow` ([#4302](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4302))
+* `azurerm_managed_disk` - add support for the Ultra SSD `disk_iops_read_write` & `disk_mbps_read_write` properties ([#4102](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4102))
+* `azurerm_mysql_server` - support for configuring `auto_grow` ([#4303](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4303))
+* `azurerm_private_dns_zone` - polling until the dns zone is marked as fully provisioned ([#4307](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4307))
+* `azurerm_postgresql_server` - support for configuring `auto_grow` ([#4220](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4220))
+* `azurerm_resource_group` - the `name` field can now be up to 90 characters ([#4233](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4233))
+* `azurerm_role_assignment` - add `principal_type` and `skip_service_principal_aad_check` properties ([#4168](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4168))
+* `azurerm_storage_account` - gracefully degrading when there's a ReadOnly lock/the user doesn't have permissions to list the Keys for the storage account ([#4248](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4248))
+* `azurerm_storage_blob` - switching over to use the new Storage SDK ([#4179](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4179))
+* `azurerm_storage_blob` - support for Append Blobs ([#4238](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4238))
+* `azurerm_storage_blob` - support for configuring the `access_tier` ([#4238](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4238))
+* `azurerm_storage_blob` - support for specifying Block Blob content via `source_content` ([#4238](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4238))
+* `azurerm_storage_blob` - the `type` field is now Required, since it had to be set anyway ([#4238](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4238))
+* `azurerm_storage_share_directory` - support for upper-case characters in the `name` field ([#4178](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4178))
+* `azurerm_storage_table` - using the correct storage account name when checking for the presence of an existing storage table ([#4234](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4234))
+* `azurerm_stream_analytics_job` - the field `data_locale` is now optional ([#4190](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4190))
+* `azurerm_stream_analytics_job` - the field `events_late_arrival_max_delay_in_seconds` is now optional ([#4190](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4190))
+* `azurerm_stream_analytics_job` - the field `events_out_of_order_policy` is now optional ([#4190](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4190))
+* `azurerm_stream_analytics_job` - the field `output_error_policy` is now optional ([#4190](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4190))
+* `azurerm_subnet` - support for the actions `Microsoft.Network/virtualNetworks/subnets/join/action` and `Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action` ([#4137](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4137))
+* `azurerm_virtual_machine` - support for `UltraSSD_LRS` managed disks ([#3860](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3860))
+* `azurerm_virtual_machine` - support for the `proximity_placement_group_id` property ([#4020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4020))
+* `azurerm_virtual_machine_scale_set` - support for the `proximity_placement_group_id` property ([#4020](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4020))
+
+BUG FIXES:
+
+* `azurerm_app_service` - will no longer panic from when an access restriction rule involves a virtual network ([#4184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4184))
+* `azurerm_app_service_slot` - will no longer panic from when an access restriction rule involves a virtual network ([#4184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4184))
+* `azurerm_app_service_plan` and `azurerm_app_service_slot` crash fixes ([#4184](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4184))
+* `azurerm_container_group` - make `storage_account_key` field in `volume` block sensitive ([#4201](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4201))
+* `azurerm_key_vault_certificate` - prevented a panic caused by an empty element in `extended_key_usage` ([#4272](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4272))
+* `azurerm_log_analytics_linked_service` - will no longer panic if no items are passed into the property `linked_service_properties` ([#4142](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4142))
+* `azurerm_log_analytics_workspace_linked_service` - will no longer panic if no items are passed into the property `linked_service_properties` ([#4152](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4152))
+* `azurerm_network_interface` - changing the `ip_configuration` property to no longer force new resource ([#4155](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4155))
+* `azurerm_virtual_network_peering` - prevent nil object from being read ([#4180](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4180))
 
 ## 1.33.1 (August 27, 2019)
 

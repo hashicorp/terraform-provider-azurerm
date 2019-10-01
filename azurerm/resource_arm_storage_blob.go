@@ -259,7 +259,7 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
-	return nil
+	return resourceArmStorageBlobRead(d, meta)
 }
 
 func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {

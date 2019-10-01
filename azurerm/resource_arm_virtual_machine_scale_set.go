@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
@@ -1078,7 +1078,6 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 				}
 			}
 		}
-
 	}
 
 	if plan := resp.Plan; plan != nil {
@@ -1310,7 +1309,6 @@ func flattenAzureRmVirtualMachineScaleSetNetworkProfile(profile *compute.Virtual
 				config["name"] = *ipConfig.Name
 
 				if properties := ipConfig.VirtualMachineScaleSetIPConfigurationProperties; properties != nil {
-
 					if properties.Subnet != nil {
 						config["subnet_id"] = *properties.Subnet.ID
 					}

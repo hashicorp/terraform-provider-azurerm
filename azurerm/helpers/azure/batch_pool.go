@@ -418,7 +418,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				ElevationLevel: batch.ElevationLevel(autoUserMap["elevation_level"].(string)),
 				Scope:          batch.AutoUserScope(autoUserMap["scope"].(string)),
 			}
-
 		}
 	} else if userNameValue, ok := userIdentityValue["username"]; ok {
 		userName := userNameValue.(string)

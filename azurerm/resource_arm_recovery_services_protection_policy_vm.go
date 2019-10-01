@@ -247,7 +247,6 @@ func resourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 		//if daily, we need daily retention
 		//if weekly daily cannot be set, and we need weekly
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			_, hasDaily := diff.GetOk("retention_daily")
 			_, hasWeekly := diff.GetOk("retention_weekly")
 
@@ -369,7 +368,6 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 	d.Set("recovery_vault_name", vaultName)
 
 	if properties, ok := resp.Properties.AsAzureIaaSVMProtectionPolicy(); ok && properties != nil {
-
 		d.Set("timezone", properties.TimeZone)
 
 		if schedule, ok := properties.SchedulePolicy.AsSimpleSchedulePolicy(); ok && schedule != nil {
@@ -410,7 +408,6 @@ func resourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, m
 			} else {
 				d.Set("retention_yearly", nil)
 			}
-
 		}
 	}
 
@@ -705,7 +702,6 @@ func resourceArmRecoveryServicesProtectionPolicyWaitForState(client *backup.Prot
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {

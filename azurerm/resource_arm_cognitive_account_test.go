@@ -184,7 +184,6 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 
 			return nil
 		}
-
 	}
 
 	return nil

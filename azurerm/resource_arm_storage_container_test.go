@@ -236,7 +236,6 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 
 func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)

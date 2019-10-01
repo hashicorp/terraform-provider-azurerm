@@ -15,9 +15,10 @@ import (
 )
 
 type ClientOptions struct {
-	SubscriptionId string
-	TenantID       string
-	PartnerId      string
+	SubscriptionId   string
+	TenantID         string
+	PartnerId        string
+	TerraformVersion string
 
 	GraphAuthorizer           autorest.Authorizer
 	GraphEndpoint             string
@@ -33,9 +34,7 @@ type ClientOptions struct {
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
-	if o.PartnerId != "" {
-		setUserAgent(c, o.PartnerId)
-	}
+	setUserAgent(c, o.TerraformVersion, o.PartnerId)
 
 	c.Authorizer = authorizer
 	c.Sender = sender.BuildSender("AzureRM")
@@ -46,8 +45,8 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	}
 }
 
-func setUserAgent(client *autorest.Client, partnerID string) {
-	tfUserAgent := httpclient.UserAgentString()
+func setUserAgent(client *autorest.Client, tfVersion, partnerID string) {
+	tfUserAgent := httpclient.TerraformUserAgent(tfVersion)
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
 	client.UserAgent = strings.TrimSpace(fmt.Sprintf("%s %s", client.UserAgent, providerUserAgent))

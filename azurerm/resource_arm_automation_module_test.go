@@ -121,14 +121,12 @@ func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
 		}
 
 		return fmt.Errorf("Automation Module still exists:\n%#v", resp)
-
 	}
 
 	return nil
 }
 
 func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

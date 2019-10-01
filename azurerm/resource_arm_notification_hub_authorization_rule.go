@@ -129,7 +129,6 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	d.SetId(*read.ID)
 
 	return resourceArmNotificationHubAuthorizationRuleRead(d, meta)
-
 }
 
 func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {

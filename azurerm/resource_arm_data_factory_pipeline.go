@@ -180,7 +180,6 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 		if err := d.Set("variables", variables); err != nil {
 			return fmt.Errorf("Error setting `variables`: %+v", err)
 		}
-
 	}
 
 	return nil

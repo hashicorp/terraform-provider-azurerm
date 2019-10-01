@@ -184,7 +184,6 @@ func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		return nil
-
 	}
 }
 

@@ -12,6 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
+var olderKubernetesVersion = "1.13.10"
+var currentKubernetesVersion = "1.14.6"
+
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
@@ -40,13 +43,14 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
 					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "basic"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Basic"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -107,9 +111,10 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControl(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -144,10 +149,13 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"role_based_access_control.0.azure_active_directory.0.server_app_secret"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+					"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+				},
 			},
 			{
 				// should be no changes since the default for Tenant ID comes from the Provider block
@@ -158,10 +166,13 @@ func TestAccAzureRMKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"role_based_access_control.0.azure_active_directory.0.server_app_secret"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+					"role_based_access_control.0.azure_active_directory.0.server_app_secret",
+				},
 			},
 		},
 	})
@@ -194,9 +205,10 @@ func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -231,10 +243,13 @@ func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"windows_profile.0.admin_password"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"windows_profile.0.admin_password",
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -282,17 +297,17 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.12.7"),
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, olderKubernetesVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.12.7"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", olderKubernetesVersion),
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.13.5"),
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, currentKubernetesVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.13.5"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", currentKubernetesVersion),
 				),
 			},
 		},
@@ -628,7 +643,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
 		},
@@ -651,7 +666,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
 		},
@@ -690,9 +705,10 @@ func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -730,9 +746,10 @@ func TestAccAzureRMKubernetesCluster_virtualMachineScaleSets(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -761,9 +778,10 @@ func TestAccAzureRMKubernetesCluster_autoScalingNoAvailabilityZones(t *testing.T
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -795,9 +813,10 @@ func TestAccAzureRMKubernetesCluster_autoScalingWithAvailabilityZones(t *testing
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -869,9 +888,10 @@ func TestAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -897,9 +917,10 @@ func TestAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -1249,6 +1270,11 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "172.0.2.0/24"
+
+  # TODO: remove in 2.0
+  lifecycle {
+    ignore_changes = ["route_table_id"]
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1565,6 +1591,11 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.1.0.0/24"
+
+  # TODO: remove in 2.0
+  lifecycle {
+    ignore_changes = ["route_table_id"]
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1850,7 +1881,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "1.13.5"
+  kubernetes_version = "%s"
 
 
   linux_profile {
@@ -1875,10 +1906,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
 	network_plugin     = "azure"
-    load_balancer_sku = "standard"
+    load_balancer_sku = "Standard"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, rInt, currentKubernetesVersion, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(rInt int, clientId string, clientSecret string, location string) string {
@@ -1930,7 +1961,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "1.13.5"
+  kubernetes_version = "%s"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1957,10 +1988,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
 	service_cidr       = "10.10.0.0/16"
-	load_balancer_sku  = "standard"
+	load_balancer_sku  = "Standard"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, currentKubernetesVersion, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(rInt int, clientId string, clientSecret string, location string) string {
@@ -2099,7 +2130,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "1.13.5"
+  kubernetes_version = "%s"
 
   agent_pool_profile {
     name                = "pool1"
@@ -2118,10 +2149,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
 	network_plugin     = "kubenet"
-    load_balancer_sku = "standard"
+    load_balancer_sku = "Standard"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, olderKubernetesVersion, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_nodeTaints(rInt int, clientId string, clientSecret string, location string) string {

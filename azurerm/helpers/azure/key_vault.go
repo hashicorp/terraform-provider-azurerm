@@ -9,7 +9,6 @@ import (
 )
 
 func GetKeyVaultBaseUrlFromID(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) (string, error) {
-
 	if keyVaultId == "" {
 		return "", fmt.Errorf("keyVaultId is empty")
 	}
@@ -90,7 +89,6 @@ func GetKeyVaultIDFromBaseUrl(ctx context.Context, client *keyvault.VaultsClient
 }
 
 func KeyVaultExists(ctx context.Context, client *keyvault.VaultsClient, keyVaultId string) (bool, error) {
-
 	if keyVaultId == "" {
 		return false, fmt.Errorf("keyVaultId is empty")
 	}

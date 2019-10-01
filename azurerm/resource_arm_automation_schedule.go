@@ -172,7 +172,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
 			if frequency == "onetime" && interval.(int) > 0 {
@@ -394,7 +393,6 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 }
 
 func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) (*automation.AdvancedSchedule, error) {
-
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.

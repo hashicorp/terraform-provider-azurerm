@@ -855,7 +855,6 @@ resource "azurerm_key_vault" "test" {
 }
 
 func testAccAzureRMKeyVault_accessPolicyUpperLimit(rInt int, location string, rs string) string {
-
 	var storageAccountConfigs string
 	var accessPoliciesConfigs string
 

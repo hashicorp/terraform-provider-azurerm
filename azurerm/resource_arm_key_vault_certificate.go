@@ -494,7 +494,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("secret_id", cert.Sid)
 
 	if contents := cert.Cer; contents != nil {
-		d.Set("certificate_data", string(*contents))
+		d.Set("certificate_data", strings.ToUpper(hex.EncodeToString(*contents)))
 	}
 
 	if v := cert.X509Thumbprint; v != nil {
@@ -623,7 +623,6 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 		subjectAlternativeNames := &keyvault.SubjectAlternativeNames{}
 		if v, ok := cert["subject_alternative_names"]; ok {
-
 			if sans := v.([]interface{}); len(sans) > 0 {
 				if sans[0] != nil {
 					san := sans[0].(map[string]interface{})

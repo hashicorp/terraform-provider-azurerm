@@ -83,6 +83,75 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				ValidateFunc: validation.IntBetween(0, 20),
 			},
 
+			"network_rulesets": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+
+						"default_action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventhub.Allow),
+								string(eventhub.Deny),
+							}, false),
+						},
+
+						"virtual_network_rule": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+
+									// the API returns the subnet ID's resource group name in lowercase
+									// https://github.com/Azure/azure-sdk-for-go/issues/5855
+									"subnet_id": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateFunc:     azure.ValidateResourceID,
+										DiffSuppressFunc: suppress.CaseDifference,
+									},
+
+									"ignore_missing_virtual_network_service_endpoint": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+
+						"ip_rule": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_mask": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"action": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  string(eventhub.NetworkRuleIPActionAllow),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(eventhub.NetworkRuleIPActionAllow),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"default_primary_connection_string": {
 				Type:      schema.TypeString,
 				Computed:  true,
@@ -178,6 +247,27 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*read.ID)
 
+	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
+	if hasRuleSets {
+		rulesets := eventhub.NetworkRuleSet{
+			NetworkRuleSetProperties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+		}
+
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name != eventhub.Basic {
+			if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resGroup, name, rulesets); err != nil {
+				return fmt.Errorf("Error setting network ruleset properties for EventHub Namespace %q (resource group %q): %v", name, resGroup, err)
+			}
+		} else {
+			// so if the user has specified the non default rule sets throw a validation error
+			if rulesets.DefaultAction != eventhub.Deny ||
+				(rulesets.IPRules != nil && len(*rulesets.IPRules) > 0) ||
+				(rulesets.VirtualNetworkRules != nil && len(*rulesets.VirtualNetworkRules) > 0) {
+				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+			}
+		}
+	}
+
 	return resourceArmEventHubNamespaceRead(d, meta)
 }
 
@@ -207,8 +297,25 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	d.Set("sku", string(resp.Sku.Name))
-	d.Set("capacity", resp.Sku.Capacity)
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+		d.Set("capacity", sku.Capacity)
+	}
+
+	if props := resp.EHNamespaceProperties; props != nil {
+		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
+		d.Set("kafka_enabled", props.KafkaEnabled)
+		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+	}
+
+	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", name, err)
+	}
+
+	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
+		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", name, err)
+	}
 
 	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
@@ -218,12 +325,6 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("default_secondary_connection_string", keys.SecondaryConnectionString)
 		d.Set("default_primary_key", keys.PrimaryKey)
 		d.Set("default_secondary_key", keys.SecondaryKey)
-	}
-
-	if props := resp.EHNamespaceProperties; props != nil {
-		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
-		d.Set("kafka_enabled", props.KafkaEnabled)
-		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -282,4 +383,95 @@ func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *ev
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
+}
+
+func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.NetworkRuleSetProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	block := input[0].(map[string]interface{})
+
+	ruleset := eventhub.NetworkRuleSetProperties{
+		DefaultAction: eventhub.DefaultAction(block["default_action"].(string)),
+	}
+
+	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
+		if len(v) > 0 {
+			var rules []eventhub.NWRuleSetVirtualNetworkRules
+			for _, r := range v {
+				rblock := r.(map[string]interface{})
+				rules = append(rules, eventhub.NWRuleSetVirtualNetworkRules{
+					Subnet: &eventhub.Subnet{
+						ID: utils.String(rblock["subnet_id"].(string)),
+					},
+					IgnoreMissingVnetServiceEndpoint: utils.Bool(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
+				})
+			}
+
+			ruleset.VirtualNetworkRules = &rules
+		}
+	}
+
+	if v, ok := block["ip_rule"].([]interface{}); ok {
+		if len(v) > 0 {
+			var rules []eventhub.NWRuleSetIPRules
+			for _, r := range v {
+				rblock := r.(map[string]interface{})
+				rules = append(rules, eventhub.NWRuleSetIPRules{
+					IPMask: utils.String(rblock["ip_mask"].(string)),
+					Action: eventhub.NetworkRuleIPAction(rblock["action"].(string)),
+				})
+			}
+
+			ruleset.IPRules = &rules
+		}
+	}
+
+	return &ruleset
+}
+
+func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []interface{} {
+	if ruleset.NetworkRuleSetProperties == nil {
+		return nil
+	}
+
+	vnetBlocks := make([]interface{}, 0)
+	if vnetRules := ruleset.NetworkRuleSetProperties.VirtualNetworkRules; vnetRules != nil {
+		for _, vnetRule := range *vnetRules {
+			block := make(map[string]interface{})
+
+			if s := vnetRule.Subnet; s != nil {
+				if v := s.ID; v != nil {
+					block["subnet_id"] = *v
+				}
+			}
+
+			if v := vnetRule.IgnoreMissingVnetServiceEndpoint; v != nil {
+				block["ignore_missing_virtual_network_service_endpoint"] = *v
+			}
+
+			vnetBlocks = append(vnetBlocks, block)
+		}
+	}
+	ipBlocks := make([]interface{}, 0)
+	if ipRules := ruleset.NetworkRuleSetProperties.IPRules; ipRules != nil {
+		for _, ipRule := range *ipRules {
+			block := make(map[string]interface{})
+
+			block["action"] = string(ipRule.Action)
+
+			if v := ipRule.IPMask; v != nil {
+				block["ip_mask"] = *v
+			}
+
+			ipBlocks = append(ipBlocks, block)
+		}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"default_action":       string(ruleset.DefaultAction),
+		"virtual_network_rule": vnetBlocks,
+		"ip_rule":              ipBlocks,
+	}}
 }

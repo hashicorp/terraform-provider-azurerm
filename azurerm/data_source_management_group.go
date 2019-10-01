@@ -79,7 +79,6 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil
