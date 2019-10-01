@@ -639,7 +639,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
 		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
 
-		client, err := getArmClient(config, skipProviderRegistration, partnerId, disableCorrelationRequestID)
+		terraformVersion := p.TerraformVersion
+		if terraformVersion == "" {
+			// Terraform 0.12 introduced this field to the protocol
+			// We can therefore assume that if it's missing it's 0.10 or 0.11
+			terraformVersion = "0.11+compatible"
+		}
+
+		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID)
 		if err != nil {
 			return nil, err
 		}

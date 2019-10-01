@@ -146,7 +146,7 @@ type ArmClient struct {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
@@ -201,6 +201,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		SubscriptionId:              authConfig.SubscriptionID,
 		TenantID:                    authConfig.TenantID,
 		PartnerId:                   partnerId,
+		TerraformVersion:            tfVersion,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
