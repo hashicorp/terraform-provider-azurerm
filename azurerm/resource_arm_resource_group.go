@@ -38,7 +38,7 @@ func resourceArmResourceGroup() *schema.Resource {
 
 func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).resource.GroupsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	name := d.Get("name").(string)

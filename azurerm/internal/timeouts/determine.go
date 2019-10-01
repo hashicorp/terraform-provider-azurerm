@@ -18,6 +18,18 @@ func ForCreate(ctx context.Context, d *schema.ResourceData) (context.Context, co
 	return buildWithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
 }
 
+// ForCreateUpdate returns the context wrapped with the timeout for an combined Create/Update operation
+//
+// If the 'SupportsCustomTimeouts' feature toggle is enabled - this is wrapped with a context
+// Otherwise this returns the default context
+func ForCreateUpdate(ctx context.Context, d *schema.ResourceData) (context.Context, context.CancelFunc) {
+	if d.IsNewResource() {
+		return ForCreate(ctx, d)
+	}
+
+	return ForUpdate(ctx, d)
+}
+
 // ForDelete returns the context wrapped with the timeout for an Delete operation
 //
 // If the 'SupportsCustomTimeouts' feature toggle is enabled - this is wrapped with a context
