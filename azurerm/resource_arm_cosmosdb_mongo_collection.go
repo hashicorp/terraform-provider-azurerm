@@ -70,7 +70,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      400,
-				ValidateFunc: validate.Throughput,
+				ValidateFunc: validate.CosmosThroughput,
 			},
 
 			"indexes": {

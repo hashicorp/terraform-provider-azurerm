@@ -27,7 +27,7 @@ func CosmosEntityName(v interface{}, k string) (warnings []string, errors []erro
 	return warnings, errors
 }
 
-func Throughput(v interface{}, k string) (warnings []string, errors []error) {
+func CosmosThroughput(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(int)
 
 	if value < 400 {

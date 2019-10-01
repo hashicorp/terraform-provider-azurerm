@@ -68,7 +68,7 @@ func TestCosmosEntityName(t *testing.T) {
 	}
 }
 
-func TestThroughput(t *testing.T) {
+func TestCosmosThroughput(t *testing.T) {
 	cases := []struct {
 		Value  int
 		Errors int
@@ -92,7 +92,7 @@ func TestThroughput(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := Throughput(tc.Value, "throughput")
+		_, errors := CosmosThroughput(tc.Value, "throughput")
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected DatabaseCollation to trigger '%d' errors for '%d' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}
