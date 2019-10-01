@@ -1583,6 +1583,9 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.1.0.0/24"
+
+  # required until 2.0
+  ignore_changes = ["route_table_id"]
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
