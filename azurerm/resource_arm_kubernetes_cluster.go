@@ -1329,8 +1329,8 @@ func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile
 
 	return []interface{}{
 		map[string]interface{}{
-			"username": adminUsername,
-			"ssh_key":  sshKeys,
+			"admin_username": adminUsername,
+			"ssh_key":        sshKeys,
 		},
 	}
 }
