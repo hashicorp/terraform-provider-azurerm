@@ -25,7 +25,8 @@ func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},
 			{
@@ -52,19 +53,19 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},
 			{
-				Config: testAccAzureRMPrivateLinkService_complete(ri, location),
+				Config: testAccAzureRMPrivateLinkService_update(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "fqdns.0", "testFqdns2"),
+					resource.TestCheckResourceAttr(resourceName, "fqdns.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "fqdns.0", "www.contoso.com"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_allocation_method", "Static"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
@@ -74,7 +75,8 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},
 			{
@@ -100,13 +102,23 @@ func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
 				Config: testAccAzureRMPrivateLinkService_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "fqdns.0", "testFqdns2"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "auto_approval_subscription_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "auto_approval_subscription_ids.0"),
+					resource.TestCheckResourceAttr(resourceName, "visibility_subscription_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "visibility_subscription_ids.0"),
+					resource.TestCheckResourceAttr(resourceName, "fqdns.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "fqdns.0", "www.contoso.com"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_allocation_method", "Static"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.primary", "true"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.18"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address_version", "IPv4"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_allocation_method", "Static"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.primary", "false"),
+					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
@@ -201,7 +213,9 @@ func testAccAzureRMPrivateLinkServiceTemplate(subscriptionDataSourceTemplate str
 }
 
 func testAccAzureRMPrivateLinkServiceTemplate_subscriptionDataSource() string {
-	return `data "azurerm_subscription" "current" {}`
+	return `data "azurerm_subscription" "current" {}
+
+`
 }
 
 func testAccAzureRMPrivateLinkServiceTemplate_standardResources(rInt int, location string) string {
@@ -273,14 +287,11 @@ resource "azurerm_private_link_service" "test" {
   name                           = "acctestpls-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
-  fqdns                          = ["testFqdns2"]
+  fqdns                          = ["www.contoso.com"]
 
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
-    private_ip_address_version   = "IPv4"
-    private_ip_allocation_method = "Static"
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -300,9 +311,9 @@ resource "azurerm_private_link_service" "test" {
   name                           = "acctestpls-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
-  fqdns                          = ["testFqdns2"]
-  auto_approval_subscription_ids = [data.azurerm_subscription.current.id,]
-  visibility_subscription_ids    = [data.azurerm_subscription.current.id,]
+  fqdns                          = ["www.contoso.com"]
+  auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
+  visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"

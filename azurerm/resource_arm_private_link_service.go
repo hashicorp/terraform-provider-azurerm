@@ -297,7 +297,12 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(privateLinkServiceProperties.AutoApproval)); err != nil {
 			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 		}
-		d.Set("fqdns", utils.FlattenStringSlice(privateLinkServiceProperties.Fqdns))
+		if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(privateLinkServiceProperties.Visibility)); err != nil {
+			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+		}
+		if err := d.Set("fqdns", utils.FlattenStringSlice(privateLinkServiceProperties.Fqdns)); err != nil {
+			return fmt.Errorf("Error setting `fqdns`: %+v", err)
+		}
 		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(privateLinkServiceProperties.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
@@ -309,9 +314,6 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		}
 		if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(privateLinkServiceProperties.PrivateEndpointConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
-		}
-		if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(privateLinkServiceProperties.Visibility)); err != nil {
-			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 		}
 	}
 	d.Set("type", resp.Type)
