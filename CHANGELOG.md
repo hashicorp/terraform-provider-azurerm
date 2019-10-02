@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * kusto: updating to API version `2019-05-15` [GH-4376]
 * `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` [GH-4397]
 * `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property [GH-3154]
+* `azurerm_app_service_custom_hostname_binding` - support for `ssl_state` and `thumbprint` [GH-4204]
 * `azurerm_app_service_slot` - support for `logs` [GH-4473]
 * `azurerm_application_insights_analytics_item` - Add support for App Insights Analytics Items [GH-4374]
 * `azurerm_kubernetes_cluster` - support for updating the Service Principal [GH-4469]
