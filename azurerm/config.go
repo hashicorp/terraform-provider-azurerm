@@ -192,7 +192,10 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	}
 
 	// Storage Endpoints
-	storageAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
+	storageAuth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Storage)
+	if err != nil {
+		return nil, err
+	}
 
 	// Key Vault Endpoints
 	keyVaultAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
