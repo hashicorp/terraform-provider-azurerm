@@ -9,6 +9,7 @@ FEATURES:
 * **New Resource:** `azurerm_bot_web_app` [GH-4411]
 * **New Resource:** `azurerm_dashboard` [GH-4357]
 * **New Resource:** `azurerm_eventhub_namespace_disaster_recovery_config` [GH-4425]
+* **New Resource:** `azurerm_storage_data_lake_gen2_filesystem` [GH-4457]
 
 IMPROVEMENTS:
 
