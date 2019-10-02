@@ -218,12 +218,14 @@ func expandStorageManagementPolicyRules(list []interface{}) (*[]storage.Manageme
 	result := []storage.ManagementPolicyRule{}
 
 	for _, tempItem := range list {
-		item := tempItem.(map[string]interface{})
-		policyRule, err := expandStorageManagementPolicyRule(item)
-		if err != nil {
-			return nil, err
+		if tempItem != nil {
+			item := tempItem.(map[string]interface{})
+			policyRule, err := expandStorageManagementPolicyRule(item)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, *policyRule)
 		}
-		result = append(result, *policyRule)
 	}
 	return &result, nil
 }
