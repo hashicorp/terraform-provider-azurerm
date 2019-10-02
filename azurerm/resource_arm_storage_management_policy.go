@@ -241,25 +241,27 @@ func expandStorageManagementPolicyRule(ref map[string]interface{}) (*storage.Man
 	}
 	filtersRef := ref["filters"].([]interface{})
 	if len(filtersRef) == 1 {
-		filterRef := filtersRef[0].(map[string]interface{})
+		if filtersRef[0] != nil {
+			filterRef := filtersRef[0].(map[string]interface{})
 
-		prefixMatches := []string{}
-		prefixMatchesRef := filterRef["prefix_match"].(*schema.Set)
-		if prefixMatchesRef != nil {
-			for _, prefixMatchRef := range prefixMatchesRef.List() {
-				prefixMatches = append(prefixMatches, prefixMatchRef.(string))
+			prefixMatches := []string{}
+			prefixMatchesRef := filterRef["prefix_match"].(*schema.Set)
+			if prefixMatchesRef != nil {
+				for _, prefixMatchRef := range prefixMatchesRef.List() {
+					prefixMatches = append(prefixMatches, prefixMatchRef.(string))
+				}
 			}
-		}
-		definition.Filters.PrefixMatch = &prefixMatches
+			definition.Filters.PrefixMatch = &prefixMatches
 
-		blobTypes := []string{}
-		blobTypesRef := filterRef["blob_types"].(*schema.Set)
-		if blobTypesRef != nil {
-			for _, blobTypeRef := range blobTypesRef.List() {
-				blobTypes = append(blobTypes, blobTypeRef.(string))
+			blobTypes := []string{}
+			blobTypesRef := filterRef["blob_types"].(*schema.Set)
+			if blobTypesRef != nil {
+				for _, blobTypeRef := range blobTypesRef.List() {
+					blobTypes = append(blobTypes, blobTypeRef.(string))
+				}
 			}
+			definition.Filters.BlobTypes = &blobTypes
 		}
-		definition.Filters.BlobTypes = &blobTypes
 	}
 	actionsRef := ref["actions"].([]interface{})
 	if len(actionsRef) == 1 {
