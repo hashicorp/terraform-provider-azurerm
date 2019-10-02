@@ -98,7 +98,6 @@ func dataSourceArmStorageManagementPolicy() *schema.Resource {
 			},
 		},
 	}
-
 }
 
 func dataSourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
