@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Azure/go-autorest/autorest"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	az "github.com/Azure/go-autorest/autorest/azure"
@@ -12,7 +12,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
@@ -21,8 +20,8 @@ import (
 )
 
 type Client struct {
-	AccountsClient       storage.AccountsClient
-	FilesystemAuthorizer autorest.Authorizer
+	AccountsClient    *storage.AccountsClient
+	FileSystemsClient *filesystems.Client
 
 	environment az.Environment
 }
@@ -31,12 +30,15 @@ func BuildClient(options *common.ClientOptions) *Client {
 	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
 
+	fileSystemsClient := filesystems.NewWithEnvironment(options.Environment)
+	fileSystemsClient.Authorizer = options.StorageAuthorizer
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	return &Client{
-		AccountsClient:       accountsClient,
-		FilesystemAuthorizer: options.FilesystemAuthorizer,
-		environment:          options.Environment,
+		AccountsClient:    &accountsClient,
+		FileSystemsClient: &fileSystemsClient,
+		environment:       options.Environment,
 	}
 }
 
@@ -62,13 +64,6 @@ func (client Client) ContainersClient(ctx context.Context, resourceGroup, accoun
 	containersClient := containers.NewWithEnvironment(client.environment)
 	containersClient.Client.Authorizer = storageAuth
 	return &containersClient, nil
-}
-
-func (client Client) FileSystemsClient(ctx context.Context, resourceGroup, accountName string) (*filesystems.Client, error) {
-	filesystemAuth := client.FilesystemAuthorizer
-	fileSystemsClient := filesystems.NewWithEnvironment(client.environment)
-	fileSystemsClient.Client.Authorizer = filesystemAuth
-	return &fileSystemsClient, nil
 }
 
 func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {
