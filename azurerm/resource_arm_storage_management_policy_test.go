@@ -263,8 +263,10 @@ func testCheckAzureRMStorageAccountManagementPolicyExists(resourceName string) r
 }
 
 func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccountID string) (bool, error) {
-
 	rid, err := parseAzureResourceID(storageAccountID)
+	if err != nil {
+		return false, fmt.Errorf("Bad: Failed to parse ID (id: %s): %+v", storageAccountID, err)
+	}
 
 	resourceGroupName := rid.ResourceGroup
 	storageAccountName := rid.Path["storageAccounts"]
