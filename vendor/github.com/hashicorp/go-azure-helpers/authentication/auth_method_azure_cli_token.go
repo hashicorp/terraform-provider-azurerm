@@ -2,11 +2,11 @@ package authentication
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
-	"log"
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/adal"
@@ -104,11 +104,14 @@ func (a azureCliTokenAuth) populateConfig(c *Config) error {
 	c.Environment = a.profile.environment
 	c.SubscriptionID = a.profile.subscriptionId
 
-	objectId, err := obtainAuthenticatedObjectID()
-	if err != nil {
-		return err
+	c.GetAuthenticatedObjectID = func(ctx context.Context) (string, error) {
+		objectId, err := obtainAuthenticatedObjectID()
+		if err != nil {
+			return "", err
+		}
+
+		return objectId, nil
 	}
-	c.AuthenticatedObjectID = objectId
 
 	return nil
 }
@@ -165,8 +168,6 @@ func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
 	var stderr bytes.Buffer
 	var stdout bytes.Buffer
 
-	log.Printf("ktkt2: %v", arg)
-
 	cmd := exec.Command("az", arg...)
 
 	cmd.Stderr = &stderr
@@ -187,9 +188,8 @@ func jsonUnmarshalAzCmd(i interface{}, arg ...string) error {
 	}
 
 	if err := json.Unmarshal([]byte(stdOutStr), &i); err != nil {
-		return fmt.Errorf("Error unmarshaling the result of Azure CLI: vs", err)
+		return fmt.Errorf("Error unmarshaling the result of Azure CLI: %v", err)
 	}
-
 
 	return nil
 }

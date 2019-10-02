@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -79,8 +80,8 @@ type ArmClient struct {
 	subscriptionId string
 	partnerId      string
 
-	authenticatedObjectID string
-	usingServicePrincipal bool
+	getAuthenticatedObjectID func(context.Context) (string, error)
+	usingServicePrincipal    bool
 
 	environment              azure.Environment
 	skipProviderRegistration bool
@@ -165,7 +166,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		partnerId:                partnerId,
 		environment:              *env,
 		usingServicePrincipal:    authConfig.AuthenticatedAsAServicePrincipal,
-		authenticatedObjectID:    authConfig.AuthenticatedObjectID,
+		getAuthenticatedObjectID: authConfig.GetAuthenticatedObjectID,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
