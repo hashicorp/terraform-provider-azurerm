@@ -36,6 +36,7 @@ func dataSourceArmClientConfig() *schema.Resource {
 			"service_principal_application_id": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Deprecated: "This has been deprecated in favour of the `client_id` property",
 			},
 			"service_principal_object_id": {
 				Type:       schema.TypeString,
