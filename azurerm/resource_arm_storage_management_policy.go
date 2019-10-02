@@ -162,6 +162,11 @@ func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("Error creating Azure Storage Management Policy %q: %+v", storageAccountId, err)
 	}
 
+	result, err = client.Get(ctx, resourceGroupName, storageAccountName)
+	if err != nil {
+		return fmt.Errorf("Error getting created Azure Storage Management Policy %q: %+v", storageAccountId, err)
+	}
+
 	d.SetId(*result.ID)
 
 	return resourceArmStorageManagementPolicyRead(d, meta)
