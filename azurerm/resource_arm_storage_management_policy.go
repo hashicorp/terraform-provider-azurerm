@@ -224,13 +224,13 @@ func expandStorageManagementPolicyRules(list []interface{}) (*[]storage.Manageme
 			if err != nil {
 				return nil, err
 			}
-			result = append(result, *policyRule)
+			result = append(result, policyRule)
 		}
 	}
 	return &result, nil
 }
 
-func expandStorageManagementPolicyRule(ref map[string]interface{}) (*storage.ManagementPolicyRule, error) {
+func expandStorageManagementPolicyRule(ref map[string]interface{}) (storage.ManagementPolicyRule, error) {
 	name := ref["name"].(string)
 	enabled := ref["enabled"].(bool)
 	typeVal := "Lifecycle"
@@ -298,7 +298,7 @@ func expandStorageManagementPolicyRule(ref map[string]interface{}) (*storage.Man
 		}
 	}
 
-	rule := &storage.ManagementPolicyRule{
+	rule := storage.ManagementPolicyRule{
 		Name:       &name,
 		Enabled:    &enabled,
 		Type:       &typeVal,
