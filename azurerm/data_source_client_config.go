@@ -28,7 +28,7 @@ func dataSourceArmClientConfig() *schema.Resource {
 				Computed: true,
 			},
 
-			"authenticated_object_id": {
+			"object_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -86,7 +86,7 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 	if v, err := client.getAuthenticatedObjectID(ctx); err != nil {
 		return fmt.Errorf("Error getting authenticated object ID: %v", err)
 	} else {
-		d.Set("authenticated_object_id", v)
+		d.Set("object_id", v)
 	}
 
 	return nil
