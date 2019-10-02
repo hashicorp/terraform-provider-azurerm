@@ -183,7 +183,7 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 
 	if policy := result.Policy; policy != nil {
 		policy := result.Policy
-		if rules := policy.Rules != nil; rules != nil {
+		if rules := policy.Rules; rules != nil {
 			if err := d.Set("rule", flattenStorageManagementPolicyRules(policy.Rules)); err != nil {
 				return fmt.Errorf("Error flattening `rule`: %+v", err)
 			}
