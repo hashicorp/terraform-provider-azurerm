@@ -1249,6 +1249,11 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 			name = *profile.Name
 		}
 
+		orchestratorVersion := ""
+		if profile.OrchestratorVersion != nil {
+			orchestratorVersion = *profile.OrchestratorVersion
+		}
+
 		osDiskSizeGB := 0
 		if profile.OsDiskSizeGB != nil {
 			osDiskSizeGB = int(*profile.OsDiskSizeGB)
@@ -1260,26 +1265,23 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 		}
 
 		agentPoolProfile := map[string]interface{}{
-			"availability_zones":  utils.FlattenStringSlice(profile.AvailabilityZones),
-			"count":               count,
-			"enable_auto_scaling": enableAutoScaling,
-			"max_count":           maxCount,
-			"max_pods":            maxPods,
-			"min_count":           minCount,
-			"name":                name,
-			"node_taints":         utils.FlattenStringSlice(profile.NodeTaints),
-			"os_disk_size_gb":     osDiskSizeGB,
-			"os_type":             string(profile.OsType),
-			"type":                string(profile.Type),
-			"vm_size":             string(profile.VMSize),
-			"vnet_subnet_id":      subnetId,
+			"availability_zones":   utils.FlattenStringSlice(profile.AvailabilityZones),
+			"count":                count,
+			"enable_auto_scaling":  enableAutoScaling,
+			"max_count":            maxCount,
+			"max_pods":             maxPods,
+			"min_count":            minCount,
+			"name":                 name,
+			"node_taints":          utils.FlattenStringSlice(profile.NodeTaints),
+			"orchestrator_version": orchestratorVersion,
+			"os_disk_size_gb":      osDiskSizeGB,
+			"os_type":              string(profile.OsType),
+			"type":                 string(profile.Type),
+			"vm_size":              string(profile.VMSize),
+			"vnet_subnet_id":       subnetId,
 
 			// TODO: remove in 2.0
 			"fqdn": fqdnVal,
-		}
-
-		if profile.OrchestratorVersion != nil {
-			agentPoolProfile["orchestrator_version"] = *profile.OrchestratorVersion
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
