@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -104,6 +104,11 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -269,8 +274,9 @@ func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.Webhoo
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 		receiver := insights.WebhookReceiver{
-			Name:       utils.String(val["name"].(string)),
-			ServiceURI: utils.String(val["service_uri"].(string)),
+			Name:                 utils.String(val["name"].(string)),
+			ServiceURI:           utils.String(val["service_uri"].(string)),
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -288,6 +294,7 @@ func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver)
 			if receiver.EmailAddress != nil {
 				val["email_address"] = *receiver.EmailAddress
 			}
+
 			result = append(result, val)
 		}
 	}
@@ -308,6 +315,7 @@ func flattenMonitorActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []i
 			if receiver.PhoneNumber != nil {
 				val["phone_number"] = *receiver.PhoneNumber
 			}
+
 			result = append(result, val)
 		}
 	}
@@ -325,6 +333,10 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 			if receiver.ServiceURI != nil {
 				val["service_uri"] = *receiver.ServiceURI
 			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
+
 			result = append(result, val)
 		}
 	}
