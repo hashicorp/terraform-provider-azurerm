@@ -115,6 +115,12 @@ The following arguments are supported:
 
 * `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot. Must be at least 0.
 
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Storage Account Management Policy.
+
 ## Import
 
 Storage Account Management Policies can be imported using the `resource id`, e.g.
