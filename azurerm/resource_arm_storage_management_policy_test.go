@@ -41,6 +41,11 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule.0.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", "30"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -94,6 +99,11 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "rule.1.actions.0.snapshot.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.1.actions.0.snapshot.0.delete_after_days_since_creation_greater_than", "31"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
