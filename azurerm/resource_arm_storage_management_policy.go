@@ -15,19 +15,19 @@ import (
 
 func resourceArmStorageManagementPolicy() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceArmStorageManagementPolicyCreateOrUpdate,
-		Read:          resourceArmStorageManagementPolicyRead,
-		Update:        resourceArmStorageManagementPolicyCreateOrUpdate,
-		Delete:        resourceArmStorageManagementPolicyDelete,
+		Create: resourceArmStorageManagementPolicyCreateOrUpdate,
+		Read:   resourceArmStorageManagementPolicyRead,
+		Update: resourceArmStorageManagementPolicyCreateOrUpdate,
+		Delete: resourceArmStorageManagementPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"storage_account_id": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"rule": {
@@ -85,18 +85,18 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tier_to_cool_after_days_since_modification_greater_than": {
-													Type:     schema.TypeInt,
-													Optional: true,
+													Type:         schema.TypeInt,
+													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
-													Type:     schema.TypeInt,
-													Optional: true,
+													Type:         schema.TypeInt,
+													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"delete_after_days_since_modification_greater_than": {
-													Type:     schema.TypeInt,
-													Optional: true,
+													Type:         schema.TypeInt,
+													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 											},
@@ -109,8 +109,8 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"delete_after_days_since_creation_greater_than": {
-													Type:     schema.TypeInt,
-													Optional: true,
+													Type:         schema.TypeInt,
+													Optional:     true,
 													ValidateFunc: validation.IntAtLeast(0),
 												},
 											},
@@ -313,9 +313,9 @@ func expandStorageManagementPolicyRule(ref map[string]interface{}) (storage.Mana
 
 func flattenStorageManagementPolicyRules(armRules *[]storage.ManagementPolicyRule) []interface{} {
 	rules := make([]interface{}, 0)
-if armRules == nil {
-  return rules
-}
+	if armRules == nil {
+		return rules
+	}
 	for _, armRule := range *armRules {
 		rule := make(map[string]interface{})
 
