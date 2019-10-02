@@ -176,9 +176,9 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	storageAccountId := d.Get("storage_account_id").(string)
+	id := d.Id()
 
-	rid, err := parseAzureResourceID(storageAccountId)
+	rid, err := parseAzureResourceID(id)
 	if err != nil {
 		return err
 	}
@@ -189,7 +189,9 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	d.SetId(*result.ID)
+
+	storageAccountID := "/subscriptions/" + rid.SubscriptionID + "/resourceGroups/" + rid.ResourceGroup + "/providers/" + rid.Provider + "/storageAccounts/" + storageAccountName
+	d.Set("storage_account_id", storageAccountID)
 
 	if policy := result.Policy; policy != nil {
 		policy := result.Policy
@@ -207,9 +209,9 @@ func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta inter
 	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	storageAccountId := d.Get("storage_account_id").(string)
+	id := d.Id()
 
-	rid, err := parseAzureResourceID(storageAccountId)
+	rid, err := parseAzureResourceID(id)
 	if err != nil {
 		return err
 	}
