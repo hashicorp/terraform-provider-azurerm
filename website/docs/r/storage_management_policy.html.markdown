@@ -105,12 +105,12 @@ The following arguments are supported:
 
 `base_blob` supports the following:
 
-* `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier.
-* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier.
-* `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob.
+* `tier_to_cool_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to cool storage. Supports blob currently at Hot tier. Must be at least 0.
+* `tier_to_archive_after_days_since_modification_greater_than` - The age in days after last modification to tier blobs to archive storage. Supports blob currently at Hot or Cool tier. Must be at least 0.
+* `delete_after_days_since_modification_greater_than` - The age in days after last modification to delete the blob. Must be at least 0.
 
 ---
 
 `snapshot` supports the following:
 
-* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot.
+* `delete_after_days_since_creation_greater_than` - The age in days after create to delete the snaphot. Must be at least 0.

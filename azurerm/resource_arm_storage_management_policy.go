@@ -87,14 +87,17 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 												"tier_to_cool_after_days_since_modification_greater_than": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"tier_to_archive_after_days_since_modification_greater_than": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateFunc: validation.IntAtLeast(0),
 												},
 												"delete_after_days_since_modification_greater_than": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateFunc: validation.IntAtLeast(0),
 												},
 											},
 										},
@@ -108,6 +111,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 												"delete_after_days_since_creation_greater_than": {
 													Type:     schema.TypeInt,
 													Optional: true,
+													ValidateFunc: validation.IntAtLeast(0),
 												},
 											},
 										},
