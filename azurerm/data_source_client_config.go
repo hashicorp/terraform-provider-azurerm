@@ -83,6 +83,7 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("service_principal_object_id", "")
 	}
 
+	d.Set("object_id", "")
 	if v, err := client.getAuthenticatedObjectID(ctx); err != nil {
 		return fmt.Errorf("Error getting authenticated object ID: %v", err)
 	} else {
