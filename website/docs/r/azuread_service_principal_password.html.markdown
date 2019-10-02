@@ -20,9 +20,9 @@ Manages a Password associated with a Service Principal within Azure Active Direc
 ```hcl
 resource "azurerm_azuread_application" "test" {
   name                       = "example"
-  homepage                   = "http://homepage"
-  identifier_uris            = ["http://uri"]
-  reply_urls                 = ["http://replyurl"]
+  homepage                   = "https://homepage"
+  identifier_uris            = ["https://uri"]
+  reply_urls                 = ["https://replyurl"]
   available_to_other_tenants = false
   oauth2_allow_implicit_flow = true
 }
