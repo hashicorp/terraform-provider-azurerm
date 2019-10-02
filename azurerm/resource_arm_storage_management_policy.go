@@ -33,6 +33,7 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 			"rule": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -228,10 +229,6 @@ func expandStorageManagementPolicyRules(list []interface{}) (*[]storage.Manageme
 }
 
 func expandStorageManagementPolicyRule(ref map[string]interface{}) (*storage.ManagementPolicyRule, error) {
-	if len(ref) == 0 {
-		return nil, fmt.Errorf("Error: storage management policy rule should be defined")
-	}
-
 	name := ref["name"].(string)
 	enabled := ref["enabled"].(bool)
 	typeVal := "Lifecycle"
