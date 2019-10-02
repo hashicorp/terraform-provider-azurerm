@@ -56,6 +56,11 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_vnetIntegration(t *testi
 					resource.TestCheckResourceAttrSet(resourceName, "vnet_integration.0.subnet_name"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }

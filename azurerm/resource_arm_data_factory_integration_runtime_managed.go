@@ -303,8 +303,8 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 			d.Set("max_parallel_executions_per_node", maxParallelExecutionsPerNode)
 		}
 
-		if vnetProps := computeProps.VNetProperties; vnetProps != nil {
-			d.Set("vnet_integration", flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProps))
+		if err := d.Set("vnet_integration", flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(computeProps.VNetProperties)); err != nil {
+			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 	}
 
@@ -312,12 +312,12 @@ func resourceArmDataFactoryIntegrationRuntimeManagedRead(d *schema.ResourceData,
 		d.Set("edition", string(ssisProps.Edition))
 		d.Set("license_type", string(ssisProps.LicenseType))
 
-		if catalogInfoProps := ssisProps.CatalogInfo; catalogInfoProps != nil {
-			d.Set("catalog_info", flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(catalogInfoProps, d))
+		if err := d.Set("catalog_info", flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProps.CatalogInfo, d)); err != nil {
+			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 
-		if customSetupScriptProps := ssisProps.CustomSetupScriptProperties; customSetupScriptProps != nil {
-			d.Set("custom_setup_script", flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProps, d))
+		if err := d.Set("custom_setup_script", flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(ssisProps.CustomSetupScriptProperties, d)); err != nil {
+			return fmt.Errorf("Error setting `vnet_integration`: %+v", err)
 		}
 	}
 
@@ -355,8 +355,8 @@ func expandArmDataFactoryIntegrationRuntimeManagedComputeProperties(d *schema.Re
 		MaxParallelExecutionsPerNode: utils.Int32(int32(d.Get("max_parallel_executions_per_node").(int))),
 	}
 
-	if _, ok := d.GetOk("vnet_integration"); ok {
-		vnetProps := d.Get("vnet_integration").([]interface{})[0].(map[string]interface{})
+	if vnetIntegrations, ok := d.GetOk("vnet_integration"); ok && len(vnetIntegrations.([]interface{})) > 0 {
+		vnetProps := vnetIntegrations.([]interface{})[0].(map[string]interface{})
 		computeProperties.VNetProperties = &datafactory.IntegrationRuntimeVNetProperties{
 			VNetID: utils.String(vnetProps["vnet_id"].(string)),
 			Subnet: utils.String(vnetProps["subnet_name"].(string)),
@@ -372,8 +372,8 @@ func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resou
 		LicenseType: datafactory.IntegrationRuntimeLicenseType(d.Get("license_type").(string)),
 	}
 
-	if _, ok := d.GetOk("catalog_info"); ok {
-		catalogInfo := d.Get("catalog_info").([]interface{})[0].(map[string]interface{})
+	if catalogInfos, ok := d.GetOk("catalog_info"); ok && len(catalogInfos.([]interface{})) > 0 {
+		catalogInfo := catalogInfos.([]interface{})[0].(map[string]interface{})
 
 		adminPassword := &datafactory.SecureString{
 			Value: utils.String(catalogInfo["administrator_password"].(string)),
@@ -388,8 +388,8 @@ func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resou
 		}
 	}
 
-	if _, ok := d.GetOk("custom_setup_script"); ok {
-		customSetupScript := d.Get("custom_setup_script").([]interface{})[0].(map[string]interface{})
+	if customSetupScripts, ok := d.GetOk("custom_setup_script"); ok && len(customSetupScripts.([]interface{})) > 0 {
+		customSetupScript := customSetupScripts.([]interface{})[0].(map[string]interface{})
 
 		sasToken := &datafactory.SecureString{
 			Value: utils.String(customSetupScript["sas_token"].(string)),
@@ -406,6 +406,10 @@ func expandArmDataFactoryIntegrationRuntimeManagedSsisProperties(d *schema.Resou
 }
 
 func flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetProperties *datafactory.IntegrationRuntimeVNetProperties) []interface{} {
+	if vnetProperties == nil {
+		return []interface{}{}
+	}
+
 	return []interface{}{
 		map[string]string{
 			"vnet_id":     *vnetProperties.VNetID,
@@ -415,6 +419,10 @@ func flattenArmDataFactoryIntegrationRuntimeManagedVnetIntegration(vnetPropertie
 }
 
 func flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisProperties *datafactory.IntegrationRuntimeSsisCatalogInfo, d *schema.ResourceData) []interface{} {
+	if ssisProperties == nil {
+		return []interface{}{}
+	}
+
 	catalogInfo := map[string]string{
 		"server_endpoint":     *ssisProperties.CatalogServerEndpoint,
 		"administrator_login": *ssisProperties.CatalogAdminUserName,
@@ -429,6 +437,10 @@ func flattenArmDataFactoryIntegrationRuntimeManagedSsisCatalogInfo(ssisPropertie
 }
 
 func flattenArmDataFactoryIntegrationRuntimeManagedSsisCustomSetupScript(customSetupScriptProperties *datafactory.IntegrationRuntimeCustomSetupScriptProperties, d *schema.ResourceData) []interface{} {
+	if customSetupScriptProperties == nil {
+		return []interface{}{}
+	}
+
 	customSetupScript := map[string]string{
 		"blob_container_uri": *customSetupScriptProperties.BlobContainerURI,
 	}
