@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
@@ -18,12 +19,14 @@ func TestAccAzureRMStorageManagementPolicy_basic(t *testing.T) {
 	config := testAccAzureRMStorageManagementPolicy_basic(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountManagementPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.name", "rule1"),
 					resource.TestCheckResourceAttr(resourceName, "rule.0.enabled", "true"),
@@ -58,12 +61,14 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 	config := testAccAzureRMStorageManagementPolicy_multipleRule(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountManagementPolicyDestroy(),
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMStorageAccountManagementPolicyExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "rule.#", "2"),
 
 					// Rule1
@@ -108,6 +113,69 @@ func TestAccAzureRMStorageManagementPolicy_multipleRule(t *testing.T) {
 		},
 	})
 }
+
+func testCheckAzureRMStorageAccountManagementPolicyDestroy() resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		for _, rs := range s.RootModule().Resources {
+			if rs.Type != "azurerm_storage_management_policy" {
+				continue
+			}
+			storageAccountID := rs.Primary.Attributes["storage_account_id"]
+
+			exists, err := testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccountID)
+			if err != nil {
+				return fmt.Errorf("Error checking if item has been destroyed: %s", err)
+			}
+			if exists {
+				return fmt.Errorf("Bad: Storage Account Management Policy '%q' still exists", storageAccountID)
+			}
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMStorageAccountManagementPolicyExists(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+		storageAccountID := rs.Primary.Attributes["storage_account_id"]
+
+		exists, err := testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccountID)
+		if err != nil {
+			return fmt.Errorf("Error checking if item exists: %s", err)
+		}
+		if !exists {
+			return fmt.Errorf("Bad: Storage Account Management Policy '%q' does not exist", storageAccountID)
+		}
+
+		return nil
+	}
+}
+
+func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccountID string) (bool, error) {
+
+	rid, err := parseAzureResourceID(storageAccountID)
+
+	resourceGroupName := rid.ResourceGroup
+	storageAccountName := rid.Path["storageAccounts"]
+
+	conn := testAccProvider.Meta().(*ArmClient).Storage.ManagementPoliciesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	response, err := conn.Get(ctx, resourceGroupName, storageAccountName)
+	if err != nil {
+		if response.Response.IsHTTPStatus(404) {
+			return false, nil
+		}
+		return false, fmt.Errorf("Bad: Get on storageAccount ManagementPolicy client (id: %s): %+v", storageAccountID, err)
+	}
+
+	return true, nil
+}
+
 func testAccAzureRMStorageManagementPolicy_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
