@@ -69,10 +69,9 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 
 	locks.ByName(subnetName, subnetResourceName)
 	defer locks.UnlockByName(subnetName, subnetResourceName)
-	
+
 	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
 	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
-
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
