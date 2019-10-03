@@ -71,6 +71,8 @@ The following arguments are supported:
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
+* `private_endpoint_network_policies` - (Optional) Enable or Disable apply network policies on private end point in the subnet.
+
 ---
 
 A `delegation` block supports the following:
