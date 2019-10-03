@@ -315,6 +315,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"azure_policy": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1043,6 +1057,17 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		}
 	}
 
+	azurePolicy := profile["azure_policy"].([]interface{})
+	if len(azurePolicy) > 0 && azurePolicy[0] != nil {
+		value := azurePolicy[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+
+		addonProfiles["azurepolicy"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  nil,
+		}
+	}
+
 	return addonProfiles
 }
 
@@ -1122,6 +1147,20 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 		kubeDashboards = append(kubeDashboards, output)
 	}
 	values["kube_dashboard"] = kubeDashboards
+
+	azurePolicies := make([]interface{}, 0)
+	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
+		enabled := false
+		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		azurePolicies = append(azurePolicies, output)
+	}
+	values["azure_policy"] = azurePolicies
 
 	return []interface{}{values}
 }
