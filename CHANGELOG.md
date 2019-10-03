@@ -17,14 +17,15 @@ IMPROVEMENTS:
 
 * dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
 * kusto: updating to API version `2019-05-15` [GH-4376]
+* Data Source: `azurerm_client_config` - add `object_id`property [GH-4486]
 * `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` [GH-4397]
 * `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property [GH-3154]
 * `azurerm_app_service_custom_hostname_binding` - support for `ssl_state` and `thumbprint` [GH-4204]
 * `azurerm_app_service_slot` - support for `logs` [GH-4473]
 * `azurerm_application_insights_analytics_item` - Add support for App Insights Analytics Items [GH-4374]
-* `azurerm_kubernetes_cluster` - support for updating the Service Principal [GH-4469]
-* `azurerm_function_app` - changes to `app_service_plan_id` no longer force a new resource [GH-4439]
 * `azurerm_eventhub_namespace` - support for the `network_rulesets` property [GH-4409]
+* `azurerm_function_app` - changes to `app_service_plan_id` no longer force a new resource [GH-4439]
+* `azurerm_kubernetes_cluster` - support for updating the Service Principal [GH-4469]
 * `azurerm_servicebus_namespace` - support for `zone_redundant` [GH-4432]
 
 BUG FIXES:
