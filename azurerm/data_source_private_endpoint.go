@@ -73,16 +73,11 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 				},
 			},
 
-			"network_interfaces": {
+			"network_interface_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 
