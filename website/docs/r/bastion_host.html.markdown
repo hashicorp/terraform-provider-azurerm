@@ -16,42 +16,42 @@ Manages a Bastion Host Instance.
 This example deploys an Azure Bastion Host Instance to a target virtual network.
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "testvnet"
+resource "azurerm_virtual_network" "example" {
+  name                = "examplevnet"
   address_space       = ["192.168.1.0/24"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "AzureBastionSubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "192.168.1.224/27"
 }
 
-resource "azurerm_public_ip" "test" {
-  name                = "testpip"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_public_ip" "example" {
+  name                = "examplepip"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   allocation_method   = "Static"
   sku                 = "Standard"
 }
 
-resource "azurerm_bastion_host" "test" {
-  name                = "testbastion"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_bastion_host" "example" {
+  name                = "examplebastion"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   ip_configuration {
     name                 = "configuration"
-    subnet_id            = "${azurerm_subnet.test.id}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    subnet_id            = "${azurerm_subnet.example.id}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
   }
 }
 ```
@@ -60,9 +60,9 @@ resource "azurerm_bastion_host" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the App Service. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Bastion Host. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to create the App Service.
+* `resource_group_name` - (Required) The name of the resource group in which to create the Bastion Host.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
@@ -87,5 +87,5 @@ A `ip_configuration` block supports the following:
 Bastion Hosts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_bastion_host.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/bastionHosts/instance1
+terraform import azurerm_bastion_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/bastionHosts/instance1
 ```
