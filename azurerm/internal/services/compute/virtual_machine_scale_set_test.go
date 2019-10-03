@@ -1,4 +1,4 @@
-package network
+package compute
 
 import (
 	"testing"
@@ -6,11 +6,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func TestParseNetworkSecurityGroup(t *testing.T) {
+func TestParseVirtualMachineScaleSetID(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *NetworkSecurityGroupResourceID
+		Expected *VirtualMachineScaleSetResourceID
 	}{
 		{
 			Name:     "Empty",
@@ -30,7 +30,7 @@ func TestParseNetworkSecurityGroup(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/networkSecurityGroups/example",
-			Expected: &NetworkSecurityGroupResourceID{
+			Expected: &VirtualMachineScaleSetResourceID{
 				Name: "example",
 				Base: azure.ResourceID{
 					ResourceGroup: "foo",
@@ -42,7 +42,7 @@ func TestParseNetworkSecurityGroup(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseNetworkSecurityGroupResourceID(v.Input)
+		actual, err := ParseVirtualMachineScaleSetResourceID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
