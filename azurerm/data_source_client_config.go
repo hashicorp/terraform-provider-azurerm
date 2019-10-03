@@ -17,21 +17,31 @@ func dataSourceArmClientConfig() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"tenant_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"subscription_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"service_principal_application_id": {
+
+			"object_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"service_principal_application_id": {
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "This has been deprecated in favour of the `client_id` property",
+			},
 			"service_principal_object_id": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Computed:   true,
+				Deprecated: "This has been deprecated in favour of the unified `authenticated_object_id` property",
 			},
 		},
 	}
@@ -66,11 +76,18 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("subscription_id", client.subscriptionId)
 
 	if principal := servicePrincipal; principal != nil {
-		d.Set("service_principal_application_id", principal.AppID)
+		d.Set("service_principal_application_id", client.clientId)
 		d.Set("service_principal_object_id", principal.ObjectID)
 	} else {
 		d.Set("service_principal_application_id", "")
 		d.Set("service_principal_object_id", "")
+	}
+
+	d.Set("object_id", "")
+	if v, err := client.getAuthenticatedObjectID(ctx); err != nil {
+		return fmt.Errorf("Error getting authenticated object ID: %v", err)
+	} else {
+		d.Set("object_id", v)
 	}
 
 	return nil

@@ -1,8 +1,13 @@
 package authentication
 
 import (
+	"context"
 	"fmt"
 	"log"
+)
+
+var (
+	authenticatedObjectCache = ""
 )
 
 // Builder supports all of the possible Authentication values and feature toggles
@@ -70,23 +75,39 @@ func (b Builder) Build() (*Config, error) {
 		if !method.isApplicable(b) {
 			continue
 		}
-		
+
 		log.Printf("Using %s for Authentication", name)
 		auth, err := method.build(b)
 		if err != nil {
 			return nil, err
 		}
-	
+
 		// populate authentication specific fields on the Config
 		// (e.g. is service principal, fields parsed from the azure cli)
 		err = auth.populateConfig(&config)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		config.authMethod = auth
+
+		// Authenticated Object ID Cache
+		if config.GetAuthenticatedObjectID != nil {
+			uncachedFunction := config.GetAuthenticatedObjectID
+			config.GetAuthenticatedObjectID = func(ctx context.Context) (string, error) {
+				if authenticatedObjectCache == "" {
+					authenticatedObjectCache, err = uncachedFunction(ctx)
+					if err != nil {
+						return "", err
+					}
+					log.Printf("authenticated object ID cache miss, populting with: %q", authenticatedObjectCache)
+				}
+
+				return authenticatedObjectCache, nil
+			}
+		}
+
 		return &config, config.authMethod.validate()
-		
 	}
 
 	return nil, fmt.Errorf("No supported authentication methods were found!")
