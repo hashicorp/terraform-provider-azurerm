@@ -119,6 +119,27 @@ func dataSourceArmBatchPool() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"container_registries": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"registry_server": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"user_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"password": {
+										Type:      schema.TypeString,
+										Computed:  true,
+										Sensitive: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -181,6 +202,9 @@ func dataSourceArmBatchPool() *schema.Resource {
 						"environment": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"user_identity": {
@@ -252,7 +276,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 }
 
 func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
@@ -288,7 +312,7 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {
 			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration)); err != nil {
+				if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration)); err != nil {
 					return fmt.Errorf("error setting `container_configuration`: %v", err)
 				}
 

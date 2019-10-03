@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -217,7 +218,7 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -305,7 +306,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 		d.Set("event_delivery_schema", string(props.EventDeliverySchema))
 
 		if props.Topic != nil && *props.Topic != "" {
-			d.Set("topic_name", *props.Topic)
+			d.Set("topic_name", props.Topic)
 		}
 
 		if storageQueueEndpoint, ok := props.Destination.AsStorageQueueEventSubscriptionDestination(); ok {
@@ -323,8 +324,12 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 				return fmt.Errorf("Error setting `hybrid_connection_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
-		if webhookEndpoint, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
-			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(webhookEndpoint)); err != nil {
+		if _, ok := props.Destination.AsWebHookEventSubscriptionDestination(); ok {
+			fullURL, err := client.GetFullURL(ctx, scope, name)
+			if err != nil {
+				return fmt.Errorf("Error making Read request on EventGrid Event Subscription full URL '%s': %+v", name, err)
+			}
+			if err := d.Set("webhook_endpoint", flattenEventGridEventSubscriptionWebhookEndpoint(&fullURL)); err != nil {
 				return fmt.Errorf("Error setting `webhook_endpoint` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 			}
 		}
@@ -350,10 +355,8 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 			}
 		}
 
-		if labels := props.Labels; labels != nil {
-			if err := d.Set("labels", *labels); err != nil {
-				return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
-			}
+		if err := d.Set("labels", props.Labels); err != nil {
+			return fmt.Errorf("Error setting `labels` for EventGrid Event Subscription %q (Scope %q): %s", name, scope, err)
 		}
 	}
 
@@ -575,7 +578,7 @@ func flattenEventGridEventSubscriptionHybridConnectionEndpoint(input *eventgrid.
 	return []interface{}{result}
 }
 
-func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.WebHookEventSubscriptionDestination) []interface{} {
+func flattenEventGridEventSubscriptionWebhookEndpoint(input *eventgrid.EventSubscriptionFullURL) []interface{} {
 	if input == nil {
 		return nil
 	}

@@ -6,8 +6,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,12 +40,34 @@ func resourceArmAppServiceCustomHostnameBinding() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
+			"ssl_state": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(web.SslStateIPBasedEnabled),
+					string(web.SslStateSniEnabled),
+				}, false),
+			},
+
+			"thumbprint": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"virtual_ip": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Hostname Binding creation.")
@@ -49,11 +75,13 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 	resourceGroup := d.Get("resource_group_name").(string)
 	appServiceName := d.Get("app_service_name").(string)
 	hostname := d.Get("hostname").(string)
+	sslState := d.Get("ssl_state").(string)
+	thumbprint := d.Get("thumbprint").(string)
 
-	azureRMLockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
-	defer azureRMUnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	locks.ByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	defer locks.UnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetHostNameBinding(ctx, resourceGroup, appServiceName, hostname)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -70,6 +98,22 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 		HostNameBindingProperties: &web.HostNameBindingProperties{
 			SiteName: utils.String(appServiceName),
 		},
+	}
+
+	if sslState != "" {
+		if thumbprint == "" {
+			return fmt.Errorf("`thumbprint` must be specified when `ssl_state` is set")
+		}
+
+		properties.HostNameBindingProperties.SslState = web.SslState(sslState)
+	}
+
+	if thumbprint != "" {
+		if sslState == "" {
+			return fmt.Errorf("`ssl_state` must be specified when `thumbprint` is set")
+		}
+
+		properties.HostNameBindingProperties.Thumbprint = utils.String(thumbprint)
 	}
 
 	if _, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties); err != nil {
@@ -90,9 +134,9 @@ func resourceArmAppServiceCustomHostnameBindingCreate(d *schema.ResourceData, me
 }
 
 func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -116,13 +160,19 @@ func resourceArmAppServiceCustomHostnameBindingRead(d *schema.ResourceData, meta
 	d.Set("app_service_name", appServiceName)
 	d.Set("resource_group_name", resourceGroup)
 
+	if props := resp.HostNameBindingProperties; props != nil {
+		d.Set("ssl_state", props.SslState)
+		d.Set("thumbprint", props.Thumbprint)
+		d.Set("virtual_ip", props.VirtualIP)
+	}
+
 	return nil
 }
 
 func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicesClient
+	client := meta.(*ArmClient).web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -130,8 +180,8 @@ func resourceArmAppServiceCustomHostnameBindingDelete(d *schema.ResourceData, me
 	appServiceName := id.Path["sites"]
 	hostname := id.Path["hostNameBindings"]
 
-	azureRMLockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
-	defer azureRMUnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	locks.ByName(appServiceName, appServiceCustomHostnameBindingResourceName)
+	defer locks.UnlockByName(appServiceName, appServiceCustomHostnameBindingResourceName)
 
 	log.Printf("[DEBUG] Deleting App Service Hostname Binding %q (App Service %q / Resource Group %q)", hostname, appServiceName, resGroup)
 

@@ -15,6 +15,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 		Create: resourceArmMySQLConfigurationCreate,
 		Read:   resourceArmMySQLConfigurationRead,
 		Delete: resourceArmMySQLConfigurationDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -29,9 +30,10 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"value": {
@@ -44,7 +46,7 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 }
 
 func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
+	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
@@ -83,10 +85,10 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
+	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -114,10 +116,10 @@ func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
+	client := meta.(*ArmClient).mysql.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

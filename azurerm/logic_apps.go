@@ -6,7 +6,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +24,10 @@ func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, log
 }
 
 func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(logicAppId)
+	id, err := azure.ParseAzureResourceID(logicAppId)
 	if err != nil {
 		return err
 	}
@@ -35,8 +38,8 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions or Triggers conflicting
-	azureRMLockByName(logicAppName, logicAppResourceName)
-	defer azureRMUnlockByName(logicAppName, logicAppResourceName)
+	locks.ByName(logicAppName, logicAppResourceName)
+	defer locks.UnlockByName(logicAppName, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, logicAppName)
 	if err != nil {
@@ -60,7 +63,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
 			return tf.ImportAsExistsError(resourceName, resourceId)
 		}
@@ -98,14 +101,14 @@ func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, res
 }
 
 func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q Deletion", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
-	azureRMLockByName(logicAppName, logicAppResourceName)
-	defer azureRMUnlockByName(logicAppName, logicAppResourceName)
+	locks.ByName(logicAppName, logicAppResourceName)
+	defer locks.UnlockByName(logicAppName, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, logicAppName)
 	if err != nil {
@@ -155,14 +158,14 @@ func retrieveLogicAppTrigger(meta interface{}, resourceGroup, logicAppName, name
 }
 
 func retrieveLogicAppComponent(meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	client := meta.(*ArmClient).logicWorkflowsClient
+	client := meta.(*ArmClient).logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
-	azureRMLockByName(logicAppName, logicAppResourceName)
-	defer azureRMUnlockByName(logicAppName, logicAppResourceName)
+	locks.ByName(logicAppName, logicAppResourceName)
+	defer locks.UnlockByName(logicAppName, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, logicAppName)
 	if err != nil {

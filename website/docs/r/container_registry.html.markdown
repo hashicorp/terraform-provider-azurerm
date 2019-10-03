@@ -54,6 +54,32 @@ The following arguments are supported:
 
 * `georeplication_locations` - (Optional) A list of Azure locations where the container registry should be geo-replicated.
 
+* `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
+
+`network_rule_set` supports the following:
+
+* `default_action` - (Optional) The behaviour for requests matching no rules. Either `Allow` or `Deny`. Defaults to `Allow`
+
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
+
+* `virtual_network` - (Optional) One or more `virtual_network` blocks as defined below.
+
+~> **NOTE:** `network_rule_set ` is only supported with the `Premium` SKU at this time.
+
+`ip_rule` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `ip_range` - (Required) The CIDR block from which requests will match the rule.
+
+`virtual_network` supports the following:
+
+* `action` - (Required) The behaviour for requests matching this rule. At this time the only supported value is `Allow`
+
+* `subnet_id` - (Required) The subnet id from which requests will match the rule.
+
+
+---
 ## Attributes Reference
 
 The following attributes are exported:

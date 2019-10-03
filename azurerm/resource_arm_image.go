@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -58,7 +61,7 @@ func resourceArmImage() *schema.Resource {
 						"os_type": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Linux),
 								string(compute.Windows),
@@ -68,7 +71,7 @@ func resourceArmImage() *schema.Resource {
 						"os_state": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.Generalized),
 								string(compute.Specialized),
@@ -79,7 +82,7 @@ func resourceArmImage() *schema.Resource {
 							Type:             schema.TypeString,
 							Computed:         true,
 							Optional:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     azure.ValidateResourceID,
 						},
 
@@ -95,7 +98,7 @@ func resourceArmImage() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          string(compute.None),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(compute.CachingTypesNone),
 								string(compute.CachingTypesReadOnly),
@@ -147,7 +150,7 @@ func resourceArmImage() *schema.Resource {
 								string(compute.CachingTypesReadOnly),
 								string(compute.CachingTypesReadWrite),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"size_gb": {
@@ -160,13 +163,13 @@ func resourceArmImage() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
+	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Image creation.")
@@ -175,7 +178,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := d.Get("resource_group_name").(string)
 	zoneResilient := d.Get("zone_resilient").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -189,7 +192,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	expandedTags := expandTags(d.Get("tags").(map[string]interface{}))
+	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	properties := compute.ImageProperties{}
 
@@ -264,10 +267,10 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
+	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -307,16 +310,14 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("zone_resilient", resp.StorageProfile.ZoneResilient)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
+	client := meta.(*ArmClient).compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -365,7 +366,9 @@ func flattenAzureRmImageDataDisks(diskImages *[]compute.ImageDataDisk) []interfa
 			if disk.DiskSizeGB != nil {
 				l["size_gb"] = *disk.DiskSizeGB
 			}
-			l["lun"] = *disk.Lun
+			if v := disk.Lun; v != nil {
+				l["lun"] = *v
+			}
 			if disk.ManagedDisk != nil && disk.ManagedDisk.ID != nil {
 				l["managed_disk_id"] = *disk.ManagedDisk.ID
 			}
@@ -393,7 +396,6 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 			osState := compute.OperatingSystemStateTypes(v)
 			osDisk.OsState = osState
 		}
-
 		managedDiskID := config["managed_disk_id"].(string)
 		if managedDiskID != "" {
 			managedDisk := &compute.SubResource{
@@ -420,15 +422,15 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 }
 
 func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDisk, error) {
-
 	disks := d.Get("data_disk").([]interface{})
 
 	dataDisks := make([]compute.ImageDataDisk, 0, len(disks))
 	for _, diskConfig := range disks {
 		config := diskConfig.(map[string]interface{})
 
-		managedDiskID := d.Get("managed_disk_id").(string)
-		blobURI := d.Get("blob_uri").(string)
+		managedDiskID := config["managed_disk_id"].(string)
+
+		blobURI := config["blob_uri"].(string)
 		lun := int32(config["lun"].(int))
 
 		dataDisk := compute.ImageDataDisk{
@@ -436,12 +438,12 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 			BlobURI: &blobURI,
 		}
 
-		if size := d.Get("size_gb"); size != 0 {
+		if size := config["size_gb"]; size != 0 {
 			diskSize := int32(size.(int))
 			dataDisk.DiskSizeGB = &diskSize
 		}
 
-		if v := d.Get("caching").(string); v != "" {
+		if v := config["caching"].(string); v != "" {
 			caching := compute.CachingTypes(v)
 			dataDisk.Caching = caching
 		}
@@ -457,5 +459,4 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 	}
 
 	return dataDisks, nil
-
 }

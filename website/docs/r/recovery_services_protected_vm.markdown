@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `source_vm_id` - (Required) Specifies the ID of the VM to backup. Changing this forces a new resource to be created.
 
-* `backup_policy_id` - (Required) Specifies the id of the backup policy to use. Changing this forces a new resource to be created.
+* `backup_policy_id` - (Required) Specifies the id of the backup policy to use.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

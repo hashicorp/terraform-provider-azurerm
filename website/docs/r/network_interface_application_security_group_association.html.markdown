@@ -48,7 +48,7 @@ resource "azurerm_network_interface" "test" {
     name                           = "testconfiguration1"
     subnet_id                      = "${azurerm_subnet.test.id}"
     private_ip_address_allocation  = "Dynamic"
-    application_security_group_ids = [ "${azurerm_application_security_group.test.id}" ]
+    application_security_group_ids = ["${azurerm_application_security_group.test.id}"]
   }
 }
 

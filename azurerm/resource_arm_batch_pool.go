@@ -8,16 +8,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmBatchPool() *schema.Resource {
@@ -116,6 +118,7 @@ func resourceArmBatchPool() *schema.Resource {
 			"container_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MinItems: 1,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -123,6 +126,35 @@ func resourceArmBatchPool() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"container_registries": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							ForceNew:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"registry_server": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"user_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"password": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										Sensitive:    true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -137,26 +169,27 @@ func resourceArmBatchPool() *schema.Resource {
 						"id": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"publisher": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"offer": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"sku": {
 							Type:             schema.TypeString,
-							Required:         true,
+							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validate.NoEmptyStrings,
@@ -164,7 +197,7 @@ func resourceArmBatchPool() *schema.Resource {
 
 						"version": {
 							Type:         schema.TypeString,
-							Required:     true,
+							Optional:     true,
 							ForceNew:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
@@ -251,6 +284,9 @@ func resourceArmBatchPool() *schema.Resource {
 						"environment": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"user_identity": {
@@ -334,7 +370,7 @@ func resourceArmBatchPool() *schema.Resource {
 }
 
 func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch pool creation.")
@@ -346,7 +382,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	vmSize := d.Get("vm_size").(string)
 	maxTasksPerNode := int32(d.Get("max_tasks_per_node").(int))
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -380,6 +416,17 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	imageReference, err := azure.ExpandBatchPoolImageReference(storageImageReferenceSet)
 	if err != nil {
 		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): %+v", poolName, resourceGroup, err)
+	}
+
+	if imageReference != nil {
+		// if an image reference ID is specified, the user wants use a custom image. This property is mutually exclusive with other properties.
+		if imageReference.ID != nil && (imageReference.Offer != nil || imageReference.Publisher != nil || imageReference.Sku != nil || imageReference.Version != nil) {
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): Properties version, offer, publish cannot be defined when using a custom image id", poolName, resourceGroup)
+		} else if imageReference.ID == nil && (imageReference.Offer == nil || imageReference.Publisher == nil || imageReference.Sku == nil || imageReference.Version == nil) {
+			return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): Properties version, offer, publish and sku are mandatory when not using a custom image", poolName, resourceGroup)
+		}
+	} else {
+		return fmt.Errorf("Error creating Batch pool %q (Resource Group %q): image reference property can not be empty", poolName, resourceGroup)
 	}
 
 	if startTaskValue, startTaskOk := d.GetOk("start_task"); startTaskOk {
@@ -456,9 +503,9 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -544,9 +591,9 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -581,7 +628,6 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		if props.DeploymentConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-
 			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
@@ -590,7 +636,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {
 			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration))
+				d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
 			}
 		}
 
@@ -606,9 +652,9 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).batch.PoolClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -680,7 +726,7 @@ func expandBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings,
 	return scaleSettings, nil
 }
 
-func waitForBatchPoolPendingResizeOperation(ctx context.Context, client batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
+func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
 	// waiting for the pool to be in steady state
 	log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
 	isSteady := false

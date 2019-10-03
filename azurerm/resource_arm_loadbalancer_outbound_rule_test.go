@@ -5,10 +5,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
@@ -47,7 +49,7 @@ func TestAccAzureRMLoadBalancerOutboundRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLoadBalancerOutboundRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -145,6 +147,41 @@ func TestAccAzureRMLoadBalancerOutboundRule_update(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := tf.AccRandTimeInt()
+	outboundRuleName := fmt.Sprintf("OutboundRule-%d", ri)
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	outboundRuleId := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/outboundRules/%s",
+		subscriptionID, ri, ri, outboundRuleName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(ri, outboundRuleName, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerOutboundRuleExists(outboundRuleName, &lb),
+					resource.TestCheckResourceAttr(
+						"azurerm_lb_outbound_rule.test", "id", outboundRuleId),
+				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerOutboundRule_disappears(t *testing.T) {
 	var lb network.LoadBalancer
 	ri := tf.AccRandTimeInt()
@@ -190,7 +227,7 @@ func testCheckAzureRMLoadBalancerOutboundRuleNotExists(outboundRuleName string, 
 
 func testCheckAzureRMLoadBalancerOutboundRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerOutboundRuleByName(lb, ruleName)
@@ -202,7 +239,7 @@ func testCheckAzureRMLoadBalancerOutboundRuleDisappears(ruleName string, lb *net
 		rules := append(currentRules[:i], currentRules[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.OutboundRules = &rules
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}
@@ -242,7 +279,6 @@ resource "azurerm_lb" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 
-
   frontend_ip_configuration {
     name                 = "one-%d"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
@@ -256,12 +292,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
-  protocol                       = "All"
-
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  loadbalancer_id         = "${azurerm_lb.test.id}"
+  name                    = "%s"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
+  protocol                = "All"
 
   frontend_ip_configuration {
     name = "one-%d"
@@ -276,11 +311,11 @@ func testAccAzureRMLoadBalancerOutboundRule_requiresImport(rInt int, name string
 %s
 
 resource "azurerm_lb_outbound_rule" "import" {
-  name                           = "${azurerm_lb_outbound_rule.test.name}"
-  resource_group_name            = "${azurerm_lb_outbound_rule.test.resource_group_name}"
-  loadbalancer_id                = "${azurerm_lb_outbound_rule.test.loadbalancer_id}"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
-  protocol                       = "All"
+  name                    = "${azurerm_lb_outbound_rule.test.name}"
+  resource_group_name     = "${azurerm_lb_outbound_rule.test.resource_group_name}"
+  loadbalancer_id         = "${azurerm_lb_outbound_rule.test.loadbalancer_id}"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
+  protocol                = "All"
 
   frontend_ip_configuration {
     name = "${azurerm_lb_outbound_rule.test.frontend_ip_configuration.0.name}"
@@ -371,11 +406,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
-  protocol                       = "Tcp"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  loadbalancer_id         = "${azurerm_lb.test.id}"
+  name                    = "%s"
+  protocol                = "Tcp"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
 
   frontend_ip_configuration {
     name = "fe1-%d"
@@ -383,11 +418,11 @@ resource "azurerm_lb_outbound_rule" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test2" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
-  protocol                       = "Udp"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  loadbalancer_id         = "${azurerm_lb.test.id}"
+  name                    = "%s"
+  protocol                = "Udp"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
 
   frontend_ip_configuration {
     name = "fe2-%d"
@@ -443,11 +478,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
-  protocol                       = "All"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  loadbalancer_id         = "${azurerm_lb.test.id}"
+  name                    = "%s"
+  protocol                = "All"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
 
   frontend_ip_configuration {
     name = "fe1-%d"
@@ -455,15 +490,61 @@ resource "azurerm_lb_outbound_rule" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test2" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "%s"
-  protocol                       = "All"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  loadbalancer_id         = "${azurerm_lb.test.id}"
+  name                    = "%s"
+  protocol                = "All"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
 
   frontend_ip_configuration {
     name = "fe2-%d"
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, outboundRuleName, rInt, outboundRule2Name, rInt)
+}
+
+func testAccAzureRMLoadBalancerOutboundRule_withPublicIPPrefix(rInt int, outboundRuleName string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "test-ip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  prefix_length       = 31
+}
+
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                = "one-%d"
+    public_ip_prefix_id = "${azurerm_public_ip_prefix.test.id}"
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "be-%d"
+}
+
+resource "azurerm_lb_outbound_rule" "test" {
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  loadbalancer_id         = "${azurerm_lb.test.id}"
+  name                    = "%s"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
+  protocol                = "All"
+
+  frontend_ip_configuration {
+    name = "one-%d"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, outboundRuleName, rInt)
 }

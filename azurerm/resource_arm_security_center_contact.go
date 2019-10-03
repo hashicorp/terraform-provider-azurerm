@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -38,7 +39,7 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 
 			"phone": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
@@ -56,12 +57,12 @@ func resourceArmSecurityCenterContact() *schema.Resource {
 }
 
 func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterContactsClient
+	client := meta.(*ArmClient).SecurityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -94,7 +95,6 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-
 		if _, err := client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Contact: %+v", err)
 		}
@@ -118,7 +118,7 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterContactsClient
+	client := meta.(*ArmClient).SecurityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName
@@ -145,7 +145,7 @@ func resourceArmSecurityCenterContactRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSecurityCenterContactDelete(_ *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterContactsClient
+	client := meta.(*ArmClient).SecurityCenter.ContactsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := securityCenterContactName

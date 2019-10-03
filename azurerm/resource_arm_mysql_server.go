@@ -12,6 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,15 +23,17 @@ func resourceArmMySqlServer() *schema.Resource {
 		Read:   resourceArmMySqlServerRead,
 		Update: resourceArmMySqlServerUpdate,
 		Delete: resourceArmMySqlServerDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -156,6 +160,15 @@ func resourceArmMySqlServer() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(mysql.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(mysql.StorageAutogrowEnabled),
+								string(mysql.StorageAutogrowDisabled),
+							}, false),
+						},
 					},
 				},
 			},
@@ -175,11 +188,10 @@ func resourceArmMySqlServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			tier, _ := diff.GetOk("sku.0.tier")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
 
@@ -193,7 +205,7 @@ func resourceArmMySqlServer() *schema.Resource {
 }
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
@@ -207,9 +219,9 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
 	createMode := "Default"
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -236,7 +248,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 			CreateMode:                 mysql.CreateMode(createMode),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -263,7 +275,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
@@ -276,7 +288,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 	version := d.Get("version").(string)
 	sku := expandMySQLServerSku(d)
 	storageProfile := expandMySQLStorageProfile(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := mysql.ServerUpdateParameters{
 		ServerUpdateParametersProperties: &mysql.ServerUpdateParametersProperties{
@@ -286,7 +298,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 			SslEnforcement:             mysql.SslEnforcementEnum(sslEnforcement),
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, name, properties)
@@ -313,10 +325,10 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -352,19 +364,17 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlServersClient
+	client := meta.(*ArmClient).mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -407,11 +417,13 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &mysql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
 		GeoRedundantBackup:  mysql.GeoRedundantBackup(geoRedundantBackup),
 		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     mysql.StorageAutogrow(autoGrow),
 	}
 }
 
@@ -447,6 +459,8 @@ func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
 	}
 
 	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
+
+	values["auto_grow"] = string(resp.StorageAutogrow)
 
 	return []interface{}{values}
 }

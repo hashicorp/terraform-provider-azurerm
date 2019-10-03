@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -171,7 +172,6 @@ func resourceArmAutomationSchedule() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			frequency := strings.ToLower(diff.Get("frequency").(string))
 			interval, _ := diff.GetOk("interval")
 			if frequency == "onetime" && interval.(int) > 0 {
@@ -233,7 +233,7 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 		accountName = v.(string)
 	}
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -313,7 +313,7 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -373,7 +373,7 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 	client := meta.(*ArmClient).automation.ScheduleClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -393,7 +393,6 @@ func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{
 }
 
 func expandArmAutomationScheduleAdvanced(d *schema.ResourceData, isUpdate bool) (*automation.AdvancedSchedule, error) {
-
 	expandedAdvancedSchedule := automation.AdvancedSchedule{}
 
 	// If frequency is set to `Month` the `week_days` array cannot be set (even empty), otherwise the API returns an error.

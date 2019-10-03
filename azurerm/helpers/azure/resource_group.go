@@ -18,6 +18,15 @@ func SchemaResourceGroupName() *schema.Schema {
 	}
 }
 
+func SchemaResourceGroupNameDeprecated() *schema.Schema {
+	return &schema.Schema{
+		Type:       schema.TypeString,
+		Optional:   true,
+		Computed:   true,
+		Deprecated: "This field has been deprecated and is no longer used - will be removed in 2.0 of the Azure Provider",
+	}
+}
+
 func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 	return &schema.Schema{
 		Type:             schema.TypeString,
@@ -38,8 +47,8 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if len(value) > 80 {
-		errors = append(errors, fmt.Errorf("%q may not exceed 80 characters in length", k))
+	if len(value) > 90 {
+		errors = append(errors, fmt.Errorf("%q may not exceed 90 characters in length", k))
 	}
 
 	if strings.HasSuffix(value, ".") {

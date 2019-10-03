@@ -127,7 +127,6 @@ func TestAccDataSourceArmStorageAccountSas_servicesString(t *testing.T) {
 			t.Fatalf("Failed to build resource type string: expected: %s, result: %s", test.expected, result)
 		}
 	}
-
 }
 
 func TestAccDataSourceArmStorageAccountSas_permissionsString(t *testing.T) {

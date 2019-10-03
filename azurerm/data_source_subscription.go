@@ -17,7 +17,7 @@ func dataSourceArmSubscription() *schema.Resource {
 
 func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	groupClient := client.subscriptionsClient
+	groupClient := client.Subscription.Client
 	ctx := client.StopContext
 
 	subscriptionId := d.Get("subscription_id").(string)
@@ -31,12 +31,13 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error: Subscription %q was not found", subscriptionId)
 		}
 
-		return fmt.Errorf("Error reading subscription: %+v", err)
+		return fmt.Errorf("Error reading Subscription: %+v", err)
 	}
 
 	d.SetId(*resp.ID)
 	d.Set("subscription_id", resp.SubscriptionID)
 	d.Set("display_name", resp.DisplayName)
+	d.Set("tenant_id", resp.TenantID)
 	d.Set("state", resp.State)
 	if resp.SubscriptionPolicies != nil {
 		d.Set("location_placement_id", resp.SubscriptionPolicies.LocationPlacementID)

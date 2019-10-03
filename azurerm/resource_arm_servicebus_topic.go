@@ -8,7 +8,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -50,28 +53,28 @@ func resourceArmServiceBusTopic() *schema.Resource {
 					string(servicebus.Active),
 					string(servicebus.Disabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"auto_delete_on_idle": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"default_message_ttl": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"duplicate_detection_history_time_window": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateIso8601Duration(),
+				ValidateFunc: validate.ISO8601Duration,
 			},
 
 			"enable_batched_operations": {
@@ -118,7 +121,7 @@ func resourceArmServiceBusTopic() *schema.Resource {
 }
 
 func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.TopicsClient
+	client := meta.(*ArmClient).ServiceBus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ServiceBus Topic creation.")
 
@@ -134,7 +137,7 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	supportOrdering := d.Get("support_ordering").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -190,10 +193,10 @@ func resourceArmServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.TopicsClient
+	client := meta.(*ArmClient).ServiceBus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -220,7 +223,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 
 		if window := props.DuplicateDetectionHistoryTimeWindow; window != nil && *window != "" {
-			d.Set("duplicate_detection_history_time_window", *window)
+			d.Set("duplicate_detection_history_time_window", window)
 		}
 
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
@@ -235,7 +238,7 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 			// if the topic is in a premium namespace and partitioning is enabled then the
 			// max size returned by the API will be 16 times greater than the value set
 			if partitioning := props.EnablePartitioning; partitioning != nil && *partitioning {
-				namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
+				namespacesClient := meta.(*ArmClient).ServiceBus.NamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
 					return err
@@ -255,10 +258,10 @@ func resourceArmServiceBusTopicRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.TopicsClient
+	client := meta.(*ArmClient).ServiceBus.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

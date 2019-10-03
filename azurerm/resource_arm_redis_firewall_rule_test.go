@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -75,8 +76,39 @@ func TestAccAzureRMRedisFirewallRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMRedisFirewallRule_multi(t *testing.T) {
+	ruleOne := "azurerm_redis_firewall_rule.test"
+	ruleTwo := "azurerm_redis_firewall_rule.double"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisFirewallRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMRedisFirewallRule_multi(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisFirewallRuleExists(ruleOne),
+					testCheckAzureRMRedisFirewallRuleExists(ruleTwo),
+				),
+			},
+			{
+				ResourceName:      ruleOne,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      ruleTwo,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMRedisFirewallRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -157,7 +189,7 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resourceGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).resource.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -211,6 +243,20 @@ resource "azurerm_redis_firewall_rule" "test" {
   end_ip              = "2.3.4.5"
 }
 `, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMRedisFirewallRule_multi(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_redis_firewall_rule" "double" {
+  name                = "fwruletwo%d"
+  redis_cache_name    = "${azurerm_redis_cache.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  start_ip            = "4.5.6.7"
+  end_ip              = "8.9.0.1"
+}
+`, testAccAzureRMRedisFirewallRule_basic(rInt, location), rInt)
 }
 
 func testAccAzureRMRedisFirewallRule_requiresImport(rInt int, location string) string {

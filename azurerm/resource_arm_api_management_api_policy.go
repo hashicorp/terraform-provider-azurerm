@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,14 +48,14 @@ func resourceArmApiManagementApiPolicy() *schema.Resource {
 }
 
 func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ApiPoliciesClient
+	client := meta.(*ArmClient).apiManagement.ApiPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	apiName := d.Get("api_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -107,10 +108,10 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ApiPoliciesClient
+	client := meta.(*ArmClient).apiManagement.ApiPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,10 +144,10 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmApiManagementAPIPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apimgmt.ApiPoliciesClient
+	client := meta.(*ArmClient).apiManagement.ApiPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

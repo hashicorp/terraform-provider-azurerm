@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,7 +50,7 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 				Type:             schema.TypeString,
 				Computed:         true,
 				Optional:         true,
-				StateFunc:        ignoreCaseStateFunc,
+				StateFunc:        state.IgnoreCase,
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.ProbeProtocolHTTP),
@@ -94,13 +97,13 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 }
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	loadBalancerID := d.Get("loadbalancer_id").(string)
-	armMutexKV.Lock(loadBalancerID)
-	defer armMutexKV.Unlock(loadBalancerID)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
@@ -118,7 +121,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 	existingProbe, existingProbeIndex, exists := findLoadBalancerProbeByName(loadBalancer, name)
 	if exists {
 		if name == *existingProbe.Name {
-			if requireResourcesToBeImported && d.IsNewResource() {
+			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_lb_probe", *existingProbe.ID)
 			}
 
@@ -167,7 +170,7 @@ func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,12 +220,12 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
+	client := meta.(*ArmClient).network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
-	armMutexKV.Lock(loadBalancerID)
-	defer armMutexKV.Unlock(loadBalancerID)
+	locks.ByID(loadBalancerID)
+	defer locks.UnlockByID(loadBalancerID)
 
 	loadBalancer, exists, err := retrieveLoadBalancerById(loadBalancerID, meta)
 	if err != nil {
@@ -268,7 +271,6 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 }
 
 func expandAzureRmLoadBalancerProbe(d *schema.ResourceData) *network.Probe {
-
 	properties := network.ProbePropertiesFormat{
 		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
 		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),

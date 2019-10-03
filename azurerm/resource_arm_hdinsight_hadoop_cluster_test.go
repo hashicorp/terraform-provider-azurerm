@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHDInsightHadoopCluster_basic(t *testing.T) {
@@ -48,7 +49,7 @@ func TestAccAzureRMHDInsightHadoopCluster_basic(t *testing.T) {
 }
 
 func TestAccAzureRMHDInsightHadoopCluster_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -356,20 +357,20 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     head_node {
       vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
 
     worker_node {
       vm_size               = "Standard_D4_v2"
       username              = "acctestusrvm"
-      ssh_keys              = [ "${var.ssh_key}" ]
+      ssh_keys              = ["${var.ssh_key}"]
       target_instance_count = 3
     }
 
     zookeeper_node {
       vm_size  = "Standard_D3_v2"
       username = "acctestusrvm"
-      ssh_keys = [ "${var.ssh_key}" ]
+      ssh_keys = ["${var.ssh_key}"]
     }
   }
 }
@@ -450,6 +451,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
+
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -521,6 +523,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.0.2.0/24"
 }
+
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"

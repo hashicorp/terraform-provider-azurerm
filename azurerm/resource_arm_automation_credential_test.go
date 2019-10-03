@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMAutomationCredential_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationCredential_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -120,14 +121,12 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 		}
 
 		return fmt.Errorf("Automation Credential still exists:\n%#v", resp)
-
 	}
 
 	return nil
 }
 
 func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -13,6 +14,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestvnet-%d", ri)
+	location := testLocation()
 	config := testAccDataSourceArmVirtualNetwork_basic(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -23,6 +25,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "dns_servers.0", "10.0.0.4"),
 					resource.TestCheckResourceAttr(dataSourceName, "address_spaces.0", "10.0.0.0/16"),
 					resource.TestCheckResourceAttr(dataSourceName, "subnets.0", "subnet1"),

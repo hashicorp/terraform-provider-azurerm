@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestValidateDevTestVirtualNetworkName(t *testing.T) {
@@ -65,7 +66,7 @@ func TestAccAzureRMDevTestVirtualNetwork_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestVirtualNetwork_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -135,7 +136,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestVirtualNetworksClient
+		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
@@ -152,7 +153,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestVirtualNetworksClient
+	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

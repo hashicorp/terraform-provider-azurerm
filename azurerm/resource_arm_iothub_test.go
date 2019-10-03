@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMIotHub_basic(t *testing.T) {
@@ -60,7 +61,7 @@ func TestAccAzureRMIotHub_ipFilterRules(t *testing.T) {
 }
 
 func TestAccAzureRMIotHub_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -130,6 +131,33 @@ func TestAccAzureRMIotHub_customRoutes(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "endpoint.0.type", "AzureIotHub.StorageContainer"),
 					resource.TestCheckResourceAttr(resourceName, "endpoint.1.type", "AzureIotHub.EventHub"),
 					resource.TestCheckResourceAttr(resourceName, "route.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMIotHub_fileUpload(t *testing.T) {
+	resourceName := "azurerm_iothub.test"
+	rInt := tf.AccRandTimeInt()
+	rStr := acctest.RandString(5)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMIotHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMIotHub_fileUpload(rInt, rStr, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMIotHubExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "file_upload.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "file_upload.0.lock_duration", "PT5M"),
 				),
 			},
 			{
@@ -218,7 +246,6 @@ func testCheckAzureRMIotHubExists(resourceName string) resource.TestCheckFunc {
 		}
 
 		return nil
-
 	}
 }
 
@@ -311,13 +338,13 @@ resource "azurerm_iothub" "test" {
     name     = "S1"
     tier     = "Standard"
     capacity = "1"
-	}
-	
-	ip_filter_rule {
-		name        = "test"
-		ip_mask     = "10.0.0.0/31"
-		action      = "Accept"
-	}
+  }
+
+  ip_filter_rule {
+    name    = "test"
+    ip_mask = "10.0.0.0/31"
+    action  = "Accept"
+  }
 
   tags = {
     purpose = "testing"
@@ -368,7 +395,7 @@ resource "azurerm_eventhub_authorization_rule" "test" {
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   eventhub_name       = "${azurerm_eventhub.test.name}"
   name                = "acctest"
-  send                = true  
+  send                = true
 }
 
 resource "azurerm_iothub" "test" {
@@ -430,9 +457,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_iothub" "test" {
-  name                  = "acctestIoTHub-%d"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
 
   sku {
     name     = "S1"
@@ -446,9 +473,55 @@ resource "azurerm_iothub" "test" {
     enabled        = true
   }
 
-	tags = {
+  tags = {
     purpose = "testing"
   }
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMIotHub_fileUpload(rInt int, rStr string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_iothub" "test" {
+  name                = "acctestIoTHub-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
+  sku {
+    name     = "S1"
+    tier     = "Standard"
+    capacity = "1"
+  }
+
+  file_upload {
+    connection_string  = "${azurerm_storage_account.test.primary_blob_connection_string}"
+	container_name     = "${azurerm_storage_container.test.name}"
+	notifications      = true
+	max_delivery_count = 12
+	sas_ttl            = "PT2H"
+	default_ttl        = "PT3H"
+	lock_duration      = "PT5M"
+  }
+}
+`, rInt, location, rStr, rInt)
 }

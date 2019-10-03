@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMAPIManagementProductGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -65,7 +66,7 @@ func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apimgmt.ProductGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).apiManagement.ProductGroupsClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_group" {
 			continue
@@ -101,14 +102,14 @@ func testCheckAzureRMAPIManagementProductGroupExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apimgmt.ProductGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).apiManagement.ProductGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: Product %q / Group %q (API Management Service %q / Resource Group %q) does not exist", productId, groupName, serviceName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on apimgmt.ProductGroupsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.ProductGroupsClient: %+v", err)
 		}
 
 		return nil
@@ -129,10 +130,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -153,10 +151,10 @@ resource "azurerm_api_management_group" "test" {
 }
 
 resource "azurerm_api_management_product_group" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  group_name            = "${azurerm_api_management_group.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  group_name          = "${azurerm_api_management_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -167,10 +165,10 @@ func testAccAzureRMAPIManagementProductGroup_requiresImport(rInt int, location s
 %s
 
 resource "azurerm_api_management_product_group" "import" {
-  product_id            = "${azurerm_api_management_product_group.test.product_id}"
-  group_name            = "${azurerm_api_management_product_group.test.group_name}"
-  api_management_name   = "${azurerm_api_management_product_group.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_product_group.test.resource_group_name}"
+  product_id          = "${azurerm_api_management_product_group.test.product_id}"
+  group_name          = "${azurerm_api_management_product_group.test.group_name}"
+  api_management_name = "${azurerm_api_management_product_group.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_product_group.test.resource_group_name}"
 }
 `, template)
 }

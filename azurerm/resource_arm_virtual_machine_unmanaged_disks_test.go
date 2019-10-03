@@ -7,11 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
 
 func TestAccAzureRMVirtualMachine_basicLinuxMachine(t *testing.T) {
@@ -194,7 +196,7 @@ func TestAccAzureRMVirtualMachine_tags(t *testing.T) {
 }
 
 //This is a regression test around https://github.com/hashicorp/terraform/issues/6517
-//Because we use CreateOrUpdate, we were sending an empty password on update requests
+//Because we use CreateUpdate, we were sending an empty password on update requests
 func TestAccAzureRMVirtualMachine_updateMachineSize(t *testing.T) {
 	var vm compute.VirtualMachine
 
@@ -1980,12 +1982,12 @@ resource "azurerm_network_interface" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-     ip_configuration {
-     	name = "testconfiguration1"
-     	subnet_id = "${azurerm_subnet.test.id}"
-     	private_ip_address_allocation = "Dynamic"
-     }
- }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
@@ -2074,12 +2076,12 @@ resource "azurerm_network_interface" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-     ip_configuration {
-     	name = "testconfiguration1"
-     	subnet_id = "${azurerm_subnet.test.id}"
-     	private_ip_address_allocation = "Dynamic"
-     }
- }
+  ip_configuration {
+    name                          = "testconfiguration1"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+  }
+}
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa%d"
@@ -3010,35 +3012,41 @@ resource "azurerm_virtual_machine" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt)
 }
 
-func testCheckAzureRMVirtualMachineVHDExistence(name string, shouldExist bool) resource.TestCheckFunc {
+func testCheckAzureRMVirtualMachineVHDExistence(blobName string, shouldExist bool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		for _, rs := range s.RootModule().Resources {
 			if rs.Type != "azurerm_storage_container" {
 				continue
 			}
 
-			// fetch storage account and container name
 			resourceGroup := rs.Primary.Attributes["resource_group_name"]
-			storageAccountName := rs.Primary.Attributes["storage_account_name"]
+			accountName := rs.Primary.Attributes["storage_account_name"]
 			containerName := rs.Primary.Attributes["name"]
-			armClient := testAccProvider.Meta().(*ArmClient)
-			ctx := armClient.StopContext
-			storageClient, _, err := armClient.getBlobStorageClientForStorageAccount(ctx, resourceGroup, storageAccountName)
+
+			storageClient := testAccProvider.Meta().(*ArmClient).Storage
+			ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+			client, err := storageClient.BlobsClient(ctx, resourceGroup, accountName)
 			if err != nil {
-				return fmt.Errorf("Error creating Blob storage client: %+v", err)
+				return fmt.Errorf("Error building Blobs Client: %s", err)
 			}
 
-			container := storageClient.GetContainerReference(containerName)
-			blob := container.GetBlobReference(name)
-			exists, err := blob.Exists()
+			input := blobs.GetPropertiesInput{}
+			props, err := client.GetProperties(ctx, accountName, containerName, blobName, input)
 			if err != nil {
-				return fmt.Errorf("Error checking if Disk VHD Blob exists: %+v", err)
+				if utils.ResponseWasNotFound(props.Response) {
+					if !shouldExist {
+						return nil
+					}
+
+					return fmt.Errorf("The Blob for the Unmanaged Disk %q should exist in the Container %q but it didn't!", blobName, containerName)
+				}
+
+				return fmt.Errorf("Error retrieving properties for Blob %q (Container %q): %s", blobName, containerName, err)
 			}
 
-			if exists && !shouldExist {
-				return fmt.Errorf("Disk VHD Blob still exists %s %s", containerName, name)
-			} else if !exists && shouldExist {
-				return fmt.Errorf("Disk VHD Blob should exist %s %s", containerName, name)
+			if !shouldExist {
+				return fmt.Errorf("The Blob for the Unmanaged Disk %q shouldn't exist in the Container %q but it did!", blobName, containerName)
 			}
 		}
 
@@ -3060,7 +3068,7 @@ func testCheckAzureRMVirtualMachineDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).vmClient
+		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_public_ip_prefix
 
-Manage a Public IP Prefix.
+Manages a Public IP Prefix.
 
 -> **NOTE** Public IP Prefix are currently in Public Preview. You can find more information about [Public IP Preifx Preview here](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-address-prefix).
 
@@ -25,7 +25,7 @@ resource "azurerm_public_ip_prefix" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  prefix_length   = 31
+  prefix_length = 31
 
   tags = {
     environment = "Production"

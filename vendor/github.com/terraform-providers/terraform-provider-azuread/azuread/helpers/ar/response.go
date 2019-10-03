@@ -9,7 +9,7 @@ import (
 
 //todo move to azure helpers
 func ResponseWasNotFound(resp autorest.Response) bool {
-	return responseWasStatusCode(resp, http.StatusNotFound)
+	return ResponseWasStatusCode(resp, http.StatusNotFound)
 }
 
 func ResponseErrorIsRetryable(err error) bool {
@@ -27,7 +27,7 @@ func ResponseErrorIsRetryable(err error) bool {
 	return false
 }
 
-func responseWasStatusCode(resp autorest.Response, statusCode int) bool { // nolint: unparam
+func ResponseWasStatusCode(resp autorest.Response, statusCode int) bool { // nolint: unparam
 	if r := resp.Response; r != nil {
 		if r.StatusCode == statusCode {
 			return true

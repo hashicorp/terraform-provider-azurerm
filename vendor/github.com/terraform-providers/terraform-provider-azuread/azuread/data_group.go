@@ -5,6 +5,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
@@ -33,6 +34,18 @@ func dataGroup() *schema.Resource {
 				ValidateFunc:  validate.NoEmptyStrings,
 				ConflictsWith: []string{"object_id"},
 			},
+
+			"members": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"owners": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
 		},
 	}
 }
@@ -56,31 +69,11 @@ func dataSourceActiveDirectoryGroupRead(d *schema.ResourceData, meta interface{}
 
 		group = resp
 	} else if name, ok := d.Get("name").(string); ok && name != "" {
-		filter := fmt.Sprintf("displayName eq '%s'", name)
-
-		resp, err := client.ListComplete(ctx, filter)
+		g, err := graph.GroupGetByDisplayName(&client, ctx, name)
 		if err != nil {
-			return fmt.Errorf("Error listing Azure AD Groups for filter %q: %+v", filter, err)
+			return fmt.Errorf("Error finding Azure AD Group with display name %q: %+v", name, err)
 		}
-
-		values := resp.Response().Value
-		if values == nil {
-			return fmt.Errorf("nil values for AD Groups matching %q", filter)
-		}
-		if len(*values) == 0 {
-			return fmt.Errorf("Found no AD Groups matching %q", filter)
-		}
-		if len(*values) > 2 {
-			return fmt.Errorf("Found multiple AD Groups matching %q", filter)
-		}
-
-		group = (*values)[0]
-		if group.DisplayName == nil {
-			return fmt.Errorf("nil DisplayName for AD Groups matching %q", filter)
-		}
-		if *group.DisplayName != name {
-			return fmt.Errorf("displayname for AD Groups matching %q does is does not match(%q!=%q)", filter, *group.DisplayName, name)
-		}
+		group = *g
 	} else {
 		return fmt.Errorf("one of `object_id` or `name` must be supplied")
 	}
@@ -92,5 +85,18 @@ func dataSourceActiveDirectoryGroupRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("object_id", group.ObjectID)
 	d.Set("name", group.DisplayName)
+
+	members, err := graph.GroupAllMembers(client, ctx, d.Id())
+	if err != nil {
+		return err
+	}
+	d.Set("members", members)
+
+	owners, err := graph.GroupAllOwners(client, ctx, d.Id())
+	if err != nil {
+		return err
+	}
+	d.Set("owners", owners)
+
 	return nil
 }

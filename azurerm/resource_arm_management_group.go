@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -56,8 +57,8 @@ func resourceArmManagementGroup() *schema.Resource {
 }
 
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroupsSubscriptionClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 	armTenantID := meta.(*ArmClient).tenantId
 
@@ -72,7 +73,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	recurse := false
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, groupId, "children", &recurse, "", managementGroupCacheControl)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -156,7 +157,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())
@@ -196,15 +197,14 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil
 }
 
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroupsSubscriptionClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())
@@ -282,7 +282,7 @@ func flattenArmManagementGroupSubscriptionIds(input *[]managementgroups.ChildInf
 
 		id, err := parseManagementGroupSubscriptionID(*child.ID)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse child subscription ID %+v", err)
+			return nil, fmt.Errorf("Unable to parse child Subscription ID %+v", err)
 		}
 
 		if id != nil {

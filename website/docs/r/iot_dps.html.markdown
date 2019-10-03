@@ -18,10 +18,10 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_iot_dps" "test" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_iot_dps" "example" {
+  name                = "example"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "S1"
@@ -43,6 +43,8 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
+* `linked_hub` - (Optional) A `linked_hub` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -54,6 +56,20 @@ A `sku` block supports the following:
 * `tier` - (Required) The billing tier for the IoT Device Provisioning Service. Possible values are `Basic`, `Free` or `Standard`.
 
 * `capacity` - (Required) The number of provisioned IoT Device Provisioning Service units.
+
+---
+
+A `linked_hub` block supports the following:
+
+* `connection_string` - (Required) The connection string to connect to the IoT Hub. Changing this forces a new resource.
+
+* `location` - (Required) The location of the IoT hub. Changing this forces a new resource.
+
+* `apply_application_policy` - (Optional) Determines whether to apply application policies to the IoT Hub. Defaults to false.
+
+* `allocation_weight` - (Optional) The weight applied to the IoT Hub. Defaults to 0.
+
+* `hostname` - (Computed) The IoT Hub hostname.
 
 ## Attributes Reference
 

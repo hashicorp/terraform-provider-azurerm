@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.28.0"
+  version = "=1.34.0"
 }
 ```
 
@@ -50,7 +50,7 @@ provider "azurerm" {
 At a high level, we're intending for version 2.0 to include the following changes:
 
 * [Changes when importing existing resources](#changes-when-importing-existing-resources) - when bringing Resources provisioned outside of Terraform under Terraform's control, these resources will now be required to be imported.
-* [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#timeouts).
+* [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#operation-timeouts).
 * [New resources for Virtual Machines and Virtual Machine Scale Sets](#new-resources-for-virtual-machines-and-virtual-machine-scale-sets).
 * [Removing Fields, Data Sources and Resources which have been deprecated](#removal-of-deprecated-fields-data-sources-and-resources).
 
@@ -145,6 +145,18 @@ The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provi
 
 A guide on how to migrate to using the new Provider [can be found here](https://www.terraform.io/docs/providers/azurerm/guides/migrating-to-azuread.html).
 
+### Data Soure: `azurerm_api_management`
+
+The depricated field `sku` will be removed in favour of the `sku_name` property.
+
+### Data Source: `azurerm_client_config`
+
+The deprecated fields `service_principal_object_id` and `service_principal_application_id` will be removed. They have been replaced with the `object_id` and `client_id` respectively.
+
+### Data Source: `azurerm_dns_zone`
+
+The deprecated field `zone_type` will be removed. Private DNS Zones are now a separate resource in both Azure and Terraform.
+
 ### Data Source: `azurerm_kubernetes_cluster`
 
 The deprecated field `dns_prefix` within the `agent_pool_profile` block will be removed.
@@ -160,6 +172,10 @@ Azure Scheduler is being retired in favour of Logic Apps ([more information can 
 ### Data Source: `azurerm_virtual_network`
 
 The deprecated field `address_space` will be removed.
+
+### Resource: `azurerm_api_management`
+
+The depricated field `sku` will be removed in favour of the `sku_name` property.
 
 ### Resource: `azurerm_app_service_plan`
 
@@ -226,6 +242,10 @@ The `preference` field in the `record` block will change from a String to an Int
 ### Resource: `azurerm_dns_ns_record`
 
 The deprecated `record` field will be removed. This has been replaced by the `records` field which accepts multiple values.
+
+### Resource: `azurerm_dns_zone`
+
+The deprecated `zone_type` field will be removed. This has been replaced by the `azurerm_private_dns_zone` resource.
 
 ### Resource: `azurerm_eventhub`
 
@@ -339,6 +359,30 @@ The deprecated `enable_filtering_messages_before_publishing` field will be remov
 
 The deprecated `account_type` field will be removed. This has been split into the fields `account_tier` and `account_replication_type`.
 
+### Resource: `azurerm_storage_blob`
+
+The deprecated `attempts` field will be removed, since Terraform now handles retries automatically.
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_storage_container`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+The deprecated `properties` block will be removed.
+
+### Resource: `azurerm_storage_queue`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_storage_share`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
+### Resource: `azurerm_storage_table`
+
+The deprecated `resource_group_name` field will be removed, since this is no longer used.
+
 ### Resource: `azurerm_subnet`
 
 The deprecated field `network_security_group_id` will be removed. This has been replaced by the `azurerm_subnet_network_security_group_association` resource.
@@ -360,6 +404,15 @@ The `azurerm_virtual_machine_scale_set` resource will be deprecated in favour of
 Splitting the Virtual Machine Scale Set resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
 The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_log_analytics_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
+### Resource: `azurerm_log_analytics_workspace_linked_service`
+
+The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
+
 
 ---
 

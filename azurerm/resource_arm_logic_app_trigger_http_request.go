@@ -24,7 +24,6 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			relativePath := diff.Get("relative_path").(string)
 			if relativePath != "" {
 				method := diff.Get("method").(string)
@@ -61,11 +60,11 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(http.MethodDelete),
-					string(http.MethodGet),
-					string(http.MethodPatch),
-					string(http.MethodPost),
-					string(http.MethodPut),
+					http.MethodDelete,
+					http.MethodGet,
+					http.MethodPatch,
+					http.MethodPost,
+					http.MethodPut,
 				}, false),
 			},
 
@@ -113,7 +112,7 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -169,7 +168,7 @@ func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

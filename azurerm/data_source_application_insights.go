@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -44,13 +45,16 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
 func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsClient
+	client := meta.(*ArmClient).appInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -70,7 +74,5 @@ func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface
 	d.Set("location", resp.Location)
 	d.Set("app_id", resp.AppID)
 	d.Set("application_type", resp.ApplicationType)
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

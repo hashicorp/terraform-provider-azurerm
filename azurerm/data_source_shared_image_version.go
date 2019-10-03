@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,13 +67,13 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).galleryImageVersionsClient
+	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	imageVersion := d.Get("name").(string)
@@ -109,18 +110,16 @@ func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{
 			if err := d.Set("target_region", flattenedRegions); err != nil {
 				return fmt.Errorf("Error setting `target_region`: %+v", err)
 			}
+		}
 
+		if profile := props.StorageProfile; profile != nil {
 			if source := profile.Source; source != nil {
-				if image := source.ManagedImage; image != nil {
-					d.Set("managed_image_id", image.ID)
-				}
+				d.Set("managed_image_id", source.ID)
 			}
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetRegion) []interface{} {

@@ -39,7 +39,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 }
 
 func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
+	client := meta.(*ArmClient).managementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	groupId := d.Get("group_id").(string)
@@ -79,7 +79,6 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil
@@ -98,7 +97,7 @@ func flattenArmManagementGroupDataSourceSubscriptionIds(input *[]managementgroup
 
 		id, err := parseManagementGroupSubscriptionID(*child.ID)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse child subscription ID %+v", err)
+			return nil, fmt.Errorf("Unable to parse child Subscription ID %+v", err)
 		}
 
 		if id != nil {

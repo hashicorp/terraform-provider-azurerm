@@ -11,6 +11,9 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -244,7 +247,7 @@ func resourceArmRedisCache() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
@@ -264,10 +267,10 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	family := redis.SkuFamily(d.Get("family").(string))
 	sku := redis.SkuName(d.Get("sku_name").(string))
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -315,16 +318,16 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
-		parsed, parseErr := parseAzureResourceID(v.(string))
+		parsed, parseErr := azure.ParseAzureResourceID(v.(string))
 		if parseErr != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", v.(string))
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		azureRMLockByName(subnetName, subnetResourceName)
-		defer azureRMUnlockByName(subnetName, subnetResourceName)
-		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
@@ -388,8 +391,8 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	family := redis.SkuFamily(d.Get("family").(string))
 	sku := redis.SkuName(d.Get("sku_name").(string))
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
@@ -470,7 +473,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -543,16 +546,14 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -568,16 +569,16 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	}
 	props := *read.Properties
 	if subnetID := props.SubnetID; subnetID != nil {
-		parsed, parseErr := parseAzureResourceID(*subnetID)
+		parsed, parseErr := azure.ParseAzureResourceID(*subnetID)
 		if parseErr != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", *subnetID)
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		azureRMLockByName(subnetName, subnetResourceName)
-		defer azureRMUnlockByName(subnetName, subnetResourceName)
-		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 	}
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
@@ -599,7 +600,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGroupName string, sgName string) resource.StateRefreshFunc {
+func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGroupName string, sgName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, sgName)
 		if err != nil {

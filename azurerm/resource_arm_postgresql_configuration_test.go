@@ -124,7 +124,7 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).postgres.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -146,11 +146,10 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 
 func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).postgres.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
@@ -173,7 +172,7 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 }
 
 func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
+	client := testAccProvider.Meta().(*ArmClient).postgres.ConfigurationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -237,7 +236,7 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-   name     = "GP_Gen5_2"
+    name     = "GP_Gen5_2"
     capacity = 2
     tier     = "GeneralPurpose"
     family   = "Gen5"
