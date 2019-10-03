@@ -120,7 +120,11 @@ The following arguments are supported:
 
 * `delete_os_disk_on_termination` - (Optional) Should the OS Disk (either the Managed Disk / VHD Blob) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
 
+~> **Note:** This setting works when instance is deleted via Terraform only and don't forget to delete disks manually if you deleted VM manually. It can increase spending.
+
 * `delete_data_disks_on_termination` - (Optional) Should the Data Disks (either the Managed Disks / VHD Blobs) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
+
+-> **Note:** This setting works when instance is deleted via Terraform only and don't forget to delete disks manually if you deleted VM manually. It can increase spending.
 
 * `identity` - (Optional) A `identity` block.
 

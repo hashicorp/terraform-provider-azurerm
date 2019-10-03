@@ -55,6 +55,8 @@ func resourceArmAppServiceSlot() *schema.Resource {
 
 			"auth_settings": azure.SchemaAppServiceAuthSettings(),
 
+			"logs": azure.SchemaAppServiceLogsConfig(),
+
 			"client_affinity_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -308,6 +310,25 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	// the logging configuration has a dependency on the app settings in Azure
+	// e.g. configuring logging to blob storage will add the DIAGNOSTICS_AZUREBLOBCONTAINERSASURL
+	// and DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS app settings to the app service.
+	// If the app settings are updated, also update the logging configuration if it exists, otherwise
+	// updating the former will clobber the log settings
+	_, hasLogs := d.GetOkExists("logs")
+	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
+		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
+		id := d.Id()
+		logsResource := web.SiteLogsConfig{
+			ID:                       &id,
+			SiteLogsConfigProperties: &logs,
+		}
+
+		if _, err := client.UpdateDiagnosticLogsConfigSlot(ctx, resourceGroup, appServiceName, logsResource, slot); err != nil {
+			return fmt.Errorf("Error updating Diagnostics Logs for App Service Slot %q/%q: %+v", appServiceName, slot, err)
+		}
+	}
+
 	if d.HasChange("connection_string") {
 		// update the ConnectionStrings
 		connectionStrings := expandAppServiceConnectionStrings(d)
@@ -375,6 +396,11 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading Auth Settings for Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
 	}
 
+	logsResp, err := client.GetDiagnosticLogsConfigurationSlot(ctx, resourceGroup, appServiceName, slot)
+	if err != nil {
+		return fmt.Errorf("Error retrieving the DiagnosticsLogsConfiguration for Slot %q (App Service %q / Resource Group %q): %s", slot, appServiceName, resourceGroup, err)
+	}
+
 	appSettingsResp, err := client.ListApplicationSettingsSlot(ctx, resourceGroup, appServiceName, slot)
 	if err != nil {
 		if utils.ResponseWasNotFound(appSettingsResp.Response) {
@@ -419,9 +445,18 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("https_only", props.HTTPSOnly)
 	}
 
-	if err := d.Set("app_settings", flattenAppServiceAppSettings(appSettingsResp.Properties)); err != nil {
+	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
+
+	// remove DIAGNOSTICS*, WEBSITE_HTTPLOGGING* settings - Azure will sync these, so just maintain the logs block equivalents in the state
+	delete(appSettings, "DIAGNOSTICS_AZUREBLOBCONTAINERSASURL")
+	delete(appSettings, "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS")
+	delete(appSettings, "WEBSITE_HTTPLOGGING_CONTAINER_URL")
+	delete(appSettings, "WEBSITE_HTTPLOGGING_RETENTION_DAYS")
+
+	if err := d.Set("app_settings", appSettings); err != nil {
 		return fmt.Errorf("Error setting `app_settings`: %s", err)
 	}
+
 	if err := d.Set("connection_string", flattenAppServiceConnectionStrings(connectionStringsResp.Properties)); err != nil {
 		return fmt.Errorf("Error setting `connection_string`: %s", err)
 	}
@@ -429,6 +464,11 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 	authSettings := azure.FlattenAppServiceAuthSettings(authResp.SiteAuthSettingsProperties)
 	if err := d.Set("auth_settings", authSettings); err != nil {
 		return fmt.Errorf("Error setting `auth_settings`: %s", err)
+	}
+
+	logs := azure.FlattenAppServiceLogs(logsResp.SiteLogsConfigProperties)
+	if err := d.Set("logs", logs); err != nil {
+		return fmt.Errorf("Error setting `logs`: %s", err)
 	}
 
 	identity := azure.FlattenAppServiceIdentity(resp.Identity)

@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -74,11 +75,14 @@ type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
 	clients.Client
 
-	clientId                 string
-	tenantId                 string
-	subscriptionId           string
-	partnerId                string
+	clientId       string
+	tenantId       string
+	subscriptionId string
+	partnerId      string
+
+	getAuthenticatedObjectID func(context.Context) (string, error)
 	usingServicePrincipal    bool
+
 	environment              azure.Environment
 	skipProviderRegistration bool
 
@@ -146,7 +150,7 @@ type ArmClient struct {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
@@ -162,6 +166,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		partnerId:                partnerId,
 		environment:              *env,
 		usingServicePrincipal:    authConfig.AuthenticatedAsAServicePrincipal,
+		getAuthenticatedObjectID: authConfig.GetAuthenticatedObjectID,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
@@ -192,7 +197,10 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	}
 
 	// Storage Endpoints
-	storageAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
+	storageAuth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Storage)
+	if err != nil {
+		return nil, err
+	}
 
 	// Key Vault Endpoints
 	keyVaultAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
@@ -201,6 +209,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		SubscriptionId:              authConfig.SubscriptionID,
 		TenantID:                    authConfig.TenantID,
 		PartnerId:                   partnerId,
+		TerraformVersion:            tfVersion,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,

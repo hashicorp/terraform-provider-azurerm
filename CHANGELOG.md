@@ -2,10 +2,16 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_app_service_certificate` [GH-4468]
 * **New Data Source:** `azurerm_public_ip_prefix` [GH-4340]
+* **New Data Source:** `azurerm_storage_management_policy` [GH-3819]
 * **New Resource:** `azurerm_bot_channel_slack` [GH-4367]
-* **New Resource:** `azurerm_dashboard` [GH-4357]
+* **New Resource:** `azurerm_bot_channel_email` [GH-4389]
 * **New Resource:** `azurerm_bot_web_app` [GH-4411]
+* **New Resource:** `azurerm_dashboard` [GH-4357]
+* **New Resource:** `azurerm_eventhub_namespace_disaster_recovery_config` [GH-4425]
+* **New Resource:** `azurerm_storage_data_lake_gen2_filesystem` [GH-4457]
+* **New Resource:** `azurerm_storage_management_policy` [GH-3819]
 
 IMPROVEMENTS:
 
@@ -13,15 +19,24 @@ IMPROVEMENTS:
 * kusto: updating to API version `2019-05-15` [GH-4376]
 * `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` [GH-4397]
 * `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property [GH-3154]
+* `azurerm_app_service_custom_hostname_binding` - support for `ssl_state` and `thumbprint` [GH-4204]
+* `azurerm_app_service_slot` - support for `logs` [GH-4473]
+* `azurerm_application_insights_analytics_item` - Add support for App Insights Analytics Items [GH-4374]
+* `azurerm_kubernetes_cluster` - support for updating the Service Principal [GH-4469]
+* `azurerm_function_app` - changes to `app_service_plan_id` no longer force a new resource [GH-4439]
 * `azurerm_eventhub_namespace` - support for the `network_rulesets` property [GH-4409]
 * `azurerm_servicebus_namespace` - support for `zone_redundant` [GH-4432]
 
 BUG FIXES:
 
+* provider: Ensuring the user agent is configured [GH-4463]
+* provider: Use real Terraform version [GH-4464]
 * `azurerm_container_registry` - checking the `name` is globally unique during creation [GH-4424]
 * `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
+* `azurerm_kubernetes_cluster` - fixing a bug where upgrading to 1.34.0 would require resource recreation [GH-4469]
 * `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read [GH-4344]
 * `azurerm_role_assignment` - changing the `skip_service_principal_aad_check` property no longer forces a new resource [GH-4412]
+* `azurerm_storage_blob` - reading the properties after an update [GH-4452]
 
 ## 1.34.0 (September 18, 2019)
 

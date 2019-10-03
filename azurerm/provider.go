@@ -56,6 +56,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_api_management_product":                  dataSourceApiManagementProduct(),
 		"azurerm_api_management_user":                     dataSourceArmApiManagementUser(),
 		"azurerm_app_service_plan":                        dataSourceAppServicePlan(),
+		"azurerm_app_service_certificate":                 dataSourceAppServiceCertificate(),
 		"azurerm_app_service":                             dataSourceArmAppService(),
 		"azurerm_application_insights":                    dataSourceArmApplicationInsights(),
 		"azurerm_application_security_group":              dataSourceArmApplicationSecurityGroup(),
@@ -131,6 +132,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_account_blob_container_sas":      dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                     dataSourceArmStorageAccountSharedAccessSignature(),
 		"azurerm_storage_account":                         dataSourceArmStorageAccount(),
+		"azurerm_storage_management_policy":               dataSourceArmStorageManagementPolicy(),
 		"azurerm_subnet":                                  dataSourceArmSubnet(),
 		"azurerm_subscription":                            dataSourceArmSubscription(),
 		"azurerm_subscriptions":                           dataSourceArmSubscriptions(),
@@ -175,6 +177,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_application_gateway":                                resourceArmApplicationGateway(),
 		"azurerm_application_insights_api_key":                       resourceArmApplicationInsightsAPIKey(),
 		"azurerm_application_insights":                               resourceArmApplicationInsights(),
+		"azurerm_application_insights_analytics_item":                resourceArmApplicationInsightsAnalyticsItem(),
 		"azurerm_application_insights_web_test":                      resourceArmApplicationInsightsWebTests(),
 		"azurerm_application_security_group":                         resourceArmApplicationSecurityGroup(),
 		"azurerm_automation_account":                                 resourceArmAutomationAccount(),
@@ -196,6 +199,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_batch_account":                                      resourceArmBatchAccount(),
 		"azurerm_batch_application":                                  resourceArmBatchApplication(),
 		"azurerm_batch_certificate":                                  resourceArmBatchCertificate(),
+		"azurerm_bot_channel_email":                                  resourceArmBotChannelEmail(),
 		"azurerm_bot_channel_slack":                                  resourceArmBotChannelSlack(),
 		"azurerm_bot_channels_registration":                          resourceArmBotChannelsRegistration(),
 		"azurerm_bot_connection":                                     resourceArmBotConnection(),
@@ -256,6 +260,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_eventhub_authorization_rule":                        resourceArmEventHubAuthorizationRule(),
 		"azurerm_eventhub_consumer_group":                            resourceArmEventHubConsumerGroup(),
 		"azurerm_eventhub_namespace_authorization_rule":              resourceArmEventHubNamespaceAuthorizationRule(),
+		"azurerm_eventhub_namespace_disaster_recovery_config":        resourceArmEventHubNamespaceDisasterRecoveryConfig(),
 		"azurerm_eventhub_namespace":                                 resourceArmEventHubNamespace(),
 		"azurerm_eventhub":                                           resourceArmEventHub(),
 		"azurerm_express_route_circuit_authorization":                resourceArmExpressRouteCircuitAuthorization(),
@@ -411,6 +416,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_account":                                                        resourceArmStorageAccount(),
 		"azurerm_storage_blob":                                                           resourceArmStorageBlob(),
 		"azurerm_storage_container":                                                      resourceArmStorageContainer(),
+		"azurerm_storage_data_lake_gen2_filesystem":                                      resourceArmStorageDataLakeGen2FileSystem(),
+		"azurerm_storage_management_policy":                                              resourceArmStorageManagementPolicy(),
 		"azurerm_storage_queue":                                                          resourceArmStorageQueue(),
 		"azurerm_storage_share":                                                          resourceArmStorageShare(),
 		"azurerm_storage_share_directory":                                                resourceArmStorageShareDirectory(),
@@ -636,7 +643,14 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
 		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
 
-		client, err := getArmClient(config, skipProviderRegistration, partnerId, disableCorrelationRequestID)
+		terraformVersion := p.TerraformVersion
+		if terraformVersion == "" {
+			// Terraform 0.12 introduced this field to the protocol
+			// We can therefore assume that if it's missing it's 0.10 or 0.11
+			terraformVersion = "0.11+compatible"
+		}
+
+		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID)
 		if err != nil {
 			return nil, err
 		}
