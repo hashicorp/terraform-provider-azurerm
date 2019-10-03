@@ -50,7 +50,7 @@ provider "azurerm" {
 At a high level, we're intending for version 2.0 to include the following changes:
 
 * [Changes when importing existing resources](#changes-when-importing-existing-resources) - when bringing Resources provisioned outside of Terraform under Terraform's control, these resources will now be required to be imported.
-* [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#timeouts).
+* [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#operation-timeouts).
 * [New resources for Virtual Machines and Virtual Machine Scale Sets](#new-resources-for-virtual-machines-and-virtual-machine-scale-sets).
 * [Removing Fields, Data Sources and Resources which have been deprecated](#removal-of-deprecated-fields-data-sources-and-resources).
 
