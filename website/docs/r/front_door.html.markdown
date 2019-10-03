@@ -82,6 +82,8 @@ The following arguments are supported:
 
 * `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
 
+* `enforce_backend_pools_certificate_name_check` - (Required) Whether to enforce certificate name check on HTTPS requests to all backend pools. No effect on non-HTTPS requests. Permitted values are `true` or `false`.
+
 * `load_balancer_enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are `true` or `false` Defaults to `true`.
 
 * `friendly_name` - (Optional) A friendly name for the Front Door service.
