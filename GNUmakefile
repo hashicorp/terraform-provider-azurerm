@@ -46,10 +46,10 @@ lintstatic:
 	(while true; do sleep 300; echo "(Hey travis! I'm still alive and linting)"; done) & PID=$$!; echo $$PID; \
 	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=staticcheck; ES=$$?; kill -9 $$PID; exit $$ES
 
-linttravis:
+lintrest:
 	@echo "==> Checking source code against linters..."
 	(while true; do sleep 300; echo "(Hey travis! I'm still alive and linting)"; done) & PID=$$!; echo $$PID; \
-    golangci-lint run ./... -v --concurrency 1 --deadline=30m10s ; ES=$$?; kill -9 $$PID; exit $$ES
+    golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travisrest.yml ; ES=$$?; kill -9 $$PID; exit $$ES
 
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
