@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `name` - (Required) Name of the Front Door which is globally unique. Changing this forces a new resource to be created.
 
-* `resource_group` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
 
 * `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
