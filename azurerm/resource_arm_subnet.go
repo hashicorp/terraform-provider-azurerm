@@ -126,9 +126,10 @@ func resourceArmSubnet() *schema.Resource {
 				},
 			},
 
-			"private_link_service_network_policies": {
-				Type:     schema.TypeString,
+			"disable_private_link_service_network_policies": {
+				Type:     schema.TypeBool,
 				Optional: true,
+				Default: false,
 			},
 		},
 	}
@@ -166,8 +167,18 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		AddressPrefix: &addressPrefix,
 	}
 
-	if v, ok := d.GetOk("private_link_service_network_policies"); ok {
-		privateLinkServiceNetworkPolicies := v.(string)
+	if v, ok := d.GetOk("disable_private_link_service_network_policies"); ok {
+		// This is strange logic, but to get the schema to make sense for the end user 
+		// I exposed it with the same name that the Azure CLI does to be consistent 
+		// between the tool sets, which means true == Disabled. 
+		// 
+		// To enable private endpoints you must disable the network policies for the 
+		// subnet because Network policies like network security groups are not  
+		// supported by private endpoints.
+		privateLinkServiceNetworkPolicies := "Enabled"
+		if v.(bool) {
+			privateLinkServiceNetworkPolicies := "Disabled"
+		}
 		properties.PrivateLinkServiceNetworkPolicies = &privateLinkServiceNetworkPolicies
 	}
 
@@ -267,11 +278,18 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
-		var privateLinkServiceNetworkPolicies *string
-		if props.PrivateLinkServiceNetworkPolicies != nil {
-			privateLinkServiceNetworkPolicies = props.PrivateLinkServiceNetworkPolicies
+		// This is strange logic, but to get the schema to make sense for the end user 
+		// I exposed it with the same name that the Azure CLI does to be consistent 
+		// between the tool sets, which means true == Disabled. 
+		// 
+		// To enable private endpoints you must disable the network policies for the 
+		// subnet because Network policies like network security groups are not  
+		// supported by private endpoints.
+		if privateLinkServiceNetworkPolicies := props.PrivateLinkServiceNetworkPolicies; privateLinkServiceNetworkPolicies != nil {
+			if err := d.Set("disable_private_link_service_network_policies", *privateLinkServiceNetworkPolicies == "Disabled"); err != nil { 
+				return err 
+			}
 		}
-		d.Set("private_link_service_network_policies", privateLinkServiceNetworkPolicies)
 
 		var securityGroupId *string
 		if props.NetworkSecurityGroup != nil {
