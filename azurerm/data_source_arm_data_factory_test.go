@@ -29,7 +29,7 @@ func TestAccAzureRMDataFactoryDataSource_basic(t *testing.T) {
 }
 
 func testAccAzureRMDataFactoryDataSource_basic(rInt int, location string) string {
-	config := testAccAzureRMDataFactoryDataSource_basic(rInt, location)
+	config := testAccAzureRMDataFactory_basic(rInt, location)
 	return fmt.Sprintf(`
     %s
 
