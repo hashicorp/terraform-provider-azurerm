@@ -71,7 +71,9 @@ The following arguments are supported:
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 
-* `private_endpoint_network_policies` - (Optional) Enable or Disable apply network policies on private end point in the subnet.
+* `disable_private_endpoint_network_policies` - (Optional) Enable or Disable network policies on private end point in the subnet. Default valule is `false`.
+
+-> **NOTE:** Network policies like network security groups (NSG) are not supported for private endpoints. In order to deploy a Private Endpoint on a given subnet, an explicit disable setting is required on that subnet. This setting is only applicable for the Private Endpoint. For other resources in the subnet, access is controlled based on Network Security Groups (NSG) security rules definition.
 
 ---
 

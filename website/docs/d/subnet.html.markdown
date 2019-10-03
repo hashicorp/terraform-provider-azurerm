@@ -38,4 +38,4 @@ output "subnet_id" {
 * `route_table_id` - The ID of the Route Table associated with this subnet.
 * `ip_configurations` - The collection of IP Configurations with IPs within this subnet.
 * `service_endpoints` - A list of Service Endpoints within this subnet.
-* `private_endpoint_network_policies` - Enable or Disable apply network policies on private end point in the subnet.
+* `disable_private_endpoint_network_policies` - Enable or Disable network policies on private end point in the subnet.
