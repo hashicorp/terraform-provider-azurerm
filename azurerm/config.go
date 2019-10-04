@@ -88,13 +88,13 @@ type ArmClient struct {
 
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	analysisservices *analysisservices.Client
-	apiManagement    *apimanagement.Client
-	appInsights      *applicationinsights.Client
-	automation       *automation.Client
-	authorization    *authorization.Client
-	batch            *batch.Client
-	bot              *bot.Client
+	AnalysisServices *analysisservices.Client
+	ApiManagement    *apimanagement.Client
+	AppInsights      *applicationinsights.Client
+	Automation       *automation.Client
+	Authorization    *authorization.Client
+	Batch            *batch.Client
+	Bot              *bot.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	compute          *clients.ComputeClient
@@ -222,13 +222,13 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		Environment:                 *env,
 	}
 
-	client.analysisservices = analysisservices.BuildClient(o)
-	client.apiManagement = apimanagement.BuildClient(o)
-	client.appInsights = applicationinsights.BuildClient(o)
-	client.automation = automation.BuildClient(o)
-	client.authorization = authorization.BuildClient(o)
-	client.batch = batch.BuildClient(o)
-	client.bot = bot.BuildClient(o)
+	client.AnalysisServices = analysisservices.BuildClient(o)
+	client.ApiManagement = apimanagement.BuildClient(o)
+	client.AppInsights = applicationinsights.BuildClient(o)
+	client.Automation = automation.BuildClient(o)
+	client.Authorization = authorization.BuildClient(o)
+	client.Batch = batch.BuildClient(o)
+	client.Bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
 	client.compute = clients.NewComputeClient(o)

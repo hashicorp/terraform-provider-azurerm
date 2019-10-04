@@ -113,7 +113,7 @@ func resourceArmBotWebApp() *schema.Resource {
 }
 
 func resourceArmBotWebAppCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -174,7 +174,7 @@ func resourceArmBotWebAppCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -215,7 +215,7 @@ func resourceArmBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -263,7 +263,7 @@ func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBotWebAppDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

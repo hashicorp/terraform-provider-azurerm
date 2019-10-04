@@ -54,7 +54,7 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 }
 
 func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.ComponentsClient
+	client := meta.(*ArmClient).AppInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

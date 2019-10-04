@@ -94,7 +94,7 @@ func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.ModuleClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.ModuleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -142,7 +142,7 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Automation Module: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automation.ModuleClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.ModuleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

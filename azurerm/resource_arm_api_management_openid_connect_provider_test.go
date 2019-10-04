@@ -107,7 +107,7 @@ func testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName strin
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagement.OpenIdConnectClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.OpenIdConnectClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, serviceName, name); err != nil {
@@ -122,7 +122,7 @@ func testCheckAzureRMApiManagementOpenIDConnectProviderExists(resourceName strin
 }
 
 func testCheckAzureRMApiManagementOpenIDConnectProviderDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagement.OpenIdConnectClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.OpenIdConnectClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -119,7 +119,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.WebTestsClient
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
@@ -195,7 +195,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.WebTestsClient
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -254,7 +254,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.WebTestsClient
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

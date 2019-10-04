@@ -50,7 +50,7 @@ func resourceArmApiManagementApiOperationPolicy() *schema.Resource {
 }
 
 func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
+	client := meta.(*ArmClient).ApiManagement.ApiOperationPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -111,7 +111,7 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 }
 
 func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
+	client := meta.(*ArmClient).ApiManagement.ApiOperationPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -149,7 +149,7 @@ func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta
 }
 
 func resourceArmApiManagementAPIOperationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
+	client := meta.(*ArmClient).ApiManagement.ApiOperationPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

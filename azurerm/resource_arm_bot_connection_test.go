@@ -100,7 +100,7 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).bot.ConnectionClient
+		client := testAccProvider.Meta().(*ArmClient).Bot.ConnectionClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, name)
@@ -117,7 +117,7 @@ func testCheckAzureRMBotConnectionExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMBotConnectionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).bot.ConnectionClient
+	client := testAccProvider.Meta().(*ArmClient).Bot.ConnectionClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

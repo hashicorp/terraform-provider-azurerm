@@ -191,7 +191,7 @@ func testCheckAzureRMRoleDefinitionExists(resourceName string) resource.TestChec
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).authorization.RoleDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).Authorization.RoleDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 
@@ -215,7 +215,7 @@ func testCheckAzureRMRoleDefinitionDestroy(s *terraform.State) error {
 		scope := rs.Primary.Attributes["scope"]
 		roleDefinitionId := rs.Primary.Attributes["role_definition_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).authorization.RoleDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).Authorization.RoleDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, scope, roleDefinitionId)
 

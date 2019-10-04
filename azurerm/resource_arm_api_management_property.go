@@ -60,7 +60,7 @@ func resourceArmApiManagementProperty() *schema.Resource {
 }
 
 func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.PropertyClient
+	client := meta.(*ArmClient).ApiManagement.PropertyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -109,7 +109,7 @@ func resourceArmApiManagementPropertyCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.PropertyClient
+	client := meta.(*ArmClient).ApiManagement.PropertyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -146,7 +146,7 @@ func resourceArmApiManagementPropertyRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementPropertyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.PropertyClient
+	client := meta.(*ArmClient).ApiManagement.PropertyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
