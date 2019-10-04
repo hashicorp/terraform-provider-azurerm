@@ -397,7 +397,7 @@ A `identity` block exports the following:
 
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Virtual Machine.
 
--> You can access the Principal ID via `${azurerm_virtual_machine.test.identity.principal_id}`
+-> You can access the Principal ID via `${azurerm_virtual_machine.test.identity.0.principal_id}`
 
 ## Import
 
