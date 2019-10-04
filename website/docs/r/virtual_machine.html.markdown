@@ -194,7 +194,7 @@ A `identity` block supports the following:
 
 -> **NOTE:** Managed Service Identity previously required the installation of a VM Extension, but this information [is now available via the Azure Instance Metadata Service](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview#how-does-it-work).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VM. Required if `type` is `UserAssigned`.
 
@@ -388,6 +388,16 @@ A `winrm` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Machine.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Virtual Machine.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Virtual Machine.
+
+-> You can access the Principal ID via `${azurerm_virtual_machine.test.identity.0.principal_id}`
 
 ## Import
 
