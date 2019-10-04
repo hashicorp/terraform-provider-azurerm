@@ -1,5 +1,9 @@
 ## 1.36.0 (Unreleased)
 
+EATURES:
+
+* **New Data Source:** `azurerm_data_factory` ([GH-4517]
+
 IMPROVEMENTS:
 
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
