@@ -18,18 +18,18 @@ func TestParseVirtualMachineScaleSetID(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "No Network Security Groups Segment",
+			Name:     "No Virtual Machine Scale Set Segment",
 			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo",
 			Expected: nil,
 		},
 		{
-			Name:     "No Network Security Groups Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/networkSecurityGroups/",
+			Name:     "No Virtual Machine Scale Set Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/",
 			Expected: nil,
 		},
 		{
 			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/networkSecurityGroups/example",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/virtualMachineScaleSets/example",
 			Expected: &VirtualMachineScaleSetResourceID{
 				Name: "example",
 				Base: azure.ResourceID{
