@@ -29,11 +29,9 @@ value = "${azurerm_data_factory.example.id}"
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the Data Factory. Changing this forces a new resource to be created. Must be globally unique. See the [Microsoft documentation](https://docs.microsoft.com/en-us/azure/data-factory/naming-rules) for all restrictions.
+* `name` - (Required) Specifies the name of the Data Factory to retrieve information about. 
 
 * `resource_group_name` - (Required) The name of the resource group where the Data Factory exists.
-
-
 
 ## Attributes Reference
 
