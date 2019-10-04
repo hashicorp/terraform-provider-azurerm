@@ -89,7 +89,7 @@ type ArmClient struct {
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
 	AnalysisServices *analysisservices.Client
-	apiManagement    *apimanagement.Client
+	ApiManagement    *apimanagement.Client
 	appInsights      *applicationinsights.Client
 	automation       *automation.Client
 	authorization    *authorization.Client
@@ -223,7 +223,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	}
 
 	client.AnalysisServices = analysisservices.BuildClient(o)
-	client.apiManagement = apimanagement.BuildClient(o)
+	client.ApiManagement = apimanagement.BuildClient(o)
 	client.appInsights = applicationinsights.BuildClient(o)
 	client.automation = automation.BuildClient(o)
 	client.authorization = authorization.BuildClient(o)

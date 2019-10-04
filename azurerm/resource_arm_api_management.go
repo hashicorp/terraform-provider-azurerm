@@ -393,7 +393,7 @@ func resourceArmApiManagementService() *schema.Resource {
 }
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	// TODO: Remove in 2.0
@@ -480,19 +480,19 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
-	signInClient := meta.(*ArmClient).apiManagement.SignInClient
+	signInClient := meta.(*ArmClient).ApiManagement.SignInClient
 	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings); err != nil {
 		return fmt.Errorf("Error setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
 	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
-	signUpClient := meta.(*ArmClient).apiManagement.SignUpClient
+	signUpClient := meta.(*ArmClient).ApiManagement.SignUpClient
 	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings); err != nil {
 		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	policyClient := meta.(*ArmClient).apiManagement.PolicyClient
+	policyClient := meta.(*ArmClient).ApiManagement.PolicyClient
 	policiesRaw := d.Get("policy").([]interface{})
 	policy, err := expandApiManagementPolicies(policiesRaw)
 	if err != nil {
@@ -519,7 +519,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -541,19 +541,19 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	signInClient := meta.(*ArmClient).apiManagement.SignInClient
+	signInClient := meta.(*ArmClient).ApiManagement.SignInClient
 	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	signUpClient := meta.(*ArmClient).apiManagement.SignUpClient
+	signUpClient := meta.(*ArmClient).ApiManagement.SignUpClient
 	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	policyClient := meta.(*ArmClient).apiManagement.PolicyClient
+	policyClient := meta.(*ArmClient).ApiManagement.PolicyClient
 	policy, err := policyClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(policy.Response) {
@@ -624,7 +624,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
