@@ -78,6 +78,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_kubernetes_service_versions":             dataSourceArmKubernetesServiceVersions(),
 		"azurerm_container_registry":                      dataSourceArmContainerRegistry(),
 		"azurerm_cosmosdb_account":                        dataSourceArmCosmosDbAccount(),
+		"azurerm_data_factory":                            dataSourceArmDataFactory(),
 		"azurerm_data_lake_store":                         dataSourceArmDataLakeStoreAccount(),
 		"azurerm_dev_test_lab":                            dataSourceArmDevTestLab(),
 		"azurerm_dev_test_virtual_network":                dataSourceArmDevTestVirtualNetwork(),
