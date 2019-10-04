@@ -156,6 +156,17 @@ A `agent_pool_profile` block supports the following:
 
 * `count` - (Optional) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 100 (inclusive). Defaults to `1`.
 
+~> **NOTE:** When `enable_auto_scaling` parameter is set to true, this value will dynamically change depending on the cluster's load. It is recommended to ignore changes to it with autoscaling enabled, since autoscaled clusters cannot be scaled manually.  This can be done by adding following lifecycle hook to the resource for each agent pool profile with autoscaling enabled.
+```
+resource "azurerm_kubernetes_cluster" "test" {
+  ...
+  lifecycle {
+    ignore_changes = [
+      "agent_pool_profile.0.count"
+    ]
+  }
+}
+```
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
 * `availability_zones` - (Optional)  Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.

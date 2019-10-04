@@ -1218,11 +1218,13 @@ func expandKubernetesClusterAgentPoolProfiles(profiles []containerservice.Manage
 			profiles[config_id].VnetSubnetID = utils.String(vnetSubnetID)
 		}
 
-		if maxCount := int32(config["max_count"].(int)); maxCount > 0 {
+		maxCount := int32(config["max_count"].(int))
+		if maxCount > 0 {
 			profiles[config_id].MaxCount = utils.Int32(maxCount)
 		}
 
-		if minCount := int32(config["min_count"].(int)); minCount > 0 {
+		minCount := int32(config["min_count"].(int))
+		if minCount > 0 {
 			profiles[config_id].MinCount = utils.Int32(minCount)
 		}
 
@@ -1230,12 +1232,25 @@ func expandKubernetesClusterAgentPoolProfiles(profiles []containerservice.Manage
 			profiles[config_id].EnableAutoScaling = utils.Bool(enableAutoScalingItf.(bool))
 		}
 
+		// If configuration disables autoscaling, reset MaxCount and MinCount fields received from API, so we can gracefully disable it
+		// However, if max_count or min_count is defined in configuration, we throw error later, since it is invalid user configuration
+		if !*profiles[config_id].EnableAutoScaling && (profiles[config_id].MaxCount != nil && maxCount <= 0) {
+			profiles[config_id].MaxCount = nil
+		}
+		if !*profiles[config_id].EnableAutoScaling && (profiles[config_id].MinCount != nil && minCount <= 0) {
+			profiles[config_id].MinCount = nil
+		}
+
 		if availavilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availavilityZones) > 0 {
 			profiles[config_id].AvailabilityZones = availavilityZones
 		}
 
+		// TODO this validation should be done before we attempt to create/modify the cluster
 		if *profiles[config_id].EnableAutoScaling && (profiles[config_id].MinCount == nil || profiles[config_id].MaxCount == nil) {
 			return nil, fmt.Errorf("Can't create an AKS cluster with autoscaling enabled but not setting min_count or max_count")
+		}
+		if !*profiles[config_id].EnableAutoScaling && (profiles[config_id].MinCount != nil || profiles[config_id].MaxCount != nil) {
+			return nil, fmt.Errorf("Can't create an AKS cluster with autoscaling disabled with set min_count or max_count settings")
 		}
 
 		if nodeTaints := utils.ExpandStringSlice(config["node_taints"].([]interface{})); len(*nodeTaints) > 0 {
