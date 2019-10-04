@@ -10,11 +10,13 @@ description: |-
 
 ~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
 
+~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. Read more about sensitive data in state.
+
 Manages a Linux Virtual Machine Scale Set.
 
-~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Managed Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
+~> **NOTE:** This resource does not support Unmanaged Disks. If you need to use Unmanaged Disks you can continue to use [the `azurerm_virtual_machine_scale_set` resource](virtual_machine_scale_set.html) instead
 
-~> **NOTE:** Terraform will automatically cycle the nodes in the Scale Set if Required during an Update (for example, when changing Sku) - you can opt out of this by setting the `terraform_should_roll_instances_when_required` field to `false`.
+~> **NOTE:** Terraform will automatically update & reimage the nodes in the Scale Set if Required during an Update (for example, when changing Sku) - you can opt out of this by setting the `terraform_should_roll_instances_when_required` field to `false`.
 
 ## Example Usage
 
