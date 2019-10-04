@@ -107,7 +107,7 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
+	vaultClient := meta.(*ArmClient).Keyvault.VaultsClient
 	client := meta.(*ArmClient).web.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 

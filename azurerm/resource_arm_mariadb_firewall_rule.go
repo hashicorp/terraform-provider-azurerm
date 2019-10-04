@@ -56,7 +56,7 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 }
 
 func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).Mariadb.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Firewall Rule creation.")
@@ -110,7 +110,7 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).Mariadb.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -140,7 +140,7 @@ func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMariaDBFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).Mariadb.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

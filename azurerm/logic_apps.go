@@ -24,7 +24,7 @@ func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, log
 }
 
 func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(logicAppId)
@@ -101,7 +101,7 @@ func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, res
 }
 
 func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q Deletion", logicAppName, resourceGroup, kind, name)
@@ -158,7 +158,7 @@ func retrieveLogicAppTrigger(meta interface{}, resourceGroup, logicAppName, name
 }
 
 func retrieveLogicAppComponent(meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)

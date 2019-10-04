@@ -118,7 +118,7 @@ func testCheckAzureRMMariaDbConfigurationValue(resourceName string, value string
 			return fmt.Errorf("Bad: no resource group found in state for MariaDb Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mariadb.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Mariadb.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -143,7 +143,7 @@ func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName 
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmariadbsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).mariadb.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Mariadb.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
@@ -166,7 +166,7 @@ func testCheckAzureRMMariaDbConfigurationValueReset(rInt int, configurationName 
 }
 
 func testCheckAzureRMMariaDbConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mariadb.ConfigurationsClient
+	client := testAccProvider.Meta().(*ArmClient).Mariadb.ConfigurationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
