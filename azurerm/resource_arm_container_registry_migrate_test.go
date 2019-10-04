@@ -105,7 +105,7 @@ func createResourceGroup(ctx context.Context, client *ArmClient, resourceGroupNa
 		Location: &location,
 	}
 
-	if _, err := client.resource.GroupsClient.CreateOrUpdate(ctx, resourceGroupName, group); err != nil {
+	if _, err := client.Resource.GroupsClient.CreateOrUpdate(ctx, resourceGroupName, group); err != nil {
 		return fmt.Errorf("Error creating Resource Group %q: %+v", resourceGroupName, err)
 	}
 	return nil
@@ -144,7 +144,7 @@ func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName,
 	if _, err := client.Storage.AccountsClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
 		log.Printf("[DEBUG] Error deleting Storage Account %q (Resource Group %q): %v", storageAccountName, resourceGroupName, err)
 	}
-	if _, err := client.resource.GroupsClient.Delete(ctx, resourceGroupName); err != nil {
+	if _, err := client.Resource.GroupsClient.Delete(ctx, resourceGroupName); err != nil {
 		log.Printf("[DEBUG] Error deleting Resource Group %q): %v", resourceGroupName, err)
 	}
 }
