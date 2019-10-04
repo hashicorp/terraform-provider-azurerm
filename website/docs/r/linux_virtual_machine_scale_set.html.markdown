@@ -380,6 +380,14 @@ An `identity` block exports the following:
 
 * `principal_id` - The ID of the System Managed Service Principal.
 
+### Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Linux Virtual Machine Scale Set.
+* `update` - (Defaults to 60 minutes) Used when updating (and rolling the instances of) the Linux Virtual Machine Scale Set (e.g. when changing SKU).
+* `delete` - (Defaults to 30 minutes) Used when deleting the Linux Virtual Machine Scale Set.
+
 ## Import
 
 Linux Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
