@@ -241,7 +241,7 @@ A `oms_agent` block supports the following:
 
 * `enabled` - (Required) Is the OMS Agent Enabled?
 
-* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+* `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
 
 ---
 
