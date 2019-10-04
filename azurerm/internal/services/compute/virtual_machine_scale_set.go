@@ -640,16 +640,6 @@ func expandVirtualMachineScaleSetIPConfigurationUpdate(raw map[string]interface{
 }
 
 func expandVirtualMachineScaleSetPublicIPAddressUpdate(raw map[string]interface{}) *compute.VirtualMachineScaleSetUpdatePublicIPAddressConfiguration {
-	ipTagsRaw := raw["ip_tag"].([]interface{})
-	ipTags := make([]compute.VirtualMachineScaleSetIPTag, 0)
-	for _, ipTagV := range ipTagsRaw {
-		ipTagRaw := ipTagV.(map[string]interface{})
-		ipTags = append(ipTags, compute.VirtualMachineScaleSetIPTag{
-			Tag:       utils.String(ipTagRaw["tag"].(string)),
-			IPTagType: utils.String(ipTagRaw["type"].(string)),
-		})
-	}
-
 	publicIPAddressConfig := compute.VirtualMachineScaleSetUpdatePublicIPAddressConfiguration{
 		Name: utils.String(raw["name"].(string)),
 		VirtualMachineScaleSetUpdatePublicIPAddressConfigurationProperties: &compute.VirtualMachineScaleSetUpdatePublicIPAddressConfigurationProperties{},
@@ -676,7 +666,6 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]compute.VirtualMachi
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-
 		var name, networkSecurityGroupId string
 		if v.Name != nil {
 			name = *v.Name
