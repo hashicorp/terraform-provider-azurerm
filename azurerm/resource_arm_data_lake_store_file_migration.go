@@ -25,7 +25,7 @@ func resourceDataLakeStoreFileStateV0toV1(is *terraform.InstanceState, meta inte
 
 	log.Printf("[DEBUG] ARM Data Lake Store File Attributes before Migration: %#v", is.Attributes)
 
-	client := meta.(*ArmClient).datalake.StoreFilesClient
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
 
 	storageAccountName := is.Attributes["account_name"]
 	filePath := is.Attributes["remote_file_path"]

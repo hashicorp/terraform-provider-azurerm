@@ -152,7 +152,7 @@ func resourceArmDataFactory() *schema.Resource {
 }
 
 func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.FactoriesClient
+	client := meta.(*ArmClient).DataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -214,7 +214,7 @@ func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.FactoriesClient
+	client := meta.(*ArmClient).DataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -266,7 +266,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.FactoriesClient
+	client := meta.(*ArmClient).DataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

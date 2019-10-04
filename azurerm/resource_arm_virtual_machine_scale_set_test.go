@@ -1220,7 +1220,7 @@ func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName strin
 		return nil, fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 	}
 
-	client := testAccProvider.Meta().(*ArmClient).compute.VMScaleSetClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.VMScaleSetClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	vmss, err := client.Get(ctx, resourceGroup, name)
@@ -1256,7 +1256,7 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMScaleSetClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMScaleSetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
@@ -1273,7 +1273,7 @@ func testCheckAzureRMVirtualMachineScaleSetDisappears(name string) resource.Test
 }
 
 func testCheckAzureRMVirtualMachineScaleSetDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).compute.VMScaleSetClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.VMScaleSetClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -1548,7 +1548,7 @@ func testCheckAzureRMVirtualMachineScaleSetHasDataDisks(name string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: scale set %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMScaleSetClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMScaleSetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

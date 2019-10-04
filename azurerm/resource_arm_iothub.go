@@ -420,7 +420,7 @@ func resourceArmIotHub() *schema.Resource {
 }
 
 func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
@@ -513,7 +513,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -608,7 +608,7 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := id.Path["IotHubs"]

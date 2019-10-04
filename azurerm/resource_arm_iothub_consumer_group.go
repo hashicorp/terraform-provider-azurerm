@@ -48,7 +48,7 @@ func resourceArmIotHubConsumerGroup() *schema.Resource {
 }
 
 func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM IoTHub Consumer Group creation.")
 
@@ -89,7 +89,7 @@ func resourceArmIotHubConsumerGroupCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -120,7 +120,7 @@ func resourceArmIotHubConsumerGroupRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmIotHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

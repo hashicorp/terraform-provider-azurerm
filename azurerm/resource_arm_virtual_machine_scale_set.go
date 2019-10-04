@@ -774,7 +774,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 }
 
 func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine Scale Set creation.")
@@ -933,7 +933,7 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -1091,7 +1091,7 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

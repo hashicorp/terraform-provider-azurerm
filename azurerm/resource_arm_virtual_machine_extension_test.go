@@ -132,7 +132,7 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMExtensionClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMExtensionClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
@@ -149,7 +149,7 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 }
 
 func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).compute.VMExtensionClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.VMExtensionClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

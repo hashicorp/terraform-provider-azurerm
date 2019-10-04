@@ -93,7 +93,7 @@ func testCheckAzureRMDataFactoryDatasetPostgreSQLExists(name string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactory.DatasetClient
+		client := testAccProvider.Meta().(*ArmClient).DataFactory.DatasetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -110,7 +110,7 @@ func testCheckAzureRMDataFactoryDatasetPostgreSQLExists(name string) resource.Te
 }
 
 func testCheckAzureRMDataFactoryDatasetPostgreSQLDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactory.DatasetClient
+	client := testAccProvider.Meta().(*ArmClient).DataFactory.DatasetClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

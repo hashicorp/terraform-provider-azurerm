@@ -68,7 +68,7 @@ func dataSourceArmDnsZone() *schema.Resource {
 }
 
 func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.ZonesClient
+	client := meta.(*ArmClient).Dns.ZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

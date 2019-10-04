@@ -623,7 +623,7 @@ resource "azurerm_container_registry_webhook" "test" {
 }
 
 func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).containers.WebhooksClient
+	client := testAccProvider.Meta().(*ArmClient).Containers.WebhooksClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_registry_webhook" {
@@ -669,7 +669,7 @@ func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no registry name found in state for Container Registry Webhook: %s", webhookName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).containers.WebhooksClient
+		client := testAccProvider.Meta().(*ArmClient).Containers.WebhooksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, webhookName)
 		if err != nil {

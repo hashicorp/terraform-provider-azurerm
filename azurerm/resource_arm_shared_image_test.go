@@ -96,7 +96,7 @@ func TestAccAzureRMSharedImage_complete(t *testing.T) {
 }
 
 func testCheckAzureRMSharedImageDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).compute.GalleryImagesClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.GalleryImagesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -139,7 +139,7 @@ func testCheckAzureRMSharedImageExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Shared Image: %s", imageName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.GalleryImagesClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.GalleryImagesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, galleryName, imageName)

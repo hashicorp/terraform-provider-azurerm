@@ -440,7 +440,7 @@ func resourceArmFrontDoor() *schema.Resource {
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -511,7 +511,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		frontendEndpointName := frontendEndpoint["name"].(string)
 
 		// Get current state of endpoint from Azure
-		client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
+		client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
 		ctx := meta.(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, frontendEndpointName)
@@ -557,7 +557,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
 	ctx := meta.(*ArmClient).StopContext
 
 	if enableCustomHttpsProvisioning {
@@ -584,7 +584,7 @@ func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(enableCustomHtt
 }
 
 func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -657,7 +657,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -1175,7 +1175,7 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 
 			// Need to call frontEndEndpointClient here to get customConfiguration information from that client
 			// because the information is hidden from the main frontDoorClient "by design"...
-			client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
+			client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
 			ctx := meta.(*ArmClient).StopContext
 
 			resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)

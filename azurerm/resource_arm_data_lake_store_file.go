@@ -53,7 +53,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 }
 
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreFilesClient
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 	chunkSize := 4 * 1024 * 1024
 
@@ -112,7 +112,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreFilesClient
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
@@ -138,7 +138,7 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreFilesClient
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)

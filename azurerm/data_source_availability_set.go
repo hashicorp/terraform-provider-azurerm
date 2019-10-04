@@ -50,7 +50,7 @@ func dataSourceArmAvailabilitySet() *schema.Resource {
 }
 
 func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

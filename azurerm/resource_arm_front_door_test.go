@@ -246,7 +246,7 @@ func testCheckAzureRMFrontDoorExists(resourceName string) resource.TestCheckFunc
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).frontdoor.FrontDoorsClient
+		client := testAccProvider.Meta().(*ArmClient).Frontdoor.FrontDoorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
@@ -261,7 +261,7 @@ func testCheckAzureRMFrontDoorExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).frontdoor.FrontDoorsClient
+	client := testAccProvider.Meta().(*ArmClient).Frontdoor.FrontDoorsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

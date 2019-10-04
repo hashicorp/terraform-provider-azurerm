@@ -15,7 +15,7 @@ func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(
 				continue
 			}
 
-			client := testAccProvider.Meta().(*ArmClient).hdinsight.ClustersClient
+			client := testAccProvider.Meta().(*ArmClient).Hdinsight.ClustersClient
 			ctx := testAccProvider.Meta().(*ArmClient).StopContext
 			name := rs.Primary.Attributes["name"]
 			resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -43,7 +43,7 @@ func testCheckAzureRMHDInsightClusterExists(resourceName string) resource.TestCh
 		clusterName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).hdinsight.ClustersClient
+		client := testAccProvider.Meta().(*ArmClient).Hdinsight.ClustersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
 		if err != nil {

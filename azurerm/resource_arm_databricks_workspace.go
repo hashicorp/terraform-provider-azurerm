@@ -68,7 +68,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 }
 
 func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).databricks.WorkspacesClient
+	client := meta.(*ArmClient).Databricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
@@ -141,7 +141,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).databricks.WorkspacesClient
+	client := meta.(*ArmClient).Databricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -187,7 +187,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).databricks.WorkspacesClient
+	client := meta.(*ArmClient).Databricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

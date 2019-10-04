@@ -95,23 +95,24 @@ type ArmClient struct {
 	Authorization    *authorization.Client
 	Batch            *batch.Client
 	Bot              *bot.Client
-	cdn              *cdn.Client
-	cognitive        *cognitive.Client
-	compute          *clients.ComputeClient
-	containers       *containers.Client
-	cosmos           *cosmos.Client
-	databricks       *databricks.Client
-	dataFactory      *datafactory.Client
-	datalake         *datalake.Client
-	devSpace         *devspace.Client
-	devTestLabs      *devtestlabs.Client
-	dns              *dns.Client
-	eventGrid        *eventgrid.Client
-	eventhub         *eventhub.Client
-	frontdoor        *frontdoor.Client
-	graph            *graph.Client
-	hdinsight        *hdinsight.Client
-	iothub           *iothub.Client
+	Cdn              *cdn.Client
+	Cognitive        *cognitive.Client
+	Compute          *clients.ComputeClient
+	Containers       *containers.Client
+	Cosmos           *cosmos.Client
+	Databricks       *databricks.Client
+	DataFactory      *datafactory.Client
+	Datalake         *datalake.Client
+	DevSpace         *devspace.Client
+	DevTestLabs      *devtestlabs.Client
+	Dns              *dns.Client
+	privateDns       *privatedns.Client
+	EventGrid        *eventgrid.Client
+	Eventhub         *eventhub.Client
+	Frontdoor        *frontdoor.Client
+	Graph            *graph.Client
+	Hdinsight        *hdinsight.Client
+	Iothub           *iothub.Client
 	Keyvault         *keyvault.Client
 	Kusto            *kusto.Client
 	LogAnalytics     *loganalytics.Client
@@ -229,23 +230,23 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Authorization = authorization.BuildClient(o)
 	client.Batch = batch.BuildClient(o)
 	client.Bot = bot.BuildClient(o)
-	client.cdn = cdn.BuildClient(o)
-	client.cognitive = cognitive.BuildClient(o)
-	client.compute = clients.NewComputeClient(o)
-	client.containers = containers.BuildClient(o)
-	client.cosmos = cosmos.BuildClient(o)
-	client.databricks = databricks.BuildClient(o)
-	client.dataFactory = datafactory.BuildClient(o)
-	client.datalake = datalake.BuildClient(o)
-	client.devSpace = devspace.BuildClient(o)
-	client.devTestLabs = devtestlabs.BuildClient(o)
-	client.dns = dns.BuildClient(o)
-	client.eventGrid = eventgrid.BuildClient(o)
-	client.eventhub = eventhub.BuildClient(o)
-	client.frontdoor = frontdoor.BuildClient(o)
-	client.graph = graph.BuildClient(o)
-	client.hdinsight = hdinsight.BuildClient(o)
-	client.iothub = iothub.BuildClient(o)
+	client.Cdn = cdn.BuildClient(o)
+	client.Cognitive = cognitive.BuildClient(o)
+	client.Compute = clients.NewComputeClient(o)
+	client.Containers = containers.BuildClient(o)
+	client.Cosmos = cosmos.BuildClient(o)
+	client.Databricks = databricks.BuildClient(o)
+	client.DataFactory = datafactory.BuildClient(o)
+	client.Datalake = datalake.BuildClient(o)
+	client.DevSpace = devspace.BuildClient(o)
+	client.DevTestLabs = devtestlabs.BuildClient(o)
+	client.Dns = dns.BuildClient(o)
+	client.EventGrid = eventgrid.BuildClient(o)
+	client.Eventhub = eventhub.BuildClient(o)
+	client.Frontdoor = frontdoor.BuildClient(o)
+	client.Graph = graph.BuildClient(o)
+	client.Hdinsight = hdinsight.BuildClient(o)
+	client.Iothub = iothub.BuildClient(o)
 	client.Keyvault = keyvault.BuildClient(o)
 	client.Kusto = kusto.BuildClient(o)
 	client.Logic = logic.BuildClient(o)

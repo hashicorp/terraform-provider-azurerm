@@ -109,7 +109,7 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdinsight.ClustersClient
+	client := meta.(*ArmClient).Hdinsight.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -199,8 +199,8 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
+	clustersClient := meta.(*ArmClient).Hdinsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).Hdinsight.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -88,7 +88,7 @@ func dataSourceArmDevTestVirtualNetwork() *schema.Resource {
 }
 
 func dataSourceArmDevTestVnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

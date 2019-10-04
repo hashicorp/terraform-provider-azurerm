@@ -121,7 +121,7 @@ func testCheckAzureRMActiveDirectoryServicePrincipalPasswordExists(resourceName 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).graph.ServicePrincipalsClient
+		client := testAccProvider.Meta().(*ArmClient).Graph.ServicePrincipalsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		id := strings.Split(rs.Primary.ID, "/")

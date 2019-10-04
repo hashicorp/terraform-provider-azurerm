@@ -94,7 +94,7 @@ func TestAccAzureRMEventGridDomain_basicWithTags(t *testing.T) {
 }
 
 func testCheckAzureRMEventGridDomainDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).eventGrid.DomainsClient
+	client := testAccProvider.Meta().(*ArmClient).EventGrid.DomainsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -136,7 +136,7 @@ func testCheckAzureRMEventGridDomainExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for EventGrid Domain: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).eventGrid.DomainsClient
+		client := testAccProvider.Meta().(*ArmClient).EventGrid.DomainsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

@@ -120,7 +120,7 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 }
 
 func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	iothubName := d.Get("iothub_name").(string)
@@ -190,7 +190,7 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
@@ -242,7 +242,7 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).Iothub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())

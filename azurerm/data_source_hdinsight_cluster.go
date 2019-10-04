@@ -88,8 +88,8 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 }
 
 func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
+	clustersClient := meta.(*ArmClient).Hdinsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).Hdinsight.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

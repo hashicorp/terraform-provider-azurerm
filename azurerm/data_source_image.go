@@ -115,7 +115,7 @@ func dataSourceArmImage() *schema.Resource {
 }
 
 func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ImagesClient
+	client := meta.(*ArmClient).Compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

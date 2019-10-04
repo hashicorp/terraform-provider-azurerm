@@ -203,7 +203,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
 	ctx := meta.(*ArmClient).StopContext
-	containerServiceClient := client.containers.ServicesClient
+	containerServiceClient := client.Containers.ServicesClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Container Service creation.")
 
@@ -285,7 +285,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
-	containerServiceClient := meta.(*ArmClient).containers.ServicesClient
+	containerServiceClient := meta.(*ArmClient).Containers.ServicesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -337,7 +337,7 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	containerServiceClient := client.containers.ServicesClient
+	containerServiceClient := client.Containers.ServicesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -553,7 +553,7 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		ctx := client.StopContext
-		res, err := client.containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
+		res, err := client.Containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
 		}

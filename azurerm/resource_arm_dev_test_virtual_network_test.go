@@ -136,7 +136,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
+		conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualNetworksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualNetworkName, "")
@@ -153,7 +153,7 @@ func testCheckAzureRMDevTestVirtualNetworkExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMDevTestVirtualNetworkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualNetworksClient
+	conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -52,7 +52,7 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 }
 
 func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
+	client := meta.(*ArmClient).Iothub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -95,7 +95,7 @@ func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
+	client := meta.(*ArmClient).Iothub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -124,7 +124,7 @@ func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmIotDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
+	client := meta.(*ArmClient).Iothub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
