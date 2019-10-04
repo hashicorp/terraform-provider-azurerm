@@ -27,8 +27,10 @@ matrix:
   allow_failures:
     - go: tip
   include:
-    - name: "make lintrest"
-      script: GOGC=20 make lintrest
+    - name: "make lintstatic"
+      script: GOGC=15 make lintstatic
+    - name: "make linttravis"
+      script: GOGC=15 make lintrest
     - name: "make tflint"
       script: make tflint
     - name: "make test"

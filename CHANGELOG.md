@@ -1,50 +1,57 @@
-## 1.35.0 (Unreleased)
-
-FEATURES:
-
-* **New Data Source:** `azurerm_app_service_certificate` [GH-4468]
-* **New Data Source:** `azurerm_public_ip_prefix` [GH-4340]
-* **New Data Source:** `azurerm_storage_management_policy` [GH-3819]
-* **New Resource:** `azurerm_bot_channel_slack` [GH-4367]
-* **New Resource:** `azurerm_bot_channel_email` [GH-4389]
-* **New Resource:** `azurerm_bot_web_app` [GH-4411]
-* **New Resource:** `azurerm_dashboard` [GH-4357]
-* **New Resource:** `azurerm_eventhub_namespace_disaster_recovery_config` [GH-4425]
-* **New Resource:** `azurerm_storage_data_lake_gen2_filesystem` [GH-4457]
-* **New Resource:** `azurerm_storage_management_policy` [GH-3819]
+## 1.36.0 (Unreleased)
 
 IMPROVEMENTS:
 
-* dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` [GH-4334]
-* kusto: updating to API version `2019-05-15` [GH-4376]
-* `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` [GH-4397]
-* `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property [GH-3154]
-* `azurerm_app_service_custom_hostname_binding` - support for `ssl_state` and `thumbprint` [GH-4204]
-* `azurerm_app_service_slot` - support for `logs` [GH-4473]
-* `azurerm_application_insights_analytics_item` - Add support for App Insights Analytics Items [GH-4374]
-* `azurerm_kubernetes_cluster` - support for updating the Service Principal [GH-4469]
-* `azurerm_function_app` - changes to `app_service_plan_id` no longer force a new resource [GH-4439]
-* `azurerm_eventhub_namespace` - support for the `network_rulesets` property [GH-4409]
-* `azurerm_servicebus_namespace` - support for `zone_redundant` [GH-4432]
+* 2.0 prep: groundwork required for custom timeouts [GH-4475]
+
+## 1.35.0 (October 04, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_app_service_certificate` ([#4468](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4468))
+* **New Data Source:** `azurerm_public_ip_prefix` ([#4340](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4340))
+* **New Data Source:** `azurerm_storage_management_policy` ([#3819](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3819))
+* **New Resource:** `azurerm_bot_channel_slack` ([#4367](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4367))
+* **New Resource:** `azurerm_bot_channel_email` ([#4389](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4389))
+* **New Resource:** `azurerm_bot_web_app` ([#4411](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4411))
+* **New Resource:** `azurerm_dashboard` ([#4357](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4357))
+* **New Resource:** `azurerm_eventhub_namespace_disaster_recovery_config` ([#4425](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4425))
+* **New Resource:** `azurerm_storage_data_lake_gen2_filesystem` ([#4457](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4457))
+* **New Resource:** `azurerm_storage_management_policy` ([#3819](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3819))
+
+IMPROVEMENTS:
+
+* dependencies: upgrading `github.com/Azure/azure-sdk-for-go` to `v33.2.0` ([#4334](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4334))
+* kusto: updating to API version `2019-05-15` ([#4376](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4376))
+* Data Source: `azurerm_client_config` - add `object_id`property ([#4486](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4486))
+* `azurerm_analysis_services_server` - support for `backup_blob_container_uri` and `server_full_name` ([#4397](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4397))
+* `azurerm_api_management_api` - deprecate `sku` in favour of the `sku_name` property ([#3154](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3154))
+* `azurerm_app_service_custom_hostname_binding` - support for `ssl_state` and `thumbprint` ([#4204](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4204))
+* `azurerm_app_service_slot` - support for `logs` ([#4473](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4473))
+* `azurerm_application_insights_analytics_item` - Add support for App Insights Analytics Items ([#4374](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4374))
+* `azurerm_eventhub_namespace` - support for the `network_rulesets` property ([#4409](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4409))
+* `azurerm_function_app` - changes to `app_service_plan_id` no longer force a new resource ([#4439](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4439))
+* `azurerm_kubernetes_cluster` - support for updating the Service Principal ([#4469](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4469))
+* `azurerm_servicebus_namespace` - support for `zone_redundant` ([#4432](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4432))
 
 BUG FIXES:
 
-* provider: Ensuring the user agent is configured [GH-4463]
-* provider: Use real Terraform version [GH-4464]
-* `azurerm_container_registry` - checking the `name` is globally unique during creation [GH-4424]
-* `azurerm_hdinsight_hadoop_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_hdinsight_hbase_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_hdinsight_interactive_query_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_hdinsight_kafka_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_hdinsight_ml_services_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_hdinsight_rserver_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_hdinsight_spark_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_hdinsight_storm_cluster ` - handling the API now masking passwords [GH-4489]
-* `azurerm_key_vault_certificate` - storing the certificate data as hex [GH-4335]
-* `azurerm_kubernetes_cluster` - fixing a bug where upgrading to 1.34.0 would require resource recreation [GH-4469]
-* `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read [GH-4344]
-* `azurerm_role_assignment` - changing the `skip_service_principal_aad_check` property no longer forces a new resource [GH-4412]
-* `azurerm_storage_blob` - reading the properties after an update [GH-4452]
+* provider: Ensuring the user agent is configured ([#4463](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4463))
+* provider: Exposing the version of Terraform Core being used, rather than vendorered in User Agents ([#4464](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4464))
+* `azurerm_container_registry` - checking the `name` is globally unique during creation ([#4424](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4424))
+* `azurerm_hdinsight_hadoop_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_hdinsight_hbase_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_hdinsight_interactive_query_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_hdinsight_kafka_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_hdinsight_ml_services_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_hdinsight_rserver_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_hdinsight_spark_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_hdinsight_storm_cluster ` - handling the API now masking passwords ([#4489](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4489))
+* `azurerm_key_vault_certificate` - storing the certificate data as hex ([#4335](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4335))
+* `azurerm_kubernetes_cluster` - fixing a bug where upgrading to 1.34.0 would require resource recreation ([#4469](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4469))
+* `azurerm_public_ip` - ensuring that `public_ip_prefix_id` is read ([#4344](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4344))
+* `azurerm_role_assignment` - changing the `skip_service_principal_aad_check` property no longer forces a new resource ([#4412](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4412))
+* `azurerm_storage_blob` - reading the properties after an update ([#4452](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4452))
 
 ## 1.34.0 (September 18, 2019)
 

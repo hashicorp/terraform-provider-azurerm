@@ -5,11 +5,13 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -478,6 +480,29 @@ func Provider() terraform.ResourceProvider {
 			}
 
 			resources[k] = v
+		}
+	}
+
+	// TODO: remove all of this in 2.0 once Custom Timeouts are supported
+	if features.SupportsCustomTimeouts() {
+		// default everything to 3 hours for now
+		for _, v := range resources {
+			if v.Timeouts == nil {
+				v.Timeouts = &schema.ResourceTimeout{
+					Create:  schema.DefaultTimeout(3 * time.Hour),
+					Update:  schema.DefaultTimeout(3 * time.Hour),
+					Delete:  schema.DefaultTimeout(3 * time.Hour),
+					Default: schema.DefaultTimeout(3 * time.Hour),
+
+					// Read is the only exception, since if it's taken more than 5 minutes something's seriously wrong
+					Read: schema.DefaultTimeout(5 * time.Minute),
+				}
+			}
+		}
+	} else {
+		// ensure any timeouts configured on the resources are removed until 2.0
+		for _, v := range resources {
+			v.Timeouts = nil
 		}
 	}
 
