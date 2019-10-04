@@ -114,7 +114,7 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 }
 
 func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
@@ -174,7 +174,7 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -232,7 +232,7 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
@@ -268,7 +268,7 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
