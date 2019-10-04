@@ -1944,8 +1944,8 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	return &diskResp, nil
 }
 func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *compute.VirtualMachineProperties) (string, error) {
-	nicClient := meta.(*ArmClient).network.InterfacesClient
-	pipClient := meta.(*ArmClient).network.PublicIPsClient
+	nicClient := meta.(*ArmClient).Network.InterfacesClient
+	pipClient := meta.(*ArmClient).Network.PublicIPsClient
 
 	if props == nil {
 		return "", nil

@@ -59,7 +59,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 }
 
 func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.DatabasesClient
+	client := meta.(*ArmClient).Postgres.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Database creation.")
@@ -114,7 +114,7 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.DatabasesClient
+	client := meta.(*ArmClient).Postgres.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -153,7 +153,7 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.DatabasesClient
+	client := meta.(*ArmClient).Postgres.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

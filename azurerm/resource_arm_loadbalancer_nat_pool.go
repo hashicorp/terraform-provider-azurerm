@@ -91,7 +91,7 @@ func resourceArmLoadBalancerNatPool() *schema.Resource {
 }
 
 func resourceArmLoadBalancerNatPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)
@@ -215,7 +215,7 @@ func resourceArmLoadBalancerNatPoolRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmLoadBalancerNatPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)

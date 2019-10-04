@@ -116,7 +116,7 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS zone virtual network link: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).privateDns.VirtualNetworkLinksClient
+		client := testAccProvider.Meta().(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dnsZoneName, name)
@@ -133,7 +133,7 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 }
 
 func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).privateDns.VirtualNetworkLinksClient
+	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

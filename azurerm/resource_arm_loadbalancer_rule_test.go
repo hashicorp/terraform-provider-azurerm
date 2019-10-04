@@ -327,7 +327,7 @@ func testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName string, lb *network.Lo
 
 func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).network.LoadBalancersClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerRuleByName(lb, ruleName)

@@ -50,7 +50,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Re
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Security Group Association creation.")
@@ -143,7 +143,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -218,7 +218,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")

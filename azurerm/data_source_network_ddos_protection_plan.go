@@ -37,7 +37,7 @@ func dataSourceNetworkDDoSProtectionPlan() *schema.Resource {
 }
 
 func dataSourceNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
+	client := meta.(*ArmClient).Network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

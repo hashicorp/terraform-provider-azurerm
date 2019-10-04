@@ -50,7 +50,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociation() *schema.Resource
 }
 
 func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Load Balancer Backend Address Pool Association creation.")
@@ -143,7 +143,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationCreate(d *schema.Re
 }
 
 func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -218,7 +218,7 @@ func resourceArmNetworkInterfaceBackendAddressPoolAssociationRead(d *schema.Reso
 }
 
 func resourceArmNetworkInterfaceBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
