@@ -121,10 +121,10 @@ type ArmClient struct {
 	maps             *maps.Client
 	mariadb          *mariadb.Client
 	media            *media.Client
-	monitor          *monitor.Client
-	mysql            *mysql.Client
-	msi              *msi.Client
-	mssql            *mssql.Client
+	Monitor          *monitor.Client
+	Msi              *msi.Client
+	Mssql            *mssql.Client
+	Mysql            *mysql.Client
 	network          *network.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
@@ -253,10 +253,10 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.maps = maps.BuildClient(o)
 	client.mariadb = mariadb.BuildClient(o)
 	client.media = media.BuildClient(o)
-	client.monitor = monitor.BuildClient(o)
-	client.mssql = mssql.BuildClient(o)
-	client.msi = msi.BuildClient(o)
-	client.mysql = mysql.BuildClient(o)
+	client.Monitor = monitor.BuildClient(o)
+	client.Mssql = mssql.BuildClient(o)
+	client.Msi = msi.BuildClient(o)
+	client.Mysql = mysql.BuildClient(o)
 	client.managementGroups = managementgroup.BuildClient(o)
 	client.network = network.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
