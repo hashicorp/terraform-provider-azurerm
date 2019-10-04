@@ -93,7 +93,7 @@ func resourceArmApplicationInsightsAnalyticsItemUpdate(d *schema.ResourceData, m
 	return resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d, meta, true)
 }
 func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData, meta interface{}, overwrite bool) error {
-	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
+	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	appInsightsID := d.Get("application_insights_id").(string)
@@ -154,7 +154,7 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
+	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
@@ -187,7 +187,7 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 }
 
 func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
+	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
