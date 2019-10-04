@@ -20,7 +20,7 @@ data "azurerm_data_factory" "example" {
 }
 
 output "data_factory_id" {
-value = "${azurerm_data_factory.example.id}"
+  value = "${azurerm_data_factory.example.id}"
 }
 
 ```
@@ -64,7 +64,7 @@ A `github_configuration` block exports the following:
 
 ---
 
-The `identity` block exports the following:
+An `identity` block exports the following:
 
 * `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
 
