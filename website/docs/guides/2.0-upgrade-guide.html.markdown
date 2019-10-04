@@ -60,7 +60,7 @@ Each of these topics is covered in more detail below, however please note that t
 
 Terraform allows for existing resources which have been created outside of Terraform to be Imported into Terraform's State. Once a resource is imported into the state, it's possible for Terraform to track changes and manage this resource. The Azure Provider allows Importing existing resources into the state (using `terraform import`) for (almost) every resource.
 
-Version 2.0 of the Azure Provider aims to solve an issue where it's possible to unintentionally import resources into the state by running `terraform apply`. To explain this further, the majority of Azure's API's are Upserts - which means that a resource will be updated if it exists, otherwise it'll be created.
+Version 2.0 of the Azure Provider aims to solve an issue where it's possible to unintentionally import resources into the state by running `terraform apply`. To explain this further, the majority of Azure's APIs are Upserts - which means that a resource will be updated if it exists, otherwise it'll be created.
 
 Where the unique identifier for (most) Azure resources is the `name` (rather than for example an `aws_instance` where AWS will generate a different unique identifier) - it's possible that users may have unintentionally imported existing resources into Terraform (and made changes to the resource) when running `terraform apply` when using the same unique identifier as an existing resource.
 
@@ -132,7 +132,6 @@ Below we'll cover each of the Data Sources and Resources which will be affected 
 
 -> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 2.0 of the AzureRM Provider is released.
 
-
 ### Data Source: `azurerm_azuread_application`
 
 The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Data Source will be removed in v2.0 of the AzureRM Provider.
@@ -147,7 +146,7 @@ A guide on how to migrate to using the new Provider [can be found here](https://
 
 ### Data Soure: `azurerm_api_management`
 
-The depricated field `sku` will be removed in favour of the `sku_name` property.
+The deprecated field `sku` will be removed in favour of the `sku_name` property.
 
 ### Data Source: `azurerm_client_config`
 
@@ -175,7 +174,7 @@ The deprecated field `address_space` will be removed.
 
 ### Resource: `azurerm_api_management`
 
-The depricated field `sku` will be removed in favour of the `sku_name` property.
+The deprecated field `sku` will be removed in favour of the `sku_name` property.
 
 ### Resource: `azurerm_app_service_plan`
 
@@ -412,7 +411,6 @@ The deprecated field `linked_service_properties` will be removed. This has been 
 ### Resource: `azurerm_log_analytics_workspace_linked_service`
 
 The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
-
 
 ---
 
