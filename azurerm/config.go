@@ -94,7 +94,7 @@ type ArmClient struct {
 	Automation       *automation.Client
 	Authorization    *authorization.Client
 	Batch            *batch.Client
-	bot              *bot.Client
+	Bot              *bot.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	compute          *clients.ComputeClient
@@ -228,7 +228,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Automation = automation.BuildClient(o)
 	client.Authorization = authorization.BuildClient(o)
 	client.Batch = batch.BuildClient(o)
-	client.bot = bot.BuildClient(o)
+	client.Bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
 	client.compute = clients.NewComputeClient(o)

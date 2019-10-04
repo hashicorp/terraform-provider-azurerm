@@ -107,7 +107,7 @@ func testCheckAzureRMBotChannelEmailExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Email")
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+		client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameEmailChannel))
@@ -124,7 +124,7 @@ func testCheckAzureRMBotChannelEmailExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMBotChannelEmailDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+	client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

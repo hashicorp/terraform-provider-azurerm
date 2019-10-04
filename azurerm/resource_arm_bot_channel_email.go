@@ -54,7 +54,7 @@ func resourceArmBotChannelEmail() *schema.Resource {
 }
 
 func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -104,7 +104,7 @@ func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmBotChannelEmailRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -140,7 +140,7 @@ func resourceArmBotChannelEmailRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -182,7 +182,7 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmBotChannelEmailDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
