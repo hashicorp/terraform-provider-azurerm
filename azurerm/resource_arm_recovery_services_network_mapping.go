@@ -76,7 +76,7 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 	targetNetworkId := d.Get("target_network_id").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	//get network name from id
@@ -144,7 +144,7 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 	networkName := id.Path["replicationNetworks"]
 	name := id.Path["replicationNetworkMappings"]
 
-	client := meta.(*ArmClient).recoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, fabricName, networkName, name)
@@ -186,7 +186,7 @@ func resourceArmRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interf
 	networkName := id.Path["replicationNetworks"]
 	name := id.Path["replicationNetworkMappings"]
 
-	client := meta.(*ArmClient).recoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	future, err := client.Delete(ctx, fabricName, networkName, name)

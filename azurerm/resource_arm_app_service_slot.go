@@ -151,7 +151,7 @@ func resourceArmAppServiceSlot() *schema.Resource {
 }
 
 func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	slot := d.Get("name").(string)
@@ -224,7 +224,7 @@ func resourceArmAppServiceSlotCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -357,7 +357,7 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -490,7 +490,7 @@ func resourceArmAppServiceSlotRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmAppServiceSlotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

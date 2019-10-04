@@ -58,7 +58,7 @@ func resourceArmManagementLock() *schema.Resource {
 }
 
 func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.LocksClient
+	client := meta.(*ArmClient).Resource.LocksClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Management Lock creation.")
 
@@ -106,7 +106,7 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.LocksClient
+	client := meta.(*ArmClient).Resource.LocksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureRMLockId(d.Id())
@@ -135,7 +135,7 @@ func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmManagementLockDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.LocksClient
+	client := meta.(*ArmClient).Resource.LocksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureRMLockId(d.Id())

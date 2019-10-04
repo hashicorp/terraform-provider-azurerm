@@ -578,7 +578,7 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Redis Instance: %s", redisName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).redis.Client
+		conn := testAccProvider.Meta().(*ArmClient).Redis.Client
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, redisName)
@@ -595,7 +595,7 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).redis.Client
+	conn := testAccProvider.Meta().(*ArmClient).Redis.Client
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

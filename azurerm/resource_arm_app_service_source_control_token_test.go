@@ -51,7 +51,7 @@ resource "azurerm_app_service_source_control_token" "test" {
 }
 
 func testCheckAzureRMAppServiceSourceControlTokenDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).web.BaseClient
+	conn := testAccProvider.Meta().(*ArmClient).Web.BaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
