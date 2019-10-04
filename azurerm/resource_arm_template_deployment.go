@@ -82,7 +82,7 @@ func resourceArmTemplateDeployment() *schema.Resource {
 
 func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	deployClient := client.resource.DeploymentsClient
+	deployClient := client.Resource.DeploymentsClient
 	ctx := client.StopContext
 
 	name := d.Get("name").(string)
@@ -168,7 +168,7 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 
 func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	deployClient := client.resource.DeploymentsClient
+	deployClient := client.Resource.DeploymentsClient
 	ctx := client.StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -234,7 +234,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	deployClient := client.resource.DeploymentsClient
+	deployClient := client.Resource.DeploymentsClient
 	ctx := client.StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

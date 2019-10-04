@@ -130,10 +130,10 @@ type ArmClient struct {
 	policy           *policy.Client
 	portal           *portal.Client
 	postgres         *postgres.Client
-	recoveryServices *recoveryservices.Client
-	redis            *redis.Client
-	relay            *relay.Client
-	resource         *resource.Client
+	RecoveryServices *recoveryservices.Client
+	Redis            *redis.Client
+	Relay            *relay.Client
+	Resource         *resource.Client
 	Scheduler        *scheduler.Client
 	Search           *search.Client
 	SecurityCenter   *securitycenter.Client
@@ -145,7 +145,7 @@ type ArmClient struct {
 	Subscription     *subscription.Client
 	Sql              *sql.Client
 	TrafficManager   *trafficmanager.Client
-	web              *web.Client
+	Web              *web.Client
 }
 
 // getArmClient is a helper method which returns a fully instantiated
@@ -264,10 +264,10 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.portal = portal.BuildClient(o)
 	client.postgres = postgres.BuildClient(o)
 	client.privateDns = privatedns.BuildClient(o)
-	client.recoveryServices = recoveryservices.BuildClient(o)
-	client.redis = redis.BuildClient(o)
-	client.relay = relay.BuildClient(o)
-	client.resource = resource.BuildClient(o)
+	client.RecoveryServices = recoveryservices.BuildClient(o)
+	client.Redis = redis.BuildClient(o)
+	client.Relay = relay.BuildClient(o)
+	client.Resource = resource.BuildClient(o)
 	client.Search = search.BuildClient(o)
 	client.SecurityCenter = securitycenter.BuildClient(o)
 	client.ServiceBus = servicebus.BuildClient(o)
@@ -279,7 +279,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Subscription = subscription.BuildClient(o)
 	client.Sql = sql.BuildClient(o)
 	client.TrafficManager = trafficmanager.BuildClient(o)
-	client.web = web.BuildClient(o)
+	client.Web = web.BuildClient(o)
 
 	return &client, nil
 }

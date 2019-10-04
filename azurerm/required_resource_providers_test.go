@@ -19,7 +19,7 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}
 
-	client := armClient.resource.ProvidersClient
+	client := armClient.Resource.ProvidersClient
 	ctx := testAccProvider.StopContext()
 	providerList, err := client.List(ctx, nil, "")
 	if err != nil {

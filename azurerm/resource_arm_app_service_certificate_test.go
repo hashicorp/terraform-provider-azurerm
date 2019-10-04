@@ -202,7 +202,7 @@ resource "azurerm_app_service_certificate" "test" {
 }
 
 func testCheckAzureRMAppServiceCertificateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).web.CertificatesClient
+	conn := testAccProvider.Meta().(*ArmClient).Web.CertificatesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
