@@ -100,7 +100,7 @@ func dataSourceArmRoleDefinition() *schema.Resource {
 }
 
 func dataSourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).authorization.RoleDefinitionsClient
+	client := meta.(*ArmClient).Authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

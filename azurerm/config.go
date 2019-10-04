@@ -92,7 +92,7 @@ type ArmClient struct {
 	ApiManagement    *apimanagement.Client
 	AppInsights      *applicationinsights.Client
 	Automation       *automation.Client
-	authorization    *authorization.Client
+	Authorization    *authorization.Client
 	batch            *batch.Client
 	bot              *bot.Client
 	cdn              *cdn.Client
@@ -226,7 +226,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.ApiManagement = apimanagement.BuildClient(o)
 	client.AppInsights = applicationinsights.BuildClient(o)
 	client.Automation = automation.BuildClient(o)
-	client.authorization = authorization.BuildClient(o)
+	client.Authorization = authorization.BuildClient(o)
 	client.batch = batch.BuildClient(o)
 	client.bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
