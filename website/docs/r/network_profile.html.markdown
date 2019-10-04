@@ -74,7 +74,7 @@ The following arguments are supported:
 
 ---
 
-A `container_network_interface_configuration` block supports the following:
+A `container_network_interface` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
