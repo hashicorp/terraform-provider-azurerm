@@ -1104,7 +1104,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	if err != nil {
 		msg := err.Error()
 		if !strings.Contains(msg, "No registered resource provider found for location '") {
-			if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
+			if !strings.Contains(msg, "' and API version '2019-08-01' for type ") {
 				return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
 			}
 		}

@@ -95,7 +95,7 @@ func (client WorkspaceSettingsClient) CreatePreparer(ctx context.Context, worksp
 		"workspaceSettingName": autorest.Encode("path", workspaceSettingName),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -178,7 +178,7 @@ func (client WorkspaceSettingsClient) DeletePreparer(ctx context.Context, worksp
 		"workspaceSettingName": autorest.Encode("path", workspaceSettingName),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -259,7 +259,7 @@ func (client WorkspaceSettingsClient) GetPreparer(ctx context.Context, workspace
 		"workspaceSettingName": autorest.Encode("path", workspaceSettingName),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -339,7 +339,7 @@ func (client WorkspaceSettingsClient) ListPreparer(ctx context.Context) (*http.R
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -458,7 +458,7 @@ func (client WorkspaceSettingsClient) UpdatePreparer(ctx context.Context, worksp
 		"workspaceSettingName": autorest.Encode("path", workspaceSettingName),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

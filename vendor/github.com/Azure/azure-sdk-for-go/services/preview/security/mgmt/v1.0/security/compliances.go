@@ -84,7 +84,7 @@ func (client CompliancesClient) GetPreparer(ctx context.Context, scope string, c
 		"scope":          autorest.Encode("path", scope),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -160,7 +160,7 @@ func (client CompliancesClient) ListPreparer(ctx context.Context, scope string) 
 		"scope": autorest.Encode("path", scope),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

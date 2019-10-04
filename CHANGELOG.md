@@ -521,7 +521,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
-* dependencies: downgrading the Security API to `2017-08-01-preview` to work around a breaking API change ([#3269](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3269))
+* dependencies: downgrading the Security API to `2019-08-01` to work around a breaking API change ([#3269](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3269))
 * `azurerm_app_service` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block ([#3219](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3219))
 * `azurerm_app_service_slot` - removing Computed from the `use_32_bit_worker_process` property in the `site_config` block ([#3219](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3219))
 * `azurerm_batch_account` - temporarily treating the Resource Group Name as case insensitive to work around an API bug ([#3260](https://github.com/terraform-providers/terraform-provider-azurerm/issues/3260))

@@ -84,7 +84,7 @@ func (client DeviceSecurityGroupsClient) CreateOrUpdatePreparer(ctx context.Cont
 		"resourceId":              autorest.Encode("path", resourceID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -162,7 +162,7 @@ func (client DeviceSecurityGroupsClient) DeletePreparer(ctx context.Context, res
 		"resourceId":              autorest.Encode("path", resourceID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -237,7 +237,7 @@ func (client DeviceSecurityGroupsClient) GetPreparer(ctx context.Context, resour
 		"resourceId":              autorest.Encode("path", resourceID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -312,7 +312,7 @@ func (client DeviceSecurityGroupsClient) ListPreparer(ctx context.Context, resou
 		"resourceId": autorest.Encode("path", resourceID),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

@@ -85,7 +85,7 @@ func (client InformationProtectionPoliciesClient) CreateOrUpdatePreparer(ctx con
 		"scope":                           autorest.Encode("path", scope),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -162,7 +162,7 @@ func (client InformationProtectionPoliciesClient) GetPreparer(ctx context.Contex
 		"scope":                           autorest.Encode("path", scope),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -238,7 +238,7 @@ func (client InformationProtectionPoliciesClient) ListPreparer(ctx context.Conte
 		"scope": autorest.Encode("path", scope),
 	}
 
-	const APIVersion = "2017-08-01-preview"
+	const APIVersion = "2019-08-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
