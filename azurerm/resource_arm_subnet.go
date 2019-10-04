@@ -48,15 +48,13 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"network_security_group_id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "Use the `azurerm_subnet_network_security_group_association` resource instead.",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"route_table_id": {
-				Type:       schema.TypeString,
-				Optional:   true,
-				Deprecated: "Use the `azurerm_subnet_route_table_association` resource instead.",
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"ip_configurations": {
