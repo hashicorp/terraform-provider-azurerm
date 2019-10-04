@@ -1,4 +1,9 @@
 ## 1.36.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* 2.0 prep: groundwork required for custom timeouts [GH-4475]
+
 ## 1.35.0 (October 04, 2019)
 
 FEATURES:
