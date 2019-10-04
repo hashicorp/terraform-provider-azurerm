@@ -679,7 +679,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
 	linuxProfile := expandKubernetesClusterLinuxProfile(d)
-	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles([]containerservice.ManagedClusterAgentPoolProfile{}, d)
 	if err != nil {
 		return err
 	}
@@ -788,7 +788,16 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
 	linuxProfile := expandKubernetesClusterLinuxProfile(d)
-	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+
+	read, err := client.Get(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	agentProfiles := []containerservice.ManagedClusterAgentPoolProfile{}
+	if read.ManagedClusterProperties != nil && read.ManagedClusterProperties.AgentPoolProfiles != nil {
+		agentProfiles = *read.ManagedClusterProperties.AgentPoolProfiles
+	}
+	agentProfiles, err = expandKubernetesClusterAgentPoolProfiles(agentProfiles, d)
 	if err != nil {
 		return err
 	}
@@ -838,11 +847,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
-
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if read.ID == nil {
@@ -1183,73 +1187,64 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 	return []interface{}{values}
 }
 
-func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
+func expandKubernetesClusterAgentPoolProfiles(profiles []containerservice.ManagedClusterAgentPoolProfile, d *schema.ResourceData) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
 	configs := d.Get("agent_pool_profile").([]interface{})
 
-	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0)
 	for config_id := range configs {
+		// If given list of profiles is smaller than configured, append empty profile and we feed it later
+		if len(profiles) <= config_id {
+			profiles = append(profiles, containerservice.ManagedClusterAgentPoolProfile{})
+		}
 		config := configs[config_id].(map[string]interface{})
 
-		name := config["name"].(string)
-		poolType := config["type"].(string)
-		count := int32(config["count"].(int))
-		vmSize := config["vm_size"].(string)
-		osDiskSizeGB := int32(config["os_disk_size_gb"].(int))
-		osType := config["os_type"].(string)
+		profiles[config_id].Name = utils.String(config["name"].(string))
+		profiles[config_id].Type = containerservice.AgentPoolType(config["type"].(string))
 
-		profile := containerservice.ManagedClusterAgentPoolProfile{
-			Name:         utils.String(name),
-			Type:         containerservice.AgentPoolType(poolType),
-			Count:        utils.Int32(count),
-			VMSize:       containerservice.VMSizeTypes(vmSize),
-			OsDiskSizeGB: utils.Int32(osDiskSizeGB),
-			OsType:       containerservice.OSType(osType),
+		// if count field is not configured, don't reset it, since it triggers pool update.
+		// if we update the pool, previous value will be used.
+		if config["count"] != nil {
+			profiles[config_id].Count = utils.Int32(int32(config["count"].(int)))
 		}
+		profiles[config_id].VMSize = containerservice.VMSizeTypes(config["vm_size"].(string))
+		profiles[config_id].OsDiskSizeGB = utils.Int32(int32(config["os_disk_size_gb"].(int)))
+		profiles[config_id].OsType = containerservice.OSType(config["os_type"].(string))
 
 		if maxPods := int32(config["max_pods"].(int)); maxPods > 0 {
-			profile.MaxPods = utils.Int32(maxPods)
+			profiles[config_id].MaxPods = utils.Int32(maxPods)
 		}
 
 		vnetSubnetID := config["vnet_subnet_id"].(string)
 		if vnetSubnetID != "" {
-			profile.VnetSubnetID = utils.String(vnetSubnetID)
+			profiles[config_id].VnetSubnetID = utils.String(vnetSubnetID)
 		}
 
 		if maxCount := int32(config["max_count"].(int)); maxCount > 0 {
-			profile.MaxCount = utils.Int32(maxCount)
+			profiles[config_id].MaxCount = utils.Int32(maxCount)
 		}
 
 		if minCount := int32(config["min_count"].(int)); minCount > 0 {
-			profile.MinCount = utils.Int32(minCount)
+			profiles[config_id].MinCount = utils.Int32(minCount)
 		}
 
 		if enableAutoScalingItf := config["enable_auto_scaling"]; enableAutoScalingItf != nil {
-			profile.EnableAutoScaling = utils.Bool(enableAutoScalingItf.(bool))
-
-			// Auto scaling will change the number of nodes, but the original count number should not be sent again.
-			// This avoid the cluster being resized after creation.
-			if *profile.EnableAutoScaling && !d.IsNewResource() {
-				profile.Count = nil
-			}
+			profiles[config_id].EnableAutoScaling = utils.Bool(enableAutoScalingItf.(bool))
 		}
 
 		if availavilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availavilityZones) > 0 {
-			profile.AvailabilityZones = availavilityZones
+			profiles[config_id].AvailabilityZones = availavilityZones
 		}
 
-		if *profile.EnableAutoScaling && (profile.MinCount == nil || profile.MaxCount == nil) {
+		if *profiles[config_id].EnableAutoScaling && (profiles[config_id].MinCount == nil || profiles[config_id].MaxCount == nil) {
 			return nil, fmt.Errorf("Can't create an AKS cluster with autoscaling enabled but not setting min_count or max_count")
 		}
 
 		if nodeTaints := utils.ExpandStringSlice(config["node_taints"].([]interface{})); len(*nodeTaints) > 0 {
-			profile.NodeTaints = nodeTaints
+			profiles[config_id].NodeTaints = nodeTaints
 		}
 
 		if enableNodePublicIP := config["enable_node_public_ip"]; enableNodePublicIP != nil {
-			profile.EnableNodePublicIP = utils.Bool(enableNodePublicIP.(bool))
+			profiles[config_id].EnableNodePublicIP = utils.Bool(enableNodePublicIP.(bool))
 		}
-
-		profiles = append(profiles, profile)
 	}
 
 	return profiles, nil
