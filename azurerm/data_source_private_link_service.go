@@ -21,9 +21,9 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"location": azure.SchemaLocation(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"auto_approval_subscription_ids": {
 				Type:     schema.TypeList,
@@ -113,7 +113,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 										Computed: true,
 									},
 									"location": azure.SchemaLocationForDataSource(),
-									"tags":     tagsForDataSourceSchema(),
+									"tags":     tags.SchemaDataSource(),
 								},
 							},
 						},
