@@ -269,7 +269,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 }
 
 func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.ScheduleClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.ScheduleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -303,7 +303,7 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAutomationScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).automation.ScheduleClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.ScheduleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

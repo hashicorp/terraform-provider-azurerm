@@ -79,7 +79,7 @@ func resourceArmAutomationModule() *schema.Resource {
 }
 
 func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ModuleClient
+	client := meta.(*ArmClient).Automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
@@ -169,7 +169,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ModuleClient
+	client := meta.(*ArmClient).Automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -198,7 +198,7 @@ func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAutomationModuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ModuleClient
+	client := meta.(*ArmClient).Automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

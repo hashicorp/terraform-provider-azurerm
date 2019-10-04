@@ -75,7 +75,7 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 }
 
 func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscConfigurationClient
+	client := meta.(*ArmClient).Automation.DscConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
@@ -133,7 +133,7 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscConfigurationClient
+	client := meta.(*ArmClient).Automation.DscConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -185,7 +185,7 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscConfigurationClient
+	client := meta.(*ArmClient).Automation.DscConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

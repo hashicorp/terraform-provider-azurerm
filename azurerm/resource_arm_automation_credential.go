@@ -58,7 +58,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 }
 
 func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.CredentialClient
+	client := meta.(*ArmClient).Automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
@@ -112,7 +112,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.CredentialClient
+	client := meta.(*ArmClient).Automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -145,7 +145,7 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.CredentialClient
+	client := meta.(*ArmClient).Automation.CredentialClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
