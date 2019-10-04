@@ -2,7 +2,7 @@
 
 EATURES:
 
-* **New Data Source:** `azurerm_data_factory` ([GH-4517]
+* **New Data Source:** `azurerm_data_factory` [GH-4517]
 
 IMPROVEMENTS:
 
