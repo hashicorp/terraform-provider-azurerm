@@ -37,7 +37,7 @@ func resourceArmResourceGroup() *schema.Resource {
 }
 
 func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.GroupsClient
+	client := meta.(*ArmClient).Resource.GroupsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -78,7 +78,7 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.GroupsClient
+	client := meta.(*ArmClient).Resource.GroupsClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -108,7 +108,7 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.GroupsClient
+	client := meta.(*ArmClient).Resource.GroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

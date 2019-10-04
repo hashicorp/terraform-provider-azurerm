@@ -37,7 +37,7 @@ func dataSourceArmRecoveryServicesProtectionPolicyVm() *schema.Resource {
 }
 
 func dataSourceArmRecoveryServicesProtectionPolicyVmRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.ProtectionPoliciesClient
+	client := meta.(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

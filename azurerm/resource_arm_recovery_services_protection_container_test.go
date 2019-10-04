@@ -94,7 +94,7 @@ func testCheckAzureRMRecoveryProtectionContainerExists(resourceGroupStateName, v
 		protectionContainerName := protectionContainerState.Primary.Attributes["name"]
 
 		// Ensure fabric exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionContainerClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName)

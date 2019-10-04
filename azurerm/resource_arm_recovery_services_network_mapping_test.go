@@ -124,7 +124,7 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupStateName, vaultS
 		mappingName := networkMappingState.Primary.Attributes["name"]
 
 		// Ensure mapping exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)
