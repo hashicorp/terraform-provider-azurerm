@@ -1,6 +1,6 @@
 ## 1.36.0 (Unreleased)
 
-EATURES:
+FEATURES:
 
 * **New Data Source:** `azurerm_data_factory` [GH-4517]
 
