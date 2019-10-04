@@ -31,7 +31,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * provider: Ensuring the user agent is configured [GH-4463]
-* provider: Use real Terraform version [GH-4464]
+* provider: Exposing the version of Terraform Core being used, rather than vendorered in User Agents [GH-4464]
 * `azurerm_container_registry` - checking the `name` is globally unique during creation [GH-4424]
 * `azurerm_hdinsight_hadoop_cluster ` - handling the API now masking passwords [GH-4489]
 * `azurerm_hdinsight_hbase_cluster ` - handling the API now masking passwords [GH-4489]
