@@ -276,7 +276,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 									"log_analytics_workspace_id": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
@@ -295,7 +295,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 									"subnet_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
@@ -1006,8 +1006,10 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if workspaceId, ok := value["log_analytics_workspace_id"]; ok {
-			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
+		if enabled {
+			if workspaceId, ok := value["log_analytics_workspace_id"]; ok {
+				config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
+			}
 		}
 
 		addonProfiles["omsagent"] = &containerservice.ManagedClusterAddonProfile{
@@ -1022,8 +1024,10 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if subnetName, ok := value["subnet_name"]; ok {
-			config["SubnetName"] = utils.String(subnetName.(string))
+		if enabled {
+			if subnetName, ok := value["subnet_name"]; ok {
+				config["SubnetName"] = utils.String(subnetName.(string))
+			}
 		}
 
 		addonProfiles["aciConnectorLinux"] = &containerservice.ManagedClusterAddonProfile{
@@ -1076,14 +1080,16 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 			enabled = *enabledVal
 		}
 
-		workspaceId := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
+		output := map[string]interface{}{
+			"enabled": enabled,
 		}
 
-		output := map[string]interface{}{
-			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
+		if enabled {
+			workspaceId := ""
+			if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
+				workspaceId = *workspaceResourceID
+			}
+			output["log_analytics_workspace_id"] = workspaceId
 		}
 		agents = append(agents, output)
 	}
@@ -1096,14 +1102,16 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 			enabled = *enabledVal
 		}
 
-		subnetName := ""
-		if v := aciConnector.Config["SubnetName"]; v != nil {
-			subnetName = *v
+		output := map[string]interface{}{
+			"enabled": enabled,
 		}
 
-		output := map[string]interface{}{
-			"enabled":     enabled,
-			"subnet_name": subnetName,
+		if enabled {
+			subnetName := ""
+			if v := aciConnector.Config["SubnetName"]; v != nil {
+				subnetName = *v
+			}
+			output["subnet_name"] = subnetName
 		}
 		aciConnectors = append(aciConnectors, output)
 	}
