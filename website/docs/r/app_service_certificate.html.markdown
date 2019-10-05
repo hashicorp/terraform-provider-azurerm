@@ -46,6 +46,8 @@ The following arguments are supported:
 
 * `key_vault_secret_id` - (Optional) The ID of the Key Vault secret. Changing this forces a new resource to be created.
 
+-> **NOTE:** If using `key_vault_secret_id`, the magic Resource Principal with id of `abfa0a7c-a6b6-4736-8310-5855508787cd` must have 'Secret -> get' and 'Certificate -> get' permissions on the Key Vault containing the certificate.
+
 ## Attributes Reference
 
 The following attributes are exported:
