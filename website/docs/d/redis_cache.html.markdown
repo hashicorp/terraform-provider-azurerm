@@ -67,7 +67,7 @@ output "hostname" {
 
 ---
 
-A `patch_schedule` block supports the following (Requires Premium SKU's, attempting to access this value on Basic or Standard SKU's will result in an errro):
+A `patch_schedule` block supports the following (Requires Premium SKU's, attempting to access this value on Basic or Standard SKU's will result in an error):
 
 * `day_of_week` - the Weekday name for the patch item
 

@@ -9,14 +9,15 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmIotDPSCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotDPSCertificateCreateOrUpdate,
+		Create: resourceArmIotDPSCertificateCreateUpdate,
 		Read:   resourceArmIotDPSCertificateRead,
-		Update: resourceArmIotDPSCertificateCreateOrUpdate,
+		Update: resourceArmIotDPSCertificateCreateUpdate,
 		Delete: resourceArmIotDPSCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -50,7 +51,7 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmIotDPSCertificateCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).iothub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -58,7 +59,7 @@ func resourceArmIotDPSCertificateCreateOrUpdate(d *schema.ResourceData, meta int
 	resourceGroup := d.Get("resource_group_name").(string)
 	iotDPSName := d.Get("iot_dps_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name, resourceGroup, iotDPSName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -97,7 +98,7 @@ func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*ArmClient).iothub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -126,7 +127,7 @@ func resourceArmIotDPSCertificateDelete(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).iothub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

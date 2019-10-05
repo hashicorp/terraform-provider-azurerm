@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	ServerClient analysisservices.ServersClient
+	ServerClient *analysisservices.ServersClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	ServerClient := analysisservices.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServerClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ServerClient = analysisservices.NewServersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServerClient.Client, o.ResourceManagerAuthorizer)
-
-	return &c
+	return &Client{
+		ServerClient: &ServerClient,
+	}
 }

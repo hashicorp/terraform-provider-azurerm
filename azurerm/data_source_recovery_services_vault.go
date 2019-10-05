@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,7 +25,7 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -35,7 +36,7 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 }
 
 func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.VaultsClient
+	client := meta.(*ArmClient).RecoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -61,6 +62,5 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, vault.Tags)
-	return nil
+	return tags.FlattenAndSet(d, vault.Tags)
 }

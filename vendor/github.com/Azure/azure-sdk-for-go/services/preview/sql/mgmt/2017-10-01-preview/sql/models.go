@@ -3477,6 +3477,29 @@ func (future *ManagedInstanceEncryptionProtectorsCreateOrUpdateFuture) Result(cl
 	return
 }
 
+// ManagedInstanceEncryptionProtectorsRevalidateFuture an abstraction for monitoring and retrieving the
+// results of a long-running operation.
+type ManagedInstanceEncryptionProtectorsRevalidateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *ManagedInstanceEncryptionProtectorsRevalidateFuture) Result(client ManagedInstanceEncryptionProtectorsClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "sql.ManagedInstanceEncryptionProtectorsRevalidateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("sql.ManagedInstanceEncryptionProtectorsRevalidateFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
 // ManagedInstanceFamilyCapability the managed server family capability.
 type ManagedInstanceFamilyCapability struct {
 	// Name - READ-ONLY; Family name.

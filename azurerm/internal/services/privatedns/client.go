@@ -6,18 +6,24 @@ import (
 )
 
 type Client struct {
-	RecordSetsClient   privatedns.RecordSetsClient
-	PrivateZonesClient privatedns.PrivateZonesClient
+	RecordSetsClient          *privatedns.RecordSetsClient
+	PrivateZonesClient        *privatedns.PrivateZonesClient
+	VirtualNetworkLinksClient *privatedns.VirtualNetworkLinksClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	RecordSetsClient := privatedns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RecordSetsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.RecordSetsClient = privatedns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.RecordSetsClient.Client, o.ResourceManagerAuthorizer)
+	PrivateZonesClient := privatedns.NewPrivateZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateZonesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.PrivateZonesClient = privatedns.NewPrivateZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.PrivateZonesClient.Client, o.ResourceManagerAuthorizer)
+	virtualNetworkLinksClient := privatedns.NewVirtualNetworkLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&virtualNetworkLinksClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		RecordSetsClient:          &RecordSetsClient,
+		PrivateZonesClient:        &PrivateZonesClient,
+		VirtualNetworkLinksClient: &virtualNetworkLinksClient,
+	}
 }

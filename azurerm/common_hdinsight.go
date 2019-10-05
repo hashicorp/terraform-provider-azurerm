@@ -3,13 +3,15 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"time"
 )
 
 func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
@@ -17,7 +19,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		client := meta.(*ArmClient).hdinsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
-		id, err := parseAzureResourceID(d.Id())
+		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
 			return err
 		}
@@ -26,9 +28,9 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		name := id.Path["clusters"]
 
 		if d.HasChange("tags") {
-			tags := d.Get("tags").(map[string]interface{})
+			t := d.Get("tags").(map[string]interface{})
 			params := hdinsight.ClusterPatchParameters{
-				Tags: expandTags(tags),
+				Tags: tags.Expand(t),
 			}
 			if _, err := client.Update(ctx, resourceGroup, name, params); err != nil {
 				return fmt.Errorf("Error updating Tags for HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
@@ -67,7 +69,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 
 				// Create an edge node
 				if o.(int) < n.(int) {
-					err := createHDInsightEdgeNode(applicationsClient, ctx, resourceGroup, name, edgeNodeConfig)
+					err := createHDInsightEdgeNode(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
 					if err != nil {
 						return err
 					}
@@ -97,7 +99,7 @@ func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 		client := meta.(*ArmClient).hdinsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
-		id, err := parseAzureResourceID(d.Id())
+		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
 			return err
 		}
@@ -210,7 +212,7 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 	}
 }
 
-func createHDInsightEdgeNode(client hdinsight.ApplicationsClient, ctx context.Context, resourceGroup string, name string, input map[string]interface{}) error {
+func createHDInsightEdgeNode(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string, input map[string]interface{}) error {
 	installScriptActions := expandHDInsightApplicationEdgeNodeInstallScriptActions(input["install_script_action"].([]interface{}))
 
 	application := hdinsight.Application{
@@ -226,7 +228,7 @@ func createHDInsightEdgeNode(client hdinsight.ApplicationsClient, ctx context.Co
 				}},
 			},
 			InstallScriptActions: installScriptActions,
-			ApplicationType:      utils.String("CustomApplication"),
+			ApplicationType:      hdinsight.CustomApplication,
 		},
 	}
 	future, err := client.Create(ctx, resourceGroup, name, name, application)

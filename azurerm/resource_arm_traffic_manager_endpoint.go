@@ -9,8 +9,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -70,7 +72,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 					string(trafficmanager.EndpointStatusDisabled),
 					string(trafficmanager.EndpointStatusEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"weight": {
@@ -161,7 +163,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 }
 
 func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
@@ -172,7 +174,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -209,9 +211,9 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -303,9 +305,9 @@ func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmana
 }
 
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

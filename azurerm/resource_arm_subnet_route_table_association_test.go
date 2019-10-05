@@ -6,7 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +38,7 @@ func TestAccAzureRMSubnetRouteTableAssociation_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSubnetRouteTableAssociation_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -98,7 +100,7 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) reso
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -107,7 +109,7 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) reso
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -140,7 +142,7 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -149,7 +151,7 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -181,7 +183,7 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 		}
 
 		subnetId := rs.Primary.Attributes["subnet_id"]
-		parsedId, err := parseAzureResourceID(subnetId)
+		parsedId, err := azure.ParseAzureResourceID(subnetId)
 		if err != nil {
 			return err
 		}
@@ -190,7 +192,7 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).subnetClient
+		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

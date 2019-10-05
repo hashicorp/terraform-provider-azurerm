@@ -30,6 +30,34 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 
+// ApplicationHTTPSEndpointAccessMode enumerates the values for application https endpoint access mode.
+type ApplicationHTTPSEndpointAccessMode string
+
+const (
+	// WebPage ...
+	WebPage ApplicationHTTPSEndpointAccessMode = "WebPage"
+)
+
+// PossibleApplicationHTTPSEndpointAccessModeValues returns an array of possible values for the ApplicationHTTPSEndpointAccessMode const type.
+func PossibleApplicationHTTPSEndpointAccessModeValues() []ApplicationHTTPSEndpointAccessMode {
+	return []ApplicationHTTPSEndpointAccessMode{WebPage}
+}
+
+// ApplicationType enumerates the values for application type.
+type ApplicationType string
+
+const (
+	// CustomApplication ...
+	CustomApplication ApplicationType = "CustomApplication"
+	// RServer ...
+	RServer ApplicationType = "RServer"
+)
+
+// PossibleApplicationTypeValues returns an array of possible values for the ApplicationType const type.
+func PossibleApplicationTypeValues() []ApplicationType {
+	return []ApplicationType{CustomApplication, RServer}
+}
+
 // AsyncOperationState enumerates the values for async operation state.
 type AsyncOperationState string
 
@@ -104,6 +132,21 @@ const (
 // PossibleDirectoryTypeValues returns an array of possible values for the DirectoryType const type.
 func PossibleDirectoryTypeValues() []DirectoryType {
 	return []DirectoryType{ActiveDirectory}
+}
+
+// FilterMode enumerates the values for filter mode.
+type FilterMode string
+
+const (
+	// Exclude ...
+	Exclude FilterMode = "Exclude"
+	// Include ...
+	Include FilterMode = "Include"
+)
+
+// PossibleFilterModeValues returns an array of possible values for the FilterMode const type.
+func PossibleFilterModeValues() []FilterMode {
+	return []FilterMode{Exclude, Include}
 }
 
 // JSONWebKeyEncryptionAlgorithm enumerates the values for json web key encryption algorithm.
@@ -217,14 +260,14 @@ type ApplicationGetEndpoint struct {
 // ApplicationGetHTTPSEndpoint gets the application HTTP endpoints.
 type ApplicationGetHTTPSEndpoint struct {
 	// AccessModes - The list of access modes for the application.
-	AccessModes *[]string `json:"accessModes,omitempty"`
+	AccessModes *[]ApplicationHTTPSEndpointAccessMode `json:"accessModes,omitempty"`
 	// Location - The location of the endpoint.
 	Location *string `json:"location,omitempty"`
 	// DestinationPort - The destination port to connect to.
 	DestinationPort *int32 `json:"destinationPort,omitempty"`
 	// PublicPort - The public port to connect to.
 	PublicPort *int32 `json:"publicPort,omitempty"`
-	// SubDomainSuffix - The subDomainSuffix of the application.
+	// SubDomainSuffix - The subdomain suffix of the application.
 	SubDomainSuffix *string `json:"subDomainSuffix,omitempty"`
 	// DisableGatewayAuth - The value indicates whether to disable GatewayAuth.
 	DisableGatewayAuth *bool `json:"disableGatewayAuth,omitempty"`
@@ -391,8 +434,8 @@ type ApplicationProperties struct {
 	SSHEndpoints *[]ApplicationGetEndpoint `json:"sshEndpoints,omitempty"`
 	// ProvisioningState - READ-ONLY; The provisioning state of the application.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// ApplicationType - The application type.
-	ApplicationType *string `json:"applicationType,omitempty"`
+	// ApplicationType - The application type. Possible values include: 'CustomApplication', 'RServer'
+	ApplicationType ApplicationType `json:"applicationType,omitempty"`
 	// ApplicationState - READ-ONLY; The application state.
 	ApplicationState *string `json:"applicationState,omitempty"`
 	// Errors - The list of errors.
@@ -496,6 +539,79 @@ type AutoscaleTimeAndCapacity struct {
 	MinInstanceCount *int32 `json:"minInstanceCount,omitempty"`
 	// MaxInstanceCount - The maximum instance count of the cluster
 	MaxInstanceCount *int32 `json:"maxInstanceCount,omitempty"`
+}
+
+// BillingMeters the billing meters.
+type BillingMeters struct {
+	// MeterParameter - The virtual machine sizes.
+	MeterParameter *string `json:"meterParameter,omitempty"`
+	// Meter - The HDInsight meter guid.
+	Meter *string `json:"meter,omitempty"`
+	// Unit - The unit of meter, VMHours or CoreHours.
+	Unit *string `json:"unit,omitempty"`
+}
+
+// BillingResources the billing resources.
+type BillingResources struct {
+	// Region - The region or location.
+	Region *string `json:"region,omitempty"`
+	// BillingMeters - The billing meter information.
+	BillingMeters *[]BillingMeters `json:"billingMeters,omitempty"`
+	// DiskBillingMeters - The managed disk billing information.
+	DiskBillingMeters *[]DiskBillingMeters `json:"diskBillingMeters,omitempty"`
+}
+
+// BillingResponseListResult the response for the operation to get regional billingSpecs for a
+// subscription.
+type BillingResponseListResult struct {
+	autorest.Response `json:"-"`
+	// VMSizes - The virtual machine sizes to include or exclude.
+	VMSizes *[]string `json:"vmSizes,omitempty"`
+	// VMSizeFilters - The virtual machine filtering mode. Effectively this can enabling or disabling the virtual machine sizes in a particular set.
+	VMSizeFilters *[]VMSizeCompatibilityFilterV2 `json:"vmSizeFilters,omitempty"`
+	// BillingResources - The billing and managed disk billing resources for a region.
+	BillingResources *[]BillingResources `json:"billingResources,omitempty"`
+}
+
+// CapabilitiesResult the Get Capabilities operation response.
+type CapabilitiesResult struct {
+	autorest.Response `json:"-"`
+	// Versions - The version capability.
+	Versions map[string]*VersionsCapability `json:"versions"`
+	// Regions - The virtual machine size compatibility features.
+	Regions map[string]*RegionsCapability `json:"regions"`
+	// VMSizes - The virtual machine sizes.
+	VMSizes map[string]*VMSizesCapability `json:"vmSizes"`
+	// VMSizeFilters - The virtual machine size compatibility filters.
+	VMSizeFilters *[]VMSizeCompatibilityFilter `json:"vmSize_filters,omitempty"`
+	// Features - The capability features.
+	Features *[]string `json:"features,omitempty"`
+	// Quota - The quota capability.
+	Quota *QuotaCapability `json:"quota,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for CapabilitiesResult.
+func (cr CapabilitiesResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cr.Versions != nil {
+		objectMap["versions"] = cr.Versions
+	}
+	if cr.Regions != nil {
+		objectMap["regions"] = cr.Regions
+	}
+	if cr.VMSizes != nil {
+		objectMap["vmSizes"] = cr.VMSizes
+	}
+	if cr.VMSizeFilters != nil {
+		objectMap["vmSize_filters"] = cr.VMSizeFilters
+	}
+	if cr.Features != nil {
+		objectMap["features"] = cr.Features
+	}
+	if cr.Quota != nil {
+		objectMap["quota"] = cr.Quota
+	}
+	return json.Marshal(objectMap)
 }
 
 // Cluster the HDInsight cluster.
@@ -1103,6 +1219,16 @@ type DataDisksGroups struct {
 	DiskSizeGB *int32 `json:"diskSizeGB,omitempty"`
 }
 
+// DiskBillingMeters the disk billing meters.
+type DiskBillingMeters struct {
+	// DiskRpMeter - The managed disk meter guid.
+	DiskRpMeter *string `json:"diskRpMeter,omitempty"`
+	// Sku - The managed disk billing sku, P30 or S30.
+	Sku *string `json:"sku,omitempty"`
+	// Tier - The managed disk billing tier, Standard or Premium. Possible values include: 'Standard', 'Premium'
+	Tier Tier `json:"tier,omitempty"`
+}
+
 // DiskEncryptionProperties the disk encryption properties
 type DiskEncryptionProperties struct {
 	// VaultURI - Base key vault URI where the customers key is located eg. https://myvault.vault.azure.net
@@ -1467,10 +1593,36 @@ type ProxyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// QuotaCapability the regional quota capability.
+type QuotaCapability struct {
+	// CoresUsed - The number of cores used in the subscription.
+	CoresUsed *int64 `json:"cores_used,omitempty"`
+	// MaxCoresAllowed - The number of cores that the subscription allowed.
+	MaxCoresAllowed *int64 `json:"max_cores_allowed,omitempty"`
+	// RegionalQuotas - The list of region quota capabilities.
+	RegionalQuotas *[]RegionalQuotaCapability `json:"regionalQuotas,omitempty"`
+}
+
 // QuotaInfo the quota properties for the cluster.
 type QuotaInfo struct {
 	// CoresUsed - The cores used by the cluster.
 	CoresUsed *int32 `json:"coresUsed,omitempty"`
+}
+
+// RegionalQuotaCapability the regional quota capacity.
+type RegionalQuotaCapability struct {
+	// RegionName - The region name.
+	RegionName *string `json:"region_name,omitempty"`
+	// CoresUsed - The number of cores used in the region.
+	CoresUsed *int64 `json:"cores_used,omitempty"`
+	// CoresAvailable - The number of cores available in the region.
+	CoresAvailable *int64 `json:"cores_available,omitempty"`
+}
+
+// RegionsCapability the regions capability.
+type RegionsCapability struct {
+	// Available - The list of region capabilities.
+	Available *[]string `json:"available,omitempty"`
 }
 
 // Resource the core properties of ARM resources
@@ -2001,10 +2153,90 @@ type UsagesListResult struct {
 	Value *[]Usage `json:"value,omitempty"`
 }
 
+// VersionsCapability the version capability.
+type VersionsCapability struct {
+	// Available - The list of version capabilities.
+	Available *[]VersionSpec `json:"available,omitempty"`
+}
+
+// VersionSpec the version properties.
+type VersionSpec struct {
+	// FriendlyName - The friendly name
+	FriendlyName *string `json:"friendlyName,omitempty"`
+	// DisplayName - The display name
+	DisplayName *string `json:"displayName,omitempty"`
+	// IsDefault - Whether or not the version is the default version.
+	IsDefault *string `json:"isDefault,omitempty"`
+	// ComponentVersions - The component version property.
+	ComponentVersions map[string]*string `json:"componentVersions"`
+}
+
+// MarshalJSON is the custom marshaler for VersionSpec.
+func (vs VersionSpec) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vs.FriendlyName != nil {
+		objectMap["friendlyName"] = vs.FriendlyName
+	}
+	if vs.DisplayName != nil {
+		objectMap["displayName"] = vs.DisplayName
+	}
+	if vs.IsDefault != nil {
+		objectMap["isDefault"] = vs.IsDefault
+	}
+	if vs.ComponentVersions != nil {
+		objectMap["componentVersions"] = vs.ComponentVersions
+	}
+	return json.Marshal(objectMap)
+}
+
 // VirtualNetworkProfile the virtual network properties.
 type VirtualNetworkProfile struct {
 	// ID - The ID of the virtual network.
 	ID *string `json:"id,omitempty"`
 	// Subnet - The name of the subnet.
 	Subnet *string `json:"subnet,omitempty"`
+}
+
+// VMSizeCompatibilityFilter the virtual machine type compatibility filter.
+type VMSizeCompatibilityFilter struct {
+	// FilterMode - The mode for the filter.
+	FilterMode *string `json:"FilterMode,omitempty"`
+	// Regions - The list of regions.
+	Regions *[]string `json:"Regions,omitempty"`
+	// ClusterFlavors - The list of cluster types available.
+	ClusterFlavors *[]string `json:"ClusterFlavors,omitempty"`
+	// NodeTypes - The list of node types.
+	NodeTypes *[]string `json:"NodeTypes,omitempty"`
+	// ClusterVersions - The list of cluster versions.
+	ClusterVersions *[]string `json:"ClusterVersions,omitempty"`
+	// Vmsizes - The list of virtual machine sizes.
+	Vmsizes *[]string `json:"vmsizes,omitempty"`
+}
+
+// VMSizeCompatibilityFilterV2 this class represent a single filter object that defines a multidimensional
+// set. The dimensions of this set are Regions, ClusterFlavors, NodeTypes and ClusterVersions. The
+// constraint should be defined based on the following: FilterMode (Exclude vs Include), VMSizes (the vm
+// sizes in affect of exclusion/inclusion) and the ordering of the Filters. Later filters override previous
+// settings if conflicted.
+type VMSizeCompatibilityFilterV2 struct {
+	// FilterMode - The filtering mode. Effectively this can enabling or disabling the VM sizes in a particular set. Possible values include: 'Exclude', 'Include'
+	FilterMode FilterMode `json:"filterMode,omitempty"`
+	// Regions - The list of regions under the effect of the filter.
+	Regions *[]string `json:"regions,omitempty"`
+	// ClusterFlavors - The list of cluster flavors under the effect of the filter.
+	ClusterFlavors *[]string `json:"clusterFlavors,omitempty"`
+	// NodeTypes - The list of node types affected by the filter.
+	NodeTypes *[]string `json:"nodeTypes,omitempty"`
+	// ClusterVersions - The list of cluster versions affected in Major.Minor format.
+	ClusterVersions *[]string `json:"clusterVersions,omitempty"`
+	// OsType - The OSType affected, Windows or Linux.
+	OsType *[]OSType `json:"osType,omitempty"`
+	// VMSizes - The list of virtual machine sizes to include or exclude.
+	VMSizes *[]string `json:"vmSizes,omitempty"`
+}
+
+// VMSizesCapability the virtual machine sizes capability.
+type VMSizesCapability struct {
+	// Available - The list of virtual machine size capabilities.
+	Available *[]string `json:"available,omitempty"`
 }

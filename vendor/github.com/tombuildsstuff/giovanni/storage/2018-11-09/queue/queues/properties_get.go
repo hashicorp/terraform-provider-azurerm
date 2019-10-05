@@ -18,25 +18,25 @@ type StorageServicePropertiesResponse struct {
 // SetServiceProperties gets the properties for this queue
 func (client Client) GetServiceProperties(ctx context.Context, accountName string) (result StorageServicePropertiesResponse, err error) {
 	if accountName == "" {
-		return result, validation.NewError("queues.Client", "SetServiceProperties", "`accountName` cannot be an empty string.")
+		return result, validation.NewError("queues.Client", "GetServiceProperties", "`accountName` cannot be an empty string.")
 	}
 
 	req, err := client.GetServicePropertiesPreparer(ctx, accountName)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "queues.Client", "SetServiceProperties", nil, "Failure preparing request")
+		err = autorest.NewErrorWithError(err, "queues.Client", "GetServiceProperties", nil, "Failure preparing request")
 		return
 	}
 
 	resp, err := client.GetServicePropertiesSender(req)
 	if err != nil {
 		result.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "queues.Client", "SetServiceProperties", resp, "Failure sending request")
+		err = autorest.NewErrorWithError(err, "queues.Client", "GetServiceProperties", resp, "Failure sending request")
 		return
 	}
 
 	result, err = client.GetServicePropertiesResponder(resp)
 	if err != nil {
-		err = autorest.NewErrorWithError(err, "queues.Client", "SetServiceProperties", resp, "Failure responding to request")
+		err = autorest.NewErrorWithError(err, "queues.Client", "GetServiceProperties", resp, "Failure responding to request")
 		return
 	}
 
@@ -58,6 +58,7 @@ func (client Client) GetServicePropertiesPreparer(ctx context.Context, accountNa
 		autorest.AsContentType("application/xml; charset=utf-8"),
 		autorest.AsGet(),
 		autorest.WithBaseURL(endpoints.GetQueueEndpoint(client.BaseURI, accountName)),
+		autorest.WithPath("/"),
 		autorest.WithQueryParameters(queryParameters),
 		autorest.WithHeaders(headers))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))

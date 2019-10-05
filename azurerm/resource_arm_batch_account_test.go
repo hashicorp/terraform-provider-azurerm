@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -64,7 +65,7 @@ func TestAccAzureRMBatchAccount_basic(t *testing.T) {
 }
 
 func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -170,7 +171,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
+		conn := testAccProvider.Meta().(*ArmClient).Batch.AccountClient
 
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {
@@ -186,7 +187,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
+	conn := testAccProvider.Meta().(*ArmClient).Batch.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

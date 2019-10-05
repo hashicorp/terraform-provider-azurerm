@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/storage"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 const (
@@ -99,16 +100,18 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 
 			// Always in UTC and must be ISO-8601 format
 			"start": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			// Always in UTC and must be ISO-8601 format
 			"expiry": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.ISO8601DateTime,
 			},
 
 			"permissions": {
@@ -176,11 +179,9 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 		},
 	}
-
 }
 
 func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
-
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
 	resourceTypesIface := d.Get("resource_types").([]interface{})

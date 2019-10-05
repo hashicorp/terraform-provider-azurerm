@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
@@ -43,7 +44,7 @@ func TestAccAzureRMDataLakeStoreFirewallRule_basic(t *testing.T) {
 //
 
 func TestAccAzureRMDataLakeStoreFirewallRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -144,7 +145,7 @@ func testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for data lake store firewall rule: %s", firewallRuleName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreFirewallRulesClient
+		conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, firewallRuleName)
@@ -161,7 +162,7 @@ func testCheckAzureRMDataLakeStoreFirewallRuleExists(resourceName string) resour
 }
 
 func testCheckAzureRMDataLakeStoreFirewallRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dataLakeStoreFirewallRulesClient
+	conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFirewallRulesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

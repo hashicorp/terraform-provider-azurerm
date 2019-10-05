@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -44,7 +45,7 @@ func TestAccAzureRMAPIManagementCertificate_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementCertificate_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -73,7 +74,7 @@ func TestAccAzureRMAPIManagementCertificate_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementCertificateDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagement.CertificatesClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.CertificatesClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_certificate" {
 			continue
@@ -108,7 +109,7 @@ func testCheckAzureRMAPIManagementCertificateExists(resourceName string) resourc
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagement.CertificatesClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.CertificatesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {

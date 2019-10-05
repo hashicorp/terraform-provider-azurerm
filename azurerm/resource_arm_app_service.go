@@ -9,7 +9,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -77,6 +80,9 @@ func resourceArmAppService() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"storage_account": azure.SchemaAppServiceStorageAccounts(),
@@ -112,13 +118,13 @@ func resourceArmAppService() *schema.Resource {
 								string(web.SQLAzure),
 								string(web.SQLServer),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"site_credential": {
 				Type:     schema.TypeList,
@@ -174,7 +180,7 @@ func resourceArmAppService() *schema.Resource {
 }
 
 func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
@@ -182,7 +188,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -212,18 +218,21 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+	}
 
 	siteEnvelope := web.Site{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
 			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			SiteConfig:   siteConfig,
 		},
 	}
 
@@ -295,10 +304,10 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -311,17 +320,21 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	appServicePlanId := d.Get("app_service_plan_id").(string)
 	enabled := d.Get("enabled").(bool)
 	httpsOnly := d.Get("https_only").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+	if err != nil {
+		return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+	}
+
 	siteEnvelope := web.Site{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		SiteProperties: &web.SiteProperties{
 			ServerFarmID: utils.String(appServicePlanId),
 			Enabled:      utils.Bool(enabled),
 			HTTPSOnly:    utils.Bool(httpsOnly),
-			SiteConfig:   &siteConfig,
+			SiteConfig:   siteConfig,
 		},
 	}
 
@@ -341,9 +354,12 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 	if d.HasChange("site_config") {
 		// update the main configuration
-		siteConfig := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		siteConfig, err := azure.ExpandAppServiceSiteConfig(d.Get("site_config"))
+		if err != nil {
+			return fmt.Errorf("Error expanding `site_config` for App Service %q (Resource Group %q): %s", name, resGroup, err)
+		}
 		siteConfigResource := web.SiteConfigResource{
-			SiteConfig: &siteConfig,
+			SiteConfig: siteConfig,
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, resGroup, name, siteConfigResource); err != nil {
@@ -365,19 +381,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if d.HasChange("logs") {
-		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
-		id := d.Id()
-		logsResource := web.SiteLogsConfig{
-			ID:                       &id,
-			SiteLogsConfigProperties: &logs,
-		}
-
-		if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logsResource); err != nil {
-			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", name, err)
-		}
-	}
-
 	if d.HasChange("backup") {
 		backupRaw := d.Get("backup").([]interface{})
 		if backup := azure.ExpandAppServiceBackup(backupRaw); backup != nil {
@@ -394,7 +397,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("client_affinity_enabled") {
-
 		affinity := d.Get("client_affinity_enabled").(bool)
 
 		sitePatchResource := web.SitePatchResource{
@@ -409,6 +411,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
+	// app settings updates have a side effect on logging settings. See the note below
 	if d.HasChange("app_settings") {
 		// update the AppSettings
 		appSettings := expandAppServiceAppSettings(d)
@@ -418,6 +421,25 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 		if _, err := client.UpdateApplicationSettings(ctx, resGroup, name, settings); err != nil {
 			return fmt.Errorf("Error updating Application Settings for App Service %q: %+v", name, err)
+		}
+	}
+
+	// the logging configuration has a dependency on the app settings in Azure
+	// e.g. configuring logging to blob storage will add the DIAGNOSTICS_AZUREBLOBCONTAINERSASURL
+	// and DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS app settings to the app service.
+	// If the app settings are updated, also update the logging configuration if it exists, otherwise
+	// updating the former will clobber the log settings
+	_, hasLogs := d.GetOkExists("logs")
+	if d.HasChange("logs") || (hasLogs && d.HasChange("app_settings")) {
+		logs := azure.ExpandAppServiceLogs(d.Get("logs"))
+		id := d.Id()
+		logsResource := web.SiteLogsConfig{
+			ID:                       &id,
+			SiteLogsConfigProperties: &logs,
+		}
+
+		if _, err := client.UpdateDiagnosticLogsConfig(ctx, resGroup, name, logsResource); err != nil {
+			return fmt.Errorf("Error updating Diagnostics Logs for App Service %q: %+v", name, err)
 		}
 	}
 
@@ -468,9 +490,9 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -549,7 +571,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	if err != nil {
 		return err
 	}
-	siteCredResp, err := siteCredFuture.Result(client)
+	siteCredResp, err := siteCredFuture.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on AzureRM App Service Site Credential %q: %+v", name, err)
 	}
@@ -573,9 +595,11 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 	appSettings := flattenAppServiceAppSettings(appSettingsResp.Properties)
 
-	// remove DIAGNOSTICS* settings - Azure will sync these, so just maintain the logs block equivalents in the state
+	// remove DIAGNOSTICS*, WEBSITE_HTTPLOGGING* settings - Azure will sync these, so just maintain the logs block equivalents in the state
 	delete(appSettings, "DIAGNOSTICS_AZUREBLOBCONTAINERSASURL")
 	delete(appSettings, "DIAGNOSTICS_AZUREBLOBRETENTIONINDAYS")
+	delete(appSettings, "WEBSITE_HTTPLOGGING_CONTAINER_URL")
+	delete(appSettings, "WEBSITE_HTTPLOGGING_RETENTION_DAYS")
 
 	if err := d.Set("app_settings", appSettings); err != nil {
 		return fmt.Errorf("Error setting `app_settings`: %s", err)
@@ -623,15 +647,13 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error setting `identity`: %s", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

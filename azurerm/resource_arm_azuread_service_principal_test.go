@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,7 +39,7 @@ func TestAccAzureRMActiveDirectoryServicePrincipal_basic(t *testing.T) {
 }
 
 func TestAccAzureRMActiveDirectoryServicePrincipal_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -72,7 +73,7 @@ func testCheckAzureRMActiveDirectoryServicePrincipalExists(resourceName string) 
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).servicePrincipalsClient
+		client := testAccProvider.Meta().(*ArmClient).graph.ServicePrincipalsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 
@@ -93,7 +94,7 @@ func testCheckAzureRMActiveDirectoryServicePrincipalDestroy(s *terraform.State) 
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).servicePrincipalsClient
+		client := testAccProvider.Meta().(*ArmClient).graph.ServicePrincipalsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, rs.Primary.ID)
 

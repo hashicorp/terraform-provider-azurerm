@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -94,13 +96,25 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 				ValidateFunc: validateQuerypoolConnectionMode(),
 			},
 
-			"tags": tagsSchema(),
+			"backup_blob_container_uri": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.NoEmptyStrings,
+			},
+
+			"server_full_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
@@ -108,7 +122,7 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		server, err := client.GetDetails(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(server.Response) {
@@ -126,14 +140,14 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 
 	serverProperties := expandAnalysisServicesServerProperties(d)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.Server{
 		Name:             &name,
 		Location:         &location,
 		Sku:              &analysisservices.ResourceSku{Name: &sku},
 		ServerProperties: serverProperties,
-		Tags:             expandTags(tags),
+		Tags:             tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, analysisServicesServer)
@@ -160,10 +174,10 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -193,10 +207,10 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 	}
 
 	if serverProps := server.ServerProperties; serverProps != nil {
-		if serverProps.AsAdministrators == nil || serverProps.AsAdministrators.Members == nil {
+		if serverProps.AsAdministrators == nil {
 			d.Set("admin_users", []string{})
 		} else {
-			d.Set("admin_users", *serverProps.AsAdministrators.Members)
+			d.Set("admin_users", serverProps.AsAdministrators.Members)
 		}
 
 		enablePowerBi, fwRules := flattenAnalysisServicesServerFirewallSettings(serverProps)
@@ -206,20 +220,24 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 		}
 
 		d.Set("querypool_connection_mode", string(serverProps.QuerypoolConnectionMode))
+
+		d.Set("server_full_name", serverProps.ServerFullName)
+
+		if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
+			d.Set("backup_blob_container_uri", containerUri)
+		}
 	}
 
-	flattenAndSetTags(d, server.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, server.Tags)
 }
 
 func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,11 +247,11 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 
 	serverProperties := expandAnalysisServicesServerMutableProperties(d)
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	analysisServicesServer := analysisservices.ServerUpdateParameters{
 		Sku:                     &analysisservices.ResourceSku{Name: &sku},
-		Tags:                    expandTags(tags),
+		Tags:                    tags.Expand(t),
 		ServerMutableProperties: serverProperties,
 	}
 
@@ -250,10 +268,10 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -303,6 +321,10 @@ func expandAnalysisServicesServerProperties(d *schema.ResourceData) *analysisser
 		serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(querypoolConnectionMode.(string))
 	}
 
+	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
+		serverProperties.BackupBlobContainerURI = utils.String(containerUri.(string))
+	}
+
 	return &serverProperties
 }
 
@@ -314,6 +336,10 @@ func expandAnalysisServicesServerMutableProperties(d *schema.ResourceData) *anal
 	serverProperties.IPV4FirewallSettings = expandAnalysisServicesServerFirewallSettings(d)
 
 	serverProperties.QuerypoolConnectionMode = analysisservices.ConnectionMode(d.Get("querypool_connection_mode").(string))
+
+	if containerUri, ok := d.GetOk("backup_blob_container_uri"); ok {
+		serverProperties.BackupBlobContainerURI = utils.String(containerUri.(string))
+	}
 
 	return &serverProperties
 }

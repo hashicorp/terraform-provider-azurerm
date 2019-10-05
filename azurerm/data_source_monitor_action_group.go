@@ -90,7 +90,7 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 }
 
 func dataSourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorActionGroupsClient
+	client := meta.(*ArmClient).Monitor.ActionGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

@@ -43,6 +43,7 @@ func testAccPreCheck(t *testing.T) {
 		"ARM_TENANT_ID",
 		"ARM_TEST_LOCATION",
 		"ARM_TEST_LOCATION_ALT",
+		"ARM_TEST_LOCATION_ALT2",
 	}
 
 	for _, variable := range variables {
@@ -59,6 +60,10 @@ func testLocation() string {
 
 func testAltLocation() string {
 	return os.Getenv("ARM_TEST_LOCATION_ALT")
+}
+
+func testAltLocation2() string {
+	return os.Getenv("ARM_TEST_LOCATION_ALT2")
 }
 
 func testArmEnvironmentName() string {

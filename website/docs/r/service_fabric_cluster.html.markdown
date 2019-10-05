@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_service_fabric_cluster"
 sidebar_current: "docs-azurerm-resource-service-fabric-cluster"
 description: |-
-  Manage a Service Fabric Cluster.
+  Manages a Service Fabric Cluster.
 ---
 
 # azurerm_service_fabric_cluster
 
-Manage a Service Fabric Cluster.
+Manages a Service Fabric Cluster.
 
 ## Example Usage
 

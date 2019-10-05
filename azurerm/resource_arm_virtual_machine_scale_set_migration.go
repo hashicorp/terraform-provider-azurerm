@@ -25,7 +25,7 @@ func resourceVirtualMachineScaleSetStateV0toV1(is *terraform.InstanceState, meta
 
 	log.Printf("[DEBUG] ARM Virtual Machine Scale Set Attributes before Migration: %#v", is.Attributes)
 
-	client := meta.(*ArmClient).vmScaleSetClient
+	client := meta.(*ArmClient).compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := is.Attributes["resource_group_name"]

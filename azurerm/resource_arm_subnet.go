@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networksvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -89,14 +92,18 @@ func resourceArmSubnet() *schema.Resource {
 										Type:     schema.TypeString,
 										Required: true,
 										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.BareMetal/AzureVMware",
+											"Microsoft.BareMetal/CrayServers",
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
+											"Microsoft.Databricks/workspaces",
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
+											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
 										}, false),
 									},
@@ -107,6 +114,8 @@ func resourceArmSubnet() *schema.Resource {
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
 												"Microsoft.Network/virtualNetworks/subnets/action",
+												"Microsoft.Network/virtualNetworks/subnets/join/action",
+												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
 											}, false),
 										},
 									},
@@ -121,7 +130,7 @@ func resourceArmSubnet() *schema.Resource {
 }
 
 func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
@@ -130,7 +139,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, vnetName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -145,8 +154,8 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	addressPrefix := d.Get("address_prefix").(string)
 
-	azureRMLockByName(vnetName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -158,13 +167,13 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &nsgId,
 		}
 
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(nsgId)
+		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupResourceID(nsgId)
 		if err != nil {
 			return err
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		locks.ByName(parsedNsgId.Name, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(parsedNsgId.Name, networkSecurityGroupResourceName)
 	} else {
 		properties.NetworkSecurityGroup = nil
 	}
@@ -175,13 +184,13 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &rtId,
 		}
 
-		routeTableName, err := parseRouteTableName(rtId)
+		parsedRouteTableId, err := networksvc.ParseRouteTableResourceID(rtId)
 		if err != nil {
 			return err
 		}
 
-		azureRMLockByName(routeTableName, routeTableResourceName)
-		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 	} else {
 		properties.RouteTable = nil
 	}
@@ -220,10 +229,10 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -280,10 +289,10 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
+	client := meta.(*ArmClient).network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -293,31 +302,31 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
+		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
 		if err2 != nil {
 			return err2
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
 		rtId := v.(string)
-		routeTableName, err2 := parseRouteTableName(rtId)
+		parsedRouteTableId, err2 := networksvc.ParseRouteTableResourceID(rtId)
 		if err2 != nil {
 			return err2
 		}
 
-		azureRMLockByName(routeTableName, routeTableResourceName)
-		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 	}
 
-	azureRMLockByName(vnetName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
-	azureRMLockByName(name, subnetResourceName)
-	defer azureRMUnlockByName(name, subnetResourceName)
+	locks.ByName(name, subnetResourceName)
+	defer locks.UnlockByName(name, subnetResourceName)
 
 	future, err := client.Delete(ctx, resGroup, vnetName, name)
 	if err != nil {
