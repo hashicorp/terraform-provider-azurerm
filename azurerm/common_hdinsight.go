@@ -37,13 +37,13 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 			}
 		}
 
-		if d.HasChange("roles") {
+		if d.HasChange("roles.0.worker_node") {
 			log.Printf("[DEBUG] Resizing the HDInsight %q Cluster", clusterKind)
 			rolesRaw := d.Get("roles").([]interface{})
 			roles := rolesRaw[0].(map[string]interface{})
-			headNodes := roles["worker_node"].([]interface{})
-			headNode := headNodes[0].(map[string]interface{})
-			targetInstanceCount := headNode["target_instance_count"].(int)
+			workerNodes := roles["worker_node"].([]interface{})
+			workerNode := workerNodes[0].(map[string]interface{})
+			targetInstanceCount := workerNode["target_instance_count"].(int)
 			params := hdinsight.ClusterResizeParameters{
 				TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
 			}
@@ -62,31 +62,37 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		// and can come back to removing if that functionality gets added. https://feedback.azure.com/forums/217335-hdinsight/suggestions/5663773-start-stop-cluster-hdinsight?page=3&per_page=20
 		if clusterKind == "Hadoop" {
 			if d.HasChange("roles.0.edge_node") {
-				o, n := d.GetChange("roles.0.edge_node.#")
+				log.Printf("[DEBUG] Detected change in edge nodes")
+				o, n := d.GetChange("roles.0.edge_node.0.target_instance_count")
 				edgeNodeRaw := d.Get("roles.0.edge_node").([]interface{})
 				edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
 				applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
 
-				// Create an edge node
-				if o.(int) < n.(int) {
-					err := createHDInsightEdgeNode(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
-					if err != nil {
-						return err
-					}
-
-					// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
-					log.Printf("[DEBUG] Waiting for Hadoop Cluster to %q (Resource Group %q) to finish applying edge node", name, resourceGroup)
-					stateConf := &resource.StateChangeConf{
-						Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
-						Target:     []string{"Running"},
-						Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
-						Timeout:    60 * time.Minute,
-						MinTimeout: 15 * time.Second,
-					}
-					if _, err := stateConf.WaitForState(); err != nil {
-						return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
-					}
+				// Note: API currently doesn't support updating number of edge nodes
+				// if anything in the edge nodes changes, delete edge nodes then recreate them
+				err := deleteHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name)
+				if err != nil {
+					return err
 				}
+
+				err = createHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
+				if err != nil {
+					return err
+				}
+
+				// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
+				log.Printf("[DEBUG] Waiting for Hadoop Cluster to %q (Resource Group %q) to finish applying edge node", name, resourceGroup)
+				stateConf := &resource.StateChangeConf{
+					Pending:    []string{"AzureVMConfiguration", "Accepted", "HdInsightConfiguration"},
+					Target:     []string{"Running"},
+					Refresh:    hdInsightWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
+					Timeout:    60 * time.Minute,
+					MinTimeout: 15 * time.Second,
+				}
+				if _, err := stateConf.WaitForState(); err != nil {
+					return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
+				}
+
 			}
 		}
 
@@ -212,7 +218,7 @@ func flattenHDInsightRoles(d *schema.ResourceData, input *hdinsight.ComputeProfi
 	}
 }
 
-func createHDInsightEdgeNode(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string, input map[string]interface{}) error {
+func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string, input map[string]interface{}) error {
 	installScriptActions := expandHDInsightApplicationEdgeNodeInstallScriptActions(input["install_script_action"].([]interface{}))
 
 	application := hdinsight.Application{
@@ -224,7 +230,7 @@ func createHDInsightEdgeNode(ctx context.Context, client *hdinsight.Applications
 						VMSize: utils.String(input["vm_size"].(string)),
 					},
 					// The TargetInstanceCount must be one for edge nodes.
-					TargetInstanceCount: utils.Int32(1),
+					TargetInstanceCount: utils.Int32(int32(input["target_instance_count"].(int))),
 				}},
 			},
 			InstallScriptActions: installScriptActions,
@@ -233,11 +239,25 @@ func createHDInsightEdgeNode(ctx context.Context, client *hdinsight.Applications
 	}
 	future, err := client.Create(ctx, resourceGroup, name, name, application)
 	if err != nil {
-		return fmt.Errorf("Error creating edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for creation of edge node for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	return nil
+}
+
+func deleteHDInsightEdgeNodes(ctx context.Context, client *hdinsight.ApplicationsClient, resourceGroup string, name string) error {
+	future, err := client.Delete(ctx, resourceGroup, name, name)
+
+	if err != nil {
+		return fmt.Errorf("Error deleting edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for deletion of edge nodes for HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil

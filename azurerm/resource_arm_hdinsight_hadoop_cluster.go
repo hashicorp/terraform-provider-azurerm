@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -59,30 +60,26 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			// An edge node can be added but can't be update or removed without forcing a new resource to be created
-			oldEdgeNodeCount, newEdgeNodeCount := diff.GetChange("roles.0.edge_node.#")
+			oldEdgeNodeCount, newEdgeNodeCount := diff.GetChange("roles.0.edge_node.0.target_instance_count")
 			oldEdgeNodeInt := oldEdgeNodeCount.(int)
 			newEdgeNodeInt := newEdgeNodeCount.(int)
 
-			// ForceNew if attempting to remove an edge node
-			if newEdgeNodeInt < oldEdgeNodeInt {
-				diff.ForceNew("roles.0.edge_node")
+			if oldEdgeNodeInt != newEdgeNodeInt {
+				diff.ForceNew("roles.0.edge_node.target_instance_count")
 			}
 
-			// ForceNew if attempting to update an edge node
-			if newEdgeNodeInt == 1 && oldEdgeNodeInt == 1 {
-				// DiffSuppressFunc comes after this check so we need to check if the strings aren't the same sans casing here.
-				oVMSize, newVMSize := diff.GetChange("roles.0.edge_node.0.vm_size")
-				if !strings.EqualFold(oVMSize.(string), newVMSize.(string)) {
-					diff.ForceNew("roles.0.edge_node")
-				}
+			// DiffSuppressFunc comes after this check so we need to check if the strings aren't the same sans casing here.
+			oVMSize, newVMSize := diff.GetChange("roles.0.edge_node.0.vm_size")
+			if !strings.EqualFold(oVMSize.(string), newVMSize.(string)) {
+				diff.ForceNew("roles.0.edge_node.0.vm_size")
+			}
 
-				// ForceNew if attempting to update install scripts
-				oldInstallScriptCount, newInstallScriptCount := diff.GetChange("roles.0.edge_node.0.install_script_action.#")
-				oldInstallScriptInt := oldInstallScriptCount.(int)
-				newInstallScriptInt := newInstallScriptCount.(int)
-				if newInstallScriptInt == oldInstallScriptInt {
-					diff.ForceNew("roles.0.edge_node.0.install_script_action")
-				}
+			// ForceNew if attempting to update install scripts
+			oldInstallScriptCount, newInstallScriptCount := diff.GetChange("roles.0.edge_node.0.install_script_action.#")
+			oldInstallScriptInt := oldInstallScriptCount.(int)
+			newInstallScriptInt := newInstallScriptCount.(int)
+			if newInstallScriptInt == oldInstallScriptInt {
+				diff.ForceNew("roles.0.edge_node.0.install_script_action")
 			}
 
 			return nil
@@ -136,6 +133,12 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
+									"target_instance_count": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 25),
+									},
+
 									"vm_size": {
 										Type:             schema.TypeString,
 										Required:         true,
@@ -277,7 +280,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
 		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
 
-		err := createHDInsightEdgeNode(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
+		err := createHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
 		if err != nil {
 			return err
 		}
@@ -406,6 +409,9 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 	if computeProfile := props.ComputeProfile; computeProfile != nil {
 		if roles := computeProfile.Roles; roles != nil {
 			for _, role := range *roles {
+				if targetInstanceCount := role.TargetInstanceCount; targetInstanceCount != nil {
+					edgeNode["target_instance_count"] = targetInstanceCount
+				}
 				if hardwareProfile := role.HardwareProfile; hardwareProfile != nil {
 					edgeNode["vm_size"] = hardwareProfile.VMSize
 				}
