@@ -117,11 +117,11 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(name, azureFirewallResourceName)
 	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	locks.MultipleByName(subnetToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
 
 	parameters := network.AzureFirewall{
 		Location: &location,
@@ -261,11 +261,11 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(name, azureFirewallResourceName)
 	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
-
 	locks.MultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

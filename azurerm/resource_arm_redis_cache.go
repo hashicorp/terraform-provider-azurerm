@@ -324,10 +324,13 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		locks.ByName(subnetName, subnetResourceName)
-		defer locks.UnlockByName(subnetName, subnetResourceName)
+
 		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
 		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
@@ -575,10 +578,13 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		locks.ByName(subnetName, subnetResourceName)
-		defer locks.UnlockByName(subnetName, subnetResourceName)
+
 		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
 		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+
 	}
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
