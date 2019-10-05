@@ -160,6 +160,15 @@ func resourceArmMySqlServer() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(mysql.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(mysql.StorageAutogrowEnabled),
+								string(mysql.StorageAutogrowDisabled),
+							}, false),
+						},
 					},
 				},
 			},
@@ -183,7 +192,6 @@ func resourceArmMySqlServer() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			tier, _ := diff.GetOk("sku.0.tier")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
 
@@ -197,7 +205,7 @@ func resourceArmMySqlServer() *schema.Resource {
 }
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.ServersClient
+	client := meta.(*ArmClient).Mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
@@ -267,7 +275,7 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.ServersClient
+	client := meta.(*ArmClient).Mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
@@ -317,7 +325,7 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.ServersClient
+	client := meta.(*ArmClient).Mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -363,7 +371,7 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.ServersClient
+	client := meta.(*ArmClient).Mysql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -409,11 +417,13 @@ func expandMySQLStorageProfile(d *schema.ResourceData) *mysql.StorageProfile {
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &mysql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
 		GeoRedundantBackup:  mysql.GeoRedundantBackup(geoRedundantBackup),
 		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     mysql.StorageAutogrow(autoGrow),
 	}
 }
 
@@ -449,6 +459,8 @@ func flattenMySQLStorageProfile(resp *mysql.StorageProfile) []interface{} {
 	}
 
 	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
+
+	values["auto_grow"] = string(resp.StorageAutogrow)
 
 	return []interface{}{values}
 }

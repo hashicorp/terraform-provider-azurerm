@@ -59,7 +59,7 @@ func dataSourceArmMonitorLogProfile() *schema.Resource {
 }
 
 func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.LogProfilesClient
+	client := meta.(*ArmClient).Monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

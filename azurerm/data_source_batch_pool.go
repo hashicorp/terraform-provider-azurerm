@@ -202,6 +202,9 @@ func dataSourceArmBatchPool() *schema.Resource {
 						"environment": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"user_identity": {
@@ -273,7 +276,7 @@ func dataSourceArmBatchPool() *schema.Resource {
 }
 
 func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)

@@ -21,7 +21,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false, "", true)
+	client, err := getArmClient(config, false, "0.0.0", "", true)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return
@@ -105,14 +105,14 @@ func createResourceGroup(ctx context.Context, client *ArmClient, resourceGroupNa
 		Location: &location,
 	}
 
-	if _, err := client.resource.GroupsClient.CreateOrUpdate(ctx, resourceGroupName, group); err != nil {
+	if _, err := client.Resource.GroupsClient.CreateOrUpdate(ctx, resourceGroupName, group); err != nil {
 		return fmt.Errorf("Error creating Resource Group %q: %+v", resourceGroupName, err)
 	}
 	return nil
 }
 
 func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountName, location string) (*storage.Account, error) {
-	storageClient := client.storage.AccountsClient
+	storageClient := client.Storage.AccountsClient
 	createParams := storage.AccountCreateParameters{
 		Location: &location,
 		Kind:     storage.Storage,
@@ -141,10 +141,10 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
-	if _, err := client.storage.AccountsClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
+	if _, err := client.Storage.AccountsClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
 		log.Printf("[DEBUG] Error deleting Storage Account %q (Resource Group %q): %v", storageAccountName, resourceGroupName, err)
 	}
-	if _, err := client.resource.GroupsClient.Delete(ctx, resourceGroupName); err != nil {
+	if _, err := client.Resource.GroupsClient.Delete(ctx, resourceGroupName); err != nil {
 		log.Printf("[DEBUG] Error deleting Resource Group %q): %v", resourceGroupName, err)
 	}
 }

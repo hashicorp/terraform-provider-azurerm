@@ -75,7 +75,7 @@ func dataSourceArmSchedulerJobCollection() *schema.Resource {
 }
 
 func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobCollectionsClient
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

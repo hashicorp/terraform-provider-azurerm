@@ -154,6 +154,9 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 				"additional_login_params": {
 					Type:     schema.TypeMap,
 					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 				"allowed_external_redirect_urls": {
 					Type:     schema.TypeList,
@@ -1161,7 +1164,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 	appLogs := make([]interface{}, 0)
 	if input.ApplicationLogs != nil {
-
 		appLogsItem := make(map[string]interface{})
 
 		blobStorage := make([]interface{}, 0)
@@ -1194,7 +1196,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 		fileSystem := make([]interface{}, 0)
 		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
-
 			fileSystemItem := make(map[string]interface{})
 
 			if fileSystemInput.RetentionInDays != nil {
@@ -1461,7 +1462,6 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			}
 
 			restrictions = append(restrictions, ipSecurityRestriction)
-
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}

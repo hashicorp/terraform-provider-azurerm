@@ -68,7 +68,7 @@ func dataSourceSqlDatabase() *schema.Resource {
 }
 
 func dataSourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.DatabasesClient
+	client := meta.(*ArmClient).Sql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -91,7 +91,6 @@ func dataSourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.DatabaseProperties; props != nil {
-
 		d.Set("collation", props.Collation)
 
 		d.Set("default_secondary_location", props.DefaultSecondaryLocation)

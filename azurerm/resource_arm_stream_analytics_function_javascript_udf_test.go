@@ -113,7 +113,7 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.FunctionsClient
+		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.FunctionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -129,7 +129,7 @@ func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFExists(resourceName str
 }
 
 func testCheckAzureRMStreamAnalyticsFunctionJavaScriptUDFDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
+	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_function_javascript_udf" {

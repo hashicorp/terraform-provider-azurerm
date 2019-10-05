@@ -146,7 +146,6 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 
 func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
 

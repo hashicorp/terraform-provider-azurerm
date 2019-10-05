@@ -124,7 +124,6 @@ func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
 
 func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -133,7 +132,7 @@ func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).search.ServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Search.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
@@ -158,7 +157,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).search.ServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Search.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)

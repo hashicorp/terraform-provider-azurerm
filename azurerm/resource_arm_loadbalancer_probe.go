@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -271,7 +271,6 @@ func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}
 }
 
 func expandAzureRmLoadBalancerProbe(d *schema.ResourceData) *network.Probe {
-
 	properties := network.ProbePropertiesFormat{
 		NumberOfProbes:    utils.Int32(int32(d.Get("number_of_probes").(int))),
 		IntervalInSeconds: utils.Int32(int32(d.Get("interval_in_seconds").(int))),

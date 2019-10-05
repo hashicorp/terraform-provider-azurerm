@@ -57,8 +57,8 @@ func resourceArmManagementGroup() *schema.Resource {
 }
 
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 	armTenantID := meta.(*ArmClient).tenantId
 
@@ -157,7 +157,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())
@@ -197,15 +197,14 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil
 }
 
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())
@@ -283,7 +282,7 @@ func flattenArmManagementGroupSubscriptionIds(input *[]managementgroups.ChildInf
 
 		id, err := parseManagementGroupSubscriptionID(*child.ID)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse child subscription ID %+v", err)
+			return nil, fmt.Errorf("Unable to parse child Subscription ID %+v", err)
 		}
 
 		if id != nil {

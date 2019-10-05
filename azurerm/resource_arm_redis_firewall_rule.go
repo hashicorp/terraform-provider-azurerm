@@ -56,7 +56,7 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 }
 
 func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redis.FirewallRulesClient
+	client := meta.(*ArmClient).Redis.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Redis Firewall Rule creation.")
 
@@ -87,7 +87,6 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
-
 		if _, err := client.CreateOrUpdate(ctx, resourceGroup, cacheName, name, parameters); err != nil {
 			return resource.NonRetryableError(fmt.Errorf("Error creating the rule: %s", err))
 		}
@@ -107,7 +106,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redis.FirewallRulesClient
+	client := meta.(*ArmClient).Redis.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -142,7 +141,7 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redis.FirewallRulesClient
+	client := meta.(*ArmClient).Redis.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -330,7 +330,6 @@ func TestAccAzureRMRouteTable_withTagsSubnet(t *testing.T) {
 
 func testCheckAzureRMRouteTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)

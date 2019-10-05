@@ -330,6 +330,9 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 									"properties": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},
@@ -344,7 +347,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 }
 
 func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -408,7 +411,7 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -457,7 +460,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -859,7 +862,6 @@ func flattenAzureRmMonitorAutoScaleSettingRecurrence(input *insights.Recurrence)
 	result := make(map[string]interface{})
 
 	if schedule := input.Schedule; schedule != nil {
-
 		if timezone := schedule.TimeZone; timezone != nil {
 			result["timezone"] = *timezone
 		}

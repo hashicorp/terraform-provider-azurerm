@@ -416,7 +416,7 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batch.PoolClient
+		conn := testAccProvider.Meta().(*ArmClient).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -442,7 +442,7 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batch.PoolClient
+		conn := testAccProvider.Meta().(*ArmClient).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {

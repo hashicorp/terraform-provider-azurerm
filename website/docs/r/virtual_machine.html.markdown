@@ -120,7 +120,11 @@ The following arguments are supported:
 
 * `delete_os_disk_on_termination` - (Optional) Should the OS Disk (either the Managed Disk / VHD Blob) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
 
+~> **Note:** This setting works when instance is deleted via Terraform only and don't forget to delete disks manually if you deleted VM manually. It can increase spending.
+
 * `delete_data_disks_on_termination` - (Optional) Should the Data Disks (either the Managed Disks / VHD Blobs) be deleted when the Virtual Machine is destroyed? Defaults to `false`.
+
+-> **Note:** This setting works when instance is deleted via Terraform only and don't forget to delete disks manually if you deleted VM manually. It can increase spending.
 
 * `identity` - (Optional) A `identity` block.
 
@@ -190,7 +194,7 @@ A `identity` block supports the following:
 
 -> **NOTE:** Managed Service Identity previously required the installation of a VM Extension, but this information [is now available via the Azure Instance Metadata Service](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview#how-does-it-work).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VM. Required if `type` is `UserAssigned`.
 
@@ -303,6 +307,8 @@ A `storage_data_disk` block supports the following:
 
 * `create_option` - (Required) Specifies how the data disk should be created. Possible values are `Attach`, `FromImage` and `Empty`.
 
+~> **NOTE:** If using an image that does not have data to be written to the Data Disk, use `Empty` as the create option in order to create the desired disk without any data. 
+
 * `disk_size_gb` - (Optional) Specifies the size of the data disk in gigabytes. 
 
 * `lun` - (Required) Specifies the logical unit number of the data disk. This needs to be unique within all the Data Disks on the Virtual Machine.
@@ -382,6 +388,16 @@ A `winrm` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Machine.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Virtual Machine.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Virtual Machine.
+
+-> You can access the Principal ID via `${azurerm_virtual_machine.test.identity.0.principal_id}`
 
 ## Import
 

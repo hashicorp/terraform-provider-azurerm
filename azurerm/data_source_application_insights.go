@@ -45,13 +45,16 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
 func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.ComponentsClient
+	client := meta.(*ArmClient).AppInsights.ComponentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

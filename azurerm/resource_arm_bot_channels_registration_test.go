@@ -14,19 +14,38 @@ import (
 func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests due to
 	// Azure only being able provision against one app id at a time
-	testCases := map[string]func(t *testing.T){
-		"basic":    testAccAzureRMBotChannelsRegistration_basic,
-		"update":   testAccAzureRMBotChannelsRegistration_update,
-		"complete": testAccAzureRMBotChannelsRegistration_complete,
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic":    testAccAzureRMBotChannelsRegistration_basic,
+			"update":   testAccAzureRMBotChannelsRegistration_update,
+			"complete": testAccAzureRMBotChannelsRegistration_complete,
+		},
+		"connection": {
+			"basic":    testAccAzureRMBotConnection_basic,
+			"complete": testAccAzureRMBotConnection_complete,
+		},
+		"channel": {
+			"slackBasic":  testAccAzureRMBotChannelSlack_basic,
+			"slackUpdate": testAccAzureRMBotChannelSlack_update,
+		},
+		"web_app": {
+			"basic":    testAccAzureRMBotWebApp_basic,
+			"update":   testAccAzureRMBotWebApp_update,
+			"complete": testAccAzureRMBotWebApp_complete,
+		},
 	}
 
-	for name, tc := range testCases {
-		tc := tc
-		t.Run(name, func(t *testing.T) {
-			tc(t)
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
 		})
 	}
-
 }
 
 func testAccAzureRMBotChannelsRegistration_basic(t *testing.T) {
@@ -134,7 +153,7 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channels Registration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).bot.BotClient
+		client := testAccProvider.Meta().(*ArmClient).Bot.BotClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -151,7 +170,7 @@ func testCheckAzureRMBotChannelsRegistrationExists(name string) resource.TestChe
 }
 
 func testCheckAzureRMBotChannelsRegistrationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).bot.BotClient
+	client := testAccProvider.Meta().(*ArmClient).Bot.BotClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

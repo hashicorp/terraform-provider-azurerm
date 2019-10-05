@@ -117,7 +117,7 @@ func testAccAzureRMSecurityCenterWorkspace_update(t *testing.T) {
 
 func testCheckAzureRMSecurityCenterWorkspaceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).securityCenter.WorkspaceClient
+		client := testAccProvider.Meta().(*ArmClient).SecurityCenter.WorkspaceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -141,7 +141,7 @@ func testCheckAzureRMSecurityCenterWorkspaceExists(resourceName string) resource
 }
 
 func testCheckAzureRMSecurityCenterWorkspaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).securityCenter.WorkspaceClient
+	client := testAccProvider.Meta().(*ArmClient).SecurityCenter.WorkspaceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, res := range s.RootModule().Resources {

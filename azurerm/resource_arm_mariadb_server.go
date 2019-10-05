@@ -153,6 +153,16 @@ func resourceArmMariaDbServer() *schema.Resource {
 								string(mariadb.Disabled),
 							}, false),
 						},
+
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(mariadb.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(mariadb.StorageAutogrowEnabled),
+								string(mariadb.StorageAutogrowDisabled),
+							}, false),
+						},
 					},
 				},
 			},
@@ -177,7 +187,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 }
 
 func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.ServersClient
+	client := meta.(*ArmClient).Mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server creation.")
@@ -298,7 +308,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.ServersClient
+	client := meta.(*ArmClient).Mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -346,7 +356,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.ServersClient
+	client := meta.(*ArmClient).Mariadb.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -400,11 +410,13 @@ func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.Storage
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &mariadb.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
 		GeoRedundantBackup:  mariadb.GeoRedundantBackup(geoRedundantBackup),
 		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     mariadb.StorageAutogrow(autoGrow),
 	}
 }
 
@@ -448,6 +460,8 @@ func flattenMariaDbStorageProfile(storage *mariadb.StorageProfile) []interface{}
 	}
 
 	values["geo_redundant_backup"] = string(storage.GeoRedundantBackup)
+
+	values["auto_grow"] = string(storage.StorageAutogrow)
 
 	return []interface{}{values}
 }

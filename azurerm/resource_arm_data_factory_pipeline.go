@@ -49,11 +49,17 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"variables": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"description": {
@@ -174,7 +180,6 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 		if err := d.Set("variables", variables); err != nil {
 			return fmt.Errorf("Error setting `variables`: %+v", err)
 		}
-
 	}
 
 	return nil

@@ -42,6 +42,8 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
 			// But to prevent potential state migration in the future, let's stick to use Set now
+
+			//lintignore:S018
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -211,7 +213,7 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 }
 
 func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -276,7 +278,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -319,7 +321,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

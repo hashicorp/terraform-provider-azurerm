@@ -190,7 +190,7 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
@@ -229,7 +229,7 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)

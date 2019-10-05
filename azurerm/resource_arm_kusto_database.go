@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-01-21/kusto"
+	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -65,7 +65,7 @@ func resourceArmKustoDatabase() *schema.Resource {
 }
 
 func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kusto.DatabasesClient
+	client := meta.(*ArmClient).Kusto.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Database creation.")
@@ -121,7 +121,7 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kusto.DatabasesClient
+	client := meta.(*ArmClient).Kusto.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -164,7 +164,7 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kusto.DatabasesClient
+	client := meta.(*ArmClient).Kusto.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

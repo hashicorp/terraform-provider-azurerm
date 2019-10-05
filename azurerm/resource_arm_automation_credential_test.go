@@ -94,7 +94,7 @@ func TestAccAzureRMAutomationCredential_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.CredentialClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.CredentialClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -121,14 +121,12 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 		}
 
 		return fmt.Errorf("Automation Credential still exists:\n%#v", resp)
-
 	}
 
 	return nil
 }
 
 func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -144,7 +142,7 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Automation Credential: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automation.CredentialClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.CredentialClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

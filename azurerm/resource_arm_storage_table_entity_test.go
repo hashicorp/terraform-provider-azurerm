@@ -120,7 +120,7 @@ func testCheckAzureRMTableEntityExists(resourceName string) resource.TestCheckFu
 		partitionKey := rs.Primary.Attributes["partition_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
@@ -165,7 +165,7 @@ func testCheckAzureRMTableEntityDestroy(s *terraform.State) error {
 		partitionKey := rs.Primary.Attributes["parititon_key"]
 		rowKey := rs.Primary.Attributes["row_key"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)

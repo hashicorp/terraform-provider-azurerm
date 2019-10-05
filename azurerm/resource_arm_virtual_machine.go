@@ -8,8 +8,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -166,6 +166,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
+			//lintignore:S018
 			"storage_image_reference": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -408,6 +409,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				},
 			},
 
+			//lintignore:S018
 			"os_profile": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -443,6 +445,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				Set: resourceArmVirtualMachineStorageOsProfileHash,
 			},
 
+			//lintignore:S018
 			"os_profile_windows_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -529,6 +532,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 				ConflictsWith: []string{"os_profile_linux_config"},
 			},
 
+			//lintignore:S018
 			"os_profile_linux_config": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -935,7 +939,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 	deleteDataDisks := d.Get("delete_data_disks_on_termination").(bool)
 
 	if deleteOsDisk || deleteDataDisks {
-		storageClient := meta.(*ArmClient).storage
+		storageClient := meta.(*ArmClient).Storage
 
 		props := virtualMachine.VirtualMachineProperties
 		if props == nil {
@@ -1534,7 +1538,6 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 	linuxKeys := linuxConfig["ssh_keys"].([]interface{})
 	sshPublicKeys := make([]compute.SSHPublicKey, 0)
 	for _, key := range linuxKeys {
-
 		sshKey, ok := key.(map[string]interface{})
 		if !ok {
 			continue
@@ -1986,7 +1989,6 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 	if props := networkInterface.InterfacePropertiesFormat; props != nil {
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
-
 				if config.PublicIPAddress != nil {
 					id, err := azure.ParseAzureResourceID(*config.PublicIPAddress.ID)
 					if err != nil {

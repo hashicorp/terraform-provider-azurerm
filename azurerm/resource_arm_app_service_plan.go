@@ -166,7 +166,7 @@ func resourceArmAppServicePlan() *schema.Resource {
 }
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicePlansClient
+	client := meta.(*ArmClient).Web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
@@ -257,7 +257,7 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicePlansClient
+	client := meta.(*ArmClient).Web.AppServicePlansClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -326,7 +326,7 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicePlansClient
+	client := meta.(*ArmClient).Web.AppServicePlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

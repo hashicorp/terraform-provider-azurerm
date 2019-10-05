@@ -236,13 +236,12 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 
 func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
@@ -281,7 +280,7 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
@@ -314,7 +313,7 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		containerName := rs.Primary.Attributes["name"]

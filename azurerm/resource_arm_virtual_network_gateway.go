@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -778,7 +778,6 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 }
 
 func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
-
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
 			hasRadiusAddress := vpnClientConfig["radius_server_address"] != ""

@@ -107,8 +107,8 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).web.CertificatesClient
+	vaultClient := meta.(*ArmClient).Keyvault.VaultsClient
+	client := meta.(*ArmClient).Web.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
@@ -192,7 +192,7 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesClient
+	client := meta.(*ArmClient).Web.CertificatesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -234,7 +234,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesClient
+	client := meta.(*ArmClient).Web.CertificatesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

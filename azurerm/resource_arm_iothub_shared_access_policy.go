@@ -302,7 +302,6 @@ type accessRights struct {
 }
 
 func expandAccessRights(d *schema.ResourceData) string {
-
 	var possibleAccessRights = []struct {
 		schema string
 		right  string

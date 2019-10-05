@@ -106,7 +106,7 @@ func dataSourceApiManagementApi() *schema.Resource {
 
 func dataSourceApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).apiManagement.ApiClient
+	client := meta.(*ArmClient).ApiManagement.ApiClient
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)

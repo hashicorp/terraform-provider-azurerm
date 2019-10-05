@@ -254,12 +254,11 @@ func dataSourceArmStorageAccount() *schema.Resource {
 			"tags": tags.SchemaDataSource(),
 		},
 	}
-
 }
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storage.AccountsClient
+	client := meta.(*ArmClient).Storage.AccountsClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	name := d.Get("name").(string)

@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -132,7 +132,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettings = expandManagedDiskEncryptionSettings(settings)
+		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
@@ -184,7 +184,6 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := resp.SnapshotProperties; props != nil {
-
 		if data := props.CreationData; data != nil {
 			d.Set("create_option", string(data.CreateOption))
 
@@ -197,8 +196,8 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if props.EncryptionSettings != nil {
-			d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettings))
+		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
 		}
 	}
 

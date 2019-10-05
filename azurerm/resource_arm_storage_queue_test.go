@@ -148,7 +148,6 @@ func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
 
 func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -158,7 +157,7 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {
@@ -196,7 +195,7 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 
 		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
 		if err != nil {

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -176,7 +176,6 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 			})
 		}
 		img = list[0]
-
 	}
 
 	d.SetId(*img.ID)

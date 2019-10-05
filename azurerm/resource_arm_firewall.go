@@ -5,7 +5,7 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -391,7 +391,6 @@ func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string
 	subnetName := parsed.Path["subnets"]
 	if subnetName != "AzureFirewallSubnet" {
 		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
-
 	}
 
 	return warnings, errors

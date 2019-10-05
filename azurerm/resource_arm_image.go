@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -422,7 +422,6 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 }
 
 func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDisk, error) {
-
 	disks := d.Get("data_disk").([]interface{})
 
 	dataDisks := make([]compute.ImageDataDisk, 0, len(disks))
@@ -460,5 +459,4 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 	}
 
 	return dataDisks, nil
-
 }

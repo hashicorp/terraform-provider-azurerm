@@ -53,7 +53,7 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 	fabricName := d.Get("recovery_fabric_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -102,7 +102,7 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).recoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, fabricName, name)
@@ -132,7 +132,7 @@ func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, me
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).recoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	future, err := client.Delete(ctx, fabricName, name)

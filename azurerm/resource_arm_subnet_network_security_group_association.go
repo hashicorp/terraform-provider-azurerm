@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,12 +55,23 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 		return err
 	}
 
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
 	locks.ByName(subnetName, subnetResourceName)
 	defer locks.UnlockByName(subnetName, subnetResourceName)
+
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -177,6 +189,18 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 		log.Printf("[DEBUG] Subnet %q (Virtual Network %q / Resource Group %q) has no Network Security Group - removing from state!", subnetName, virtualNetworkName, resourceGroup)
 		return nil
 	}
+
+	// once we have the network security group id to lock on, lock on that
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(*props.NetworkSecurityGroup.ID)
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	locks.ByName(subnetName, subnetResourceName)
 	defer locks.UnlockByName(subnetName, subnetResourceName)

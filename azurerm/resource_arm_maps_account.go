@@ -68,7 +68,7 @@ func resourceArmMapsAccount() *schema.Resource {
 }
 
 func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
+	client := meta.(*ArmClient).Maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
@@ -118,7 +118,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
+	client := meta.(*ArmClient).Maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -158,7 +158,7 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
+	client := meta.(*ArmClient).Maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

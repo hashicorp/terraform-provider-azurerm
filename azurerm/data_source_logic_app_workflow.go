@@ -29,6 +29,9 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"workflow_schema": {
@@ -51,7 +54,7 @@ func dataSourceArmLogicAppWorkflow() *schema.Resource {
 	}
 }
 func dataSourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

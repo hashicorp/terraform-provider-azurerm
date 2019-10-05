@@ -151,7 +151,6 @@ func TestAccAzureRMRoute_multipleRoutes(t *testing.T) {
 
 func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -181,7 +180,6 @@ func testCheckAzureRMRouteExists(resourceName string) resource.TestCheckFunc {
 
 func testCheckAzureRMRouteDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)

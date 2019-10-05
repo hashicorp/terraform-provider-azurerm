@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
 	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -176,7 +176,7 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 		targetAvailabilitySetID = nil
 	}
 
-	client := meta.(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -252,7 +252,7 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 	protectionContainerName := id.Path["replicationProtectionContainers"]
 	name := id.Path["replicationProtectedItems"]
 
-	client := meta.(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
@@ -315,7 +315,7 @@ func resourceArmRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interf
 		},
 	}
 
-	client := meta.(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, disableProtectionInput)
 	if err != nil {

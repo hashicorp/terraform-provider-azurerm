@@ -124,8 +124,8 @@ func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if props.EncryptionSettings != nil {
-			d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettings))
+		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
 		}
 	}
 

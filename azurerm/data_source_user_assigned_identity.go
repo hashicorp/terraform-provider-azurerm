@@ -41,7 +41,7 @@ func dataSourceArmUserAssignedIdentity() *schema.Resource {
 }
 
 func dataSourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

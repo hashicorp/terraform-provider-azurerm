@@ -284,6 +284,9 @@ func resourceArmBatchPool() *schema.Resource {
 						"environment": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"user_identity": {
@@ -367,7 +370,7 @@ func resourceArmBatchPool() *schema.Resource {
 }
 
 func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch pool creation.")
@@ -500,7 +503,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -588,7 +591,7 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -625,7 +628,6 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		if props.DeploymentConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-
 			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
@@ -650,7 +652,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

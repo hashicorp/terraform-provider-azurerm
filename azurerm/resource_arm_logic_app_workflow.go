@@ -41,6 +41,9 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"workflow_schema": {
@@ -68,7 +71,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 }
 
 func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
@@ -128,7 +131,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -178,7 +181,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -225,7 +228,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
