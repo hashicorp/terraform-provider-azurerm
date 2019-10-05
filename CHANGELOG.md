@@ -8,6 +8,10 @@ IMPROVEMENTS:
 
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
 
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
+
 ## 1.35.0 (October 04, 2019)
 
 FEATURES:
