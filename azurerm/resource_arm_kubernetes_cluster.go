@@ -276,7 +276,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 									"log_analytics_workspace_id": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: azure.ValidateResourceID,
 									},
 								},
@@ -1006,7 +1006,7 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if workspaceId, ok := value["log_analytics_workspace_id"]; ok {
+		if workspaceId, ok := value["log_analytics_workspace_id"]; ok && workspaceId != "" {
 			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
 		}
 
