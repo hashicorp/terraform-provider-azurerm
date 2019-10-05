@@ -41,13 +41,14 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"fqdns": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
+			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
+			// "fqdns": {
+			// 	Type:     schema.TypeList,
+			// 	Computed: true,
+			// 	Elem: &schema.Schema{
+			// 		Type: schema.TypeString,
+			// 	},
+			// },
 
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
@@ -180,35 +181,47 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	d.SetId(*resp.ID)
-
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if privateLinkServiceProperties := resp.PrivateLinkServiceProperties; privateLinkServiceProperties != nil {
-		d.Set("alias", privateLinkServiceProperties.Alias)
-		if err := d.Set("auto_approval", flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(privateLinkServiceProperties.AutoApproval)); err != nil {
-			return fmt.Errorf("Error setting `auto_approval`: %+v", err)
+	if props := resp.PrivateLinkServiceProperties; props != nil {
+		if err := d.Set("alias", props.Alias); err != nil {
+			return fmt.Errorf("Error setting `alias`: %+v", err)
 		}
-		d.Set("fqdns", utils.FlattenStringSlice(privateLinkServiceProperties.Fqdns))
-		if err := d.Set("ip_configurations", flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(privateLinkServiceProperties.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `ip_configurations`: %+v", err)
+		if props.AutoApproval != nil {
+			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
+				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
+			}
 		}
-		if err := d.Set("load_balancer_frontend_ip_configurations", flattenArmPrivateLinkServiceFrontendIPConfiguration(privateLinkServiceProperties.LoadBalancerFrontendIPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configurations`: %+v", err)
+		if props.Visibility != nil {
+			if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(props.Visibility)); err != nil {
+				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+			}
 		}
-		if err := d.Set("network_interfaces", flattenArmPrivateLinkServiceInterface(privateLinkServiceProperties.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interfaces`: %+v", err)
+		// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
+		// if props.Fqdns != nil {
+		// 	if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
+		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
+		// 	}
+		// }
+		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
-		if err := d.Set("private_endpoint_connections", flattenArmPrivateLinkServicePrivateEndpointConnection(privateLinkServiceProperties.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("Error setting `private_endpoint_connections`: %+v", err)
+		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 		}
-		if err := d.Set("visibility", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(privateLinkServiceProperties.Visibility)); err != nil {
-			return fmt.Errorf("Error setting `visibility`: %+v", err)
+		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
+			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
+		}
+		if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(props.PrivateEndpointConnections)); err != nil {
+			return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
 		}
 	}
-	d.Set("type", resp.Type)
+	if err := d.Set("type", resp.Type); err != nil {
+		return fmt.Errorf("Error setting `type`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

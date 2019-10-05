@@ -177,7 +177,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		// supported by private endpoints.
 		privateLinkServiceNetworkPolicies := "Enabled"
 		if v.(bool) {
-			privateLinkServiceNetworkPolicies := "Disabled"
+			privateLinkServiceNetworkPolicies = "Disabled"
 		}
 		properties.PrivateLinkServiceNetworkPolicies = &privateLinkServiceNetworkPolicies
 	}

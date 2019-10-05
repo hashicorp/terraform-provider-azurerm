@@ -2,9 +2,11 @@ package network
 
 import (
 	"fmt"
-	"strings"
+	"net"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func ValidatePrivateLinkServiceName(i interface{}, k string) (_ []string, errors []error) {
@@ -30,32 +32,57 @@ func ValidatePrivateLinkServiceSubsciptionFqdn(i interface{}, k string) (_ []str
 	}
 
 	if m, _ := validate.RegExHelper(i, k, `^(([a-zA-Z\d]|[a-zA-Z\d][a-zA-Z\d\-]*[a-zA-Z\d])\.){1,}([a-zA-Z\d]|[a-zA-Z\d][a-zA-Z\d\-]*[a-zA-Z\d\.]){1,}$`); !m {
-		errors = append(errors, fmt.Errorf(`%q is an invalid fqdn.`, k))
+		errors = append(errors, fmt.Errorf(`%q is an invalid FQDN`, v))
 	}
 
-	if len(v) > 253 {
-		errors = append(errors, fmt.Errorf(`FQDNs can not be longer than 253 characters in length, got %d characters.`, len(v)))
+	// I use 255 here because the string contains the upto three . characters in them
+	if len(v) > 255 {
+		errors = append(errors, fmt.Errorf(`FQDNs can not be longer than 255 characters in length, got %d characters`, len(v)))
 	}
 
-	// TODO: Remove empty entries, this is a bug with the trailing . format
-	segments := strings.Split(v, ".")
+	segments := utils.SplitRemoveEmptyEntries(v, ".", false)
 	index := 0
 
 	for _,label := range segments {
 		index++
-		fmt.Println(label)
-		
 		if index == len(segments) {
-			if label != "" && len(label) < 2 {
-				errors = append(errors,fmt.Errorf(`the last label of an FQDN must be at least 2 characters long, %q is only 1 character in length.`, label))
+			if len(label) < 2 {
+				errors = append(errors,fmt.Errorf(`the last label of an FQDN must be at least 2 characters, got 1 character`))
 			}
 		} else {
 			if len(label) > 63 {
-				errors = append(errors,fmt.Errorf(`labels of an FQDN must not be longer than 63 characters, got %d character.`, len(label)))
+				errors = append(errors,fmt.Errorf(`FQDN labels must not be longer than 63 characters, got %d characters`, len(label)))
 			}
 		}
 	}
 
+
+	return nil, errors
+}
+
+func ValidatePrivateLinkServiceIPv4Address(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	result := net.ParseIP(v)
+	if result.To4() == nil {
+		errors = append(errors, fmt.Errorf("%q is not a valid IPv4 IP address", v))
+	}
+
+	return nil, errors
+}
+
+func ValidatePrivateLinkServiceIsResourceId(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
+	}
+
+	if _, err := azure.ParseAzureResourceID(v); err != nil {
+		return nil, []error{fmt.Errorf("%q is not a valid %q", v, k)}
+	}
 
 	return nil, errors
 }

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service"
 sidebar_current: "docs-azurerm-resource-private-link-service"
 description: |-
-  Manages a Azure PrivateLinkService instance.
+  Manages an Azure PrivateLinkService instance.
 ---
 
 # azurerm_private_link_service
 
-Managea a Azure PrivateLinkService instance.
+Managea an Azure PrivateLinkService instance.
 
 
 ## Private Link Service Usage
@@ -83,70 +83,59 @@ The following arguments are supported:
 
 * `location` - (Optional) Resource location. Changing this forces a new resource to be created.
 
-* `auto_approval` - (Optional) One `auto_approval` block defined below.
+* `auto_approval_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be automatically be able to use this service.
 
-* `fqdns` - (Optional) The list of Fqdn.
+* `nat_ip_configuration` - (Optional) One or more `nat_ip_configuration` blocks as defined below.
 
-* `ip_configurations` - (Optional) One or more `ip_configuration` block defined below.
+* `load_balancer_frontend_ip_configuration_ids` - (Optional) A list of `Standard` Load Balancer resource ids to direct the service network traffic toward.
 
-* `load_balancer_frontend_ip_configurations` - (Optional) One or more `load_balancer_frontend_ip_configuration` block defined below.
+* `private_endpoint_connection` - (Optional) One or more `private_endpoint_connection` blocks as defined below.
 
-* `private_endpoint_connections` - (Optional) One or more `private_endpoint_connection` block defined below.
+* `visibility_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
 
-* `visibility` - (Optional) One `visibility` block defined below.
-
-* `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
 
-The `auto_approval` block supports the following:
-
-* `subscriptions` - (Optional) The list of subscriptions.
-
----
-
-The `ip_configuration` block supports the following:
-
-* `primary` - (Optional) If the `ip_configuration` is the primary ip configuration or not. Defaults to true.
-
-* `private_ip_address` - (Optional) The private IP address of the IP configuration.
-
-* `private_ip_allocation_method` - (Optional) The private IP address allocation method. Defaults to `Static`.
-
-* `subnet_id` - (Optional) Resource ID.
-
-* `private_ip_address_version` - (Optional) Available from Api-Version 2016-03-30 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4. Defaults to `IPv4`.
+The `nat_ip_configuration` block supports the following:
 
 * `name` - (Optional) The name of private link service ip configuration.
 
----
+* `primary` - (Optional) If the `ip_configuration` is the primary ip configuration or not. Defaults to `true`.
 
-The `load_balancer_frontend_ip_configuration` block supports the following:
+* `private_ip_address` - (Optional) The private IP address of the IP configuration.
 
-* `id` - (Optional) Resource ID.
+* `private_ip_allocation_method` - (Optional) The private IP address allocation method, supported values are `Static` and `Dynamic`. Defaults to `Dynamic`.
+
+* `subnet_id` - (Optional) The resource ID of the subnet to be used by the service.
+
+* `private_ip_address_version` - (Optional) The ip address version of the `ip_configuration`, supported values are `IPv4` or `IPv6`. Defaults to `IPv4`.
+
+-> **NOTE:** Private Link Service Supports `IPv4` traffic only.
+
 
 ---
 
 The `private_endpoint_connection` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `id` - (Optional) The Resource ID of the `private_endpoint_connection`.
+
+* `name` - (Optional) The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
 * `private_endpoint` - (Optional) One `private_endpoint` block defined below.
 
 * `private_link_service_connection_state` - (Optional) One `private_link_service_connection_state` block defined below.
-
-* `name` - (Optional) The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
 
 ---
 
 The `private_endpoint` block supports the following:
 
-* `id` - (Optional) Resource ID.
+* `id` - (Optional) The resource ID of the `private_endpoint`.
 
 * `location` - (Optional) Resource location. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) Resource tags.
+* `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
 
@@ -158,33 +147,22 @@ The `private_link_service_connection_state` block supports the following:
 
 * `action_required` - (Optional) A message indicating if changes on the service provider require any updates on the consumer.
 
----
-
-The `visibility` block supports the following:
-
-* `subscriptions` - (Optional) The list of subscriptions.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `network_interfaces` - One or more `network_interface` block defined below.
+* `network_interfaces` - A list of network interface resource ids that are being used by the service.
 
 * `alias` - The alias of the private link service.
 
 * `type` - Resource type.
 
 
----
-
-The `network_interface` block contains the following:
-
-* `id` - Resource ID.
-
 ## Import
 
 Private Link Service can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_private_link_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.Network/privateLinkServices/
+$ terraform import azurerm_private_link_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.Network/privateLinkServices/privatelinkservicename
 ```

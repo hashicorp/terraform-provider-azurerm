@@ -58,14 +58,15 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"fqdns": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
-				},
-			},
+			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
+			// "fqdns": {
+			// 	Type:     schema.TypeList,
+			// 	Optional: true,
+			// 	Elem: &schema.Schema{
+			// 		Type:         schema.TypeString,
+			// 		ValidateFunc: validate.NoEmptyStrings,
+			// 	},
+			// },
 
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
@@ -86,10 +87,11 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							}, false),
 							Default: string(network.Dynamic),
 						},
+						// Only IPv4 is supported by the API
 						"private_ip_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: aznet.ValidatePrivateLinkServiceIPv4Address,
 						},
 						"private_ip_address_version": {
 							Type:     schema.TypeString,
@@ -108,7 +110,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 						"subnet_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: aznet.ValidatePrivateLinkServiceIsResourceId,
 						},
 					},
 				},
@@ -119,7 +121,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Required: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: aznet.ValidatePrivateLinkServiceIsResourceId,
 				},
 			},
 
@@ -132,7 +134,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 						"id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: aznet.ValidatePrivateLinkServiceIsResourceId,
 						},
 						"name": {
 							Type:         schema.TypeString,
@@ -148,7 +150,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 									"id": {
 										Type:         schema.TypeString,
 										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
+										ValidateFunc: aznet.ValidatePrivateLinkServiceIsResourceId,
 									},
 									"location": azure.SchemaLocation(),
 									"tags":     tags.Schema(),
@@ -214,20 +216,21 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Private Link Service %q (Resource Group %q): %s", name, resourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_private_link_service", *resp.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_private_link_service", *existing.ID)
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	autoApproval := d.Get("auto_approval_subscription_ids").([]interface{})
-	fqdns := d.Get("fqdns").([]interface{})
+	// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
+	//fqdns := d.Get("fqdns").([]interface{})
 	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
 	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").([]interface{})
 	privateEndpointConnections := d.Get("private_endpoint_connection").([]interface{})
@@ -238,7 +241,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 		Location: utils.String(location),
 		PrivateLinkServiceProperties: &network.PrivateLinkServiceProperties{
 			AutoApproval:                         expandArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(autoApproval),
-			Fqdns:                                utils.ExpandStringSlice(fqdns),
+			//Fqdns:                                utils.ExpandStringSlice(fqdns),
 			IPConfigurations:                     expandArmPrivateLinkServicePrivateLinkServiceIPConfiguration(ipConfigurations),
 			LoadBalancerFrontendIPConfigurations: expandArmPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
 			PrivateEndpointConnections:           expandArmPrivateLinkServicePrivateEndpointConnection(privateEndpointConnections),
@@ -293,31 +296,42 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if privateLinkServiceProperties := resp.PrivateLinkServiceProperties; privateLinkServiceProperties != nil {
-		d.Set("alias", privateLinkServiceProperties.Alias)
-		if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(privateLinkServiceProperties.AutoApproval)); err != nil {
-			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
+	if props := resp.PrivateLinkServiceProperties; props != nil {
+		if err := d.Set("alias", props.Alias); err != nil {
+			return fmt.Errorf("Error setting `alias`: %+v", err)
 		}
-		if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(privateLinkServiceProperties.Visibility)); err != nil {
-			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+		if props.AutoApproval != nil {
+			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
+				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
+			}
 		}
-		if err := d.Set("fqdns", utils.FlattenStringSlice(privateLinkServiceProperties.Fqdns)); err != nil {
-			return fmt.Errorf("Error setting `fqdns`: %+v", err)
+		if props.Visibility != nil {
+			if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(props.Visibility)); err != nil {
+				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
+			}
 		}
-		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(privateLinkServiceProperties.IPConfigurations)); err != nil {
+		// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
+		// if props.Fqdns != nil {
+		// 	if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
+		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
+		// 	}
+		// }
+		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
-		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(privateLinkServiceProperties.LoadBalancerFrontendIPConfigurations)); err != nil {
+		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 		}
-		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(privateLinkServiceProperties.NetworkInterfaces)); err != nil {
+		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
 			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
-		if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(privateLinkServiceProperties.PrivateEndpointConnections)); err != nil {
+		if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(props.PrivateEndpointConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
 		}
 	}
-	d.Set("type", resp.Type)
+	if err := d.Set("type", resp.Type); err != nil {
+		return fmt.Errorf("Error setting `type`: %+v", err)
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -355,14 +369,20 @@ func expandArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input [
 		return nil
 	}
 
-	subscriptions := make([]string, 0)
-
-	for _, v := range input {
-		subscriptions = append(subscriptions, v.(string))
+	result := network.PrivateLinkServicePropertiesAutoApproval{
+		Subscriptions: utils.ExpandStringSlice(input),
 	}
 
-	result := network.PrivateLinkServicePropertiesAutoApproval{
-		Subscriptions: &subscriptions,
+	return &result
+}
+
+func expandArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input []interface{}) *network.PrivateLinkServicePropertiesVisibility {
+	if len(input) == 0 {
+		return nil
+	}
+
+	result := network.PrivateLinkServicePropertiesVisibility{
+		Subscriptions: utils.ExpandStringSlice(input),
 	}
 
 	return &result
@@ -443,24 +463,6 @@ func expandArmPrivateLinkServicePrivateEndpointConnection(input []interface{}) *
 	return &results
 }
 
-func expandArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input []interface{}) *network.PrivateLinkServicePropertiesVisibility {
-	if len(input) == 0 {
-		return nil
-	}
-
-	subscriptions := make([]string, 0)
-
-	for _, v := range input {
-		subscriptions = append(subscriptions, v.(string))
-	}
-
-	result := network.PrivateLinkServicePropertiesVisibility{
-		Subscriptions: &subscriptions,
-	}
-
-	return &result
-}
-
 func expandArmPrivateLinkServicePrivateEndpoint(input []interface{}) *network.PrivateEndpoint {
 	if len(input) == 0 {
 		return nil
@@ -497,16 +499,27 @@ func expandArmPrivateLinkServicePrivateLinkServiceConnectionState(input []interf
 	return &result
 }
 
-func flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input *network.PrivateLinkServicePropertiesAutoApproval) []string {
-	result := make([]string, 0)
+func flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input *network.PrivateLinkServicePropertiesAutoApproval) []interface{} {
+	result := make([]interface{}, 0)
 	if input == nil {
 		return result
 	}
 
-	for _, v := range *input.Subscriptions {
-		if subscription := v; subscription != "" {
-			result = append(result, subscription)
-		}
+	if input.Subscriptions != nil {
+		result = utils.FlattenStringSlice(input.Subscriptions)
+	}
+
+	return result
+}
+
+func flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input *network.PrivateLinkServicePropertiesVisibility) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	if input.Subscriptions != nil {
+		result = utils.FlattenStringSlice(input.Subscriptions)
 	}
 
 	return result
@@ -519,26 +532,26 @@ func flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input *[]netw
 	}
 
 	for _, item := range *input {
-		v := make(map[string]interface{})
+		b := make(map[string]interface{})
 
 		if name := item.Name; name != nil {
-			v["name"] = *name
+			b["name"] = *name
 		}
-		if privateLinkServiceIPConfigurationProperties := item.PrivateLinkServiceIPConfigurationProperties; privateLinkServiceIPConfigurationProperties != nil {
-			v["private_ip_allocation_method"] = string(privateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod)
-			if privateIpAddress := privateLinkServiceIPConfigurationProperties.PrivateIPAddress; privateIpAddress != nil {
-				v["private_ip_address"] = *privateIpAddress
+		if props := item.PrivateLinkServiceIPConfigurationProperties; props != nil {
+			b["private_ip_allocation_method"] = string(props.PrivateIPAllocationMethod)
+			if v := props.PrivateIPAddress; v != nil {
+				b["private_ip_address"] = *v
 			}
-			v["private_ip_address_version"] = string(privateLinkServiceIPConfigurationProperties.PrivateIPAddressVersion)
-			if subnet := privateLinkServiceIPConfigurationProperties.Subnet; subnet != nil {
-				if subnetId := subnet.ID; subnetId != nil {
-					v["subnet_id"] = *subnetId
+			b["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
+			if v := props.Subnet; v != nil {
+				if i := v.ID; i != nil {
+					b["subnet_id"] = *i
 				}
 			}
-			v["primary"] = *item.PrivateLinkServiceIPConfigurationProperties.Primary
+			b["primary"] = *props.Primary
 		}
 
-		results = append(results, v)
+		results = append(results, b)
 	}
 
 	return results
@@ -586,27 +599,12 @@ func flattenArmPrivateLinkServicePrivateEndpointConnection(input *[]network.Priv
 		if id := item.ID; id != nil {
 			v["id"] = *id
 		}
-		if privateEndpointConnectionProperties := item.PrivateEndpointConnectionProperties; privateEndpointConnectionProperties != nil {
-			v["private_endpoint"] = flattenArmPrivateLinkServicePrivateEndpoint(privateEndpointConnectionProperties.PrivateEndpoint)
-			v["private_link_service_connection_state"] = flattenArmPrivateLinkServicePrivateLinkServiceConnectionState(privateEndpointConnectionProperties.PrivateLinkServiceConnectionState)
+		if props := item.PrivateEndpointConnectionProperties; props != nil {
+			v["private_endpoint"] = flattenArmPrivateLinkServicePrivateEndpoint(props.PrivateEndpoint)
+			v["private_link_service_connection_state"] = flattenArmPrivateLinkServicePrivateLinkServiceConnectionState(props.PrivateLinkServiceConnectionState)
 		}
 
 		results = append(results, v)
-	}
-
-	return results
-}
-
-func flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input *network.PrivateLinkServicePropertiesVisibility) []string {
-	results := make([]string, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, v := range *input.Subscriptions {
-		if subscription := v; subscription != "" {
-			results = append(results, v)
-		}
 	}
 
 	return results
@@ -618,7 +616,6 @@ func flattenArmPrivateLinkServicePrivateEndpoint(input *network.PrivateEndpoint)
 	}
 
 	result := make(map[string]interface{})
-
 	if id := input.ID; id != nil {
 		result["id"] = *id
 	}
@@ -635,7 +632,6 @@ func flattenArmPrivateLinkServicePrivateLinkServiceConnectionState(input *networ
 	}
 
 	result := make(map[string]interface{})
-
 	if actionRequired := input.ActionRequired; actionRequired != nil {
 		result["action_required"] = *actionRequired
 	}

@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service"
 sidebar_current: "docs-azurerm-datasource-private-link-service"
 description: |-
-  Gets information about an existing Private Link Service
+  Use this data source to access information about an existing Private Link Service.
 ---
 
 # Data Source: azurerm_private_link_service
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the private link service.
 
-* `resource_group_name` - (Required) The name of the resource group.
+* `resource_group_name` - (Required) The name of the resource group where the private link is resides. Changing this forces a new resource to be created.
 
 
 ## Attributes Reference
@@ -42,77 +42,58 @@ The following attributes are exported:
 
 * `alias` - The alias of the private link service.
 
-* `auto_approval` - One `auto_approval` block defined below.
+* `auto_approval_subscription_ids` - A list of subscription globally unique identifiers that will be auto approved to use this private link service.
 
-* `fqdns` - The list of Fqdn.
+* `ip_configurations` - One or more `ip_configuration` blocks as defined below.
 
-* `ip_configurations` - One or more `ip_configuration` block defined below.
+* `load_balancer_frontend_ip_configuration_ids` - A list of `Standard` Load Balancer resource IDs to direct the service network traffic toward.
 
-* `load_balancer_frontend_ip_configurations` - One or more `load_balancer_frontend_ip_configuration` block defined below.
+* `network_interfaces` - A list of network interface resource ids that are being used by the service.
 
-* `network_interfaces` - One or more `network_interface` block defined below.
-
-* `private_endpoint_connections` - One or more `private_endpoint_connection` block defined below.
+* `private_endpoint_connection` - One or more `private_endpoint_connection` blocks as defined below.
 
 * `type` - Resource type.
 
-* `visibility` - One `visibility` block defined below.
+* `visibility_subscription_ids` - A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
 
-* `tags` - Resource tags.
+* `tags` - A mapping of tags to assign to the resource. Changing this forces a new resource to be created
 
-
----
-
-The `auto_approval` block contains the following:
-
-* `subscriptions` - The list of subscriptions.
 
 ---
 
 The `ip_configuration` block contains the following:
 
+* `name` - The name of private link service ip configuration.
+
 * `private_ip_address` - The private IP address of the IP configuration.
 
 * `private_ip_allocation_method` - The private IP address allocation method.
 
-* `subnet_id` - Resource ID.
+* `subnet_id` - The resource ID of the subnet to be used by the service.
 
-* `private_ip_address_version` - Available from Api-Version 2016-03-30 onwards, it represents whether the specific ipconfiguration is IPv4 or IPv6. Default is taken as IPv4.
+* `private_ip_address_version` - The ip address version of the `ip_configuration`.
 
-* `name` - The name of private link service ip configuration.
-
----
-
-The `load_balancer_frontend_ip_configuration` block contains the following:
-
-* `id` - Resource ID.
-
----
-
-The `network_interface` block contains the following:
-
-* `id` - Resource ID.
 
 ---
 
 The `private_endpoint_connection` block contains the following:
 
-* `id` - Resource ID.
-
-* `private_endpoint` - One `private_endpoint` block defined below.
-
-* `private_link_service_connection_state` - One `private_link_service_connection_state` block defined below.
+* `id` - The resource ID of the `private_endpoint_connection`.
 
 * `name` - The name of the resource that is unique within a resource group. This name can be used to access the resource.
+
+* `private_endpoint` - One of the `private_endpoint` blocks as defined below.
+
+* `private_link_service_connection_state` - One of the `private_link_service_connection_state` blocks as defined below.
 
 
 ---
 
 The `private_endpoint` block contains the following:
 
-* `id` - Resource ID.
+* `id` - The Private Endpoint ID.
 
-* `location` - Resource location.
+* `location` - The resource location of the `private_endpoint`.
 
 * `tags` - Resource tags.
 
@@ -126,8 +107,3 @@ The `private_link_service_connection_state` block contains the following:
 
 * `action_required` - A message indicating if changes on the service provider require any updates on the consumer.
 
----
-
-The `visibility` block contains the following:
-
-* `subscriptions` - The list of subscriptions.
