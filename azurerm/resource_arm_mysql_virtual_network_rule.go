@@ -55,7 +55,7 @@ func resourceArmMySqlVirtualNetworkRule() *schema.Resource {
 }
 
 func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -153,7 +153,7 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMySqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -188,7 +188,7 @@ func resourceArmMySqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMySqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

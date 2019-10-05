@@ -52,7 +52,7 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 }
 
 func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM user identity creation.")
@@ -100,7 +100,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -137,7 +137,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
