@@ -82,7 +82,6 @@ A `ip_configuration` block supports the following:
 
 * `public_ip_address_id` (Required)  Reference to a Public IP Address to associate with this Bastion Host.
 
-
 ## Attributes Reference
 
 The following attributes are exported:
