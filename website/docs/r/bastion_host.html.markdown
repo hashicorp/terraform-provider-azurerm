@@ -11,6 +11,8 @@ description: |-
 
 Manages a Bastion Host Instance.
 
+~> **Note:** Bastion Host Instances are a preview feature in Azure, and therefore are only supported in a select number of regions. [Read more](https://docs.microsoft.com/en-us/azure/bastion/bastion-faq).
+
 ## Example Usage
 
 This example deploys an Azure Bastion Host Instance to a target virtual network.
@@ -66,8 +68,6 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `dns_name` - (Optional) Specifies the DNS prefix for the Bastion Host. 
-
 * `ip_configuration` - (Required) A `ip_configuration` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
@@ -81,6 +81,13 @@ A `ip_configuration` block supports the following:
 * `subnet_id` - (Required) Reference to a subnet in which this Bastion Host has been created. 
 
 * `public_ip_address_id` (Required)  Reference to a Public IP Address to associate with this Bastion Host.
+
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `dns_name` - The FQDN for the Azure Bastion Host.
 
 ## Import
 

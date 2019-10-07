@@ -50,6 +50,8 @@ func TestAccAzureRMBastionHost_complete(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMBastionHostExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
 			},
 		},
@@ -161,19 +163,18 @@ resource "azurerm_bastion_host" "test" {
   name                = "acctestBastion%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  dns_name 			  = "acctestBastion%s"
 
   ip_configuration {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
-  
+
   tags = {
     environment = "production"
   }
 }
-`, rInt, location, rString, rInt, rString, rString)
+`, rInt, location, rString, rInt, rString)
 }
 
 func testAccAzureRMBastionHost_requiresImport(rInt int, rString string, location string) string {
@@ -181,9 +182,10 @@ func testAccAzureRMBastionHost_requiresImport(rInt int, rString string, location
 	return fmt.Sprintf(`
 %s
 resource "azurerm_bastion_host" "import" {
-  name                 = "${azurerm_batch_account.test.name}"
-  resource_group_name  = "${azurerm_batch_account.test.resource_group_name}"
-  location             = "${azurerm_batch_account.test.location}"
+  name                 = "${azurerm_bastion_host.test.name}"
+  resource_group_name  = "${azurerm_bastion_host.test.resource_group_name}"
+  location             = "${azurerm_bastion_host.test.location}"
+
   ip_configuration {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"

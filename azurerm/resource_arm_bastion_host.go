@@ -40,7 +40,7 @@ func resourceArmBastionHost() *schema.Resource {
 
 			"dns_name": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 
 			"ip_configuration": {
@@ -106,11 +106,6 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 		Tags: expandTags(tags),
 	}
 
-	dnsName, dnsOk := d.GetOkExists("dns_name")
-	if dnsOk {
-		parameters.BastionHostPropertiesFormat.DNSName = utils.String(dnsName.(string))
-	}
-
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return fmt.Errorf("Error creating/updating Bastion Host %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -160,8 +155,10 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
+		d.Set("dns_name", props.DNSName)
+
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
-			d.Set("dns_name", props.DNSName)
+
 			if err := d.Set("ip_configuration", flattenArmBastionHostIPConfiguration(ipConfigs)); err != nil {
 				return fmt.Errorf("Error flattening `ip_configuration`: %+v", err)
 			}
