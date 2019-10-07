@@ -13,7 +13,7 @@ Manages a Healthcare Service Resource.
 ## Example Usage
 
 ```hcl
-resource "azurerm_healthcare_service" "test" {
+resource "azurerm_healthcare_service" "example" {
   name                = "uniquefhirname"
   resource_group_name = "sample-resource-group"
   location            = "westus2"
