@@ -202,7 +202,7 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.VnetClient
-	ctx, cancel := timeouts.ForRead(smeta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
