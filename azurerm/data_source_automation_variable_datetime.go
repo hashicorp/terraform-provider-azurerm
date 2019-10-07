@@ -13,5 +13,5 @@ func dataSourceArmAutomationVariableDateTime() *schema.Resource {
 }
 
 func dataSourceArmAutomationVariableDateTimeRead(d *schema.ResourceData, meta interface{}) error {
-	return datasourceAutomationVariableRead(d, meta, "Datetime")
+	return dataSourceAutomationVariableRead(d, meta, "Datetime")
 }

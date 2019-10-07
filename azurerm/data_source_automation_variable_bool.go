@@ -13,5 +13,5 @@ func dataSourceArmAutomationVariableBool() *schema.Resource {
 }
 
 func dataSourceArmAutomationVariableBoolRead(d *schema.ResourceData, meta interface{}) error {
-	return datasourceAutomationVariableRead(d, meta, "Bool")
+	return dataSourceAutomationVariableRead(d, meta, "Bool")
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +56,8 @@ func dataSourceArmApplicationInsights() *schema.Resource {
 
 func dataSourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.ComponentsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)

@@ -7,6 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -66,7 +67,8 @@ func dataSourceArmKeyVaultSecret() *schema.Resource {
 func dataSourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	keyVaultBaseUri := d.Get("vault_uri").(string)
