@@ -3068,7 +3068,7 @@ func testCheckAzureRMVirtualMachineDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)
