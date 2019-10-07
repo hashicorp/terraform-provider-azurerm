@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMDataSourceHealthcareService(t *testing.T) {
 	dataSourceName := "data.azurerm_healthcare_service.test"
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandIntRange(10000, 99999)
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

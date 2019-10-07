@@ -48,6 +48,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience.
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Service.
 * `location` - (Required) Specifies the supported Azure Region where the Service should be created.
+
+~> **Please Note**: Not all locations support this resource. Some are West US 2, North Central US, and UK West. 
 * `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
 
 ## Attributes Reference
@@ -68,5 +70,3 @@ CORS Configuration
 * `allowed_methods` - (Required if using CORS) The methods to be allowed via CORS.
 * `max_age_in_seconds` - (Required if using CORS) The max age to be allowed via CORS.
 * `allow_credentials` - (Required if using CORS) If credentials are allowed via CORS.
-
--> **Please Note**: Not all locations support this resource. Some are West US 2, North Central US, and UK West. 

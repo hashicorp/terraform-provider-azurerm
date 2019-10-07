@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMHealthcareService(t *testing.T) {
-	ri := tf.AccRandTimeInt()
+	ri := acctest.RandIntRange(10000, 99999)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -25,8 +25,8 @@ func TestAccAzureRMHealthcareService(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            "azurerm_healthcare_service.test",
-				ImportState:             true,
+				ResourceName: "azurerm_healthcare_service.test",
+				ImportState:  true,
 			},
 		},
 	})
@@ -98,7 +98,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_healthcare_service" "test" {
-  name                = "acctest-HCS-%d"
+  name                = "acctest-hcs-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

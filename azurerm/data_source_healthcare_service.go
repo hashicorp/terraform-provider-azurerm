@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/healthcareapis/mgmt/2018-08-20-preview/healthcareapis"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -147,68 +146,20 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 			d.Set("cosmosdb_throughput", config.OfferThroughput)
 		}
 
-		authOutput := make([]interface{}, 0)
 		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
-			output := make(map[string]interface{})
-			if authConfig.Authority != nil {
-				output["authority"] = *authConfig.Authority
+			if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(authConfig)); err != nil {
+				return fmt.Errorf("Error setting `authentication_configuration`: %+v", flattenHealthcareAuthConfig(authConfig))
 			}
-			if authConfig.Audience != nil {
-				output["audience"] = *authConfig.Audience
-			}
-			if authConfig.SmartProxyEnabled != nil {
-				output["smart_proxy_enabled"] = *authConfig.SmartProxyEnabled
-			}
-			authOutput = append(authOutput, output)
 		}
 
-		if err := d.Set("authentication_configuration", authOutput); err != nil {
-			return fmt.Errorf("Error setting `authentication_configuration`: %+v", authOutput)
-		}
-
-		corsOutput := make([]interface{}, 0)
 		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
-			output := make(map[string]interface{})
-			if corsConfig.Origins != nil {
-				output["allowed_origins"] = *corsConfig.Origins
+			if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(corsConfig)); err != nil {
+				return fmt.Errorf("Error setting `cors_configuration`: %+v", flattenHealthcareCorsConfig(corsConfig))
 			}
-			if corsConfig.Headers != nil {
-				output["allowed_headers"] = *corsConfig.Headers
-			}
-			if corsConfig.Methods != nil {
-				output["allowed_methods"] = *corsConfig.Methods
-			}
-			if corsConfig.MaxAge != nil {
-				output["max_age_in_seconds"] = *corsConfig.MaxAge
-			}
-			if corsConfig.AllowCredentials != nil {
-				output["allow_credentials"] = *corsConfig.AllowCredentials
-			}
-			corsOutput = append(corsOutput, output)
-		}
-
-		if err := d.Set("cors_configuration", corsOutput); err != nil {
-			return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
 		}
 	}
 
 	flattenAndSetTags(d, resp.Tags)
 
 	return nil
-}
-
-func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPolicyEntry) []string {
-	result := make([]string, 0)
-
-	if policies == nil {
-		return result
-	}
-
-	for _, policy := range *policies {
-		if objectId := policy.ObjectID; objectId != nil {
-			result = append(result, *objectId)
-		}
-	}
-
-	return result
 }

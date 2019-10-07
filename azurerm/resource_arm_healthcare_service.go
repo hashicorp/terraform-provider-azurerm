@@ -66,7 +66,7 @@ func resourceArmHealthcareService() *schema.Resource {
 			"authentication_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 3,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"authority": {
@@ -88,7 +88,7 @@ func resourceArmHealthcareService() *schema.Resource {
 			"cors_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 5,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allowed_origins": {
@@ -250,48 +250,16 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 			d.Set("cosmosdb_throughput", config.OfferThroughput)
 		}
 
-		authOutput := make([]interface{}, 0)
 		if authConfig := properties.AuthenticationConfiguration; authConfig != nil {
-			output := make(map[string]interface{})
-			if authConfig.Authority != nil {
-				output["authority"] = *authConfig.Authority
+			if err := d.Set("authentication_configuration", flattenHealthcareAuthConfig(authConfig)); err != nil {
+				return fmt.Errorf("Error setting `authentication_configuration`: %+v", flattenHealthcareAuthConfig(authConfig))
 			}
-			if authConfig.Audience != nil {
-				output["audience"] = *authConfig.Audience
-			}
-			if authConfig.SmartProxyEnabled != nil {
-				output["smart_proxy_enabled"] = *authConfig.SmartProxyEnabled
-			}
-			authOutput = append(authOutput, output)
 		}
 
-		if err := d.Set("authentication_configuration", authOutput); err != nil {
-			return fmt.Errorf("Error setting `authentication_configuration`: %+v", authOutput)
-		}
-
-		corsOutput := make([]interface{}, 0)
 		if corsConfig := properties.CorsConfiguration; corsConfig != nil {
-			output := make(map[string]interface{})
-			if corsConfig.Origins != nil {
-				output["allowed_origins"] = *corsConfig.Origins
+			if err := d.Set("cors_configuration", flattenHealthcareCorsConfig(corsConfig)); err != nil {
+				return fmt.Errorf("Error setting `cors_configuration`: %+v", flattenHealthcareCorsConfig(corsConfig))
 			}
-			if corsConfig.Headers != nil {
-				output["allowed_headers"] = *corsConfig.Headers
-			}
-			if corsConfig.Methods != nil {
-				output["allowed_methods"] = *corsConfig.Methods
-			}
-			if corsConfig.MaxAge != nil {
-				output["max_age_in_seconds"] = *corsConfig.MaxAge
-			}
-			if corsConfig.AllowCredentials != nil {
-				output["allow_credentials"] = *corsConfig.AllowCredentials
-			}
-			corsOutput = append(corsOutput, output)
-		}
-
-		if err := d.Set("cors_configuration", corsOutput); err != nil {
-			return fmt.Errorf("Error setting `cors_configuration`: %+v", corsOutput)
 		}
 	}
 
@@ -348,7 +316,7 @@ func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healt
 	maxAgeInSeconds := int32(0)
 	allowCredentials := true
 
-	for _, attr := range corsConfigRaw {
+	/*for _, attr := range corsConfigRaw {
 		corsConfigAttr := attr.(map[string]interface{})
 
 		allowedOrigins = *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].([]interface{}))
@@ -357,6 +325,15 @@ func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healt
 		maxAgeInSeconds = int32(corsConfigAttr["max_age_in_seconds"].(int))
 		allowCredentials = corsConfigAttr["allow_credentials"].(bool)
 	}
+	*/
+
+	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
+
+	allowedOrigins = *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].([]interface{}))
+	allowedHeaders = *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].([]interface{}))
+	allowedMethods = *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
+	maxAgeInSeconds = int32(corsConfigAttr["max_age_in_seconds"].(int))
+	allowCredentials = corsConfigAttr["allow_credentials"].(bool)
 
 	cors := &healthcareapis.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
@@ -378,14 +355,19 @@ func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthca
 	authority := ""
 	audience := ""
 	smart_proxy_enabled := true
+	/*
+		for _, attr := range authConfigRaw {
+			authConfigAttr := attr.(map[string]interface{})
 
-	for _, attr := range authConfigRaw {
-		authConfigAttr := attr.(map[string]interface{})
-
-		authority = authConfigAttr["authority"].(string)
-		audience = authConfigAttr["audience"].(string)
-		smart_proxy_enabled = authConfigAttr["smart_proxy_enabled"].(bool)
-	}
+			authority = authConfigAttr["authority"].(string)
+			audience = authConfigAttr["audience"].(string)
+			smart_proxy_enabled = authConfigAttr["smart_proxy_enabled"].(bool)
+		}
+	*/
+	authConfigAttr := authConfigRaw[0].(map[string]interface{})
+	authority = authConfigAttr["authority"].(string)
+	audience = authConfigAttr["audience"].(string)
+	smart_proxy_enabled = authConfigAttr["smart_proxy_enabled"].(bool)
 
 	auth := &healthcareapis.ServiceAuthenticationConfigurationInfo{
 		Authority:         &authority,
@@ -393,4 +375,62 @@ func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthca
 		SmartProxyEnabled: &smart_proxy_enabled,
 	}
 	return auth
+}
+
+func flattenHealthcareAccessPolicies(policies *[]healthcareapis.ServiceAccessPolicyEntry) []string {
+	result := make([]string, 0)
+
+	if policies == nil {
+		return result
+	}
+
+	for _, policy := range *policies {
+		if objectId := policy.ObjectID; objectId != nil {
+			result = append(result, *objectId)
+		}
+	}
+
+	return result
+}
+
+func flattenHealthcareAuthConfig(authConfig *healthcareapis.ServiceAuthenticationConfigurationInfo) []interface{} {
+	authOutput := make([]interface{}, 0)
+
+	output := make(map[string]interface{})
+	if authConfig.Authority != nil {
+		output["authority"] = *authConfig.Authority
+	}
+	if authConfig.Audience != nil {
+		output["audience"] = *authConfig.Audience
+	}
+	if authConfig.SmartProxyEnabled != nil {
+		output["smart_proxy_enabled"] = *authConfig.SmartProxyEnabled
+	}
+	authOutput = append(authOutput, output)
+
+	return authOutput
+}
+
+func flattenHealthcareCorsConfig(corsConfig *healthcareapis.ServiceCorsConfigurationInfo) []interface{} {
+	corsOutput := make([]interface{}, 0)
+
+	output := make(map[string]interface{})
+	if corsConfig.Origins != nil {
+		output["allowed_origins"] = *corsConfig.Origins
+	}
+	if corsConfig.Headers != nil {
+		output["allowed_headers"] = *corsConfig.Headers
+	}
+	if corsConfig.Methods != nil {
+		output["allowed_methods"] = *corsConfig.Methods
+	}
+	if corsConfig.MaxAge != nil {
+		output["max_age_in_seconds"] = *corsConfig.MaxAge
+	}
+	if corsConfig.AllowCredentials != nil {
+		output["allow_credentials"] = *corsConfig.AllowCredentials
+	}
+	corsOutput = append(corsOutput, output)
+
+	return corsOutput
 }
