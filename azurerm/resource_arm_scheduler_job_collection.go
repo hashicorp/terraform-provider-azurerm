@@ -15,8 +15,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -285,7 +285,6 @@ func expandAzureArmSchedulerJobCollectionQuota(d *schema.ResourceData) *schedule
 }
 
 func flattenAzureArmSchedulerJobCollectionQuota(quota *scheduler.JobCollectionQuota) []interface{} {
-
 	if quota == nil {
 		return nil
 	}

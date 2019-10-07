@@ -14,8 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -198,7 +198,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			tier, _ := diff.GetOk("sku.0.tier")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
 
@@ -212,7 +211,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 }
 
 func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
@@ -282,7 +281,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
@@ -332,7 +331,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -379,7 +378,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

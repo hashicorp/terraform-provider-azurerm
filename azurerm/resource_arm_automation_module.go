@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -79,7 +79,7 @@ func resourceArmAutomationModule() *schema.Resource {
 }
 
 func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ModuleClient
+	client := meta.(*ArmClient).Automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Module creation.")
@@ -136,7 +136,6 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resGroup, accName, name)
 			if err2 != nil {
 				return resp, "Error", fmt.Errorf("Error retrieving Module %q (Automation Account %q / Resource Group %q): %+v", name, accName, resGroup, err2)
@@ -170,7 +169,7 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ModuleClient
+	client := meta.(*ArmClient).Automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -199,7 +198,7 @@ func resourceArmAutomationModuleRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAutomationModuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ModuleClient
+	client := meta.(*ArmClient).Automation.ModuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

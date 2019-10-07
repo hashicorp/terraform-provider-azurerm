@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -163,7 +163,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 }
 
 func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
@@ -274,7 +274,7 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())
@@ -317,7 +317,7 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())

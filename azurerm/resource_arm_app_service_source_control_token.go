@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -54,7 +54,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 }
 
 func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
+	client := meta.(*ArmClient).Web.BaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
@@ -91,7 +91,7 @@ func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
+	client := meta.(*ArmClient).Web.BaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	scmType := d.Id()
@@ -117,7 +117,7 @@ func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
+	client := meta.(*ArmClient).Web.BaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	scmType := d.Id()

@@ -6,7 +6,7 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -418,7 +418,6 @@ func ExpandBatchPoolStartTask(list []interface{}) (*batch.StartTask, error) {
 				ElevationLevel: batch.ElevationLevel(autoUserMap["elevation_level"].(string)),
 				Scope:          batch.AutoUserScope(autoUserMap["scope"].(string)),
 			}
-
 		}
 	} else if userNameValue, ok := userIdentityValue["username"]; ok {
 		userName := userNameValue.(string)

@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/satori/uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -80,7 +80,7 @@ func resourceArmApiManagementSubscription() *schema.Resource {
 }
 
 func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.SubscriptionsClient
+	client := meta.(*ArmClient).ApiManagement.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -142,7 +142,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.SubscriptionsClient
+	client := meta.(*ArmClient).ApiManagement.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -181,7 +181,7 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApiManagementSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.SubscriptionsClient
+	client := meta.(*ArmClient).ApiManagement.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

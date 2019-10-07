@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -189,7 +189,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 }
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdn.EndpointsClient
+	client := meta.(*ArmClient).Cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
@@ -280,7 +280,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
-	endpointsClient := meta.(*ArmClient).cdn.EndpointsClient
+	endpointsClient := meta.(*ArmClient).Cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -338,7 +338,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdn.EndpointsClient
+	client := meta.(*ArmClient).Cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -401,7 +401,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdn.EndpointsClient
+	client := meta.(*ArmClient).Cdn.EndpointsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

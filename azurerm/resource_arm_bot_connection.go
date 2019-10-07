@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -83,7 +83,7 @@ func resourceArmBotConnection() *schema.Resource {
 }
 
 func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -134,7 +134,7 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -173,7 +173,7 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -209,11 +209,10 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*resp.ID)
 
 	return resourceArmBotConnectionRead(d, meta)
-
 }
 
 func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

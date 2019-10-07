@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -48,7 +48,7 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 }
 
 func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
+	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
 	ctx := meta.(*ArmClient).StopContext
 
 	schemaID := d.Get("schema_id").(string)
@@ -97,7 +97,7 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
+	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -136,7 +136,7 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
+	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

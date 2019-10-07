@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -42,7 +42,7 @@ func resourceArmSubnetRouteTableAssociation() *schema.Resource {
 }
 
 func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
+	client := meta.(*ArmClient).Network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> Route Table Association creation.")
@@ -114,7 +114,7 @@ func resourceArmSubnetRouteTableAssociationCreate(d *schema.ResourceData, meta i
 }
 
 func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
+	client := meta.(*ArmClient).Network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -155,7 +155,7 @@ func resourceArmSubnetRouteTableAssociationRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmSubnetRouteTableAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
+	client := meta.(*ArmClient).Network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

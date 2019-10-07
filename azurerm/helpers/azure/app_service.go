@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -1164,7 +1164,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 	appLogs := make([]interface{}, 0)
 	if input.ApplicationLogs != nil {
-
 		appLogsItem := make(map[string]interface{})
 
 		blobStorage := make([]interface{}, 0)
@@ -1197,7 +1196,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 		fileSystem := make([]interface{}, 0)
 		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
-
 			fileSystemItem := make(map[string]interface{})
 
 			if fileSystemInput.RetentionInDays != nil {
@@ -1464,7 +1462,6 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			}
 
 			restrictions = append(restrictions, ipSecurityRestriction)
-
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}

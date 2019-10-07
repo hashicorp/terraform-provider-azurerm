@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -107,8 +107,8 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).web.CertificatesClient
+	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).Web.CertificatesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
@@ -192,7 +192,7 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesClient
+	client := meta.(*ArmClient).Web.CertificatesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -234,7 +234,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesClient
+	client := meta.(*ArmClient).Web.CertificatesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

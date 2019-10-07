@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -68,7 +68,7 @@ func resourceArmDatabricksWorkspace() *schema.Resource {
 }
 
 func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).databricks.WorkspacesClient
+	client := meta.(*ArmClient).DataBricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
@@ -141,7 +141,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).databricks.WorkspacesClient
+	client := meta.(*ArmClient).DataBricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -187,7 +187,7 @@ func resourceArmDatabricksWorkspaceRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDatabricksWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).databricks.WorkspacesClient
+	client := meta.(*ArmClient).DataBricks.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

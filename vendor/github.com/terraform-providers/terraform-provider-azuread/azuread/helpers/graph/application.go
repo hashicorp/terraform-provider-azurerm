@@ -2,7 +2,7 @@ package graph
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func SchemaAppRoles() *schema.Schema {

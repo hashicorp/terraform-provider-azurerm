@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -79,7 +79,7 @@ func resourceArmRecoveryServicesContainerMappingCreate(d *schema.ResourceData, m
 	targetContainerId := d.Get("recovery_target_protection_container_id").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.ContainerMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -132,7 +132,7 @@ func resourceArmRecoveryServicesContainerMappingRead(d *schema.ResourceData, met
 	protectionContainerName := id.Path["replicationProtectionContainers"]
 	name := id.Path["replicationProtectionContainerMappings"]
 
-	client := meta.(*ArmClient).recoveryServices.ContainerMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
@@ -167,7 +167,7 @@ func resourceArmSiteRecoveryServicesContainerMappingDelete(d *schema.ResourceDat
 	name := id.Path["replicationProtectionContainerMappings"]
 	instanceType := string(siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A)
 
-	client := meta.(*ArmClient).recoveryServices.ContainerMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	input := siterecovery.RemoveProtectionContainerMappingInput{

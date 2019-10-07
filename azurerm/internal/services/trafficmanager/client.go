@@ -12,7 +12,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	EndpointsClient := trafficmanager.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&EndpointsClient.Client, o.ResourceManagerAuthorizer)
 

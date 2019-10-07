@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -53,7 +53,7 @@ func resourceArmSharedImageGallery() *schema.Resource {
 }
 
 func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleriesClient
+	client := meta.(*ArmClient).Compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Image Gallery creation.")
@@ -110,7 +110,7 @@ func resourceArmSharedImageGalleryCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleriesClient
+	client := meta.(*ArmClient).Compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -149,7 +149,7 @@ func resourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmSharedImageGalleryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleriesClient
+	client := meta.(*ArmClient).Compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

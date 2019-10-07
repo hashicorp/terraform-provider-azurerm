@@ -6,8 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -68,8 +69,9 @@ func dataSourceArmDnsZone() *schema.Resource {
 }
 
 func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.ZonesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Dns.ZonesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -87,7 +89,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	} else {
-		rgClient := meta.(*ArmClient).resource.GroupsClient
+		rgClient := meta.(*ArmClient).Resource.GroupsClient
 
 		resp, resourceGroup, err = findZone(client, rgClient, ctx, name)
 		if err != nil {

@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -1340,7 +1340,7 @@ func resourceArmApplicationGateway() *schema.Resource {
 
 func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	client := armClient.network.ApplicationGatewaysClient
+	client := armClient.Network.ApplicationGatewaysClient
 	ctx := armClient.StopContext
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
@@ -1502,7 +1502,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ApplicationGatewaysClient
+	client := meta.(*ArmClient).Network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -1644,7 +1644,7 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ApplicationGatewaysClient
+	client := meta.(*ArmClient).Network.ApplicationGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -2782,7 +2782,6 @@ func flattenApplicationGatewayRequestRoutingRules(input *[]network.ApplicationGa
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRequestRoutingRulePropertiesFormat; props != nil {
-
 			output := map[string]interface{}{
 				"rule_type": string(props.RuleType),
 			}
@@ -2953,7 +2952,6 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRewriteRuleSetPropertiesFormat; props != nil {
-
 			output := map[string]interface{}{}
 
 			if config.ID != nil {
@@ -2967,7 +2965,6 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 			if rulesConfig := props.RewriteRules; rulesConfig != nil {
 				rules := make([]interface{}, 0)
 				for _, rule := range *rulesConfig {
-
 					ruleOutput := map[string]interface{}{}
 
 					if rule.Name != nil {
@@ -3056,7 +3053,6 @@ func flattenApplicationGatewayRewriteRuleSets(input *[]network.ApplicationGatewa
 }
 
 func expandApplicationGatewayRedirectConfigurations(d *schema.ResourceData, gatewayID string) (*[]network.ApplicationGatewayRedirectConfiguration, error) {
-
 	vs := d.Get("redirect_configuration").([]interface{})
 	results := make([]network.ApplicationGatewayRedirectConfiguration, 0)
 
@@ -3116,7 +3112,6 @@ func flattenApplicationGatewayRedirectConfigurations(input *[]network.Applicatio
 
 	for _, config := range *input {
 		if props := config.ApplicationGatewayRedirectConfigurationPropertiesFormat; props != nil {
-
 			output := map[string]interface{}{
 				"redirect_type": string(props.RedirectType),
 			}
@@ -3681,7 +3676,6 @@ func flattenApplicationGateWayDisabledRuleGroups(input *[]network.ApplicationGat
 		ruleGroupOutput["rules"] = ruleOutputs
 
 		ruleGroups = append(ruleGroups, ruleGroupOutput)
-
 	}
 	return ruleGroups
 }
@@ -3728,7 +3722,6 @@ func flattenApplicationGatewayFirewallExclusion(input *[]network.ApplicationGate
 			exclusionListOutput["selector"] = *exclusionList.Selector
 		}
 		exclusionLists = append(exclusionLists, exclusionListOutput)
-
 	}
 	return exclusionLists
 }

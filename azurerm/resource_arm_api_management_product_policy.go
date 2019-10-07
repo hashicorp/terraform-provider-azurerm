@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -48,7 +48,7 @@ func resourceArmApiManagementProductPolicy() *schema.Resource {
 }
 
 func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ProductPoliciesClient
+	client := meta.(*ArmClient).ApiManagement.ProductPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -108,7 +108,7 @@ func resourceArmApiManagementProductPolicyCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ProductPoliciesClient
+	client := meta.(*ArmClient).ApiManagement.ProductPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -144,7 +144,7 @@ func resourceArmApiManagementProductPolicyRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmApiManagementProductPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ProductPoliciesClient
+	client := meta.(*ArmClient).ApiManagement.ProductPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

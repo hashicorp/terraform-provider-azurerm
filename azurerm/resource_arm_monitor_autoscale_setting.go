@@ -8,8 +8,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -347,7 +347,7 @@ func resourceArmMonitorAutoScaleSetting() *schema.Resource {
 }
 
 func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -411,7 +411,7 @@ func resourceArmMonitorAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -460,7 +460,7 @@ func resourceArmMonitorAutoScaleSettingRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMonitorAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -862,7 +862,6 @@ func flattenAzureRmMonitorAutoScaleSettingRecurrence(input *insights.Recurrence)
 	result := make(map[string]interface{})
 
 	if schedule := input.Schedule; schedule != nil {
-
 		if timezone := schedule.TimeZone; timezone != nil {
 			result["timezone"] = *timezone
 		}

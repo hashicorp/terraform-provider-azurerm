@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -176,7 +176,7 @@ func resourceArmApiManagementAuthorizationServer() *schema.Resource {
 }
 
 func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
+	client := meta.(*ArmClient).ApiManagement.AuthorizationServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -270,7 +270,7 @@ func resourceArmApiManagementAuthorizationServerCreateUpdate(d *schema.ResourceD
 
 func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
+	client := meta.(*ArmClient).ApiManagement.AuthorizationServersClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -334,7 +334,7 @@ func resourceArmApiManagementAuthorizationServerRead(d *schema.ResourceData, met
 }
 
 func resourceArmApiManagementAuthorizationServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.AuthorizationServersClient
+	client := meta.(*ArmClient).ApiManagement.AuthorizationServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

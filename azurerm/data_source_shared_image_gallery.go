@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -41,7 +41,7 @@ func dataSourceArmSharedImageGallery() *schema.Resource {
 }
 
 func dataSourceArmSharedImageGalleryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleriesClient
+	client := meta.(*ArmClient).Compute.GalleriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

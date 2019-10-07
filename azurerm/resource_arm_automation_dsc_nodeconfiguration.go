@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -57,7 +57,7 @@ func resourceArmAutomationDscNodeConfiguration() *schema.Resource {
 }
 
 func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscNodeConfigurationClient
+	client := meta.(*ArmClient).Automation.DscNodeConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Node Configuration creation.")
@@ -116,7 +116,7 @@ func resourceArmAutomationDscNodeConfigurationCreateUpdate(d *schema.ResourceDat
 }
 
 func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscNodeConfigurationClient
+	client := meta.(*ArmClient).Automation.DscNodeConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -148,7 +148,7 @@ func resourceArmAutomationDscNodeConfigurationRead(d *schema.ResourceData, meta 
 }
 
 func resourceArmAutomationDscNodeConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscNodeConfigurationClient
+	client := meta.(*ArmClient).Automation.DscNodeConfigurationClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -52,7 +52,7 @@ func resourceArmMariaDbConfiguration() *schema.Resource {
 }
 
 func resourceArmMariaDbConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.ConfigurationsClient
+	client := meta.(*ArmClient).MariaDB.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDb Configuration creation.")
@@ -91,7 +91,7 @@ func resourceArmMariaDbConfigurationCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmMariaDbConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.ConfigurationsClient
+	client := meta.(*ArmClient).MariaDB.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -122,7 +122,7 @@ func resourceArmMariaDbConfigurationRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMariaDbConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.ConfigurationsClient
+	client := meta.(*ArmClient).MariaDB.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -78,7 +78,7 @@ func resourceArmLocalNetworkGateway() *schema.Resource {
 }
 
 func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LocalNetworkGatewaysClient
+	client := meta.(*ArmClient).Network.LocalNetworkGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -145,7 +145,7 @@ func resourceArmLocalNetworkGatewayCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LocalNetworkGatewaysClient
+	client := meta.(*ArmClient).Network.LocalNetworkGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndLocalNetworkGatewayFromId(d.Id())
@@ -185,7 +185,7 @@ func resourceArmLocalNetworkGatewayRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmLocalNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LocalNetworkGatewaysClient
+	client := meta.(*ArmClient).Network.LocalNetworkGatewaysClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndLocalNetworkGatewayFromId(d.Id())

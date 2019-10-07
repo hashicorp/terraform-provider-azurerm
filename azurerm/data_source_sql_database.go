@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -91,7 +91,6 @@ func dataSourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.DatabaseProperties; props != nil {
-
 		d.Set("collation", props.Collation)
 
 		d.Set("default_secondary_location", props.DefaultSecondaryLocation)

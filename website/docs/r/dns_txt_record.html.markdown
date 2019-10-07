@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `zone_name` - (Required) Specifies the DNS Zone where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
 * `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 

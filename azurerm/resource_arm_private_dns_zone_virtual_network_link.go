@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -61,7 +61,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -124,7 +124,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -163,7 +163,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, met
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

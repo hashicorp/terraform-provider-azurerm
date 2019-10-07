@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceArmTrafficManagerGeographicalLocation() *schema.Resource {

@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -52,7 +52,7 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 }
 
 func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
+	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -95,7 +95,7 @@ func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
+	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -124,7 +124,7 @@ func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmIotDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
+	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

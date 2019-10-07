@@ -12,7 +12,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	JobCollectionsClient := scheduler.NewJobCollectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId) //nolint: megacheck
 	o.ConfigureClient(&JobCollectionsClient.Client, o.ResourceManagerAuthorizer)
 

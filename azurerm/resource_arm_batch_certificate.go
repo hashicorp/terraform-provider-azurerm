@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -88,7 +88,7 @@ func resourceArmBatchCertificate() *schema.Resource {
 }
 
 func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
+	client := meta.(*ArmClient).Batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate creation.")
@@ -150,7 +150,7 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
+	client := meta.(*ArmClient).Batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -186,7 +186,7 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
+	client := meta.(*ArmClient).Batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
@@ -237,7 +237,7 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
+	client := meta.(*ArmClient).Batch.CertificateClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

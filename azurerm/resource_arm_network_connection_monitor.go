@@ -13,8 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceArmNetworkConnectionMonitor() *schema.Resource {
@@ -114,7 +114,7 @@ func resourceArmNetworkConnectionMonitor() *schema.Resource {
 }
 
 func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ConnectionMonitorsClient
+	client := meta.(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -183,7 +183,7 @@ func resourceArmNetworkConnectionMonitorCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ConnectionMonitorsClient
+	client := meta.(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -229,7 +229,7 @@ func resourceArmNetworkConnectionMonitorRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNetworkConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ConnectionMonitorsClient
+	client := meta.(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

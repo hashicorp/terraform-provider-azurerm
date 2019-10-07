@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -56,7 +56,7 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 }
 
 func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).MariaDB.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Firewall Rule creation.")
@@ -110,7 +110,7 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).MariaDB.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -140,7 +140,7 @@ func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMariaDBFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).MariaDB.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

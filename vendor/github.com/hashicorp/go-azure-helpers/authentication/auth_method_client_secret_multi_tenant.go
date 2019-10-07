@@ -56,6 +56,7 @@ func (a servicePrincipalClientSecretMultiTenantAuth) getAuthorizationToken(sende
 
 func (a servicePrincipalClientSecretMultiTenantAuth) populateConfig(c *Config) error {
 	c.AuthenticatedAsAServicePrincipal = true
+	c.GetAuthenticatedObjectID = buildServicePrincipalObjectIDFunc(c)
 	return nil
 }
 

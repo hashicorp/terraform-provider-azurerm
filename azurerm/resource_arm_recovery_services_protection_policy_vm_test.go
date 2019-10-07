@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -255,7 +255,7 @@ func TestAccAzureRMRecoveryServicesProtectionPolicyVm_updateWeeklyToPartial(t *t
 }
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectionPoliciesClient
+	client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -284,7 +284,7 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.Stat
 
 func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectionPoliciesClient
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

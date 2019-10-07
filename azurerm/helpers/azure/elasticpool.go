@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 type skuType int
@@ -187,7 +187,6 @@ var getTierFromName = map[string]string{
 }
 
 func MSSQLElasticPoolValidateSKU(diff *schema.ResourceDiff) error {
-
 	name := diff.Get("sku.0.name")
 	tier := diff.Get("sku.0.tier")
 	capacity := diff.Get("sku.0.capacity")
@@ -324,7 +323,6 @@ func buildErrorString(stub string, m map[int]float64) string {
 }
 
 func doDTUSKUValidation(s sku) error {
-
 	if s.MaxAllowedGB == 0 {
 		return fmt.Errorf(getDTUCapacityErrorMsg(s))
 	}
@@ -363,7 +361,6 @@ func doDTUSKUValidation(s sku) error {
 }
 
 func doVCoreSKUValidation(s sku) error {
-
 	if s.MaxAllowedGB == 0 {
 		return fmt.Errorf(getVCoreCapacityErrorMsg(s))
 	}

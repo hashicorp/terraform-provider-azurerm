@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -45,7 +45,7 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 }
 
 func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -101,7 +101,7 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosKeyspaceID(d.Id())
@@ -130,7 +130,7 @@ func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmCosmosDbCassandraKeyspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosKeyspaceID(d.Id())

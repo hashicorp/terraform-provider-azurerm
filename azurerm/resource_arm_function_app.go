@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -49,7 +49,6 @@ func resourceArmFunctionApp() *schema.Resource {
 			"app_service_plan_id": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 
 			"enabled": {
@@ -239,7 +238,7 @@ func resourceArmFunctionApp() *schema.Resource {
 }
 
 func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Function App creation.")
@@ -344,7 +343,7 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -451,7 +450,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -571,7 +570,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -640,7 +639,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 
 	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
 
-	appServicePlansClient := meta.(*ArmClient).web.AppServicePlansClient
+	appServicePlansClient := meta.(*ArmClient).Web.AppServicePlansClient
 	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)

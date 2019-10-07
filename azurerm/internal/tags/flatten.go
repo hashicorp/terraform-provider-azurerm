@@ -3,8 +3,7 @@ package tags
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func Flatten(tagMap map[string]*string) map[string]interface{} {
@@ -24,22 +23,6 @@ func Flatten(tagMap map[string]*string) map[string]interface{} {
 
 func FlattenAndSet(d *schema.ResourceData, tagMap map[string]*string) error {
 	flattened := Flatten(tagMap)
-	if err := d.Set("tags", flattened); err != nil {
-		return fmt.Errorf("Error setting `tags`: %s", err)
-	}
-
-	return nil
-}
-
-func FlattenAndSetTags(d *schema.ResourceData, tags interface{}) error {
-	tagMap := tags.(map[string]interface{})
-	currentTagMap := make(map[string]*string)
-
-	for k, v := range tagMap {
-		currentTagMap[k] = utils.String(v.(string))
-	}
-
-	flattened := Flatten(currentTagMap)
 	if err := d.Set("tags", flattened); err != nil {
 		return fmt.Errorf("Error setting `tags`: %s", err)
 	}

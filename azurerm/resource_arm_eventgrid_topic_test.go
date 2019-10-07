@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -97,7 +97,7 @@ func TestAccAzureRMEventGridTopic_basicWithTags(t *testing.T) {
 }
 
 func testCheckAzureRMEventGridTopicDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).eventGrid.TopicsClient
+	client := testAccProvider.Meta().(*ArmClient).EventGrid.TopicsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -139,7 +139,7 @@ func testCheckAzureRMEventGridTopicExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for EventGrid Topic: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).eventGrid.TopicsClient
+		client := testAccProvider.Meta().(*ArmClient).EventGrid.TopicsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {

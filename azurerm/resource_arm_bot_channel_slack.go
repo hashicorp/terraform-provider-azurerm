@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -66,7 +66,7 @@ func resourceArmBotChannelSlack() *schema.Resource {
 }
 
 func resourceArmBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -119,7 +119,7 @@ func resourceArmBotChannelSlackCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmBotChannelSlackRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -155,7 +155,7 @@ func resourceArmBotChannelSlackRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmBotChannelSlackUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	botName := d.Get("bot_name").(string)
@@ -196,7 +196,7 @@ func resourceArmBotChannelSlackUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmBotChannelSlackDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ChannelClient
+	client := meta.(*ArmClient).Bot.ChannelClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

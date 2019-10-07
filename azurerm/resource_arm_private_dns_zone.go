@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -58,7 +58,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 }
 
 func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.PrivateZonesClient
+	client := meta.(*ArmClient).PrivateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -111,7 +111,7 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.PrivateZonesClient
+	client := meta.(*ArmClient).PrivateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -145,7 +145,7 @@ func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.PrivateZonesClient
+	client := meta.(*ArmClient).PrivateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

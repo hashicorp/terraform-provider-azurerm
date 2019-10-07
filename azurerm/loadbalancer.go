@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -23,7 +23,7 @@ func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error)
 }
 
 func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)

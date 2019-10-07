@@ -6,9 +6,9 @@ import (
 
 	"os"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -297,7 +297,7 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 		name := rs.Primary.Attributes["name"]
 		scope := rs.Primary.Attributes["scope"]
 
-		client := testAccProvider.Meta().(*ArmClient).resource.LocksClient
+		client := testAccProvider.Meta().(*ArmClient).Resource.LocksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.GetByScope(ctx, scope, name)
@@ -314,7 +314,7 @@ func testCheckAzureRMManagementLockExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMManagementLockDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resource.LocksClient
+	client := testAccProvider.Meta().(*ArmClient).Resource.LocksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

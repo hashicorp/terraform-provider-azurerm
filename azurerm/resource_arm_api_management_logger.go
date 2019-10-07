@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -88,7 +88,7 @@ func resourceArmApiManagementLogger() *schema.Resource {
 }
 
 func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.LoggerClient
+	client := meta.(*ArmClient).ApiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -147,7 +147,7 @@ func resourceArmApiManagementLoggerCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.LoggerClient
+	client := meta.(*ArmClient).ApiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -184,7 +184,7 @@ func resourceArmApiManagementLoggerRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.LoggerClient
+	client := meta.(*ArmClient).ApiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -217,7 +217,7 @@ func resourceArmApiManagementLoggerUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmApiManagementLoggerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.LoggerClient
+	client := meta.(*ArmClient).ApiManagement.LoggerClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

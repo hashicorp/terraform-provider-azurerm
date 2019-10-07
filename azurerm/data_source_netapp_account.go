@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -68,7 +68,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 }
 
 func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netapp.AccountClient
+	client := meta.(*ArmClient).Netapp.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

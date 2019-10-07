@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -97,7 +97,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 }
 
 func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netapp.AccountClient
+	client := meta.(*ArmClient).Netapp.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -148,7 +148,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netapp.AccountClient
+	client := meta.(*ArmClient).Netapp.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -192,7 +192,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).netapp.AccountClient
+	client := meta.(*ArmClient).Netapp.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -13,8 +13,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2017-07-01/backup"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -60,7 +60,7 @@ func resourceArmRecoveryServicesProtectedVm() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
+	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -126,7 +126,7 @@ func resourceArmRecoveryServicesProtectedVmCreateUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
+	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -168,7 +168,7 @@ func resourceArmRecoveryServicesProtectedVmRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.ProtectedItemsClient
+	client := meta.(*ArmClient).RecoveryServices.ProtectedItemsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -203,7 +203,6 @@ func resourceArmRecoveryServicesProtectedVmWaitForState(client *backup.Protected
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {

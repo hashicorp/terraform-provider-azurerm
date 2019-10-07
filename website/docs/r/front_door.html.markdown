@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `name` - (Required) Name of the Front Door which is globally unique. Changing this forces a new resource to be created.
 
-* `resource_group` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
 
 * `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
@@ -81,6 +81,8 @@ The following arguments are supported:
 * `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 
 * `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
+
+* `enforce_backend_pools_certificate_name_check` - (Required) Whether to enforce certificate name check on HTTPS requests to all backend pools. No effect on non-HTTPS requests. Permitted values are `true` or `false`.
 
 * `load_balancer_enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are `true` or `false` Defaults to `true`.
 
@@ -173,6 +175,22 @@ The `routing_rule` block supports the following:
 * `patterns_to_match` - (Optional) The route patterns for the Backend Routing Rule. Defaults to `/*`.
 
 * `enabled` - (Optional) `Enable` or `Disable` use of this Backend Routing Rule. Permitted values are `true` or `false`. Defaults to `true`.
+
+* `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below.
+
+---
+
+The `forwarding_configuration` block supports the following:
+
+* `backend_pool_name` - (Required) The name of the Front Door Backend Pool. 
+
+* `cache_use_dynamic_compression` - (Optional) Whether to use dynamic compression when caching. Valid options are `true` or `false`. Defaults to `true`.
+
+* `cache_query_parameter_strip_directive` - (Optional) Defines cache behavior in releation to query string parameters. Valid options are `StripAll` or `StripNone`. Defaults to `StripNone`
+
+* `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
+
+* `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HTTPOnly`, `HTTPSOnly`, or `MatchRequest`. Defaults to `MatchRequest`.
 
 ---
 

@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -69,7 +69,7 @@ func dataSourceArmManagedDisk() *schema.Resource {
 }
 
 func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)

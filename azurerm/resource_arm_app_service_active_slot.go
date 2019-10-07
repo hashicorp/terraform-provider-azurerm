@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -38,7 +38,7 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 }
 
 func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	appServiceName := d.Get("app_service_name").(string)
@@ -79,7 +79,7 @@ func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

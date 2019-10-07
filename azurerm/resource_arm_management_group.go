@@ -7,7 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -57,8 +57,8 @@ func resourceArmManagementGroup() *schema.Resource {
 }
 
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 	armTenantID := meta.(*ArmClient).tenantId
 
@@ -157,7 +157,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())
@@ -197,15 +197,14 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil
 }
 
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())

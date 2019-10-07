@@ -14,8 +14,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -119,7 +119,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.WebTestsClient
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
@@ -195,7 +195,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.WebTestsClient
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -254,7 +254,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.WebTestsClient
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -301,7 +301,6 @@ func flattenApplicationInsightsWebTestGeoLocations(input *[]insights.WebTestGeol
 		if prop.Location != nil {
 			results = append(results, azure.NormalizeLocation(*prop.Location))
 		}
-
 	}
 
 	return results

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -37,7 +37,7 @@ func dataSourceArmMonitorDiagnosticCategories() *schema.Resource {
 }
 
 func dataSourceArmMonitorDiagnosticCategoriesRead(d *schema.ResourceData, meta interface{}) error {
-	categoriesClient := meta.(*ArmClient).monitor.DiagnosticSettingsCategoryClient
+	categoriesClient := meta.(*ArmClient).Monitor.DiagnosticSettingsCategoryClient
 	ctx := meta.(*ArmClient).StopContext
 
 	actualResourceId := d.Get("resource_id").(string)

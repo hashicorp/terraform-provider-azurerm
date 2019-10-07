@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -110,7 +110,7 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Slack")
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+		client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
@@ -127,7 +127,7 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMBotChannelSlackDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+	client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

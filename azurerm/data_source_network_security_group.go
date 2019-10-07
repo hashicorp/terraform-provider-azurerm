@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -128,7 +128,7 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 }
 
 func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SecurityGroupClient
+	client := meta.(*ArmClient).Network.SecurityGroupClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

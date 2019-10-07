@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -68,7 +68,7 @@ func resourceArmMapsAccount() *schema.Resource {
 }
 
 func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
+	client := meta.(*ArmClient).Maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
@@ -118,7 +118,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
+	client := meta.(*ArmClient).Maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -158,7 +158,7 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
+	client := meta.(*ArmClient).Maps.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -10,8 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -95,7 +95,7 @@ func resourceArmBatchAccount() *schema.Resource {
 }
 
 func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
+	client := meta.(*ArmClient).Batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
@@ -173,7 +173,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
+	client := meta.(*ArmClient).Batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -223,7 +223,7 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
+	client := meta.(*ArmClient).Batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
@@ -266,7 +266,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
+	client := meta.(*ArmClient).Batch.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

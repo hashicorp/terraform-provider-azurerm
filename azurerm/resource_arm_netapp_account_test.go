@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -108,7 +108,7 @@ func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheck
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).netapp.AccountClient
+		client := testAccProvider.Meta().(*ArmClient).Netapp.AccountClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
@@ -123,7 +123,7 @@ func testCheckAzureRMNetAppAccountExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMNetAppAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).netapp.AccountClient
+	client := testAccProvider.Meta().(*ArmClient).Netapp.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

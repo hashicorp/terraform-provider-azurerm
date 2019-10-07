@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -89,7 +89,7 @@ func resourceArmSharedImageVersion() *schema.Resource {
 }
 
 func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
+	client := meta.(*ArmClient).Compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	imageVersion := d.Get("name").(string)
@@ -152,7 +152,7 @@ func resourceArmSharedImageVersionCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
+	client := meta.(*ArmClient).Compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -205,7 +205,7 @@ func resourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmSharedImageVersionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImageVersionsClient
+	client := meta.(*ArmClient).Compute.GalleryImageVersionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

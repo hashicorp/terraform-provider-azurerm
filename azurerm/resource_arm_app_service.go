@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -180,7 +180,7 @@ func resourceArmAppService() *schema.Resource {
 }
 
 func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
@@ -304,7 +304,7 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -397,7 +397,6 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("client_affinity_enabled") {
-
 		affinity := d.Get("client_affinity_enabled").(bool)
 
 		sitePatchResource := web.SitePatchResource{
@@ -491,7 +490,7 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -652,7 +651,7 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
