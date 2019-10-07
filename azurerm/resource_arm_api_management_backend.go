@@ -226,7 +226,7 @@ func resourceArmApiManagementBackend() *schema.Resource {
 }
 
 func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.BackendClient
+	client := meta.(*ArmClient).ApiManagement.BackendClient
 	ctx := meta.(*ArmClient).StopContext
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
@@ -301,7 +301,7 @@ func resourceArmApiManagementBackendCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.BackendClient
+	client := meta.(*ArmClient).ApiManagement.BackendClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -354,7 +354,7 @@ func resourceArmApiManagementBackendRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmApiManagementBackendDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.BackendClient
+	client := meta.(*ArmClient).ApiManagement.BackendClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

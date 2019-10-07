@@ -66,7 +66,7 @@ func TestAccAzureRMAPIManagementGroupUser_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementGroupUserDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagement.GroupUsersClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupUsersClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group_user" {
 			continue
@@ -102,7 +102,7 @@ func testCheckAzureRMAPIManagementGroupUserExists(resourceName string) resource.
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagement.GroupUsersClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupUsersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
@@ -130,10 +130,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_group" "test" {

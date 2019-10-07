@@ -132,7 +132,7 @@ func testCheckAzureRMRecoveryProtectionContainerMappingExists(resourceGroupState
 		mappingName := protectionContainerMappingState.Primary.Attributes["name"]
 
 		// Ensure mapping exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ContainerMappingClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ContainerMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, mappingName)

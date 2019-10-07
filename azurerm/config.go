@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -75,23 +76,26 @@ type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
 	clients.Client
 
-	clientId                 string
-	tenantId                 string
-	subscriptionId           string
-	partnerId                string
+	clientId       string
+	tenantId       string
+	subscriptionId string
+	partnerId      string
+
+	getAuthenticatedObjectID func(context.Context) (string, error)
 	usingServicePrincipal    bool
+
 	environment              azure.Environment
 	skipProviderRegistration bool
 
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	analysisservices *analysisservices.Client
-	apiManagement    *apimanagement.Client
-	appInsights      *applicationinsights.Client
-	automation       *automation.Client
-	authorization    *authorization.Client
-	batch            *batch.Client
-	bot              *bot.Client
+	AnalysisServices *analysisservices.Client
+	ApiManagement    *apimanagement.Client
+	AppInsights      *applicationinsights.Client
+	Automation       *automation.Client
+	Authorization    *authorization.Client
+	Batch            *batch.Client
+	Bot              *bot.Client
 	cdn              *cdn.Client
 	cognitive        *cognitive.Client
 	compute          *clients.ComputeClient
@@ -111,27 +115,27 @@ type ArmClient struct {
 	hdinsight        *hdinsight.Client
 	healthcare       *healthcare.Client
 	iothub           *iothub.Client
-	keyvault         *keyvault.Client
-	kusto            *kusto.Client
-	logAnalytics     *loganalytics.Client
-	logic            *logic.Client
-	managementGroups *managementgroup.Client
-	maps             *maps.Client
-	mariadb          *mariadb.Client
-	media            *media.Client
-	monitor          *monitor.Client
-	mysql            *mysql.Client
-	msi              *msi.Client
-	mssql            *mssql.Client
+	Keyvault         *keyvault.Client
+	Kusto            *kusto.Client
+	LogAnalytics     *loganalytics.Client
+	Logic            *logic.Client
+	ManagementGroups *managementgroup.Client
+	Maps             *maps.Client
+	Mariadb          *mariadb.Client
+	Media            *media.Client
+	Monitor          *monitor.Client
+	Msi              *msi.Client
+	Mssql            *mssql.Client
+	Mysql            *mysql.Client
 	network          *network.Client
 	notificationHubs *notificationhub.Client
 	policy           *policy.Client
 	portal           *portal.Client
 	postgres         *postgres.Client
-	recoveryServices *recoveryservices.Client
-	redis            *redis.Client
-	relay            *relay.Client
-	resource         *resource.Client
+	RecoveryServices *recoveryservices.Client
+	Redis            *redis.Client
+	Relay            *relay.Client
+	Resource         *resource.Client
 	Scheduler        *scheduler.Client
 	Search           *search.Client
 	SecurityCenter   *securitycenter.Client
@@ -143,12 +147,12 @@ type ArmClient struct {
 	Subscription     *subscription.Client
 	Sql              *sql.Client
 	TrafficManager   *trafficmanager.Client
-	web              *web.Client
+	Web              *web.Client
 }
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
@@ -164,6 +168,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		partnerId:                partnerId,
 		environment:              *env,
 		usingServicePrincipal:    authConfig.AuthenticatedAsAServicePrincipal,
+		getAuthenticatedObjectID: authConfig.GetAuthenticatedObjectID,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
@@ -194,7 +199,10 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	}
 
 	// Storage Endpoints
-	storageAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
+	storageAuth, err := authConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Storage)
+	if err != nil {
+		return nil, err
+	}
 
 	// Key Vault Endpoints
 	keyVaultAuth := authConfig.BearerAuthorizerCallback(sender, oauthConfig)
@@ -203,6 +211,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		SubscriptionId:              authConfig.SubscriptionID,
 		TenantID:                    authConfig.TenantID,
 		PartnerId:                   partnerId,
+		TerraformVersion:            tfVersion,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
@@ -215,13 +224,13 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		Environment:                 *env,
 	}
 
-	client.analysisservices = analysisservices.BuildClient(o)
-	client.apiManagement = apimanagement.BuildClient(o)
-	client.appInsights = applicationinsights.BuildClient(o)
-	client.automation = automation.BuildClient(o)
-	client.authorization = authorization.BuildClient(o)
-	client.batch = batch.BuildClient(o)
-	client.bot = bot.BuildClient(o)
+	client.AnalysisServices = analysisservices.BuildClient(o)
+	client.ApiManagement = apimanagement.BuildClient(o)
+	client.AppInsights = applicationinsights.BuildClient(o)
+	client.Automation = automation.BuildClient(o)
+	client.Authorization = authorization.BuildClient(o)
+	client.Batch = batch.BuildClient(o)
+	client.Bot = bot.BuildClient(o)
 	client.cdn = cdn.BuildClient(o)
 	client.cognitive = cognitive.BuildClient(o)
 	client.compute = clients.NewComputeClient(o)
@@ -240,28 +249,28 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.healthcare = healthcare.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
-	client.keyvault = keyvault.BuildClient(o)
-	client.kusto = kusto.BuildClient(o)
-	client.logic = logic.BuildClient(o)
-	client.logAnalytics = loganalytics.BuildClient(o)
-	client.maps = maps.BuildClient(o)
-	client.mariadb = mariadb.BuildClient(o)
-	client.media = media.BuildClient(o)
-	client.monitor = monitor.BuildClient(o)
-	client.mssql = mssql.BuildClient(o)
-	client.msi = msi.BuildClient(o)
-	client.mysql = mysql.BuildClient(o)
-	client.managementGroups = managementgroup.BuildClient(o)
+	client.Keyvault = keyvault.BuildClient(o)
+	client.Kusto = kusto.BuildClient(o)
+	client.Logic = logic.BuildClient(o)
+	client.LogAnalytics = loganalytics.BuildClient(o)
+	client.Maps = maps.BuildClient(o)
+	client.Mariadb = mariadb.BuildClient(o)
+	client.Media = media.BuildClient(o)
+	client.Monitor = monitor.BuildClient(o)
+	client.Mssql = mssql.BuildClient(o)
+	client.Msi = msi.BuildClient(o)
+	client.Mysql = mysql.BuildClient(o)
+	client.ManagementGroups = managementgroup.BuildClient(o)
 	client.network = network.BuildClient(o)
 	client.notificationHubs = notificationhub.BuildClient(o)
 	client.policy = policy.BuildClient(o)
 	client.portal = portal.BuildClient(o)
 	client.postgres = postgres.BuildClient(o)
 	client.privateDns = privatedns.BuildClient(o)
-	client.recoveryServices = recoveryservices.BuildClient(o)
-	client.redis = redis.BuildClient(o)
-	client.relay = relay.BuildClient(o)
-	client.resource = resource.BuildClient(o)
+	client.RecoveryServices = recoveryservices.BuildClient(o)
+	client.Redis = redis.BuildClient(o)
+	client.Relay = relay.BuildClient(o)
+	client.Resource = resource.BuildClient(o)
 	client.Search = search.BuildClient(o)
 	client.SecurityCenter = securitycenter.BuildClient(o)
 	client.ServiceBus = servicebus.BuildClient(o)
@@ -273,7 +282,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Subscription = subscription.BuildClient(o)
 	client.Sql = sql.BuildClient(o)
 	client.TrafficManager = trafficmanager.BuildClient(o)
-	client.web = web.BuildClient(o)
+	client.Web = web.BuildClient(o)
 
 	return &client, nil
 }

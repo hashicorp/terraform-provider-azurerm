@@ -409,7 +409,6 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 
 	if properties := resp.WebApplicationFirewallPolicyProperties; properties != nil {
 		if policy := properties.PolicySettings; policy != nil {
-
 			d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
 			d.Set("mode", string(policy.Mode))
 			d.Set("redirect_url", policy.RedirectURL)

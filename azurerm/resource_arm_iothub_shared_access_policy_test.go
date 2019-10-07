@@ -200,7 +200,6 @@ func testCheckAzureRMIotHubSharedAccessPolicyExists(resourceName string) resourc
 		}
 
 		return fmt.Errorf("Bad: No shared access policy %s defined for IotHub %s", keyName, iothubName)
-
 	}
 }
 

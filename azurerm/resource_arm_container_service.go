@@ -414,7 +414,6 @@ func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservic
 }
 
 func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
-
 	if profile == nil {
 		return nil
 	}
@@ -509,7 +508,6 @@ func expandAzureRmContainerServiceMasterProfile(d *schema.ResourceData) containe
 }
 
 func expandAzureRmContainerServiceServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
-
 	value, exists := d.GetOk("service_principal")
 	if !exists {
 		return nil

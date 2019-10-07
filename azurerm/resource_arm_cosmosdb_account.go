@@ -515,7 +515,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 				removedOne = true
 			}
 		}
-
 	}
 
 	if removedOne {
@@ -702,7 +701,6 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		for i, v := range *connStringResp.ConnectionStrings {
 			connStrings[i] = *v.ConnectionString
 		}
-
 	}
 	d.Set("connection_strings", connStrings)
 
@@ -736,10 +734,8 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
-
 				if utils.ResponseWasNotFound(resp.Response) {
 					return resp, "NotFound", nil
 				}
@@ -774,7 +770,6 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
@@ -827,7 +822,6 @@ func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location s
 }
 
 func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
-
 	locations := make([]documentdb.Location, 0)
 	for _, l := range d.Get("geo_location").(*schema.Set).List() {
 		data := l.(map[string]interface{})
@@ -852,7 +846,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	byPriorities := make(map[int]interface{}, len(locations))
 	byName := make(map[string]interface{}, len(locations))
 	for _, location := range locations {
-
 		priority := int(*location.FailoverPriority)
 		name := *location.LocationName
 
@@ -878,7 +871,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 
 //todo remove when deprecated field `failover_policy` is
 func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
-
 	input := d.Get("failover_policy").(*schema.Set).List()
 	locations := make([]documentdb.Location, 0, len(input))
 
@@ -926,7 +918,6 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 }
 
 func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
-
 	capabilities := d.Get("capabilities").(*schema.Set).List()
 	s := make([]documentdb.Capability, 0)
 
@@ -950,7 +941,6 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]
 }
 
 func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.ConsistencyPolicy) []interface{} {
-
 	result := map[string]interface{}{}
 	result["consistency_level"] = string(policy.DefaultConsistencyLevel)
 	if policy.MaxIntervalInSeconds != nil {

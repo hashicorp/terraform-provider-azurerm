@@ -151,7 +151,7 @@ func testCheckAzureRMMySqlVirtualNetworkRuleExists(resourceName string) resource
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).mysql.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Mysql.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -177,7 +177,7 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).mysql.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Mysql.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -207,7 +207,7 @@ func testCheckAzureRMMySqlVirtualNetworkRuleDisappears(resourceName string) reso
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).mysql.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Mysql.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)

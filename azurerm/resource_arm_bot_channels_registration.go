@@ -97,7 +97,7 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 }
 
 func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -156,7 +156,7 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmBotChannelsRegistrationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -196,7 +196,7 @@ func resourceArmBotChannelsRegistrationRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -243,7 +243,7 @@ func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmBotChannelsRegistrationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
+	client := meta.(*ArmClient).Bot.BotClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

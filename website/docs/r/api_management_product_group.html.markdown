@@ -31,7 +31,7 @@ data "azurerm_api_management_group" "example" {
 }
 
 resource "azurerm_api_management_product_group" "example" {
-  product_id          = "${data.azurerm_api_management_user.example.id}"
+  product_id          = "${data.azurerm_api_management_product.example.product_id}"
   group_name          = "${data.azurerm_api_management_group.example.name}"
   api_management_name = "${data.azurerm_api_management.example.name}"
   resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"

@@ -33,7 +33,7 @@ func resourceArmApiManagementProductApi() *schema.Resource {
 }
 
 func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ProductApisClient
+	client := meta.(*ArmClient).ApiManagement.ProductApisClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -68,7 +68,7 @@ func resourceArmApiManagementProductApiCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ProductApisClient
+	client := meta.(*ArmClient).ApiManagement.ProductApisClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -100,7 +100,7 @@ func resourceArmApiManagementProductApiRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmApiManagementProductApiDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ProductApisClient
+	client := meta.(*ArmClient).ApiManagement.ProductApisClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

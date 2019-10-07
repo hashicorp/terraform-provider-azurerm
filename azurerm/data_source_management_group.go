@@ -39,7 +39,7 @@ func dataSourceArmManagementGroup() *schema.Resource {
 }
 
 func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	groupId := d.Get("group_id").(string)
@@ -79,7 +79,6 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil

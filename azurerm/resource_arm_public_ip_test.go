@@ -206,7 +206,6 @@ func TestAccAzureRMPublicIpDynamic_basic_withIPv6(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccAzureRMPublicIpStatic_basic_defaultsToIPv4(t *testing.T) {

@@ -6,12 +6,15 @@ import (
 )
 
 type Client struct {
-	APIKeyClient     *insights.APIKeysClient
-	ComponentsClient *insights.ComponentsClient
-	WebTestsClient   *insights.WebTestsClient
+	AnalyticsItemsClient *insights.AnalyticsItemsClient
+	APIKeyClient         *insights.APIKeysClient
+	ComponentsClient     *insights.ComponentsClient
+	WebTestsClient       *insights.WebTestsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
+	AnalyticsItemsClient := insights.NewAnalyticsItemsClient(o.SubscriptionId)
+	o.ConfigureClient(&AnalyticsItemsClient.Client, o.ResourceManagerAuthorizer)
 
 	APIKeyClient := insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&APIKeyClient.Client, o.ResourceManagerAuthorizer)
@@ -23,8 +26,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&WebTestsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		APIKeyClient:     &APIKeyClient,
-		ComponentsClient: &ComponentsClient,
-		WebTestsClient:   &WebTestsClient,
+		AnalyticsItemsClient: &AnalyticsItemsClient,
+		APIKeyClient:         &APIKeyClient,
+		ComponentsClient:     &ComponentsClient,
+		WebTestsClient:       &WebTestsClient,
 	}
 }

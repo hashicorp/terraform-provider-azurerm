@@ -12,6 +12,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
+var olderKubernetesVersion = "1.13.10"
+var currentKubernetesVersion = "1.14.6"
+
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
@@ -294,17 +297,17 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.12.7"),
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, olderKubernetesVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.12.7"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", olderKubernetesVersion),
 				),
 			},
 			{
-				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, "1.13.5"),
+				Config: testAccAzureRMKubernetesCluster_upgrade(ri, location, clientId, clientSecret, currentKubernetesVersion),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", "1.13.5"),
+					resource.TestCheckResourceAttr(resourceName, "kubernetes_version", currentKubernetesVersion),
 				),
 			},
 		},
@@ -380,6 +383,58 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+	enablingConfig := testAccAzureRMKubernetesCluster_addonProfileOMS(ri, clientId, clientSecret, location)
+	disablingConfig := testAccAzureRMKubernetesCluster_addonProfileOMSDisabled(ri, clientId, clientSecret, location)
+	scaleDownConfig := testAccAzureRMKubernetesCluster_addonProfileOMSScaleWithoutBlock(ri, clientId, clientSecret, location)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: enablingConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
+					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
+				),
+			},
+			{
+				Config: disablingConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
+				),
+			},
+			{
+				Config: scaleDownConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
 				),
 			},
 		},
@@ -640,7 +695,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
 		},
@@ -663,7 +718,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
 			},
 		},
@@ -1267,6 +1322,11 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "172.0.2.0/24"
+
+  # TODO: remove in 2.0
+  lifecycle {
+    ignore_changes = ["route_table_id"]
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1442,6 +1502,82 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
+func testAccAzureRMKubernetesCluster_addonProfileOMSDisabled(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  agent_pool_profile {
+    name    = "default"
+    count   = "1"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+
+  addon_profile {
+    oms_agent {
+      enabled = false
+    }
+  }
+}
+`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_addonProfileOMSScaleWithoutBlock(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  agent_pool_profile {
+    name    = "default"
+    count   = "2"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+}
+
 func testAccAzureRMKubernetesCluster_addonProfileRouting(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1583,6 +1719,11 @@ resource "azurerm_subnet" "test" {
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
   address_prefix       = "10.1.0.0/24"
+
+  # TODO: remove in 2.0
+  lifecycle {
+    ignore_changes = ["route_table_id"]
+  }
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
@@ -1868,7 +2009,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "1.13.5"
+  kubernetes_version = "%s"
 
 
   linux_profile {
@@ -1893,10 +2034,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
 	network_plugin     = "azure"
-    load_balancer_sku = "standard"
+    load_balancer_sku = "Standard"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, rInt, currentKubernetesVersion, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(rInt int, clientId string, clientSecret string, location string) string {
@@ -1948,7 +2089,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "1.13.5"
+  kubernetes_version = "%s"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -1975,10 +2116,10 @@ resource "azurerm_kubernetes_cluster" "test" {
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
 	service_cidr       = "10.10.0.0/16"
-	load_balancer_sku  = "standard"
+	load_balancer_sku  = "Standard"
   }
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, currentKubernetesVersion, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(rInt int, clientId string, clientSecret string, location string) string {
@@ -2117,7 +2258,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "1.13.5"
+  kubernetes_version = "%s"
 
   agent_pool_profile {
     name                = "pool1"
@@ -2136,10 +2277,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
 	network_plugin     = "kubenet"
-    load_balancer_sku = "standard"
+    load_balancer_sku = "Standard"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, olderKubernetesVersion, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_nodeTaints(rInt int, clientId string, clientSecret string, location string) string {

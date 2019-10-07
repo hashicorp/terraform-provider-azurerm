@@ -67,7 +67,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 }
 
 func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).media.ServicesClient
+	client := meta.(*ArmClient).Media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	accountName := d.Get("name").(string)
@@ -101,7 +101,7 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).media.ServicesClient
+	client := meta.(*ArmClient).Media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -140,7 +140,7 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).media.ServicesClient
+	client := meta.(*ArmClient).Media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
