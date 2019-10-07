@@ -111,7 +111,7 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 
 func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ApiPoliciesClient
-	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())

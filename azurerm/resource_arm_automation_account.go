@@ -237,7 +237,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.AccountClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
