@@ -94,7 +94,7 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -124,7 +124,7 @@ func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbSqlContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+		client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

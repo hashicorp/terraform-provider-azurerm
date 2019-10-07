@@ -81,7 +81,7 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
+	client := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	virtualMachineId := d.Get("virtual_machine_id").(string)
@@ -182,7 +182,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
+	client := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -239,7 +239,7 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
+	client := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -289,7 +289,7 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 }
 
 func retrieveDataDiskAttachmentManagedDisk(meta interface{}, id string) (*compute.Disk, error) {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedId, err := azure.ParseAzureResourceID(id)

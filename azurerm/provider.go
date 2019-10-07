@@ -29,8 +29,8 @@ func Provider() terraform.ResourceProvider {
 	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
 	//  4. (DONE) Introducing a parent struct which becomes a nested field in `config.go`
 	//  	for those properties, to ease migration (probably internal/common/clients.go)
+	//	5. (DONE) Making the SDK Clients public in the ArmClient
 	//
-	//	5. Making the SDK Clients public in the ArmClient
 	//  6. Migrating the Fields from the `ArmClient` to the new base `Client`
 	//		But leaving the referencing accessing the top-level field e.g.
 	//			type Client struct { // ./azurerm/internal/common/client.go

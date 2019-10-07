@@ -80,7 +80,7 @@ func resourceArmSnapshot() *schema.Resource {
 }
 
 func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
+	client := meta.(*ArmClient).Compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -155,7 +155,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
+	client := meta.(*ArmClient).Compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -205,7 +205,7 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
+	client := meta.(*ArmClient).Compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

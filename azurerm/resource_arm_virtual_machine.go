@@ -614,7 +614,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 }
 
 func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
+	client := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
@@ -778,7 +778,7 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	vmclient := meta.(*ArmClient).compute.VMClient
+	vmclient := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -907,7 +907,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
+	client := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -1047,7 +1047,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(disk *compute.ManagedDiskParamet
 	}
 	managedDiskID := *disk.ID
 
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(managedDiskID)
@@ -1921,7 +1921,7 @@ func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 }
 
 func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	if disk == nil || disk.ID == nil {

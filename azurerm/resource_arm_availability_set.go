@@ -78,7 +78,7 @@ func resourceArmAvailabilitySet() *schema.Resource {
 }
 
 func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
@@ -139,7 +139,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -180,7 +180,7 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

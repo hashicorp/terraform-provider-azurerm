@@ -140,7 +140,7 @@ func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
 }
 
 func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -227,7 +227,7 @@ func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -303,7 +303,7 @@ func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDataFactoryDatasetMySQLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

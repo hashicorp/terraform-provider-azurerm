@@ -623,7 +623,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 }
 
 func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.KubernetesClustersClient
+	client := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 	tenantId := meta.(*ArmClient).tenantId
 
@@ -716,7 +716,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.KubernetesClustersClient
+	client := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 	tenantId := meta.(*ArmClient).tenantId
 
@@ -825,7 +825,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.KubernetesClustersClient
+	client := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -932,7 +932,7 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.KubernetesClustersClient
+	client := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

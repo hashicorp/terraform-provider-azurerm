@@ -153,7 +153,7 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFilesClient
+		conn := testAccProvider.Meta().(*ArmClient).Datalake.StoreFilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
@@ -170,7 +170,7 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMDataLakeStoreFileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFilesClient
+	conn := testAccProvider.Meta().(*ArmClient).Datalake.StoreFilesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

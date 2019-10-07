@@ -61,7 +61,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfig() *schema.Resource {
 }
 
 func resourceArmEventHubNamespaceDisasterRecoveryConfigCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.DisasterRecoveryConfigsClient
+	client := meta.(*ArmClient).Eventhub.DisasterRecoveryConfigsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace Disaster Recovery Configs creation.")
@@ -116,7 +116,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigCreate(d *schema.Resource
 }
 
 func resourceArmEventHubNamespaceDisasterRecoveryConfigUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.DisasterRecoveryConfigsClient
+	client := meta.(*ArmClient).Eventhub.DisasterRecoveryConfigsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -162,7 +162,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigUpdate(d *schema.Resource
 }
 
 func resourceArmEventHubNamespaceDisasterRecoveryConfigRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.DisasterRecoveryConfigsClient
+	client := meta.(*ArmClient).Eventhub.DisasterRecoveryConfigsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -196,7 +196,7 @@ func resourceArmEventHubNamespaceDisasterRecoveryConfigRead(d *schema.ResourceDa
 }
 
 func resourceArmEventHubNamespaceDisasterRecoveryConfigDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.DisasterRecoveryConfigsClient
+	client := meta.(*ArmClient).Eventhub.DisasterRecoveryConfigsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

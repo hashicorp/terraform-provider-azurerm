@@ -140,7 +140,7 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -227,7 +227,7 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -303,7 +303,7 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
