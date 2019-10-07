@@ -584,7 +584,6 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 
 		locks.ByName(subnetName, subnetResourceName)
 		defer locks.UnlockByName(subnetName, subnetResourceName)
-
 	}
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
