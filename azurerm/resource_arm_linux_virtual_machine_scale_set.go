@@ -897,7 +897,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 				if err != nil {
 					return fmt.Errorf("Error flattening `admin_ssh_key`: %+v", err)
 				}
-				if err := d.Set("admin_ssh_key", *flattenedSshKeys); err != nil {
+				if err := d.Set("admin_ssh_key", flattenedSshKeys); err != nil {
 					return fmt.Errorf("Error setting `admin_ssh_key`: %+v", err)
 				}
 			}
