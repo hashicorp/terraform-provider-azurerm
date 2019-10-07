@@ -266,7 +266,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 }
 
 func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -501,7 +501,7 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 }
 
 func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -714,7 +714,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 	if updateInstances {
 		if userWantsToRollInstances := d.Get("terraform_should_roll_instances_when_required").(bool); userWantsToRollInstances {
 			log.Printf("[DEBUG] Rolling the VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q)..", name, resourceGroup)
-			instancesClient := meta.(*ArmClient).compute.VMScaleSetVMsClient
+			instancesClient := meta.(*ArmClient).Compute.VMScaleSetVMsClient
 			instances, err := instancesClient.ListComplete(ctx, resourceGroup, name, "", "", "")
 			if err != nil {
 				return fmt.Errorf("Error listing VM Instances for Linux Virtual Machine Scale Set %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -781,7 +781,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -943,7 +943,7 @@ func resourceArmLinuxVirtualMachineScaleSetRead(d *schema.ResourceData, meta int
 }
 
 func resourceArmLinuxVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

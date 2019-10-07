@@ -9,7 +9,7 @@ import (
 )
 
 func testCheckAzureRMLinuxVirtualMachineScaleSetDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).compute.VMScaleSetClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.VMScaleSetClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_linux_virtual_machine_scale_set" {
@@ -44,7 +44,7 @@ func testCheckAzureRMLinuxVirtualMachineScaleSetExists(resourceName string) reso
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMScaleSetClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMScaleSetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
