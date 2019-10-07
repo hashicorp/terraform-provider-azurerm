@@ -95,7 +95,7 @@ func resourceArmDataFactoryLinkedServiceSQLServer() *schema.Resource {
 }
 
 func resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -167,7 +167,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerCreateUpdate(d *schema.Resource
 }
 
 func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -233,7 +233,7 @@ func resourceArmDataFactoryLinkedServiceSQLServerRead(d *schema.ResourceData, me
 }
 
 func resourceArmDataFactoryLinkedServiceSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.LinkedServiceClient
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

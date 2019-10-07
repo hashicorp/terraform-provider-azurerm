@@ -130,7 +130,7 @@ func validateDiskSizeGB(v interface{}, _ string) (warnings []string, errors []er
 }
 
 func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Managed Disk creation.")
@@ -261,7 +261,7 @@ func resourceArmManagedDiskCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -312,7 +312,7 @@ func resourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmManagedDiskDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

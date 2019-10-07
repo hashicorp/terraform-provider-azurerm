@@ -46,7 +46,7 @@ func dataSourceArmPublicIpPrefix() *schema.Resource {
 }
 
 func dataSourceArmPublicIpPrefixRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PublicIPPrefixesClient
+	client := meta.(*ArmClient).Network.PublicIPPrefixesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

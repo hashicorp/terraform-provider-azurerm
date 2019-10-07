@@ -446,7 +446,7 @@ func resourceArmContainerGroup() *schema.Resource {
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
@@ -533,7 +533,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -594,7 +594,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -638,7 +638,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		networkProfileClient := meta.(*ArmClient).network.ProfileClient
+		networkProfileClient := meta.(*ArmClient).Network.ProfileClient
 		networkProfileResourceGroup := parsedProfileId.ResourceGroup
 		networkProfileName := parsedProfileId.Path["networkProfiles"]
 

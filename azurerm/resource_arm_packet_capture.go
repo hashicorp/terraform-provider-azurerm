@@ -135,7 +135,7 @@ func resourceArmPacketCapture() *schema.Resource {
 }
 
 func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PacketCapturesClient
+	client := meta.(*ArmClient).Network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -201,7 +201,7 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PacketCapturesClient
+	client := meta.(*ArmClient).Network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -249,7 +249,7 @@ func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmPacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PacketCapturesClient
+	client := meta.(*ArmClient).Network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

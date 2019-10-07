@@ -101,7 +101,7 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -151,7 +151,7 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")

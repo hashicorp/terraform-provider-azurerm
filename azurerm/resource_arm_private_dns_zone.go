@@ -58,7 +58,7 @@ func resourceArmPrivateDnsZone() *schema.Resource {
 }
 
 func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.PrivateZonesClient
+	client := meta.(*ArmClient).PrivateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -111,7 +111,7 @@ func resourceArmPrivateDnsZoneCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.PrivateZonesClient
+	client := meta.(*ArmClient).PrivateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -145,7 +145,7 @@ func resourceArmPrivateDnsZoneRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmPrivateDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.PrivateZonesClient
+	client := meta.(*ArmClient).PrivateDns.PrivateZonesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

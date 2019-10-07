@@ -100,7 +100,7 @@ func resourceArmLoadBalancerOutboundRule() *schema.Resource {
 }
 
 func resourceArmLoadBalancerOutboundRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -251,7 +251,7 @@ func resourceArmLoadBalancerOutboundRuleRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmLoadBalancerOutboundRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)

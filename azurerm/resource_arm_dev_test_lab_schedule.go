@@ -168,7 +168,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 }
 
 func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 
 	ctx := meta.(*ArmClient).StopContext
 
@@ -255,7 +255,7 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -310,7 +310,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMExtensionClient
+	client := meta.(*ArmClient).Compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

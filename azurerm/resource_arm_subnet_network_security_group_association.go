@@ -42,7 +42,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
+	client := meta.(*ArmClient).Network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> Network Security Group Association creation.")
@@ -117,7 +117,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
+	client := meta.(*ArmClient).Network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -158,7 +158,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
+	client := meta.(*ArmClient).Network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

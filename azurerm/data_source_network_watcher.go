@@ -29,7 +29,7 @@ func dataSourceArmNetworkWatcher() *schema.Resource {
 }
 
 func dataSourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.WatcherClient
+	client := meta.(*ArmClient).Network.WatcherClient
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

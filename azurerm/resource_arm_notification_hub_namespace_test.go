@@ -113,7 +113,7 @@ func testCheckAzureRMNotificationHubNamespaceExists(resourceName string) resourc
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).notificationHubs.NamespacesClient
+		client := testAccProvider.Meta().(*ArmClient).NotificationHubs.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -133,7 +133,7 @@ func testCheckAzureRMNotificationHubNamespaceExists(resourceName string) resourc
 }
 
 func testCheckAzureRMNotificationHubNamespaceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).notificationHubs.NamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).NotificationHubs.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

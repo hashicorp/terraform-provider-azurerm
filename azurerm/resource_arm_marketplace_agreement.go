@@ -57,7 +57,7 @@ func resourceArmMarketplaceAgreement() *schema.Resource {
 }
 
 func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.MarketplaceAgreementsClient
+	client := meta.(*ArmClient).Compute.MarketplaceAgreementsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	offer := d.Get("offer").(string)
@@ -113,7 +113,7 @@ func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.MarketplaceAgreementsClient
+	client := meta.(*ArmClient).Compute.MarketplaceAgreementsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -149,7 +149,7 @@ func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMarketplaceAgreementDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.MarketplaceAgreementsClient
+	client := meta.(*ArmClient).Compute.MarketplaceAgreementsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

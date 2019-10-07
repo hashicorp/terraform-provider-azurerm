@@ -108,7 +108,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 }
 
 func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -195,7 +195,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
@@ -244,7 +244,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()

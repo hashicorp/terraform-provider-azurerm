@@ -142,7 +142,7 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, "")
@@ -161,7 +161,7 @@ func testCheckAzureRMVirtualMachineExists(resourceName string, vm *compute.Virtu
 }
 
 func testCheckAzureRMVirtualMachineDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).compute.VMClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

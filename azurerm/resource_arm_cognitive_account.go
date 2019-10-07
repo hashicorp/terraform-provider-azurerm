@@ -124,7 +124,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 }
 
 func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -171,7 +171,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -199,7 +199,7 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -256,7 +256,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

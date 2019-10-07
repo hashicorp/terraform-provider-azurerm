@@ -415,7 +415,7 @@ func TestAccAzureRMContainerRegistry_networkAccessProfileVnet(t *testing.T) {
 }
 
 func testCheckAzureRMContainerRegistryDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).containers.RegistriesClient
+	conn := testAccProvider.Meta().(*ArmClient).Containers.RegistriesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -453,7 +453,7 @@ func testCheckAzureRMContainerRegistryExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).containers.RegistriesClient
+		conn := testAccProvider.Meta().(*ArmClient).Containers.RegistriesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -483,7 +483,7 @@ func testCheckAzureRMContainerRegistryGeoreplications(resourceName string, sku s
 			return fmt.Errorf("Bad: no resource group found in state for Container Registry: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).containers.ReplicationsClient
+		conn := testAccProvider.Meta().(*ArmClient).Containers.ReplicationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.List(ctx, resourceGroup, name)

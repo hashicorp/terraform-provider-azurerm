@@ -83,7 +83,7 @@ func resourceArmVirtualMachineExtensions() *schema.Resource {
 }
 
 func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMExtensionClient
+	client := meta.(*ArmClient).Compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -161,7 +161,7 @@ func resourceArmVirtualMachineExtensionsCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMExtensionClient
+	client := meta.(*ArmClient).Compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -209,7 +209,7 @@ func resourceArmVirtualMachineExtensionsRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmVirtualMachineExtensionsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMExtensionClient
+	client := meta.(*ArmClient).Compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

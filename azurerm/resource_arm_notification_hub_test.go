@@ -74,7 +74,7 @@ func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestChe
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).notificationHubs.HubsClient
+		client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -95,7 +95,7 @@ func testCheckAzureRMNotificationHubExists(resourceName string) resource.TestChe
 }
 
 func testCheckAzureRMNotificationHubDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).notificationHubs.HubsClient
+	client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

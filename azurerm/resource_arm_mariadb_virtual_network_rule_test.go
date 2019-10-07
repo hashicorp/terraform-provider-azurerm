@@ -151,7 +151,7 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName string) resour
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Mariadb.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).MariaDB.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -177,7 +177,7 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDestroy(s *terraform.State) error 
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Mariadb.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).MariaDB.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -207,7 +207,7 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) re
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Mariadb.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).MariaDB.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)

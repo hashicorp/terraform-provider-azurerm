@@ -119,7 +119,7 @@ func dataSourceArmDataFactory() *schema.Resource {
 }
 
 func dataSourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.FactoriesClient
+	client := meta.(*ArmClient).DataFactory.FactoriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

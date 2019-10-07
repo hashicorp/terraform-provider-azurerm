@@ -147,7 +147,7 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS PTR record: %s", ptrName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
+		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, ptrName, dns.PTR)
 		if err != nil {
@@ -163,7 +163,7 @@ func testCheckAzureRMDnsPtrRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsPtrRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
+	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

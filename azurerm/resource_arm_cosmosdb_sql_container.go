@@ -78,7 +78,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 }
 
 func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -149,7 +149,7 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseContainerID(d.Id())
@@ -195,7 +195,7 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseContainerID(d.Id())

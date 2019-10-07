@@ -61,7 +61,7 @@ func resourceArmDnsTxtRecord() *schema.Resource {
 }
 
 func resourceArmDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.RecordSetsClient
+	client := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -114,7 +114,7 @@ func resourceArmDnsTxtRecordCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.RecordSetsClient
+	client := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -147,7 +147,7 @@ func resourceArmDnsTxtRecordRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDnsTxtRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.RecordSetsClient
+	client := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

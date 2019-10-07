@@ -97,7 +97,7 @@ func resourceArmDevSpaceController() *schema.Resource {
 }
 
 func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
+	client := meta.(*ArmClient).DevSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
@@ -161,7 +161,7 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
+	client := meta.(*ArmClient).DevSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -202,7 +202,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
+	client := meta.(*ArmClient).DevSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
@@ -229,7 +229,7 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
+	client := meta.(*ArmClient).DevSpace.ControllersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

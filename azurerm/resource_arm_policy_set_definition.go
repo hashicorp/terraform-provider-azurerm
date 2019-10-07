@@ -111,7 +111,7 @@ func policyDefinitionsDiffSuppressFunc(k, old, new string, d *schema.ResourceDat
 }
 
 func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.SetDefinitionsClient
+	client := meta.(*ArmClient).Policy.SetDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -207,7 +207,7 @@ func resourceArmPolicySetDefinitionCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.SetDefinitionsClient
+	client := meta.(*ArmClient).Policy.SetDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicySetDefinitionNameFromId(d.Id())
@@ -272,7 +272,7 @@ func resourceArmPolicySetDefinitionRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmPolicySetDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.SetDefinitionsClient
+	client := meta.(*ArmClient).Policy.SetDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicySetDefinitionNameFromId(d.Id())

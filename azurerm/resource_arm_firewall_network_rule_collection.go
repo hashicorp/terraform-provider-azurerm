@@ -113,7 +113,7 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 }
 
 func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -224,7 +224,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -296,7 +296,7 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
