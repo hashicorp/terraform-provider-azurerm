@@ -36,7 +36,7 @@ resource "azurerm_healthcare_service" "example" {
      allowed_headers    = ["x-tempo-*","x-tempo2-*"]
      allowed_methods    = ["GET", "PUT"]
      max_age_in_seconds = "500"
-     allow_credentials = "true"
+     allow_credentials  = "true"
   }
 }
 ```
