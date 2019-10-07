@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -58,7 +59,8 @@ func resourceArmCdnProfile() *schema.Resource {
 
 func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN Profile creation.")
 
@@ -114,7 +116,8 @@ func resourceArmCdnProfileCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if !d.HasChange("tags") {
 		return nil
@@ -142,7 +145,8 @@ func resourceArmCdnProfileUpdate(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -175,7 +179,8 @@ func resourceArmCdnProfileRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmCdnProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cdn.ProfilesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

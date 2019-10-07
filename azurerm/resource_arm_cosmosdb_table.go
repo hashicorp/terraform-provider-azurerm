@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -46,7 +47,8 @@ func resourceArmCosmosDbTable() *schema.Resource {
 
 func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -102,7 +104,8 @@ func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseCosmosTableID(d.Id())
 	if err != nil {
@@ -131,7 +134,8 @@ func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmCosmosDbTableDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseCosmosTableID(d.Id())
 	if err != nil {
