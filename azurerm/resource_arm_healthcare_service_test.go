@@ -74,7 +74,6 @@ func testCheckAzureRMHealthcareServiceDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		resp, err := client.Get(ctx, resourceGroup, name)
-
 		if err != nil {
 			return nil
 		}
@@ -99,7 +98,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_healthcare_service" "test" {
-  name                = "accfa-%d"
+  name                = "acctest-HCS-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -123,7 +122,7 @@ resource "azurerm_healthcare_service" "test" {
       allowed_headers    = ["x-tempo-*","x-tempo2-*"]
       allowed_methods    = ["GET", "PUT"]
       max_age_in_seconds = "500"
-	  allow_credentials = "true"
+	  allow_credentials  = "true"
   }
 }
 `, rInt, location, rInt)
