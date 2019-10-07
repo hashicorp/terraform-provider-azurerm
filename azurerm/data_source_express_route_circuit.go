@@ -115,7 +115,6 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 }
 
 func dataSourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Network.ExpressRouteCircuitsClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
