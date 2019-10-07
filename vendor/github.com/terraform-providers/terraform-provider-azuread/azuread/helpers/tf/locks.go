@@ -1,6 +1,6 @@
 package tf
 
-import "github.com/hashicorp/terraform/helper/mutexkv"
+import "github.com/hashicorp/terraform-plugin-sdk/helper/mutexkv"
 
 // mutex is the instance of MutexKV for ARM resources
 var mutex = mutexkv.NewMutexKV()

@@ -36,7 +36,6 @@ func ParseGroupMemberId(idString string) (GroupMemberId, error) {
 }
 
 func GroupGetByDisplayName(client *graphrbac.GroupsClient, ctx context.Context, displayName string) (*graphrbac.ADGroup, error) {
-
 	filter := fmt.Sprintf("displayName eq '%s'", displayName)
 
 	resp, err := client.ListComplete(ctx, filter)
