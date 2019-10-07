@@ -149,7 +149,7 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 }
 
 func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetGatewayConnectionsClient
+	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

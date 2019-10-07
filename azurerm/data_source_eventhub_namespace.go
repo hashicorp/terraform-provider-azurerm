@@ -79,7 +79,7 @@ func dataSourceEventHubNamespace() *schema.Resource {
 }
 
 func dataSourceEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.NamespacesClient
+	client := meta.(*ArmClient).Eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)

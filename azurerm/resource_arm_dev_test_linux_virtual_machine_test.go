@@ -186,7 +186,7 @@ func testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName string) resou
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualMachinesClient
+		conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualMachinesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
@@ -203,7 +203,7 @@ func testCheckAzureRMDevTestLinuxVirtualMachineExists(resourceName string) resou
 }
 
 func testCheckAzureRMDevTestLinuxVirtualMachineDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestLabs.VirtualMachinesClient
+	conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualMachinesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

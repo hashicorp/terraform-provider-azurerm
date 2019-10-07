@@ -85,7 +85,7 @@ func resourceArmApiManagementUser() *schema.Resource {
 }
 
 func resourceArmApiManagementUserCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.UsersClient
+	client := meta.(*ArmClient).ApiManagement.UsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for API Management User creation.")
@@ -155,7 +155,7 @@ func resourceArmApiManagementUserCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.UsersClient
+	client := meta.(*ArmClient).ApiManagement.UsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -194,7 +194,7 @@ func resourceArmApiManagementUserRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmApiManagementUserDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.UsersClient
+	client := meta.(*ArmClient).ApiManagement.UsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

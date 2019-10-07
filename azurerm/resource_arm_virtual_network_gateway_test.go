@@ -290,7 +290,7 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 		gatewayName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.VnetGatewayClient
+		client := testAccProvider.Meta().(*ArmClient).Network.VnetGatewayClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
@@ -307,7 +307,7 @@ func testCheckAzureRMVirtualNetworkGatewayExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMVirtualNetworkGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.VnetGatewayClient
+	client := testAccProvider.Meta().(*ArmClient).Network.VnetGatewayClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -493,7 +493,6 @@ resource "azurerm_virtual_network_gateway" "test" {
 }
 
 func testAccAzureRMVirtualNetworkGateway_activeActive(rInt int, location string) string {
-
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -562,7 +561,6 @@ resource "azurerm_virtual_network_gateway" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
-
 }
 
 func testAccAzureRMVirtualNetworkGateway_vpnClientConfig(rInt int, location string) string {

@@ -86,7 +86,7 @@ func resourceArmFirewall() *schema.Resource {
 }
 
 func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
@@ -172,7 +172,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -210,7 +210,7 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -391,7 +391,6 @@ func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string
 	subnetName := parsed.Path["subnets"]
 	if subnetName != "AzureFirewallSubnet" {
 		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureFirewallSubnet' to be used for the Azure Firewall resource", k))
-
 	}
 
 	return warnings, errors

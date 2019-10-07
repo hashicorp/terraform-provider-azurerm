@@ -168,7 +168,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 }
 
 func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 
 	ctx := meta.(*ArmClient).StopContext
 
@@ -255,7 +255,7 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -285,7 +285,6 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 	d.Set("task_type", resp.TaskType)
 
 	if props := resp.ScheduleProperties; props != nil {
-
 		d.Set("time_zone_id", props.TimeZoneID)
 
 		d.Set("status", string(props.Status))
@@ -311,7 +310,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMExtensionClient
+	client := meta.(*ArmClient).Compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -415,7 +414,6 @@ func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *dtl.Hour
 }
 
 func expandArmDevTestLabScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
-
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)

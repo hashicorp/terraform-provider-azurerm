@@ -160,7 +160,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 }
 
 func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SecurityRuleClient
+	client := meta.(*ArmClient).Network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -296,7 +296,7 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SecurityRuleClient
+	client := meta.(*ArmClient).Network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -348,7 +348,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SecurityRuleClient
+	client := meta.(*ArmClient).Network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

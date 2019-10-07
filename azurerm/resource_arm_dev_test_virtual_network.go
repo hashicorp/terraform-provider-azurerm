@@ -91,7 +91,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 }
 
 func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -152,7 +152,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -194,7 +194,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -242,7 +242,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

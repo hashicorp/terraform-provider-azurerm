@@ -89,7 +89,7 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 }
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
@@ -150,11 +150,10 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	d.SetId(*read.ID)
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
-
 }
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -197,7 +196,7 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

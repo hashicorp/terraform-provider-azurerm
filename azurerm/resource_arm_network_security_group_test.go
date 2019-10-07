@@ -267,7 +267,6 @@ func TestAccAzureRMNetworkSecurityGroup_applicationSecurityGroup(t *testing.T) {
 
 func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %q", resourceName)
@@ -279,7 +278,7 @@ func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.SecurityGroupClient
+		client := testAccProvider.Meta().(*ArmClient).Network.SecurityGroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, sgName, "")
 		if err != nil {
@@ -296,7 +295,6 @@ func testCheckAzureRMNetworkSecurityGroupExists(resourceName string) resource.Te
 
 func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -308,7 +306,7 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for network security group: %q", sgName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.SecurityGroupClient
+		client := testAccProvider.Meta().(*ArmClient).Network.SecurityGroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, sgName)
 		if err != nil {
@@ -322,7 +320,7 @@ func testCheckAzureRMNetworkSecurityGroupDisappears(resourceName string) resourc
 }
 
 func testCheckAzureRMNetworkSecurityGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.SecurityGroupClient
+	client := testAccProvider.Meta().(*ArmClient).Network.SecurityGroupClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

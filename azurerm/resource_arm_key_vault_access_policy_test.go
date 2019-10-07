@@ -198,7 +198,7 @@ func TestAccAzureRMKeyVaultAccessPolicy_nonExistentVault(t *testing.T) {
 
 func testCheckAzureRMKeyVaultAccessPolicyExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
+		client := testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

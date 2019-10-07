@@ -109,7 +109,7 @@ func testCheckAzureRMSubnetRouteTableAssociationExists(resourceName string) reso
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -151,7 +151,7 @@ func testCheckAzureRMSubnetRouteTableAssociationDisappears(resourceName string) 
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 		if err != nil {
@@ -192,7 +192,7 @@ func testCheckAzureRMSubnetHasNoRouteTable(resourceName string) resource.TestChe
 		virtualNetworkName := parsedId.Path["virtualNetworks"]
 		subnetName := parsedId.Path["subnets"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.SubnetsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.SubnetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroupName, virtualNetworkName, subnetName, "")
 		if err != nil {

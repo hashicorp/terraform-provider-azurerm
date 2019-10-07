@@ -37,7 +37,6 @@ func TestAccAzureRMRecoveryReplicationPolicy_basic(t *testing.T) {
 }
 
 func testAccAzureRMRecoveryReplicationPolicy_basic(rInt int, location string) string {
-
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -82,7 +81,7 @@ func testCheckAzureRMRecoveryReplicationPolicyExists(resourceGroupStateName, vau
 		policyName := policyState.Primary.Attributes["name"]
 
 		// Ensure fabric exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, policyName)

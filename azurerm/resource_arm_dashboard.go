@@ -44,7 +44,7 @@ func resourceArmDashboard() *schema.Resource {
 }
 
 func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).portal.DashboardsClient
+	client := meta.(*ArmClient).Portal.DashboardsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	t := d.Get("tags").(map[string]interface{})
@@ -82,7 +82,7 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).portal.DashboardsClient
+	client := meta.(*ArmClient).Portal.DashboardsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, parseErr := azure.ParseAzureResourceID(d.Id())
@@ -117,7 +117,7 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDashboardDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).portal.DashboardsClient
+	client := meta.(*ArmClient).Portal.DashboardsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, parseErr := azure.ParseAzureResourceID(d.Id())

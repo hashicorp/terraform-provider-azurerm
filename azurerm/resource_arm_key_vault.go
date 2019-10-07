@@ -189,7 +189,7 @@ func resourceArmKeyVault() *schema.Resource {
 }
 
 func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	// Remove in 2.0
@@ -324,7 +324,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -384,7 +384,7 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

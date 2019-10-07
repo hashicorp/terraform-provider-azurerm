@@ -198,7 +198,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 }
 
 func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
 
@@ -216,6 +216,19 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_container_registry", *existing.ID)
 		}
+	}
+
+	availabilityRequest := containerregistry.RegistryNameCheckRequest{
+		Name: utils.String(name),
+		Type: utils.String("Microsoft.ContainerRegistry/registries"),
+	}
+	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
+	if err != nil {
+		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+	}
+
+	if !*available.NameAvailable {
+		return fmt.Errorf("The name %q used for the Container Registry needs to be globally unique and isn't available: %s", name, *available.Message)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -291,7 +304,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
 
@@ -382,7 +395,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
-	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
+	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
 
@@ -451,8 +464,8 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 }
 
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
-	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
+	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -539,7 +552,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

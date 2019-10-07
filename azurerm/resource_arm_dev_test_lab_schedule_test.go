@@ -130,7 +130,7 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).devTestLabs.LabSchedulesClient
+		client := testAccProvider.Meta().(*ArmClient).DevTestLabs.LabSchedulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
@@ -147,7 +147,7 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).devTestLabs.LabSchedulesClient
+	client := testAccProvider.Meta().(*ArmClient).DevTestLabs.LabSchedulesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

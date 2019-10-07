@@ -115,7 +115,7 @@ func dataSourceArmExpressRouteCircuit() *schema.Resource {
 
 func dataSourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
+	client := meta.(*ArmClient).Network.ExpressRouteCircuitsClient
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -148,7 +148,6 @@ func dataSourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface
 				return fmt.Errorf("Error setting `service_provider_properties`: %+v", err)
 			}
 		}
-
 	}
 
 	if resp.Sku != nil {

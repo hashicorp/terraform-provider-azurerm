@@ -109,7 +109,7 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 }
 
 func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
@@ -142,7 +142,6 @@ func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta 
 			return fmt.Errorf("key_value_id does not contain `vaults`: %q", vaultId)
 		}
 		vaultName = vaultNameTemp
-
 	} else if resourceGroup == "" {
 		return fmt.Errorf("one of `resource_group_name` must be set when `vault_name` is used")
 	}
@@ -277,7 +276,7 @@ func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

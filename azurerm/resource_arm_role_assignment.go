@@ -74,16 +74,15 @@ func resourceArmRoleAssignment() *schema.Resource {
 			"skip_service_principal_aad_check": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				ForceNew: true,
-				Default:  false,
+				Computed: true,
 			},
 		},
 	}
 }
 
 func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
-	roleAssignmentsClient := meta.(*ArmClient).authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*ArmClient).authorization.RoleDefinitionsClient
+	roleAssignmentsClient := meta.(*ArmClient).Authorization.RoleAssignmentsClient
+	roleDefinitionsClient := meta.(*ArmClient).Authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -161,8 +160,8 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*ArmClient).authorization.RoleDefinitionsClient
+	client := meta.(*ArmClient).Authorization.RoleAssignmentsClient
+	roleDefinitionsClient := meta.(*ArmClient).Authorization.RoleDefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.GetByID(ctx, d.Id())
@@ -201,7 +200,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).authorization.RoleAssignmentsClient
+	client := meta.(*ArmClient).Authorization.RoleAssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseRoleAssignmentId(d.Id())
@@ -233,7 +232,7 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 
 func retryRoleAssignmentsClient(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		roleAssignmentsClient := meta.(*ArmClient).authorization.RoleAssignmentsClient
+		roleAssignmentsClient := meta.(*ArmClient).Authorization.RoleAssignmentsClient
 		ctx := meta.(*ArmClient).StopContext
 
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)

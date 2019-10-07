@@ -22,7 +22,7 @@ func dataSourceArmResourceGroup() *schema.Resource {
 }
 
 func dataSourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.GroupsClient
+	client := meta.(*ArmClient).Resource.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

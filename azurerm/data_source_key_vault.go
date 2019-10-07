@@ -155,7 +155,7 @@ func dataSourceArmKeyVault() *schema.Resource {
 }
 
 func dataSourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

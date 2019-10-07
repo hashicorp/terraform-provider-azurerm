@@ -403,7 +403,7 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 }
 
 func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.KubernetesClustersClient
+	client := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

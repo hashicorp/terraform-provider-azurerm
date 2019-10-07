@@ -61,7 +61,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -124,7 +124,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -163,7 +163,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, met
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

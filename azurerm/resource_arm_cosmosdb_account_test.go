@@ -669,7 +669,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+	conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -695,7 +695,7 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+		conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -898,7 +898,6 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(rInt int, location string, altLocation string, cLevel documentdb.DefaultConsistencyLevel) string {
-
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(cLevel), "", fmt.Sprintf(`
         geo_location {
             prefix            = "acctest-%d-custom-id"

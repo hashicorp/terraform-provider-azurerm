@@ -36,7 +36,7 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 }
 
 func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.VaultsClient
+	client := meta.(*ArmClient).RecoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

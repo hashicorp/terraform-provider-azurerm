@@ -246,7 +246,7 @@ func testCheckAzureRMRecoveryReplicatedVmExists(resourceGroupStateName, vaultSta
 		replicationName := replicationState.Primary.Attributes["name"]
 
 		// Ensure mapping exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)

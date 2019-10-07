@@ -171,7 +171,6 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		}
 
 		return fmt.Errorf("SQL Server %s still exists", sqlServerName)
-
 	}
 
 	return nil

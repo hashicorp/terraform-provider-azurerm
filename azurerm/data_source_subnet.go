@@ -61,7 +61,7 @@ func dataSourceArmSubnet() *schema.Resource {
 }
 
 func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
+	client := meta.(*ArmClient).Network.SubnetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

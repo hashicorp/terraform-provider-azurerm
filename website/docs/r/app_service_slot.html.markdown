@@ -337,6 +337,46 @@ A `identity` block supports the following:
 
 ---
 
+A `logs` block supports the following:
+
+* `application_logs` - (Optional) An `application_logs` block as defined below.
+
+* `http_logs` - (Optional) An `http_logs` block as defined below.
+
+---
+
+An `application_logs` block supports the following:
+
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
+
+---
+
+An `http_logs` block supports *one* of the following:
+
+* `file_system` - (Optional) A `file_system` block as defined below.
+
+* `azure_blob_storage` - (Optional) An `azure_blob_storage` block as defined below.
+
+---
+
+An `azure_blob_storage` block supports the following:
+
+* `level` - (Required) The level at which to log. Possible values include `Error`, `Warning`, `Information`, `Verbose` and `Off`. **NOTE:** this field is not available for `http_logs`
+
+* `sas_url` - (Required) The URL to the storage container, with a Service SAS token appended. **NOTE:** there is currently no means of generating Service SAS tokens with the `azurerm` provider.
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
+
+---
+
+A `file_system` block supports the following:
+
+* `retention_in_days` - (Required) The number of days to retain logs for.
+
+* `retention_in_mb` - (Required) The maximum size in megabytes that http log files can use before being removed.
+
+---
+
 Elements of `ip_restriction` [block](/docs/configuration/attr-as-blocks.html) support:
 
 * `ip_address` - (Required) The IP Address used for this IP Restriction.

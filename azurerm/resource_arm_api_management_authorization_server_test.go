@@ -91,7 +91,7 @@ func TestAccAzureRMAPIManagementAuthorizationServer_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementAuthorizationServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagement.AuthorizationServersClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.AuthorizationServersClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_authorization_server" {
 			continue
@@ -126,7 +126,7 @@ func testCheckAzureRMAPIManagementAuthorizationServerExists(resourceName string)
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagement.AuthorizationServersClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.AuthorizationServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {

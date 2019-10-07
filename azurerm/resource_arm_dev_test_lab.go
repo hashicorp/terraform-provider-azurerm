@@ -85,7 +85,7 @@ func resourceArmDevTestLab() *schema.Resource {
 }
 
 func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabsClient
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
@@ -142,7 +142,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabsClient
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -185,7 +185,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabsClient
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

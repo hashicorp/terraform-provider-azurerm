@@ -83,7 +83,7 @@ func resourceArmBotConnection() *schema.Resource {
 }
 
 func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -134,7 +134,7 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -173,7 +173,7 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -209,11 +209,10 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 	d.SetId(*resp.ID)
 
 	return resourceArmBotConnectionRead(d, meta)
-
 }
 
 func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.ConnectionClient
+	client := meta.(*ArmClient).Bot.ConnectionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -181,7 +181,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 }
 
 func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiClient
+	client := meta.(*ArmClient).ApiManagement.ApiClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -286,7 +286,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 
 func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).apiManagement.ApiClient
+	client := meta.(*ArmClient).ApiManagement.ApiClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -344,7 +344,7 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiClient
+	client := meta.(*ArmClient).ApiManagement.ApiClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

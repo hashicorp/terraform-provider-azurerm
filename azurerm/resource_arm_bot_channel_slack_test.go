@@ -110,7 +110,7 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Bot Channel Slack")
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+		client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, botName, string(botservice.ChannelNameSlackChannel))
@@ -127,7 +127,7 @@ func testCheckAzureRMBotChannelSlackExists(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMBotChannelSlackDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).bot.ChannelClient
+	client := testAccProvider.Meta().(*ArmClient).Bot.ChannelClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

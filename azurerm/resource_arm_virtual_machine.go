@@ -614,7 +614,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 }
 
 func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
+	client := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Virtual Machine creation.")
@@ -778,7 +778,7 @@ func resourceArmVirtualMachineCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	vmclient := meta.(*ArmClient).compute.VMClient
+	vmclient := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -907,7 +907,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
+	client := meta.(*ArmClient).Compute.VMClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -1047,7 +1047,7 @@ func resourceArmVirtualMachineDeleteManagedDisk(disk *compute.ManagedDiskParamet
 	}
 	managedDiskID := *disk.ID
 
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(managedDiskID)
@@ -1538,7 +1538,6 @@ func expandAzureRmVirtualMachineOsProfileLinuxConfig(d *schema.ResourceData) (*c
 	linuxKeys := linuxConfig["ssh_keys"].([]interface{})
 	sshPublicKeys := make([]compute.SSHPublicKey, 0)
 	for _, key := range linuxKeys {
-
 		sshKey, ok := key.(map[string]interface{})
 		if !ok {
 			continue
@@ -1922,7 +1921,7 @@ func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 }
 
 func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	if disk == nil || disk.ID == nil {
@@ -1945,8 +1944,8 @@ func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParame
 	return &diskResp, nil
 }
 func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, props *compute.VirtualMachineProperties) (string, error) {
-	nicClient := meta.(*ArmClient).network.InterfacesClient
-	pipClient := meta.(*ArmClient).network.PublicIPsClient
+	nicClient := meta.(*ArmClient).Network.InterfacesClient
+	pipClient := meta.(*ArmClient).Network.PublicIPsClient
 
 	if props == nil {
 		return "", nil
@@ -1990,7 +1989,6 @@ func determineVirtualMachineIPAddress(ctx context.Context, meta interface{}, pro
 	if props := networkInterface.InterfacePropertiesFormat; props != nil {
 		if configs := props.IPConfigurations; configs != nil {
 			for _, config := range *configs {
-
 				if config.PublicIPAddress != nil {
 					id, err := azure.ParseAzureResourceID(*config.PublicIPAddress.ID)
 					if err != nil {

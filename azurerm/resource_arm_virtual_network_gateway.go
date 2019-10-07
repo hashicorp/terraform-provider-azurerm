@@ -267,7 +267,7 @@ func resourceArmVirtualNetworkGateway() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetGatewayClient
+	client := meta.(*ArmClient).Network.VnetGatewayClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway creation.")
@@ -326,7 +326,7 @@ func resourceArmVirtualNetworkGatewayCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetGatewayClient
+	client := meta.(*ArmClient).Network.VnetGatewayClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
@@ -383,7 +383,7 @@ func resourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmVirtualNetworkGatewayDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetGatewayClient
+	client := meta.(*ArmClient).Network.VnetGatewayClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayFromId(d.Id())
@@ -778,7 +778,6 @@ func validateArmVirtualNetworkGatewayExpressRouteSku() schema.SchemaValidateFunc
 }
 
 func resourceArmVirtualNetworkGatewayCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
-
 	if vpnClient, ok := diff.GetOk("vpn_client_configuration"); ok {
 		if vpnClientConfig, ok := vpnClient.([]interface{})[0].(map[string]interface{}); ok {
 			hasRadiusAddress := vpnClientConfig["radius_server_address"] != ""

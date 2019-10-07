@@ -417,11 +417,10 @@ func resourceArmIotHub() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 	}
-
 }
 
 func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
@@ -514,7 +513,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -548,7 +547,6 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if properties := hub.Properties; properties != nil {
-
 		for k, v := range properties.EventHubEndpoints {
 			if v == nil {
 				continue
@@ -561,7 +559,6 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("event_hub_operations_endpoint", v.Endpoint)
 				d.Set("event_hub_operations_path", v.Path)
 			}
-
 		}
 
 		d.Set("hostname", properties.HostName)
@@ -611,7 +608,7 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := id.Path["IotHubs"]
@@ -916,7 +913,6 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil && input.Endpoints != nil {
-
 		if containers := input.Endpoints.StorageContainers; containers != nil {
 			for _, container := range *containers {
 				output := make(map[string]interface{})

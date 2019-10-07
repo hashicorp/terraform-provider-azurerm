@@ -302,7 +302,7 @@ func resourceArmFrontDoorFirewallPolicy() *schema.Resource {
 }
 
 func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsPolicyClient
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsPolicyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing args for Front Door Firewall Policy")
@@ -380,7 +380,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsPolicyClient
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsPolicyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -409,7 +409,6 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 
 	if properties := resp.WebApplicationFirewallPolicyProperties; properties != nil {
 		if policy := properties.PolicySettings; policy != nil {
-
 			d.Set("enabled", policy.EnabledState == frontdoor.PolicyEnabledStateEnabled)
 			d.Set("mode", string(policy.Mode))
 			d.Set("redirect_url", policy.RedirectURL)
@@ -434,7 +433,7 @@ func resourceArmFrontDoorFirewallPolicyRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmFrontDoorFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsPolicyClient
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsPolicyClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

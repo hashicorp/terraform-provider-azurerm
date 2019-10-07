@@ -288,7 +288,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		policySetName := rs.Primary.Attributes["name"]
 		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).policy.SetDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).Policy.SetDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		var err error
@@ -312,7 +312,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).policy.SetDefinitionsClient
+	client := testAccProvider.Meta().(*ArmClient).Policy.SetDefinitionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

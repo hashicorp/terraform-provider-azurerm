@@ -79,7 +79,7 @@ func resourceArmVirtualWan() *schema.Resource {
 }
 
 func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VirtualWanClient
+	client := meta.(*ArmClient).Network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Virtual WAN creation.")
@@ -143,7 +143,7 @@ func resourceArmVirtualWanCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VirtualWanClient
+	client := meta.(*ArmClient).Network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -183,7 +183,7 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmVirtualWanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VirtualWanClient
+	client := meta.(*ArmClient).Network.VirtualWanClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
