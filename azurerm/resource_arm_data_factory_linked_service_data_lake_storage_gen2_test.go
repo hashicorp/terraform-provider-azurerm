@@ -114,7 +114,7 @@ func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Exists(name stri
 }
 
 func testCheckAzureRMDataFactoryLinkedServiceDataLakeStorageGen2Destroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactory.LinkedServiceClient
+	client := testAccProvider.Meta().(*ArmClient).DataFactory.LinkedServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
