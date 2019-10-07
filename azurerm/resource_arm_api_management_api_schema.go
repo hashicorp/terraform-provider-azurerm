@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
@@ -49,7 +50,8 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 
 func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	schemaID := d.Get("schema_id").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -98,7 +100,8 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 
 func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -137,7 +140,8 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 
 func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

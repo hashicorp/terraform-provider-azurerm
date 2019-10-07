@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"regexp"
 
@@ -181,7 +182,8 @@ func resourceArmAppService() *schema.Resource {
 
 func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service creation.")
 
@@ -305,7 +307,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -491,6 +494,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -500,7 +505,6 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["sites"]
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -652,6 +656,8 @@ func resourceArmAppServiceRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -664,7 +670,6 @@ func resourceArmAppServiceDelete(d *schema.ResourceData, meta interface{}) error
 
 	deleteMetrics := true
 	deleteEmptyServerFarm := false
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Delete(ctx, resGroup, name, &deleteMetrics, &deleteEmptyServerFarm)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {

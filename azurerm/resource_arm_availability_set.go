@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"strings"
 
@@ -79,7 +80,8 @@ func resourceArmAvailabilitySet() *schema.Resource {
 
 func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
 
@@ -140,7 +142,8 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 
 func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -181,7 +184,8 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

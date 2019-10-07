@@ -3,6 +3,7 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"regexp"
 
@@ -76,7 +77,8 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 
 func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.DscConfigurationClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
 
@@ -134,7 +136,8 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 
 func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.DscConfigurationClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -186,7 +189,8 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 
 func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.DscConfigurationClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

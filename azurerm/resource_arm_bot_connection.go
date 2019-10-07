@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
@@ -84,7 +85,8 @@ func resourceArmBotConnection() *schema.Resource {
 
 func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -135,7 +137,8 @@ func resourceArmBotConnectionCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -174,7 +177,8 @@ func resourceArmBotConnectionRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -213,7 +217,8 @@ func resourceArmBotConnectionUpdate(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmBotConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ConnectionClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

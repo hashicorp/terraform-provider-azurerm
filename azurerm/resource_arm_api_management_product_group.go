@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -34,7 +35,8 @@ func resourceArmApiManagementProductGroup() *schema.Resource {
 
 func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ProductGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
@@ -69,7 +71,8 @@ func resourceArmApiManagementProductGroupCreate(d *schema.ResourceData, meta int
 
 func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ProductGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -101,7 +104,8 @@ func resourceArmApiManagementProductGroupRead(d *schema.ResourceData, meta inter
 
 func resourceArmApiManagementProductGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ProductGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

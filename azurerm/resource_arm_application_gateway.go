@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
@@ -1341,7 +1342,8 @@ func resourceArmApplicationGateway() *schema.Resource {
 func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
 	client := armClient.Network.ApplicationGatewaysClient
-	ctx := armClient.StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Application Gateway creation.")
 
@@ -1503,7 +1505,8 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.ApplicationGatewaysClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -1645,7 +1648,8 @@ func resourceArmApplicationGatewayRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmApplicationGatewayDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.ApplicationGatewaysClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

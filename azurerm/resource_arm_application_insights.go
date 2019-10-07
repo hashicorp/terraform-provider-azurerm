@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"net/http"
 
@@ -73,7 +74,8 @@ func resourceArmApplicationInsights() *schema.Resource {
 
 func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.ComponentsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights creation.")
 
@@ -135,7 +137,8 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 
 func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.ComponentsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -173,7 +176,8 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 
 func resourceArmApplicationInsightsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.ComponentsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

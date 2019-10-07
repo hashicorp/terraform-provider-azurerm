@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"regexp"
 
@@ -96,7 +97,8 @@ func resourceArmAutomationAccount() *schema.Resource {
 
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// Remove in 2.0
 	var sku automation.Sku
@@ -169,7 +171,8 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.AccountClient
 	registrationClient := meta.(*ArmClient).Automation.AgentRegistrationInfoClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -234,7 +237,8 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

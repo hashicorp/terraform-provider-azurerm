@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"net/http"
 	"strings"
@@ -120,7 +121,8 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 
 func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.WebTestsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
 
@@ -196,7 +198,8 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 
 func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.WebTestsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -255,7 +258,8 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 
 func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.WebTestsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

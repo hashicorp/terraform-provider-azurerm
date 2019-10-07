@@ -3,6 +3,7 @@ package azurerm
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"time"
 
@@ -109,7 +110,8 @@ func resourceArmAppServiceCertificate() *schema.Resource {
 func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).Web.CertificatesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
 
@@ -193,6 +195,8 @@ func resourceArmAppServiceCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.CertificatesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -202,7 +206,6 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 	resourceGroup := id.ResourceGroup
 	name := id.Path["certificates"]
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -235,6 +238,8 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 
 func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.CertificatesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -245,7 +250,6 @@ func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interfa
 
 	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", name, resourceGroup)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {

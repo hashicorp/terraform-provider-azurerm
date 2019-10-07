@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"strings"
 	"time"
@@ -371,7 +372,8 @@ func resourceArmBatchPool() *schema.Resource {
 
 func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Batch.PoolClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch pool creation.")
 
@@ -502,8 +504,9 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -590,8 +593,9 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -651,8 +655,9 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"strconv"
 	"time"
@@ -355,7 +356,8 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 
 func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -419,7 +421,8 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 
 func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -468,7 +471,8 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -94,7 +95,8 @@ func resourceArmApplicationInsightsAnalyticsItemUpdate(d *schema.ResourceData, m
 }
 func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData, meta interface{}, overwrite bool) error {
 	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	appInsightsID := d.Get("application_insights_id").(string)
 
@@ -155,7 +157,8 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 
 func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 	resourceGroupName, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)
@@ -188,7 +191,8 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 
 func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 	resourceGroupName, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)

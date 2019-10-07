@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"regexp"
 
@@ -96,7 +97,8 @@ func resourceArmBatchAccount() *schema.Resource {
 
 func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
 
@@ -174,7 +176,8 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -224,7 +227,8 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
@@ -267,7 +271,8 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

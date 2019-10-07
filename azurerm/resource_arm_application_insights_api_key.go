@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -71,7 +72,8 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 
 func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.APIKeyClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights API key creation.")
 
@@ -125,7 +127,8 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 
 func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.APIKeyClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -165,7 +168,8 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 
 func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppInsights.APIKeyClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

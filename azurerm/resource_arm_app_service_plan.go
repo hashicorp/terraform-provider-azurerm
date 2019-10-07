@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"log"
 	"regexp"
 	"strings"
@@ -167,7 +168,8 @@ func resourceArmAppServicePlan() *schema.Resource {
 
 func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicePlansClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM App Service Plan creation.")
 
@@ -258,6 +260,8 @@ func resourceArmAppServicePlanCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicePlansClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -269,7 +273,6 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 	resourceGroup := id.ResourceGroup
 	name := id.Path["serverfarms"]
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -327,7 +330,8 @@ func resourceArmAppServicePlanRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmAppServicePlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.AppServicePlansClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
