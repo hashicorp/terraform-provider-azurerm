@@ -373,7 +373,7 @@ func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgres.ServersClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -390,7 +390,7 @@ func testCheckAzureRMPostgreSQLServerExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMPostgreSQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgres.ServersClient
+	client := testAccProvider.Meta().(*ArmClient).Postgres.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

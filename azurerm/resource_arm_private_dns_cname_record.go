@@ -61,7 +61,7 @@ func resourceArmPrivateDnsCNameRecord() *schema.Resource {
 }
 
 func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.RecordSetsClient
+	client := meta.(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -117,7 +117,7 @@ func resourceArmPrivateDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmPrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
+	dnsClient := meta.(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -153,7 +153,7 @@ func resourceArmPrivateDnsCNameRecordRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmPrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
+	dnsClient := meta.(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

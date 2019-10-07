@@ -106,7 +106,6 @@ type ArmClient struct {
 	devSpace         *devspace.Client
 	devTestLabs      *devtestlabs.Client
 	dns              *dns.Client
-	privateDns       *privatedns.Client
 	eventGrid        *eventgrid.Client
 	eventhub         *eventhub.Client
 	frontdoor        *frontdoor.Client
@@ -125,11 +124,12 @@ type ArmClient struct {
 	Msi              *msi.Client
 	Mssql            *mssql.Client
 	Mysql            *mysql.Client
-	network          *network.Client
-	notificationHubs *notificationhub.Client
-	policy           *policy.Client
-	portal           *portal.Client
-	postgres         *postgres.Client
+	Network          *network.Client
+	NotificationHubs *notificationhub.Client
+	Policy           *policy.Client
+	Portal           *portal.Client
+	Postgres         *postgres.Client
+	PrivateDns       *privatedns.Client
 	RecoveryServices *recoveryservices.Client
 	Redis            *redis.Client
 	Relay            *relay.Client
@@ -258,12 +258,12 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Msi = msi.BuildClient(o)
 	client.Mysql = mysql.BuildClient(o)
 	client.ManagementGroups = managementgroup.BuildClient(o)
-	client.network = network.BuildClient(o)
-	client.notificationHubs = notificationhub.BuildClient(o)
-	client.policy = policy.BuildClient(o)
-	client.portal = portal.BuildClient(o)
-	client.postgres = postgres.BuildClient(o)
-	client.privateDns = privatedns.BuildClient(o)
+	client.Network = network.BuildClient(o)
+	client.NotificationHubs = notificationhub.BuildClient(o)
+	client.Policy = policy.BuildClient(o)
+	client.Portal = portal.BuildClient(o)
+	client.Postgres = postgres.BuildClient(o)
+	client.PrivateDns = privatedns.BuildClient(o)
 	client.RecoveryServices = recoveryservices.BuildClient(o)
 	client.Redis = redis.BuildClient(o)
 	client.Relay = relay.BuildClient(o)

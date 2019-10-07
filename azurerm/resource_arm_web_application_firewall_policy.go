@@ -164,7 +164,7 @@ func resourceArmWebApplicationFirewallPolicy() *schema.Resource {
 }
 
 func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.WebApplicationFirewallPoliciesClient
+	client := meta.(*ArmClient).Network.WebApplicationFirewallPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -213,7 +213,7 @@ func resourceArmWebApplicationFirewallPolicyCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.WebApplicationFirewallPoliciesClient
+	client := meta.(*ArmClient).Network.WebApplicationFirewallPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -251,7 +251,7 @@ func resourceArmWebApplicationFirewallPolicyRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmWebApplicationFirewallPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.WebApplicationFirewallPoliciesClient
+	client := meta.(*ArmClient).Network.WebApplicationFirewallPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

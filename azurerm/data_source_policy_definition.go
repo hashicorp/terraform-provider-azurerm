@@ -56,7 +56,7 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 }
 
 func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.DefinitionsClient
+	client := meta.(*ArmClient).Policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("display_name").(string)

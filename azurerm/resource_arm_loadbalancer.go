@@ -156,7 +156,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 }
 
 func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
@@ -275,7 +275,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

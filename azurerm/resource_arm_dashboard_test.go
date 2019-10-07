@@ -49,7 +49,7 @@ func testCheckAzureRMDashboardExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for Dashboard: %s", dashboardName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).portal.DashboardsClient
+		client := testAccProvider.Meta().(*ArmClient).Portal.DashboardsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dashboardName)
@@ -66,7 +66,7 @@ func testCheckAzureRMDashboardExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMDashboardDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).portal.DashboardsClient
+	client := testAccProvider.Meta().(*ArmClient).Portal.DashboardsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

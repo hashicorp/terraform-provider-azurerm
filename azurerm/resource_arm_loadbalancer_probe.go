@@ -97,7 +97,7 @@ func resourceArmLoadBalancerProbe() *schema.Resource {
 }
 
 func resourceArmLoadBalancerProbeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -220,7 +220,7 @@ func resourceArmLoadBalancerProbeRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmLoadBalancerProbeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.LoadBalancersClient
+	client := meta.(*ArmClient).Network.LoadBalancersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	loadBalancerID := d.Get("loadbalancer_id").(string)

@@ -264,7 +264,7 @@ func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.Tes
 		resGrp := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*ArmClient).network.LocalNetworkGatewaysClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resGrp, localNetName)
@@ -297,7 +297,7 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 		resourceGroup := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*ArmClient).network.LocalNetworkGatewaysClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, localNetName)
@@ -329,7 +329,7 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).network.LocalNetworkGatewaysClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
 

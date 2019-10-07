@@ -163,7 +163,7 @@ func testCheckAzureRMWebApplicationFirewallPolicyExists(resourceName string) res
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.WebApplicationFirewallPoliciesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.WebApplicationFirewallPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
@@ -178,7 +178,7 @@ func testCheckAzureRMWebApplicationFirewallPolicyExists(resourceName string) res
 }
 
 func testCheckAzureRMWebApplicationFirewallPolicyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.WebApplicationFirewallPoliciesClient
+	client := testAccProvider.Meta().(*ArmClient).Network.WebApplicationFirewallPoliciesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

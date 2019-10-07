@@ -78,7 +78,7 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 
 	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*ArmClient).network.SubnetsClient
+	subnetsClient := meta.(*ArmClient).Network.SubnetsClient
 	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err

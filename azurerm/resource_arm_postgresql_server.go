@@ -211,7 +211,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 }
 
 func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
@@ -281,7 +281,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
@@ -331,7 +331,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -378,7 +378,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
