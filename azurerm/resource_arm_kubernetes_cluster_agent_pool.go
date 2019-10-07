@@ -82,7 +82,6 @@ func resourceArmKubernetesClusterAgentPool() *schema.Resource {
 			"node_count": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
@@ -179,8 +178,9 @@ func resourceArmKubernetesClusterAgentPoolCreateUpdate(d *schema.ResourceData, m
 	name := d.Get("name").(string)
 	agentPoolName := d.Get("agent_pool_name").(string)
 
+	existing, err := client.Get(ctx, resGroup, name, agentPoolName)
+
 	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, name, agentPoolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Kubernetes Cluster %q (Resource Group %q): %s", name, resGroup, err)
@@ -192,7 +192,7 @@ func resourceArmKubernetesClusterAgentPoolCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	agentProfile, err := expandKubernetesClusterAgentPoolProfileProperties(d)
+	agentProfile, err := expandKubernetesClusterAgentPoolProfileProperties(existing.ManagedClusterAgentPoolProfileProperties, d)
 	if err != nil {
 		return err
 	}
@@ -260,7 +260,11 @@ func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta inte
 	}
 
 	if profile.Count != nil {
-		d.Set("node_count", int(*profile.Count))
+		if autoscale_configs := d.Get("autoscale_configuration").([]interface{}); len(autoscale_configs) > 0 {
+			d.Set("node_count", nil)
+		} else {
+			d.Set("node_count", int(*profile.Count))
+		}
 	}
 
 	d.Set("availability_zones", utils.FlattenStringSlice(profile.AvailabilityZones))
@@ -343,7 +347,7 @@ func resourceArmKubernetesClusterAgentPoolDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func expandKubernetesClusterAgentPoolProfileProperties(d *schema.ResourceData) (containerservice.ManagedClusterAgentPoolProfileProperties, error) {
+func expandKubernetesClusterAgentPoolProfileProperties(existing *containerservice.ManagedClusterAgentPoolProfileProperties, d *schema.ResourceData) (containerservice.ManagedClusterAgentPoolProfileProperties, error) {
 
 	// TODO Default: AvailabilitySet ??
 	poolType := d.Get("agent_pool_type").(string)
@@ -385,12 +389,24 @@ func expandKubernetesClusterAgentPoolProfileProperties(d *schema.ResourceData) (
 	}
 
 	if autoscale_configs := d.Get("autoscale_configuration").([]interface{}); len(autoscale_configs) > 0 {
-		profile.EnableAutoScaling = utils.Bool(true)
-		if len(autoscale_configs) > 0 {
-			autoscale_config := autoscale_configs[0].(map[string]interface{})
-			profile.MaxCount = utils.Int32(int32(autoscale_config["max_count"].(int)))
-			profile.MinCount = utils.Int32(int32(autoscale_config["min_count"].(int)))
+		if *profile.Count != 0 {
+			return containerservice.ManagedClusterAgentPoolProfileProperties{}, fmt.Errorf("`node_count` cannot be set when `autoscale_config` is present")
 		}
+
+		profile.EnableAutoScaling = utils.Bool(true)
+
+		autoscale_config := autoscale_configs[0].(map[string]interface{})
+		profile.MaxCount = utils.Int32(int32(autoscale_config["max_count"].(int)))
+		profile.MinCount = utils.Int32(int32(autoscale_config["min_count"].(int)))
+
+		if d.IsNewResource() == true {
+			profile.Count = utils.Int32(int32(autoscale_config["min_count"].(int)))
+		} else {
+			if existing != nil {
+				profile.Count = existing.Count
+			}
+		}
+
 	} else {
 		profile.EnableAutoScaling = utils.Bool(false)
 	}
