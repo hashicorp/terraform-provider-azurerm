@@ -27,9 +27,6 @@ func TestAccAzureRMHealthcareService(t *testing.T) {
 			{
 				ResourceName:            "azurerm_healthcare_service.test",
 				ImportState:             true,
-				ImportStateVerifyIgnore: []string{
-					// since these are read from the existing state
-				},
 			},
 		},
 	})
@@ -48,7 +45,7 @@ func testCheckAzureRMHealthcareServiceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for healthcare service: %s", healthcareServiceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).healthcare.HealthcareServiceClient
+		client := testAccProvider.Meta().(*ArmClient).Healthcare.HealthcareServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, healthcareServiceName)
@@ -65,7 +62,7 @@ func testCheckAzureRMHealthcareServiceExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMHealthcareServiceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).healthcare.HealthcareServiceClient
+	client := testAccProvider.Meta().(*ArmClient).Healthcare.HealthcareServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

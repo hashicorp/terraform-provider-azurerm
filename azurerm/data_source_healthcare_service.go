@@ -116,7 +116,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 }
 
 func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)

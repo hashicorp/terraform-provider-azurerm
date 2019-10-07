@@ -40,6 +40,11 @@ func resourceArmHealthcareService() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "fhir",
+				ValidateFunc: validation.StringInSlice([]string{
+					"fhir",
+					"fhir-Stu3",
+					"fhir-R4",
+				}, false),
 			},
 
 			"cosmosdb_throughput": {
@@ -142,7 +147,7 @@ func resourceArmHealthcareService() *schema.Resource {
 }
 
 func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Healthcare Service creation.")
@@ -207,7 +212,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -296,7 +301,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

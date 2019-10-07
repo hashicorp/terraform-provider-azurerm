@@ -13,11 +13,11 @@ Manages a Healthcare Service Resource.
 ## Example Usage
 
 ```hcl
-resource "azurerm_healthcare_service" "test" {
+resource "azurerm_healthcare_service" "example" {
   name                = "uniquefhirname"
   resource_group_name = "sample-resource-group"
   location            = "westus2"
-  kind = "fhir-R4"
+  kind                = "fhir-R4"
   cosmosdb_throughput = "2000"
   access_policy_object_ids = [ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
   tags = {
@@ -36,7 +36,7 @@ resource "azurerm_healthcare_service" "test" {
      allowed_headers    = ["x-tempo-*","x-tempo2-*"]
      allowed_methods    = ["GET", "PUT"]
      max_age_in_seconds = "500"
-     allow_credentials = "true"
+     allow_credentials  = "true"
   }
 }
 ```
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `cosmosdb_offer_throughput` - The provisioned throughput for the backing database. Range of 400-1000. Defaults to 400.
+* `cosmosdb_offer_throughput` - The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `400`.
 * `tags` - A mapping of tags to assign to the resource.
 
 Authentication Configuration

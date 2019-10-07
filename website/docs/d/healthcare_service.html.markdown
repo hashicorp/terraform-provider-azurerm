@@ -14,7 +14,7 @@ Use this data source to access information about an existing Healthcare Service
 ## Example Usage
 
 ```hcl
-data "azurerm_healthcare_service" "test" {
+data "azurerm_healthcare_service" "example" {
   name                = "example-healthcare_service"
   resource_group_name = "example-resources"
   location            = "westus2"
@@ -23,7 +23,7 @@ data "azurerm_healthcare_service" "test" {
 output "healthcare_service_id" {
     name                = "uniquefhirname"
     resource_group_name = "sample-resource-group"
-    kind = "fhir-R4"
+    kind                = "fhir-R4"
     cosmosdb_throughput = "2000"
     access_policy_object_ids = [ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
     tags = {
