@@ -12,6 +12,7 @@ require (
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.1
 	github.com/hashicorp/go-version v1.2.0
+	github.com/hashicorp/terraform v0.12.9
 	github.com/hashicorp/terraform-plugin-sdk v1.1.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/satori/uuid v0.0.0-20160927100844-b061729afc07
