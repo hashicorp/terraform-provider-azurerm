@@ -106,7 +106,6 @@ type ArmClient struct {
 	DevSpace         *devspace.Client
 	DevTestLabs      *devtestlabs.Client
 	Dns              *dns.Client
-	privateDns       *privatedns.Client
 	EventGrid        *eventgrid.Client
 	Eventhub         *eventhub.Client
 	Frontdoor        *frontdoor.Client
@@ -119,7 +118,7 @@ type ArmClient struct {
 	Logic            *logic.Client
 	ManagementGroups *managementgroup.Client
 	Maps             *maps.Client
-	Mariadb          *mariadb.Client
+	MariaDB          *mariadb.Client
 	Media            *media.Client
 	Monitor          *monitor.Client
 	Msi              *msi.Client
@@ -252,7 +251,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Logic = logic.BuildClient(o)
 	client.LogAnalytics = loganalytics.BuildClient(o)
 	client.Maps = maps.BuildClient(o)
-	client.Mariadb = mariadb.BuildClient(o)
+	client.MariaDB = mariadb.BuildClient(o)
 	client.Media = media.BuildClient(o)
 	client.Monitor = monitor.BuildClient(o)
 	client.Mssql = mssql.BuildClient(o)
