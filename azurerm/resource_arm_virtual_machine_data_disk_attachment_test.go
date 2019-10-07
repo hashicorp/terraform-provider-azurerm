@@ -148,7 +148,7 @@ func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingCaching(t *testing.T
 func TestAccAzureRMVirtualMachineDataDiskAttachment_updatingWriteAccelerator(t *testing.T) {
 	resourceName := "azurerm_virtual_machine_data_disk_attachment.test"
 	ri := tf.AccRandTimeInt()
-	location := testAltLocation()
+	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
