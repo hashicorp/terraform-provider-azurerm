@@ -102,7 +102,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_healthcare_service" "test" {
-  name                = "accfa-%d"
+  name                = "acctest-HCS-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
