@@ -8,8 +8,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -120,7 +120,7 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 }
 
 func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	iothubName := d.Get("iothub_name").(string)
@@ -190,7 +190,7 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
@@ -242,7 +242,7 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())

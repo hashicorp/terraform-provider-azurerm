@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -160,7 +160,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 }
 
 func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SecurityRuleClient
+	client := meta.(*ArmClient).Network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -296,7 +296,7 @@ func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SecurityRuleClient
+	client := meta.(*ArmClient).Network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -348,7 +348,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SecurityRuleClient
+	client := meta.(*ArmClient).Network.SecurityRuleClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

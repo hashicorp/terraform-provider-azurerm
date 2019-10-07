@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -79,8 +80,9 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 }
 
 func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetPeeringsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetPeeringsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network peering creation.")
 
@@ -127,8 +129,9 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetPeeringsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetPeeringsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -166,8 +169,9 @@ func resourceArmVirtualNetworkPeeringRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmVirtualNetworkPeeringDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetPeeringsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetPeeringsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -212,7 +216,7 @@ func getVirtualNetworkPeeringProperties(d *schema.ResourceData) *network.Virtual
 
 func retryVnetPeeringsClientCreateUpdate(resGroup string, vnetName string, name string, peer network.VirtualNetworkPeering, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		vnetPeeringsClient := meta.(*ArmClient).network.VnetPeeringsClient
+		vnetPeeringsClient := meta.(*ArmClient).Network.VnetPeeringsClient
 		ctx := meta.(*ArmClient).StopContext
 
 		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, resGroup, vnetName, name, peer)

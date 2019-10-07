@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -133,7 +133,7 @@ func resourceArmNotificationHub() *schema.Resource {
 }
 
 func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -222,7 +222,7 @@ func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhu
 }
 
 func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -272,7 +272,7 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

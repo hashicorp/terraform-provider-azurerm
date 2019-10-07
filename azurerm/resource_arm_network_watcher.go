@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -40,7 +40,7 @@ func resourceArmNetworkWatcher() *schema.Resource {
 }
 
 func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.WatcherClient
+	client := meta.(*ArmClient).Network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -85,7 +85,7 @@ func resourceArmNetworkWatcherCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.WatcherClient
+	client := meta.(*ArmClient).Network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -114,7 +114,7 @@ func resourceArmNetworkWatcherRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmNetworkWatcherDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.WatcherClient
+	client := meta.(*ArmClient).Network.WatcherClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

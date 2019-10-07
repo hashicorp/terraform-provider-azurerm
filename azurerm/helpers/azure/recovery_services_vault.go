@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func ValidateRecoveryServicesVaultName(v interface{}, k string) (warnings []string, errors []error) {

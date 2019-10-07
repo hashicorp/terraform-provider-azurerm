@@ -10,8 +10,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -103,7 +103,7 @@ func resourceArmRouteTable() *schema.Resource {
 }
 
 func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RouteTablesClient
+	client := meta.(*ArmClient).Network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
@@ -159,7 +159,7 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RouteTablesClient
+	client := meta.(*ArmClient).Network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -199,7 +199,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RouteTablesClient
+	client := meta.(*ArmClient).Network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

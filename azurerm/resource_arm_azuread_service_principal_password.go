@@ -9,7 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
@@ -73,7 +73,7 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).graph.ServicePrincipalsClient
+	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	objectId := d.Get("service_principal_id").(string)
@@ -144,7 +144,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).graph.ServicePrincipalsClient
+	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := strings.Split(d.Id(), "/")
@@ -206,7 +206,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordRead(d *schema.ResourceDa
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).graph.ServicePrincipalsClient
+	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := strings.Split(d.Id(), "/")

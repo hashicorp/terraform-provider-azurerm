@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -420,7 +420,7 @@ func resourceArmIotHub() *schema.Resource {
 }
 
 func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
@@ -513,7 +513,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -608,7 +608,7 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := id.Path["IotHubs"]

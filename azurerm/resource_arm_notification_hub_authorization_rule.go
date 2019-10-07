@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -77,7 +77,7 @@ func resourceArmNotificationHubAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -132,7 +132,7 @@ func resourceArmNotificationHubAuthorizationRuleCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -179,7 +179,7 @@ func resourceArmNotificationHubAuthorizationRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmNotificationHubAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

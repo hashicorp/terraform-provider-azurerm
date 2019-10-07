@@ -6,8 +6,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -168,7 +168,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 }
 
 func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 
 	ctx := meta.(*ArmClient).StopContext
 
@@ -255,7 +255,7 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -310,7 +310,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMExtensionClient
+	client := meta.(*ArmClient).Compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

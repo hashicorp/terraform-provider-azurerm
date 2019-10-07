@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -93,7 +93,7 @@ func TestAccAzureRMIotHubConsumerGroup_operationsMonitoringEvents(t *testing.T) 
 }
 
 func testCheckAzureRMIotHubConsumerGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).iothub.ResourceClient
+	client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -133,7 +133,7 @@ func testCheckAzureRMIotHubConsumerGroupExists(resourceName string) resource.Tes
 		endpointName := rs.Primary.Attributes["eventhub_endpoint_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).iothub.ResourceClient
+		client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
 		resp, err := client.GetEventHubConsumerGroup(ctx, resourceGroup, iotHubName, endpointName, name)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

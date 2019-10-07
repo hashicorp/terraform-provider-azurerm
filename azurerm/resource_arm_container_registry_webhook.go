@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -98,7 +98,7 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 }
 
 func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry Webhook creation.")
 
@@ -152,7 +152,7 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry Webhook update.")
@@ -186,7 +186,7 @@ func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -251,7 +251,7 @@ func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmContainerRegistryWebhookDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

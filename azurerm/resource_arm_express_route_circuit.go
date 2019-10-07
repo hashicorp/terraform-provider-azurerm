@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -110,7 +110,7 @@ func resourceArmExpressRouteCircuit() *schema.Resource {
 }
 
 func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
+	client := meta.(*ArmClient).Network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM ExpressRoute Circuit creation.")
@@ -213,7 +213,7 @@ func resourceArmExpressRouteCircuitCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}) error {
-	ercClient := meta.(*ArmClient).network.ExpressRouteCircuitsClient
+	ercClient := meta.(*ArmClient).Network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -262,7 +262,7 @@ func resourceArmExpressRouteCircuitRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmExpressRouteCircuitDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ExpressRouteCircuitsClient
+	client := meta.(*ArmClient).Network.ExpressRouteCircuitsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

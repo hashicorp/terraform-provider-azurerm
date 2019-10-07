@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -83,8 +84,9 @@ func dataSourceArmSharedImage() *schema.Resource {
 	}
 }
 func dataSourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImagesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.GalleryImagesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	galleryName := d.Get("gallery_name").(string)

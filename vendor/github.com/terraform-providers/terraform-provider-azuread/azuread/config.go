@@ -13,16 +13,17 @@ import (
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
-	"github.com/hashicorp/terraform/httpclient"
+	"github.com/hashicorp/terraform-plugin-sdk/httpclient"
 	"github.com/terraform-providers/terraform-provider-azuread/version"
 )
 
 // ArmClient contains the handles to all the specific Azure ADger resource classes' respective clients.
 type ArmClient struct {
-	subscriptionID string
-	clientID       string
-	tenantID       string
-	environment    azure.Environment
+	subscriptionID   string
+	clientID         string
+	tenantID         string
+	terraformVersion string
+	environment      azure.Environment
 
 	StopContext context.Context
 
@@ -35,7 +36,7 @@ type ArmClient struct {
 }
 
 // getArmClient is a helper method which returns a fully instantiated *ArmClient based on the auth Config's current settings.
-func getArmClient(authCfg *authentication.Config) (*ArmClient, error) {
+func getArmClient(authCfg *authentication.Config, tfVersion string) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authCfg.Environment)
 	if err != nil {
 		return nil, err
@@ -43,10 +44,11 @@ func getArmClient(authCfg *authentication.Config) (*ArmClient, error) {
 
 	// client declarations:
 	client := ArmClient{
-		subscriptionID: authCfg.SubscriptionID,
-		clientID:       authCfg.ClientID,
-		tenantID:       authCfg.TenantID,
-		environment:    *env,
+		subscriptionID:   authCfg.SubscriptionID,
+		clientID:         authCfg.ClientID,
+		tenantID:         authCfg.TenantID,
+		terraformVersion: tfVersion,
+		environment:      *env,
 	}
 
 	sender := sender.BuildSender("AzureAD")
@@ -70,33 +72,32 @@ func getArmClient(authCfg *authentication.Config) (*ArmClient, error) {
 
 func (c *ArmClient) registerGraphRBACClients(endpoint, tenantID string, authorizer autorest.Authorizer) {
 	c.applicationsClient = graphrbac.NewApplicationsClientWithBaseURI(endpoint, tenantID)
-	configureClient(&c.applicationsClient.Client, authorizer)
+	configureClient(&c.applicationsClient.Client, authorizer, c.terraformVersion)
 
 	c.domainsClient = graphrbac.NewDomainsClientWithBaseURI(endpoint, tenantID)
-	configureClient(&c.domainsClient.Client, authorizer)
+	configureClient(&c.domainsClient.Client, authorizer, c.terraformVersion)
 
 	c.groupsClient = graphrbac.NewGroupsClientWithBaseURI(endpoint, tenantID)
-	configureClient(&c.groupsClient.Client, authorizer)
+	configureClient(&c.groupsClient.Client, authorizer, c.terraformVersion)
 
 	c.servicePrincipalsClient = graphrbac.NewServicePrincipalsClientWithBaseURI(endpoint, tenantID)
-	configureClient(&c.servicePrincipalsClient.Client, authorizer)
+	configureClient(&c.servicePrincipalsClient.Client, authorizer, c.terraformVersion)
 
 	c.usersClient = graphrbac.NewUsersClientWithBaseURI(endpoint, tenantID)
-	configureClient(&c.usersClient.Client, authorizer)
+	configureClient(&c.usersClient.Client, authorizer, c.terraformVersion)
 }
 
-func configureClient(client *autorest.Client, auth autorest.Authorizer) {
-	setUserAgent(client)
+func configureClient(client *autorest.Client, auth autorest.Authorizer, tfVersion string) {
+	setUserAgent(client, tfVersion)
 	client.Authorizer = auth
 	client.Sender = sender.BuildSender("AzureAD")
 	client.SkipResourceProviderRegistration = false
 	client.PollingDuration = 60 * time.Minute
 }
 
-//could be moved to helpers
-func setUserAgent(client *autorest.Client) {
-	// TODO: This is the SDK version not the CLI version, once we are on 0.12, should revisit
-	tfUserAgent := httpclient.UserAgentString()
+// Could be moved to helpers
+func setUserAgent(client *autorest.Client, tfVersion string) {
+	tfUserAgent := httpclient.TerraformUserAgent(tfVersion)
 
 	pv := version.ProviderVersion
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azuread/%s", tfUserAgent, pv)

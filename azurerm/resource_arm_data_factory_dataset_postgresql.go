@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -140,7 +140,7 @@ func resourceArmDataFactoryDatasetPostgreSQL() *schema.Resource {
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -227,7 +227,7 @@ func resourceArmDataFactoryDatasetPostgreSQLCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -303,7 +303,7 @@ func resourceArmDataFactoryDatasetPostgreSQLRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmDataFactoryDatasetPostgreSQLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
+	client := meta.(*ArmClient).DataFactory.DatasetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

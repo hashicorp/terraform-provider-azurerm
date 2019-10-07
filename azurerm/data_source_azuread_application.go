@@ -5,7 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -74,8 +75,9 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).graph.ApplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Graph.ApplicationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	var application graphrbac.Application
 

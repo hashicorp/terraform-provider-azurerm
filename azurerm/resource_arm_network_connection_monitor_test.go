@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -319,7 +319,7 @@ func testAccAzureRMNetworkConnectionMonitor_conflictingDestinations(t *testing.T
 
 func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).network.ConnectionMonitorsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.ConnectionMonitorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -345,7 +345,7 @@ func testCheckAzureRMNetworkConnectionMonitorExists(resourceName string) resourc
 }
 
 func testCheckAzureRMNetworkConnectionMonitorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.ConnectionMonitorsClient
+	client := testAccProvider.Meta().(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

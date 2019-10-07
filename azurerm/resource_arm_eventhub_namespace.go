@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -182,7 +182,7 @@ func resourceArmEventHubNamespace() *schema.Resource {
 }
 
 func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.NamespacesClient
+	client := meta.(*ArmClient).Eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
@@ -272,7 +272,7 @@ func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.NamespacesClient
+	client := meta.(*ArmClient).Eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -331,7 +331,7 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.NamespacesClient
+	client := meta.(*ArmClient).Eventhub.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

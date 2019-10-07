@@ -6,8 +6,8 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -91,7 +91,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 }
 
 func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -152,7 +152,7 @@ func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -194,7 +194,7 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
@@ -242,7 +242,7 @@ func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

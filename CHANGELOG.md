@@ -7,6 +7,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
+* provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
 
 BUG FIXES:

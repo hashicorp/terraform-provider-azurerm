@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -79,7 +79,7 @@ func resourceArmDnsSrvRecord() *schema.Resource {
 }
 
 func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.RecordSetsClient
+	client := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -132,7 +132,7 @@ func resourceArmDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.RecordSetsClient
+	client := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -165,7 +165,7 @@ func resourceArmDnsSrvRecordRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmDnsSrvRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.RecordSetsClient
+	client := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
