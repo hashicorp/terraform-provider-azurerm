@@ -111,7 +111,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Hdinsight.ClustersClient
+	client := meta.(*ArmClient).HDInsight.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -201,8 +201,8 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).Hdinsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).Hdinsight.ConfigurationsClient
+	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

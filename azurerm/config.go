@@ -110,7 +110,7 @@ type ArmClient struct {
 	Eventhub         *eventhub.Client
 	Frontdoor        *frontdoor.Client
 	Graph            *graph.Client
-	Hdinsight        *hdinsight.Client
+	HDInsight        *hdinsight.Client
 	IoTHub           *iothub.Client
 	KeyVault         *keyvault.Client
 	Kusto            *kusto.Client
@@ -244,7 +244,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Eventhub = eventhub.BuildClient(o)
 	client.Frontdoor = frontdoor.BuildClient(o)
 	client.Graph = graph.BuildClient(o)
-	client.Hdinsight = hdinsight.BuildClient(o)
+	client.HDInsight = hdinsight.BuildClient(o)
 	client.IoTHub = iothub.BuildClient(o)
 	client.KeyVault = keyvault.BuildClient(o)
 	client.Kusto = kusto.BuildClient(o)
