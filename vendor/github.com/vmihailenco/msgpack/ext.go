@@ -34,7 +34,7 @@ func RegisterExt(id int8, value interface{}) {
 		panic(fmt.Errorf("msgpack: ext with id=%d is already registered", id))
 	}
 
-	registerExt(id, ptr, getEncoder(ptr), getDecoder(ptr))
+	registerExt(id, ptr, getEncoder(ptr), nil)
 	registerExt(id, typ, getEncoder(typ), getDecoder(typ))
 }
 
@@ -46,7 +46,7 @@ func registerExt(id int8, typ reflect.Type, enc encoderFunc, dec decoderFunc) {
 		typEncMap[typ] = makeExtEncoder(id, enc)
 	}
 	if dec != nil {
-		typDecMap[typ] = makeExtDecoder(id, dec)
+		typDecMap[typ] = dec
 	}
 }
 
@@ -75,36 +75,10 @@ func makeExtEncoder(typeId int8, enc encoderFunc) encoderFunc {
 			return err
 		}
 
-		err = e.EncodeExtHeader(typeId, buf.Len())
-		if err != nil {
+		if err := e.EncodeExtHeader(typeId, buf.Len()); err != nil {
 			return err
 		}
 		return e.write(buf.Bytes())
-	}
-}
-
-func makeExtDecoder(typeId int8, dec decoderFunc) decoderFunc {
-	return func(d *Decoder, v reflect.Value) error {
-		c, err := d.PeekCode()
-		if err != nil {
-			return err
-		}
-
-		if !codes.IsExt(c) {
-			return dec(d, v)
-		}
-
-		id, extLen, err := d.DecodeExtHeader()
-		if err != nil {
-			return err
-		}
-
-		if id != typeId {
-			return fmt.Errorf("msgpack: got ext type=%d, wanted %d", int8(c), typeId)
-		}
-
-		d.extLen = extLen
-		return dec(d, v)
 	}
 }
 
@@ -122,10 +96,10 @@ func (e *Encoder) encodeExtLen(l int) error {
 		return e.writeCode(codes.FixExt16)
 	}
 	if l < 256 {
-		return e.write1(codes.Ext8, uint8(l))
+		return e.write1(codes.Ext8, uint64(l))
 	}
 	if l < 65536 {
-		return e.write2(codes.Ext16, uint16(l))
+		return e.write2(codes.Ext16, uint64(l))
 	}
 	return e.write4(codes.Ext32, uint32(l))
 }

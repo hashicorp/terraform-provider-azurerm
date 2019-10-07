@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
