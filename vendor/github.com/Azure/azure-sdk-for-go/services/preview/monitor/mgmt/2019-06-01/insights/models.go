@@ -74,6 +74,23 @@ func PossibleAlertSeverityValues() []AlertSeverity {
 	return []AlertSeverity{Four, One, Three, Two, Zero}
 }
 
+// BaselineSensitivity enumerates the values for baseline sensitivity.
+type BaselineSensitivity string
+
+const (
+	// High ...
+	High BaselineSensitivity = "High"
+	// Low ...
+	Low BaselineSensitivity = "Low"
+	// Medium ...
+	Medium BaselineSensitivity = "Medium"
+)
+
+// PossibleBaselineSensitivityValues returns an array of possible values for the BaselineSensitivity const type.
+func PossibleBaselineSensitivityValues() []BaselineSensitivity {
+	return []BaselineSensitivity{High, Low, Medium}
+}
+
 // CategoryType enumerates the values for category type.
 type CategoryType string
 
@@ -165,6 +182,21 @@ func PossibleCriterionTypeValues() []CriterionType {
 	return []CriterionType{CriterionTypeDynamicThresholdCriterion, CriterionTypeMultiMetricCriteria, CriterionTypeStaticThresholdCriterion}
 }
 
+// DataStatus enumerates the values for data status.
+type DataStatus string
+
+const (
+	// NotPresent ...
+	NotPresent DataStatus = "notPresent"
+	// Present ...
+	Present DataStatus = "present"
+)
+
+// PossibleDataStatusValues returns an array of possible values for the DataStatus const type.
+func PossibleDataStatusValues() []DataStatus {
+	return []DataStatus{NotPresent, Present}
+}
+
 // Enabled enumerates the values for enabled.
 type Enabled string
 
@@ -184,21 +216,21 @@ func PossibleEnabledValues() []Enabled {
 type EventLevel string
 
 const (
-	// Critical ...
-	Critical EventLevel = "Critical"
-	// Error ...
-	Error EventLevel = "Error"
-	// Informational ...
-	Informational EventLevel = "Informational"
-	// Verbose ...
-	Verbose EventLevel = "Verbose"
-	// Warning ...
-	Warning EventLevel = "Warning"
+	// EventLevelCritical ...
+	EventLevelCritical EventLevel = "Critical"
+	// EventLevelError ...
+	EventLevelError EventLevel = "Error"
+	// EventLevelInformational ...
+	EventLevelInformational EventLevel = "Informational"
+	// EventLevelVerbose ...
+	EventLevelVerbose EventLevel = "Verbose"
+	// EventLevelWarning ...
+	EventLevelWarning EventLevel = "Warning"
 )
 
 // PossibleEventLevelValues returns an array of possible values for the EventLevel const type.
 func PossibleEventLevelValues() []EventLevel {
-	return []EventLevel{Critical, Error, Informational, Verbose, Warning}
+	return []EventLevel{EventLevelCritical, EventLevelError, EventLevelInformational, EventLevelVerbose, EventLevelWarning}
 }
 
 // MetricStatisticType enumerates the values for metric statistic type.
@@ -320,6 +352,23 @@ const (
 // PossibleOdataTypeBasicRuleConditionValues returns an array of possible values for the OdataTypeBasicRuleCondition const type.
 func PossibleOdataTypeBasicRuleConditionValues() []OdataTypeBasicRuleCondition {
 	return []OdataTypeBasicRuleCondition{OdataTypeMicrosoftAzureManagementInsightsModelsLocationThresholdRuleCondition, OdataTypeMicrosoftAzureManagementInsightsModelsManagementEventRuleCondition, OdataTypeMicrosoftAzureManagementInsightsModelsThresholdRuleCondition, OdataTypeRuleCondition}
+}
+
+// OnboardingStatus enumerates the values for onboarding status.
+type OnboardingStatus string
+
+const (
+	// NotOnboarded ...
+	NotOnboarded OnboardingStatus = "notOnboarded"
+	// Onboarded ...
+	Onboarded OnboardingStatus = "onboarded"
+	// Unknown ...
+	Unknown OnboardingStatus = "unknown"
+)
+
+// PossibleOnboardingStatusValues returns an array of possible values for the OnboardingStatus const type.
+func PossibleOnboardingStatusValues() []OnboardingStatus {
+	return []OnboardingStatus{NotOnboarded, Onboarded, Unknown}
 }
 
 // ProvisioningState enumerates the values for provisioning state.
@@ -451,17 +500,17 @@ func PossibleScaleTypeValues() []ScaleType {
 type Sensitivity string
 
 const (
-	// High ...
-	High Sensitivity = "High"
-	// Low ...
-	Low Sensitivity = "Low"
-	// Medium ...
-	Medium Sensitivity = "Medium"
+	// SensitivityHigh ...
+	SensitivityHigh Sensitivity = "High"
+	// SensitivityLow ...
+	SensitivityLow Sensitivity = "Low"
+	// SensitivityMedium ...
+	SensitivityMedium Sensitivity = "Medium"
 )
 
 // PossibleSensitivityValues returns an array of possible values for the Sensitivity const type.
 func PossibleSensitivityValues() []Sensitivity {
-	return []Sensitivity{High, Low, Medium}
+	return []Sensitivity{SensitivityHigh, SensitivityLow, SensitivityMedium}
 }
 
 // TimeAggregationOperator enumerates the values for time aggregation operator.
@@ -653,6 +702,8 @@ type ActionGroup struct {
 	LogicAppReceivers *[]LogicAppReceiver `json:"logicAppReceivers,omitempty"`
 	// AzureFunctionReceivers - The list of azure function receivers that are part of this action group.
 	AzureFunctionReceivers *[]AzureFunctionReceiver `json:"azureFunctionReceivers,omitempty"`
+	// ArmRoleReceivers - The list of ARM role receivers that are part of this action group. Roles are Azure RBAC roles and only built-in roles are supported.
+	ArmRoleReceivers *[]ArmRoleReceiver `json:"armRoleReceivers,omitempty"`
 }
 
 // ActionGroupList a list of action groups.
@@ -1349,6 +1400,16 @@ func (arrp *AlertRuleResourcePatch) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ArmRoleReceiver an arm role receiver.
+type ArmRoleReceiver struct {
+	// Name - The name of the arm role receiver. Names must be unique across all receivers within an action group.
+	Name *string `json:"name,omitempty"`
+	// RoleID - The arm role id.
+	RoleID *string `json:"roleId,omitempty"`
+	// UseCommonAlertSchema - Indicates whether to use common alert schema.
+	UseCommonAlertSchema *bool `json:"useCommonAlertSchema,omitempty"`
+}
+
 // AutomationRunbookReceiver the Azure Automation Runbook notification receiver.
 type AutomationRunbookReceiver struct {
 	// AutomationAccountID - The Azure automation account Id which holds this runbook and authenticate to Azure resource.
@@ -1363,6 +1424,8 @@ type AutomationRunbookReceiver struct {
 	Name *string `json:"name,omitempty"`
 	// ServiceURI - The URI where webhooks should be sent.
 	ServiceURI *string `json:"serviceUri,omitempty"`
+	// UseCommonAlertSchema - Indicates whether to use common alert schema.
+	UseCommonAlertSchema *bool `json:"useCommonAlertSchema,omitempty"`
 }
 
 // AutoscaleNotification autoscale notification.
@@ -1733,16 +1796,26 @@ type AzureFunctionReceiver struct {
 	FunctionName *string `json:"functionName,omitempty"`
 	// HTTPTriggerURL - The http trigger url where http request sent to.
 	HTTPTriggerURL *string `json:"httpTriggerUrl,omitempty"`
+	// UseCommonAlertSchema - Indicates whether to use common alert schema.
+	UseCommonAlertSchema *bool `json:"useCommonAlertSchema,omitempty"`
 }
 
 // Baseline the baseline values for a single sensitivity value.
 type Baseline struct {
-	// Sensitivity - the sensitivity of the baseline. Possible values include: 'Low', 'Medium', 'High'
+	// Sensitivity - the sensitivity of the baseline. Possible values include: 'SensitivityLow', 'SensitivityMedium', 'SensitivityHigh'
 	Sensitivity Sensitivity `json:"sensitivity,omitempty"`
 	// LowThresholds - The low thresholds of the baseline.
 	LowThresholds *[]float64 `json:"lowThresholds,omitempty"`
 	// HighThresholds - The high thresholds of the baseline.
 	HighThresholds *[]float64 `json:"highThresholds,omitempty"`
+}
+
+// BaselineMetadata represents a baseline metadata value.
+type BaselineMetadata struct {
+	// Name - Name of the baseline metadata.
+	Name *string `json:"name,omitempty"`
+	// Value - Value of the baseline metadata.
+	Value *string `json:"value,omitempty"`
 }
 
 // BaselineMetadataValue represents a baseline metadata value.
@@ -1859,6 +1932,12 @@ type Criteria struct {
 	MetricName *string `json:"metricName,omitempty"`
 	// Dimensions - List of Dimensions for creating metric
 	Dimensions *[]Dimension `json:"dimensions,omitempty"`
+}
+
+// DataContainer information about a container with data for a given resource.
+type DataContainer struct {
+	// Workspace - Log Analytics workspace information.
+	Workspace *WorkspaceInfo `json:"workspace,omitempty"`
 }
 
 // DiagnosticSettings the diagnostic settings.
@@ -2286,6 +2365,8 @@ type EmailReceiver struct {
 	Name *string `json:"name,omitempty"`
 	// EmailAddress - The email address of this receiver.
 	EmailAddress *string `json:"emailAddress,omitempty"`
+	// UseCommonAlertSchema - Indicates whether to use common alert schema.
+	UseCommonAlertSchema *bool `json:"useCommonAlertSchema,omitempty"`
 	// Status - READ-ONLY; The receiver status of the e-mail. Possible values include: 'ReceiverStatusNotSpecified', 'ReceiverStatusEnabled', 'ReceiverStatusDisabled'
 	Status ReceiverStatus `json:"status,omitempty"`
 }
@@ -2294,6 +2375,14 @@ type EmailReceiver struct {
 type EnableRequest struct {
 	// ReceiverName - The name of the receiver to resubscribe.
 	ReceiverName *string `json:"receiverName,omitempty"`
+}
+
+// Error error details.
+type Error struct {
+	// Code - Error code identifying the specific error.
+	Code *string `json:"code,omitempty"`
+	// Message - Error message in the caller's locale.
+	Message *string `json:"message,omitempty"`
 }
 
 // ErrorResponse describes the format of Error response.
@@ -2334,7 +2423,7 @@ type EventData struct {
 	Category *LocalizableString `json:"category,omitempty"`
 	// HTTPRequest - READ-ONLY; the HTTP request info. Usually includes the 'clientRequestId', 'clientIpAddress' (IP address of the user who initiated the event) and 'method' (HTTP method e.g. PUT).
 	HTTPRequest *HTTPRequestInfo `json:"httpRequest,omitempty"`
-	// Level - READ-ONLY; the event level. Possible values include: 'Critical', 'Error', 'Warning', 'Informational', 'Verbose'
+	// Level - READ-ONLY; the event level. Possible values include: 'EventLevelCritical', 'EventLevelError', 'EventLevelWarning', 'EventLevelInformational', 'EventLevelVerbose'
 	Level EventLevel `json:"level,omitempty"`
 	// ResourceGroupName - READ-ONLY; the resource group name of the impacted resource.
 	ResourceGroupName *string `json:"resourceGroupName,omitempty"`
@@ -2684,6 +2773,8 @@ type LogicAppReceiver struct {
 	ResourceID *string `json:"resourceId,omitempty"`
 	// CallbackURL - The callback url where http request sent to.
 	CallbackURL *string `json:"callbackUrl,omitempty"`
+	// UseCommonAlertSchema - Indicates whether to use common alert schema.
+	UseCommonAlertSchema *bool `json:"useCommonAlertSchema,omitempty"`
 }
 
 // LogMetricTrigger a log metrics trigger descriptor.
@@ -4000,6 +4091,25 @@ type MetricAvailability struct {
 	Retention *string `json:"retention,omitempty"`
 }
 
+// MetricBaselinesProperties the response to a metric baselines query.
+type MetricBaselinesProperties struct {
+	// Timespan - The timespan for which the data was retrieved. Its value consists of two datetimes concatenated, separated by '/'.  This may be adjusted in the future and returned back from what was originally requested.
+	Timespan *string `json:"timespan,omitempty"`
+	// Interval - The interval (window size) for which the metric data was returned in.  This may be adjusted in the future and returned back from what was originally requested.  This is not present if a metadata request was made.
+	Interval *string `json:"interval,omitempty"`
+	// Namespace - The namespace of the metrics been queried.
+	Namespace *string `json:"namespace,omitempty"`
+	// Baselines - The baseline for each time series that was queried.
+	Baselines *[]TimeSeriesBaseline `json:"baselines,omitempty"`
+}
+
+// MetricBaselinesResponse a list of metric baselines.
+type MetricBaselinesResponse struct {
+	autorest.Response `json:"-"`
+	// Value - The list of metric baselines.
+	Value *[]SingleMetricBaseline `json:"value,omitempty"`
+}
+
 // MetricCriteria criterion to filter metrics.
 type MetricCriteria struct {
 	// Operator - the criteria operator.
@@ -4216,6 +4326,31 @@ type MetricDimension struct {
 	Values *[]string `json:"values,omitempty"`
 }
 
+// MetricNamespace metric namespace class specifies the metadata for a metric namespace.
+type MetricNamespace struct {
+	// ID - The ID of the metricNamespace.
+	ID *string `json:"id,omitempty"`
+	// Type - The type of the namespace.
+	Type *string `json:"type,omitempty"`
+	// Name - The name of the namespace.
+	Name *string `json:"name,omitempty"`
+	// Properties - Properties which include the fully qualified namespace name.
+	Properties *MetricNamespaceName `json:"properties,omitempty"`
+}
+
+// MetricNamespaceCollection represents collection of metric namespaces.
+type MetricNamespaceCollection struct {
+	autorest.Response `json:"-"`
+	// Value - The values for the metric namespaces.
+	Value *[]MetricNamespace `json:"value,omitempty"`
+}
+
+// MetricNamespaceName the fully qualified metric namespace name.
+type MetricNamespaceName struct {
+	// MetricNamespaceName - The metric namespace name.
+	MetricNamespaceName *string `json:"metricNamespaceName,omitempty"`
+}
+
 // MetricSettings part of MultiTenantDiagnosticSettings. Specifies the settings for a particular metric.
 type MetricSettings struct {
 	// TimeGrain - the timegrain of the metric in ISO8601 format.
@@ -4226,6 +4361,14 @@ type MetricSettings struct {
 	Enabled *bool `json:"enabled,omitempty"`
 	// RetentionPolicy - the retention policy for this category.
 	RetentionPolicy *RetentionPolicy `json:"retentionPolicy,omitempty"`
+}
+
+// MetricSingleDimension the metric dimension name and value.
+type MetricSingleDimension struct {
+	// Name - Name of the dimension.
+	Name *string `json:"name,omitempty"`
+	// Value - Value of the dimension.
+	Value *string `json:"value,omitempty"`
 }
 
 // MetricTrigger the trigger that results in a scaling action.
@@ -4497,6 +4640,16 @@ type ProxyOnlyResource struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// ProxyResource an azure resource object
+type ProxyResource struct {
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+}
+
 // Recurrence the repeating times at which this profile begins. This element is not used if the FixedDate
 // element is used.
 type Recurrence struct {
@@ -4559,6 +4712,12 @@ type Response struct {
 	Resourceregion *string `json:"resourceregion,omitempty"`
 	// Value - the value of the collection.
 	Value *[]Metric `json:"value,omitempty"`
+}
+
+// ResponseWithError an error response from the API.
+type ResponseWithError struct {
+	// Error - Error information.
+	Error *Error `json:"error,omitempty"`
 }
 
 // RetentionPolicy specifies the retention policy for the log.
@@ -5157,6 +5316,97 @@ type SenderAuthorization struct {
 	Scope *string `json:"scope,omitempty"`
 }
 
+// SingleBaseline the baseline values for a single sensitivity value.
+type SingleBaseline struct {
+	// Sensitivity - the sensitivity of the baseline. Possible values include: 'Low', 'Medium', 'High'
+	Sensitivity BaselineSensitivity `json:"sensitivity,omitempty"`
+	// LowThresholds - The low thresholds of the baseline.
+	LowThresholds *[]float64 `json:"lowThresholds,omitempty"`
+	// HighThresholds - The high thresholds of the baseline.
+	HighThresholds *[]float64 `json:"highThresholds,omitempty"`
+}
+
+// SingleMetricBaseline the baseline results of a single metric.
+type SingleMetricBaseline struct {
+	// ID - The metric baseline Id.
+	ID *string `json:"id,omitempty"`
+	// Type - The resource type of the metric baseline resource.
+	Type *string `json:"type,omitempty"`
+	// Name - The name of the metric for which the baselines were retrieved.
+	Name *string `json:"name,omitempty"`
+	// MetricBaselinesProperties - The metric baseline properties of the metric.
+	*MetricBaselinesProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SingleMetricBaseline.
+func (smb SingleMetricBaseline) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if smb.ID != nil {
+		objectMap["id"] = smb.ID
+	}
+	if smb.Type != nil {
+		objectMap["type"] = smb.Type
+	}
+	if smb.Name != nil {
+		objectMap["name"] = smb.Name
+	}
+	if smb.MetricBaselinesProperties != nil {
+		objectMap["properties"] = smb.MetricBaselinesProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for SingleMetricBaseline struct.
+func (smb *SingleMetricBaseline) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				smb.ID = &ID
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				smb.Type = &typeVar
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				smb.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var metricBaselinesProperties MetricBaselinesProperties
+				err = json.Unmarshal(*v, &metricBaselinesProperties)
+				if err != nil {
+					return err
+				}
+				smb.MetricBaselinesProperties = &metricBaselinesProperties
+			}
+		}
+	}
+
+	return nil
+}
+
 // SmsReceiver an SMS receiver.
 type SmsReceiver struct {
 	// Name - The name of the SMS receiver. Names must be unique across all receivers within an action group.
@@ -5313,6 +5563,20 @@ func (trc *ThresholdRuleCondition) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// TimeSeriesBaseline the baseline values for a single time series.
+type TimeSeriesBaseline struct {
+	// Aggregation - The aggregation type of the metric.
+	Aggregation *string `json:"aggregation,omitempty"`
+	// Dimensions - The dimensions of this time series.
+	Dimensions *[]MetricSingleDimension `json:"dimensions,omitempty"`
+	// Timestamps - The list of timestamps of the baselines.
+	Timestamps *[]date.Time `json:"timestamps,omitempty"`
+	// Data - The baseline values for each sensitivity.
+	Data *[]SingleBaseline `json:"data,omitempty"`
+	// Metadata - The baseline metadata values.
+	Metadata *[]BaselineMetadata `json:"metadata,omitempty"`
+}
+
 // TimeSeriesElement a time series result type. The discriminator value is always TimeSeries in this case.
 type TimeSeriesElement struct {
 	// Metadatavalues - the metadata values returned if $filter was specified in the call.
@@ -5351,6 +5615,91 @@ type TriggerCondition struct {
 	MetricTrigger *LogMetricTrigger `json:"metricTrigger,omitempty"`
 }
 
+// VMInsightsOnboardingStatus VM Insights onboarding status for a resource.
+type VMInsightsOnboardingStatus struct {
+	autorest.Response `json:"-"`
+	// VMInsightsOnboardingStatusProperties - Resource properties.
+	*VMInsightsOnboardingStatusProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Azure resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Azure resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Azure resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VMInsightsOnboardingStatus.
+func (vios VMInsightsOnboardingStatus) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vios.VMInsightsOnboardingStatusProperties != nil {
+		objectMap["properties"] = vios.VMInsightsOnboardingStatusProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VMInsightsOnboardingStatus struct.
+func (vios *VMInsightsOnboardingStatus) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var VMInsightsOnboardingStatusProperties VMInsightsOnboardingStatusProperties
+				err = json.Unmarshal(*v, &VMInsightsOnboardingStatusProperties)
+				if err != nil {
+					return err
+				}
+				vios.VMInsightsOnboardingStatusProperties = &VMInsightsOnboardingStatusProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vios.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vios.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vios.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// VMInsightsOnboardingStatusProperties resource properties.
+type VMInsightsOnboardingStatusProperties struct {
+	// ResourceID - Azure Resource Manager identifier of the resource whose onboarding status is being represented.
+	ResourceID *string `json:"resourceId,omitempty"`
+	// OnboardingStatus - The onboarding status for the resource. Note that, a higher level scope, e.g., resource group or subscription, is considered onboarded if at least one resource under it is onboarded. Possible values include: 'Onboarded', 'NotOnboarded', 'Unknown'
+	OnboardingStatus OnboardingStatus `json:"onboardingStatus,omitempty"`
+	// DataStatus - The status of VM Insights data from the resource. When reported as `present` the data array will contain information about the data containers to which data for the specified resource is being routed. Possible values include: 'Present', 'NotPresent'
+	DataStatus DataStatus `json:"dataStatus,omitempty"`
+	// Data - Containers that currently store VM Insights data for the specified resource.
+	Data *[]DataContainer `json:"data,omitempty"`
+}
+
 // VoiceReceiver a voice receiver.
 type VoiceReceiver struct {
 	// Name - The name of the voice receiver. Names must be unique across all receivers within an action group.
@@ -5387,4 +5736,87 @@ type WebhookReceiver struct {
 	Name *string `json:"name,omitempty"`
 	// ServiceURI - The URI where webhooks should be sent.
 	ServiceURI *string `json:"serviceUri,omitempty"`
+	// UseCommonAlertSchema - Indicates whether to use common alert schema.
+	UseCommonAlertSchema *bool `json:"useCommonAlertSchema,omitempty"`
+	// UseAadAuth - Indicates whether or not use AAD authentication.
+	UseAadAuth *bool `json:"useAadAuth,omitempty"`
+	// ObjectID - Indicates the webhook app object Id for aad auth.
+	ObjectID *string `json:"objectId,omitempty"`
+	// IdentifierURI - Indicates the identifier uri for aad auth.
+	IdentifierURI *string `json:"identifierUri,omitempty"`
+	// TenantID - Indicates the tenant id for aad auth.
+	TenantID *string `json:"tenantId,omitempty"`
+}
+
+// WorkspaceInfo information about a Log Analytics Workspace.
+type WorkspaceInfo struct {
+	// ID - Azure Resource Manager identifier of the Log Analytics Workspace.
+	ID *string `json:"id,omitempty"`
+	// Location - Location of the Log Analytics workspace.
+	Location *string `json:"location,omitempty"`
+	// WorkspaceInfoProperties - Resource properties.
+	*WorkspaceInfoProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for WorkspaceInfo.
+func (wi WorkspaceInfo) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if wi.ID != nil {
+		objectMap["id"] = wi.ID
+	}
+	if wi.Location != nil {
+		objectMap["location"] = wi.Location
+	}
+	if wi.WorkspaceInfoProperties != nil {
+		objectMap["properties"] = wi.WorkspaceInfoProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for WorkspaceInfo struct.
+func (wi *WorkspaceInfo) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				wi.ID = &ID
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				wi.Location = &location
+			}
+		case "properties":
+			if v != nil {
+				var workspaceInfoProperties WorkspaceInfoProperties
+				err = json.Unmarshal(*v, &workspaceInfoProperties)
+				if err != nil {
+					return err
+				}
+				wi.WorkspaceInfoProperties = &workspaceInfoProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// WorkspaceInfoProperties resource properties.
+type WorkspaceInfoProperties struct {
+	// CustomerID - Log Analytics workspace identifier.
+	CustomerID *string `json:"customerId,omitempty"`
 }
