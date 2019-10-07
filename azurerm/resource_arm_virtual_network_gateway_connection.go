@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -235,7 +236,8 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 
 func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Virtual Network Gateway Connection creation.")
 
@@ -294,7 +296,8 @@ func resourceArmVirtualNetworkGatewayConnectionCreateUpdate(d *schema.ResourceDa
 
 func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
 	if err != nil {
@@ -375,7 +378,8 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 
 func resourceArmVirtualNetworkGatewayConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup, name, err := resourceGroupAndVirtualNetworkGatewayConnectionFromId(d.Id())
 	if err != nil {
