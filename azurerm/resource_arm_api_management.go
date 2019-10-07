@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -394,7 +395,8 @@ func resourceArmApiManagementService() *schema.Resource {
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// TODO: Remove in 2.0
 	sku := expandAzureRmApiManagementSku(d)
@@ -520,7 +522,8 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -625,7 +628,8 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 
 func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.ServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

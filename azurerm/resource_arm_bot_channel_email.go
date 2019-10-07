@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +56,8 @@ func resourceArmBotChannelEmail() *schema.Resource {
 
 func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ChannelClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	botName := d.Get("bot_name").(string)
@@ -105,7 +107,8 @@ func resourceArmBotChannelEmailCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmBotChannelEmailRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ChannelClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -141,7 +144,8 @@ func resourceArmBotChannelEmailRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ChannelClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -183,7 +187,8 @@ func resourceArmBotChannelEmailUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmBotChannelEmailDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Bot.ChannelClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
