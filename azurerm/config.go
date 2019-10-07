@@ -112,12 +112,6 @@ type ArmClient struct {
 	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
-	Network          *network.Client
-	NotificationHubs *notificationhub.Client
-	Policy           *policy.Client
-	Portal           *portal.Client
-	Postgres         *postgres.Client
-	PrivateDns       *privatedns.Client
 	Keyvault         *keyvault.Client
 	Kusto            *kusto.Client
 	LogAnalytics     *loganalytics.Client
@@ -130,7 +124,12 @@ type ArmClient struct {
 	Msi              *msi.Client
 	Mssql            *mssql.Client
 	Mysql            *mysql.Client
-	postgres         *postgres.Client
+	Network          *network.Client
+	NotificationHubs *notificationhub.Client
+	Policy           *policy.Client
+	Portal           *portal.Client
+	Postgres         *postgres.Client
+	PrivateDns       *privatedns.Client
 	RecoveryServices *recoveryservices.Client
 	Redis            *redis.Client
 	Relay            *relay.Client
@@ -247,12 +246,6 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
-	client.Network = network.BuildClient(o)
-	client.NotificationHubs = notificationhub.BuildClient(o)
-	client.Policy = policy.BuildClient(o)
-	client.Portal = portal.BuildClient(o)
-	client.Postgres = postgres.BuildClient(o)
-	client.PrivateDns = privatedns.BuildClient(o)
 	client.Keyvault = keyvault.BuildClient(o)
 	client.Kusto = kusto.BuildClient(o)
 	client.Logic = logic.BuildClient(o)
@@ -265,7 +258,12 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Msi = msi.BuildClient(o)
 	client.Mysql = mysql.BuildClient(o)
 	client.ManagementGroups = managementgroup.BuildClient(o)
-	client.postgres = postgres.BuildClient(o)
+	client.Network = network.BuildClient(o)
+	client.NotificationHubs = notificationhub.BuildClient(o)
+	client.Policy = policy.BuildClient(o)
+	client.Portal = portal.BuildClient(o)
+	client.Postgres = postgres.BuildClient(o)
+	client.PrivateDns = privatedns.BuildClient(o)
 	client.RecoveryServices = recoveryservices.BuildClient(o)
 	client.Redis = redis.BuildClient(o)
 	client.Relay = relay.BuildClient(o)
