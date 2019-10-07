@@ -3,7 +3,7 @@ package azurerm
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAzureRMStorageAccountMigrateState(t *testing.T) {

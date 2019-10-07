@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func XmlDiff(_, old, new string, _ *schema.ResourceData) bool {

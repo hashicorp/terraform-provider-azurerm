@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -232,10 +231,6 @@ func (r *Request) WillRetry() bool {
 	return r.Error != nil && aws.BoolValue(r.Retryable) && r.RetryCount < r.MaxRetries()
 }
 
-func fmtAttemptCount(retryCount, maxRetries int) string {
-	return fmt.Sprintf("attempt %v/%v", retryCount, maxRetries)
-}
-
 // ParamsFilled returns if the request's parameters have been populated
 // and the parameters are valid. False is returned if no parameters are
 // provided or invalid.
@@ -264,18 +259,7 @@ func (r *Request) SetStringBody(s string) {
 // SetReaderBody will set the request's body reader.
 func (r *Request) SetReaderBody(reader io.ReadSeeker) {
 	r.Body = reader
-
-	if aws.IsReaderSeekable(reader) {
-		var err error
-		// Get the Bodies current offset so retries will start from the same
-		// initial position.
-		r.BodyStart, err = reader.Seek(0, sdkio.SeekCurrent)
-		if err != nil {
-			r.Error = awserr.New(ErrCodeSerialization,
-				"failed to determine start of request body", err)
-			return
-		}
-	}
+	r.BodyStart, _ = reader.Seek(0, sdkio.SeekCurrent) // Get the Bodies current offset.
 	r.ResetBody()
 }
 
@@ -346,13 +330,14 @@ func getPresignedURL(r *Request, expire time.Duration) (string, http.Header, err
 	return r.HTTPRequest.URL.String(), r.SignedHeaderVals, nil
 }
 
-const (
-	notRetrying = "not retrying"
-)
-
-func debugLogReqError(r *Request, stage, retryStr string, err error) {
+func debugLogReqError(r *Request, stage string, retrying bool, err error) {
 	if !r.Config.LogLevel.Matches(aws.LogDebugWithRequestErrors) {
 		return
+	}
+
+	retryStr := "not retrying"
+	if retrying {
+		retryStr = "will retry"
 	}
 
 	r.Config.Logger.Log(fmt.Sprintf("DEBUG: %s %s/%s failed, %s, error %v",
@@ -373,12 +358,12 @@ func (r *Request) Build() error {
 	if !r.built {
 		r.Handlers.Validate.Run(r)
 		if r.Error != nil {
-			debugLogReqError(r, "Validate Request", notRetrying, r.Error)
+			debugLogReqError(r, "Validate Request", false, r.Error)
 			return r.Error
 		}
 		r.Handlers.Build.Run(r)
 		if r.Error != nil {
-			debugLogReqError(r, "Build Request", notRetrying, r.Error)
+			debugLogReqError(r, "Build Request", false, r.Error)
 			return r.Error
 		}
 		r.built = true
@@ -394,7 +379,7 @@ func (r *Request) Build() error {
 func (r *Request) Sign() error {
 	r.Build()
 	if r.Error != nil {
-		debugLogReqError(r, "Build Request", notRetrying, r.Error)
+		debugLogReqError(r, "Build Request", false, r.Error)
 		return r.Error
 	}
 
@@ -402,16 +387,12 @@ func (r *Request) Sign() error {
 	return r.Error
 }
 
-func (r *Request) getNextRequestBody() (body io.ReadCloser, err error) {
+func (r *Request) getNextRequestBody() (io.ReadCloser, error) {
 	if r.safeBody != nil {
 		r.safeBody.Close()
 	}
 
-	r.safeBody, err = newOffsetReader(r.Body, r.BodyStart)
-	if err != nil {
-		return nil, awserr.New(ErrCodeSerialization,
-			"failed to get next request body reader", err)
-	}
+	r.safeBody = newOffsetReader(r.Body, r.BodyStart)
 
 	// Go 1.8 tightened and clarified the rules code needs to use when building
 	// requests with the http package. Go 1.8 removed the automatic detection
@@ -428,10 +409,10 @@ func (r *Request) getNextRequestBody() (body io.ReadCloser, err error) {
 	// Related golang/go#18257
 	l, err := aws.SeekerLen(r.Body)
 	if err != nil {
-		return nil, awserr.New(ErrCodeSerialization,
-			"failed to compute request body size", err)
+		return nil, awserr.New(ErrCodeSerialization, "failed to compute request body size", err)
 	}
 
+	var body io.ReadCloser
 	if l == 0 {
 		body = NoBody
 	} else if l > 0 {
@@ -492,13 +473,13 @@ func (r *Request) Send() error {
 		r.AttemptTime = time.Now()
 
 		if err := r.Sign(); err != nil {
-			debugLogReqError(r, "Sign Request", notRetrying, err)
+			debugLogReqError(r, "Sign Request", false, err)
 			return err
 		}
 
 		if err := r.sendRequest(); err == nil {
 			return nil
-		} else if !shouldRetryError(r.Error) {
+		} else if !shouldRetryCancel(r.Error) {
 			return err
 		} else {
 			r.Handlers.Retry.Run(r)
@@ -508,16 +489,13 @@ func (r *Request) Send() error {
 				return r.Error
 			}
 
-			if err := r.prepareRetry(); err != nil {
-				r.Error = err
-				return err
-			}
+			r.prepareRetry()
 			continue
 		}
 	}
 }
 
-func (r *Request) prepareRetry() error {
+func (r *Request) prepareRetry() {
 	if r.Config.LogLevel.Matches(aws.LogDebugWithRequestRetries) {
 		r.Config.Logger.Log(fmt.Sprintf("DEBUG: Retrying Request %s/%s, attempt %d",
 			r.ClientInfo.ServiceName, r.Operation.Name, r.RetryCount))
@@ -528,19 +506,12 @@ func (r *Request) prepareRetry() error {
 	// the request's body even though the Client's Do returned.
 	r.HTTPRequest = copyHTTPRequest(r.HTTPRequest, nil)
 	r.ResetBody()
-	if err := r.Error; err != nil {
-		return awserr.New(ErrCodeSerialization,
-			"failed to prepare body for retry", err)
-
-	}
 
 	// Closing response body to ensure that no response body is leaked
 	// between retry attempts.
 	if r.HTTPResponse != nil && r.HTTPResponse.Body != nil {
 		r.HTTPResponse.Body.Close()
 	}
-
-	return nil
 }
 
 func (r *Request) sendRequest() (sendErr error) {
@@ -549,9 +520,7 @@ func (r *Request) sendRequest() (sendErr error) {
 	r.Retryable = nil
 	r.Handlers.Send.Run(r)
 	if r.Error != nil {
-		debugLogReqError(r, "Send Request",
-			fmtAttemptCount(r.RetryCount, r.MaxRetries()),
-			r.Error)
+		debugLogReqError(r, "Send Request", r.WillRetry(), r.Error)
 		return r.Error
 	}
 
@@ -559,17 +528,13 @@ func (r *Request) sendRequest() (sendErr error) {
 	r.Handlers.ValidateResponse.Run(r)
 	if r.Error != nil {
 		r.Handlers.UnmarshalError.Run(r)
-		debugLogReqError(r, "Validate Response",
-			fmtAttemptCount(r.RetryCount, r.MaxRetries()),
-			r.Error)
+		debugLogReqError(r, "Validate Response", r.WillRetry(), r.Error)
 		return r.Error
 	}
 
 	r.Handlers.Unmarshal.Run(r)
 	if r.Error != nil {
-		debugLogReqError(r, "Unmarshal Response",
-			fmtAttemptCount(r.RetryCount, r.MaxRetries()),
-			r.Error)
+		debugLogReqError(r, "Unmarshal Response", r.WillRetry(), r.Error)
 		return r.Error
 	}
 
@@ -600,13 +565,13 @@ type temporary interface {
 	Temporary() bool
 }
 
-func shouldRetryError(origErr error) bool {
-	switch err := origErr.(type) {
+func shouldRetryCancel(err error) bool {
+	switch err := err.(type) {
 	case awserr.Error:
 		if err.Code() == CanceledErrorCode {
 			return false
 		}
-		return shouldRetryError(err.OrigErr())
+		return shouldRetryCancel(err.OrigErr())
 	case *url.Error:
 		if strings.Contains(err.Error(), "connection refused") {
 			// Refused connections should be retried as the service may not yet
@@ -616,14 +581,11 @@ func shouldRetryError(origErr error) bool {
 		}
 		// *url.Error only implements Temporary after golang 1.6 but since
 		// url.Error only wraps the error:
-		return shouldRetryError(err.Err)
+		return shouldRetryCancel(err.Err)
 	case temporary:
-		if netErr, ok := err.(*net.OpError); ok && netErr.Op == "dial" {
-			return true
-		}
 		// If the error is temporary, we want to allow continuation of the
 		// retry process
-		return err.Temporary() || isErrConnectionReset(origErr)
+		return err.Temporary()
 	case nil:
 		// `awserr.Error.OrigErr()` can be nil, meaning there was an error but
 		// because we don't know the cause, it is marked as retryable. See

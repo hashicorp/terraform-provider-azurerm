@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -45,7 +46,8 @@ func dataSourceApiManagementGroup() *schema.Resource {
 
 func dataSourceApiManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ApiManagement.GroupClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)

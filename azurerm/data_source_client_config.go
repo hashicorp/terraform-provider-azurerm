@@ -5,7 +5,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceArmClientConfig() *schema.Resource {
@@ -49,7 +50,8 @@ func dataSourceArmClientConfig() *schema.Resource {
 
 func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	var servicePrincipal *graphrbac.ServicePrincipal
 	if client.usingServicePrincipal {
