@@ -6,18 +6,29 @@ import (
 )
 
 type Client struct {
-	AppServicePlansClient web.AppServicePlansClient
-	AppServicesClient     web.AppsClient
+	AppServicePlansClient *web.AppServicePlansClient
+	AppServicesClient     *web.AppsClient
+	CertificatesClient    *web.CertificatesClient
+	BaseClient            *web.BaseClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	AppServicePlansClient := web.NewAppServicePlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AppServicePlansClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AppServicePlansClient = web.NewAppServicePlansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AppServicePlansClient.Client, o.ResourceManagerAuthorizer)
+	AppServicesClient := web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AppServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AppServicesClient = web.NewAppsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AppServicesClient.Client, o.ResourceManagerAuthorizer)
+	CertificatesClient := web.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CertificatesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	BaseClient := web.NewWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BaseClient.Client, o.ResourceManagerAuthorizer)
+
+	return &Client{
+		AppServicePlansClient: &AppServicePlansClient,
+		AppServicesClient:     &AppServicesClient,
+		CertificatesClient:    &CertificatesClient,
+		BaseClient:            &BaseClient,
+	}
 }

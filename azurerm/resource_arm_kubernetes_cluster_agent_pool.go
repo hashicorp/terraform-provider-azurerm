@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -170,7 +170,7 @@ func resourceArmKubernetesClusterAgentPool() *schema.Resource {
 }
 
 func resourceArmKubernetesClusterAgentPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.AgentPoolsClient
+	client := meta.(*ArmClient).Containers.AgentPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster Agent Pool create/update.")
@@ -227,7 +227,7 @@ func resourceArmKubernetesClusterAgentPoolCreateUpdate(d *schema.ResourceData, m
 
 func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta interface{}) error {
 
-	client := meta.(*ArmClient).containers.AgentPoolsClient
+	client := meta.(*ArmClient).Containers.AgentPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -320,7 +320,7 @@ func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmKubernetesClusterAgentPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.AgentPoolsClient
+	client := meta.(*ArmClient).Containers.AgentPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

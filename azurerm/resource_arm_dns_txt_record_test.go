@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
@@ -37,7 +38,7 @@ func TestAccAzureRMDnsTxtRecord_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDnsTxtRecord_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -143,7 +144,7 @@ func testCheckAzureRMDnsTxtRecordExists(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for DNS TXT record: %s", txtName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
+		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, txtName, dns.TXT)
 		if err != nil {
@@ -159,7 +160,7 @@ func testCheckAzureRMDnsTxtRecordExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMDnsTxtRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
+	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

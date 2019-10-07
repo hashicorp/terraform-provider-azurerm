@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +56,7 @@ func resourceArmMariaDBFirewallRule() *schema.Resource {
 }
 
 func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).MariaDB.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Firewall Rule creation.")
@@ -66,7 +67,7 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta int
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -109,10 +110,10 @@ func resourceArmMariaDBFirewallRuleCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).MariaDB.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -139,10 +140,10 @@ func resourceArmMariaDBFirewallRuleRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMariaDBFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.FirewallRulesClient
+	client := meta.(*ArmClient).MariaDB.FirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

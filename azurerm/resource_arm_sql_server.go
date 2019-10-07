@@ -5,11 +5,13 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -63,13 +65,13 @@ func resourceArmSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).Sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -78,10 +80,10 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	adminUsername := d.Get("administrator_login").(string)
 	version := d.Get("version").(string)
 
-	tags := d.Get("tags").(map[string]interface{})
-	metadata := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	metadata := tags.Expand(t)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -132,10 +134,10 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).Sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -166,16 +168,14 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlServersClient
+	client := meta.(*ArmClient).Sql.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

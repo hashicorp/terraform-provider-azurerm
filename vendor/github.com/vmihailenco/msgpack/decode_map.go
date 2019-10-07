@@ -19,13 +19,13 @@ var mapStringInterfaceType = mapStringInterfacePtrType.Elem()
 var errInvalidCode = errors.New("invalid code")
 
 func decodeMapValue(d *Decoder, v reflect.Value) error {
-	size, err := d.DecodeMapLen()
+	n, err := d.DecodeMapLen()
 	if err != nil {
 		return err
 	}
 
 	typ := v.Type()
-	if size == -1 {
+	if n == -1 {
 		v.Set(reflect.Zero(typ))
 		return nil
 	}
@@ -33,19 +33,10 @@ func decodeMapValue(d *Decoder, v reflect.Value) error {
 	if v.IsNil() {
 		v.Set(reflect.MakeMap(typ))
 	}
-	if size == 0 {
-		return nil
-	}
-
-	return decodeMapValueSize(d, v, size)
-}
-
-func decodeMapValueSize(d *Decoder, v reflect.Value, size int) error {
-	typ := v.Type()
 	keyType := typ.Key()
 	valueType := typ.Elem()
 
-	for i := 0; i < size; i++ {
+	for i := 0; i < n; i++ {
 		mk := reflect.New(keyType).Elem()
 		if err := d.DecodeValue(mk); err != nil {
 			return err
@@ -62,7 +53,30 @@ func decodeMapValueSize(d *Decoder, v reflect.Value, size int) error {
 	return nil
 }
 
-// DecodeMapLen decodes map length. Length is -1 when map is nil.
+func decodeMap(d *Decoder) (interface{}, error) {
+	n, err := d.DecodeMapLen()
+	if err != nil {
+		return nil, err
+	}
+	if n == -1 {
+		return nil, nil
+	}
+
+	m := make(map[string]interface{}, min(n, mapElemsAllocLimit))
+	for i := 0; i < n; i++ {
+		mk, err := d.DecodeString()
+		if err != nil {
+			return nil, err
+		}
+		mv, err := d.decodeInterface()
+		if err != nil {
+			return nil, err
+		}
+		m[mk] = mv
+	}
+	return m, nil
+}
+
 func (d *Decoder) DecodeMapLen() (int, error) {
 	c, err := d.readCode()
 	if err != nil {
@@ -83,9 +97,9 @@ func (d *Decoder) DecodeMapLen() (int, error) {
 }
 
 func (d *Decoder) mapLen(c codes.Code) (int, error) {
-	size, err := d._mapLen(c)
+	n, err := d._mapLen(c)
 	err = expandInvalidCodeMapLenError(c, err)
-	return size, err
+	return n, err
 }
 
 func (d *Decoder) _mapLen(c codes.Code) (int, error) {
@@ -96,12 +110,12 @@ func (d *Decoder) _mapLen(c codes.Code) (int, error) {
 		return int(c & codes.FixedMapMask), nil
 	}
 	if c == codes.Map16 {
-		size, err := d.uint16()
-		return int(size), err
+		n, err := d.uint16()
+		return int(n), err
 	}
 	if c == codes.Map32 {
-		size, err := d.uint32()
-		return int(size), err
+		n, err := d.uint32()
+		return int(n), err
 	}
 	return 0, errInvalidCode
 }
@@ -119,22 +133,22 @@ func decodeMapStringStringValue(d *Decoder, v reflect.Value) error {
 }
 
 func (d *Decoder) decodeMapStringStringPtr(ptr *map[string]string) error {
-	size, err := d.DecodeMapLen()
+	n, err := d.DecodeMapLen()
 	if err != nil {
 		return err
 	}
-	if size == -1 {
+	if n == -1 {
 		*ptr = nil
 		return nil
 	}
 
 	m := *ptr
 	if m == nil {
-		*ptr = make(map[string]string, min(size, mapElemsAllocLimit))
+		*ptr = make(map[string]string, min(n, mapElemsAllocLimit))
 		m = *ptr
 	}
 
-	for i := 0; i < size; i++ {
+	for i := 0; i < n; i++ {
 		mk, err := d.DecodeString()
 		if err != nil {
 			return err
@@ -175,7 +189,7 @@ func (d *Decoder) decodeMapStringInterfacePtr(ptr *map[string]interface{}) error
 		if err != nil {
 			return err
 		}
-		mv, err := d.decodeInterfaceCond()
+		mv, err := d.decodeInterface()
 		if err != nil {
 			return err
 		}
@@ -186,70 +200,7 @@ func (d *Decoder) decodeMapStringInterfacePtr(ptr *map[string]interface{}) error
 }
 
 func (d *Decoder) DecodeMap() (interface{}, error) {
-	if d.decodeMapFunc != nil {
-		return d.decodeMapFunc(d)
-	}
-
-	size, err := d.DecodeMapLen()
-	if err != nil {
-		return nil, err
-	}
-	if size == -1 {
-		return nil, nil
-	}
-	if size == 0 {
-		return make(map[string]interface{}), nil
-	}
-
-	code, err := d.PeekCode()
-	if err != nil {
-		return nil, err
-	}
-
-	if codes.IsString(code) {
-		return d.decodeMapStringInterfaceSize(size)
-	}
-
-	key, err := d.decodeInterfaceCond()
-	if err != nil {
-		return nil, err
-	}
-
-	value, err := d.decodeInterfaceCond()
-	if err != nil {
-		return nil, err
-	}
-
-	keyType := reflect.TypeOf(key)
-	valueType := reflect.TypeOf(value)
-	mapType := reflect.MapOf(keyType, valueType)
-	mapValue := reflect.MakeMap(mapType)
-
-	mapValue.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(value))
-	size--
-
-	err = decodeMapValueSize(d, mapValue, size)
-	if err != nil {
-		return nil, err
-	}
-
-	return mapValue.Interface(), nil
-}
-
-func (d *Decoder) decodeMapStringInterfaceSize(size int) (map[string]interface{}, error) {
-	m := make(map[string]interface{}, min(size, mapElemsAllocLimit))
-	for i := 0; i < size; i++ {
-		mk, err := d.DecodeString()
-		if err != nil {
-			return nil, err
-		}
-		mv, err := d.decodeInterfaceCond()
-		if err != nil {
-			return nil, err
-		}
-		m[mk] = mv
-	}
-	return m, nil
+	return d.decodeMapFunc(d)
 }
 
 func (d *Decoder) skipMap(c codes.Code) error {

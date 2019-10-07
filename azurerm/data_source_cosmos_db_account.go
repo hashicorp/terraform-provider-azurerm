@@ -5,8 +5,10 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -25,7 +27,7 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"offer_type": {
 				Type:     schema.TypeString,
@@ -178,8 +180,9 @@ func dataSourceArmCosmosDbAccount() *schema.Resource {
 }
 
 func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -201,7 +204,6 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", string(resp.Kind))
-	flattenAndSetTags(d, resp.Tags)
 
 	if props := resp.DatabaseAccountProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
@@ -282,7 +284,7 @@ func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.Capability) *[]map[string]interface{} {

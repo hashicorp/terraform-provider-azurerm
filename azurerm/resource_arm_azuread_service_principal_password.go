@@ -9,9 +9,10 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,7 +73,7 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	objectId := d.Get("service_principal_id").(string)
@@ -104,8 +105,8 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 		credential.StartDate = &date.Time{Time: startDate}
 	}
 
-	azureRMLockByName(objectId, servicePrincipalResourceName)
-	defer azureRMUnlockByName(objectId, servicePrincipalResourceName)
+	locks.ByName(objectId, servicePrincipalResourceName)
+	defer locks.UnlockByName(objectId, servicePrincipalResourceName)
 
 	existingCredentials, err := client.ListPasswordCredentials(ctx, objectId)
 	if err != nil {
@@ -143,7 +144,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordCreate(d *schema.Resource
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := strings.Split(d.Id(), "/")
@@ -205,7 +206,7 @@ func resourceArmActiveDirectoryServicePrincipalPasswordRead(d *schema.ResourceDa
 }
 
 func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicePrincipalsClient
+	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := strings.Split(d.Id(), "/")
@@ -216,8 +217,8 @@ func resourceArmActiveDirectoryServicePrincipalPasswordDelete(d *schema.Resource
 	objectId := id[0]
 	keyId := id[1]
 
-	azureRMLockByName(objectId, servicePrincipalResourceName)
-	defer azureRMUnlockByName(objectId, servicePrincipalResourceName)
+	locks.ByName(objectId, servicePrincipalResourceName)
+	defer locks.UnlockByName(objectId, servicePrincipalResourceName)
 
 	// ensure the parent Service Principal exists
 	servicePrincipal, err := client.Get(ctx, objectId)

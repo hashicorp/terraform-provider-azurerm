@@ -6,11 +6,13 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -81,20 +83,20 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -115,12 +117,12 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := operationalinsights.Workspace{
 		Name:     &name,
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
 			Sku:             sku,
 			RetentionInDays: &retentionInDays,
@@ -148,13 +150,12 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	d.SetId(*read.ID)
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
-
 }
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,14 +192,13 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logAnalytics.WorkspacesClient
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
 	ctx := meta.(*ArmClient).StopContext
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

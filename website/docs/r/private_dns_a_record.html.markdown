@@ -6,7 +6,7 @@ description: |-
   Manages a Private DNS A Record.
 ---
 
-# azurerm_dns_a_record
+# azurerm_private_dns_a_record
 
 Enables you to manage DNS A Records within Azure Private DNS.
 

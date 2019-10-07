@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
@@ -56,7 +56,7 @@ func dataSourceArmPolicyDefinition() *schema.Resource {
 }
 
 func dataSourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.DefinitionsClient
+	client := meta.(*ArmClient).Policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("display_name").(string)

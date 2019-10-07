@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_virtual_machine_scale_set
 
-Manage a virtual machine scale set.
+Manages a virtual machine scale set.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -274,6 +274,8 @@ The following arguments are supported:
 * `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
 
 * `os_profile_linux_config` - (Required, when a linux machine) A Linux config block as documented below.
+
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
 * `sku` - (Required) A sku block as documented below.
 

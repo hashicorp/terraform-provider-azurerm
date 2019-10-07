@@ -127,9 +127,9 @@ func (client TasksClient) CreatePreparer(ctx context.Context, resourceGroupName 
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) CreateSender(req *http.Request) (future TasksCreateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -220,9 +220,9 @@ func (client TasksClient) DeletePreparer(ctx context.Context, resourceGroupName 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) DeleteSender(req *http.Request) (future TasksDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -318,8 +318,8 @@ func (client TasksClient) GetPreparer(ctx context.Context, resourceGroupName str
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -411,8 +411,8 @@ func (client TasksClient) GetDetailsPreparer(ctx context.Context, resourceGroupN
 // GetDetailsSender sends the GetDetails request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) GetDetailsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetDetailsResponder handles the response to the GetDetails request. The method always
@@ -499,8 +499,8 @@ func (client TasksClient) ListPreparer(ctx context.Context, resourceGroupName st
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -626,9 +626,9 @@ func (client TasksClient) UpdatePreparer(ctx context.Context, resourceGroupName 
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client TasksClient) UpdateSender(req *http.Request) (future TasksUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

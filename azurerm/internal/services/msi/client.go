@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	UserAssignedIdentitiesClient msi.UserAssignedIdentitiesClient
+	UserAssignedIdentitiesClient *msi.UserAssignedIdentitiesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	UserAssignedIdentitiesClient := msi.NewUserAssignedIdentitiesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&UserAssignedIdentitiesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.UserAssignedIdentitiesClient = msi.NewUserAssignedIdentitiesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.UserAssignedIdentitiesClient.Client, o.ResourceManagerAuthorizer)
-
-	return &c
+	return &Client{
+		UserAssignedIdentitiesClient: &UserAssignedIdentitiesClient,
+	}
 }

@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func URLIsHTTPS(i interface{}, k string) (_ []string, errors []error) {
@@ -14,6 +14,10 @@ func URLIsHTTPS(i interface{}, k string) (_ []string, errors []error) {
 
 func URLIsHTTPOrHTTPS(i interface{}, k string) (_ []string, errors []error) {
 	return URLWithScheme([]string{"http", "https"})(i, k)
+}
+
+func URLIsAppURI(i interface{}, k string) (_ []string, errors []error) {
+	return URLWithScheme([]string{"http", "https", "api", "urn", "ms-appx"})(i, k)
 }
 
 func URLWithScheme(validSchemes []string) schema.SchemaValidateFunc {

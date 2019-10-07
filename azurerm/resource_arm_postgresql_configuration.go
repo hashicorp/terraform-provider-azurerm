@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,7 +45,7 @@ func resourceArmPostgreSQLConfiguration() *schema.Resource {
 }
 
 func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ConfigurationsClient
+	client := meta.(*ArmClient).Postgres.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Configuration creation.")
@@ -84,10 +84,10 @@ func resourceArmPostgreSQLConfigurationCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ConfigurationsClient
+	client := meta.(*ArmClient).Postgres.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -115,10 +115,10 @@ func resourceArmPostgreSQLConfigurationRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmPostgreSQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ConfigurationsClient
+	client := meta.(*ArmClient).Postgres.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

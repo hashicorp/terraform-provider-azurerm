@@ -5,12 +5,14 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,6 +53,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"Bing.Speech",
 					"Bing.SpellCheck",
 					"Bing.SpellCheck.v7",
+					"CognitiveServices",
 					"ComputerVision",
 					"ContentModerator",
 					"CustomSpeech",
@@ -59,6 +62,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 					"Emotion",
 					"Face",
 					"LUIS",
+					"QnAMaker",
 					"Recommendations",
 					"SpeakerRecognition",
 					"Speech",
@@ -97,7 +101,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -120,13 +124,13 @@ func resourceArmCognitiveAccount() *schema.Resource {
 }
 
 func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetProperties(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -141,7 +145,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
 	properties := cognitiveservices.AccountCreateParameters{
@@ -149,7 +153,7 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 		Location:   utils.String(location),
 		Sku:        sku,
 		Properties: &cognitiveServicesPropertiesStruct{},
-		Tags:       expandTags(tags),
+		Tags:       tags.Expand(t),
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, properties); err != nil {
@@ -167,10 +171,10 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -178,12 +182,12 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	resourceGroup := id.ResourceGroup
 	name := id.Path["accounts"]
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
 	properties := cognitiveservices.AccountUpdateParameters{
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	_, err = client.Update(ctx, resourceGroup, name, properties)
@@ -195,10 +199,10 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -248,16 +252,14 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("secondary_access_key", keys.Key2)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCognitiveAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cognitive.AccountsClient
+	client := meta.(*ArmClient).Cognitive.AccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

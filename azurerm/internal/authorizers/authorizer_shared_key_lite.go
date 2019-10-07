@@ -17,7 +17,7 @@ type SharedKeyLiteAuthorizer struct {
 	storageAccountKey  string
 }
 
-// NewSharedKeyLiteAuthorizer crates a SharedKeyLiteAuthorizer using the given credentials
+// NewSharedKeyLiteAuthorizer creates a SharedKeyLiteAuthorizer using the given credentials
 func NewSharedKeyLiteAuthorizer(accountName, accountKey string) *SharedKeyLiteAuthorizer {
 	return &SharedKeyLiteAuthorizer{
 		storageAccountName: accountName,
@@ -68,7 +68,7 @@ func buildSharedKeyLite(accountName, storageAccountKey string, r *http.Request) 
 // computeSharedKeyLite computes the Shared Key Lite required for Storage Authentication
 // NOTE: this function assumes that the `x-ms-date` field is set
 func computeSharedKeyLite(verb, url string, accountName string, headers http.Header) (*string, error) {
-	canonicalizedResource, err := buildCanonicalizedResource(url, accountName)
+	canonicalizedResource, err := buildCanonicalizedResource(url, accountName, true)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func computeSharedKeyLite(verb, url string, accountName string, headers http.Hea
 func buildCanonicalizedStringForSharedKeyLite(verb string, headers http.Header, canonicalizedHeaders, canonicalizedResource string) string {
 	return strings.Join([]string{
 		verb,
-		headers.Get(HeaderContentMD5), // TODO: this appears to always be empty?
+		headers.Get(HeaderContentMD5),
 		headers.Get(HeaderContentType),
 		"", // date should be nil, apparently :shrug:
 		canonicalizedHeaders,

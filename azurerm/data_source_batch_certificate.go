@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -49,8 +50,9 @@ func dataSourceArmBatchCertificate() *schema.Resource {
 }
 
 func dataSourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batch.CertificateClient
+	client := meta.(*ArmClient).Batch.CertificateClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	accountName := d.Get("account_name").(string)

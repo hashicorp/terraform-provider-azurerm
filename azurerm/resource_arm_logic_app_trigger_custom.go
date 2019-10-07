@@ -6,9 +6,9 @@ import (
 
 	"encoding/json"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -64,7 +64,7 @@ func resourceArmLogicAppTriggerCustomCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -102,7 +102,7 @@ func resourceArmLogicAppTriggerCustomRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmLogicAppTriggerCustomDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

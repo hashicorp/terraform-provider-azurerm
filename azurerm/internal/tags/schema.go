@@ -1,14 +1,17 @@
 package tags
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-// DataSourceSchema returns the Schema which should be used for Tags on a Data Source
-func DataSourceSchema() *schema.Schema {
+// SchemaDataSource returns the Schema which should be used for Tags on a Data Source
+func SchemaDataSource() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeMap,
 		Computed: true,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
 	}
 }
 

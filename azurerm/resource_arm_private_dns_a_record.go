@@ -5,9 +5,11 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,20 +50,20 @@ func resourceArmPrivateDnsARecord() *schema.Resource {
 				Required: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.RecordSetsClient
+	client := meta.(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, privatedns.A, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -75,12 +77,12 @@ func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta inter
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := privatedns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &privatedns.RecordSetProperties{
-			Metadata: expandTags(tags),
+			Metadata: tags.Expand(t),
 			TTL:      &ttl,
 			ARecords: expandAzureRmPrivateDnsARecords(d),
 		},
@@ -107,10 +109,10 @@ func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmPrivateDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
+	dnsClient := meta.(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -136,16 +138,14 @@ func resourceArmPrivateDnsARecordRead(d *schema.ResourceData, meta interface{}) 
 	if err := d.Set("records", flattenAzureRmPrivateDnsARecords(resp.ARecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmPrivateDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
+	dnsClient := meta.(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -80,7 +80,8 @@ func (client Client) PutBlockPreparer(ctx context.Context, accountName, containe
 	}
 
 	headers := map[string]interface{}{
-		"x-ms-version": APIVersion,
+		"x-ms-version":   APIVersion,
+		"Content-Length": int(len(input.Content)),
 	}
 
 	if input.ContentMD5 != nil {

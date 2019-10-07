@@ -6,8 +6,9 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -59,14 +60,14 @@ func resourceArmDataLakeAnalyticsFirewallRule() *schema.Resource {
 }
 
 func resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+	client := meta.(*ArmClient).Datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -109,10 +110,10 @@ func resourceArmDateLakeAnalyticsFirewallRuleCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmDateLakeAnalyticsFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+	client := meta.(*ArmClient).Datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,10 +144,10 @@ func resourceArmDateLakeAnalyticsFirewallRuleRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmDateLakeAnalyticsFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsFirewallRulesClient
+	client := meta.(*ArmClient).Datalake.AnalyticsFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

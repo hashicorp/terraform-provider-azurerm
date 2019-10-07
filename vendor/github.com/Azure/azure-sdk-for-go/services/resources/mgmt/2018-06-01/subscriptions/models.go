@@ -437,6 +437,10 @@ type TenantIDDescription struct {
 	ID *string `json:"id,omitempty"`
 	// TenantID - READ-ONLY; The tenant ID. For example, 00000000-0000-0000-0000-000000000000.
 	TenantID *string `json:"tenantId,omitempty"`
+	// DisplayName - READ-ONLY; The display name of the tenant.
+	DisplayName *string `json:"displayName,omitempty"`
+	// Domains - READ-ONLY; The list of domains for the tenant.
+	Domains *[]string `json:"domains,omitempty"`
 }
 
 // TenantListResult tenant Ids information.

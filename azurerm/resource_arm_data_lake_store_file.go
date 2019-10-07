@@ -11,9 +11,10 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -52,7 +53,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 }
 
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 	chunkSize := 4 * 1024 * 1024
 
@@ -65,7 +66,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	// example.azuredatalakestore.net/test/example.txt
 	id := fmt.Sprintf("%s.%s%s", accountName, client.AdlsFileSystemDNSSuffix, remoteFilePath)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -111,7 +112,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
@@ -137,7 +138,7 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)

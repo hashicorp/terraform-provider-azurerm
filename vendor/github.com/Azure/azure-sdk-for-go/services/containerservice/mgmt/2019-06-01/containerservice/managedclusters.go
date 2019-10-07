@@ -138,9 +138,9 @@ func (client ManagedClustersClient) CreateOrUpdatePreparer(ctx context.Context, 
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) CreateOrUpdateSender(req *http.Request) (future ManagedClustersCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -225,9 +225,9 @@ func (client ManagedClustersClient) DeletePreparer(ctx context.Context, resource
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) DeleteSender(req *http.Request) (future ManagedClustersDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -317,8 +317,8 @@ func (client ManagedClustersClient) GetPreparer(ctx context.Context, resourceGro
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -407,8 +407,8 @@ func (client ManagedClustersClient) GetAccessProfilePreparer(ctx context.Context
 // GetAccessProfileSender sends the GetAccessProfile request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) GetAccessProfileSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAccessProfileResponder handles the response to the GetAccessProfile request. The method always
@@ -495,8 +495,8 @@ func (client ManagedClustersClient) GetUpgradeProfilePreparer(ctx context.Contex
 // GetUpgradeProfileSender sends the GetUpgradeProfile request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) GetUpgradeProfileSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetUpgradeProfileResponder handles the response to the GetUpgradeProfile request. The method always
@@ -569,8 +569,8 @@ func (client ManagedClustersClient) ListPreparer(ctx context.Context) (*http.Req
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -689,8 +689,8 @@ func (client ManagedClustersClient) ListByResourceGroupPreparer(ctx context.Cont
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -814,8 +814,8 @@ func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx cont
 // ListClusterAdminCredentialsSender sends the ListClusterAdminCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) ListClusterAdminCredentialsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListClusterAdminCredentialsResponder handles the response to the ListClusterAdminCredentials request. The method always
@@ -902,8 +902,8 @@ func (client ManagedClustersClient) ListClusterUserCredentialsPreparer(ctx conte
 // ListClusterUserCredentialsSender sends the ListClusterUserCredentials request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) ListClusterUserCredentialsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListClusterUserCredentialsResponder handles the response to the ListClusterUserCredentials request. The method always
@@ -989,9 +989,9 @@ func (client ManagedClustersClient) ResetAADProfilePreparer(ctx context.Context,
 // ResetAADProfileSender sends the ResetAADProfile request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) ResetAADProfileSender(req *http.Request) (future ManagedClustersResetAADProfileFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -1080,9 +1080,9 @@ func (client ManagedClustersClient) ResetServicePrincipalProfilePreparer(ctx con
 // ResetServicePrincipalProfileSender sends the ResetServicePrincipalProfile request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) ResetServicePrincipalProfileSender(req *http.Request) (future ManagedClustersResetServicePrincipalProfileFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -1169,9 +1169,9 @@ func (client ManagedClustersClient) UpdateTagsPreparer(ctx context.Context, reso
 // UpdateTagsSender sends the UpdateTags request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedClustersClient) UpdateTagsSender(req *http.Request) (future ManagedClustersUpdateTagsFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

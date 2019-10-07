@@ -8,9 +8,9 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread"
 )
 
@@ -43,6 +43,7 @@ func testAccPreCheck(t *testing.T) {
 		"ARM_TENANT_ID",
 		"ARM_TEST_LOCATION",
 		"ARM_TEST_LOCATION_ALT",
+		"ARM_TEST_LOCATION_ALT2",
 	}
 
 	for _, variable := range variables {
@@ -59,6 +60,10 @@ func testLocation() string {
 
 func testAltLocation() string {
 	return os.Getenv("ARM_TEST_LOCATION_ALT")
+}
+
+func testAltLocation2() string {
+	return os.Getenv("ARM_TEST_LOCATION_ALT2")
 }
 
 func testArmEnvironmentName() string {

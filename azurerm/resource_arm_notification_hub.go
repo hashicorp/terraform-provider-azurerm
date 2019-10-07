@@ -8,13 +8,16 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+var notificationHubResourceName = "azurerm_notification_hub"
 
 const apnsProductionName = "Production"
 const apnsProductionEndpoint = "https://api.push.apple.com:443/3/device"
@@ -124,13 +127,13 @@ func resourceArmNotificationHub() *schema.Resource {
 
 			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
 			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tagsSchema(),
+			//"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -138,7 +141,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -203,7 +206,7 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 	return resourceArmNotificationHubRead(d, meta)
 }
 
-func notificationHubStateRefreshFunc(ctx context.Context, client notificationhubs.Client, resourceGroup, namespaceName, name string) resource.StateRefreshFunc {
+func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhubs.Client, resourceGroup, namespaceName, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
@@ -219,10 +222,10 @@ func notificationHubStateRefreshFunc(ctx context.Context, client notificationhub
 }
 
 func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -269,10 +272,10 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

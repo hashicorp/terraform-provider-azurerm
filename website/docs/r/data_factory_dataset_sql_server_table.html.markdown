@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_sql_server_table"
 sidebar_current: "docs-azurerm-resource-data-factory-dataset-sql-server-table"
 description: |-
-  Manage a SQL Server Table Dataset inside a Azure Data Factory.
+  Manages a SQL Server Table Dataset inside a Azure Data Factory.
 ---
 
 # azurerm_data_factory_dataset_sql_server
 
-Manage a SQL Server Table Dataset inside a Azure Data Factory.
+Manages a SQL Server Table Dataset inside a Azure Data Factory.
 
 ## Example Usage
 

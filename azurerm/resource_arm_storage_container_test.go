@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +41,7 @@ func TestAccAzureRMStorageContainer_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageContainer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -235,13 +236,12 @@ func TestAccAzureRMStorageContainer_web(t *testing.T) {
 
 func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
@@ -280,7 +280,7 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
@@ -313,7 +313,7 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 			continue
 		}
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		containerName := rs.Primary.Attributes["name"]
@@ -335,12 +335,10 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 
 		props, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Error retrieving Container %q in Storage Account %q: %s", containerName, accountName, err)
+			return nil
 		}
+
+		return fmt.Errorf("Container still exists: %+v", props)
 	}
 
 	return nil

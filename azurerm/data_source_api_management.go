@@ -5,8 +5,10 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,6 +41,7 @@ func dataSourceApiManagementService() *schema.Resource {
 				Computed: true,
 			},
 
+			// TODO: Remove in 2.0
 			"sku": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -54,6 +57,11 @@ func dataSourceApiManagementService() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"notification_sender_email": {
@@ -146,20 +154,20 @@ func dataSourceApiManagementService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("API Management Service %q (Resource Group %q) was not found", name, resourceGroup)
@@ -180,7 +188,6 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 	if props := resp.ServiceProperties; props != nil {
 		d.Set("publisher_email", props.PublisherEmail)
 		d.Set("publisher_name", props.PublisherName)
-
 		d.Set("notification_sender_email", props.NotificationSenderEmail)
 		d.Set("gateway_url", props.GatewayURL)
 		d.Set("gateway_regional_url", props.GatewayRegionalURL)
@@ -198,13 +205,17 @@ func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	if err := d.Set("sku", flattenDataSourceApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+	if sku := resp.Sku; sku != nil {
+		// TODO: Remove in 2.0
+		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+		if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement.HostnameConfiguration) []interface{} {
@@ -287,22 +298,6 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagement.Ad
 	}
 
 	return results
-}
-
-func flattenDataSourceApiManagementServiceSku(profile *apimanagement.ServiceSkuProperties) []interface{} {
-	if profile == nil {
-		return []interface{}{}
-	}
-
-	sku := make(map[string]interface{})
-
-	sku["name"] = string(profile.Name)
-
-	if profile.Capacity != nil {
-		sku["capacity"] = *profile.Capacity
-	}
-
-	return []interface{}{sku}
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*schema.Schema {

@@ -8,36 +8,46 @@ import (
 )
 
 type Client struct {
-	KubernetesClustersClient containerservice.ManagedClustersClient
-	GroupsClient             containerinstance.ContainerGroupsClient
-	RegistriesClient         containerregistry.RegistriesClient
-	ReplicationsClient       containerregistry.ReplicationsClient
-	ServicesClient           containerservice.ContainerServicesClient
-	AgentPoolsClient         containerservice.AgentPoolsClient
+	KubernetesClustersClient *containerservice.ManagedClustersClient
+	GroupsClient             *containerinstance.ContainerGroupsClient
+	RegistriesClient         *containerregistry.RegistriesClient
+	WebhooksClient           *containerregistry.WebhooksClient
+	ReplicationsClient       *containerregistry.ReplicationsClient
+	ServicesClient           *containerservice.ContainerServicesClient
+	AgentPoolsClient         *containerservice.AgentPoolsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	RegistriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&RegistriesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.RegistriesClient = containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.RegistriesClient.Client, o.ResourceManagerAuthorizer)
+	WebhooksClient := containerregistry.NewWebhooksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&WebhooksClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ReplicationsClient = containerregistry.NewReplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ReplicationsClient.Client, o.ResourceManagerAuthorizer)
+	ReplicationsClient := containerregistry.NewReplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ReplicationsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.GroupsClient = containerinstance.NewContainerGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.GroupsClient.Client, o.ResourceManagerAuthorizer)
+	GroupsClient := containerinstance.NewContainerGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&GroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	// ACS
-	c.ServicesClient = containerservice.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServicesClient.Client, o.ResourceManagerAuthorizer)
+	ServicesClient := containerservice.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServicesClient.Client, o.ResourceManagerAuthorizer)
 
 	// AKS
-	c.KubernetesClustersClient = containerservice.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.KubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
+	KubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&KubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AgentPoolsClient = containerservice.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AgentPoolsClient.Client, o.ResourceManagerAuthorizer)
+	AgentPoolsClient := containerservice.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AgentPoolsClient.Client, o.ResourceManagerAuthorizer)
 
-	return &c
+	return &Client{
+		KubernetesClustersClient: &KubernetesClustersClient,
+		GroupsClient:             &GroupsClient,
+		RegistriesClient:         &RegistriesClient,
+		WebhooksClient:           &WebhooksClient,
+		ReplicationsClient:       &ReplicationsClient,
+		ServicesClient:           &ServicesClient,
+		AgentPoolsClient:         &AgentPoolsClient,
+	}
 }

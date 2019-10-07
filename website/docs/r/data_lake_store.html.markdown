@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store"
 sidebar_current: "docs-azurerm-resource-data-lake-store-x"
 description: |-
-  Manage an Azure Data Lake Store.
+  Manages an Azure Data Lake Store.
 ---
 
 # azurerm_data_lake_store
 
-Manage an Azure Data Lake Store.
+Manages an Azure Data Lake Store.
 
 ## Example Usage
 

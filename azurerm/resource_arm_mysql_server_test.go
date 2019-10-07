@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,7 +39,7 @@ func TestAccAzureRMMySQLServer_basicFiveSix(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -66,7 +67,7 @@ func TestAccAzureRMMySQLServer_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -237,6 +238,36 @@ func TestAccAzureRMMySQLServer_updateSKU(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_storageAutogrow(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	config := testAccAzureRMMySQLServer_basicFiveSeven(ri, location)
+	updatedConfig := testAccAzureRMMySQLServer_autogrow(ri, location)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Enabled"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "storage_profile.0.auto_grow", "Disabled"),
+				),
+			},
+		},
+	})
+}
+
 //
 
 func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFunc {
@@ -253,7 +284,7 @@ func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mysql.ServersClient
+		client := testAccProvider.Meta().(*ArmClient).Mysql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -270,7 +301,7 @@ func testCheckAzureRMMySQLServerExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMMySQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mysql.ServersClient
+	client := testAccProvider.Meta().(*ArmClient).Mysql.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -512,6 +543,40 @@ resource "azurerm_mysql_server" "test" {
     storage_mb            = 4194304
     backup_retention_days = 7
     geo_redundant_backup  = "Enabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "5.7"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_autogrow(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+	auto_grow			  = "Disabled"
   }
 
   administrator_login          = "acctestun"

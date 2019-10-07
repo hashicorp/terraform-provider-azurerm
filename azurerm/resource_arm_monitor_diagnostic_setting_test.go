@@ -5,9 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -43,7 +44,7 @@ func TestAccAzureRMMonitorDiagnosticSetting_eventhub(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorDiagnosticSetting_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -172,7 +173,7 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).monitorDiagnosticSettingsClient
+		client := testAccProvider.Meta().(*ArmClient).Monitor.DiagnosticSettingsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		name := rs.Primary.Attributes["name"]
 		actualResourceId := rs.Primary.Attributes["target_resource_id"]
@@ -192,7 +193,7 @@ func testCheckAzureRMMonitorDiagnosticSettingExists(resourceName string) resourc
 }
 
 func testCheckAzureRMMonitorDiagnosticSettingDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).monitorDiagnosticSettingsClient
+	client := testAccProvider.Meta().(*ArmClient).Monitor.DiagnosticSettingsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

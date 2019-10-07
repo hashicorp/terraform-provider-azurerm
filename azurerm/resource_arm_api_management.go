@@ -7,12 +7,14 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -62,10 +64,14 @@ func resourceArmApiManagementService() *schema.Resource {
 				ValidateFunc: validate.ApiManagementServicePublisherEmail,
 			},
 
+			// TODO: Remove in 2.0
 			"sku": {
-				Type:     schema.TypeList,
-				Required: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				Deprecated:    "This property has been deprecated in favour of the 'sku_name' property and will be removed in version 2.0 of the provider",
+				ConflictsWith: []string{"sku_name"},
+				MaxItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -78,13 +84,27 @@ func resourceArmApiManagementService() *schema.Resource {
 								string(apimanagement.SkuTypePremium),
 							}, false),
 						},
+
 						"capacity": {
 							Type:         schema.TypeInt,
-							Required:     true,
+							Optional:     true,
 							ValidateFunc: validation.IntAtLeast(0),
 						},
 					},
 				},
+			},
+
+			"sku_name": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true, // TODO: Remove computed in 2.0
+				ConflictsWith: []string{"sku"},
+				ValidateFunc: azure.MinCapacitySkuNameInSlice([]string{
+					string(apimanagement.SkuTypeDeveloper),
+					string(apimanagement.SkuTypeBasic),
+					string(apimanagement.SkuTypeStandard),
+					string(apimanagement.SkuTypePremium),
+				}, 1, false),
 			},
 
 			"identity": {
@@ -121,7 +141,6 @@ func resourceArmApiManagementService() *schema.Resource {
 			"additional_location": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"location": azure.SchemaLocation(),
@@ -175,7 +194,7 @@ func resourceArmApiManagementService() *schema.Resource {
 			"security": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true, // todo remove in 2.0 ?
+				Computed: true, // TODO: Remove in 2.0 ?
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -197,15 +216,15 @@ func resourceArmApiManagementService() *schema.Resource {
 						"disable_triple_des_chipers": {
 							Type:          schema.TypeBool,
 							Optional:      true,
-							Computed:      true, // todo remove in 2.0
+							Computed:      true, // TODO: Remove in 2.0
 							Deprecated:    "This field has been deprecated in favour of the `disable_triple_des_ciphers` property to correct the spelling. it will be removed in version 2.0 of the provider",
 							ConflictsWith: []string{"security.0.disable_triple_des_ciphers"},
 						},
 						"disable_triple_des_ciphers": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							// Default:       false, // todo remove in 2.0
-							Computed:      true, // todo remove in 2.0
+							// Default:       false, // TODO: Remove in 2.0
+							Computed:      true, // TODO: Remove in 2.0
 							ConflictsWith: []string{"security.0.disable_triple_des_chipers"},
 						},
 						"disable_frontend_ssl30": {
@@ -343,7 +362,7 @@ func resourceArmApiManagementService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"gateway_url": {
 				Type:     schema.TypeString,
@@ -374,15 +393,23 @@ func resourceArmApiManagementService() *schema.Resource {
 }
 
 func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
+
+	// TODO: Remove in 2.0
+	sku := expandAzureRmApiManagementSku(d)
+	if sku == nil {
+		if sku = expandAzureRmApiManagementSkuName(d); sku == nil {
+			return fmt.Errorf("either 'sku_name' or 'sku' must be defined in the configuration file")
+		}
+	}
 
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -396,9 +423,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
-
-	sku := expandAzureRmApiManagementSku(d)
+	t := d.Get("tags").(map[string]interface{})
 
 	publisherName := d.Get("publisher_name").(string)
 	publisherEmail := d.Get("publisher_email").(string)
@@ -417,7 +442,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 			Certificates:           certificates,
 			HostnameConfigurations: hostnameConfigurations,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		Sku:  sku,
 	}
 
@@ -455,19 +480,19 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
-	signInClient := meta.(*ArmClient).apiManagement.SignInClient
+	signInClient := meta.(*ArmClient).ApiManagement.SignInClient
 	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings); err != nil {
 		return fmt.Errorf("Error setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
 	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
-	signUpClient := meta.(*ArmClient).apiManagement.SignUpClient
+	signUpClient := meta.(*ArmClient).ApiManagement.SignUpClient
 	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings); err != nil {
 		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	policyClient := meta.(*ArmClient).apiManagement.PolicyClient
+	policyClient := meta.(*ArmClient).ApiManagement.PolicyClient
 	policiesRaw := d.Get("policy").([]interface{})
 	policy, err := expandApiManagementPolicies(policiesRaw)
 	if err != nil {
@@ -494,10 +519,10 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -516,19 +541,19 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error making Read request on API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	signInClient := meta.(*ArmClient).apiManagement.SignInClient
+	signInClient := meta.(*ArmClient).ApiManagement.SignInClient
 	signInSettings, err := signInClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Sign In Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	signUpClient := meta.(*ArmClient).apiManagement.SignUpClient
+	signUpClient := meta.(*ArmClient).ApiManagement.SignUpClient
 	signUpSettings, err := signUpClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Sign Up Settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	policyClient := meta.(*ArmClient).apiManagement.PolicyClient
+	policyClient := meta.(*ArmClient).ApiManagement.PolicyClient
 	policy, err := policyClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(policy.Response) {
@@ -573,8 +598,14 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
-		return fmt.Errorf("Error setting `sku`: %+v", err)
+	if sku := resp.Sku; sku != nil {
+		// TODO: Remove in 2.0
+		if err := d.Set("sku", flattenApiManagementServiceSku(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku`: %+v", err)
+		}
+		if err := d.Set("sku_name", flattenApiManagementServiceSkuName(resp.Sku)); err != nil {
+			return fmt.Errorf("Error setting `sku_name`: %+v", err)
+		}
 	}
 
 	if err := d.Set("sign_in", flattenApiManagementSignInSettings(signInSettings)); err != nil {
@@ -585,20 +616,18 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Error setting `sign_up`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	if err := d.Set("policy", flattenApiManagementPolicies(d, policy)); err != nil {
 		return fmt.Errorf("Error setting `policy`: %+v", err)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -860,18 +889,57 @@ func flattenAzureRmApiManagementMachineIdentity(identity *apimanagement.ServiceI
 	return []interface{}{result}
 }
 
+// TODO: Remove in 2.0 timeframe
 func expandAzureRmApiManagementSku(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
+	var name string
+	var capacity int32
+
 	vs := d.Get("sku").([]interface{})
+
+	if len(vs) == 0 {
+		return nil
+	}
+
 	// guaranteed by MinItems in the schema
 	v := vs[0].(map[string]interface{})
 
-	name := apimanagement.SkuType(v["name"].(string))
-	capacity := int32(v["capacity"].(int))
+	name = v["name"].(string)
+	capacity = int32(v["capacity"].(int))
 
 	sku := &apimanagement.ServiceSkuProperties{
-		Name:     name,
+		Name:     apimanagement.SkuType(name),
 		Capacity: utils.Int32(capacity),
 	}
+
+	return sku
+}
+
+func expandAzureRmApiManagementSkuName(d *schema.ResourceData) *apimanagement.ServiceSkuProperties {
+	vs := d.Get("sku_name").(string)
+
+	if len(vs) == 0 {
+		return nil
+	}
+
+	name, capacity, err := azure.SplitSku(vs)
+	if err != nil {
+		return nil
+	}
+
+	sku := &apimanagement.ServiceSkuProperties{
+		Name:     apimanagement.SkuType(name),
+		Capacity: utils.Int32(capacity),
+	}
+
+	return sku
+}
+
+func flattenApiManagementServiceSkuName(input *apimanagement.ServiceSkuProperties) string {
+	if input == nil {
+		return ""
+	}
+
+	sku := fmt.Sprintf("%s_%d", string(input.Name), *input.Capacity)
 
 	return sku
 }
@@ -940,7 +1008,7 @@ func flattenApiManagementCustomProperties(input map[string]*string) []interface{
 	output["disable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
 	output["disable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
 	output["disable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
-	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // todo remove in 2.0
+	output["disable_triple_des_chipers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers) // TODO: Remove in 2.0
 	output["disable_triple_des_ciphers"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 
 	return []interface{}{output}

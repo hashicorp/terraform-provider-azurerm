@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMAPIManagementProductGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -65,7 +66,7 @@ func TestAccAzureRMAPIManagementProductGroup_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementProductGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagement.ProductGroupsClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductGroupsClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_group" {
 			continue
@@ -101,7 +102,7 @@ func testCheckAzureRMAPIManagementProductGroupExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagement.ProductGroupsClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, groupName)
 		if err != nil {
@@ -129,10 +130,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_product" "test" {

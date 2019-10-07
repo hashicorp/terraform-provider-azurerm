@@ -9,8 +9,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -21,7 +21,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false, "", true)
+	client, err := getArmClient(config, false, "0.0.0", "", true)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return
@@ -105,14 +105,14 @@ func createResourceGroup(ctx context.Context, client *ArmClient, resourceGroupNa
 		Location: &location,
 	}
 
-	if _, err := client.resourceGroupsClient.CreateOrUpdate(ctx, resourceGroupName, group); err != nil {
+	if _, err := client.Resource.GroupsClient.CreateOrUpdate(ctx, resourceGroupName, group); err != nil {
 		return fmt.Errorf("Error creating Resource Group %q: %+v", resourceGroupName, err)
 	}
 	return nil
 }
 
 func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountName, location string) (*storage.Account, error) {
-	storageClient := client.storageServiceClient
+	storageClient := client.Storage.AccountsClient
 	createParams := storage.AccountCreateParameters{
 		Location: &location,
 		Kind:     storage.Storage,
@@ -141,10 +141,10 @@ func createStorageAccount(client *ArmClient, resourceGroupName, storageAccountNa
 
 func destroyStorageAccountAndResourceGroup(client *ArmClient, resourceGroupName, storageAccountName string) {
 	ctx := client.StopContext
-	if _, err := client.storageServiceClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
+	if _, err := client.Storage.AccountsClient.Delete(ctx, resourceGroupName, storageAccountName); err != nil {
 		log.Printf("[DEBUG] Error deleting Storage Account %q (Resource Group %q): %v", storageAccountName, resourceGroupName, err)
 	}
-	if _, err := client.resourceGroupsClient.Delete(ctx, resourceGroupName); err != nil {
+	if _, err := client.Resource.GroupsClient.Delete(ctx, resourceGroupName); err != nil {
 		log.Printf("[DEBUG] Error deleting Resource Group %q): %v", resourceGroupName, err)
 	}
 }

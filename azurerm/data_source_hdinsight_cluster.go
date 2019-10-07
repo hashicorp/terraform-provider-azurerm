@@ -5,8 +5,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,6 +31,9 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 			"component_versions": {
 				Type:     schema.TypeMap,
 				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"kind": {
@@ -63,7 +68,7 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"edge_ssh_endpoint": {
 				Type:     schema.TypeString,
@@ -84,9 +89,10 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 }
 
 func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -137,9 +143,7 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenHDInsightsDataSourceComponentVersions(input map[string]*string) map[string]string {

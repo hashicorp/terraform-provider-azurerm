@@ -8,11 +8,13 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/go-multierror"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -118,14 +120,14 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 }
 
 func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -155,7 +157,7 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 		existingAccessPolicy := accessPolicyIterator.Value()
 
 		if strings.EqualFold(*existingAccessPolicy.KeyName, keyName) {
-			if d.IsNewResource() && requireResourcesToBeImported {
+			if features.ShouldResourcesBeImported() && d.IsNewResource() {
 				return tf.ImportAsExistsError("azurerm_iothub_shared_access_policy", resourceId)
 			}
 			accessPolicies = append(accessPolicies, expandedAccessPolicy)
@@ -188,10 +190,10 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
@@ -240,10 +242,10 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	parsedIothubSAPId, err := parseAzureResourceID(d.Id())
+	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err
@@ -253,8 +255,8 @@ func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta inte
 	iothubName := parsedIothubSAPId.Path["IotHubs"]
 	keyName := parsedIothubSAPId.Path["IotHubKeys"]
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -300,7 +302,6 @@ type accessRights struct {
 }
 
 func expandAccessRights(d *schema.ResourceData) string {
-
 	var possibleAccessRights = []struct {
 		schema string
 		right  string
