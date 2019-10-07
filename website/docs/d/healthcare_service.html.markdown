@@ -14,7 +14,7 @@ Use this data source to access information about an existing Healthcare Service
 ## Example Usage
 
 ```hcl
-data "azurerm_healthcare_service" "test" {
+data "azurerm_healthcare_service" "example" {
   name                = "example-healthcare_service"
   resource_group_name = "example-resources"
   location            = "westus2"
