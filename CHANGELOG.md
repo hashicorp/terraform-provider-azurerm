@@ -11,7 +11,7 @@ IMPROVEMENTS:
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
 
 BUG FIXES:
-
+* `media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
 
