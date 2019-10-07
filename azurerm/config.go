@@ -100,7 +100,7 @@ type ArmClient struct {
 	Compute          *clients.ComputeClient
 	Containers       *containers.Client
 	Cosmos           *cosmos.Client
-	Databricks       *databricks.Client
+	DataBricks       *databricks.Client
 	DataFactory      *datafactory.Client
 	Datalake         *datalake.Client
 	DevSpace         *devspace.Client
@@ -234,7 +234,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Compute = clients.NewComputeClient(o)
 	client.Containers = containers.BuildClient(o)
 	client.Cosmos = cosmos.BuildClient(o)
-	client.Databricks = databricks.BuildClient(o)
+	client.DataBricks = databricks.BuildClient(o)
 	client.DataFactory = datafactory.BuildClient(o)
 	client.Datalake = datalake.BuildClient(o)
 	client.DevSpace = devspace.BuildClient(o)
