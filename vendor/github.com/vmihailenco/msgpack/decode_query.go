@@ -43,7 +43,7 @@ func (d *Decoder) Query(query string) ([]interface{}, error) {
 func (d *Decoder) query(q *queryResult) error {
 	q.nextKey()
 	if q.key == "" {
-		v, err := d.decodeInterfaceCond()
+		v, err := d.decodeInterface()
 		if err != nil {
 			return err
 		}

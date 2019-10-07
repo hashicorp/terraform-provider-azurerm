@@ -6,7 +6,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceArmRoleDefinition() *schema.Resource {
