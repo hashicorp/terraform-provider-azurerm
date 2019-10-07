@@ -238,14 +238,13 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
-		// TODO: confirm this is the same as MinItems: 1
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.NoZeroValues,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
@@ -286,7 +285,6 @@ func virtualMachineScaleSetIPConfigurationSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
-		// TODO: confirm this is the same as MinItems: 1
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {

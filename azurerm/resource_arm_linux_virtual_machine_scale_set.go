@@ -497,7 +497,6 @@ func resourceArmLinuxVirtualMachineScaleSetCreate(d *schema.ResourceData, meta i
 	}
 	d.SetId(*resp.ID)
 
-	// this shouldn't need to go into Update, but let's see
 	return resourceArmLinuxVirtualMachineScaleSetRead(d, meta)
 }
 
@@ -738,7 +737,7 @@ func resourceArmLinuxVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta i
 				}
 			}
 
-			// there's a performance enhancement to do batches here, but this is fine for a first pass
+			// TODO: there's a performance enhancement to do batches here, but this is fine for a first pass
 			for _, instanceId := range instanceIdsToRoll {
 				instanceIds := []string{instanceId}
 
