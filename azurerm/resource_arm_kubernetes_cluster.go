@@ -1331,7 +1331,6 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 	}
 
 	return agentPoolProfiles
-
 }
 
 func expandKubernetesClusterLinuxProfile(d *schema.ResourceData) *containerservice.LinuxProfile {

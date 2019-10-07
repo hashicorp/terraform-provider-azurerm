@@ -226,7 +226,6 @@ func resourceArmKubernetesClusterAgentPoolCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta interface{}) error {
-
 	client := meta.(*ArmClient).Containers.AgentPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -278,7 +277,7 @@ func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta inte
 	}
 
 	if profile.VnetSubnetID != nil {
-		d.Set("vnet_subnet_id", *profile.VnetSubnetID)
+		d.Set("vnet_subnet_id", profile.VnetSubnetID)
 	}
 
 	if profile.OsType != "" {
@@ -290,7 +289,7 @@ func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta inte
 	}
 
 	if profile.NodeTaints != nil {
-		d.Set("node_taints", *profile.NodeTaints)
+		d.Set("node_taints", profile.NodeTaints)
 	}
 
 	if *profile.EnableAutoScaling {
@@ -304,7 +303,6 @@ func resourceArmKubernetesClusterAgentPoolRead(d *schema.ResourceData, meta inte
 		}
 		autoscale_configs = append(autoscale_configs, autoscale_config)
 		d.Set("autoscale_configuration", autoscale_configs)
-
 	}
 
 	if profile.ScaleSetPriority != "" || profile.ScaleSetEvictionPolicy != "" {
@@ -348,7 +346,6 @@ func resourceArmKubernetesClusterAgentPoolDelete(d *schema.ResourceData, meta in
 }
 
 func expandKubernetesClusterAgentPoolProfileProperties(existing *containerservice.ManagedClusterAgentPoolProfileProperties, d *schema.ResourceData) (containerservice.ManagedClusterAgentPoolProfileProperties, error) {
-
 	// TODO Default: AvailabilitySet ??
 	poolType := d.Get("agent_pool_type").(string)
 	// TODO Default Linux ???
@@ -399,14 +396,13 @@ func expandKubernetesClusterAgentPoolProfileProperties(existing *containerservic
 		profile.MaxCount = utils.Int32(int32(autoscale_config["max_count"].(int)))
 		profile.MinCount = utils.Int32(int32(autoscale_config["min_count"].(int)))
 
-		if d.IsNewResource() == true {
+		if d.IsNewResource() {
 			profile.Count = utils.Int32(int32(autoscale_config["min_count"].(int)))
 		} else {
 			if existing != nil {
 				profile.Count = existing.Count
 			}
 		}
-
 	} else {
 		profile.EnableAutoScaling = utils.Bool(false)
 	}
@@ -442,5 +438,4 @@ func convertKubernetesClusterAgentPoolProfileToKubernetesClusterAgentPoolProfile
 	}
 
 	return agentProfileProperties
-
 }
