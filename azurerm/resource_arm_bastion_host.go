@@ -5,14 +5,12 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,8 +49,9 @@ func resourceArmBastionHost() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validateAzureRMBastionIPConfigName,
 						},
 						"subnet_id": {
 							Type:         schema.TypeString,
@@ -74,7 +73,7 @@ func resourceArmBastionHost() *schema.Resource {
 }
 
 func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.BastionHostsClient
+	client := meta.(*ArmClient).Network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
@@ -126,7 +125,7 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.BastionHostsClient
+	client := meta.(*ArmClient).Network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -169,7 +168,7 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBastionHostDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.BastionHostsClient
+	client := meta.(*ArmClient).Network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -206,6 +205,23 @@ func validateAzureRMBastionHostName(v interface{}, k string) (warnings []string,
 
 	if len(value) > 64 {
 		errors = append(errors, fmt.Errorf("%q cannot be longer than 64 characters: %q %d", k, value, len(value)))
+	}
+
+	return warnings, errors
+}
+
+func validateAzureRMBastionIPConfigName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("lowercase letters, highercase letters numbers only are allowed in %q: %q", k, value))
+	}
+
+	if 1 > len(value) {
+		errors = append(errors, fmt.Errorf("%q cannot be less than 1 characters: %q", k, value))
+	}
+
+	if len(value) > 32 {
+		errors = append(errors, fmt.Errorf("%q cannot be longer than 32 characters: %q %d", k, value, len(value)))
 	}
 
 	return warnings, errors
