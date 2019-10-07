@@ -49,9 +49,9 @@ func TestAccAzureRMNetAppAccount_complete(t *testing.T) {
 				Config: testAccAzureRMNetAppAccount_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "active_directories.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "Test"),
 				),
 			},
 			{
@@ -77,16 +77,16 @@ func TestAccAzureRMNetAppAccount_update(t *testing.T) {
 				Config: testAccAzureRMNetAppAccount_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "active_directories.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "0"),
 				),
 			},
 			{
 				Config: testAccAzureRMNetAppAccount_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "active_directories.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
+					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "Test"),
 				),
 			},
 			{
@@ -154,7 +154,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_netapp_account" "test" {
-  name                = "acctestnetappaccount-%d"
+  name                = "acctest-NetAppAccount-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -169,21 +169,21 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_netapp_account" "test" {
-  name                = "acctestnetappaccount-%d"
+  name                = "acctest-NetAppAccount-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  active_directories {
+  active_directory {
     username            = "aduser"
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
-    dns                 = "1.2.3.4"
+    dns_servers         = ["1.2.3.4"]
 	domain              = "westcentralus.com"
 	organizational_unit = "OU=FirstLevel"
   }
 
   tags = {
-    env = "test"
+    ENV = "Test"
   }
 }
 `, rInt, location, rInt)

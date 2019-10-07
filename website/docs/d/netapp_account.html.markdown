@@ -38,28 +38,24 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `location` - Resource location.
+* `location` - Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `active_directories` - One or more `active_directories` block defined below.
+* `active_directory` - One or more `active_directory` block defined below.
 
-* `tags` - Resource tags.
+* `tags` - A mapping of tags to assign to the resource.
 
 ---
 
-The `active_directories` block contains the following:
+The `active_directory` block contains the following:
 
-* `id` - Resource ID.
-
-* `dns` - Comma separated list of DNS server IP addresses for the Active Directory domain.
+* `dns_servers` - A list of DNS server IP addresses for the Active Directory domain.
 
 * `domain` - Name of the Active Directory domain.
 
-* `organizational_unit` - The Organizational Unit (OU) within the Windows Active Directory.
+* `smb_server_name` - NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
+
+* `username` - Username of Active Directory domain administrator, which have permissions to create SMB server machine account in the AD domain.
 
 * `password` - Plain text password of Active Directory domain administrator.
 
-* `smb_server_name` - NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
-
-* `status` - Status of the Active Directory.
-
-* `username` - Username of Active Directory domain administrator.
+* `organizational_unit` - The Organizational Unit (OU) within the Windows Active Directory Domain the netapp is placed.

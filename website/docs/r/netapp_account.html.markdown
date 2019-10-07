@@ -24,17 +24,17 @@ resource "azurerm_netapp_account" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
 
-  active_directories {
+  active_directory {
     username            = "aduser"
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
-    dns                 = "1.2.3.4"
+    dns                 = ["1.2.3.4"]
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
   }
 
   tags = {
-    env = "test"
+    foo = "bar"
   }
 }
 ```
@@ -45,29 +45,29 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the NetApp Account. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The resource group name of the NetApp Account. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group where the NetApp Account resides. Changing this forces a new resource to be created.
 
-* `location` - (Required) Resource location. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `active_directories` - (Optional) One or more `active_directories` block defined below.
+* `active_directory` - (Optional) One or more `active_directory` block defined below.
 
-* `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-The `active_directories` block supports the following:
+The `active_directory` block supports the following:
 
-* `dns` - (Required) Comma separated list of DNS server IP addresses for the Active Directory domain.
+* `dns_servers` - (Required) A list of DNS server IP addresses for the Active Directory domain.
 
 * `domain` - (Required) Name of the Active Directory domain.
 
-* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Windows Active Directory.
+* `smb_server_name` - (Required) NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
+
+* `username` - (Required) Username of Active Directory domain administrator, which have permissions to create SMB server machine account in the AD domain.
 
 * `password` - (Required) Plain text password of Active Directory domain administrator.
 
-* `smb_server_name` - (Required) NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
-
-* `username` - (Required) Username of Active Directory domain administrator.
+* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Windows Active Directory.
 
 ---
 
@@ -77,10 +77,20 @@ The following attributes are exported:
 
 * `id` - Resource id.
 
+* `active_directory` - One or more `active_directory` block defined below.
+
+---
+
+The `active_directory` block supports the following:
+
+* `id` - The resource id of Active Directory.
+
+---
+
 ## Import
 
 NetApp Account can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.NetApp/netAppAccounts/
+$ terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.NetApp/netAppAccounts/acctestnetappaccount
 ```

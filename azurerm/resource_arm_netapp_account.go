@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -32,36 +33,40 @@ func resourceArmNetAppAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: aznetapp.ValidateNetAppAccountName,
 			},
-
-			"location": azure.SchemaLocation(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"active_directories": {
+			"location": azure.SchemaLocation(),
+
+			"active_directory": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"dns": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+						"dns_servers": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: aznetapp.ValidateActiveDirectoryDNSName,
+							},
 						},
 						"domain": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ValidateFunc: aznetapp.ValidateActiveDirectoryDomainName,
+						},
+						"smb_server_name": {
+							Type:         schema.TypeString,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"organizational_unit": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Computed: true,
+						"username": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 						"password": {
 							Type:         schema.TypeString,
@@ -73,19 +78,14 @@ func resourceArmNetAppAccount() *schema.Resource {
 								return (new == d.Get(k).(string)) && (maskedNew == old)
 							},
 						},
-						"smb_server_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-						"status": {
+						"organizational_unit": {
 							Type:     schema.TypeString,
+							Optional: true,
 							Computed: true,
 						},
-						"username": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -104,19 +104,19 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
+			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for present of existing NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_netapp_account", *resp.ID)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_netapp_account", *existing.ID)
 		}
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	activeDirectories := d.Get("active_directories").([]interface{})
+	activeDirectories := d.Get("active_directory").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
 	accountParameters := netapp.Account{
@@ -173,13 +173,22 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if accountProperties := resp.AccountProperties; accountProperties != nil {
-		if err := d.Set("active_directories", flattenArmNetAppActiveDirectories(accountProperties.ActiveDirectories)); err != nil {
-			return fmt.Errorf("Error setting `active_directories`: %+v", err)
+	if props := resp.AccountProperties; props != nil {
+		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories)); err != nil {
+			return fmt.Errorf("Error setting `active_directory`: %+v", err)
 		}
 	}
 
-	return tags.FlattenAndSetTags(d, resp.Tags)
+	currentTags := make(map[string]*string)
+	if v := resp.Tags; v != nil {
+		tagMap := v.(map[string]interface{})
+
+		for k, v := range tagMap {
+			currentTags[k] = utils.String(v.(string))
+		}
+	}
+
+	return tags.FlattenAndSet(d, currentTags)
 }
 
 func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
@@ -214,20 +223,15 @@ func expandArmNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirec
 	results := make([]netapp.ActiveDirectory, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		dns := v["dns"].(string)
-		domain := v["domain"].(string)
-		organizationalUnit := v["organizational_unit"].(string)
-		password := v["password"].(string)
-		smbServerName := v["smb_server_name"].(string)
-		userName := v["username"].(string)
+		dns := strings.Join(*utils.ExpandStringSlice(v["dns_servers"].([]interface{})), ",")
 
 		result := netapp.ActiveDirectory{
 			DNS:                utils.String(dns),
-			Domain:             utils.String(domain),
-			OrganizationalUnit: utils.String(organizationalUnit),
-			Password:           utils.String(password),
-			SmbServerName:      utils.String(smbServerName),
-			Username:           utils.String(userName),
+			Domain:             utils.String(v["domain"].(string)),
+			OrganizationalUnit: utils.String(v["organizational_unit"].(string)),
+			Password:           utils.String(v["password"].(string)),
+			SmbServerName:      utils.String(v["smb_server_name"].(string)),
+			Username:           utils.String(v["username"].(string)),
 		}
 
 		results = append(results, result)
@@ -242,34 +246,42 @@ func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory) []interf
 	}
 
 	for _, item := range *input {
-		v := make(map[string]interface{})
+		b := make(map[string]interface{})
 
-		if id := item.ActiveDirectoryID; id != nil {
-			v["id"] = *id
+		if v := item.DNS; v != nil {
+			b["dns_servers"] = flattenActiveDirectoryDNSServers(*v)
 		}
-		if dns := item.DNS; dns != nil {
-			v["dns"] = *dns
+		if v := item.Domain; v != nil {
+			b["domain"] = *v
 		}
-		if domain := item.Domain; domain != nil {
-			v["domain"] = *domain
+		if v := item.SmbServerName; v != nil {
+			b["smb_server_name"] = *v
 		}
-		if organizationalUnit := item.OrganizationalUnit; organizationalUnit != nil {
-			v["organizational_unit"] = *organizationalUnit
+		if v := item.Username; v != nil {
+			b["username"] = *v
 		}
-		if smbServerName := item.SmbServerName; smbServerName != nil {
-			v["smb_server_name"] = *smbServerName
+		if v := item.Password; v != nil {
+			b["password"] = *v
 		}
-		if status := item.Status; status != nil {
-			v["status"] = *status
+		if v := item.OrganizationalUnit; v != nil {
+			b["organizational_unit"] = *v
 		}
-		if userName := item.Username; userName != nil {
-			v["username"] = *userName
-		}
-		if password := item.Password; password != nil {
-			v["password"] = *password
+		if v := item.ActiveDirectoryID; v != nil {
+			b["id"] = *v
 		}
 
-		results = append(results, v)
+		results = append(results, b)
+	}
+
+	return results
+}
+
+func flattenActiveDirectoryDNSServers(input string) []interface{} {
+	results := make([]interface{}, 0, len(input))
+
+	origins := strings.Split(input, ",")
+	for _, origin := range origins {
+		results = append(results, origin)
 	}
 
 	return results

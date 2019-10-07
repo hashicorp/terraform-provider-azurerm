@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -18,31 +18,34 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: aznetapp.ValidateNetAppAccountName,
 			},
-
-			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"active_directories": {
+			"location": azure.SchemaLocationForDataSource(),
+
+			"active_directory": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
+						"dns_servers": {
+							Type:     schema.TypeList,
 							Computed: true,
-						},
-						"dns": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"domain": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"organizational_unit": {
+						"smb_server_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"username": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -51,15 +54,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 							Sensitive: true,
 							Computed:  true,
 						},
-						"smb_server_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"username": {
+						"organizational_unit": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -67,7 +62,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -94,11 +89,20 @@ func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) er
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if accountProperties := resp.AccountProperties; accountProperties != nil {
-		if err := d.Set("active_directories", flattenArmNetAppActiveDirectories(accountProperties.ActiveDirectories)); err != nil {
-			return fmt.Errorf("Error setting `active_directories`: %+v", err)
+	if props := resp.AccountProperties; props != nil {
+		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories)); err != nil {
+			return fmt.Errorf("Error setting `active_directory`: %+v", err)
 		}
 	}
 
-	return tags.FlattenAndSetTags(d, resp.Tags)
+	currentTags := make(map[string]*string)
+	if v := resp.Tags; v != nil {
+		tagMap := v.(map[string]interface{})
+
+		for k, v := range tagMap {
+			currentTags[k] = utils.String(v.(string))
+		}
+	}
+
+	return tags.FlattenAndSet(d, currentTags)
 }
