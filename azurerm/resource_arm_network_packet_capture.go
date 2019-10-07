@@ -5,12 +5,13 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -135,7 +136,7 @@ func resourceArmNetworkPacketCapture() *schema.Resource {
 }
 
 func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PacketCapturesClient
+	client := meta.(*ArmClient).Network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -147,7 +148,7 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -201,7 +202,7 @@ func resourceArmNetworkPacketCaptureCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PacketCapturesClient
+	client := meta.(*ArmClient).Network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -249,7 +250,7 @@ func resourceArmNetworkPacketCaptureRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmNetworkPacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PacketCapturesClient
+	client := meta.(*ArmClient).Network.PacketCapturesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -5,15 +5,17 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -88,7 +90,6 @@ func resourceArmNetworkInterface() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  string(network.IPv4),
-							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPv4),
 								string(network.IPv6),
@@ -103,7 +104,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 								string(network.Dynamic),
 								string(network.Static),
 							}, true),
-							StateFunc:        ignoreCaseStateFunc,
+							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -246,7 +247,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 }
 
 func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
@@ -254,7 +255,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -286,10 +287,12 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 			ID: &nsgId,
 		}
 
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(nsgId)
+		parsedNsgID, err := azure.ParseAzureResourceID(nsgId)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", nsgId, err)
 		}
+
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
 		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
@@ -363,7 +366,7 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -389,7 +392,6 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.InterfacePropertiesFormat; props != nil {
-
 		d.Set("mac_address", props.MacAddress)
 		addresses := make([]interface{}, 0)
 		if configs := props.IPConfigurations; configs != nil {
@@ -397,7 +399,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 				if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
 					if v := ipProps.PrivateIPAddress; v != nil {
 						if i == 0 {
-							d.Set("private_ip_address", *v)
+							d.Set("private_ip_address", v)
 						}
 						addresses = append(addresses, *v)
 					}
@@ -451,7 +453,7 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -466,10 +468,12 @@ func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{})
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err2 := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err2 != nil {
-			return err2
+		parsedNsgID, err := azure.ParseAzureResourceID(networkSecurityGroupId)
+		if err != nil {
+			return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", networkSecurityGroupId, err)
 		}
+
+		networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
 
 		locks.ByName(networkSecurityGroupName, networkSecurityGroupResourceName)
 		defer locks.UnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)

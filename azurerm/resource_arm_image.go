@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -168,7 +169,7 @@ func resourceArmImage() *schema.Resource {
 }
 
 func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ImagesClient
+	client := meta.(*ArmClient).Compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Image creation.")
@@ -177,7 +178,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 	resGroup := d.Get("resource_group_name").(string)
 	zoneResilient := d.Get("zone_resilient").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -266,7 +267,7 @@ func resourceArmImageCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ImagesClient
+	client := meta.(*ArmClient).Compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -313,7 +314,7 @@ func resourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmImageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ImagesClient
+	client := meta.(*ArmClient).Compute.ImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -421,7 +422,6 @@ func expandAzureRmImageOsDisk(d *schema.ResourceData) (*compute.ImageOSDisk, err
 }
 
 func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDisk, error) {
-
 	disks := d.Get("data_disk").([]interface{})
 
 	dataDisks := make([]compute.ImageDataDisk, 0, len(disks))
@@ -459,5 +459,4 @@ func expandAzureRmImageDataDisks(d *schema.ResourceData) ([]compute.ImageDataDis
 	}
 
 	return dataDisks, nil
-
 }

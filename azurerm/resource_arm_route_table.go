@@ -6,11 +6,12 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -102,7 +103,7 @@ func resourceArmRouteTable() *schema.Resource {
 }
 
 func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RouteTablesClient
+	client := meta.(*ArmClient).Network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Route Table creation.")
@@ -112,7 +113,7 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 	resGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -158,7 +159,7 @@ func resourceArmRouteTableCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RouteTablesClient
+	client := meta.(*ArmClient).Network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -198,7 +199,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RouteTablesClient
+	client := meta.(*ArmClient).Network.RouteTablesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

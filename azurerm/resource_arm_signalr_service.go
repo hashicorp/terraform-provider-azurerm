@@ -5,12 +5,13 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -112,7 +113,7 @@ func resourceArmSignalRService() *schema.Resource {
 }
 
 func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalr.Client
+	client := meta.(*ArmClient).SignalR.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -123,7 +124,7 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -163,7 +164,7 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalr.Client
+	client := meta.(*ArmClient).SignalR.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -214,7 +215,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).signalr.Client
+	client := meta.(*ArmClient).SignalR.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,7 +33,7 @@ func resourceArmApiManagementGroupUser() *schema.Resource {
 }
 
 func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.GroupUsersClient
+	client := meta.(*ArmClient).ApiManagement.GroupUsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -40,7 +41,7 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 	groupName := d.Get("group_name").(string)
 	userId := d.Get("user_id").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, groupName, userId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp) {
@@ -67,7 +68,7 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.GroupUsersClient
+	client := meta.(*ArmClient).ApiManagement.GroupUsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -99,7 +100,7 @@ func resourceArmApiManagementGroupUserRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmApiManagementGroupUserDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.GroupUsersClient
+	client := meta.(*ArmClient).ApiManagement.GroupUsersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

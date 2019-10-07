@@ -8,13 +8,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -162,14 +163,14 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 }
 
 func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	name := d.Get("name").(string)
 	actualResourceId := d.Get("target_resource_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, actualResourceId, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -273,7 +274,7 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())
@@ -316,7 +317,7 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.DiagnosticSettingsClient
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseMonitorDiagnosticId(d.Id())

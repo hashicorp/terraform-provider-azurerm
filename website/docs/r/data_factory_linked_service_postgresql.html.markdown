@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_postgresql"
 sidebar_current: "docs-azurerm-resource-data-factory-linked-service-postgresql"
 description: |-
-  Manage a Linked Service (connection) between PostgreSQL and Azure Data Factory.
+  Manages a Linked Service (connection) between PostgreSQL and Azure Data Factory.
 ---
 
 # azurerm_data_factory_linked_service_postgresql
 
-Manage a Linked Service (connection) between PostgreSQL and Azure Data Factory.
+Manages a Linked Service (connection) between PostgreSQL and Azure Data Factory.
 
 ~> **Note:** All arguments including the connection_string will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 

@@ -8,13 +8,14 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -336,6 +337,9 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 									"properties": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},
@@ -350,13 +354,13 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 }
 
 func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -414,7 +418,7 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -463,7 +467,7 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -865,7 +869,6 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 	result := make(map[string]interface{})
 
 	if schedule := input.Schedule; schedule != nil {
-
 		if timezone := schedule.TimeZone; timezone != nil {
 			result["timezone"] = *timezone
 		}

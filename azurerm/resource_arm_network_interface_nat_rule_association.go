@@ -5,11 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,7 +50,7 @@ func resourceArmNetworkInterfaceNatRuleAssociation() *schema.Resource {
 }
 
 func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Load Balancer NAT Rule Association creation.")
@@ -107,7 +108,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 		for _, existingRule := range *p.LoadBalancerInboundNatRules {
 			if id := existingRule.ID; id != nil {
 				if *id == natRuleId {
-					if requireResourcesToBeImported {
+					if features.ShouldResourcesBeImported() {
 						return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
 					}
 
@@ -142,7 +143,7 @@ func resourceArmNetworkInterfaceNatRuleAssociationCreate(d *schema.ResourceData,
 }
 
 func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -211,15 +212,13 @@ func resourceArmNetworkInterfaceNatRuleAssociationRead(d *schema.ResourceData, m
 
 	d.Set("ip_configuration_name", ipConfigurationName)
 	d.Set("nat_rule_id", natRuleId)
-	if id := read.ID; id != nil {
-		d.Set("network_interface_id", *id)
-	}
+	d.Set("network_interface_id", read.ID)
 
 	return nil
 }
 
 func resourceArmNetworkInterfaceNatRuleAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")

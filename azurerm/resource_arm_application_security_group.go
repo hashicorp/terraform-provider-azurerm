@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -40,13 +41,13 @@ func resourceArmApplicationSecurityGroup() *schema.Resource {
 }
 
 func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ApplicationSecurityGroupsClient
+	client := meta.(*ArmClient).Network.ApplicationSecurityGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -89,7 +90,7 @@ func resourceArmApplicationSecurityGroupCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ApplicationSecurityGroupsClient
+	client := meta.(*ArmClient).Network.ApplicationSecurityGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -118,7 +119,7 @@ func resourceArmApplicationSecurityGroupRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmApplicationSecurityGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ApplicationSecurityGroupsClient
+	client := meta.(*ArmClient).Network.ApplicationSecurityGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

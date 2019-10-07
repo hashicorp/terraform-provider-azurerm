@@ -2,11 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,8 +37,52 @@ func TestAccAzureRMApiManagement_basic(t *testing.T) {
 	})
 }
 
+// Remove in 2.0
+func TestAccAzureRMApiManagement_basicClassic(t *testing.T) {
+	resourceName := "azurerm_api_management.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApiManagement_basicClassic(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// Remove in 2.0
+func TestAccAzureRMApiManagement_basicNotDefined(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApiManagement_basicNotDefined(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      config,
+				ExpectError: regexp.MustCompile("either 'sku_name' or 'sku' must be defined in the configuration file"),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagement_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -92,7 +138,7 @@ func TestAccAzureRMApiManagement_customProps(t *testing.T) {
 func TestAccAzureRMApiManagement_complete(t *testing.T) {
 	resourceName := "azurerm_api_management.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMApiManagement_complete(ri, testLocation(), testAltLocation())
+	config := testAccAzureRMApiManagement_complete(ri, testLocation(), testAltLocation(), testAltLocation2())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -178,10 +224,12 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 				),
 			},
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"policy.0.xml_link"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"policy.0.xml_link",
+				},
 			},
 			{
 				Config: testAccAzureRMApiManagement_policyRemoved(ri, location),
@@ -199,7 +247,7 @@ func TestAccAzureRMApiManagement_policy(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ServiceClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ServiceClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management" {
@@ -239,7 +287,7 @@ func testCheckAzureRMApiManagementExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for Api Management: %s", apiMangementName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ServiceClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, apiMangementName)
 		if err != nil {
@@ -268,10 +316,48 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
+  sku_name = "Developer_1"
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMApiManagement_basicClassic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
   sku {
-    name     = "Developer"
+    name = "Developer"
     capacity = 1
-  }
+	}
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMApiManagement_basicNotDefined(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
 }
 `, rInt, location, rInt)
 }
@@ -290,10 +376,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy {
     xml_content = <<XML
@@ -322,10 +405,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy {
     xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
@@ -348,10 +428,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   policy = []
 }
@@ -370,10 +447,7 @@ resource "azurerm_api_management" "import" {
   publisher_name      = "${azurerm_api_management.test.publisher_name}"
   publisher_email     = "${azurerm_api_management.test.publisher_email}"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 `, template)
 }
@@ -392,10 +466,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   security {
     disable_frontend_tls10     = true
@@ -419,10 +490,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 
   sign_in {
     enabled = true
@@ -441,7 +509,7 @@ resource "azurerm_api_management" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string) string {
+func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string, altLocation2 string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test1" {
   name     = "acctestRG-%d"
@@ -453,6 +521,11 @@ resource "azurerm_resource_group" "test2" {
   location = "%s"
 }
 
+resource "azurerm_resource_group" "test3" {
+	name     = "acctestRG3-%d"
+	location = "%s"
+}
+
 resource "azurerm_api_management" "test" {
   name                      = "acctestAM-%d"
   publisher_name            = "pub1"
@@ -461,6 +534,10 @@ resource "azurerm_api_management" "test" {
 
   additional_location {
     location = "${azurerm_resource_group.test2.location}"
+  }
+
+  additional_location {
+    location = "${azurerm_resource_group.test3.location}"
   }
 
   certificate {
@@ -503,10 +580,7 @@ resource "azurerm_api_management" "test" {
     }
   }
 
-  sku {
-    name     = "Premium"
-    capacity = 1
-  }
+  sku_name = "Premium_1"
 
   tags = {
     "Acceptance" = "Test"
@@ -515,5 +589,5 @@ resource "azurerm_api_management" "test" {
   location            = "${azurerm_resource_group.test1.location}"
   resource_group_name = "${azurerm_resource_group.test1.name}"
 }
-`, rInt, location, rInt, altLocation, rInt)
+`, rInt, location, rInt, altLocation, rInt, altLocation2, rInt)
 }

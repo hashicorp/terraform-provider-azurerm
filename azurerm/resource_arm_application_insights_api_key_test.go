@@ -6,10 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
@@ -30,7 +31,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_no_permission(t *testing.T) {
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -148,7 +149,6 @@ func TestAccAzureRMApplicationInsightsAPIKey_authenticate_permission(t *testing.
 			},
 		},
 	})
-
 }
 
 func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
@@ -179,11 +179,10 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsights.APIKeyClient
+	conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeyClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -229,7 +228,7 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 		resGroup := id.ResourceGroup
 		appInsightsName := id.Path["components"]
 
-		conn := testAccProvider.Meta().(*ArmClient).appInsights.APIKeyClient
+		conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeyClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)

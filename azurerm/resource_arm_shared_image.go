@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -101,7 +102,7 @@ func resourceArmSharedImage() *schema.Resource {
 }
 
 func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImagesClient
+	client := meta.(*ArmClient).Compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
@@ -119,7 +120,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 	osType := d.Get("os_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, galleryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -172,7 +173,7 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImagesClient
+	client := meta.(*ArmClient).Compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -219,7 +220,7 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImagesClient
+	client := meta.(*ArmClient).Compute.GalleryImagesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

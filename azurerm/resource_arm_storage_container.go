@@ -5,10 +5,11 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
@@ -60,23 +61,28 @@ func resourceArmStorageContainer() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+
 			"has_legal_hold": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
+
 			"properties": {
 				Type:       schema.TypeMap,
 				Computed:   true,
 				Deprecated: "This field will be removed in version 2.0 of the Azure Provider",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
 func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 	ctx := meta.(*ArmClient).StopContext
 
 	containerName := d.Get("name").(string)
@@ -101,7 +107,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	id := client.GetResourceID(accountName, containerName)
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -129,7 +135,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 
 func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
@@ -178,7 +184,7 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {
@@ -233,7 +239,7 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := containers.ParseResourceID(d.Id())
 	if err != nil {

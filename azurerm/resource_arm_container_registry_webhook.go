@@ -6,11 +6,13 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,6 +53,9 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 			"custom_headers": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"status": {
@@ -87,13 +92,13 @@ func resourceArmContainerRegistryWebhook() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry Webhook creation.")
 
@@ -101,7 +106,7 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 	registryName := d.Get("registry_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, registryName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -115,12 +120,12 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	webhook := containerregistry.WebhookCreateParameters{
 		Location:                          &location,
 		WebhookPropertiesCreateParameters: expandWebhookPropertiesCreateParameters(d),
-		Tags:                              expandTags(tags),
+		Tags:                              tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, registryName, name, webhook)
@@ -147,7 +152,7 @@ func resourceArmContainerRegistryWebhookCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry Webhook update.")
@@ -161,11 +166,11 @@ func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta inte
 	registryName := id.Path["registries"]
 	name := id.Path["webhooks"]
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	webhook := containerregistry.WebhookUpdateParameters{
 		WebhookPropertiesUpdateParameters: expandWebhookPropertiesUpdateParameters(d),
-		Tags:                              expandTags(tags),
+		Tags:                              tags.Expand(t),
 	}
 
 	future, err := client.Update(ctx, resourceGroup, registryName, name, webhook)
@@ -181,7 +186,7 @@ func resourceArmContainerRegistryWebhookUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -242,13 +247,11 @@ func resourceArmContainerRegistryWebhookRead(d *schema.ResourceData, meta interf
 		d.Set("actions", webhookActions)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerRegistryWebhookDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.WebhooksClient
+	client := meta.(*ArmClient).Containers.WebhooksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

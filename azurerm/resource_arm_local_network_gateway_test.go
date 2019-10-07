@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,7 +40,7 @@ func TestAccAzureRMLocalNetworkGateway_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLocalNetworkGateway_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -263,7 +264,7 @@ func testCheckAzureRMLocalNetworkGatewayExists(resourceName string) resource.Tes
 		resGrp := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*ArmClient).network.LocalNetworkGatewaysClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resGrp, localNetName)
@@ -296,7 +297,7 @@ func testCheckAzureRMLocalNetworkGatewayDisappears(resourceName string) resource
 		resourceGroup := id.ResourceGroup
 
 		// and finally, check that it exists on Azure:
-		client := testAccProvider.Meta().(*ArmClient).network.LocalNetworkGatewaysClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, localNetName)
@@ -328,7 +329,7 @@ func testCheckAzureRMLocalNetworkGatewayDestroy(s *terraform.State) error {
 		localNetName := id.Path["localNetworkGateways"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).network.LocalNetworkGatewaysClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LocalNetworkGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, localNetName)
 

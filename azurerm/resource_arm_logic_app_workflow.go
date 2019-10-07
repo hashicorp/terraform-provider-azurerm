@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -40,6 +41,9 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"workflow_schema": {
@@ -67,7 +71,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 }
 
 func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
@@ -75,7 +79,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -127,7 +131,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -177,7 +181,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -224,7 +228,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logic.WorkflowsClient
+	client := meta.(*ArmClient).Logic.WorkflowsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

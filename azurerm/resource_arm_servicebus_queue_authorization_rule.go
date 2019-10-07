@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -52,7 +53,7 @@ func resourceArmServiceBusQueueAuthorizationRule() *schema.Resource {
 }
 
 func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue Authorization Rule creation.")
@@ -62,7 +63,7 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 	namespaceName := d.Get("namespace_name").(string)
 	queueName := d.Get("queue_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -101,7 +102,7 @@ func resourceArmServiceBusQueueAuthorizationRuleCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -150,7 +151,7 @@ func resourceArmServiceBusQueueAuthorizationRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmServiceBusQueueAuthorizationRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -11,14 +11,15 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -416,11 +417,10 @@ func resourceArmIotHub() *schema.Resource {
 			"tags": tags.Schema(),
 		},
 	}
-
 }
 
 func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
@@ -430,7 +430,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	locks.ByName(name, iothubResourceName)
 	defer locks.UnlockByName(name, iothubResourceName)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -513,7 +513,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -547,7 +547,6 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if properties := hub.Properties; properties != nil {
-
 		for k, v := range properties.EventHubEndpoints {
 			if v == nil {
 				continue
@@ -560,7 +559,6 @@ func resourceArmIotHubRead(d *schema.ResourceData, meta interface{}) error {
 				d.Set("event_hub_operations_endpoint", v.Endpoint)
 				d.Set("event_hub_operations_path", v.Path)
 			}
-
 		}
 
 		d.Set("hostname", properties.HostName)
@@ -610,7 +608,7 @@ func resourceArmIotHubDelete(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := id.Path["IotHubs"]
@@ -915,7 +913,6 @@ func flattenIoTHubEndpoint(input *devices.RoutingProperties) []interface{} {
 	results := make([]interface{}, 0)
 
 	if input != nil && input.Endpoints != nil {
-
 		if containers := input.Endpoints.StorageContainers; containers != nil {
 			for _, container := range *containers {
 				output := make(map[string]interface{})

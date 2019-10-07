@@ -8,10 +8,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -111,7 +112,7 @@ func TestAccAzureRMDataLakeStoreFile_largefiles(t *testing.T) {
 }
 
 func TestAccAzureRMDataLakeStoreFile_requiresimport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -152,7 +153,7 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 		remoteFilePath := rs.Primary.Attributes["remote_file_path"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFilesClient
+		conn := testAccProvider.Meta().(*ArmClient).Datalake.StoreFilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
@@ -169,7 +170,7 @@ func testCheckAzureRMDataLakeStoreFileExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMDataLakeStoreFileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).datalake.StoreFilesClient
+	conn := testAccProvider.Meta().(*ArmClient).Datalake.StoreFilesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -5,12 +5,13 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicefabric/mgmt/2018-02-01/servicefabric"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -247,6 +248,9 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"parameters": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -264,10 +268,16 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 						"placement_properties": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"capacities": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"instance_count": {
 							Type:     schema.TypeInt,
@@ -353,7 +363,7 @@ func resourceArmServiceFabricCluster() *schema.Resource {
 }
 
 func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabric.ClustersClient
+	client := meta.(*ArmClient).ServiceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Service Fabric Cluster creation.")
@@ -368,7 +378,7 @@ func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta in
 	vmImage := d.Get("vm_image").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -453,7 +463,7 @@ func resourceArmServiceFabricClusterCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabric.ClustersClient
+	client := meta.(*ArmClient).ServiceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -539,7 +549,7 @@ func resourceArmServiceFabricClusterRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmServiceFabricClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceFabric.ClustersClient
+	client := meta.(*ArmClient).ServiceFabric.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

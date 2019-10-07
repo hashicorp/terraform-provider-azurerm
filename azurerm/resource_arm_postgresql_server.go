@@ -7,14 +7,15 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -165,6 +166,15 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(postgresql.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(postgresql.StorageAutogrowEnabled),
+								string(postgresql.StorageAutogrowDisabled),
+							}, false),
+						},
 					},
 				},
 			},
@@ -188,7 +198,6 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			tier, _ := diff.GetOk("sku.0.tier")
 			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
 
@@ -202,7 +211,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 }
 
 func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
@@ -218,7 +227,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 	createMode := "Default"
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -272,7 +281,7 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
@@ -322,7 +331,7 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -369,7 +378,7 @@ func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.ServersClient
+	client := meta.(*ArmClient).Postgres.ServersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -423,11 +432,13 @@ func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.S
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &postgresql.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
 		GeoRedundantBackup:  postgresql.GeoRedundantBackup(geoRedundantBackup),
 		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     postgresql.StorageAutogrow(autoGrow),
 	}
 }
 
@@ -457,6 +468,8 @@ func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interfac
 	if storageMB := resp.StorageMB; storageMB != nil {
 		values["storage_mb"] = *storageMB
 	}
+
+	values["auto_grow"] = string(resp.StorageAutogrow)
 
 	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
 		values["backup_retention_days"] = *backupRetentionDays

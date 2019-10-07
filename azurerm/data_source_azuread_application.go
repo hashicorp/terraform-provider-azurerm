@@ -5,7 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -74,13 +75,13 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).graph.ApplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Graph.ApplicationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	var application graphrbac.Application
 
 	if oId, ok := d.GetOk("object_id"); ok {
-
 		// use the object_id to find the Azure AD application
 		objectId := oId.(string)
 		resp, err := client.Get(ctx, objectId)
@@ -94,7 +95,6 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 
 		application = resp
 	} else {
-
 		// use the name to find the Azure AD application
 		name := d.Get("name").(string)
 		filter := fmt.Sprintf("displayName eq '%s'", name)
@@ -132,16 +132,12 @@ func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{
 	d.Set("available_to_other_tenants", application.AvailableToOtherTenants)
 	d.Set("oauth2_allow_implicit_flow", application.Oauth2AllowImplicitFlow)
 
-	if s := application.IdentifierUris; s != nil {
-		if err := d.Set("identifier_uris", *s); err != nil {
-			return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
-		}
+	if err := d.Set("identifier_uris", application.IdentifierUris); err != nil {
+		return fmt.Errorf("Error setting `identifier_uris`: %+v", err)
 	}
 
-	if s := application.ReplyUrls; s != nil {
-		if err := d.Set("reply_urls", *s); err != nil {
-			return fmt.Errorf("Error setting `reply_urls`: %+v", err)
-		}
+	if err := d.Set("reply_urls", application.ReplyUrls); err != nil {
+		return fmt.Errorf("Error setting `reply_urls`: %+v", err)
 	}
 
 	return nil

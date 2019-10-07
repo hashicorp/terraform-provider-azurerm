@@ -5,10 +5,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,7 +33,7 @@ func TestAccAzureRMMariaDBVirtualNetworkRule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMariaDBVirtualNetworkRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -150,7 +151,7 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleExists(resourceName string) resour
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).mariadb.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).MariaDB.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -176,7 +177,7 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDestroy(s *terraform.State) error 
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).mariadb.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).MariaDB.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -206,7 +207,7 @@ func testCheckAzureRMMariaDBVirtualNetworkRuleDisappears(resourceName string) re
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).mariadb.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).MariaDB.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)

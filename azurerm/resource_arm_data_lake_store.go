@@ -5,12 +5,13 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -110,13 +111,13 @@ func resourceArmDataLakeStore() *schema.Resource {
 }
 
 func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreAccountsClient
+	client := meta.(*ArmClient).Datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -177,7 +178,7 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreAccountsClient
+	client := meta.(*ArmClient).Datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -209,7 +210,7 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreAccountsClient
+	client := meta.(*ArmClient).Datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -254,7 +255,7 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreAccountsClient
+	client := meta.(*ArmClient).Datalake.StoreAccountsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

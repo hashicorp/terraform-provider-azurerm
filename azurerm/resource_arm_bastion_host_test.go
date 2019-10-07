@@ -2,19 +2,22 @@ package azurerm
 
 import (
 	"fmt"
-	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"testing"
 )
 
 func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	resourceName := "azurerm_bastion_host.test"
 	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
 
-	config := testAccAzureRMBastionHost_basic(ri, testLocation())
+	config := testAccAzureRMBastionHost_basic(ri, rs, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -31,17 +34,39 @@ func TestAccAzureRMBastionHost_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+func TestAccAzureRMBastionHost_complete(t *testing.T) {
+	resourceName := "azurerm_bastion_host.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	config := testAccAzureRMBastionHost_complete(ri, rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBastionHostDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBastionHostExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMBastionHost_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
 
 	resourceName := "azurerm_bastion_host.test"
 	ri := tf.AccRandTimeInt()
-
 	rs := acctest.RandString(4)
-	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -55,14 +80,14 @@ func TestAccAzureRMBatchAccount_requiresImport(t *testing.T) {
 				),
 			},
 			{
-				Config:      testAccAzureRMBastionHost_requiresImport(ri, rs, location),
+				Config:      testAccAzureRMBastionHost_requiresImport(ri, rs, testLocation()),
 				ExpectError: testRequiresImportError("azurerm_bastion_host"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMBastionHost_basic(rInt int, location string) string {
+func testAccAzureRMBastionHost_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -70,7 +95,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestVNet%d"
+  name                = "acctestVNet%s"
   address_space       = ["192.168.1.0/24"]
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -92,7 +117,7 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_bastion_host" "test" {
-  name                = "acctestBastion%d"
+  name                = "acctestBastion%s"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -102,17 +127,65 @@ resource "azurerm_bastion_host" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 }
-`, rInt, location, rInt, rInt, rInt)
+`, rInt, location, rString, rInt, rString)
 }
 
-func testAccAzureRMBastionHost_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMBastionHost_basic(rInt, location)
+func testAccAzureRMBastionHost_complete(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestVNet%s"
+  address_space       = ["192.168.1.0/24"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureBastionSubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "192.168.1.224/27"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestBastionPIP%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_bastion_host" "test" {
+  name                = "acctestBastion%s"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+
+  tags = {
+    environment = "production"
+  }
+}
+`, rInt, location, rString, rInt, rString)
+}
+
+func testAccAzureRMBastionHost_requiresImport(rInt int, rString string, location string) string {
+	template := testAccAzureRMBastionHost_basic(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 resource "azurerm_bastion_host" "import" {
-  name                 = "${azurerm_batch_account.test.name}"
-  resource_group_name  = "${azurerm_batch_account.test.resource_group_name}"
-  location             = "${azurerm_batch_account.test.location}"
+  name                 = "${azurerm_bastion_host.test.name}"
+  resource_group_name  = "${azurerm_bastion_host.test.resource_group_name}"
+  location             = "${azurerm_bastion_host.test.location}"
+
   ip_configuration {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
@@ -124,7 +197,7 @@ resource "azurerm_bastion_host" "import" {
 
 func testCheckAzureRMBastionHostExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).bastionHostsClient
+		client := testAccProvider.Meta().(*ArmClient).network.BastionHostsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -148,7 +221,7 @@ func testCheckAzureRMBastionHostExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMBastionHostDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).bastionHostsClient
+	client := testAccProvider.Meta().(*ArmClient).network.BastionHostsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

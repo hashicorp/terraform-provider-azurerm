@@ -4,13 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/helper/mutexkv"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
-
-// armMutexKV is the instance of MutexKV for ARM resources
-var armMutexKV = mutexkv.NewMutexKV()
 
 // Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
@@ -77,14 +73,17 @@ func Provider() terraform.ResourceProvider {
 			"azuread_application":       dataApplication(),
 			"azuread_domains":           dataDomains(),
 			"azuread_group":             dataGroup(),
+			"azuread_groups":            dataGroups(),
 			"azuread_service_principal": dataServicePrincipal(),
-			"azuread_user":              dataSourceUser(),
+			"azuread_user":              dataUser(),
+			"azuread_users":             dataUsers(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
 			"azuread_application":                resourceApplication(),
 			"azuread_application_password":       resourceApplicationPassword(),
 			"azuread_group":                      resourceGroup(),
+			"azuread_group_member":               resourceGroupMember(),
 			"azuread_service_principal":          resourceServicePrincipal(),
 			"azuread_service_principal_password": resourceServicePrincipalPassword(),
 			"azuread_user":                       resourceUser(),
@@ -121,7 +120,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureAD Client: %s", err)
 		}
 
-		client, err := getArmClient(config)
+		client, err := getArmClient(config, p.TerraformVersion)
 		if err != nil {
 			return nil, err
 		}

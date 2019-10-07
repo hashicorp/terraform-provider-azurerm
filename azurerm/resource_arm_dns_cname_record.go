@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -40,7 +41,6 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 				Removed:  "Use `record` instead. This attribute will be removed in a future version",
 			},
 
@@ -60,14 +60,14 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 }
 
 func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dns.RecordSetsClient
+	client := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.CNAME)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -116,7 +116,7 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dns.RecordSetsClient
+	dnsClient := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -152,7 +152,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).dns.RecordSetsClient
+	dnsClient := meta.(*ArmClient).Dns.RecordSetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

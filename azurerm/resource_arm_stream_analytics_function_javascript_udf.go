@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -100,7 +101,7 @@ func resourceArmStreamAnalyticsFunctionUDF() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.FunctionsClient
+	client := meta.(*ArmClient).StreamAnalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Function Javascript UDF creation.")
@@ -108,7 +109,7 @@ func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, m
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -168,7 +169,7 @@ func resourceArmStreamAnalyticsFunctionUDFCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.FunctionsClient
+	client := meta.(*ArmClient).StreamAnalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -222,7 +223,7 @@ func resourceArmStreamAnalyticsFunctionUDFRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStreamAnalyticsFunctionUDFDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.FunctionsClient
+	client := meta.(*ArmClient).StreamAnalytics.FunctionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

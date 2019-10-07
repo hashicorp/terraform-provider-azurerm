@@ -5,11 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,7 +50,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociation() *schema.Re
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Security Group Association creation.")
@@ -106,7 +107,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 		for _, existingGroup := range *p.ApplicationSecurityGroups {
 			if id := existingGroup.ID; id != nil {
 				if *id == applicationSecurityGroupId {
-					if requireResourcesToBeImported {
+					if features.ShouldResourcesBeImported() {
 						return tf.ImportAsExistsError("azurerm_network_interface_application_security_group_association", *id)
 					}
 
@@ -142,7 +143,7 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationCreate(d *sch
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -211,15 +212,13 @@ func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationRead(d *schem
 
 	d.Set("application_security_group_id", applicationSecurityGroupId)
 	d.Set("ip_configuration_name", ipConfigurationName)
-	if id := read.ID; id != nil {
-		d.Set("network_interface_id", *id)
-	}
+	d.Set("network_interface_id", read.ID)
 
 	return nil
 }
 
 func resourceArmNetworkInterfaceApplicationSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")

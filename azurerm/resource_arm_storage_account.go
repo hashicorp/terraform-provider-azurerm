@@ -3,19 +3,22 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -57,6 +60,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.BlockBlobStorage),
 					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
@@ -213,6 +217,199 @@ func resourceArmStorageAccount() *schema.Resource {
 								string(storage.DefaultActionAllow),
 								string(storage.DefaultActionDeny),
 							}, false),
+						},
+					},
+				},
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"queue_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cors_rule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 5,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"allowed_origins": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
+									},
+									"exposed_headers": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
+									},
+									"allowed_headers": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
+									},
+									"allowed_methods": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											Elem: &schema.Schema{
+												Type: schema.TypeString,
+												ValidateFunc: validation.StringInSlice([]string{
+													"DELETE",
+													"GET",
+													"HEAD",
+													"MERGE",
+													"POST",
+													"OPTIONS",
+													"PUT"}, false),
+											},
+										},
+									},
+									"max_age_in_seconds": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 2000000000),
+									},
+								},
+							},
+						},
+						"logging": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"delete": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"read": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"write": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+						"hour_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+						"minute_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
 						},
 					},
 				},
@@ -383,196 +580,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
-			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, true),
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"tags": {
-				Type:         schema.TypeMap,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateAzureRMStorageAccountTags,
-			},
-
-			"queue_properties": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"cors_rule": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 5,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"allowed_origins": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
-										},
-									},
-									"exposed_headers": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
-										},
-									},
-									"allowed_headers": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type:         schema.TypeString,
-											ValidateFunc: validate.NoEmptyStrings,
-										},
-									},
-									"allowed_methods": {
-										Type:     schema.TypeList,
-										Required: true,
-										MaxItems: 64,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-											Elem: &schema.Schema{
-												Type: schema.TypeString,
-												ValidateFunc: validation.StringInSlice([]string{
-													"DELETE",
-													"GET",
-													"HEAD",
-													"MERGE",
-													"POST",
-													"OPTIONS",
-													"PUT"}, false),
-											},
-										},
-									},
-									"max_age_in_seconds": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 2000000000),
-									},
-								},
-							},
-						},
-						"logging": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"version": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-									"delete": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"read": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"write": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"retention_policy_days": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
-						"hour_metrics": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"version": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"include_apis": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-									"retention_policy_days": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
-						"minute_metrics": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"version": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"include_apis": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-									"retention_policy_days": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(1, 365),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -602,13 +609,13 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
-	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+	client := meta.(*ArmClient).Storage.AccountsClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 
 	storageAccountName := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -734,7 +741,10 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
-		queueClient := meta.(*ArmClient).storage.QueuesClient
+		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		queueProperties, err := expandQueueProperties(val.([]interface{}))
 		if err != nil {
@@ -754,8 +764,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 // available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
-	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+	client := meta.(*ArmClient).Storage.AccountsClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -910,7 +920,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("enable_advanced_threat_protection") {
-
 		opts := security.AdvancedThreatProtectionSetting{
 			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
 				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
@@ -925,7 +934,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("queue_properties") {
-		queueClient := meta.(*ArmClient).storage.QueuesClient
+		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
 
 		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
 		if err != nil {
@@ -945,8 +957,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
-	advancedThreatProtectionClient := meta.(*ArmClient).securityCenter.AdvancedThreatProtectionClient
+	client := meta.(*ArmClient).Storage.AccountsClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -965,12 +977,31 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
+	// handle the user not having permissions to list the keys
+	d.Set("primary_connection_string", "")
+	d.Set("secondary_connection_string", "")
+	d.Set("primary_blob_connection_string", "")
+	d.Set("secondary_blob_connection_string", "")
+	d.Set("primary_access_key", "")
+	d.Set("secondary_access_key", "")
+
 	keys, err := client.ListKeys(ctx, resGroup, name)
 	if err != nil {
-		return err
+		// the API returns a 200 with an inner error of a 409..
+		var hasWriteLock bool
+		var doesntHavePermissions bool
+		if e, ok := err.(azautorest.DetailedError); ok {
+			if status, ok := e.StatusCode.(int); ok {
+				hasWriteLock = status == http.StatusConflict
+				doesntHavePermissions = status == http.StatusUnauthorized
+			}
+		}
+
+		if !hasWriteLock && !doesntHavePermissions {
+			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resGroup, err)
+		}
 	}
 
-	accessKeys := *keys.Keys
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
@@ -1011,35 +1042,44 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if len(accessKeys) > 0 {
-			pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[0].Value, endpointSuffix)
-			d.Set("primary_connection_string", pcs)
-		}
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			if len(storageAccountKeys) > 0 {
+				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, endpointSuffix)
+				d.Set("primary_connection_string", pcs)
+			}
 
-		if len(accessKeys) > 1 {
-			scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[1].Value, endpointSuffix)
-			d.Set("secondary_connection_string", scs)
+			if len(storageAccountKeys) > 1 {
+				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, endpointSuffix)
+				d.Set("secondary_connection_string", scs)
+			}
 		}
 
 		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		var primaryBlobConnectStr string
-		if v := props.PrimaryEndpoints; v != nil {
-			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			var primaryBlobConnectStr string
+			if v := props.PrimaryEndpoints; v != nil {
+				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[0].Value)
+			}
+			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 		}
-		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 
 		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		var secondaryBlobConnectStr string
-		if v := props.SecondaryEndpoints; v != nil {
-			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			var secondaryBlobConnectStr string
+			if v := props.SecondaryEndpoints; v != nil {
+				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[1].Value)
+			}
+			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
-		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 
 		if networkRules := props.NetworkRuleSet; networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
@@ -1048,8 +1088,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	d.Set("primary_access_key", accessKeys[0].Value)
-	d.Set("secondary_access_key", accessKeys[1].Value)
+	if accessKeys := keys.Keys; accessKeys != nil {
+		storageAccountKeys := *accessKeys
+		d.Set("primary_access_key", storageAccountKeys[0].Value)
+		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	}
 
 	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
@@ -1071,7 +1114,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	queueClient := meta.(*ArmClient).storage.QueuesClient
+	queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error building Queues Client: %s", err)
+	}
+
 	queueProps, err := queueClient.GetServiceProperties(ctx, name)
 	if err != nil {
 		if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
@@ -1088,7 +1135,8 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	storageClient := meta.(*ArmClient).Storage
+	client := storageClient.AccountsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -1137,6 +1185,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
+
+	// remove this from the cache
+	storageClient.ClearFromCache(resourceGroup, name)
 
 	return nil
 }
@@ -1312,7 +1363,6 @@ func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
 	}
 
 	return logging
-
 }
 
 func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
@@ -1626,7 +1676,9 @@ func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointTy
 		host = u.Host
 	}
 
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

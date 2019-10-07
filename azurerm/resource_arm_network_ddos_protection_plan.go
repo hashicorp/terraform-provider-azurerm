@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -51,7 +52,7 @@ func resourceArmNetworkDDoSProtectionPlan() *schema.Resource {
 }
 
 func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
+	client := meta.(*ArmClient).Network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
@@ -59,7 +60,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -115,7 +116,7 @@ func resourceArmNetworkDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
+	client := meta.(*ArmClient).Network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -153,7 +154,7 @@ func resourceArmNetworkDDoSProtectionPlanRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmNetworkDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.DDOSProtectionPlansClient
+	client := meta.(*ArmClient).Network.DDOSProtectionPlansClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

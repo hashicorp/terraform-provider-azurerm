@@ -6,10 +6,12 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -19,7 +21,6 @@ func resourceArmResourceGroup() *schema.Resource {
 		Create: resourceArmResourceGroupCreateUpdate,
 		Read:   resourceArmResourceGroupRead,
 		Update: resourceArmResourceGroupCreateUpdate,
-		Exists: resourceArmResourceGroupExists,
 		Delete: resourceArmResourceGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -36,14 +37,15 @@ func resourceArmResourceGroup() *schema.Resource {
 }
 
 func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Resource.GroupsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -76,8 +78,9 @@ func resourceArmResourceGroupCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Resource.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -104,32 +107,10 @@ func resourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) erro
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmResourceGroupExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*ArmClient).resource.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
-
-	id, err := azure.ParseAzureResourceID(d.Id())
-	if err != nil {
-		return false, fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
-	}
-
-	name := id.ResourceGroup
-
-	resp, err := client.Get(ctx, name)
-	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return false, nil
-		}
-
-		return false, fmt.Errorf("Error reading resource group: %+v", err)
-	}
-
-	return true, nil
-}
-
 func resourceArmResourceGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resource.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Resource.GroupsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

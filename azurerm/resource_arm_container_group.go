@@ -8,15 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -287,6 +288,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							Type:     schema.TypeMap,
 							ForceNew: true,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"secure_environment_variables": {
@@ -294,6 +298,9 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional:  true,
 							ForceNew:  true,
 							Sensitive: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"command": {
@@ -356,6 +363,7 @@ func resourceArmContainerGroup() *schema.Resource {
 									"storage_account_key": {
 										Type:         schema.TypeString,
 										Required:     true,
+										Sensitive:    true,
 										ForceNew:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
@@ -438,13 +446,13 @@ func resourceArmContainerGroup() *schema.Resource {
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -525,7 +533,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -586,7 +594,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -630,7 +638,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		networkProfileClient := meta.(*ArmClient).network.ProfileClient
+		networkProfileClient := meta.(*ArmClient).Network.ProfileClient
 		networkProfileResourceGroup := parsedProfileId.ResourceGroup
 		networkProfileName := parsedProfileId.Path["networkProfiles"]
 
@@ -841,12 +849,10 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 }
 
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
-
 	envVars := input.(map[string]interface{})
 	output := make([]containerinstance.EnvironmentVariable, 0, len(envVars))
 
 	if secure {
-
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:        utils.String(k),
@@ -855,9 +861,7 @@ func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]cont
 
 			output = append(output, ev)
 		}
-
 	} else {
-
 		for k, v := range envVars {
 			ev := containerinstance.EnvironmentVariable{
 				Name:  utils.String(k),
@@ -1001,7 +1005,6 @@ func expandContainerProbe(input interface{}) *containerinstance.ContainerProbe {
 
 		httpRaw := probeConfig["http_get"].([]interface{})
 		if len(httpRaw) > 0 {
-
 			for _, httpget := range httpRaw {
 				x := httpget.(map[string]interface{})
 
@@ -1082,7 +1085,6 @@ func flattenContainerImageRegistryCredentials(d *schema.ResourceData, input *[]c
 }
 
 func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]containerinstance.Container, containerGroupPorts *[]containerinstance.Port, containerGroupVolumes *[]containerinstance.Volume) []interface{} {
-
 	//map old container names to index so we can look up things up
 	nameIndexMap := map[string]int{}
 	for i, c := range d.Get("container").([]interface{}) {
@@ -1092,7 +1094,6 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 
 	containerCfg := make([]interface{}, 0, len(*containers))
 	for _, container := range *containers {
-
 		//TODO fix this crash point
 		name := *container.Name
 
@@ -1213,7 +1214,6 @@ func flattenContainerEnvironmentVariables(input *[]containerinstance.Environment
 
 	if isSecure {
 		for _, envVar := range *input {
-
 			if envVar.Name != nil && envVar.Value == nil {
 				if v, ok := d.GetOk(fmt.Sprintf("container.%d.secure_environment_variables.%s", oldContainerIndex, *envVar.Name)); ok {
 					log.Printf("[DEBUG] SECURE    : Name: %s - Value: %s", *envVar.Name, v.(string))

@@ -5,6 +5,8 @@ import (
 	"log"
 	"regexp"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -38,8 +40,7 @@ func resourceArmBastionHost() *schema.Resource {
 
 			"dns_name": {
 				Type:     schema.TypeString,
-				ForceNew: true,
-				Optional: true,
+				Computed: true,
 			},
 
 			"ip_configuration": {
@@ -73,7 +74,7 @@ func resourceArmBastionHost() *schema.Resource {
 }
 
 func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bastionHostsClient
+	client := meta.(*ArmClient).network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Println("[INFO] preparing arguments for Azure Bastion Host creation.")
@@ -81,12 +82,8 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	dnsName := d.Get("dns_name").(string)
 	tags := d.Get("tags").(map[string]interface{})
 
-	// properties := d.Get("ip_configuration").([]interface{})
-
-	// Check if resources are to be imported
 	if requireResourcesToBeImported && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -100,11 +97,11 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	ipconfig := expandArmBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{}))
 	parameters := network.BastionHost{
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
-			IPConfigurations: expandArmBastionHostIpConfiguration(d.Get("ip_configuration").([]interface{})),
-			DNSName:          &dnsName,
+			IPConfigurations: &ipconfig,
 		},
 		Tags: expandTags(tags),
 	}
@@ -129,7 +126,7 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bastionHostsClient
+	client := meta.(*ArmClient).network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -158,12 +155,13 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	if props := resp.BastionHostPropertiesFormat; props != nil {
-		if ipConfigs := props.FrontendIPConfigurations; ipConfigs != nil {
+		d.Set("dns_name", props.DNSName)
+
+		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
+
 			if err := d.Set("ip_configuration", flattenArmBastionHostIPConfiguration(ipConfigs)); err != nil {
 				return fmt.Errorf("Error flattening `ip_configuration`: %+v", err)
 			}
-
-			d.Set("dns_name", props.DNSName)
 		}
 	}
 
@@ -171,7 +169,7 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBastionHostDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bastionHostsClient
+	client := meta.(*ArmClient).network.BastionHostsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())
@@ -213,10 +211,9 @@ func validateAzureRMBastionHostName(v interface{}, k string) (warnings []string,
 	return warnings, errors
 }
 
-// expandArmBastionHostIpConfiguration
-func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network.FrontendIPConfiguration, err error) {
+func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs []network.BastionHostIPConfiguration) {
 	if len(input) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	property := input[0].(map[string]interface{})
@@ -236,10 +233,10 @@ func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]netw
 				},
 			},
 		},
-	}, nil
+	}
 }
 
-func flattenArmBastionHostIPConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {
+func flattenArmBastionHostIPConfiguration(ipConfigs *[]network.BastionHostIPConfiguration) []interface{} {
 	result := make([]interface{}, 0)
 	if ipConfigs == nil {
 		return result
@@ -252,7 +249,7 @@ func flattenArmBastionHostIPConfiguration(ipConfigs *[]network.FrontendIPConfigu
 			ipConfig["name"] = *config.Name
 		}
 
-		if props := config.FrontendIPConfigurationPropertiesFormat; props != nil {
+		if props := config.BastionHostIPConfigurationPropertiesFormat; props != nil {
 			if subnet := props.Subnet; subnet != nil {
 				ipConfig["subnet_id"] = *subnet.ID
 			}

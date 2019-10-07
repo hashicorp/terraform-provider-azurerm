@@ -5,11 +5,13 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -58,13 +60,25 @@ func resourceArmAvailabilitySet() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"proximity_placement_group_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+
+				// We have to ignore case due to incorrect capitalisation of resource group name in
+				// proximity placement group ID in the response we get from the API request
+				//
+				// todo can be removed when https://github.com/Azure/azure-sdk-for-go/issues/5699 is fixed
+				DiffSuppressFunc: suppress.CaseDifference,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Availability Set creation.")
@@ -72,7 +86,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -101,6 +115,12 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 		Tags: tags.Expand(t),
 	}
 
+	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
+		availSet.AvailabilitySetProperties.ProximityPlacementGroup = &compute.SubResource{
+			ID: utils.String(v.(string)),
+		}
+	}
+
 	if managed {
 		n := "Aligned"
 		availSet.Sku = &compute.Sku{
@@ -119,7 +139,7 @@ func resourceArmAvailabilitySetCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -150,13 +170,17 @@ func resourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) er
 	if props := resp.AvailabilitySetProperties; props != nil {
 		d.Set("platform_update_domain_count", props.PlatformUpdateDomainCount)
 		d.Set("platform_fault_domain_count", props.PlatformFaultDomainCount)
+
+		if proximityPlacementGroup := props.ProximityPlacementGroup; proximityPlacementGroup != nil {
+			d.Set("proximity_placement_group_id", proximityPlacementGroup.ID)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmAvailabilitySetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

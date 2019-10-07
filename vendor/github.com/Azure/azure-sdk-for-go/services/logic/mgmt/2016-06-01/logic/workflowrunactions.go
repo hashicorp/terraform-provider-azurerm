@@ -104,8 +104,8 @@ func (client WorkflowRunActionsClient) GetPreparer(ctx context.Context, resource
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowRunActionsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -192,8 +192,8 @@ func (client WorkflowRunActionsClient) ListPreparer(ctx context.Context, resourc
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowRunActionsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -310,8 +310,8 @@ func (client WorkflowRunActionsClient) ListExpressionTracesPreparer(ctx context.
 // ListExpressionTracesSender sends the ListExpressionTraces request. The method will close the
 // http.Response Body if it receives an error.
 func (client WorkflowRunActionsClient) ListExpressionTracesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListExpressionTracesResponder handles the response to the ListExpressionTraces request. The method always

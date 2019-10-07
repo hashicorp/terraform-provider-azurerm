@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -207,8 +207,8 @@ resource "azurerm_recovery_replicated_vm" "test" {
     disk_id = "${azurerm_virtual_machine.test.storage_os_disk.0.managed_disk_id}"
     staging_storage_account_id = "${azurerm_storage_account.test.id}"
     target_resource_group_id = "${azurerm_resource_group.test2.id}"
-    targert_disk_type = "Premium_LRS"
-    targert_replica_disk_type = "Premium_LRS"
+    target_disk_type = "Premium_LRS"
+    target_replica_disk_type = "Premium_LRS"
   }
   depends_on = ["azurerm_recovery_services_protection_container_mapping.test", "azurerm_recovery_network_mapping.test"]
 }
@@ -246,7 +246,7 @@ func testCheckAzureRMRecoveryReplicatedVmExists(resourceGroupStateName, vaultSta
 		replicationName := replicationState.Primary.Attributes["name"]
 
 		// Ensure mapping exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ReplicationMigrationItemsClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, protectionContainerName, replicationName)

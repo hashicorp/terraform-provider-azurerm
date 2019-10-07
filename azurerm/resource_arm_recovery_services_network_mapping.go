@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -75,7 +76,7 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 	targetNetworkId := d.Get("target_network_id").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	//get network name from id
@@ -91,7 +92,7 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 		}
 	}
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -132,7 +133,7 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,7 +144,7 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 	networkName := id.Path["replicationNetworks"]
 	name := id.Path["replicationNetworkMappings"]
 
-	client := meta.(*ArmClient).recoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, fabricName, networkName, name)
@@ -163,7 +164,7 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 		d.Set("source_network_id", props.PrimaryNetworkID)
 		d.Set("target_network_id", props.RecoveryNetworkID)
 
-		targetFabricId, err := parseAzureResourceID(azure.HandleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
+		targetFabricId, err := azure.ParseAzureResourceID(azure.HandleAzureSdkForGoBug2824(*resp.Properties.RecoveryFabricArmID))
 		if err != nil {
 			return err
 		}
@@ -174,7 +175,7 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -185,7 +186,7 @@ func resourceArmRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interf
 	networkName := id.Path["replicationNetworks"]
 	name := id.Path["replicationNetworkMappings"]
 
-	client := meta.(*ArmClient).recoveryServices.NetworkMappingClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.NetworkMappingClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	future, err := client.Delete(ctx, fabricName, networkName, name)

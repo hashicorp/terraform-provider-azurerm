@@ -7,11 +7,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -123,7 +124,7 @@ func resourceArmAutomationRunbook() *schema.Resource {
 }
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.RunbookClient
+	client := meta.(*ArmClient).Automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
@@ -132,7 +133,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	accName := d.Get("account_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -175,7 +176,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
 		reader := ioutil.NopCloser(bytes.NewBufferString(content))
-		draftClient := meta.(*ArmClient).automation.RunbookDraftClient
+		draftClient := meta.(*ArmClient).Automation.RunbookDraftClient
 
 		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
@@ -201,7 +202,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.RunbookClient
+	client := meta.(*ArmClient).Automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -260,7 +261,7 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.RunbookClient
+	client := meta.(*ArmClient).Automation.RunbookClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

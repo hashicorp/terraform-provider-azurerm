@@ -10,19 +10,20 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 //todo refactor and find a home for this wayward func
 func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-	client := meta.(*ArmClient).keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -235,7 +236,8 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Computed: true,
 										ForceNew: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
 										},
 									},
 									"key_usage": {
@@ -335,8 +337,8 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 }
 
 func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -362,7 +364,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 		d.Set("key_vault_id", id)
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetCertificate(ctx, keyVaultBaseUrl, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -439,8 +441,8 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 }
 
 func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -492,7 +494,7 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 	d.Set("secret_id", cert.Sid)
 
 	if contents := cert.Cer; contents != nil {
-		d.Set("certificate_data", string(*contents))
+		d.Set("certificate_data", strings.ToUpper(hex.EncodeToString(*contents)))
 	}
 
 	if v := cert.X509Thumbprint; v != nil {
@@ -507,8 +509,8 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -621,7 +623,6 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 
 		subjectAlternativeNames := &keyvault.SubjectAlternativeNames{}
 		if v, ok := cert["subject_alternative_names"]; ok {
-
 			if sans := v.([]interface{}); len(sans) > 0 {
 				if sans[0] != nil {
 					san := sans[0].(map[string]interface{})

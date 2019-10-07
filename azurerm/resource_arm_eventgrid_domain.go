@@ -5,11 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -125,13 +126,13 @@ func resourceArmEventGridDomain() *schema.Resource {
 }
 
 func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.DomainsClient
+	client := meta.(*ArmClient).EventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -183,7 +184,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.DomainsClient
+	client := meta.(*ArmClient).EventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -236,7 +237,7 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.DomainsClient
+	client := meta.(*ArmClient).EventGrid.DomainsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

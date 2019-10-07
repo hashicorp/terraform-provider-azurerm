@@ -6,11 +6,12 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -167,7 +168,7 @@ func resourceArmDevTestLabSchedules() *schema.Resource {
 }
 
 func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 
 	ctx := meta.(*ArmClient).StopContext
 
@@ -175,7 +176,7 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 	devTestLabName := d.Get("lab_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, devTestLabName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -254,7 +255,7 @@ func resourceArmDevTestLabSchedulesCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabSchedulesClient
+	client := meta.(*ArmClient).DevTestLabs.LabSchedulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -284,7 +285,6 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 	d.Set("task_type", resp.TaskType)
 
 	if props := resp.ScheduleProperties; props != nil {
-
 		d.Set("time_zone_id", props.TimeZoneID)
 
 		d.Set("status", string(props.Status))
@@ -310,7 +310,7 @@ func resourceArmDevTestLabSchedulesRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDevTestLabSchedulesDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMExtensionClient
+	client := meta.(*ArmClient).Compute.VMExtensionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -414,7 +414,6 @@ func flattenAzureRmDevTestLabScheduleRecurrenceHourly(hourlyRecurrence *dtl.Hour
 }
 
 func expandArmDevTestLabScheduleNotificationSettings(d *schema.ResourceData) *dtl.NotificationSettings {
-
 	notificationSettingsConfigs := d.Get("notification_settings").([]interface{})
 	notificationSettingsConfig := notificationSettingsConfigs[0].(map[string]interface{})
 	webhookUrl := notificationSettingsConfig["webhook_url"].(string)

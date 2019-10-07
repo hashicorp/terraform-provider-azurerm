@@ -6,11 +6,12 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -78,7 +79,7 @@ func resourceArmSearchService() *schema.Resource {
 }
 
 func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).search.ServicesClient
+	client := meta.(*ArmClient).Search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -87,7 +88,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 	skuName := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -134,7 +135,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).search.ServicesClient
+	client := meta.(*ArmClient).Search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -175,7 +176,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	adminKeysClient := meta.(*ArmClient).search.AdminKeysClient
+	adminKeysClient := meta.(*ArmClient).Search.AdminKeysClient
 	adminKeysResp, err := adminKeysClient.Get(ctx, resourceGroup, name, nil)
 	if err == nil {
 		d.Set("primary_key", adminKeysResp.PrimaryKey)
@@ -186,7 +187,7 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).search.ServicesClient
+	client := meta.(*ArmClient).Search.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

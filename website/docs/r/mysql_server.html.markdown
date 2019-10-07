@@ -90,6 +90,8 @@ The following arguments are supported:
 
 * `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
 
+* `auto_grow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
+
 ## Attributes Reference
 
 The following attributes are exported:

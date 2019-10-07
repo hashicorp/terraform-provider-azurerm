@@ -6,11 +6,12 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -94,7 +95,7 @@ func resourceArmAutomationAccount() *schema.Resource {
 }
 
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.AccountClient
+	client := meta.(*ArmClient).Automation.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	// Remove in 2.0
@@ -123,7 +124,7 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -166,8 +167,8 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.AccountClient
-	registrationClient := meta.(*ArmClient).automation.AgentRegistrationInfoClient
+	client := meta.(*ArmClient).Automation.AccountClient
+	registrationClient := meta.(*ArmClient).Automation.AgentRegistrationInfoClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -232,7 +233,7 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.AccountClient
+	client := meta.(*ArmClient).Automation.AccountClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

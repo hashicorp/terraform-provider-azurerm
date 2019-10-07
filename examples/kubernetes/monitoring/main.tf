@@ -11,7 +11,7 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_solution" "example" {
-  solution_name         = "ContainerInsights"
+  solution_name         = "Containers"
   location              = "${azurerm_resource_group.example.location}"
   resource_group_name   = "${azurerm_resource_group.example.name}"
   workspace_resource_id = "${azurerm_log_analytics_workspace.example.id}"
@@ -19,7 +19,7 @@ resource "azurerm_log_analytics_solution" "example" {
 
   plan {
     publisher = "Microsoft"
-    product   = "OMSGallery/ContainerInsights"
+    product   = "OMSGallery/Containers"
   }
 }
 

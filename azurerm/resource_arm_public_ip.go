@@ -5,14 +5,16 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -65,7 +67,7 @@ func resourceArmPublicIp() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				DiffSuppressFunc: suppress.CaseDifference,
-				StateFunc:        ignoreCaseStateFunc,
+				StateFunc:        state.IgnoreCase,
 				ConflictsWith:    []string{"allocation_method"},
 				Computed:         true,
 				Deprecated:       "this property has been deprecated in favor of `allocation_method` to better match the api",
@@ -142,7 +144,7 @@ func resourceArmPublicIp() *schema.Resource {
 }
 
 func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PublicIPsClient
+	client := meta.(*ArmClient).Network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP creation.")
@@ -177,7 +179,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -253,7 +255,7 @@ func resourceArmPublicIpCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PublicIPsClient
+	client := meta.(*ArmClient).Network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -289,6 +291,10 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("allocation_method", string(props.PublicIPAllocationMethod))
 		d.Set("ip_version", string(props.PublicIPAddressVersion))
 
+		if publicIpPrefix := props.PublicIPPrefix; publicIpPrefix != nil {
+			d.Set("public_ip_prefix_id", publicIpPrefix.ID)
+		}
+
 		if settings := props.DNSSettings; settings != nil {
 			d.Set("fqdn", settings.Fqdn)
 			d.Set("reverse_fqdn", settings.ReverseFqdn)
@@ -303,7 +309,7 @@ func resourceArmPublicIpRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmPublicIpDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PublicIPsClient
+	client := meta.(*ArmClient).Network.PublicIPsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

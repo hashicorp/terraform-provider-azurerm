@@ -5,11 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -133,7 +134,7 @@ func resourceArmServiceBusQueue() *schema.Resource {
 }
 
 func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Queue creation/update.")
 
@@ -149,7 +150,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 	requiresSession := d.Get("requires_session").(bool)
 	deadLetteringOnMessageExpiration := d.Get("dead_lettering_on_message_expiration").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -193,7 +194,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard,
 	// so it needs different rules applied to it.
-	namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
+	namespacesClient := meta.(*ArmClient).ServiceBus.NamespacesClient
 	namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 	if err != nil {
 		return fmt.Errorf("Error retrieving ServiceBus Namespace %q (Resource Group %q): %+v", resourceGroup, namespaceName, err)
@@ -223,7 +224,7 @@ func resourceArmServiceBusQueueCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -266,7 +267,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 			// If the queue is NOT in a premium namespace (ie. it is Basic or Standard) and partitioning is enabled
 			// then the max size returned by the API will be 16 times greater than the value set.
 			if *props.EnablePartitioning {
-				namespacesClient := meta.(*ArmClient).servicebus.NamespacesClient
+				namespacesClient := meta.(*ArmClient).ServiceBus.NamespacesClient
 				namespace, err := namespacesClient.Get(ctx, resourceGroup, namespaceName)
 				if err != nil {
 					return err
@@ -286,7 +287,7 @@ func resourceArmServiceBusQueueRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmServiceBusQueueDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.QueuesClient
+	client := meta.(*ArmClient).ServiceBus.QueuesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

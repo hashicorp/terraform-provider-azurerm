@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -59,10 +60,10 @@ func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, 
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -110,7 +111,7 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 	vaultName := d.Get("recovery_vault_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
@@ -144,7 +145,7 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -153,7 +154,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 	vaultName := id.Path["vaults"]
 	name := id.Path["replicationPolicies"]
 
-	client := meta.(*ArmClient).recoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, name)
@@ -176,7 +177,7 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 }
 
 func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -185,7 +186,7 @@ func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta
 	vaultName := id.Path["vaults"]
 	name := id.Path["replicationPolicies"]
 
-	client := meta.(*ArmClient).recoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	future, err := client.Delete(ctx, name)

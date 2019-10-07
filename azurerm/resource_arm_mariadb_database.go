@@ -6,12 +6,13 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -68,7 +69,7 @@ func resourceArmMariaDbDatabase() *schema.Resource {
 }
 
 func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.DatabasesClient
+	client := meta.(*ArmClient).MariaDB.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB database creation")
@@ -77,7 +78,7 @@ func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interfa
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -123,7 +124,7 @@ func resourceArmMariaDbDatabaseCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.DatabasesClient
+	client := meta.(*ArmClient).MariaDB.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -158,7 +159,7 @@ func resourceArmMariaDbDatabaseRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmMariaDbDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.DatabasesClient
+	client := meta.(*ArmClient).MariaDB.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

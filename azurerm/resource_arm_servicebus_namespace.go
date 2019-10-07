@@ -9,11 +9,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -95,13 +96,19 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.NamespacesClient
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
@@ -112,7 +119,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 	sku := d.Get("sku").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -144,6 +151,13 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
 	}
 
+	if zoneRedundant, ok := d.GetOkExists("zone_redundant"); ok {
+		properties := servicebus.SBNamespaceProperties{
+			ZoneRedundant: utils.Bool(zoneRedundant.(bool)),
+		}
+		parameters.SBNamespaceProperties = &properties
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
 		return err
@@ -168,7 +182,8 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.NamespacesClient
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
+	clientStable := meta.(*ArmClient).ServiceBus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -198,7 +213,11 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("capacity", sku.Capacity)
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
+	if properties := resp.SBNamespaceProperties; properties != nil {
+		d.Set("zone_redundant", properties.ZoneRedundant)
+	}
+
+	keys, err := clientStable.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	} else {
@@ -212,7 +231,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.NamespacesClient
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

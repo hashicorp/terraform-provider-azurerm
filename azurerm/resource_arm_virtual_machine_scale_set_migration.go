@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func resourceVirtualMachineScaleSetMigrateState(v int, is *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
@@ -25,7 +25,7 @@ func resourceVirtualMachineScaleSetStateV0toV1(is *terraform.InstanceState, meta
 
 	log.Printf("[DEBUG] ARM Virtual Machine Scale Set Attributes before Migration: %#v", is.Attributes)
 
-	client := meta.(*ArmClient).compute.VMScaleSetClient
+	client := meta.(*ArmClient).Compute.VMScaleSetClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup := is.Attributes["resource_group_name"]

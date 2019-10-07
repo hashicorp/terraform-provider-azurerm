@@ -5,11 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -56,14 +57,14 @@ func resourceArmDataLakeStoreFirewallRule() *schema.Resource {
 }
 
 func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
+	client := meta.(*ArmClient).Datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -106,7 +107,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmDateLakeStoreAccountFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
+	client := meta.(*ArmClient).Datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -140,7 +141,7 @@ func resourceArmDateLakeStoreAccountFirewallRuleRead(d *schema.ResourceData, met
 }
 
 func resourceArmDateLakeStoreAccountFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.StoreFirewallRulesClient
+	client := meta.(*ArmClient).Datalake.StoreFirewallRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -5,11 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -63,6 +64,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 						"paths": {
 							Type:     schema.TypeSet,
 							Required: true,
+							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.NoEmptyStrings,
@@ -76,7 +78,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 }
 
 func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -85,7 +87,7 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 	account := d.Get("account_name").(string)
 	partitionkeypaths := d.Get("partition_key_path").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetSQLContainer(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -147,7 +149,7 @@ func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseContainerID(d.Id())
@@ -193,7 +195,7 @@ func resourceArmCosmosDbSQLContainerRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmCosmosDbSQLContainerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseContainerID(d.Id())
@@ -246,7 +248,6 @@ func flattenCosmosSQLContainerUniqueKeys(keys *[]documentdb.UniqueKey) *[]map[st
 
 	slice := make([]map[string]interface{}, 0)
 	for _, k := range *keys {
-
 		if k.Paths == nil {
 			continue
 		}

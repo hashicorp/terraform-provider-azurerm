@@ -5,12 +5,13 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -79,7 +80,7 @@ func resourceArmSnapshot() *schema.Resource {
 }
 
 func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
+	client := meta.(*ArmClient).Compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -88,7 +89,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	createOption := d.Get("create_option").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -131,7 +132,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettings = expandManagedDiskEncryptionSettings(settings)
+		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
@@ -154,7 +155,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
+	client := meta.(*ArmClient).Compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -183,7 +184,6 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := resp.SnapshotProperties; props != nil {
-
 		if data := props.CreationData; data != nil {
 			d.Set("create_option", string(data.CreateOption))
 
@@ -196,8 +196,8 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if props.EncryptionSettings != nil {
-			d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettings))
+		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
 		}
 	}
 
@@ -205,7 +205,7 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
+	client := meta.(*ArmClient).Compute.SnapshotsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

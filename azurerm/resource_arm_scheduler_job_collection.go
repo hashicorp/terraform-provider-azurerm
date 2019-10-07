@@ -10,12 +10,13 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -126,7 +127,7 @@ func resourceArmSchedulerJobCollection() *schema.Resource {
 }
 
 func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobCollectionsClient
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -136,7 +137,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 
 	log.Printf("[DEBUG] Creating/updating Scheduler Job Collection %q (resource group %q)", name, resourceGroup)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -182,7 +183,7 @@ func resourceArmSchedulerJobCollectionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobCollectionsClient
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -228,7 +229,7 @@ func resourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmSchedulerJobCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).scheduler.JobCollectionsClient
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -284,7 +285,6 @@ func expandAzureArmSchedulerJobCollectionQuota(d *schema.ResourceData) *schedule
 }
 
 func flattenAzureArmSchedulerJobCollectionQuota(quota *scheduler.JobCollectionQuota) []interface{} {
-
 	if quota == nil {
 		return nil
 	}

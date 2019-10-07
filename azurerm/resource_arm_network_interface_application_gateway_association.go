@@ -5,11 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -49,7 +50,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation(
 }
 
 func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Network Interface <-> Application Gateway Backend Address Pool Association creation.")
@@ -107,7 +108,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 		for _, existingPool := range *p.ApplicationGatewayBackendAddressPools {
 			if id := existingPool.ID; id != nil {
 				if *id == backendAddressPoolId {
-					if requireResourcesToBeImported {
+					if features.ShouldResourcesBeImported() {
 						return tf.ImportAsExistsError("azurerm_network_interface_application_gateway_backend_address_pool_association", resourceId)
 					}
 
@@ -142,7 +143,7 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationC
 }
 
 func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")
@@ -211,15 +212,13 @@ func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationR
 
 	d.Set("backend_address_pool_id", backendAddressPoolId)
 	d.Set("ip_configuration_name", ipConfigurationName)
-	if id := read.ID; id != nil {
-		d.Set("network_interface_id", *id)
-	}
+	d.Set("network_interface_id", read.ID)
 
 	return nil
 }
 
 func resourceArmNetworkInterfaceApplicationGatewayBackendAddressPoolAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
+	client := meta.(*ArmClient).Network.InterfacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	splitId := strings.Split(d.Id(), "|")

@@ -3,9 +3,10 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -175,8 +176,9 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 }
 
 func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.InterfacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -198,15 +200,12 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
 		configs := *iface.IPConfigurations
 
-		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
-			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
-			d.Set("private_ip_address", *privateIPAddress)
-		}
+		d.Set("private_ip_address", configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
 
 		addresses := make([]interface{}, 0)
 		for _, config := range configs {
 			if config.InterfaceIPConfigurationPropertiesFormat != nil {
-				addresses = append(addresses, *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+				addresses = append(addresses, config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
 			}
 		}
 
@@ -220,7 +219,7 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if iface.VirtualMachine != nil {
-		d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
+		d.Set("virtual_machine_id", iface.VirtualMachine.ID)
 	} else {
 		d.Set("virtual_machine_id", "")
 	}

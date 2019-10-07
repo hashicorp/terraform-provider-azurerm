@@ -6,13 +6,14 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -41,6 +42,8 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 			// TODO: Multiple resource IDs (Remove MaxItems) support is missing in SDK
 			// Issue to track: https://github.com/Azure/azure-sdk-for-go/issues/2920
 			// But to prevent potential state migration in the future, let's stick to use Set now
+
+			//lintignore:S018
 			"scopes": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -210,13 +213,13 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 }
 
 func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -275,7 +278,7 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -318,7 +321,7 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

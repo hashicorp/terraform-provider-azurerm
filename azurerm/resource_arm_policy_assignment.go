@@ -6,6 +6,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"time"
 
@@ -13,17 +14,17 @@ import (
 	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmPolicyAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPolicyAssignmentCreateOrUpdate,
-		Update: resourceArmPolicyAssignmentCreateOrUpdate,
+		Create: resourceArmPolicyAssignmentCreateUpdate,
+		Update: resourceArmPolicyAssignmentCreateUpdate,
 		Read:   resourceArmPolicyAssignmentRead,
 		Delete: resourceArmPolicyAssignmentDelete,
 		Importer: &schema.ResourceImporter{
@@ -106,8 +107,8 @@ func resourceArmPolicyAssignment() *schema.Resource {
 	}
 }
 
-func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -116,7 +117,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 	policyDefinitionId := d.Get("policy_definition_id").(string)
 	displayName := d.Get("display_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -194,7 +195,7 @@ func resourceArmPolicyAssignmentCreateOrUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
@@ -243,7 +244,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()

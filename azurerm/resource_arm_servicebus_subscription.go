@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -103,7 +104,7 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 }
 
 func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionsClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Subscription creation.")
 
@@ -117,7 +118,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresSession := d.Get("requires_session").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -173,7 +174,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionsClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -217,7 +218,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).servicebus.SubscriptionsClient
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_basic(t *testing.T) {
@@ -31,7 +32,7 @@ func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociati
 }
 
 func TestAccAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssociation_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -100,7 +101,7 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -150,7 +151,7 @@ func testCheckAzureRMNetworkInterfaceApplicationGatewayBackendAddressPoolAssocia
 		backendAddressPoolId := rs.Primary.Attributes["backend_address_pool_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")

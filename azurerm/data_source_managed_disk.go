@@ -3,9 +3,10 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,14 +54,25 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
+			"disk_iops_read_write": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"disk_mbps_read_write": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
 }
 
 func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.DisksClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -80,12 +92,10 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.DiskProperties; props != nil {
-		if diskSize := props.DiskSizeGB; diskSize != nil {
-			d.Set("disk_size_gb", *diskSize)
-		}
-		if osType := props.OsType; osType != "" {
-			d.Set("os_type", string(osType))
-		}
+		d.Set("disk_size_gb", props.DiskSizeGB)
+		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
+		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+		d.Set("os_type", props.OsType)
 	}
 
 	if resp.CreationData != nil {

@@ -9,12 +9,13 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -313,7 +314,6 @@ func resourceArmSqlDatabase() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
 			if hasThreatDetection {
 				if tl := threatDetection.([]interface{}); len(tl) > 0 {
@@ -334,7 +334,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 }
 
 func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.DatabasesClient
+	client := meta.(*ArmClient).Sql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -344,7 +344,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 	createMode := d.Get("create_mode").(string)
 	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -483,7 +483,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	threatDetectionClient := meta.(*ArmClient).sql.DatabaseThreatDetectionPoliciesClient
+	threatDetectionClient := meta.(*ArmClient).Sql.DatabaseThreatDetectionPoliciesClient
 	if _, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection); err != nil {
 		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
 	}
@@ -492,7 +492,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.DatabasesClient
+	client := meta.(*ArmClient).Sql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -515,7 +515,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
 	}
 
-	threatDetectionClient := meta.(*ArmClient).sql.DatabaseThreatDetectionPoliciesClient
+	threatDetectionClient := meta.(*ArmClient).Sql.DatabaseThreatDetectionPoliciesClient
 	threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
 	if err == nil {
 		flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(d, threatDetection)
@@ -573,7 +573,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sql.DatabasesClient
+	client := meta.(*ArmClient).Sql.DatabasesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -611,7 +611,6 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 }
 
 func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
-
 	// The SQL database threat detection API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
 	properties := policy.DatabaseSecurityAlertPolicyProperties

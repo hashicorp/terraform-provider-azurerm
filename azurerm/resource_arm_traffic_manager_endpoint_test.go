@@ -6,9 +6,10 @@ import (
 	"path"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
@@ -39,7 +40,7 @@ func TestAccAzureRMTrafficManagerEndpoint_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMTrafficManagerEndpoint_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -386,7 +387,7 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
@@ -418,7 +419,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
@@ -430,8 +431,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-
-	conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {

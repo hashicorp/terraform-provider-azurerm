@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +41,7 @@ func TestAccAzureRMVirtualWan_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMVirtualWan_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -104,7 +105,7 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 }
 
 func testCheckAzureRMVirtualWanDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.VirtualWanClient
+	client := testAccProvider.Meta().(*ArmClient).Network.VirtualWanClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -145,7 +146,7 @@ func testCheckAzureRMVirtualWanExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Virtual WAN: %s", virtualWanName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.VirtualWanClient
+		client := testAccProvider.Meta().(*ArmClient).Network.VirtualWanClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualWanName)

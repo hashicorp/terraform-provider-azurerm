@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -105,7 +106,7 @@ func TestAccAzureRMMonitorMetricAlertRule_virtualMachineCpu(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorMetricAlertRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -168,7 +169,7 @@ func testCheckAzureRMMonitorMetricAlertRuleExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Alert Rule: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).monitor.AlertRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Monitor.AlertRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -185,7 +186,7 @@ func testCheckAzureRMMonitorMetricAlertRuleExists(resourceName string) resource.
 }
 
 func testCheckAzureRMMonitorMetricAlertRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).monitor.AlertRulesClient
+	client := testAccProvider.Meta().(*ArmClient).Monitor.AlertRulesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -11,13 +11,14 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -252,7 +253,7 @@ func resourceArmRedisCache() *schema.Resource {
 }
 
 func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redis.Client
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
@@ -269,7 +270,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -366,7 +367,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	d.SetId(*read.ID)
 
 	if schedule := patchSchedule; schedule != nil {
-		patchClient := meta.(*ArmClient).redis.PatchSchedulesClient
+		patchClient := meta.(*ArmClient).Redis.PatchSchedulesClient
 		_, err = patchClient.CreateOrUpdate(ctx, resGroup, name, *schedule)
 		if err != nil {
 			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
@@ -377,7 +378,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redis.Client
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
@@ -452,7 +453,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
 	}
 
-	patchClient := meta.(*ArmClient).redis.PatchSchedulesClient
+	patchClient := meta.(*ArmClient).Redis.PatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
 		_, err = patchClient.Delete(ctx, resGroup, name)
 		if err != nil {
@@ -469,7 +470,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redis.Client
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -496,7 +497,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making ListKeys request on Azure Redis Cache %s: %s", name, err)
 	}
 
-	patchSchedulesClient := meta.(*ArmClient).redis.PatchSchedulesClient
+	patchSchedulesClient := meta.(*ArmClient).Redis.PatchSchedulesClient
 
 	schedule, err := patchSchedulesClient.Get(ctx, resGroup, name)
 	if err == nil {
@@ -549,7 +550,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redis.Client
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

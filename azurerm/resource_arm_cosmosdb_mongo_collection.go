@@ -6,12 +6,13 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -65,6 +66,13 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(-1),
 			},
 
+			"throughput": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      400,
+				ValidateFunc: validate.CosmosThroughput,
+			},
+
 			"indexes": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -92,15 +100,16 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 }
 
 func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
 	database := d.Get("database_name").(string)
+	throughput := d.Get("throughput").(int)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -146,6 +155,23 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
 
+	throughputParameters := documentdb.ThroughputUpdateParameters{
+		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+			Resource: &documentdb.ThroughputResource{
+				Throughput: utils.Int32(int32(throughput)),
+			},
+		},
+	}
+
+	throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, resourceGroup, account, database, name, throughputParameters)
+	if err != nil {
+		return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %s (Account %s, Database %s): %+v", name, account, database, err)
+	}
+
+	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
+	}
+
 	resp, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
@@ -161,7 +187,7 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())
@@ -204,11 +230,20 @@ func resourceArmCosmosDbMongoCollectionRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
+	throughputResp, err := client.GetMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
+	if err != nil {
+		return fmt.Errorf("Error reading Throughput on Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+	}
+
+	if throughput := throughputResp.Throughput; throughput != nil {
+		d.Set("throughput", int(*throughput))
+	}
+
 	return nil
 }
 
 func resourceArmCosmosDbMongoCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())

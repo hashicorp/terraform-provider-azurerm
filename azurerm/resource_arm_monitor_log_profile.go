@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,11 +88,11 @@ func resourceArmMonitorLogProfile() *schema.Resource {
 }
 
 func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.LogProfilesClient
+	client := meta.(*ArmClient).Monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -149,7 +150,7 @@ func resourceArmLogProfileCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.LogProfilesClient
+	client := meta.(*ArmClient).Monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parseLogProfileNameFromID(d.Id())
@@ -186,7 +187,7 @@ func resourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmLogProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.LogProfilesClient
+	client := meta.(*ArmClient).Monitor.LogProfilesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parseLogProfileNameFromID(d.Id())
@@ -268,7 +269,7 @@ func flattenAzureRmLogProfileRetentionPolicy(input *insights.RetentionPolicy) []
 
 func retryLogProfilesClientGet(name string, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		client := meta.(*ArmClient).monitor.LogProfilesClient
+		client := meta.(*ArmClient).Monitor.LogProfilesClient
 		ctx := meta.(*ArmClient).StopContext
 
 		if _, err := client.Get(ctx, name); err != nil {

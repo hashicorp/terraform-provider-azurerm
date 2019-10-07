@@ -5,11 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -84,7 +85,7 @@ func resourceArmDevTestLab() *schema.Resource {
 }
 
 func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabsClient
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
@@ -92,7 +93,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -141,7 +142,7 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabsClient
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -184,7 +185,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.LabsClient
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

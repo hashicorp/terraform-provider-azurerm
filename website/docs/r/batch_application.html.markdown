@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_application"
 sidebar_current: "docs-azurerm-resource-batch-application"
 description: |-
-  Manage Azure Batch Application instance.
+  Manages Azure Batch Application instance.
 ---
 
 # azurerm_batch_application
 
-Manage Azure Batch Application instance.
+Manages Azure Batch Application instance.
 
 ## Example Usage
 

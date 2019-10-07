@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -13,12 +12,13 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -300,14 +300,14 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 }
 
 func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -331,14 +331,11 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	r, err := client.CheckNameExists(ctx, name)
 	if err != nil {
-		// todo remove when https://github.com/Azure/azure-sdk-for-go/issues/5157 is fixed
-		if !utils.ResponseWasStatusCode(r, http.StatusInternalServerError) {
-			return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-	} else {
-		if !utils.ResponseWasNotFound(r) {
-			return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
-		}
+		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if !utils.ResponseWasNotFound(r) {
+		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 	}
 
 	//hacky, todo fix up once deprecated field 'failover_policy' is removed
@@ -377,7 +374,8 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
 
-	if cp := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy; len(geoLocations) > 1 && cp != nil {
+	cp := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy
+	if len(geoLocations) > 1 && cp != nil && cp.DefaultConsistencyLevel == documentdb.BoundedStaleness {
 		if msp := cp.MaxStalenessPrefix; msp != nil && *msp < 100000 {
 			return fmt.Errorf("Error max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
 		}
@@ -417,7 +415,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
 
@@ -517,7 +515,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 				removedOne = true
 			}
 		}
-
 	}
 
 	if removedOne {
@@ -565,7 +562,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -704,7 +701,6 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		for i, v := range *connStringResp.ConnectionStrings {
 			connStrings[i] = *v.ConnectionString
 		}
-
 	}
 	d.Set("connection_strings", connStrings)
 
@@ -712,7 +708,7 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmos.DatabaseClient
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -735,13 +731,11 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"NotFound"},
-		Timeout:    60 * time.Minute,
+		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
-
 				if utils.ResponseWasNotFound(resp.Response) {
 					return resp, "NotFound", nil
 				}
@@ -772,11 +766,10 @@ func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClie
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Deleting"},
 		Target:     []string{"Succeeded"},
-		Timeout:    60 * time.Minute,
+		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
@@ -829,7 +822,6 @@ func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location s
 }
 
 func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
-
 	locations := make([]documentdb.Location, 0)
 	for _, l := range d.Get("geo_location").(*schema.Set).List() {
 		data := l.(map[string]interface{})
@@ -854,7 +846,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	byPriorities := make(map[int]interface{}, len(locations))
 	byName := make(map[string]interface{}, len(locations))
 	for _, location := range locations {
-
 		priority := int(*location.FailoverPriority)
 		name := *location.LocationName
 
@@ -880,7 +871,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 
 //todo remove when deprecated field `failover_policy` is
 func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
-
 	input := d.Get("failover_policy").(*schema.Set).List()
 	locations := make([]documentdb.Location, 0, len(input))
 
@@ -928,7 +918,6 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 }
 
 func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
-
 	capabilities := d.Get("capabilities").(*schema.Set).List()
 	s := make([]documentdb.Capability, 0)
 
@@ -952,7 +941,6 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]
 }
 
 func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.ConsistencyPolicy) []interface{} {
-
 	result := map[string]interface{}{}
 	result["consistency_level"] = string(policy.DefaultConsistencyLevel)
 	if policy.MaxIntervalInSeconds != nil {

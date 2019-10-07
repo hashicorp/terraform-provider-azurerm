@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-06-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -80,8 +82,9 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.VMClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	virtualMachineId := d.Get("virtual_machine_id").(string)
 	parsedVirtualMachineId, err := azure.ParseAzureResourceID(virtualMachineId)
@@ -144,7 +147,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	if d.IsNewResource() {
-		if requireResourcesToBeImported {
+		if features.ShouldResourcesBeImported() {
 			if existingIndex != -1 {
 				return tf.ImportAsExistsError("azurerm_virtual_machine_data_disk_attachment", resourceId)
 			}
@@ -181,8 +184,9 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.VMClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -238,8 +242,9 @@ func resourceArmVirtualMachineDataDiskAttachmentRead(d *schema.ResourceData, met
 }
 
 func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.VMClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -288,7 +293,7 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 }
 
 func retrieveDataDiskAttachmentManagedDisk(meta interface{}, id string) (*compute.Disk, error) {
-	client := meta.(*ArmClient).compute.DisksClient
+	client := meta.(*ArmClient).Compute.DisksClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedId, err := azure.ParseAzureResourceID(id)

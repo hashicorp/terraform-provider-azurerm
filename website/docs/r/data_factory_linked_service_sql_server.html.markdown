@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_sql_server"
 sidebar_current: "docs-azurerm-resource-data-factory-linked-service-sql-server"
 description: |-
-  Manage a Linked Service (connection) between a SQL Server and Azure Data Factory.
+  Manages a Linked Service (connection) between a SQL Server and Azure Data Factory.
 ---
 
 # azurerm_data_factory_linked_service_sql_server
 
-Manage a Linked Service (connection) between a SQL Server and Azure Data Factory.
+Manages a Linked Service (connection) between a SQL Server and Azure Data Factory.
 
 ~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 

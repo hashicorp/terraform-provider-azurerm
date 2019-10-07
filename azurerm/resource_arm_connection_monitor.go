@@ -3,7 +3,8 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -12,8 +13,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceArmConnectionMonitor() *schema.Resource {
@@ -120,7 +121,7 @@ As such the existing 'azurerm_connection_monitor' resource is deprecated and wil
 }
 
 func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ConnectionMonitorsClient
+	client := meta.(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -140,7 +141,7 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 		return err
 	}
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -189,7 +190,7 @@ func resourceArmConnectionMonitorCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ConnectionMonitorsClient
+	client := meta.(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -235,7 +236,7 @@ func resourceArmConnectionMonitorRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmConnectionMonitorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ConnectionMonitorsClient
+	client := meta.(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

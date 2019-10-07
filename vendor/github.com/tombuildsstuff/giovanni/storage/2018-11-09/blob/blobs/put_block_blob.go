@@ -15,7 +15,7 @@ import (
 
 type PutBlockBlobInput struct {
 	CacheControl       *string
-	Content            []byte
+	Content            *[]byte
 	ContentDisposition *string
 	ContentEncoding    *string
 	ContentLanguage    *string
@@ -40,8 +40,8 @@ func (client Client) PutBlockBlob(ctx context.Context, accountName, containerNam
 	if blobName == "" {
 		return result, validation.NewError("blobs.Client", "PutBlockBlob", "`blobName` cannot be an empty string.")
 	}
-	if len(input.Content) == 0 {
-		return result, validation.NewError("blobs.Client", "PutBlockBlob", "`input.Content` cannot be empty.")
+	if input.Content != nil && len(*input.Content) == 0 {
+		return result, validation.NewError("blobs.Client", "PutBlockBlob", "`input.Content` must either be nil or not empty.")
 	}
 	if err := metadata.Validate(input.MetaData); err != nil {
 		return result, validation.NewError("blobs.Client", "PutBlockBlob", fmt.Sprintf("`input.MetaData` is not valid: %s.", err))
@@ -102,15 +102,24 @@ func (client Client) PutBlockBlobPreparer(ctx context.Context, accountName, cont
 	if input.LeaseID != nil {
 		headers["x-ms-lease-id"] = *input.LeaseID
 	}
+	if input.Content != nil {
+		headers["Content-Length"] = int(len(*input.Content))
+	}
 
 	headers = metadata.SetIntoHeaders(headers, input.MetaData)
 
-	preparer := autorest.CreatePreparer(
+	decorators := []autorest.PrepareDecorator{
 		autorest.AsPut(),
 		autorest.WithBaseURL(endpoints.GetBlobEndpoint(client.BaseURI, accountName)),
 		autorest.WithPathParameters("/{containerName}/{blobName}", pathParameters),
 		autorest.WithHeaders(headers),
-		autorest.WithBytes(&input.Content))
+	}
+
+	if input.Content != nil {
+		decorators = append(decorators, autorest.WithBytes(input.Content))
+	}
+
+	preparer := autorest.CreatePreparer(decorators...)
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
 

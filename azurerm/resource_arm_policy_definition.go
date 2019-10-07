@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"time"
 
@@ -15,10 +16,10 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -102,7 +103,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.DefinitionsClient
+	client := meta.(*ArmClient).Policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -112,7 +113,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -198,7 +199,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.DefinitionsClient
+	client := meta.(*ArmClient).Policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())
@@ -246,7 +247,7 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.DefinitionsClient
+	client := meta.(*ArmClient).Policy.DefinitionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())

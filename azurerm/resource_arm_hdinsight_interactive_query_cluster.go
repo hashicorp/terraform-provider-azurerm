@@ -5,9 +5,10 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -108,7 +109,7 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdinsight.ClustersClient
+	client := meta.(*ArmClient).HDInsight.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -141,7 +142,7 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 		return fmt.Errorf("Error expanding `roles`: %+v", err)
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -198,8 +199,8 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 }
 
 func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
+	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
