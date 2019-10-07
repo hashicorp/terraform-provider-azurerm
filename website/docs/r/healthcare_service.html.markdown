@@ -48,7 +48,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience.
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Service.
 * `location` - (Required) Specifies the supported Azure Region where the Service should be created.
-* `kind` - (Optional) The type of the service. Values at time of publication are: "fhir", "fhir-Stu3" and "fhir-R4". Default value is Stu3.
+* `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
 
 ## Attributes Reference
 
