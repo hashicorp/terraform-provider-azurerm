@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-* `cosmosdb_offer_throughput` - The provisioned throughput for the backing database. Range of 400-1000. Defaults to 400.
+* `cosmosdb_offer_throughput` - The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `400`.
 * `tags` - A mapping of tags to assign to the resource.
 
 Authentication Configuration
