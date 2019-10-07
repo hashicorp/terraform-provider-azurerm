@@ -54,7 +54,7 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 }
 
 func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
+	client := meta.(*ArmClient).Web.BaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
@@ -91,7 +91,7 @@ func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
+	client := meta.(*ArmClient).Web.BaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	scmType := d.Id()
@@ -117,7 +117,7 @@ func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
+	client := meta.(*ArmClient).Web.BaseClient
 	ctx := meta.(*ArmClient).StopContext
 
 	scmType := d.Id()

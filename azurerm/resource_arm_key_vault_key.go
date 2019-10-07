@@ -144,8 +144,8 @@ func resourceArmKeyVaultKey() *schema.Resource {
 }
 
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	vaultClient := meta.(*ArmClient).Keyvault.VaultsClient
+	client := meta.(*ArmClient).Keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
@@ -230,8 +230,8 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	vaultClient := meta.(*ArmClient).Keyvault.VaultsClient
+	client := meta.(*ArmClient).Keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -276,8 +276,8 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	keyVaultClient := meta.(*ArmClient).Keyvault.VaultsClient
+	client := meta.(*ArmClient).Keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -348,8 +348,8 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	keyVaultClient := meta.(*ArmClient).Keyvault.VaultsClient
+	client := meta.(*ArmClient).Keyvault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())

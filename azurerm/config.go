@@ -112,28 +112,29 @@ type ArmClient struct {
 	graph            *graph.Client
 	hdinsight        *hdinsight.Client
 	iothub           *iothub.Client
-	keyvault         *keyvault.Client
-	kusto            *kusto.Client
-	logAnalytics     *loganalytics.Client
-	logic            *logic.Client
-	managementGroups *managementgroup.Client
-	maps             *maps.Client
-	mariadb          *mariadb.Client
-	media            *media.Client
-	monitor          *monitor.Client
-	mysql            *mysql.Client
-	msi              *msi.Client
-	mssql            *mssql.Client
 	Network          *network.Client
 	NotificationHubs *notificationhub.Client
 	Policy           *policy.Client
 	Portal           *portal.Client
 	Postgres         *postgres.Client
 	PrivateDns       *privatedns.Client
-	recoveryServices *recoveryservices.Client
-	redis            *redis.Client
-	relay            *relay.Client
-	resource         *resource.Client
+	Keyvault         *keyvault.Client
+	Kusto            *kusto.Client
+	LogAnalytics     *loganalytics.Client
+	Logic            *logic.Client
+	ManagementGroups *managementgroup.Client
+	Maps             *maps.Client
+	Mariadb          *mariadb.Client
+	Media            *media.Client
+	Monitor          *monitor.Client
+	Msi              *msi.Client
+	Mssql            *mssql.Client
+	Mysql            *mysql.Client
+	postgres         *postgres.Client
+	RecoveryServices *recoveryservices.Client
+	Redis            *redis.Client
+	Relay            *relay.Client
+	Resource         *resource.Client
 	Scheduler        *scheduler.Client
 	Search           *search.Client
 	SecurityCenter   *securitycenter.Client
@@ -145,7 +146,7 @@ type ArmClient struct {
 	Subscription     *subscription.Client
 	Sql              *sql.Client
 	TrafficManager   *trafficmanager.Client
-	web              *web.Client
+	Web              *web.Client
 }
 
 // getArmClient is a helper method which returns a fully instantiated
@@ -246,28 +247,29 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.graph = graph.BuildClient(o)
 	client.hdinsight = hdinsight.BuildClient(o)
 	client.iothub = iothub.BuildClient(o)
-	client.keyvault = keyvault.BuildClient(o)
-	client.kusto = kusto.BuildClient(o)
-	client.logic = logic.BuildClient(o)
-	client.logAnalytics = loganalytics.BuildClient(o)
-	client.maps = maps.BuildClient(o)
-	client.mariadb = mariadb.BuildClient(o)
-	client.media = media.BuildClient(o)
-	client.monitor = monitor.BuildClient(o)
-	client.mssql = mssql.BuildClient(o)
-	client.msi = msi.BuildClient(o)
-	client.mysql = mysql.BuildClient(o)
-	client.managementGroups = managementgroup.BuildClient(o)
 	client.Network = network.BuildClient(o)
 	client.NotificationHubs = notificationhub.BuildClient(o)
 	client.Policy = policy.BuildClient(o)
 	client.Portal = portal.BuildClient(o)
 	client.Postgres = postgres.BuildClient(o)
 	client.PrivateDns = privatedns.BuildClient(o)
-	client.recoveryServices = recoveryservices.BuildClient(o)
-	client.redis = redis.BuildClient(o)
-	client.relay = relay.BuildClient(o)
-	client.resource = resource.BuildClient(o)
+	client.Keyvault = keyvault.BuildClient(o)
+	client.Kusto = kusto.BuildClient(o)
+	client.Logic = logic.BuildClient(o)
+	client.LogAnalytics = loganalytics.BuildClient(o)
+	client.Maps = maps.BuildClient(o)
+	client.Mariadb = mariadb.BuildClient(o)
+	client.Media = media.BuildClient(o)
+	client.Monitor = monitor.BuildClient(o)
+	client.Mssql = mssql.BuildClient(o)
+	client.Msi = msi.BuildClient(o)
+	client.Mysql = mysql.BuildClient(o)
+	client.ManagementGroups = managementgroup.BuildClient(o)
+	client.postgres = postgres.BuildClient(o)
+	client.RecoveryServices = recoveryservices.BuildClient(o)
+	client.Redis = redis.BuildClient(o)
+	client.Relay = relay.BuildClient(o)
+	client.Resource = resource.BuildClient(o)
 	client.Search = search.BuildClient(o)
 	client.SecurityCenter = securitycenter.BuildClient(o)
 	client.ServiceBus = servicebus.BuildClient(o)
@@ -279,7 +281,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Subscription = subscription.BuildClient(o)
 	client.Sql = sql.BuildClient(o)
 	client.TrafficManager = trafficmanager.BuildClient(o)
-	client.web = web.BuildClient(o)
+	client.Web = web.BuildClient(o)
 
 	return &client, nil
 }

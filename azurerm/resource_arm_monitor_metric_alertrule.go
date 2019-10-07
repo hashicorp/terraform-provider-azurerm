@@ -159,7 +159,7 @@ func resourceArmMonitorMetricAlertRule() *schema.Resource {
 }
 
 func resourceArmMonitorMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Alert Rule creation.")
@@ -213,7 +213,7 @@ func resourceArmMonitorMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmMonitorMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -312,7 +312,7 @@ func resourceArmMonitorMetricAlertRuleRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmMonitorMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

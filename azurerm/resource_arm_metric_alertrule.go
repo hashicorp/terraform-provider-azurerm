@@ -166,7 +166,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 }
 
 func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Alert Rule creation.")
@@ -220,7 +220,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
@@ -317,7 +317,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())

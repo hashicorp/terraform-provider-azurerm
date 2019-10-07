@@ -57,8 +57,8 @@ func resourceArmManagementGroup() *schema.Resource {
 }
 
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 	armTenantID := meta.(*ArmClient).tenantId
 
@@ -157,7 +157,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())
@@ -203,8 +203,8 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseManagementGroupId(d.Id())

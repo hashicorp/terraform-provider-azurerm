@@ -71,7 +71,7 @@ func dataSourceAppServiceCertificate() *schema.Resource {
 
 func dataSourceAppServiceCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).web.CertificatesClient
+	client := meta.(*ArmClient).Web.CertificatesClient
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)

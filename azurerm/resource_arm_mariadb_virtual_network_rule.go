@@ -55,7 +55,7 @@ func resourceArmMariaDbVirtualNetworkRule() *schema.Resource {
 }
 
 func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Mariadb.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -153,7 +153,7 @@ func resourceArmMariaDbVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, me
 }
 
 func resourceArmMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Mariadb.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -188,7 +188,7 @@ func resourceArmMariaDbVirtualNetworkRuleRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmMariaDbVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadb.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).Mariadb.VirtualNetworkRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

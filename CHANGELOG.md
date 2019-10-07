@@ -1,8 +1,18 @@
 ## 1.36.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_data_factory` [GH-4517]
+
 IMPROVEMENTS:
 
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
+* `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
+
+BUG FIXES:
+
+* `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
+* `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
 
 ## 1.35.0 (October 04, 2019)
 
