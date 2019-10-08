@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,9 +23,9 @@ func dataSourceArmFirewall() *schema.Resource {
 				ValidateFunc: validateAzureFirewallName,
 			},
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"ip_configuration": {
 				Type:     schema.TypeList,
@@ -54,14 +57,15 @@ func dataSourceArmFirewall() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).azureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -82,7 +86,7 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
@@ -92,7 +96,5 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }

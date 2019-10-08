@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
@@ -44,7 +45,7 @@ func TestAccAzureRMDevTestVirtualMachine_basic(t *testing.T) {
 }
 
 func TestAccAzureRMDevTestVirtualMachine_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -152,7 +153,7 @@ func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) res
 		labName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).devTestVirtualMachinesClient
+		conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualMachinesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, labName, virtualMachineName, "")
@@ -169,7 +170,7 @@ func testCheckAzureRMDevTestWindowsVirtualMachineExists(resourceName string) res
 }
 
 func testCheckAzureRMDevTestWindowsVirtualMachineDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).devTestVirtualMachinesClient
+	conn := testAccProvider.Meta().(*ArmClient).DevTestLabs.VirtualMachinesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

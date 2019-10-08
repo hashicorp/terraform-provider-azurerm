@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -79,7 +79,6 @@ data "azurerm_policy_definition" "test" {
 
 func testAccDataSourceBuiltInPolicyDefinitionAtManagementGroup(name string) string {
 	return fmt.Sprintf(`
-
 data "azurerm_client_config" "current" {}
 
 data "azurerm_policy_definition" "test" {
@@ -97,7 +96,7 @@ resource "azurerm_policy_definition" "test_policy" {
   mode         = "All"
   display_name = "acctestpol-%d"
 
-  policy_rule  = <<POLICY_RULE
+  policy_rule = <<POLICY_RULE
   {
     "if": {
       "not": {
@@ -132,9 +131,8 @@ METADATA
 }
 
 data "azurerm_policy_definition" "test" {
-	display_name = "${azurerm_policy_definition.test_policy.display_name}"
+  display_name = "${azurerm_policy_definition.test_policy.display_name}"
 }
-
 `, ri, ri)
 }
 

@@ -9,10 +9,14 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -37,9 +41,9 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"address_space": {
 				Type:     schema.TypeList,
@@ -112,21 +116,22 @@ func resourceArmVirtualNetwork() *schema.Resource {
 				Set: resourceAzureSubnetHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM virtual network creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -139,8 +144,8 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 
 	vnetProperties, vnetPropsErr := expandVirtualNetworkProperties(ctx, d, meta)
 	if vnetPropsErr != nil {
@@ -151,25 +156,27 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 		Name:                           &name,
 		Location:                       &location,
 		VirtualNetworkPropertiesFormat: vnetProperties,
-		Tags:                           expandTags(tags),
+		Tags:                           tags.Expand(t),
 	}
 
 	networkSecurityGroupNames := make([]string, 0)
 	for _, subnet := range *vnet.VirtualNetworkPropertiesFormat.Subnets {
 		if subnet.NetworkSecurityGroup != nil {
-			nsgName, err := parseNetworkSecurityGroupName(*subnet.NetworkSecurityGroup.ID)
+			parsedNsgID, err := azure.ParseAzureResourceID(*subnet.NetworkSecurityGroup.ID)
 			if err != nil {
-				return err
+				return fmt.Errorf("Error parsing Network Security Group ID %q: %+v", *subnet.NetworkSecurityGroup.ID, err)
 			}
 
-			if !sliceContainsValue(networkSecurityGroupNames, nsgName) {
-				networkSecurityGroupNames = append(networkSecurityGroupNames, nsgName)
+			networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
+
+			if !sliceContainsValue(networkSecurityGroupNames, networkSecurityGroupName) {
+				networkSecurityGroupNames = append(networkSecurityGroupNames, networkSecurityGroupName)
 			}
 		}
 	}
 
-	azureRMLockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
-	defer azureRMUnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	locks.MultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
+	defer locks.UnlockMultipleByName(&networkSecurityGroupNames, networkSecurityGroupResourceName)
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, vnet)
 	if err != nil {
@@ -194,10 +201,11 @@ func resourceArmVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -216,7 +224,7 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
@@ -237,16 +245,15 @@ func resourceArmVirtualNetworkRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -255,11 +262,11 @@ func resourceArmVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) e
 
 	nsgNames, err := expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d)
 	if err != nil {
-		return fmt.Errorf("[ERROR] Error parsing Network Security Group ID's: %+v", err)
+		return fmt.Errorf("Error parsing Network Security Group ID's: %+v", err)
 	}
 
-	azureRMLockMultipleByName(&nsgNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&nsgNames, virtualNetworkResourceName)
+	locks.MultipleByName(&nsgNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&nsgNames, virtualNetworkResourceName)
 
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
@@ -429,7 +436,7 @@ func resourceAzureSubnetHash(v interface{}) int {
 }
 
 func getExistingSubnet(ctx context.Context, resGroup string, vnetName string, subnetName string, meta interface{}) (*network.Subnet, error) {
-	subnetClient := meta.(*ArmClient).subnetClient
+	subnetClient := meta.(*ArmClient).Network.SubnetsClient
 	resp, err := subnetClient.Get(ctx, resGroup, vnetName, subnetName, "")
 
 	if err != nil {
@@ -457,13 +464,15 @@ func expandAzureRmVirtualNetworkVirtualNetworkSecurityGroupNames(d *schema.Resou
 
 			networkSecurityGroupId := subnet["security_group"].(string)
 			if networkSecurityGroupId != "" {
-				nsgName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
+				parsedNsgID, err := azure.ParseAzureResourceID(networkSecurityGroupId)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("Error parsing Network Security Group ID %q: %+v", networkSecurityGroupId, err)
 				}
 
-				if !sliceContainsValue(nsgNames, nsgName) {
-					nsgNames = append(nsgNames, nsgName)
+				networkSecurityGroupName := parsedNsgID.Path["networkSecurityGroups"]
+
+				if !sliceContainsValue(nsgNames, networkSecurityGroupName) {
+					nsgNames = append(nsgNames, networkSecurityGroupName)
 				}
 			}
 		}

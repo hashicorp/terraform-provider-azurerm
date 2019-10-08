@@ -61,5 +61,5 @@ The following attributes are exported:
 Databrick Workspaces can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_databrick_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
+terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```

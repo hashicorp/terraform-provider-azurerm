@@ -5,18 +5,21 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateOrUpdate,
+		Create: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
 		Read:   resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read,
-		Update: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateOrUpdate,
+		Update: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate,
 		Delete: resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Delete,
 
 		Importer: &schema.ResourceImporter{
@@ -43,7 +46,7 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"url": {
 				Type:         schema.TypeString,
@@ -84,6 +87,9 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"annotations": {
@@ -97,20 +103,24 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2() *schema.Resource {
 			"additional_properties": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -181,10 +191,11 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2CreateOrUpdate(d *sch
 }
 
 func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -249,10 +260,11 @@ func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Read(d *schema.Resour
 }
 
 func resourceArmDataFactoryLinkedServiceDataLakeStorageGen2Delete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

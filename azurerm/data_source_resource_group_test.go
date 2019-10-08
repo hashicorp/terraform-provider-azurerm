@@ -5,7 +5,8 @@ import (
 
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -22,7 +23,7 @@ func TestAccDataSourceAzureRMResourceGroup_basic(t *testing.T) {
 				Config: testAccDataSourceAzureRMResourceGroupBasic(name, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "name", name),
-					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "tags.%", "1"),
 					resource.TestCheckResourceAttr("data.azurerm_resource_group.test", "tags.env", "test"),
 				),

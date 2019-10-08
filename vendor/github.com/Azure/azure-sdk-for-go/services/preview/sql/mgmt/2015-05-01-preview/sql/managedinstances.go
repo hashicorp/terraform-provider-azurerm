@@ -108,9 +108,9 @@ func (client ManagedInstancesClient) CreateOrUpdatePreparer(ctx context.Context,
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstancesClient) CreateOrUpdateSender(req *http.Request) (future ManagedInstancesCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -186,9 +186,9 @@ func (client ManagedInstancesClient) DeletePreparer(ctx context.Context, resourc
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstancesClient) DeleteSender(req *http.Request) (future ManagedInstancesDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -269,8 +269,8 @@ func (client ManagedInstancesClient) GetPreparer(ctx context.Context, resourceGr
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstancesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -342,8 +342,8 @@ func (client ManagedInstancesClient) ListPreparer(ctx context.Context) (*http.Re
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstancesClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -393,122 +393,6 @@ func (client ManagedInstancesClient) ListComplete(ctx context.Context) (result M
 		}()
 	}
 	result.page, err = client.List(ctx)
-	return
-}
-
-// ListByInstancePool gets a list of all managed instances in an instance pool.
-// Parameters:
-// resourceGroupName - the name of the resource group that contains the resource. You can obtain this value
-// from the Azure Resource Manager API or the portal.
-// instancePoolName - the instance pool name.
-func (client ManagedInstancesClient) ListByInstancePool(ctx context.Context, resourceGroupName string, instancePoolName string) (result ManagedInstanceListResultPage, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.ListByInstancePool")
-		defer func() {
-			sc := -1
-			if result.milr.Response.Response != nil {
-				sc = result.milr.Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.fn = client.listByInstancePoolNextResults
-	req, err := client.ListByInstancePoolPreparer(ctx, resourceGroupName, instancePoolName)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByInstancePool", nil, "Failure preparing request")
-		return
-	}
-
-	resp, err := client.ListByInstancePoolSender(req)
-	if err != nil {
-		result.milr.Response = autorest.Response{Response: resp}
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByInstancePool", resp, "Failure sending request")
-		return
-	}
-
-	result.milr, err = client.ListByInstancePoolResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "ListByInstancePool", resp, "Failure responding to request")
-	}
-
-	return
-}
-
-// ListByInstancePoolPreparer prepares the ListByInstancePool request.
-func (client ManagedInstancesClient) ListByInstancePoolPreparer(ctx context.Context, resourceGroupName string, instancePoolName string) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"instancePoolName":  autorest.Encode("path", instancePoolName),
-		"resourceGroupName": autorest.Encode("path", resourceGroupName),
-		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2015-05-01-preview"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsGet(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Sql/instancePools/{instancePoolName}/managedInstances", pathParameters),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// ListByInstancePoolSender sends the ListByInstancePool request. The method will close the
-// http.Response Body if it receives an error.
-func (client ManagedInstancesClient) ListByInstancePoolSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
-}
-
-// ListByInstancePoolResponder handles the response to the ListByInstancePool request. The method always
-// closes the http.Response Body.
-func (client ManagedInstancesClient) ListByInstancePoolResponder(resp *http.Response) (result ManagedInstanceListResult, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK),
-		autorest.ByUnmarshallingJSON(&result),
-		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
-	return
-}
-
-// listByInstancePoolNextResults retrieves the next set of results, if any.
-func (client ManagedInstancesClient) listByInstancePoolNextResults(ctx context.Context, lastResults ManagedInstanceListResult) (result ManagedInstanceListResult, err error) {
-	req, err := lastResults.managedInstanceListResultPreparer(ctx)
-	if err != nil {
-		return result, autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByInstancePoolNextResults", nil, "Failure preparing next results request")
-	}
-	if req == nil {
-		return
-	}
-	resp, err := client.ListByInstancePoolSender(req)
-	if err != nil {
-		result.Response = autorest.Response{Response: resp}
-		return result, autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByInstancePoolNextResults", resp, "Failure sending next results request")
-	}
-	result, err = client.ListByInstancePoolResponder(resp)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "sql.ManagedInstancesClient", "listByInstancePoolNextResults", resp, "Failure responding to next results request")
-	}
-	return
-}
-
-// ListByInstancePoolComplete enumerates all values, automatically crossing page boundaries as required.
-func (client ManagedInstancesClient) ListByInstancePoolComplete(ctx context.Context, resourceGroupName string, instancePoolName string) (result ManagedInstanceListResultIterator, err error) {
-	if tracing.IsEnabled() {
-		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedInstancesClient.ListByInstancePool")
-		defer func() {
-			sc := -1
-			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
-			}
-			tracing.EndSpan(ctx, sc, err)
-		}()
-	}
-	result.page, err = client.ListByInstancePool(ctx, resourceGroupName, instancePoolName)
 	return
 }
 
@@ -572,8 +456,8 @@ func (client ManagedInstancesClient) ListByResourceGroupPreparer(ctx context.Con
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstancesClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -684,9 +568,9 @@ func (client ManagedInstancesClient) UpdatePreparer(ctx context.Context, resourc
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client ManagedInstancesClient) UpdateSender(req *http.Request) (future ManagedInstancesUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}

@@ -9,12 +9,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -42,12 +46,12 @@ func resourceArmRedisCache() *schema.Resource {
 				Type:      schema.TypeString,
 				Required:  true,
 				ForceNew:  true,
-				StateFunc: azureRMNormalizeLocation,
+				StateFunc: azure.NormalizeLocation,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"zones": singleZonesSchema(),
+			"zones": azure.SchemaSingleZone(),
 
 			"capacity": {
 				Type:     schema.TypeInt,
@@ -243,18 +247,18 @@ func resourceArmRedisCache() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resGroup := d.Get("resource_group_name").(string)
 
 	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)
@@ -263,10 +267,10 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	family := redis.SkuFamily(d.Get("family").(string))
 	sku := redis.SkuName(d.Get("sku_name").(string))
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -314,21 +318,21 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
-		parsed, parseErr := parseAzureResourceID(v.(string))
+		parsed, parseErr := azure.ParseAzureResourceID(v.(string))
 		if parseErr != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", v.(string))
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		azureRMLockByName(subnetName, subnetResourceName)
-		defer azureRMUnlockByName(subnetName, subnetResourceName)
-		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
-		parameters.Zones = expandZones(v.([]interface{}))
+		parameters.Zones = azure.ExpandZones(v.([]interface{}))
 	}
 
 	future, err := client.Create(ctx, resGroup, name, parameters)
@@ -363,7 +367,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 	d.SetId(*read.ID)
 
 	if schedule := patchSchedule; schedule != nil {
-		patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+		patchClient := meta.(*ArmClient).Redis.PatchSchedulesClient
 		_, err = patchClient.CreateOrUpdate(ctx, resGroup, name, *schedule)
 		if err != nil {
 			return fmt.Errorf("Error setting Redis Patch Schedule: %+v", err)
@@ -374,7 +378,7 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
@@ -387,8 +391,8 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 	family := redis.SkuFamily(d.Get("family").(string))
 	sku := redis.SkuName(d.Get("sku_name").(string))
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := redis.UpdateParameters{
 		UpdateProperties: &redis.UpdateProperties{
@@ -449,7 +453,7 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error parsing Patch Schedule: %+v", err)
 	}
 
-	patchClient := meta.(*ArmClient).redisPatchSchedulesClient
+	patchClient := meta.(*ArmClient).Redis.PatchSchedulesClient
 	if patchSchedule == nil || len(*patchSchedule.ScheduleEntries.ScheduleEntries) == 0 {
 		_, err = patchClient.Delete(ctx, resGroup, name)
 		if err != nil {
@@ -466,10 +470,10 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -493,7 +497,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error making ListKeys request on Azure Redis Cache %s: %s", name, err)
 	}
 
-	patchSchedulesClient := meta.(*ArmClient).redisPatchSchedulesClient
+	patchSchedulesClient := meta.(*ArmClient).Redis.PatchSchedulesClient
 
 	schedule, err := patchSchedulesClient.Get(ctx, resGroup, name)
 	if err == nil {
@@ -506,7 +510,7 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if zones := resp.Zones; zones != nil {
 		d.Set("zones", zones)
@@ -542,23 +546,21 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
-	redisClient := meta.(*ArmClient).redisClient
+	client := meta.(*ArmClient).Redis.Client
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["Redis"]
 
-	read, err := redisClient.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Redis Cache %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -567,18 +569,18 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	}
 	props := *read.Properties
 	if subnetID := props.SubnetID; subnetID != nil {
-		parsed, parseErr := parseAzureResourceID(*subnetID)
+		parsed, parseErr := azure.ParseAzureResourceID(*subnetID)
 		if parseErr != nil {
 			return fmt.Errorf("Error parsing Azure Resource ID %q", *subnetID)
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		azureRMLockByName(subnetName, subnetResourceName)
-		defer azureRMUnlockByName(subnetName, subnetResourceName)
-		azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-		defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 	}
-	future, err := redisClient.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
@@ -587,7 +589,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	if err = future.WaitForCompletionRef(ctx, redisClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -598,7 +600,7 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func redisStateRefreshFunc(ctx context.Context, client redis.Client, resourceGroupName string, sgName string) resource.StateRefreshFunc {
+func redisStateRefreshFunc(ctx context.Context, client *redis.Client, resourceGroupName string, sgName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroupName, sgName)
 		if err != nil {

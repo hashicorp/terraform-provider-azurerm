@@ -6,9 +6,12 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,16 +45,22 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"variables": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"description": {
@@ -71,8 +80,9 @@ func resourceArmDataFactoryPipeline() *schema.Resource {
 }
 
 func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryPipelineClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.PipelinesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Data Factory Pipeline creation.")
 
@@ -80,7 +90,7 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroupName, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -131,10 +141,11 @@ func resourceArmDataFactoryPipelineCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryPipelineClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.PipelinesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,17 +183,17 @@ func resourceArmDataFactoryPipelineRead(d *schema.ResourceData, meta interface{}
 		if err := d.Set("variables", variables); err != nil {
 			return fmt.Errorf("Error setting `variables`: %+v", err)
 		}
-
 	}
 
 	return nil
 }
 
 func resourceArmDataFactoryPipelineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryPipelineClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.PipelinesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

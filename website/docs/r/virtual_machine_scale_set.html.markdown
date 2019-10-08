@@ -8,10 +8,12 @@ description: |-
 
 # azurerm_virtual_machine_scale_set
 
-Manage a virtual machine scale set.
+Manages a virtual machine scale set.
 
-~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
+~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
+-> **NOTE:** The `azurerm_virtual_machine_scale_set` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
 
 ## Example Usage with Managed Disks (Recommended)
 
@@ -275,6 +277,8 @@ The following arguments are supported:
 
 * `os_profile_linux_config` - (Required, when a linux machine) A Linux config block as documented below.
 
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
+
 * `sku` - (Required) A sku block as documented below.
 
 * `storage_profile_os_disk` - (Required) A storage profile os disk block as documented below
@@ -444,7 +448,7 @@ output "principal_id" {
 `public_ip_address_configuration` supports the following:
 
 * `name` - (Required) The name of the public ip address configuration
-* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 32.
+* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the dns settings.
 
 `storage_profile_os_disk` supports the following:

@@ -6,11 +6,15 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -45,9 +49,9 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -58,7 +62,7 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 					string(servicebus.Standard),
 					string(servicebus.Premium),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"capacity": {
@@ -92,24 +96,30 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -128,7 +138,7 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 			Name: servicebus.SkuName(sku),
 			Tier: servicebus.SkuTier(sku),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if capacity := d.Get("capacity"); capacity != nil {
@@ -139,6 +149,13 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2 or 4", sku)
 		}
 		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
+	}
+
+	if zoneRedundant, ok := d.GetOkExists("zone_redundant"); ok {
+		properties := servicebus.SBNamespaceProperties{
+			ZoneRedundant: utils.Bool(zoneRedundant.(bool)),
+		}
+		parameters.SBNamespaceProperties = &properties
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -165,10 +182,11 @@ func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
+	clientStable := meta.(*ArmClient).ServiceBus.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,7 +205,7 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -195,7 +213,11 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("capacity", sku.Capacity)
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
+	if properties := resp.SBNamespaceProperties; properties != nil {
+		d.Set("zone_redundant", properties.ZoneRedundant)
+	}
+
+	keys, err := clientStable.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	} else {
@@ -205,16 +227,14 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("default_secondary_key", keys.SecondaryKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

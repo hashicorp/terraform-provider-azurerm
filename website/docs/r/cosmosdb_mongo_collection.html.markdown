@@ -23,27 +23,27 @@ resource "azurerm_cosmosdb_mongo_database" "example" {
   resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
   account_name        = "${data.azurerm_cosmosdb_account.example.name}"
 }
+
 resource "azurerm_cosmosdb_mongo_collection" "example" {
   name                = "tfex-cosmos-mongo-db"
   resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
   account_name        = "${data.azurerm_cosmosdb_account.example.name}"
-  database_name       = "${data.azurerm_cosmosdb_account.example.name}"
-  
-  default_ttl_seconds = "777"   
+  database_name       = "${azurerm_cosmosdb_mongo_database.example.name}"
+
+  default_ttl_seconds = "777"
   shard_key           = "uniqueKey"
-  
+  throughput          = 400
+
   indexes {
     key    = "aKey"
     unique = false
   }
-  
+
   indexes {
     key    = "uniqueKey"
     unique = true
   }
 }
-
-
 ```
 
 ## Argument Reference
@@ -52,9 +52,10 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the Cosmos DB Mongo Collection. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
-* `resource_group_name` - (Required) The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
+* `database_name` - (Required) The name of the Cosmos DB Mongo Database in which the Cosmos DB Mongo Collection is created. Changing this forces a new resource to be created.
 * `default_ttl_seconds` - (Required) The default Time To Live in seconds. If the value is `-1` items are not automatically expired.
-* `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys. 
+* `shard_key` - (Required) The name of the key to partition on for sharding. There must not be any other unique index keys.
+* `throughput` - (Optional) The throughput of the MongoDB collection (RU/s). Must be set in increments of `100`. The default and minimum value is `400`.
 * `indexes` - (Optional) One or more `indexes` blocks as defined below.
 
 ---

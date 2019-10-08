@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_data_lake_storage_gen2"
 sidebar_current: "docs-azurerm-resource-data-factory-linked-service-data-lake-storage-gen2"
 description: |-
-  Manage a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
+  Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
 ---
 
 # azurerm_data_factory_linked_service_data_lake_storage_gen2
 
-Manage a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
+Manages a Linked Service (connection) between Data Lake Storage Gen2 and Azure Data Factory.
 
 ~> **Note:** All arguments including the `service_principal_key` will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -28,11 +28,10 @@ resource "azurerm_data_factory" "example" {
 
 data "azurerm_client_config" "current" {}
 
-
 resource "azurerm_data_factory_linked_service_data_lake_storage_gen2" "example" {
-  name                 = "example"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  data_factory_name    = "${azurerm_data_factory.test.name}"
+  name                  = "example"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  data_factory_name     = "${azurerm_data_factory.test.name}"
   service_principal_id  = "${data.azurerm_client_config.current.client_id}"
   service_principal_key = "exampleKey"
   tenant                = "11111111-1111-1111-1111-111111111111"

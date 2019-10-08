@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,11 +22,11 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -34,8 +37,9 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 }
 
 func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServicesVaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).RecoveryServices.VaultsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -53,13 +57,12 @@ func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interfa
 
 	d.SetId(*vault.ID)
 	d.Set("name", vault.Name)
-	d.Set("location", azureRMNormalizeLocation(*vault.Location))
+	d.Set("location", azure.NormalizeLocation(*vault.Location))
 	d.Set("resource_group_name", resourceGroup)
 
 	if sku := vault.Sku; sku != nil {
 		d.Set("sku", string(sku.Name))
 	}
 
-	flattenAndSetTags(d, vault.Tags)
-	return nil
+	return tags.FlattenAndSet(d, vault.Tags)
 }

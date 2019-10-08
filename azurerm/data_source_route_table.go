@@ -3,9 +3,12 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,9 +23,9 @@ func dataSourceArmRouteTable() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"route": {
 				Type:     schema.TypeList,
@@ -59,14 +62,15 @@ func dataSourceArmRouteTable() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).routeTablesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.RouteTablesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -84,7 +88,7 @@ func dataSourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.RouteTablePropertiesFormat; props != nil {
@@ -97,9 +101,7 @@ func dataSourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenRouteTableDataSourceRoutes(input *[]network.Route) []interface{} {

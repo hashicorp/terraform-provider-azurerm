@@ -5,8 +5,12 @@ import (
 	"net/http"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,7 +31,7 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"zone_name": {
 				Type:     schema.TypeString,
@@ -46,20 +50,21 @@ func resourceArmDnsPtrRecord() *schema.Resource {
 				Required: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dnsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Dns.RecordSetsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	zoneName := d.Get("zone_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, zoneName, name, dns.PTR)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -73,11 +78,11 @@ func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	ttl := int64(d.Get("ttl").(int))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dns.RecordSet{
 		RecordSetProperties: &dns.RecordSetProperties{
-			Metadata:   expandTags(tags),
+			Metadata:   tags.Expand(t),
 			TTL:        &ttl,
 			PtrRecords: expandAzureRmDnsPtrRecords(d),
 		},
@@ -105,10 +110,11 @@ func resourceArmDnsPtrRecordCreateUpdate(d *schema.ResourceData, meta interface{
 
 func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	dnsClient := client.dnsClient
-	ctx := meta.(*ArmClient).StopContext
+	dnsClient := client.Dns.RecordSetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -135,17 +141,16 @@ func resourceArmDnsPtrRecordRead(d *schema.ResourceData, meta interface{}) error
 	if err := d.Set("records", flattenAzureRmDnsPtrRecords(resp.PtrRecords)); err != nil {
 		return err
 	}
-	flattenAndSetTags(d, resp.Metadata)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
 func resourceArmDnsPtrRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	dnsClient := client.dnsClient
-	ctx := meta.(*ArmClient).StopContext
+	dnsClient := client.Dns.RecordSetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

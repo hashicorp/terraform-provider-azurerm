@@ -5,10 +5,14 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,11 +34,11 @@ func resourceArmDevTestLab() *schema.Resource {
 				ValidateFunc: validate.DevTestLabName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"storage_type": {
 				Type:     schema.TypeString,
@@ -46,7 +50,7 @@ func resourceArmDevTestLab() *schema.Resource {
 				}, false),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"artifacts_storage_account_id": {
 				Type:     schema.TypeString,
@@ -82,15 +86,16 @@ func resourceArmDevTestLab() *schema.Resource {
 }
 
 func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -103,13 +108,13 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageType := d.Get("storage_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := dtl.Lab{
 		Location: utils.String(location),
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		LabProperties: &dtl.LabProperties{
 			LabStorageType: dtl.StorageType(storageType),
 		},
@@ -139,10 +144,11 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -163,7 +169,7 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("name", read.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.LabProperties; props != nil {
@@ -178,16 +184,15 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.LabsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

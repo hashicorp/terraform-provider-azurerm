@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -207,7 +207,7 @@ func testCheckAzureRMDataFactoryExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactoryClient
+		client := testAccProvider.Meta().(*ArmClient).DataFactory.FactoriesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
@@ -237,7 +237,7 @@ func testCheckAzureRMDataFactoryDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactoryClient
+		client := testAccProvider.Meta().(*ArmClient).DataFactory.FactoriesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, name)
@@ -252,7 +252,7 @@ func testCheckAzureRMDataFactoryDisappears(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDataFactoryDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactoryClient
+	client := testAccProvider.Meta().(*ArmClient).DataFactory.FactoriesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -279,118 +279,119 @@ func testCheckAzureRMDataFactoryDestroy(s *terraform.State) error {
 
 func testAccAzureRMDataFactory_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-  }
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
 `, rInt, location, rInt)
 }
 
 func testAccAzureRMDataFactory_tags(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    tags = {
-      environment = "production"
-    }
+  tags = {
+    environment = "production"
   }
+}
 `, rInt, location, rInt)
 }
 
 func testAccAzureRMDataFactory_tagsUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    tags = {
-      environment = "production"
-      updated     = "true"
-    }
+  tags = {
+    environment = "production"
+    updated     = "true"
   }
+}
 `, rInt, location, rInt)
 }
 
 func testAccAzureRMDataFactory_identity(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
-    identity {
-      type = "SystemAssigned"
-    }
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  identity {
+    type = "SystemAssigned"
   }
+}
 `, rInt, location, rInt)
 }
 
 func testAccAzureRMDataFactory_github(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
-  }
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-  resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-		
-    github_configuration {
-      git_url         = "https://github.com/terraform-providers/"
-      repository_name = "terraform-provider-azurerm"
-      branch_name     = "master"
-      root_folder     = "/"
-      account_name    = "acctestGH-%d"
-    }
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  github_configuration {
+    git_url         = "https://github.com/terraform-providers/"
+    repository_name = "terraform-provider-azurerm"
+    branch_name     = "master"
+    root_folder     = "/"
+    account_name    = "acctestGH-%d"
   }
+}
 `, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMDataFactory_githubUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
-    location = "%s"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_data_factory" "test" {
+  name                = "acctestdf%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  github_configuration {
+    git_url         = "https://github.com/terraform-providers/"
+    repository_name = "terraform-provider-azuread"
+    branch_name     = "stable-website"
+    root_folder     = "/azuread"
+    account_name    = "acctestGitHub-%d"
   }
-  resource "azurerm_data_factory" "test" {
-    name                = "acctestdf%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-		
-    github_configuration {
-      git_url         = "https://github.com/terraform-providers/"
-      repository_name = "terraform-provider-azuread"
-      branch_name     = "stable-website"
-      root_folder     = "/azuread"
-      account_name    = "acctestGitHub-%d"
-    }
-  }
+}
 `, rInt, location, rInt, rInt)
 }

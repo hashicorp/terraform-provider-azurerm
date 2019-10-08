@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRmLogAnalyticsWorkspaceName_validation(t *testing.T) {
@@ -77,7 +78,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsWorkspace_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -130,7 +131,7 @@ func TestAccAzureRMLogAnalyticsWorkspace_complete(t *testing.T) {
 }
 
 func testCheckAzureRMLogAnalyticsWorkspaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).workspacesClient
+	conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.WorkspacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -169,7 +170,7 @@ func testCheckAzureRMLogAnalyticsWorkspaceExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Workspace: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).workspacesClient
+		conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.WorkspacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -228,7 +229,7 @@ resource "azurerm_log_analytics_workspace" "test" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
- tags = {
+  tags = {
     Environment = "Test"
   }
 }

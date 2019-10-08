@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMSearchService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMSearchService_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -92,9 +93,37 @@ func TestAccAzureRMSearchService_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSearchService_tagUpdate(t *testing.T) {
+	resourceName := "azurerm_search_service.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSearchServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSearchService_withCustomTagValue(ri, testLocation(), "staging"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "staging"),
+				),
+			},
+			{
+				Config: testAccAzureRMSearchService_withCustomTagValue(ri, testLocation(), "production"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSearchServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -103,7 +132,7 @@ func testCheckAzureRMSearchServiceExists(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Search.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
@@ -128,7 +157,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		searchName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).searchServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Search.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, searchName, nil)
@@ -146,7 +175,7 @@ func testCheckAzureRMSearchServiceDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMSearchService_basic(rInt int, location string) string {
+func testAccAzureRMSearchService_withCustomTagValue(rInt int, location string, tagValue string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -160,10 +189,14 @@ resource "azurerm_search_service" "test" {
   sku                 = "standard"
 
   tags = {
-    environment = "staging"
+    environment = "%s"
   }
 }
-`, rInt, location, rInt)
+`, rInt, location, rInt, tagValue)
+}
+
+func testAccAzureRMSearchService_basic(rInt int, location string) string {
+	return testAccAzureRMSearchService_withCustomTagValue(rInt, location, "staging")
 }
 
 func testAccAzureRMSearchService_requiresImport(rInt int, location string) string {

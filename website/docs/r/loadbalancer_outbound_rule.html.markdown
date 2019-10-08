@@ -21,10 +21,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "PublicIPForLB"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method            = "Static"
+  name                = "PublicIPForLB"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -45,11 +45,11 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_outbound_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
-  name                           = "OutboundRule"
-  protocol                       = "Tcp"
-  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  loadbalancer_id         = "${azurerm_lb.test.id}"
+  name                    = "OutboundRule"
+  protocol                = "Tcp"
+  backend_address_pool_id = "${azurerm_lb_backend_address_pool.test.id}"
 
   frontend_ip_configuration {
     name = "PublicIPAddress"

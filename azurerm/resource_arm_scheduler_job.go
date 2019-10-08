@@ -10,14 +10,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/scheduler/mgmt/2016-03-01/scheduler"
 	"github.com/Azure/go-autorest/autorest/date"
 
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -51,7 +53,7 @@ func resourceArmSchedulerJob() *schema.Resource {
 				),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"job_collection_name": {
 				Type:         schema.TypeString,
@@ -294,6 +296,9 @@ func resourceArmSchedulerJobActionWebSchema(propertyName string) *schema.Resourc
 			"headers": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			//authentication requires HTTPS
@@ -439,7 +444,6 @@ func resourceArmSchedulerJobActionStorageSchema() *schema.Resource {
 }
 
 func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface{}) error {
-
 	_, hasWeb := diff.GetOk("action_web")
 	_, hasStorage := diff.GetOk("action_storage_queue")
 	if !hasWeb && !hasStorage {
@@ -448,7 +452,6 @@ func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface
 
 	if b, ok := diff.GetOk("recurrence"); ok {
 		if recurrence, ok := b.([]interface{})[0].(map[string]interface{}); ok {
-
 			//if neither count nor end time is set the API will silently fail
 			_, hasCount := recurrence["count"]
 			_, hasEnd := recurrence["end_time"]
@@ -462,14 +465,14 @@ func resourceArmSchedulerJobCustomizeDiff(diff *schema.ResourceDiff, _ interface
 }
 
 func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).Scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	jobCollection := d.Get("job_collection_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, jobCollection, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -519,10 +522,10 @@ func resourceArmSchedulerJobCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).Scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -551,7 +554,6 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 	//check & get properties
 	properties := job.Properties
 	if properties != nil {
-
 		//action
 		action := properties.Action
 		if action != nil {
@@ -613,10 +615,10 @@ func resourceArmSchedulerJobRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobsClient
+	client := meta.(*ArmClient).Scheduler.JobsClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -638,7 +640,6 @@ func resourceArmSchedulerJobDelete(d *schema.ResourceData, meta interface{}) err
 }
 
 func expandAzureArmSchedulerJobAction(d *schema.ResourceData, meta interface{}) *scheduler.JobAction {
-
 	action := scheduler.JobAction{}
 
 	//action
@@ -672,7 +673,6 @@ func expandAzureArmSchedulerJobAction(d *schema.ResourceData, meta interface{}) 
 }
 
 func expandAzureArmSchedulerJobActionRequest(b interface{}, meta interface{}) (*scheduler.HTTPRequest, scheduler.JobActionType) {
-
 	block := b.([]interface{})[0].(map[string]interface{})
 
 	url := block["url"].(string)
@@ -833,7 +833,6 @@ func expandAzureArmSchedulerJobRecurrence(b interface{}) *scheduler.JobRecurrenc
 // flatten (API --> terraform)
 
 func flattenAzureArmSchedulerJobActionRequest(d *schema.ResourceData, blockName string, request *scheduler.HTTPRequest) []interface{} {
-
 	block := map[string]interface{}{}
 
 	if v := request.URI; v != nil {
@@ -856,7 +855,6 @@ func flattenAzureArmSchedulerJobActionRequest(d *schema.ResourceData, blockName 
 	}
 
 	if auth := request.Authentication; auth != nil {
-
 		authBlock := map[string]interface{}{}
 
 		if basic, ok := auth.AsBasicAuthentication(); ok {
@@ -870,7 +868,6 @@ func flattenAzureArmSchedulerJobActionRequest(d *schema.ResourceData, blockName 
 			if v, ok := d.GetOk(fmt.Sprintf("%s.0.authentication_basic.0.password", blockName)); ok {
 				authBlock["password"] = v.(string)
 			}
-
 		} else if cert, ok := auth.AsClientCertAuthentication(); ok {
 			block["authentication_certificate"] = []interface{}{authBlock}
 
@@ -891,7 +888,6 @@ func flattenAzureArmSchedulerJobActionRequest(d *schema.ResourceData, blockName 
 			if v, ok := d.GetOk(fmt.Sprintf("%s.0.authentication_certificate.0.password", blockName)); ok {
 				authBlock["password"] = v.(string)
 			}
-
 		} else if oauth, ok := auth.AsOAuthAuthentication(); ok {
 			block["authentication_active_directory"] = []interface{}{authBlock}
 
@@ -965,7 +961,6 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 	}
 
 	if schedule := recurrence.Schedule; schedule != nil {
-
 		if v := schedule.Minutes; v != nil {
 			block["minutes"] = set.FromInt32Slice(*v)
 		}
@@ -987,7 +982,6 @@ func flattenAzureArmSchedulerJobSchedule(recurrence *scheduler.JobRecurrence) []
 		if monthly := schedule.MonthlyOccurrences; monthly != nil {
 			s := &schema.Set{F: resourceAzureRMSchedulerJobMonthlyOccurrenceHash}
 			for _, e := range *monthly {
-
 				m := map[string]interface{}{
 					"day": string(e.Day),
 				}

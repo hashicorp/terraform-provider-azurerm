@@ -10,15 +10,17 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,21 +41,21 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringMatch(
 					regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-					"Cosmos DB Account name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					"Cosmos DB Account name must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			//resource fields
 			"offer_type": {
 				Type:             schema.TypeString,
 				Required:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.Standard),
 				}, true),
@@ -64,7 +66,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 				Optional:         true,
 				ForceNew:         true,
 				Default:          string(documentdb.GlobalDocumentDB),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(documentdb.GlobalDocumentDB),
 					string(documentdb.MongoDB),
@@ -95,7 +97,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"consistency_level": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(documentdb.BoundedStaleness),
 								string(documentdb.ConsistentPrefix),
@@ -109,14 +111,14 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      5,
-							ValidateFunc: validation.IntBetween(5, 86400),
+							ValidateFunc: validation.IntBetween(5, 86400), // single region values
 						},
 
 						"max_staleness_prefix": {
 							Type:         schema.TypeInt,
 							Optional:     true,
 							Default:      100,
-							ValidateFunc: validation.IntBetween(10, 2147483647),
+							ValidateFunc: validation.IntBetween(10, 1000000), // single region values
 						},
 					},
 				},
@@ -140,8 +142,8 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"location": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
+							StateFunc:        azure.NormalizeLocation,
+							DiffSuppressFunc: azure.SuppressLocationDiff,
 						},
 
 						"priority": {
@@ -167,7 +169,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Optional: true,
 							ValidateFunc: validation.StringMatch(
 								regexp.MustCompile("^[-a-z0-9]{3,50}$"),
-								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+								"Cosmos DB location prefix (ID) must be 3 - 50 characters long, contain only lowercase letters, numbers and hyphens.",
 							),
 						},
 
@@ -176,7 +178,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 							Computed: true,
 						},
 
-						"location": locationSchema(),
+						"location": azure.SchemaLocation(),
 
 						"failover_priority": {
 							Type:         schema.TypeInt,
@@ -196,7 +198,7 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 						"name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								"EnableTable",
 								"EnableGremlin",
@@ -297,14 +299,15 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 }
 
 func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -317,8 +320,8 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
 	ipRangeFilter := d.Get("ip_range_filter").(string)
@@ -330,6 +333,7 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 	if err != nil {
 		return fmt.Errorf("Error checking if CosmosDB Account %q already exists (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if !utils.ResponseWasNotFound(r) {
 		return fmt.Errorf("CosmosDB Account %s already exists, please import the resource via terraform import", name)
 	}
@@ -365,7 +369,19 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
+	}
+
+	// additional validation on MaxStalenessPrefix as it varies depending on if the DB is multi region or not
+
+	cp := account.DatabaseAccountCreateUpdateProperties.ConsistencyPolicy
+	if len(geoLocations) > 1 && cp != nil && cp.DefaultConsistencyLevel == documentdb.BoundedStaleness {
+		if msp := cp.MaxStalenessPrefix; msp != nil && *msp < 100000 {
+			return fmt.Errorf("Error max_staleness_prefix (%d) must be greater then 100000 when more then one geo_location is used", *msp)
+		}
+		if mis := cp.MaxIntervalInSeconds; mis != nil && *mis < 300 {
+			return fmt.Errorf("Error max_interval_in_seconds (%d) must be greater then 300 (5min) when more then one geo_location is used", *mis)
+		}
 	}
 
 	resp, err := resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account)
@@ -399,15 +415,16 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
 
 	//move to function
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	kind := d.Get("kind").(string)
 	offerType := d.Get("offer_type").(string)
@@ -450,7 +467,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 
 		oldLocations = append(oldLocations, location)
-		oldLocationsMap[azureRMNormalizeLocation(*location.LocationName)] = location
+		oldLocationsMap[azure.NormalizeLocation(*location.LocationName)] = location
 	}
 
 	//cannot update properties and add/remove replication locations at the same time
@@ -469,7 +486,7 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 			VirtualNetworkRules:           expandAzureRmCosmosDBAccountVirtualNetworkRules(d),
 			EnableMultipleWriteLocations:  utils.Bool(enableMultipleWriteLocations),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err = resourceArmCosmosDbAccountApiUpsert(client, ctx, resourceGroup, name, account); err != nil {
@@ -499,7 +516,6 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 				removedOne = true
 			}
 		}
-
 	}
 
 	if removedOne {
@@ -547,10 +563,11 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -570,10 +587,9 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("name", resp.Name)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("resource_group_name", resourceGroup)
-	flattenAndSetTags(d, resp.Tags)
 
 	d.Set("kind", string(resp.Kind))
 	d.Set("offer_type", string(resp.DatabaseAccountOfferType))
@@ -614,20 +630,32 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error setting `virtual_network_rule`: %+v", err)
 	}
 
+	readEndpoints := make([]string, 0)
 	if p := resp.ReadLocations; p != nil {
-		readEndpoints := make([]string, 0)
 		for _, l := range *p {
+			if l.DocumentEndpoint == nil {
+				continue
+			}
+
 			readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
 		}
-		d.Set("read_endpoints", readEndpoints)
+	}
+	if err := d.Set("read_endpoints", readEndpoints); err != nil {
+		return fmt.Errorf("Error setting `read_endpoints`: %s", err)
 	}
 
+	writeEndpoints := make([]string, 0)
 	if p := resp.WriteLocations; p != nil {
-		writeEndpoints := make([]string, 0)
 		for _, l := range *p {
+			if l.DocumentEndpoint == nil {
+				continue
+			}
+
 			writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 		}
-		d.Set("write_endpoints", writeEndpoints)
+	}
+	if err := d.Set("write_endpoints", writeEndpoints); err != nil {
+		return fmt.Errorf("Error setting `write_endpoints`: %s", err)
 	}
 
 	// ListKeys returns a data structure containing a DatabaseAccountListReadOnlyKeysResult pointer
@@ -675,18 +703,18 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 		for i, v := range *connStringResp.ConnectionStrings {
 			connStrings[i] = *v.ConnectionString
 		}
-
 	}
 	d.Set("connection_strings", connStrings)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -706,13 +734,11 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Deleting"},
 		Target:     []string{"NotFound"},
-		Timeout:    60 * time.Minute,
+		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
-
 				if utils.ResponseWasNotFound(resp.Response) {
 					return resp, "NotFound", nil
 				}
@@ -729,7 +755,7 @@ func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmCosmosDbAccountApiUpsert(client documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
+func resourceArmCosmosDbAccountApiUpsert(client *documentdb.DatabaseAccountsClient, ctx context.Context, resourceGroup string, name string, account documentdb.DatabaseAccountCreateUpdateParameters) (*documentdb.DatabaseAccount, error) {
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, account)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating/updating CosmosDB Account %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -743,11 +769,10 @@ func resourceArmCosmosDbAccountApiUpsert(client documentdb.DatabaseAccountsClien
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Creating", "Updating", "Deleting"},
 		Target:     []string{"Succeeded"},
-		Timeout:    60 * time.Minute,
+		Timeout:    180 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      30 * time.Second, // required because it takes some time before the 'creating' location shows up
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, resourceGroup, name)
 			if err2 != nil {
 				return nil, "", fmt.Errorf("Error reading CosmosDB Account %q after create/update (Resource Group %q): %+v", name, resourceGroup, err2)
@@ -774,7 +799,11 @@ func resourceArmCosmosDbAccountApiUpsert(client documentdb.DatabaseAccountsClien
 }
 
 func expandAzureRmCosmosDBAccountConsistencyPolicy(d *schema.ResourceData) *documentdb.ConsistencyPolicy {
-	input := d.Get("consistency_policy").([]interface{})[0].(map[string]interface{})
+	i := d.Get("consistency_policy").([]interface{})
+	if len(i) <= 0 || i[0] == nil {
+		return nil
+	}
+	input := i[0].(map[string]interface{})
 
 	consistencyLevel := input["consistency_level"].(string)
 	policy := documentdb.ConsistencyPolicy{
@@ -796,13 +825,12 @@ func resourceArmCosmosDbAccountGenerateDefaultId(databaseName string, location s
 }
 
 func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
-
 	locations := make([]documentdb.Location, 0)
 	for _, l := range d.Get("geo_location").(*schema.Set).List() {
 		data := l.(map[string]interface{})
 
 		location := documentdb.Location{
-			LocationName:     utils.String(azureRMNormalizeLocation(data["location"].(string))),
+			LocationName:     utils.String(azure.NormalizeLocation(data["location"].(string))),
 			FailoverPriority: utils.Int32(int32(data["failover_priority"].(int))),
 		}
 
@@ -821,7 +849,6 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 	byPriorities := make(map[int]interface{}, len(locations))
 	byName := make(map[string]interface{}, len(locations))
 	for _, location := range locations {
-
 		priority := int(*location.FailoverPriority)
 		name := *location.LocationName
 
@@ -847,14 +874,13 @@ func expandAzureRmCosmosDBAccountGeoLocations(databaseName string, d *schema.Res
 
 //todo remove when deprecated field `failover_policy` is
 func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.ResourceData) ([]documentdb.Location, error) {
-
 	input := d.Get("failover_policy").(*schema.Set).List()
 	locations := make([]documentdb.Location, 0, len(input))
 
 	for _, configRaw := range input {
 		data := configRaw.(map[string]interface{})
 
-		locationName := azureRMNormalizeLocation(data["location"].(string))
+		locationName := azure.NormalizeLocation(data["location"].(string))
 		id := fmt.Sprintf("%s-%s", databaseName, locationName)
 		failoverPriority := int32(data["priority"].(int))
 
@@ -895,7 +921,6 @@ func expandAzureRmCosmosDBAccountFailoverPolicy(databaseName string, d *schema.R
 }
 
 func expandAzureRmCosmosDBAccountCapabilities(d *schema.ResourceData) *[]documentdb.Capability {
-
 	capabilities := d.Get("capabilities").(*schema.Set).List()
 	s := make([]documentdb.Capability, 0)
 
@@ -919,7 +944,6 @@ func expandAzureRmCosmosDBAccountVirtualNetworkRules(d *schema.ResourceData) *[]
 }
 
 func flattenAzureRmCosmosDBAccountConsistencyPolicy(policy *documentdb.ConsistencyPolicy) []interface{} {
-
 	result := map[string]interface{}{}
 	result["consistency_level"] = string(policy.DefaultConsistencyLevel)
 	if policy.MaxIntervalInSeconds != nil {
@@ -941,7 +965,7 @@ func flattenAzureRmCosmosDBAccountFailoverPolicy(list *[]documentdb.FailoverPoli
 	for _, i := range *list {
 		result := map[string]interface{}{
 			"id":       *i.ID,
-			"location": azureRMNormalizeLocation(*i.LocationName),
+			"location": azure.NormalizeLocation(*i.LocationName),
 			"priority": int(*i.FailoverPriority),
 		}
 
@@ -969,7 +993,7 @@ func flattenAzureRmCosmosDBAccountGeoLocations(d *schema.ResourceData, account d
 		id := *l.ID
 		lb := map[string]interface{}{
 			"id":                id,
-			"location":          azureRMNormalizeLocation(*l.LocationName),
+			"location":          azure.NormalizeLocation(*l.LocationName),
 			"failover_priority": int(*l.FailoverPriority),
 		}
 
@@ -1023,7 +1047,7 @@ func resourceAzureRMCosmosDBAccountFailoverPolicyHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		location := azureRMNormalizeLocation(m["location"].(string))
+		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%d", location, priority))
@@ -1040,7 +1064,7 @@ func resourceAzureRMCosmosDBAccountGeoLocationHash(v interface{}) int {
 		if v, ok := m["prefix"].(string); ok {
 			prefix = v
 		}
-		location := azureRMNormalizeLocation(m["location"].(string))
+		location := azure.NormalizeLocation(m["location"].(string))
 		priority := int32(m["failover_priority"].(int))
 
 		buf.WriteString(fmt.Sprintf("%s-%s-%d", prefix, location, priority))

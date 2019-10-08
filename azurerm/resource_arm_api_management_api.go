@@ -6,11 +6,13 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,7 +36,7 @@ func resourceArmApiManagementApi() *schema.Resource {
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"display_name": {
 				Type:         schema.TypeString,
@@ -180,8 +182,9 @@ func resourceArmApiManagementApi() *schema.Resource {
 }
 
 func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
@@ -190,7 +193,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	path := d.Get("path").(string)
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -284,10 +287,11 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).apiManagementApiClient
+	client := meta.(*ArmClient).ApiManagement.ApiClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -343,10 +347,11 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmApiManagementApiDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

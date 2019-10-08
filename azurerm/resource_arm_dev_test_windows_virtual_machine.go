@@ -5,11 +5,14 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,9 +43,9 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"size": {
 				Type:     schema.TypeString,
@@ -108,7 +111,7 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"fqdn": {
 				Type:     schema.TypeString,
@@ -124,8 +127,9 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 }
 
 func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.VirtualMachinesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Windows Virtual Machine creation")
 
@@ -133,7 +137,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 	labName := d.Get("lab_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, labName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -146,13 +150,13 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 		}
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	allowClaim := d.Get("allow_claim").(bool)
 	disallowPublicIPAddress := d.Get("disallow_public_ip_address").(bool)
 	labSubnetName := d.Get("lab_subnet_name").(string)
 	labVirtualNetworkId := d.Get("lab_virtual_network_id").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	notes := d.Get("notes").(string)
 	password := d.Get("password").(string)
 	size := d.Get("size").(string)
@@ -193,7 +197,7 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 			StorageType:                utils.String(storageType),
 			UserName:                   utils.String(username),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
@@ -220,10 +224,11 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.VirtualMachinesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -246,7 +251,7 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta in
 	d.Set("lab_name", labName)
 	d.Set("resource_group_name", resourceGroup)
 	if location := read.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := read.LabVirtualMachineProperties; props != nil {
@@ -267,16 +272,15 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta in
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmDevTestWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualMachinesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.VirtualMachinesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

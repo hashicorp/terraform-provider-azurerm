@@ -3,9 +3,12 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,9 +24,9 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -60,7 +63,7 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 							Computed: true,
 						},
 
-						"zones": zonesSchemaComputed(),
+						"zones": azure.SchemaZonesComputed(),
 					},
 				},
 			},
@@ -78,7 +81,7 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -87,8 +90,9 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	client := meta.(*ArmClient).loadBalancerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
@@ -102,7 +106,7 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 	d.SetId(*resp.ID)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -134,9 +138,7 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.FrontendIPConfiguration) []interface{} {

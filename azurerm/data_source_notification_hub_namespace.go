@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,9 +20,9 @@ func dataSourceNotificationHubNamespace() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -47,7 +49,7 @@ func dataSourceNotificationHubNamespace() *schema.Resource {
 
 			// NOTE: skipping tags as there's a bug in the API where the Keys for Tags are returned in lower-case
 			// Azure Rest API Specs issue: https://github.com/Azure/azure-sdk-for-go/issues/2239
-			//"tags": tagsForDataSourceSchema(),
+			// "tags": tags.SchemaDataSource(),
 
 			"servicebus_endpoint": {
 				Type:     schema.TypeString,
@@ -58,8 +60,9 @@ func dataSourceNotificationHubNamespace() *schema.Resource {
 }
 
 func resourceArmDataSourceNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationNamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -78,7 +81,7 @@ func resourceArmDataSourceNotificationHubNamespaceRead(d *schema.ResourceData, m
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	sku := flattenNotificationHubDataSourceNamespacesSku(resp.Sku)

@@ -6,14 +6,16 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -35,7 +37,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"application_insights_id": {
 				Type:         schema.TypeString,
@@ -44,7 +46,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"kind": {
 				Type:     schema.TypeString,
@@ -90,8 +92,8 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:             schema.TypeString,
 					ValidateFunc:     validate.NoEmptyStrings,
-					StateFunc:        azureRMNormalizeLocation,
-					DiffSuppressFunc: azureRMSuppressLocationDiff,
+					StateFunc:        azure.NormalizeLocation,
+					DiffSuppressFunc: azure.SuppressLocationDiff,
 				},
 			},
 
@@ -106,7 +108,7 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 				DiffSuppressFunc: suppress.XmlDiff,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"synthetic_monitor_id": {
 				Type:     schema.TypeString,
@@ -117,8 +119,9 @@ func resourceArmApplicationInsightsWebTests() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsWebTestsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights WebTest creation.")
 
@@ -126,14 +129,14 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	resGroup := d.Get("resource_group_name").(string)
 	appInsightsID := d.Get("application_insights_id").(string)
 
-	id, err := parseAzureResourceID(appInsightsID)
+	id, err := azure.ParseAzureResourceID(appInsightsID)
 	if err != nil {
 		return err
 	}
 
 	appInsightsName := id.Path["components"]
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -146,7 +149,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	kind := d.Get("kind").(string)
 	description := d.Get("description").(string)
 	frequency := int32(d.Get("frequency").(int))
@@ -157,9 +160,9 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 	geoLocations := expandApplicationInsightsWebTestGeoLocations(geoLocationsRaw)
 	testConf := d.Get("configuration").(string)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	tagKey := fmt.Sprintf("hidden-link:/subscriptions/%s/resourceGroups/%s/providers/microsoft.insights/components/%s", client.SubscriptionID, resGroup, appInsightsName)
-	tags[tagKey] = "Resource"
+	t[tagKey] = "Resource"
 
 	webTest := insights.WebTest{
 		Name:     &name,
@@ -179,7 +182,7 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 				WebTest: &testConf,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	resp, err := client.CreateOrUpdate(ctx, resGroup, name, webTest)
@@ -193,10 +196,11 @@ func resourceArmApplicationInsightsWebTestsCreateUpdate(d *schema.ResourceData, 
 }
 
 func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsWebTestsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,8 +221,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	}
 
 	appInsightsId := ""
-	tags := resp.Tags
-	for i := range tags {
+	for i := range resp.Tags {
 		if strings.HasPrefix(i, "hidden-link") {
 			appInsightsId = strings.Split(i, ":")[1]
 		}
@@ -229,7 +232,7 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.WebTestProperties; props != nil {
@@ -249,16 +252,15 @@ func resourceArmApplicationInsightsWebTestsRead(d *schema.ResourceData, meta int
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmApplicationInsightsWebTestsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsightsWebTestsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.WebTestsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -300,9 +302,8 @@ func flattenApplicationInsightsWebTestGeoLocations(input *[]insights.WebTestGeol
 
 	for _, prop := range *input {
 		if prop.Location != nil {
-			results = append(results, azureRMNormalizeLocation(*prop.Location))
+			results = append(results, azure.NormalizeLocation(*prop.Location))
 		}
-
 	}
 
 	return results

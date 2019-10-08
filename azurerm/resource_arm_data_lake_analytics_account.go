@@ -5,15 +5,16 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
@@ -35,9 +36,9 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 				ValidateFunc: azure.ValidateDataLakeAccountName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"tier": {
 				Type:             schema.TypeString,
@@ -64,19 +65,20 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 				ValidateFunc: azure.ValidateDataLakeAccountName(),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -89,16 +91,16 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	storeAccountName := d.Get("default_store_account_name").(string)
 	tier := d.Get("tier").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Date Lake Store creation %q (Resource Group %q)", name, resourceGroup)
 
 	dateLakeAnalyticsAccount := account.CreateDataLakeAnalyticsAccountParameters{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		CreateDataLakeAnalyticsAccountProperties: &account.CreateDataLakeAnalyticsAccountProperties{
 			NewTier:                     account.TierType(tier),
 			DefaultDataLakeStoreAccount: &storeAccountName,
@@ -133,8 +135,9 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -143,7 +146,7 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta inte
 	newTags := d.Get("tags").(map[string]interface{})
 
 	props := &account.UpdateDataLakeAnalyticsAccountParameters{
-		Tags: expandTags(newTags),
+		Tags: tags.Expand(newTags),
 		UpdateDataLakeAnalyticsAccountProperties: &account.UpdateDataLakeAnalyticsAccountProperties{
 			NewTier: account.TierType(newTier),
 			DataLakeStoreAccounts: &[]account.UpdateDataLakeStoreWithAccountParameters{
@@ -167,10 +170,11 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -191,7 +195,7 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if properties := resp.DataLakeAnalyticsAccountProperties; properties != nil {
@@ -199,16 +203,15 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 		d.Set("default_store_account_name", properties.DefaultDataLakeStoreAccount)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDateLakeAnalyticsAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeAnalyticsAccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

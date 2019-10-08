@@ -53,6 +53,8 @@ output "app_service_id" {
 
 * `tags` - A mapping of tags to assign to the resource.
 
+* `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
+
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
 * `possible_outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12,52.143.43.17` - not all of which are necessarily in use. Superset of `outbound_ip_addresses`.
@@ -110,6 +112,8 @@ A `ip_restriction` block exports the following:
 * `java_container_version` - The version of the Java Container in use.
 
 * `linux_fx_version` - Linux App Framework and version for the AppService.
+
+* `windows_fx_version` - Windows Container Docker Image for the AppService.
 
 * `local_mysql_enabled` - Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 

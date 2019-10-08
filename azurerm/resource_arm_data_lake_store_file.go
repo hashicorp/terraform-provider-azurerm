@@ -11,9 +11,11 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,7 +41,7 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateFilePath(),
+				ValidateFunc: validateDataLakeStoreRemoteFilePath(),
 			},
 
 			"local_file_path": {
@@ -52,8 +54,9 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 }
 
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	chunkSize := 4 * 1024 * 1024
 
 	log.Printf("[INFO] preparing arguments for Date Lake Store File creation.")
@@ -65,7 +68,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	// example.azuredatalakestore.net/test/example.txt
 	id := fmt.Sprintf("%s.%s%s", accountName, client.AdlsFileSystemDNSSuffix, remoteFilePath)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetFileStatus(ctx, accountName, remoteFilePath, utils.Bool(true))
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -111,8 +114,9 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
@@ -137,8 +141,9 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataLakeStoreFilesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.StoreFilesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
@@ -178,4 +183,16 @@ func parseDataLakeStoreFileId(input string, suffix string) (*dataLakeStoreFileId
 		filePath:           uri.Path,
 	}
 	return &file, nil
+}
+
+func validateDataLakeStoreRemoteFilePath() schema.SchemaValidateFunc {
+	return func(v interface{}, k string) (warnings []string, errors []error) {
+		val := v.(string)
+
+		if !strings.HasPrefix(val, "/") {
+			errors = append(errors, fmt.Errorf("%q must start with `/`", k))
+		}
+
+		return warnings, errors
+	}
 }

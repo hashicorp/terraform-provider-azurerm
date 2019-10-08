@@ -5,11 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestResourceAzureRMLoadBalancerRuleNameLabel_validation(t *testing.T) {
@@ -103,8 +105,43 @@ func TestAccAzureRMLoadBalancerRule_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMLoadBalancerRule_disableoutboundsnat(t *testing.T) {
+	var lb network.LoadBalancer
+	ri := tf.AccRandTimeInt()
+	lbRuleName := fmt.Sprintf("LbRule-%s", acctest.RandStringFromCharSet(8, acctest.CharSetAlpha))
+
+	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
+	lbRule_id := fmt.Sprintf(
+		"/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/loadBalancers/arm-test-loadbalancer-%d/loadBalancingRules/%s",
+		subscriptionID, ri, ri, lbRuleName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLoadBalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLoadBalancerRule_disableoutboundsnat(ri, lbRuleName, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLoadBalancerExists("azurerm_lb.test", &lb),
+					testCheckAzureRMLoadBalancerRuleExists(lbRuleName, &lb),
+					resource.TestCheckResourceAttr("azurerm_lb_rule.test", "id", lbRule_id),
+					resource.TestCheckResourceAttr("azurerm_lb_rule.test", "disable_outbound_snat", "true"),
+				),
+			},
+			{
+				ResourceName:      "azurerm_lb.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+				// location is deprecated and was never actually used
+				ImportStateVerifyIgnore: []string{"location"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMLoadBalancerRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -290,7 +327,7 @@ func testCheckAzureRMLoadBalancerRuleNotExists(lbRuleName string, lb *network.Lo
 
 func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).loadBalancerClient
+		client := testAccProvider.Meta().(*ArmClient).Network.LoadBalancersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		_, i, exists := findLoadBalancerRuleByName(lb, ruleName)
@@ -302,7 +339,7 @@ func testCheckAzureRMLoadBalancerRuleDisappears(ruleName string, lb *network.Loa
 		rules := append(currentRules[:i], currentRules[i+1:]...)
 		lb.LoadBalancerPropertiesFormat.LoadBalancingRules = &rules
 
-		id, err := parseAzureResourceID(*lb.ID)
+		id, err := azure.ParseAzureResourceID(*lb.ID)
 		if err != nil {
 			return err
 		}
@@ -355,6 +392,47 @@ resource "azurerm_lb_rule" "test" {
   frontend_port                  = 3389
   backend_port                   = 3389
   frontend_ip_configuration_name = "one-%d"
+}
+`, rInt, location, rInt, rInt, rInt, lbRuleName, rInt)
+}
+
+func testAccAzureRMLoadBalancerRule_disableoutboundsnat(rInt int, lbRuleName string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "test-ip-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "arm-test-loadbalancer-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "one-%d"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_lb_rule" "test" {
+  location                       = "${azurerm_resource_group.test.location}"
+  resource_group_name            = "${azurerm_resource_group.test.name}"
+  loadbalancer_id                = "${azurerm_lb.test.id}"
+  name                           = "%s"
+  protocol                       = "Tcp"
+  frontend_port                  = 3389
+  backend_port                   = 3389
+  frontend_ip_configuration_name = "one-%d"
+  disable_outbound_snat          = true
 }
 `, rInt, location, rInt, rInt, rInt, lbRuleName, rInt)
 }

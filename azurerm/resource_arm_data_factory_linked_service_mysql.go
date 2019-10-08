@@ -5,18 +5,21 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryLinkedServiceMySQLCreateOrUpdate,
+		Create: resourceArmDataFactoryLinkedServiceMySQLCreateUpdate,
 		Read:   resourceArmDataFactoryLinkedServiceMySQLRead,
-		Update: resourceArmDataFactoryLinkedServiceMySQLCreateOrUpdate,
+		Update: resourceArmDataFactoryLinkedServiceMySQLCreateUpdate,
 		Delete: resourceArmDataFactoryLinkedServiceMySQLDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -43,7 +46,7 @@ func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"connection_string": {
 				Type:             schema.TypeString,
@@ -67,6 +70,9 @@ func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"annotations": {
@@ -80,20 +86,24 @@ func resourceArmDataFactoryLinkedServiceMySQL() *schema.Resource {
 			"additional_properties": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
 }
 
-func resourceArmDataFactoryLinkedServiceMySQLCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmDataFactoryLinkedServiceMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -164,10 +174,11 @@ func resourceArmDataFactoryLinkedServiceMySQLCreateOrUpdate(d *schema.ResourceDa
 }
 
 func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -195,10 +206,7 @@ func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta i
 	}
 
 	d.Set("additional_properties", mysql.AdditionalProperties)
-
-	if mysql.Description != nil {
-		d.Set("description", *mysql.Description)
-	}
+	d.Set("description", mysql.Description)
 
 	annotations := flattenDataFactoryAnnotations(mysql.Annotations)
 	if err := d.Set("annotations", annotations); err != nil {
@@ -220,10 +228,11 @@ func resourceArmDataFactoryLinkedServiceMySQLRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmDataFactoryLinkedServiceMySQLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryLinkedServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.LinkedServiceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

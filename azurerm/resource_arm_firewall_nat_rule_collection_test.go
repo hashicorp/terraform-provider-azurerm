@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMFirewallNatRuleCollection_basic(t *testing.T) {
@@ -36,7 +37,7 @@ func TestAccAzureRMFirewallNatRuleCollection_basic(t *testing.T) {
 }
 
 func TestAccAzureRMFirewallNatRuleCollection_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -307,7 +308,7 @@ func testCheckAzureRMFirewallNatRuleCollectionExists(resourceName string) resour
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -341,7 +342,7 @@ func testCheckAzureRMFirewallNatRuleCollectionDoesNotExist(resourceName string, 
 		firewallName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -370,7 +371,7 @@ func testCheckAzureRMFirewallNatRuleCollectionDisappears(resourceName string) re
 		firewallName := rs.Primary.Attributes["azure_firewall_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).azureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		read, err := client.Get(ctx, resourceGroup, firewallName)
 		if err != nil {
@@ -429,10 +430,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "Any",
-		]
-		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 `, template, rInt)
@@ -467,10 +468,10 @@ resource "azurerm_firewall_nat_rule_collection" "import" {
 
     protocols = [
       "Any",
-		]
-		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 `, template)
@@ -505,10 +506,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
+    ]
 
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 `, template, rInt)
@@ -543,10 +544,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "8.8.8.8"
+    ]
+
+    translated_port    = 53
+    translated_address = "8.8.8.8"
   }
 }
 
@@ -574,10 +575,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 8080
-		translated_address = "8.8.4.4"
+    ]
+
+    translated_port    = 8080
+    translated_address = "8.8.4.4"
   }
 }
 `, template, rInt, rInt)
@@ -612,10 +613,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 53
+    translated_address = "10.0.0.1"
   }
 }
 
@@ -643,10 +644,10 @@ resource "azurerm_firewall_nat_rule_collection" "test_add" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 8080
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 8080
+    translated_address = "10.0.0.1"
   }
 }
 `, template, rInt, rInt)
@@ -681,10 +682,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 53
+    translated_address = "10.0.0.1"
   }
 
   rule {
@@ -704,10 +705,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 8888
-		translated_address = "192.168.0.1"
+    ]
+
+    translated_port    = 8888
+    translated_address = "192.168.0.1"
   }
 }
 `, template, rInt)
@@ -742,10 +743,10 @@ resource "azurerm_firewall_nat_rule_collection" "test" {
 
     protocols = [
       "TCP",
-		]
-		
-		translated_port = 53
-		translated_address = "10.0.0.1"
+    ]
+
+    translated_port    = 53
+    translated_address = "10.0.0.1"
   }
 }
 `, template, rInt)
