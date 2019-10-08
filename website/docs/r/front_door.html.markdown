@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `name` - (Required) Name of the Front Door which is globally unique. Changing this forces a new resource to be created.
 
-* `resource_group` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
 
 * `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
@@ -81,6 +81,8 @@ The following arguments are supported:
 * `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 
 * `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
+
+* `enforce_backend_pools_certificate_name_check` - (Required) Whether to enforce certificate name check on HTTPS requests to all backend pools. No effect on non-HTTPS requests. Permitted values are `true` or `false`.
 
 * `load_balancer_enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are `true` or `false` Defaults to `true`.
 

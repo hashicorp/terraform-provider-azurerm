@@ -6,8 +6,9 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -149,8 +150,9 @@ func dataSourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 }
 
 func dataSourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.VnetGatewayConnectionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetGatewayConnectionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)

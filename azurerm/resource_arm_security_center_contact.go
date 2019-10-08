@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -95,7 +95,6 @@ func resourceArmSecurityCenterContactCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-
 		if _, err := client.Create(ctx, name, contact); err != nil {
 			return fmt.Errorf("Error creating Security Center Contact: %+v", err)
 		}

@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -212,7 +212,7 @@ func resourceArmEventGridEventSubscription() *schema.Resource {
 }
 
 func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.EventSubscriptionsClient
+	client := meta.(*ArmClient).EventGrid.EventSubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -278,7 +278,7 @@ func resourceArmEventGridEventSubscriptionCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.EventSubscriptionsClient
+	client := meta.(*ArmClient).EventGrid.EventSubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureEventGridEventSubscriptionID(d.Id())
@@ -364,7 +364,7 @@ func resourceArmEventGridEventSubscriptionRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmEventGridEventSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.EventSubscriptionsClient
+	client := meta.(*ArmClient).EventGrid.EventSubscriptionsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureEventGridEventSubscriptionID(d.Id())

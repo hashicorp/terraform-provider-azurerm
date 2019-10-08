@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -202,7 +202,7 @@ resource "azurerm_app_service_certificate" "test" {
 }
 
 func testCheckAzureRMAppServiceCertificateDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).web.CertificatesClient
+	conn := testAccProvider.Meta().(*ArmClient).Web.CertificatesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

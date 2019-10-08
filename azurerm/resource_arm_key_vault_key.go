@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -144,8 +144,8 @@ func resourceArmKeyVaultKey() *schema.Resource {
 }
 
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
@@ -230,8 +230,8 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -276,8 +276,8 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -348,8 +348,8 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())

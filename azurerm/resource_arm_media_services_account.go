@@ -6,11 +6,10 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -67,7 +66,7 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 }
 
 func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).media.ServicesClient
+	client := meta.(*ArmClient).Media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	accountName := d.Get("name").(string)
@@ -101,7 +100,7 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).media.ServicesClient
+	client := meta.(*ArmClient).Media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -136,11 +135,14 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	// TODO: support Tags when this bug is fixed:
+	// https://github.com/Azure/azure-rest-api-specs/issues/5249
+	// return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).media.ServicesClient
+	client := meta.(*ArmClient).Media.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

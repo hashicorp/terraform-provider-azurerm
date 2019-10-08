@@ -11,8 +11,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -920,7 +920,6 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("enable_advanced_threat_protection") {
-
 		opts := security.AdvancedThreatProtectionSetting{
 			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
 				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
@@ -1364,7 +1363,6 @@ func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
 	}
 
 	return logging
-
 }
 
 func expandQueuePropertiesCors(input []interface{}) *queues.Cors {

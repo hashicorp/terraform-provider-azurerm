@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -222,7 +222,7 @@ func testCheckAzureRMVirtualNetworkExists(resourceName string) resource.TestChec
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).network.VnetClient
+		client := testAccProvider.Meta().(*ArmClient).Network.VnetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, virtualNetworkName, "")
@@ -253,7 +253,7 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		client := testAccProvider.Meta().(*ArmClient).network.VnetClient
+		client := testAccProvider.Meta().(*ArmClient).Network.VnetClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, virtualNetworkName)
@@ -270,7 +270,7 @@ func testCheckAzureRMVirtualNetworkDisappears(resourceName string) resource.Test
 }
 
 func testCheckAzureRMVirtualNetworkDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.VnetClient
+	client := testAccProvider.Meta().(*ArmClient).Network.VnetClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

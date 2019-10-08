@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -185,7 +185,6 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			if err := azure.MSSQLElasticPoolValidateSKU(diff); err != nil {
 				return err
 			}
@@ -196,7 +195,7 @@ func resourceArmMsSqlElasticPool() *schema.Resource {
 }
 
 func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for MSSQL ElasticPool creation.")
@@ -270,7 +269,7 @@ func resourceArmMsSqlElasticPoolCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmMsSqlElasticPoolId(d.Id())
@@ -325,7 +324,7 @@ func resourceArmMsSqlElasticPoolRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmMsSqlElasticPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resGroup, serverName, name, err := parseArmSqlElasticPoolId(d.Id())

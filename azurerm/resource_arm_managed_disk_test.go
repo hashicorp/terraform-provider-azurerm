@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -376,7 +376,7 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 			return fmt.Errorf("Bad: no resource group found in state for disk: %s", dName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.DisksClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.DisksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dName)
@@ -398,7 +398,7 @@ func testCheckAzureRMManagedDiskExists(resourceName string, d *compute.Disk, sho
 }
 
 func testCheckAzureRMManagedDiskDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).compute.DisksClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.DisksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -436,7 +436,7 @@ func testDeleteAzureRMVirtualMachine(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)

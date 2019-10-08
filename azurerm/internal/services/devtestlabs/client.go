@@ -14,7 +14,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	LabsClient := dtl.NewLabsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LabsClient.Client, o.ResourceManagerAuthorizer)
 

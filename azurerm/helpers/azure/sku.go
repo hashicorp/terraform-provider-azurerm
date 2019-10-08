@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func SplitSku(sku string) (string, int32, error) {
@@ -44,7 +44,7 @@ func MinCapacitySkuNameInSlice(valid []string, minCapacity int32, ignoreCase boo
 		}
 
 		for _, str := range valid {
-			if name == str || (ignoreCase && strings.ToLower(name) == strings.ToLower(str)) {
+			if name == str || (ignoreCase && strings.EqualFold(name, str)) {
 				if capacity < minCapacity {
 					es = append(es, fmt.Errorf("expected %s capacity value to be greater that %d, got %d", k, minCapacity, capacity))
 				}

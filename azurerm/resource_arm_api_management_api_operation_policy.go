@@ -5,11 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -50,8 +51,9 @@ func resourceArmApiManagementApiOperationPolicy() *schema.Resource {
 }
 
 func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiOperationPoliciesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
@@ -111,8 +113,9 @@ func resourceArmApiManagementAPIOperationPolicyCreateUpdate(d *schema.ResourceDa
 }
 
 func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiOperationPoliciesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -149,8 +152,9 @@ func resourceArmApiManagementAPIOperationPolicyRead(d *schema.ResourceData, meta
 }
 
 func resourceArmApiManagementAPIOperationPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiOperationPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiOperationPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

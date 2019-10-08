@@ -11,8 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +55,7 @@ func resourceArmRecoveryServicesVault() *schema.Resource {
 }
 
 func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.VaultsClient
+	client := meta.(*ArmClient).RecoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -100,7 +100,7 @@ func resourceArmRecoveryServicesVaultCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.VaultsClient
+	client := meta.(*ArmClient).RecoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -137,7 +137,7 @@ func resourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmRecoveryServicesVaultDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.VaultsClient
+	client := meta.(*ArmClient).RecoveryServices.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

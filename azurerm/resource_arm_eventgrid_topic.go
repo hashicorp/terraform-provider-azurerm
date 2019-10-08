@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -58,7 +58,7 @@ func resourceArmEventGridTopic() *schema.Resource {
 }
 
 func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.TopicsClient
+	client := meta.(*ArmClient).EventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -111,7 +111,7 @@ func resourceArmEventGridTopicCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.TopicsClient
+	client := meta.(*ArmClient).EventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -154,7 +154,7 @@ func resourceArmEventGridTopicRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmEventGridTopicDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.TopicsClient
+	client := meta.(*ArmClient).EventGrid.TopicsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -48,7 +48,7 @@ func resourceArmRecoveryServicesFabricCreate(d *schema.ResourceData, meta interf
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.FabricClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.FabricClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -101,7 +101,7 @@ func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interfac
 	vaultName := id.Path["vaults"]
 	name := id.Path["replicationFabrics"]
 
-	client := meta.(*ArmClient).recoveryServices.FabricClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.FabricClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, name)
@@ -134,7 +134,7 @@ func resourceArmRecoveryServicesFabricDelete(d *schema.ResourceData, meta interf
 	vaultName := id.Path["vaults"]
 	name := id.Path["replicationFabrics"]
 
-	client := meta.(*ArmClient).recoveryServices.FabricClient(resGroup, vaultName)
+	client := meta.(*ArmClient).RecoveryServices.FabricClient(resGroup, vaultName)
 	ctx := meta.(*ArmClient).StopContext
 
 	future, err := client.Delete(ctx, name)

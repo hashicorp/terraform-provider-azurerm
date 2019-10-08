@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -166,7 +166,7 @@ As such the existing 'azurerm_metric_alertrule' resource is deprecated and will 
 }
 
 func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Alert Rule creation.")
@@ -220,7 +220,7 @@ func resourceArmMetricAlertRuleCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
@@ -317,7 +317,7 @@ func resourceArmMetricAlertRuleRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmMetricAlertRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AlertRulesClient
+	client := meta.(*ArmClient).Monitor.AlertRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	resourceGroup, name, err := resourceGroupAndAlertRuleNameFromId(d.Id())
