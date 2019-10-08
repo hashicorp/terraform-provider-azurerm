@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -638,7 +639,8 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	tenantId := meta.(*ArmClient).tenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
@@ -731,7 +733,8 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 
 func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	tenantId := meta.(*ArmClient).tenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
@@ -840,7 +843,8 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -947,7 +951,8 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.KubernetesClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

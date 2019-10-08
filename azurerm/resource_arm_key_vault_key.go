@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -146,7 +147,8 @@ func resourceArmKeyVaultKey() *schema.Resource {
 func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Key creation.")
 	name := d.Get("name").(string)
@@ -232,7 +234,8 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
@@ -278,7 +281,8 @@ func resourceArmKeyVaultKeyUpdate(d *schema.ResourceData, meta interface{}) erro
 func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
@@ -350,7 +354,8 @@ func resourceArmKeyVaultKeyRead(d *schema.ResourceData, meta interface{}) error 
 func resourceArmKeyVaultKeyDelete(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {

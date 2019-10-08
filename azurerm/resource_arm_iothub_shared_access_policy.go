@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -121,7 +122,8 @@ func iothubSharedAccessPolicyCustomizeDiff(d *schema.ResourceDiff, _ interface{}
 
 func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -191,7 +193,8 @@ func resourceArmIotHubSharedAccessPolicyCreateUpdate(d *schema.ResourceData, met
 
 func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 
@@ -243,7 +246,8 @@ func resourceArmIotHubSharedAccessPolicyRead(d *schema.ResourceData, meta interf
 
 func resourceArmIotHubSharedAccessPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubSAPId, err := azure.ParseAzureResourceID(d.Id())
 

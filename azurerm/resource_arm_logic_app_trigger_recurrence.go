@@ -83,7 +83,7 @@ func resourceArmLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta inter
 	logicAppName := id.Path["workflows"]
 	name := id.Path["triggers"]
 
-	t, app, err := retrieveLogicAppTrigger(meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}

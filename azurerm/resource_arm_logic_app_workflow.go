@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,7 +73,8 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 
 func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Logic.WorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
 
@@ -132,7 +134,8 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 
 func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Logic.WorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -182,7 +185,8 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Logic.WorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -229,7 +233,8 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Logic.WorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
