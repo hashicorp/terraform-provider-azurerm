@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,7 +16,8 @@ import (
 func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		client := meta.(*ArmClient).HDInsight.ClustersClient
-		ctx := meta.(*ArmClient).StopContext
+		ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+		defer cancel()
 
 		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
@@ -62,7 +65,8 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		client := meta.(*ArmClient).HDInsight.ClustersClient
-		ctx := meta.(*ArmClient).StopContext
+		ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+		defer cancel()
 
 		id, err := azure.ParseAzureResourceID(d.Id())
 		if err != nil {
