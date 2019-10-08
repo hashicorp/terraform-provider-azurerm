@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -157,7 +158,8 @@ func resourceArmLoadBalancer() *schema.Resource {
 
 func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.LoadBalancersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
 
@@ -226,7 +228,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d.Id(), meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, d.Id(), meta)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID %q: %+v", d.Id(), err)
 	}
@@ -276,7 +278,8 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.LoadBalancersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
