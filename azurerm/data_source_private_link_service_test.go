@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMPrivateLinkService_basic(t *testing.T) {
+func TestAccDataSourceAzureRMPrivateLinkService_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_private_link_service.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -18,11 +18,9 @@ func TestAccDataSourceAzureRMPrivateLinkService_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourcePrivateLinkService_basic(ri, location),
+				Config: testAccDataSourcePrivateLinkService_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "fqdns.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "fqdns.0", "testFqdns"),
-					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.#", "2"),
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.0.private_ip_allocation_method", "Static"),
@@ -33,8 +31,8 @@ func TestAccDataSourceAzureRMPrivateLinkService_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourcePrivateLinkService_basic(rInt int, location string) string {
-	config := testAccAzureRMPrivateLinkService_basic(rInt, location)
+func testAccDataSourcePrivateLinkService_complete(rInt int, location string) string {
+	config := testAccAzureRMPrivateLinkService_complete(rInt, location)
 	return fmt.Sprintf(`
 %s
 

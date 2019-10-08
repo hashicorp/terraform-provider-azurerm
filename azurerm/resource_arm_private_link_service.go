@@ -12,8 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,18 +87,18 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							}, false),
 							Default: string(network.Dynamic),
 						},
-						// Only IPv4 is supported by the API
 						"private_ip_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: aznet.ValidatePrivateLinkServiceIPv4Address,
 						},
+						// Only IPv4 is supported by the API, but I am exposing this
+						// as they will support IPv6 in a future release.
 						"private_ip_address_version": {
 							Type:     schema.TypeString,
 							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(network.IPv4),
-								string(network.IPv6),
 							}, false),
 							Default: string(network.IPv4),
 						},
@@ -132,54 +132,30 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: aznet.ValidatePrivateLinkServiceIsResourceId,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"name": {
 							Type:         schema.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"private_endpoint": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: aznet.ValidatePrivateLinkServiceIsResourceId,
-									},
-									"location": azure.SchemaLocation(),
-									"tags":     tags.Schema(),
-								},
-							},
+						"private_endpoint_id": {
+							Type:     schema.TypeString,
+							Required: true,
 						},
-						"private_link_service_connection_state": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action_required": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-									"description": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-									"status": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-								},
-							},
+						"private_endpoint_location": azure.SchemaLocation(),
+						"state_action_required": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state_description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state_status": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -196,11 +172,6 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-			},
-
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -240,12 +211,12 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	parameters := network.PrivateLinkService{
 		Location: utils.String(location),
 		PrivateLinkServiceProperties: &network.PrivateLinkServiceProperties{
-			AutoApproval:                         expandArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(autoApproval),
-			//Fqdns:                                utils.ExpandStringSlice(fqdns),
-			IPConfigurations:                     expandArmPrivateLinkServicePrivateLinkServiceIPConfiguration(ipConfigurations),
+			AutoApproval:                         expandArmPrivateLinkServicePropertiesAutoApproval(autoApproval),
+			Visibility:                           expandArmPrivateLinkServicePropertiesVisibility(visibility),
+			IPConfigurations:                     expandArmPrivateLinkServiceIPConfiguration(ipConfigurations),
 			LoadBalancerFrontendIPConfigurations: expandArmPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
 			PrivateEndpointConnections:           expandArmPrivateLinkServicePrivateEndpointConnection(privateEndpointConnections),
-			Visibility:                           expandArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(visibility),
+			//Fqdns:                                utils.ExpandStringSlice(fqdns),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -301,12 +272,12 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("Error setting `alias`: %+v", err)
 		}
 		if props.AutoApproval != nil {
-			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
+			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 			}
 		}
 		if props.Visibility != nil {
-			if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(props.Visibility)); err != nil {
+			if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePropertiesVisibility(props.Visibility)); err != nil {
 				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 			}
 		}
@@ -316,7 +287,7 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
 		// 	}
 		// }
-		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
 		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
@@ -325,12 +296,11 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
 			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
-		if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(props.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
+		if connectionProps := props.PrivateEndpointConnections; connectionProps != nil {
+			if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(connectionProps)); err != nil {
+				return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
+			}
 		}
-	}
-	if err := d.Set("type", resp.Type); err != nil {
-		return fmt.Errorf("Error setting `type`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -364,7 +334,7 @@ func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input []interface{}) *network.PrivateLinkServicePropertiesAutoApproval {
+func expandArmPrivateLinkServicePropertiesAutoApproval(input []interface{}) *network.PrivateLinkServicePropertiesAutoApproval {
 	if len(input) == 0 {
 		return nil
 	}
@@ -376,7 +346,7 @@ func expandArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input [
 	return &result
 }
 
-func expandArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input []interface{}) *network.PrivateLinkServicePropertiesVisibility {
+func expandArmPrivateLinkServicePropertiesVisibility(input []interface{}) *network.PrivateLinkServicePropertiesVisibility {
 	if len(input) == 0 {
 		return nil
 	}
@@ -388,7 +358,7 @@ func expandArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input []i
 	return &result
 }
 
-func expandArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
+func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
 	if len(input) == 0 {
 		return nil
 	}
@@ -445,16 +415,26 @@ func expandArmPrivateLinkServicePrivateEndpointConnection(input []interface{}) *
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		id := v["id"].(string)
-		privateEndpoint := v["private_endpoint"].([]interface{})
-		privateLinkServiceConnectionState := v["private_link_service_connection_state"].([]interface{})
 		name := v["name"].(string)
+		status := v["state_status"].(string)
+		description := v["state_description"].(string)
+		actionRequired := v["state_action_required"].(string)
+		privateEndpointId := v["private_endpoint_id"].(string)
+		privateEndpointLocation := azure.NormalizeLocation(v["private_endpoint_location"].(string))
 
 		result := network.PrivateEndpointConnection{
 			ID:   utils.String(id),
 			Name: utils.String(name),
 			PrivateEndpointConnectionProperties: &network.PrivateEndpointConnectionProperties{
-				PrivateEndpoint:                   expandArmPrivateLinkServicePrivateEndpoint(privateEndpoint),
-				PrivateLinkServiceConnectionState: expandArmPrivateLinkServicePrivateLinkServiceConnectionState(privateLinkServiceConnectionState),
+				PrivateEndpoint: &network.PrivateEndpoint{
+					ID:       utils.String(privateEndpointId),
+					Location: utils.String(privateEndpointLocation),
+				},
+				PrivateLinkServiceConnectionState: &network.PrivateLinkServiceConnectionState{
+					ActionRequired: utils.String(actionRequired),
+					Description:    utils.String(description),
+					Status:         utils.String(status),
+				},
 			},
 		}
 
@@ -463,43 +443,7 @@ func expandArmPrivateLinkServicePrivateEndpointConnection(input []interface{}) *
 	return &results
 }
 
-func expandArmPrivateLinkServicePrivateEndpoint(input []interface{}) *network.PrivateEndpoint {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-
-	id := v["id"].(string)
-	location := azure.NormalizeLocation(v["location"].(string))
-	t := v["tags"].(map[string]interface{})
-
-	result := network.PrivateEndpoint{
-		ID:       utils.String(id),
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
-	}
-	return &result
-}
-
-func expandArmPrivateLinkServicePrivateLinkServiceConnectionState(input []interface{}) *network.PrivateLinkServiceConnectionState {
-	if len(input) == 0 {
-		return nil
-	}
-	v := input[0].(map[string]interface{})
-
-	status := v["status"].(string)
-	description := v["description"].(string)
-	actionRequired := v["action_required"].(string)
-
-	result := network.PrivateLinkServiceConnectionState{
-		ActionRequired: utils.String(actionRequired),
-		Description:    utils.String(description),
-		Status:         utils.String(status),
-	}
-	return &result
-}
-
-func flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input *network.PrivateLinkServicePropertiesAutoApproval) []interface{} {
+func flattenArmPrivateLinkServicePropertiesAutoApproval(input *network.PrivateLinkServicePropertiesAutoApproval) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -512,7 +456,7 @@ func flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(input 
 	return result
 }
 
-func flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input *network.PrivateLinkServicePropertiesVisibility) []interface{} {
+func flattenArmPrivateLinkServicePropertiesVisibility(input *network.PrivateLinkServicePropertiesVisibility) []interface{} {
 	result := make([]interface{}, 0)
 	if input == nil {
 		return result
@@ -525,7 +469,7 @@ func flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(input *n
 	return result
 }
 
-func flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
+func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -599,48 +543,35 @@ func flattenArmPrivateLinkServicePrivateEndpointConnection(input *[]network.Priv
 		if id := item.ID; id != nil {
 			v["id"] = *id
 		}
+		if name := item.Name; name != nil {
+			v["name"] = *name
+		}
+
 		if props := item.PrivateEndpointConnectionProperties; props != nil {
-			v["private_endpoint"] = flattenArmPrivateLinkServicePrivateEndpoint(props.PrivateEndpoint)
-			v["private_link_service_connection_state"] = flattenArmPrivateLinkServicePrivateLinkServiceConnectionState(props.PrivateLinkServiceConnectionState)
+
+			if p := props.PrivateEndpoint; p != nil {
+				if id := p.ID; id != nil {
+					v["private_endpoint_id"] = *id
+				}
+				if location := p.Location; location != nil {
+					v["private_endpoint_location"] = azure.NormalizeLocation(*location)
+				}
+			}
+			if s := props.PrivateLinkServiceConnectionState; s != nil {
+				if actionRequired := s.ActionRequired; actionRequired != nil {
+					v["state_action_required"] = *actionRequired
+				}
+				if description := s.Description; description != nil {
+					v["state_description"] = *description
+				}
+				if status := s.Status; status != nil {
+					v["state_status"] = *status
+				}
+			}
 		}
 
 		results = append(results, v)
 	}
 
 	return results
-}
-
-func flattenArmPrivateLinkServicePrivateEndpoint(input *network.PrivateEndpoint) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	if id := input.ID; id != nil {
-		result["id"] = *id
-	}
-	if location := input.Location; location != nil {
-		result["location"] = azure.NormalizeLocation(*location)
-	}
-
-	return []interface{}{result}
-}
-
-func flattenArmPrivateLinkServicePrivateLinkServiceConnectionState(input *network.PrivateLinkServiceConnectionState) []interface{} {
-	if input == nil {
-		return make([]interface{}, 0)
-	}
-
-	result := make(map[string]interface{})
-	if actionRequired := input.ActionRequired; actionRequired != nil {
-		result["action_required"] = *actionRequired
-	}
-	if description := input.Description; description != nil {
-		result["description"] = *description
-	}
-	if status := input.Status; status != nil {
-		result["status"] = *status
-	}
-
-	return []interface{}{result}
 }

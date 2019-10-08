@@ -61,8 +61,6 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 				Config: testAccAzureRMPrivateLinkService_update(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "fqdns.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "fqdns.0", "www.contoso.com"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
@@ -106,8 +104,6 @@ func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "auto_approval_subscription_ids.0"),
 					resource.TestCheckResourceAttr(resourceName, "visibility_subscription_ids.#", "1"),
 					resource.TestCheckResourceAttrSet(resourceName, "visibility_subscription_ids.0"),
-					resource.TestCheckResourceAttr(resourceName, "fqdns.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "fqdns.0", "www.contoso.com"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
@@ -181,43 +177,21 @@ func testCheckAzureRMPrivateLinkServiceDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMPrivateLinkService_basic(rInt int, location string) string {
-	standardResources := testAccAzureRMPrivateLinkServiceTemplate_standardResources(rInt, location)
-	privateLink := testAccAzureRMPrivateLinkServiceTemplate_basic(rInt)
-
-	return testAccAzureRMPrivateLinkServiceTemplate("", standardResources, privateLink)
+	return testAccAzureRMPrivateLinkServiceTemplate(rInt, location, testAccAzureRMPrivateLinkServiceTemplate_basic(rInt))
 }
 
 func testAccAzureRMPrivateLinkService_update(rInt int, location string) string {
-	standardResources := testAccAzureRMPrivateLinkServiceTemplate_standardResources(rInt, location)
-	privateLink := testAccAzureRMPrivateLinkServiceTemplate_update(rInt)
-
-	return testAccAzureRMPrivateLinkServiceTemplate("", standardResources, privateLink)
+	return testAccAzureRMPrivateLinkServiceTemplate(rInt, location, testAccAzureRMPrivateLinkServiceTemplate_update(rInt))
 }
 
 func testAccAzureRMPrivateLinkService_complete(rInt int, location string) string {
-	subscriptionDataSource := testAccAzureRMPrivateLinkServiceTemplate_subscriptionDataSource()
-	standardResources := testAccAzureRMPrivateLinkServiceTemplate_standardResources(rInt, location)
-	privateLink := testAccAzureRMPrivateLinkServiceTemplate_complete(rInt)
-
-	return testAccAzureRMPrivateLinkServiceTemplate(subscriptionDataSource, standardResources, privateLink)
+	return testAccAzureRMPrivateLinkServiceTemplate(rInt, location, testAccAzureRMPrivateLinkServiceTemplate_complete(rInt))
 }
 
-func testAccAzureRMPrivateLinkServiceTemplate(subscriptionDataSourceTemplate string, standardResourcesTemplate string, privateLinkTemplate string) string {
+func testAccAzureRMPrivateLinkServiceTemplate(rInt int, location string, privateLinkTemplate string) string {
 	return fmt.Sprintf(`
-%s
+data "azurerm_subscription" "current" {}
 
-%s
-
-%s
-`,subscriptionDataSourceTemplate, standardResourcesTemplate, privateLinkTemplate)
-}
-
-func testAccAzureRMPrivateLinkServiceTemplate_subscriptionDataSource() string {
-	return `data "azurerm_subscription" "current" {}`
-}
-
-func testAccAzureRMPrivateLinkServiceTemplate_standardResources(rInt int, location string) string {
-	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -258,7 +232,9 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-`,rInt, location, rInt, rInt, rInt, rInt)
+
+%s
+`, rInt, location, rInt, rInt, rInt, rInt, privateLinkTemplate)
 }
 
 func testAccAzureRMPrivateLinkServiceTemplate_basic(rInt int) string {
@@ -286,7 +262,6 @@ resource "azurerm_private_link_service" "test" {
   name                           = "acctestpls-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
-  fqdns                          = ["www.contoso.com"]
 
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
@@ -310,7 +285,6 @@ resource "azurerm_private_link_service" "test" {
   name                           = "acctestpls-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
-  fqdns                          = ["www.contoso.com"]
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
   visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
 

@@ -93,6 +93,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 
 			"private_endpoint_connection": {
 				Type:     schema.TypeList,
+				Optional: true,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -104,39 +105,44 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"private_endpoint": {
-							Type:     schema.TypeList,
+						"private_endpoint_id": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"location": azure.SchemaLocationForDataSource(),
-									"tags":     tags.SchemaDataSource(),
-								},
-							},
 						},
-						"private_link_service_connection_state": {
-							Type:     schema.TypeList,
+						"private_endpoint_location": azure.SchemaLocationForDataSource(),
+						"state_action_required": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action_required": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"description": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"status": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+						},
+						"state_description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state_status": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"private_link_service_connection_state": {
+				Type:     schema.TypeList,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"action_required": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"status": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},
@@ -155,12 +161,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"tags": tags.Schema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
@@ -191,12 +192,12 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `alias`: %+v", err)
 		}
 		if props.AutoApproval != nil {
-			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
+			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 			}
 		}
 		if props.Visibility != nil {
-			if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePrivateLinkServicePropertiesVisibility(props.Visibility)); err != nil {
+			if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePropertiesVisibility(props.Visibility)); err != nil {
 				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 			}
 		}
@@ -206,7 +207,7 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
 		// 	}
 		// }
-		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServicePrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
 		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
@@ -215,12 +216,11 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
 			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
-		if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(props.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
+		if connectionProps := props.PrivateEndpointConnections; connectionProps != nil {
+			if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(connectionProps)); err != nil {
+				return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
+			}
 		}
-	}
-	if err := d.Set("type", resp.Type); err != nil {
-		return fmt.Errorf("Error setting `type`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
