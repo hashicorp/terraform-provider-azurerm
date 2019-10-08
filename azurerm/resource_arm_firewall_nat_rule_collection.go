@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -122,7 +123,8 @@ func resourceArmFirewallNatRuleCollection() *schema.Resource {
 
 func resourceArmFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	firewallName := d.Get("azure_firewall_name").(string)
@@ -232,7 +234,8 @@ func resourceArmFirewallNatRuleCollectionCreateUpdate(d *schema.ResourceData, me
 
 func resourceArmFirewallNatRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -304,7 +307,8 @@ func resourceArmFirewallNatRuleCollectionRead(d *schema.ResourceData, meta inter
 
 func resourceArmFirewallNatRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
