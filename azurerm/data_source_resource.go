@@ -112,7 +112,6 @@ func dataSourceArmResourceRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	for resource.NotDone() {
-
 		res := resource.Value()
 
 		// currently the Azure-Go-SDK method "GetByID" does not work for some resources, as the
@@ -137,7 +136,6 @@ func dataSourceArmResourceRead(d *schema.ResourceData, meta interface{}) error {
 		}
 
 		if tagMatches == len(requiredTags) {
-
 			s := make(map[string]interface{})
 
 			if v := *res.Name; v != "" {
