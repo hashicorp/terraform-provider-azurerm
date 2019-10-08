@@ -15,12 +15,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmPrivateEndpoint() *schema.Resource {
+func resourceArmPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmPrivateEndpointCreateUpdate,
-		Read:   resourceArmPrivateEndpointRead,
-		Update: resourceArmPrivateEndpointCreateUpdate,
-		Delete: resourceArmPrivateEndpointDelete,
+		Create: resourceArmPrivateLinkEndpointCreateUpdate,
+		Read:   resourceArmPrivateLinkEndpointRead,
+		Update: resourceArmPrivateLinkEndpointCreateUpdate,
+		Delete: resourceArmPrivateLinkEndpointDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -66,26 +66,17 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"private_link_service_connection_state": {
-							Type:     schema.TypeList,
+						"state_action_required": {
+							Type:     schema.TypeString,
 							Computed: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action_required": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"description": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"status": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+						},
+						"state_description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state_status": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"request_message": {
 							Type:     schema.TypeString,
@@ -118,26 +109,17 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"private_link_service_connection_state": {
-							Type:     schema.TypeList,
+						"state_action_required": {
+							Type:     schema.TypeString,
 							Computed: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action_required": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"description": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"status": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+						},
+						"state_description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state_status": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"request_message": {
 							Type:     schema.TypeString,
@@ -161,7 +143,7 @@ func resourceArmPrivateEndpoint() *schema.Resource {
 	}
 }
 
-func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.PrivateEndpointClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -176,7 +158,7 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_private_endpoint", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_private_link_endpoint", *resp.ID)
 		}
 	}
 
@@ -215,10 +197,10 @@ func resourceArmPrivateEndpointCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 	d.SetId(*resp.ID)
 
-	return resourceArmPrivateEndpointRead(d, meta)
+	return resourceArmPrivateLinkEndpointRead(d, meta)
 }
 
-func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.PrivateEndpointClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -263,7 +245,7 @@ func resourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceArmPrivateEndpointDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmPrivateLinkEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.PrivateEndpointClient
 	ctx := meta.(*ArmClient).StopContext
 

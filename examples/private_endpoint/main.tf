@@ -49,7 +49,7 @@ resource "azurerm_private_link_service" "example" {
   load_balancer_frontend_ip_configuration_ids = ["${azurerm_lb.test.frontend_ip_configuration.0.id}"]
 }
 
-resource "azurerm_private_endpoint" "example" {
+resource "azurerm_private_link_endpoint" "example" {
   name     = "${var.prefix}-pe"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"

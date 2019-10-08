@@ -1,25 +1,25 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_private_endpoint"
+page_title: "Azure Resource Manager: azurerm_private_link_endpoint"
 sidebar_current: "docs-azurerm-datasource-private-endpoint"
 description: |-
   Gets information about an existing Private Endpoint
 ---
 
-# Data Source: azurerm_private_endpoint
+# Data Source: azurerm_private_link_endpoint
 
 Use this data source to access information about an existing Private Endpoint.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_private_endpoint" "example" {
+data "azurerm_private_link_endpoint" "example" {
   resource_group_name = "example-rg"
   name                = "example-private-endpoint"
 }
 
 output "subnet_id" {
-  value = "${data.azurerm_private_endpoint.example.id}"
+  value = "${data.azurerm_private_link_endpoint.example.id}"
 }
 ```
 

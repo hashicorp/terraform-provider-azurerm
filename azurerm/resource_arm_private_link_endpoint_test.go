@@ -11,7 +11,7 @@ import (
 )
 
 func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
-	resourceName := "azurerm_private_endpoint.test"
+	resourceName := "azurerm_private_link_endpoint.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -40,7 +40,7 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPrivateEndpoint_complete(t *testing.T) {
-	resourceName := "azurerm_private_endpoint.test"
+	resourceName := "azurerm_private_link_endpoint.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -72,7 +72,7 @@ func TestAccAzureRMPrivateEndpoint_complete(t *testing.T) {
 }
 
 func TestAccAzureRMPrivateEndpoint_update(t *testing.T) {
-	resourceName := "azurerm_private_endpoint.test"
+	resourceName := "azurerm_private_link_endpoint.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -147,7 +147,7 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_private_endpoint" {
+		if rs.Type != "azurerm_private_link_endpoint" {
 			continue
 		}
 
@@ -230,7 +230,7 @@ func testAccAzureRMPrivateEndpoint_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_private_endpoint" "test" {
+resource "azurerm_private_link_endpoint" "test" {
   name                = "acctestendpoint-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
@@ -250,7 +250,7 @@ func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_private_endpoint" "test" {
+resource "azurerm_private_link_endpoint" "test" {
   name                = "acctestendpoint-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location

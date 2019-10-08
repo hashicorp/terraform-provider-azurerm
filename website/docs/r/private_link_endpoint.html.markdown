@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_private_endpoint"
+page_title: "Azure Resource Manager: azurerm_private_link_endpoint"
 sidebar_current: "docs-azurerm-resource-private-endpoint"
 description: |-
-  Manages an Azure PrivateEndpoint instance.
+  Manages a Azure PrivateEndpoint instance.
 ---
 
-# azurerm_private_endpoint
+# azurerm_private_link_endpoint
 
-Manages an Azure PrivateEndpoint instance.
+Manages a Azure PrivateEndpoint instance.
 
 ## Example Usage
 
@@ -68,7 +68,7 @@ resource "azurerm_private_link_service" "example" {
   load_balancer_frontend_ip_configuration_ids = [azurerm_lb.test.frontend_ip_configuration.0.id]
 }
 
-resource "azurerm_private_endpoint" "example" {
+resource "azurerm_private_link_endpoint" "example" {
   name                = "examplepe"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -144,5 +144,5 @@ The following attributes are exported:
 Private Endpoint can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/privateEndpoints/example-private-endpoint
+$ terraform import azurerm_private_link_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/privateEndpoints/example-private-endpoint
 ```

@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateEndpoint() *schema.Resource {
+func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateEndpointRead,
+		Read: dataSourceArmPrivateLinkEndpointRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -45,39 +45,23 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"private_link_service_connection_state": {
-							Type:     schema.TypeList,
+						"state_action_required": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action_required": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"description": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"status": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+						},
+						"state_description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state_status": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"request_message": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
-				},
-			},
-
-			"network_interface_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
 				},
 			},
 
@@ -101,25 +85,17 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
-						"private_link_service_connection_state": {
-							Type:     schema.TypeList,
+						"state_action_required": {
+							Type:     schema.TypeString,
 							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"action_required": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"description": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-									"status": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
+						},
+						"state_description": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"state_status": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"request_message": {
 							Type:     schema.TypeString,
@@ -129,6 +105,14 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 				},
 			},
 
+			"network_interface_ids": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+			
 			"subnet_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -139,7 +123,7 @@ func dataSourceArmPrivateEndpoint() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateEndpointRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).network.PrivateEndpointClient
 	ctx := meta.(*ArmClient).StopContext
 

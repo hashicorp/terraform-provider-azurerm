@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDataSourceAzureRMPrivateEndpoint_basic(t *testing.T) {
-	dataSourceName := "data.azurerm_private_endpoint.test"
+	dataSourceName := "data.azurerm_private_link_endpoint.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -31,7 +31,7 @@ func TestAccDataSourceAzureRMPrivateEndpoint_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMPrivateEndpoint_complete(t *testing.T) {
-	dataSourceName := "data.azurerm_private_endpoint.test"
+	dataSourceName := "data.azurerm_private_link_endpoint.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -60,9 +60,9 @@ func testAccDataSourcePrivateEndpoint_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_private_endpoint" "test" {
-  resource_group_name = "${azurerm_private_endpoint.test.resource_group_name}"
-  name                = "${azurerm_private_endpoint.test.name}"
+data "azurerm_private_link_endpoint" "test" {
+  resource_group_name = "${azurerm_private_link_endpoint.test.resource_group_name}"
+  name                = "${azurerm_private_link_endpoint.test.name}"
 }
 `, config)
 }
@@ -72,9 +72,9 @@ func testAccDataSourcePrivateEndpoint_complete(rInt int, location string) string
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_private_endpoint" "test" {
-  resource_group_name = "${azurerm_private_endpoint.test.resource_group_name}"
-  name                = "${azurerm_private_endpoint.test.name}"
+data "azurerm_private_link_endpoint" "test" {
+  resource_group_name = "${azurerm_private_link_endpoint.test.resource_group_name}"
+  name                = "${azurerm_private_link_endpoint.test.name}"
 }
 `, config)
 }
