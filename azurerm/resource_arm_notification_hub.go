@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -134,7 +135,8 @@ func resourceArmNotificationHub() *schema.Resource {
 
 func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).NotificationHubs.HubsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
@@ -223,7 +225,8 @@ func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhu
 
 func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).NotificationHubs.HubsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -273,7 +276,8 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).NotificationHubs.HubsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

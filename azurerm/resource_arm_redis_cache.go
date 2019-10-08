@@ -9,19 +9,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -254,7 +254,8 @@ func resourceArmRedisCache() *schema.Resource {
 
 func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Redis.Client
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache creation.")
 
 	name := d.Get("name").(string)
@@ -379,7 +380,8 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Redis.Client
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Redis Cache update.")
 
 	name := d.Get("name").(string)
@@ -471,7 +473,8 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 
 func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Redis.Client
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -551,7 +554,8 @@ func resourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Redis.Client
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

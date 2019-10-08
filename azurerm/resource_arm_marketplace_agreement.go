@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -58,7 +59,8 @@ func resourceArmMarketplaceAgreement() *schema.Resource {
 
 func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.MarketplaceAgreementsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	offer := d.Get("offer").(string)
 	plan := d.Get("plan").(string)
@@ -114,7 +116,8 @@ func resourceArmMarketplaceAgreementCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.MarketplaceAgreementsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -150,7 +153,8 @@ func resourceArmMarketplaceAgreementRead(d *schema.ResourceData, meta interface{
 
 func resourceArmMarketplaceAgreementDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.MarketplaceAgreementsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

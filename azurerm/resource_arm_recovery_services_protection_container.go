@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,7 +55,8 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 	name := d.Get("name").(string)
 
 	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, name)
@@ -103,7 +105,8 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	name := id.Path["replicationProtectionContainers"]
 
 	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, name)
 	if err != nil {
@@ -133,7 +136,8 @@ func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, me
 	name := id.Path["replicationProtectionContainers"]
 
 	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	future, err := client.Delete(ctx, fabricName, name)
 	if err != nil {

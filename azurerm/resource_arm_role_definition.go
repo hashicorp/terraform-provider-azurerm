@@ -5,12 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -100,7 +100,8 @@ func resourceArmRoleDefinition() *schema.Resource {
 
 func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Authorization.RoleDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	roleDefinitionId := d.Get("role_definition_id").(string)
 	if roleDefinitionId == "" {
@@ -160,7 +161,8 @@ func resourceArmRoleDefinitionCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Authorization.RoleDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.GetByID(ctx, d.Id())
 	if err != nil {
@@ -203,7 +205,8 @@ func resourceArmRoleDefinitionRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmRoleDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Authorization.RoleDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseRoleDefinitionId(d.Id())
 	if err != nil {
