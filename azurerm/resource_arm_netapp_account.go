@@ -43,6 +43,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 			"active_directory": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"dns_servers": {
@@ -249,7 +250,8 @@ func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory) []interf
 		b := make(map[string]interface{})
 
 		if v := item.DNS; v != nil {
-			b["dns_servers"] = flattenActiveDirectoryDNSServers(*v)
+			dnsServers := strings.Split(*v, ",")
+			b["dns_servers"] = utils.FlattenStringSlice(&dnsServers)
 		}
 		if v := item.Domain; v != nil {
 			b["domain"] = *v
@@ -271,17 +273,6 @@ func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory) []interf
 		}
 
 		results = append(results, b)
-	}
-
-	return results
-}
-
-func flattenActiveDirectoryDNSServers(input string) []interface{} {
-	results := make([]interface{}, 0, len(input))
-
-	origins := strings.Split(input, ",")
-	for _, origin := range origins {
-		results = append(results, origin)
 	}
 
 	return results

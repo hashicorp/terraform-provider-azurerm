@@ -149,7 +149,7 @@ func testCheckAzureRMNetAppAccountDestroy(s *terraform.State) error {
 func testAccAzureRMNetAppAccount_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-netapp-%d"
   location = "%s"
 }
 
@@ -164,7 +164,7 @@ resource "azurerm_netapp_account" "test" {
 func testAccAzureRMNetAppAccount_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-netapp-%d"
   location = "%s"
 }
 

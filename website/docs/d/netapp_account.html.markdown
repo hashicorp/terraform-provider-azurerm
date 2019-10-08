@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_netapp_account
 
-Use this data source to access information about an existing NetApp Account.
+Uses this data source to access information about an existing NetApp Account.
 
 
 ## NetApp Account Usage
@@ -54,7 +54,7 @@ The `active_directory` block contains the following:
 
 * `smb_server_name` - NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
 
-* `username` - Username of Active Directory domain administrator, which have permissions to create SMB server machine account in the AD domain.
+* `username` - Username of Active Directory domain administrator, which have permissions to create a SMB machine account in the AD domain.
 
 * `password` - Plain text password of Active Directory domain administrator.
 

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_account"
 sidebar_current: "docs-azurerm-resource-netapp-account"
 description: |-
-  Manage Azure NetApp Account instance.
+  Manages Azure NetApp Account instance.
 ---
 
 # azurerm_netapp_account
 
-Manage Azure NetApp Account instance.
+Manages Azure NetApp Account instance.
 
 
 ## NetApp Account Usage
@@ -63,7 +63,7 @@ The `active_directory` block supports the following:
 
 * `smb_server_name` - (Required) NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
 
-* `username` - (Required) Username of Active Directory domain administrator, which have permissions to create SMB server machine account in the AD domain.
+* `username` - (Required) Username of Active Directory domain administrator, which have permissions to create a SMB machine account in the AD domain.
 
 * `password` - (Required) Plain text password of Active Directory domain administrator.
 
@@ -75,7 +75,7 @@ The `active_directory` block supports the following:
 
 The following attributes are exported:
 
-* `id` - Resource id.
+* `id` - The ID of the NetApp resource.
 
 * `active_directory` - One or more `active_directory` block defined below.
 
