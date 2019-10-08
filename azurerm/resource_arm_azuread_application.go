@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -82,7 +82,8 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 
 func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Graph.ApplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// NOTE: name isn't the Resource ID here, so we don't check it exists
 	name := d.Get("name").(string)
@@ -112,7 +113,8 @@ func resourceArmActiveDirectoryApplicationCreate(d *schema.ResourceData, meta in
 
 func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Graph.ApplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 
@@ -153,7 +155,8 @@ func resourceArmActiveDirectoryApplicationUpdate(d *schema.ResourceData, meta in
 
 func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Graph.ApplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, d.Id())
 	if err != nil {
@@ -193,7 +196,8 @@ func resourceArmActiveDirectoryApplicationRead(d *schema.ResourceData, meta inte
 
 func resourceArmActiveDirectoryApplicationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Graph.ApplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// in order to delete an application which is available to other tenants, we first have to disable this setting
 	availableToOtherTenants := d.Get("available_to_other_tenants").(bool)

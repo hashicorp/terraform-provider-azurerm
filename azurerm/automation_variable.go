@@ -124,7 +124,8 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 
 func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*ArmClient).Automation.VariableClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -192,7 +193,8 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 
 func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*ArmClient).Automation.VariableClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -284,7 +286,8 @@ func dataSourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, 
 
 func resourceAutomationVariableDelete(d *schema.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*ArmClient).Automation.VariableClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +56,8 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 
 func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.BaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
 
@@ -92,8 +94,8 @@ func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData,
 
 func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.BaseClient
-	ctx := meta.(*ArmClient).StopContext
-
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	scmType := d.Id()
 
 	resp, err := client.GetSourceControl(ctx, scmType)
@@ -118,7 +120,8 @@ func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta in
 
 func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.BaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	scmType := d.Id()
 

@@ -87,7 +87,7 @@ A `aci_connector_linux` block supports the following:
 
 * `enabled` - (Required) Is the virtual node addon enabled?
 
-* `subnet_name` - (Required) The subnet name for the virtual nodes to run.
+* `subnet_name` - (Optional) The subnet name for the virtual nodes to run. This is required when `aci_connector_linux` `enabled` argument is set to `true`.
 
 -> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 

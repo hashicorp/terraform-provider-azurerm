@@ -139,10 +139,6 @@ github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/service/sts/stsiface
-github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
-github.com/aws/aws-sdk-go/private/protocol/query
-github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
-github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 # github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 github.com/bgentry/go-netrc/netrc
 # github.com/bgentry/speakeasy v0.1.0
@@ -228,60 +224,60 @@ github.com/hashicorp/hcl2/ext/dynblock
 github.com/hashicorp/hcl2/hcl/json
 github.com/hashicorp/hcl2/hclwrite
 # github.com/hashicorp/hil v0.0.0-20190212112733-ab17b08d6590
-github.com/hashicorp/hil/ast
 github.com/hashicorp/hil
+github.com/hashicorp/hil/ast
 github.com/hashicorp/hil/parser
 github.com/hashicorp/hil/scanner
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
 # github.com/hashicorp/terraform v0.12.9
-github.com/hashicorp/terraform/helper/schema
-github.com/hashicorp/terraform/helper/validation
-github.com/hashicorp/terraform/configs/configschema
-github.com/hashicorp/terraform/configs/hcl2shim
-github.com/hashicorp/terraform/helper/hashcode
-github.com/hashicorp/terraform/terraform
-github.com/hashicorp/terraform/tfdiags
-github.com/hashicorp/terraform/helper/structure
-github.com/hashicorp/terraform/helper/acctest
-github.com/hashicorp/terraform/helper/resource
-github.com/hashicorp/terraform/helper/didyoumean
 github.com/hashicorp/terraform/addrs
+github.com/hashicorp/terraform/command/format
 github.com/hashicorp/terraform/config
 github.com/hashicorp/terraform/configs
+github.com/hashicorp/terraform/configs/configload
+github.com/hashicorp/terraform/configs/configschema
+github.com/hashicorp/terraform/configs/hcl2shim
 github.com/hashicorp/terraform/dag
+github.com/hashicorp/terraform/flatmap
+github.com/hashicorp/terraform/helper/acctest
+github.com/hashicorp/terraform/helper/config
+github.com/hashicorp/terraform/helper/didyoumean
+github.com/hashicorp/terraform/helper/hashcode
+github.com/hashicorp/terraform/helper/hilmapstructure
+github.com/hashicorp/terraform/helper/logging
+github.com/hashicorp/terraform/helper/plugin
+github.com/hashicorp/terraform/helper/resource
+github.com/hashicorp/terraform/helper/schema
+github.com/hashicorp/terraform/helper/structure
+github.com/hashicorp/terraform/helper/validation
 github.com/hashicorp/terraform/httpclient
+github.com/hashicorp/terraform/internal/earlyconfig
+github.com/hashicorp/terraform/internal/initwd
+github.com/hashicorp/terraform/internal/modsdir
+github.com/hashicorp/terraform/internal/tfplugin5
 github.com/hashicorp/terraform/lang
+github.com/hashicorp/terraform/lang/blocktoattr
+github.com/hashicorp/terraform/lang/funcs
 github.com/hashicorp/terraform/moduledeps
 github.com/hashicorp/terraform/plans
 github.com/hashicorp/terraform/plans/objchange
+github.com/hashicorp/terraform/plugin
+github.com/hashicorp/terraform/plugin/convert
 github.com/hashicorp/terraform/plugin/discovery
 github.com/hashicorp/terraform/providers
 github.com/hashicorp/terraform/provisioners
-github.com/hashicorp/terraform/states
-github.com/hashicorp/terraform/states/statefile
-github.com/hashicorp/terraform/version
-github.com/hashicorp/terraform/command/format
-github.com/hashicorp/terraform/configs/configload
-github.com/hashicorp/terraform/helper/config
-github.com/hashicorp/terraform/helper/logging
-github.com/hashicorp/terraform/helper/plugin
-github.com/hashicorp/terraform/internal/initwd
-github.com/hashicorp/terraform/internal/tfplugin5
-github.com/hashicorp/terraform/plugin
-github.com/hashicorp/terraform/helper/hilmapstructure
-github.com/hashicorp/terraform/lang/blocktoattr
-github.com/hashicorp/terraform/lang/funcs
 github.com/hashicorp/terraform/registry
 github.com/hashicorp/terraform/registry/regsrc
 github.com/hashicorp/terraform/registry/response
-github.com/hashicorp/terraform/svchost/disco
-github.com/hashicorp/terraform/internal/modsdir
-github.com/hashicorp/terraform/flatmap
-github.com/hashicorp/terraform/plugin/convert
-github.com/hashicorp/terraform/internal/earlyconfig
+github.com/hashicorp/terraform/states
+github.com/hashicorp/terraform/states/statefile
 github.com/hashicorp/terraform/svchost
 github.com/hashicorp/terraform/svchost/auth
+github.com/hashicorp/terraform/svchost/disco
+github.com/hashicorp/terraform/terraform
+github.com/hashicorp/terraform/tfdiags
+github.com/hashicorp/terraform/version
 # github.com/hashicorp/terraform-config-inspect v0.0.0-20190821133035-82a99dc22ef4
 github.com/hashicorp/terraform-config-inspect/tfconfig
 # github.com/hashicorp/terraform-plugin-sdk v1.1.1
@@ -398,7 +394,6 @@ github.com/tombuildsstuff/giovanni/version
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/xlog
 github.com/ulikunitz/xz/lzma
-github.com/ulikunitz/xz/internal/hash
 # github.com/vmihailenco/msgpack v4.0.1+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
@@ -465,6 +460,7 @@ golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
 # golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa
+golang.org/x/sys/cpu
 golang.org/x/sys/unix
 golang.org/x/sys/cpu
 # golang.org/x/text v0.3.2

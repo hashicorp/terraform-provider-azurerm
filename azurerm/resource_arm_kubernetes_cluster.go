@@ -295,7 +295,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 									"subnet_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
@@ -1022,7 +1022,7 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if subnetName, ok := value["subnet_name"]; ok {
+		if subnetName, ok := value["subnet_name"]; ok && subnetName != "" {
 			config["SubnetName"] = utils.String(subnetName.(string))
 		}
 

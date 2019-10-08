@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -44,7 +45,8 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 
 func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	applicationId := d.Get("application_id").(string)
 
@@ -94,7 +96,8 @@ func resourceArmActiveDirectoryServicePrincipalCreate(d *schema.ResourceData, me
 
 func resourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	objectId := d.Id()
 	app, err := client.Get(ctx, objectId)
@@ -115,7 +118,8 @@ func resourceArmActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta
 
 func resourceArmActiveDirectoryServicePrincipalDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Graph.ServicePrincipalsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	applicationId := d.Id()
 	app, err := client.Delete(ctx, applicationId)
