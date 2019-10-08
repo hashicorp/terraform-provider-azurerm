@@ -468,7 +468,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.VirtualMachineTimeZone(),
+							ValidateFunc:     validate.VirtualMachineTimeZoneCaseInsensitive(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
