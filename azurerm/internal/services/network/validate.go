@@ -43,19 +43,18 @@ func ValidatePrivateLinkServiceSubsciptionFqdn(i interface{}, k string) (_ []str
 	segments := utils.SplitRemoveEmptyEntries(v, ".", false)
 	index := 0
 
-	for _,label := range segments {
+	for _, label := range segments {
 		index++
 		if index == len(segments) {
 			if len(label) < 2 {
-				errors = append(errors,fmt.Errorf(`the last label of an FQDN must be at least 2 characters, got 1 character`))
+				errors = append(errors, fmt.Errorf(`the last label of an FQDN must be at least 2 characters, got 1 character`))
 			}
 		} else {
 			if len(label) > 63 {
-				errors = append(errors,fmt.Errorf(`FQDN labels must not be longer than 63 characters, got %d characters`, len(label)))
+				errors = append(errors, fmt.Errorf(`FQDN labels must not be longer than 63 characters, got %d characters`, len(label)))
 			}
 		}
 	}
-
 
 	return nil, errors
 }
