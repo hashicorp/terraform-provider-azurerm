@@ -13,5 +13,5 @@ func dataSourceArmAutomationVariableString() *schema.Resource {
 }
 
 func dataSourceArmAutomationVariableStringRead(d *schema.ResourceData, meta interface{}) error {
-	return datasourceAutomationVariableRead(d, meta, "String")
+	return dataSourceAutomationVariableRead(d, meta, "String")
 }

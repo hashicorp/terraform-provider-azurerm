@@ -9,6 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -74,7 +75,8 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 
 func dataSourceArmSharedImageVersionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.GalleryImageVersionsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	imageVersion := d.Get("name").(string)
 	imageName := d.Get("image_name").(string)

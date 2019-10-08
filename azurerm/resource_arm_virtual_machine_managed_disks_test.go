@@ -427,14 +427,14 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_changeOsWriteAcc
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withOsWriteAcceleratorEnabled(rInt, testAltLocation(), "true"),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withOsWriteAcceleratorEnabled(rInt, testLocation(), "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "storage_os_disk.0.write_accelerator_enabled", "true"),
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withOsWriteAcceleratorEnabled(rInt, testAltLocation(), "false"),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withOsWriteAcceleratorEnabled(rInt, testLocation(), "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "storage_os_disk.0.write_accelerator_enabled", "false"),
@@ -455,7 +455,7 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceler
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testAltLocation(), "true"),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation(), "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.write_accelerator_enabled", "true"),
@@ -476,14 +476,14 @@ func TestAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_changeWriteAccel
 		CheckDestroy: testCheckAzureRMVirtualMachineDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testAltLocation(), "false"),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation(), "false"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.write_accelerator_enabled", "false"),
 				),
 			},
 			{
-				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testAltLocation(), "true"),
+				Config: testAccAzureRMVirtualMachine_basicLinuxMachine_managedDisk_withWriteAcceleratorEnabled(rInt, testLocation(), "true"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualMachineExists(resourceName, &vm),
 					resource.TestCheckResourceAttr(resourceName, "storage_data_disk.0.write_accelerator_enabled", "true"),

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -127,7 +128,8 @@ func resourceArmDevTestWindowsVirtualMachine() *schema.Resource {
 
 func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.VirtualMachinesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Windows Virtual Machine creation")
 
@@ -223,7 +225,8 @@ func resourceArmDevTestWindowsVirtualMachineCreateUpdate(d *schema.ResourceData,
 
 func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.VirtualMachinesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -274,7 +277,8 @@ func resourceArmDevTestWindowsVirtualMachineRead(d *schema.ResourceData, meta in
 
 func resourceArmDevTestWindowsVirtualMachineDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.VirtualMachinesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

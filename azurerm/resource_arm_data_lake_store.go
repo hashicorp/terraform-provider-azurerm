@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -112,7 +113,8 @@ func resourceArmDataLakeStore() *schema.Resource {
 
 func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -179,7 +181,8 @@ func resourceArmDateLakeStoreCreate(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -211,7 +214,8 @@ func resourceArmDateLakeStoreUpdate(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -256,7 +260,8 @@ func resourceArmDateLakeStoreRead(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmDateLakeStoreDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Datalake.StoreAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

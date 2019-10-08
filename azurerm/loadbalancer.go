@@ -11,6 +11,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
+// TODO: refactor this
+
 func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error) {
 	id, err := azure.ParseAzureResourceID(loadBalancerId)
 	if err != nil {

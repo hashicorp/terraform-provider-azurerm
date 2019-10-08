@@ -13,5 +13,5 @@ func dataSourceArmAutomationVariableInt() *schema.Resource {
 }
 
 func dataSourceArmAutomationVariableIntRead(d *schema.ResourceData, meta interface{}) error {
-	return datasourceAutomationVariableRead(d, meta, "Int")
+	return dataSourceAutomationVariableRead(d, meta, "Int")
 }

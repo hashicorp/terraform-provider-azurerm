@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -123,7 +124,8 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 
 func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*ArmClient).Automation.VariableClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -191,7 +193,8 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 
 func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*ArmClient).Automation.VariableClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -236,9 +239,10 @@ func resourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, va
 	return nil
 }
 
-func datasourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
+func dataSourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*ArmClient).Automation.VariableClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	accountName := d.Get("automation_account_name").(string)
@@ -282,7 +286,8 @@ func datasourceAutomationVariableRead(d *schema.ResourceData, meta interface{}, 
 
 func resourceAutomationVariableDelete(d *schema.ResourceData, meta interface{}, varType string) error {
 	client := meta.(*ArmClient).Automation.VariableClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

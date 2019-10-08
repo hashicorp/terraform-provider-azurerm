@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
@@ -17,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -199,7 +199,8 @@ func resourceArmContainerRegistry() *schema.Resource {
 
 func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.RegistriesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -283,7 +284,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
 		// the ACR is being created so no previous geo-replication locations
 		oldGeoReplicationLocations := []interface{}{}
-		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, geoReplicationLocations.List())
+		err = applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations, geoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -305,7 +306,8 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 
 func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.RegistriesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -358,7 +360,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	// if the registry had replications and is updated to another Sku than premium - remove old locations
 	if !strings.EqualFold(sku, string(containerregistry.Premium)) && oldGeoReplicationLocations != nil && oldGeoReplicationLocations.Len() > 0 {
-		err := applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
+		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -374,7 +376,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if strings.EqualFold(sku, string(containerregistry.Premium)) && hasGeoReplicationChanges {
-		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
+		err = applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -394,9 +396,10 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	return resourceArmContainerRegistryRead(d, meta)
 }
 
-func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
+func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
 	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
 
 	createLocations := make(map[string]bool)
@@ -466,7 +469,8 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.RegistriesClient
 	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -553,7 +557,8 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Containers.RegistriesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

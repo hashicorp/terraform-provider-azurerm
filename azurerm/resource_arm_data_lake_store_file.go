@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -54,7 +55,8 @@ func resourceArmDataLakeStoreFile() *schema.Resource {
 
 func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Datalake.StoreFilesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	chunkSize := 4 * 1024 * 1024
 
 	log.Printf("[INFO] preparing arguments for Date Lake Store File creation.")
@@ -113,7 +115,8 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 
 func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Datalake.StoreFilesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {
@@ -139,7 +142,8 @@ func resourceArmDataLakeStoreFileRead(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmDataLakeStoreFileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Datalake.StoreFilesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseDataLakeStoreFileId(d.Id(), client.AdlsFileSystemDNSSuffix)
 	if err != nil {

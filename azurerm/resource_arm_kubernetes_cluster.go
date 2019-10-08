@@ -295,7 +295,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 									"subnet_name": {
 										Type:         schema.TypeString,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validate.NoEmptyStrings,
 									},
 								},
@@ -303,6 +303,20 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"kube_dashboard": {
+							Type:     schema.TypeList,
+							MaxItems: 1,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+								},
+							},
+						},
+
+						"azure_policy": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
@@ -1022,7 +1036,7 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
 
-		if subnetName, ok := value["subnet_name"]; ok {
+		if subnetName, ok := value["subnet_name"]; ok && subnetName != "" {
 			config["SubnetName"] = utils.String(subnetName.(string))
 		}
 
@@ -1038,6 +1052,17 @@ func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*co
 		enabled := value["enabled"].(bool)
 
 		addonProfiles["kubeDashboard"] = &containerservice.ManagedClusterAddonProfile{
+			Enabled: utils.Bool(enabled),
+			Config:  nil,
+		}
+	}
+
+	azurePolicy := profile["azure_policy"].([]interface{})
+	if len(azurePolicy) > 0 && azurePolicy[0] != nil {
+		value := azurePolicy[0].(map[string]interface{})
+		enabled := value["enabled"].(bool)
+
+		addonProfiles["azurepolicy"] = &containerservice.ManagedClusterAddonProfile{
 			Enabled: utils.Bool(enabled),
 			Config:  nil,
 		}
@@ -1122,6 +1147,20 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 		kubeDashboards = append(kubeDashboards, output)
 	}
 	values["kube_dashboard"] = kubeDashboards
+
+	azurePolicies := make([]interface{}, 0)
+	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
+		enabled := false
+		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		azurePolicies = append(azurePolicies, output)
+	}
+	values["azure_policy"] = azurePolicies
 
 	return []interface{}{values}
 }

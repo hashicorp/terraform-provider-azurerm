@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -61,7 +62,8 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 
 func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Dns.RecordSetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -117,7 +119,8 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*ArmClient).Dns.RecordSetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -153,7 +156,8 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmDnsCNameRecordDelete(d *schema.ResourceData, meta interface{}) error {
 	dnsClient := meta.(*ArmClient).Dns.RecordSetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

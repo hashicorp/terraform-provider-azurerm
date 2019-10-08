@@ -456,6 +456,11 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
+	// 2.0 resources
+	if features.SupportsTwoPointZeroResources() {
+		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
+	}
+
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {

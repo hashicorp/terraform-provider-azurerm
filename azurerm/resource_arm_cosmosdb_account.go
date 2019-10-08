@@ -10,18 +10,17 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -301,7 +300,8 @@ func resourceArmCosmosDbAccount() *schema.Resource {
 
 func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account creation.")
 
 	name := d.Get("name").(string)
@@ -416,7 +416,8 @@ func resourceArmCosmosDbAccountCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Cosmos DB Account update.")
 
 	//move to function
@@ -563,7 +564,8 @@ func resourceArmCosmosDbAccountUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -709,7 +711,8 @@ func resourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceArmCosmosDbAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

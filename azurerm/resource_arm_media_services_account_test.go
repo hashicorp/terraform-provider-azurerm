@@ -254,7 +254,7 @@ resource "azurerm_media_services_account" "test" {
 func testAccAzureRMMediaServicesAccount_template(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "%d"
+  name     = "acctestRG-media-%d"
   location = "%s"
 }
 

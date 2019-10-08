@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -98,7 +99,8 @@ func resourceArmDevSpaceController() *schema.Resource {
 
 func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
 
@@ -162,7 +164,8 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 
 func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -203,7 +206,8 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
@@ -230,7 +234,8 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
