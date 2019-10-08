@@ -176,6 +176,22 @@ The deprecated field `address_space` will be removed.
 
 The deprecated field `sku` will be removed in favour of the `sku_name` property.
 
+The deprecated field  `disable_backend_ssl30` will be removed in favour of the `enable_backend_ssl30` property.
+ 
+The deprecated field  `disable_backend_tls10` will be removed in favour of the `enable_backend_tls10` property.
+
+The deprecated field  `disable_backend_tls11` will be removed in favour of the `enable_backend_tls11` property.
+
+The deprecated field  `disable_frontend_ssl30` will be removed in favour of the `enable_frontend_ssl30` property.
+
+The deprecated field  `disable_frontend_tls10` will be removed in favour of the `enable_frontend_tls10` property.
+
+The deprecated field  `disable_frontend_tls11` will be removed in favour of the `enable_frontend_tls11` property.
+
+The deprecated field  `disable_triple_des_chipers` will be removed in favour of the `enable_triple_des_ciphers` property.
+
+The deprecated field  `disable_triple_des_ciphers` will be removed in favour of the `enable_triple_des_ciphers` property.
+
 ### Resource: `azurerm_app_service_plan`
 
 The fields in the `properties` block (`app_service_environment_id`, `reserved` and `per_site_scaling`) have been moved to the top level - as such the `properties` block will be removed.
