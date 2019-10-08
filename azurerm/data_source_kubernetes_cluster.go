@@ -78,6 +78,19 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"azure_policy": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -623,6 +636,20 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 		kubeDashboards = append(kubeDashboards, output)
 	}
 	values["kube_dashboard"] = kubeDashboards
+
+	azurePolicies := make([]interface{}, 0)
+	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
+		enabled := false
+		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		azurePolicies = append(azurePolicies, output)
+	}
+	values["azure_policy"] = azurePolicies
 
 	return []interface{}{values}
 }
