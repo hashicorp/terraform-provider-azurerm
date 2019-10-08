@@ -6,7 +6,10 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceArmResource() *schema.Resource {
@@ -37,13 +40,8 @@ func dataSourceArmResource() *schema.Resource {
 				Computed:      true,
 				ConflictsWith: []string{"resource_id"},
 			},
-			"required_tags": {
-				Type:          schema.TypeMap,
-				Optional:      true,
-				Computed:      true,
-				ValidateFunc:  validateAzureRMTags,
-				ConflictsWith: []string{"resource_id"},
-			},
+
+			"required_tags": tags.Schema(),
 
 			"resources": {
 				Type:     schema.TypeList,
@@ -62,11 +60,8 @@ func dataSourceArmResource() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"location": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tags": tagsForDataSourceSchema(),
+						"location": azure.SchemaLocationForDataSource(),
+						"tags":     tags.SchemaDataSource(),
 					},
 				},
 			},
@@ -75,8 +70,9 @@ func dataSourceArmResource() *schema.Resource {
 }
 
 func dataSourceArmResourceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourcesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Resource.ResourcesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroupName := d.Get("resource_group_name").(string)
 	resourceName := d.Get("name").(string)
