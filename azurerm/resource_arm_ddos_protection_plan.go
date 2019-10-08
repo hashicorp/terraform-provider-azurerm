@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,7 +60,8 @@ As such the existing 'azurerm_ddos_protection_plan' resource is deprecated and w
 
 func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.DDOSProtectionPlansClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DDoS protection plan creation")
 
@@ -123,7 +125,8 @@ func resourceArmDDoSProtectionPlanCreateUpdate(d *schema.ResourceData, meta inte
 
 func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.DDOSProtectionPlansClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -161,7 +164,8 @@ func resourceArmDDoSProtectionPlanRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmDDoSProtectionPlanDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.DDOSProtectionPlansClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

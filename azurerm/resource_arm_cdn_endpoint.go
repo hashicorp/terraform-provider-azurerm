@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -190,7 +191,8 @@ func resourceArmCdnEndpoint() *schema.Resource {
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cdn.EndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
 
@@ -281,7 +283,8 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
 	endpointsClient := meta.(*ArmClient).Cdn.EndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -339,7 +342,8 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cdn.EndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -402,7 +406,8 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cdn.EndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

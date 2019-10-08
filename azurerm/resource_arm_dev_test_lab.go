@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -86,7 +87,8 @@ func resourceArmDevTestLab() *schema.Resource {
 
 func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.LabsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
 
@@ -143,7 +145,8 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.LabsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -186,7 +189,8 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.LabsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
