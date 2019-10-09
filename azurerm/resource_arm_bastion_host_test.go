@@ -54,6 +54,11 @@ func TestAccAzureRMBastionHost_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "tags.environment", "production"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -90,7 +95,7 @@ func TestAccAzureRMBastionHost_requiresImport(t *testing.T) {
 func testAccAzureRMBastionHost_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-bastion-%d"
   location = "%s"
 }
 
@@ -133,7 +138,7 @@ resource "azurerm_bastion_host" "test" {
 func testAccAzureRMBastionHost_complete(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-bastion-%d"
   location = "%s"
 }
 

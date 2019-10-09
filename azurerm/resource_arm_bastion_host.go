@@ -36,11 +36,6 @@ func resourceArmBastionHost() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"dns_name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"ip_configuration": {
 				Type:     schema.TypeList,
 				ForceNew: true,
@@ -65,6 +60,11 @@ func resourceArmBastionHost() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"dns_name": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
@@ -96,11 +96,10 @@ func resourceArmBastionHostCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	ipconfig := expandArmBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{}))
 	parameters := network.BastionHost{
 		Location: &location,
 		BastionHostPropertiesFormat: &network.BastionHostPropertiesFormat{
-			IPConfigurations: &ipconfig,
+			IPConfigurations: expandArmBastionHostIPConfiguration(d.Get("ip_configuration").([]interface{})),
 		},
 		Tags: expandTags(tags),
 	}
@@ -227,7 +226,7 @@ func validateAzureRMBastionIPConfigName(v interface{}, k string) (warnings []str
 	return warnings, errors
 }
 
-func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs []network.BastionHostIPConfiguration) {
+func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs *[]network.BastionHostIPConfiguration) {
 	if len(input) == 0 {
 		return nil
 	}
@@ -237,7 +236,7 @@ func expandArmBastionHostIPConfiguration(input []interface{}) (ipConfigs []netwo
 	subID := property["subnet_id"].(string)
 	pipID := property["public_ip_address_id"].(string)
 
-	return []network.BastionHostIPConfiguration{
+	return &[]network.BastionHostIPConfiguration{
 		{
 			Name: &ipConfName,
 			BastionHostIPConfigurationPropertiesFormat: &network.BastionHostIPConfigurationPropertiesFormat{
