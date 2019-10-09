@@ -433,13 +433,11 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	if v, ok := d.GetOk("read_scale"); ok {
-		readScale := v.(bool)
-		if readScale {
-			properties.DatabaseProperties.ReadScale = sql.ReadScaleEnabled
-		} else {
-			properties.DatabaseProperties.ReadScale = sql.ReadScaleDisabled
-		}
+	readScale := d.Get("read_scale").(bool)
+	if readScale {
+		properties.DatabaseProperties.ReadScale = sql.ReadScaleEnabled
+	} else {
+		properties.DatabaseProperties.ReadScale = sql.ReadScaleDisabled
 	}
 
 	// The requested Service Objective Name does not match the requested Service Objective Id.
