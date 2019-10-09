@@ -4,13 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-<<<<<<< HEAD
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
-	"github.com/hashicorp/terraform/helper/schema"
-=======
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
->>>>>>> upstream/master
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
