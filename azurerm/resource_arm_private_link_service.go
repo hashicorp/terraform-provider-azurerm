@@ -548,7 +548,6 @@ func flattenArmPrivateLinkServicePrivateEndpointConnection(input *[]network.Priv
 		}
 
 		if props := item.PrivateEndpointConnectionProperties; props != nil {
-
 			if p := props.PrivateEndpoint; p != nil {
 				if id := p.ID; id != nil {
 					v["private_endpoint_id"] = *id
