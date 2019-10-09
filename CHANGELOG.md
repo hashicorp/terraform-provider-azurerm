@@ -15,9 +15,10 @@ IMPROVEMENTS:
 
 BUG FIXES:
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` [GH-4534]
-* `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
+* `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
+* `azurer_storage_account` - Ignore Advanced Threat Protection read errors in Azure Germany [GH-4564]
 
 ## 1.35.0 (October 04, 2019)
 
