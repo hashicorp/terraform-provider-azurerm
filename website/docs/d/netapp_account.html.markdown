@@ -56,6 +56,4 @@ The `active_directory` block contains the following:
 
 * `username` - Username of Active Directory domain administrator, which have permissions to create a SMB machine account in the AD domain.
 
-* `password` - Plain text password of Active Directory domain administrator.
-
 * `organizational_unit` - The Organizational Unit (OU) within the Windows Active Directory Domain the netapp is placed.

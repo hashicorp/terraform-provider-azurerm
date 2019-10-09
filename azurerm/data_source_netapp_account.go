@@ -49,11 +49,6 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"password": {
-							Type:      schema.TypeString,
-							Sensitive: true,
-							Computed:  true,
-						},
 						"organizational_unit": {
 							Type:     schema.TypeString,
 							Computed: true,

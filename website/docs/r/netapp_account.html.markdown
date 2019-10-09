@@ -83,7 +83,7 @@ The following attributes are exported:
 
 The `active_directory` block supports the following:
 
-* `id` - The resource id of Active Directory.
+* `id` - The resource ID of Active Directory.
 
 ---
 
