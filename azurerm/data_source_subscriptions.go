@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -12,6 +13,10 @@ import (
 func dataSourceArmSubscriptions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSubscriptionsRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"display_name_prefix": {

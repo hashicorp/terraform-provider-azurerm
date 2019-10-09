@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"sort"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,6 +19,11 @@ import (
 func dataSourceArmImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmImageRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 
 			"name_regex": {
