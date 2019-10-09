@@ -178,7 +178,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 }
 
 func testCheckAzureRMAppServiceCertificateOrderDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).web.CertificatesOrderClient
+	client := testAccProvider.Meta().(*ArmClient).Web.CertificatesOrderClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service" {
@@ -218,7 +218,7 @@ func testCheckAzureRMAppServiceCertificateOrderExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for App Service Certificate Order: %s", appServiceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).web.CertificatesOrderClient
+		client := testAccProvider.Meta().(*ArmClient).Web.CertificatesOrderClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
