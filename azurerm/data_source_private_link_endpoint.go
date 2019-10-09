@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -112,7 +112,7 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-			
+
 			"subnet_id": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -124,7 +124,7 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 }
 
 func dataSourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PrivateEndpointClient
+	client := meta.(*ArmClient).Network.PrivateEndpointClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -145,17 +145,17 @@ func dataSourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if privateEndpointProperties := resp.PrivateEndpointProperties; privateEndpointProperties != nil {
-		if err := d.Set("manual_private_link_service_connection", flattenArmPrivateEndpointPrivateLinkServiceConnection(privateEndpointProperties.ManualPrivateLinkServiceConnections)); err != nil {
+	if props := resp.PrivateEndpointProperties; props != nil {
+		if err := d.Set("manual_private_link_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.ManualPrivateLinkServiceConnections)); err != nil {
 			return fmt.Errorf("Error setting `manual_private_link_service_connection`: %+v", err)
 		}
-		if err := d.Set("network_interfaces", flattenArmPrivateEndpointInterface(privateEndpointProperties.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interfaces`: %+v", err)
-		}
-		if err := d.Set("private_link_service_connection", flattenArmPrivateEndpointPrivateLinkServiceConnection(privateEndpointProperties.PrivateLinkServiceConnections)); err != nil {
+		if err := d.Set("private_link_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_link_service_connection`: %+v", err)
 		}
-		if subnet := privateEndpointProperties.Subnet; subnet != nil {
+		if err := d.Set("network_interfaces", flattenArmPrivateLinkEndpointInterface(props.NetworkInterfaces)); err != nil {
+			return fmt.Errorf("Error setting `network_interfaces`: %+v", err)
+		}
+		if subnet := props.Subnet; subnet != nil {
 			d.Set("subnet_id", subnet.ID)
 		}
 	}
