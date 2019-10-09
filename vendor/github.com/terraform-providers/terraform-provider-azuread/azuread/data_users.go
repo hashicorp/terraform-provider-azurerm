@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
@@ -83,7 +83,8 @@ func dataSourceUsersRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Unexpected number of users returned (%d != %d)", len(users), expectedCount)
 	}
 
-	var upns, oids []string
+	upns := make([]string, 0, len(users))
+	oids := make([]string, 0, len(users))
 	for _, u := range users {
 		if u.ObjectID == nil || u.UserPrincipalName == nil {
 			return fmt.Errorf("User with nil ObjectId or UPN was found: %v", u)

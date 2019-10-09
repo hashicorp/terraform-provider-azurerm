@@ -3,9 +3,10 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,8 +60,9 @@ func dataSourceArmMsSqlElasticpool() *schema.Resource {
 }
 
 func dataSourceArmMsSqlElasticpoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mssql.ElasticPoolsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	elasticPoolName := d.Get("name").(string)

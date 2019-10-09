@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -399,7 +399,7 @@ resource "azurerm_signalr_service" "test" {
 }
 
 func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).signalr.Client
+	conn := testAccProvider.Meta().(*ArmClient).SignalR.Client
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_signalr_service" {
@@ -434,7 +434,7 @@ func testCheckAzureRMSignalRServiceExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for SignalR service: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).signalr.Client
+		conn := testAccProvider.Meta().(*ArmClient).SignalR.Client
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

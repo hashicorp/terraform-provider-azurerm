@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
 )
@@ -59,8 +60,9 @@ func resourceArmStorageTableEntity() *schema.Resource {
 }
 
 func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	storageClient := meta.(*ArmClient).Storage
 
 	accountName := d.Get("storage_account_name").(string)
 	tableName := d.Get("table_name").(string)
@@ -123,8 +125,9 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := entities.ParseResourceID(d.Id())
 	if err != nil {
@@ -169,8 +172,9 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmStorageTableEntityDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	storageClient := meta.(*ArmClient).storage
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	storageClient := meta.(*ArmClient).Storage
 
 	id, err := entities.ParseResourceID(d.Id())
 	if err != nil {

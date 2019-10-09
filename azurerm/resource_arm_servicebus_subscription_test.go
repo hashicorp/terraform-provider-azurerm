@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -191,7 +191,7 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).servicebus.SubscriptionsClient
+	client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -233,10 +233,10 @@ func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subscription: %q", topicName)
+			return fmt.Errorf("Bad: no resource group found in state for Subscription: %q", topicName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).servicebus.SubscriptionsClient
+		client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName)

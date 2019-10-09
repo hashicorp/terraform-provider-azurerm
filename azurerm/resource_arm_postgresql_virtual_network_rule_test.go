@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -177,7 +177,7 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleExists(resourceName string) res
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).postgres.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -203,7 +203,7 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDestroy(s *terraform.State) err
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).postgres.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, ruleName)
@@ -233,7 +233,7 @@ func testCheckAzureRMPostgreSQLVirtualNetworkRuleDisappears(resourceName string)
 		serverName := rs.Primary.Attributes["server_name"]
 		ruleName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).postgres.VirtualNetworkRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.VirtualNetworkRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName, ruleName)

@@ -28,7 +28,7 @@ fmt:
 	# This logic should match the search logic in scripts/gofmtcheck.sh
 	find . -name '*.go' | grep -v vendor | xargs gofmt -s -w
 
-# Currently required by tf-deploy compile
+# Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
 
@@ -40,11 +40,27 @@ lint:
 	@echo "==> Checking source code against linters..."
 	golangci-lint run ./...
 
+# we have split off static check because it causes travis to fail with an OOM error
+lintstatic:
+	@echo "==> Checking source code against static check linters..."
+	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
+	golangci-lint run ./... -v --no-config --concurrency 1 --deadline=30m10s --disable-all --enable=staticcheck; ES=$$?; kill -9 $$PID; exit $$ES
+
+lintrest:
+	@echo "==> Checking source code against linters..."
+	(while true; do sleep 300; echo "(I'm still alive and linting!)"; done) & PID=$$!; echo $$PID; \
+	golangci-lint run ./... -v --concurrency 1 --deadline=30m10s --config .golangci-travisrest.yml ; ES=$$?; kill -9 $$PID; exit $$ES
+
 tflint:
 	@echo "==> Checking source code against terraform provider linters..."
 	@tfproviderlint \
         -R001 -R002 -R003 -R004\
+        -S001 -S002 -S003 -S004 -S005 -S006 -S007 -S008 -S009 -S010 -S011 -S012 -S013 -S014 -S015 -S016 -S017 -S018 -S019\
         ./$(PKG_NAME)
+
+whitespace:
+	@echo "==> Fixing source code with whitespace linter..."
+	golangci-lint run ./... --no-config --disable-all --enable=whitespace --fix
 
 test-docker:
 	docker run --rm -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm golang:1.13 make test

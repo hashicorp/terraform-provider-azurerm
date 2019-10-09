@@ -1,7 +1,7 @@
 package azurerm
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceArmAutomationVariableInt() *schema.Resource {
@@ -13,5 +13,5 @@ func dataSourceArmAutomationVariableInt() *schema.Resource {
 }
 
 func dataSourceArmAutomationVariableIntRead(d *schema.ResourceData, meta interface{}) error {
-	return datasourceAutomationVariableRead(d, meta, "Int")
+	return dataSourceAutomationVariableRead(d, meta, "Int")
 }

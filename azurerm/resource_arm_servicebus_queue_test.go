@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -355,7 +355,7 @@ func TestAccAzureRMServiceBusQueue_maxDeliveryCount(t *testing.T) {
 }
 
 func testCheckAzureRMServiceBusQueueDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).servicebus.QueuesClient
+	client := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -398,7 +398,7 @@ func testCheckAzureRMServiceBusQueueExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for queue: %s", queueName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).servicebus.QueuesClient
+		client := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, queueName)

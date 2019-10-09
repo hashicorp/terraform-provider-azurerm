@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -110,7 +110,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ProductPoliciesClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
 		if err != nil {
@@ -126,7 +126,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 }
 
 func testCheckAzureRMApiManagementProductPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ProductPoliciesClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_policy" {

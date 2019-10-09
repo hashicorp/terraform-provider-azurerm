@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -174,7 +174,7 @@ func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(resourceName str
 		jobName := rs.Primary.Attributes["stream_analytics_job_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
+		conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
@@ -190,7 +190,7 @@ func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicExists(resourceName str
 }
 
 func testCheckAzureRMStreamAnalyticsOutputServiceBusTopicDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).streamanalytics.OutputsClient
+	conn := testAccProvider.Meta().(*ArmClient).StreamAnalytics.OutputsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_stream_analytics_output_servicebus_topic" {

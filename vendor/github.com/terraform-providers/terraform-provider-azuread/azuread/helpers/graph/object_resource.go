@@ -46,7 +46,6 @@ func ParseObjectSubResourceId(idString, expectedType string) (ObjectSubResourceI
 	}
 
 	return id, nil
-
 }
 
 func ObjectSubResourceIdFrom(objectId, typeId, subId string) ObjectSubResourceId {

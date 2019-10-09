@@ -5,14 +5,15 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
@@ -141,8 +142,9 @@ func resourceArmStorageBlob() *schema.Resource {
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	accountName := d.Get("storage_account_name").(string)
 	containerName := d.Get("storage_container_name").(string)
@@ -203,8 +205,9 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
@@ -259,12 +262,13 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
-	return nil
+	return resourceArmStorageBlobRead(d, meta)
 }
 
 func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
@@ -322,8 +326,9 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {

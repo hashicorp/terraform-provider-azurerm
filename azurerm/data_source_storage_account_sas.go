@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 
 	"github.com/hashicorp/go-azure-helpers/storage"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
@@ -179,11 +179,9 @@ func dataSourceArmStorageAccountSharedAccessSignature() *schema.Resource {
 			},
 		},
 	}
-
 }
 
 func dataSourceArmStorageAccountSasRead(d *schema.ResourceData, _ interface{}) error {
-
 	connString := d.Get("connection_string").(string)
 	httpsOnly := d.Get("https_only").(bool)
 	resourceTypesIface := d.Get("resource_types").([]interface{})
