@@ -563,6 +563,32 @@ func TestAccAzureRMCosmosDBAccount_geoReplicated_rename(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDBAccount_geoReplicated_swapPriority(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_account.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDBAccountDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDBAccount_geo3xReplicated(ri, testLocation(), testAltLocation(), testAltLocation2()),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 3),
+			},
+			{
+				Config: testAccAzureRMCosmosDBAccount_geo3xReplicated(ri, testLocation(), testAltLocation2(), testAltLocation()),
+				Check:  checkAccAzureRMCosmosDBAccount_basic(resourceName, testLocation(), string(documentdb.BoundedStaleness), 3),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMCosmosDBAccount_virtualNetworkFilter(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	resourceName := "azurerm_cosmosdb_account.test"
@@ -862,6 +888,25 @@ func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altL
         }
 
   `, altLocation))
+}
+
+func testAccAzureRMCosmosDBAccount_geo3xReplicated(rInt int, location string, secondLocation string, thirdLocation string) string {
+	co := `
+	max_interval_in_seconds = 373
+	max_staleness_prefix    = 100001
+`
+
+	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.BoundedStaleness), co, fmt.Sprintf(`
+        geo_location {
+            location          = "%s"
+            failover_priority = 1
+        }
+        geo_location {
+            location          = "%s"
+            failover_priority = 2
+        }
+
+    `, secondLocation, thirdLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLocation string) string {
