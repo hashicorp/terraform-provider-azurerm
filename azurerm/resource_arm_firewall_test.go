@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -212,7 +212,7 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -241,7 +241,7 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -256,7 +256,7 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMFirewallDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
+	client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -669,7 +669,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+	conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -695,7 +695,7 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+		conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

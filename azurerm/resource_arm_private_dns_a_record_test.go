@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -146,7 +146,7 @@ func testCheckAzureRMPrivateDnsARecordExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS A record: %s", aName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).privateDns.RecordSetsClient
+		conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.A, aName)
 		if err != nil {
@@ -162,7 +162,7 @@ func testCheckAzureRMPrivateDnsARecordExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMPrivateDnsARecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).privateDns.RecordSetsClient
+	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

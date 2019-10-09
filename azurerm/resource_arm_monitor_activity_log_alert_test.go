@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -356,7 +356,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 }
 
 func testCheckAzureRMMonitorActivityLogAlertDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).monitor.ActivityLogAlertsClient
+	conn := testAccProvider.Meta().(*ArmClient).Monitor.ActivityLogAlertsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -395,7 +395,7 @@ func testCheckAzureRMMonitorActivityLogAlertExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for Activity Log Alert Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).monitor.ActivityLogAlertsClient
+		conn := testAccProvider.Meta().(*ArmClient).Monitor.ActivityLogAlertsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -132,7 +132,7 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 		vmName := rs.Primary.Attributes["virtual_machine_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMExtensionClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMExtensionClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vmName, name, "")
@@ -149,7 +149,7 @@ func testCheckAzureRMVirtualMachineExtensionExists(resourceName string) resource
 }
 
 func testCheckAzureRMVirtualMachineExtensionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).compute.VMExtensionClient
+	client := testAccProvider.Meta().(*ArmClient).Compute.VMExtensionClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

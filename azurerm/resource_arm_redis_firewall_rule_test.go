@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -174,7 +174,7 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 		cacheName := rs.Primary.Attributes["redis_cache_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).redis.FirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Redis.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
@@ -189,7 +189,7 @@ func testCheckAzureRMRedisFirewallRuleExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMRedisFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resource.GroupsClient
+	client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -3,12 +3,12 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func resourceArmApplicationInsightsAnalyticsItem() *schema.Resource {
@@ -93,8 +93,9 @@ func resourceArmApplicationInsightsAnalyticsItemUpdate(d *schema.ResourceData, m
 	return resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d, meta, true)
 }
 func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceData, meta interface{}, overwrite bool) error {
-	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	appInsightsID := d.Get("application_insights_id").(string)
 
@@ -154,8 +155,9 @@ func resourceArmApplicationInsightsAnalyticsItemCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 	resourceGroupName, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)
@@ -187,8 +189,9 @@ func resourceArmApplicationInsightsAnalyticsItemRead(d *schema.ResourceData, met
 }
 
 func resourceArmApplicationInsightsAnalyticsItemDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.AnalyticsItemsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.AnalyticsItemsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 	resourceGroupName, appInsightsName, itemScopePath, itemID, err := resourcesArmApplicationInsightsAnalyticsItemParseID(id)

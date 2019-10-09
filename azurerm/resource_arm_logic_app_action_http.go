@@ -3,12 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
-	"net/http"
-
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
@@ -112,7 +111,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 	logicAppName := id.Path["workflows"]
 	name := id.Path["actions"]
 
-	t, app, err := retrieveLogicAppAction(meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppAction(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}

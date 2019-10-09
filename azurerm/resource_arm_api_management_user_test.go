@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -227,7 +227,7 @@ func TestAccAzureRMApiManagementUser_complete(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementUserDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagement.UsersClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.UsersClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_user" {
@@ -265,7 +265,7 @@ func testCheckAzureRMApiManagementUserExists(resourceName string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagement.UsersClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.UsersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, userId)
 		if err != nil {

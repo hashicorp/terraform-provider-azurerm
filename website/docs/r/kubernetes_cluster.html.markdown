@@ -87,13 +87,13 @@ A `aci_connector_linux` block supports the following:
 
 * `enabled` - (Required) Is the virtual node addon enabled?
 
-* `subnet_name` - (Required) The subnet name for the virtual nodes to run.
+* `subnet_name` - (Optional) The subnet name for the virtual nodes to run. This is required when `aci_connector_linux` `enabled` argument is set to `true`.
 
 -> **Note:** AKS will add a delegation to the subnet named here. To prevent further runs from failing you should make sure that the subnet you create for virtual nodes has a delegation, like so.
 
 ```
 resource "azurerm_subnet" "virtual" {
-  
+
   ...
 
   delegation {
@@ -144,6 +144,9 @@ A `addon_profile` block supports the following:
 * `http_application_routing` - (Optional) A `http_application_routing` block.
 * `oms_agent` - (Optional) A `oms_agent` block. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 * `kube_dashboard` - (Optional) A `kube_dashboard` block.
+* `azure_policy` - (Optional) A `azure_policy` block.  For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
+
+-> **NOTE**: Azure Policy for Azure Kubernetes Service is currently in preview and not available to subscriptions that have not [opted-in](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks?toc=/azure/aks/toc.json) to join `Azure Policy` preview.
 
 ---
 
@@ -159,7 +162,7 @@ A `agent_pool_profile` block supports the following:
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
-* `min_count` - (Optional) Minimum number of nodes for auto-scaling 
+* `min_count` - (Optional) Minimum number of nodes for auto-scaling
 
 * `max_count` - (Optional) Maximum number of nodes for auto-scaling
 
@@ -241,13 +244,19 @@ A `oms_agent` block supports the following:
 
 * `enabled` - (Required) Is the OMS Agent Enabled?
 
-* `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+* `log_analytics_workspace_id` - (Optional) The ID of the Log Analytics Workspace which the OMS Agent should send data to. Must be present if `enabled` is `true`.
 
 ---
 
 A `kube_dashboard` block supports the following:
 
-* `enabled` - (Required) Is the Kubernetes Dashboard enabled? 
+* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
+---
+
+
+A `azure_policy` block supports the following:
+
+* `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
 
 ---
 

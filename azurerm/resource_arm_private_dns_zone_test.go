@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -114,7 +114,7 @@ func testCheckAzureRMPrivateDnsZoneExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS zone: %s", zoneName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).privateDns.PrivateZonesClient
+		client := testAccProvider.Meta().(*ArmClient).PrivateDns.PrivateZonesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, zoneName)
 		if err != nil {
@@ -130,7 +130,7 @@ func testCheckAzureRMPrivateDnsZoneExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMPrivateDnsZoneDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).privateDns.PrivateZonesClient
+	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.PrivateZonesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

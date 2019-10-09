@@ -6,12 +6,13 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -140,8 +141,9 @@ func resourceArmDataFactoryDatasetMySQL() *schema.Resource {
 }
 
 func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.DatasetClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	dataFactoryName := d.Get("data_factory_name").(string)
@@ -227,8 +229,9 @@ func resourceArmDataFactoryDatasetMySQLCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.DatasetClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -303,8 +306,9 @@ func resourceArmDataFactoryDatasetMySQLRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmDataFactoryDatasetMySQLDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactory.DatasetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.DatasetClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -6,11 +6,12 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -65,8 +66,9 @@ func resourceArmKustoDatabase() *schema.Resource {
 }
 
 func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kusto.DatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Kusto.DatabasesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Database creation.")
 
@@ -121,8 +123,9 @@ func resourceArmKustoDatabaseCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kusto.DatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Kusto.DatabasesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -164,8 +167,9 @@ func resourceArmKustoDatabaseRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmKustoDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kusto.DatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Kusto.DatabasesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

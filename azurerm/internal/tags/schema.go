@@ -1,7 +1,7 @@
 package tags
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 // SchemaDataSource returns the Schema which should be used for Tags on a Data Source

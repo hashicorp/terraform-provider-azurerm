@@ -4,9 +4,15 @@ import (
 	"fmt"
 	"strings"
 
+<<<<<<< HEAD
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/terraform/helper/schema"
+=======
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+>>>>>>> upstream/master
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceArmMonitorDiagnosticCategories() *schema.Resource {
@@ -37,8 +43,9 @@ func dataSourceArmMonitorDiagnosticCategories() *schema.Resource {
 }
 
 func dataSourceArmMonitorDiagnosticCategoriesRead(d *schema.ResourceData, meta interface{}) error {
-	categoriesClient := meta.(*ArmClient).monitor.DiagnosticSettingsCategoryClient
-	ctx := meta.(*ArmClient).StopContext
+	categoriesClient := meta.(*ArmClient).Monitor.DiagnosticSettingsCategoryClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	actualResourceId := d.Get("resource_id").(string)
 	// trim off the leading `/` since the CheckExistenceByID / List methods don't expect it

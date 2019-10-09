@@ -12,6 +12,8 @@ Manages a Virtual Machine.
 
 ~> **NOTE:** Data Disks can be attached either directly on the `azurerm_virtual_machine` resource, or using the `azurerm_virtual_machine_data_disk_attachment` resource - but the two cannot be used together. If both are used against the same Virtual Machine, spurious changes will occur.
 
+-> **NOTE:** The `azurerm_virtual_machine` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
+
 ## Example Usage (from an Azure Platform Image)
 
 This example provisions a Virtual Machine with Managed Disks. Other examples of the `azurerm_virtual_machine` resource can be found in [the `./examples/virtual-machines` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/virtual-machines)
@@ -194,7 +196,7 @@ A `identity` block supports the following:
 
 -> **NOTE:** Managed Service Identity previously required the installation of a VM Extension, but this information [is now available via the Azure Instance Metadata Service](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview#how-does-it-work).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+~> **NOTE:** When `type` is set to `SystemAssigned`, identity the Principal ID can be retrieved after the virtual machine has been created. More details are available below. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for additional information.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VM. Required if `type` is `UserAssigned`.
 
@@ -388,6 +390,16 @@ A `winrm` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Machine.
+
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Virtual Machine.
+
+---
+
+A `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Virtual Machine.
+
+-> You can access the Principal ID via `${azurerm_virtual_machine.test.identity.0.principal_id}`
 
 ## Import
 

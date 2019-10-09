@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/hashicorp/terraform/plugin"
+	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
 )
 

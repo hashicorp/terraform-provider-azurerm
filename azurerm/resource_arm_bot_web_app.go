@@ -5,14 +5,15 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -113,8 +114,9 @@ func resourceArmBotWebApp() *schema.Resource {
 }
 
 func resourceArmBotWebAppCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -174,8 +176,9 @@ func resourceArmBotWebAppCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -215,8 +218,9 @@ func resourceArmBotWebAppRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -263,8 +267,9 @@ func resourceArmBotWebAppUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBotWebAppDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

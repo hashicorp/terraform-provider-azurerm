@@ -3,10 +3,11 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,8 +73,9 @@ func dataSourceArmPublicIP() *schema.Resource {
 }
 
 func dataSourceArmPublicIPRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PublicIPsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.PublicIPsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -166,7 +166,7 @@ func testAccAzureRMMonitorLogProfile_disappears(t *testing.T) {
 }
 
 func testCheckAzureRMLogProfileDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).monitor.LogProfilesClient
+	client := testAccProvider.Meta().(*ArmClient).Monitor.LogProfilesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -194,7 +194,7 @@ func testCheckAzureRMLogProfileExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).monitor.LogProfilesClient
+		client := testAccProvider.Meta().(*ArmClient).Monitor.LogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		name := rs.Primary.Attributes["name"]
@@ -221,7 +221,7 @@ func testCheckAzureRMLogProfileDisappears(resourceName string) resource.TestChec
 
 		name := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).monitor.LogProfilesClient
+		client := testAccProvider.Meta().(*ArmClient).Monitor.LogProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, name); err != nil {

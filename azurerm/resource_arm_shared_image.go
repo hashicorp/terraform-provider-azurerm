@@ -5,14 +5,15 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -102,8 +103,9 @@ func resourceArmSharedImage() *schema.Resource {
 }
 
 func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImagesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.GalleryImagesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
 
@@ -173,8 +175,9 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImagesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.GalleryImagesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -220,8 +223,9 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.GalleryImagesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.GalleryImagesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
