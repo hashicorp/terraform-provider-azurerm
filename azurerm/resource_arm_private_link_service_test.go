@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -138,7 +138,7 @@ func testCheckAzureRMPrivateLinkServiceExists(resourceName string) resource.Test
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.PrivateLinkServiceClient
+		client := testAccProvider.Meta().(*ArmClient).Network.PrivateLinkServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name, ""); err != nil {
@@ -153,7 +153,7 @@ func testCheckAzureRMPrivateLinkServiceExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMPrivateLinkServiceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.PrivateLinkServiceClient
+	client := testAccProvider.Meta().(*ArmClient).Network.PrivateLinkServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

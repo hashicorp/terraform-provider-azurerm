@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -180,7 +180,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 }
 
 func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PrivateLinkServiceClient
+	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -242,7 +242,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PrivateLinkServiceClient
+	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -307,7 +307,7 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.PrivateLinkServiceClient
+	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
