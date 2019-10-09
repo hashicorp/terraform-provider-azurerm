@@ -6,15 +6,16 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -213,8 +214,9 @@ func resourceArmMonitorMetricAlert() *schema.Resource {
 }
 
 func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -278,8 +280,9 @@ func resourceArmMonitorMetricAlertCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -321,8 +324,9 @@ func resourceArmMonitorMetricAlertRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMonitorMetricAlertDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.MetricAlertsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.MetricAlertsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -362,7 +362,7 @@ func TestAccAzureRMKeyVault_justCert(t *testing.T) {
 }
 
 func testCheckAzureRMKeyVaultDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
+	client := testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -401,7 +401,7 @@ func testCheckAzureRMKeyVaultExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
+		client := testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, vaultName)
@@ -431,7 +431,7 @@ func testCheckAzureRMKeyVaultDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for vault: %s", vaultName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).keyvault.VaultsClient
+		client := testAccProvider.Meta().(*ArmClient).KeyVault.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, vaultName)

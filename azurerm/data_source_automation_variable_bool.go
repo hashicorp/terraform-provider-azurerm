@@ -1,7 +1,7 @@
 package azurerm
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func dataSourceArmAutomationVariableBool() *schema.Resource {
@@ -13,5 +13,5 @@ func dataSourceArmAutomationVariableBool() *schema.Resource {
 }
 
 func dataSourceArmAutomationVariableBoolRead(d *schema.ResourceData, meta interface{}) error {
-	return datasourceAutomationVariableRead(d, meta, "Bool")
+	return dataSourceAutomationVariableRead(d, meta, "Bool")
 }

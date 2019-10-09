@@ -50,7 +50,7 @@ provider "azurerm" {
 At a high level, we're intending for version 2.0 to include the following changes:
 
 * [Changes when importing existing resources](#changes-when-importing-existing-resources) - when bringing Resources provisioned outside of Terraform under Terraform's control, these resources will now be required to be imported.
-* [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#timeouts).
+* [Custom Timeouts will be available on Resources](#custom-timeouts-for-resources) - this will allow you to specify a custom timeout for provisioning the resource in your Terraform Configuration [using the `timeouts` block](https://www.terraform.io/docs/configuration/resources.html#operation-timeouts).
 * [New resources for Virtual Machines and Virtual Machine Scale Sets](#new-resources-for-virtual-machines-and-virtual-machine-scale-sets).
 * [Removing Fields, Data Sources and Resources which have been deprecated](#removal-of-deprecated-fields-data-sources-and-resources).
 
@@ -60,7 +60,7 @@ Each of these topics is covered in more detail below, however please note that t
 
 Terraform allows for existing resources which have been created outside of Terraform to be Imported into Terraform's State. Once a resource is imported into the state, it's possible for Terraform to track changes and manage this resource. The Azure Provider allows Importing existing resources into the state (using `terraform import`) for (almost) every resource.
 
-Version 2.0 of the Azure Provider aims to solve an issue where it's possible to unintentionally import resources into the state by running `terraform apply`. To explain this further, the majority of Azure's API's are Upserts - which means that a resource will be updated if it exists, otherwise it'll be created.
+Version 2.0 of the Azure Provider aims to solve an issue where it's possible to unintentionally import resources into the state by running `terraform apply`. To explain this further, the majority of Azure's APIs are Upserts - which means that a resource will be updated if it exists, otherwise it'll be created.
 
 Where the unique identifier for (most) Azure resources is the `name` (rather than for example an `aws_instance` where AWS will generate a different unique identifier) - it's possible that users may have unintentionally imported existing resources into Terraform (and made changes to the resource) when running `terraform apply` when using the same unique identifier as an existing resource.
 
@@ -132,7 +132,6 @@ Below we'll cover each of the Data Sources and Resources which will be affected 
 
 -> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 2.0 of the AzureRM Provider is released.
 
-
 ### Data Source: `azurerm_azuread_application`
 
 The AzureAD Data Sources and Resources have been moved to [the new AzureAD Provider](https://www.terraform.io/docs/providers/azuread/index.html), as such this Data Source will be removed in v2.0 of the AzureRM Provider.
@@ -147,7 +146,11 @@ A guide on how to migrate to using the new Provider [can be found here](https://
 
 ### Data Soure: `azurerm_api_management`
 
-The depricated field `sku` will be removed in favour of the `sku_name` property.
+The deprecated field `sku` will be removed in favour of the `sku_name` property.
+
+### Data Source: `azurerm_client_config`
+
+The deprecated fields `service_principal_object_id` and `service_principal_application_id` will be removed. They have been replaced with the `object_id` and `client_id` respectively.
 
 ### Data Source: `azurerm_dns_zone`
 
@@ -171,7 +174,23 @@ The deprecated field `address_space` will be removed.
 
 ### Resource: `azurerm_api_management`
 
-The depricated field `sku` will be removed in favour of the `sku_name` property.
+The deprecated field `sku` will be removed in favour of the `sku_name` property.
+
+The deprecated field  `disable_backend_ssl30` will be removed in favour of the `enable_backend_ssl30` property.
+ 
+The deprecated field  `disable_backend_tls10` will be removed in favour of the `enable_backend_tls10` property.
+
+The deprecated field  `disable_backend_tls11` will be removed in favour of the `enable_backend_tls11` property.
+
+The deprecated field  `disable_frontend_ssl30` will be removed in favour of the `enable_frontend_ssl30` property.
+
+The deprecated field  `disable_frontend_tls10` will be removed in favour of the `enable_frontend_tls10` property.
+
+The deprecated field  `disable_frontend_tls11` will be removed in favour of the `enable_frontend_tls11` property.
+
+The deprecated field  `disable_triple_des_chipers` will be removed in favour of the `enable_triple_des_ciphers` property.
+
+The deprecated field  `disable_triple_des_ciphers` will be removed in favour of the `enable_triple_des_ciphers` property.
 
 ### Resource: `azurerm_app_service_plan`
 
@@ -408,7 +427,6 @@ The deprecated field `linked_service_properties` will be removed. This has been 
 ### Resource: `azurerm_log_analytics_workspace_linked_service`
 
 The deprecated field `linked_service_properties` will be removed. This has been replaced by the `resource_id` resource.
-
 
 ---
 

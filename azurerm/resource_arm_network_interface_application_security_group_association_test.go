@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -101,7 +101,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationExists(r
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")
@@ -151,7 +151,7 @@ func testCheckAzureRMNetworkInterfaceApplicationSecurityGroupAssociationDisappea
 		applicationSecurityGroupId := rs.Primary.Attributes["application_security_group_id"]
 		ipConfigurationName := rs.Primary.Attributes["ip_configuration_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).network.InterfacesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.InterfacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		read, err := client.Get(ctx, resourceGroup, nicName, "")

@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,8 +54,9 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 	fabricName := d.Get("recovery_fabric_name").(string)
 	name := d.Get("name").(string)
 
-	client := meta.(*ArmClient).recoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, name)
@@ -102,8 +104,9 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).recoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, name)
 	if err != nil {
@@ -132,8 +135,9 @@ func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, me
 	fabricName := id.Path["replicationFabrics"]
 	name := id.Path["replicationProtectionContainers"]
 
-	client := meta.(*ArmClient).recoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	future, err := client.Delete(ctx, fabricName, name)
 	if err != nil {

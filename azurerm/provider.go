@@ -5,11 +5,13 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -27,8 +29,8 @@ func Provider() terraform.ResourceProvider {
 	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
 	//  4. (DONE) Introducing a parent struct which becomes a nested field in `config.go`
 	//  	for those properties, to ease migration (probably internal/common/clients.go)
+	//	5. (DONE) Making the SDK Clients public in the ArmClient
 	//
-	//	5. Making the SDK Clients public in the ArmClient
 	//  6. Migrating the Fields from the `ArmClient` to the new base `Client`
 	//		But leaving the referencing accessing the top-level field e.g.
 	//			type Client struct { // ./azurerm/internal/common/client.go
@@ -76,6 +78,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_kubernetes_service_versions":             dataSourceArmKubernetesServiceVersions(),
 		"azurerm_container_registry":                      dataSourceArmContainerRegistry(),
 		"azurerm_cosmosdb_account":                        dataSourceArmCosmosDbAccount(),
+		"azurerm_data_factory":                            dataSourceArmDataFactory(),
 		"azurerm_data_lake_store":                         dataSourceArmDataLakeStoreAccount(),
 		"azurerm_dev_test_lab":                            dataSourceArmDevTestLab(),
 		"azurerm_dev_test_virtual_network":                dataSourceArmDevTestVirtualNetwork(),
@@ -133,6 +136,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_account_blob_container_sas":      dataSourceArmStorageAccountBlobContainerSharedAccessSignature(),
 		"azurerm_storage_account_sas":                     dataSourceArmStorageAccountSharedAccessSignature(),
 		"azurerm_storage_account":                         dataSourceArmStorageAccount(),
+		"azurerm_storage_management_policy":               dataSourceArmStorageManagementPolicy(),
 		"azurerm_subnet":                                  dataSourceArmSubnet(),
 		"azurerm_subscription":                            dataSourceArmSubscription(),
 		"azurerm_subscriptions":                           dataSourceArmSubscriptions(),
@@ -295,6 +299,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_kubernetes_cluster":                                 resourceArmKubernetesCluster(),
 		"azurerm_kusto_cluster":                                      resourceArmKustoCluster(),
 		"azurerm_kusto_database":                                     resourceArmKustoDatabase(),
+		"azurerm_kusto_eventhub_data_connection":                     resourceArmKustoEventHubDataConnection(),
 		"azurerm_lb_backend_address_pool":                            resourceArmLoadBalancerBackendAddressPool(),
 		"azurerm_lb_nat_pool":                                        resourceArmLoadBalancerNatPool(),
 		"azurerm_lb_nat_rule":                                        resourceArmLoadBalancerNatRule(),
@@ -417,6 +422,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_storage_account":                                                        resourceArmStorageAccount(),
 		"azurerm_storage_blob":                                                           resourceArmStorageBlob(),
 		"azurerm_storage_container":                                                      resourceArmStorageContainer(),
+		"azurerm_storage_data_lake_gen2_filesystem":                                      resourceArmStorageDataLakeGen2FileSystem(),
+		"azurerm_storage_management_policy":                                              resourceArmStorageManagementPolicy(),
 		"azurerm_storage_queue":                                                          resourceArmStorageQueue(),
 		"azurerm_storage_share":                                                          resourceArmStorageShare(),
 		"azurerm_storage_share_directory":                                                resourceArmStorageShareDirectory(),
@@ -451,6 +458,11 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
+	// 2.0 resources
+	if features.SupportsTwoPointZeroResources() {
+		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
+	}
+
 	// avoids this showing up in test output
 	var debugLog = func(f string, v ...interface{}) {
 		if os.Getenv("TF_LOG") == "" {
@@ -476,6 +488,29 @@ func Provider() terraform.ResourceProvider {
 			}
 
 			resources[k] = v
+		}
+	}
+
+	// TODO: remove all of this in 2.0 once Custom Timeouts are supported
+	if features.SupportsCustomTimeouts() {
+		// default everything to 3 hours for now
+		for _, v := range resources {
+			if v.Timeouts == nil {
+				v.Timeouts = &schema.ResourceTimeout{
+					Create:  schema.DefaultTimeout(3 * time.Hour),
+					Update:  schema.DefaultTimeout(3 * time.Hour),
+					Delete:  schema.DefaultTimeout(3 * time.Hour),
+					Default: schema.DefaultTimeout(3 * time.Hour),
+
+					// Read is the only exception, since if it's taken more than 5 minutes something's seriously wrong
+					Read: schema.DefaultTimeout(5 * time.Minute),
+				}
+			}
+		}
+	} else {
+		// ensure any timeouts configured on the resources are removed until 2.0
+		for _, v := range resources {
+			v.Timeouts = nil
 		}
 	}
 
@@ -671,7 +706,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			// List all the available providers and their registration state to avoid unnecessary
 			// requests. This also lets us check if the provider credentials are correct.
 			ctx := client.StopContext
-			providerList, err := client.resource.ProvidersClient.List(ctx, nil, "")
+			providerList, err := client.Resource.ProvidersClient.List(ctx, nil, "")
 			if err != nil {
 				return nil, fmt.Errorf("Unable to list provider registration status, it is possible that this is due to invalid "+
 					"credentials or the service principal does not have permission to use the Resource Manager API, Azure "+
@@ -682,7 +717,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 				availableResourceProviders := providerList.Values()
 				requiredResourceProviders := requiredResourceProviders()
 
-				err := ensureResourceProvidersAreRegistered(ctx, *client.resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
+				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
 					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
 				}

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -124,7 +124,7 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupStateName, vaultS
 		mappingName := networkMappingState.Primary.Attributes["name"]
 
 		// Ensure mapping exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)

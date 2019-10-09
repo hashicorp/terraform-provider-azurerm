@@ -4,9 +4,10 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -88,8 +89,9 @@ func dataSourceArmDevTestVirtualNetwork() *schema.Resource {
 }
 
 func dataSourceArmDevTestVnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.VirtualNetworksClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	labName := d.Get("lab_name").(string)

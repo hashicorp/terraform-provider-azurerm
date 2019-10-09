@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -135,7 +135,7 @@ func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
 }
 
 func testCheckAzureRMIotDPSDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).iothub.DPSResourceClient
+	client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSResourceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -173,7 +173,7 @@ func testCheckAzureRMIotDPSExists(resourceName string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for IoT Device Provisioning Service: %s", iotdpsName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).iothub.DPSResourceClient
+		client := testAccProvider.Meta().(*ArmClient).IoTHub.DPSResourceClient
 		resp, err := client.Get(ctx, iotdpsName, resourceGroup)
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

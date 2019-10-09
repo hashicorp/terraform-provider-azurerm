@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
-	"github.com/Azure/azure-sdk-for-go/services/appinsights/mgmt/2015-05-01/insights"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -70,8 +70,9 @@ func resourceArmApplicationInsightsAPIKey() *schema.Resource {
 }
 
 func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.APIKeyClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Application Insights API key creation.")
 
@@ -124,8 +125,9 @@ func resourceArmApplicationInsightsAPIKeyCreate(d *schema.ResourceData, meta int
 }
 
 func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.APIKeyClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -164,8 +166,9 @@ func resourceArmApplicationInsightsAPIKeyRead(d *schema.ResourceData, meta inter
 }
 
 func resourceArmApplicationInsightsAPIKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appInsights.APIKeyClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AppInsights.APIKeyClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
