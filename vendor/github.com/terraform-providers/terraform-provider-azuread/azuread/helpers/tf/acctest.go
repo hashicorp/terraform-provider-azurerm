@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 )
 
 func AccRandTimeInt() int {

@@ -5,12 +5,13 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -74,9 +75,10 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 }
 
 func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret creation.")
 
@@ -145,9 +147,10 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -216,9 +219,10 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
@@ -272,9 +276,10 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyvault.VaultsClient
-	client := meta.(*ArmClient).keyvault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {

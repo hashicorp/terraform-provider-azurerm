@@ -3,8 +3,9 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,8 +39,9 @@ func dataSourceArmPlatformImage() *schema.Resource {
 }
 
 func dataSourceArmPlatformImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.VMImageClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.VMImageClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	publisher := d.Get("publisher").(string)

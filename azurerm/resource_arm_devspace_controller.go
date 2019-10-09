@@ -5,13 +5,14 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -97,8 +98,9 @@ func resourceArmDevSpaceController() *schema.Resource {
 }
 
 func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
 
@@ -161,8 +163,9 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -202,8 +205,9 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
@@ -229,8 +233,9 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpace.ControllersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

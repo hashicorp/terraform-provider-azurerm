@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -98,7 +98,7 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Media Services Account: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).media.ServicesClient
+		conn := testAccProvider.Meta().(*ArmClient).Media.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -115,7 +115,7 @@ func testCheckAzureRMMediaServicesAccountExists(resourceName string) resource.Te
 }
 
 func testCheckAzureRMMediaServicesAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).media.ServicesClient
+	conn := testAccProvider.Meta().(*ArmClient).Media.ServicesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -254,7 +254,7 @@ resource "azurerm_media_services_account" "test" {
 func testAccAzureRMMediaServicesAccount_template(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "%d"
+  name     = "acctestRG-media-%d"
   location = "%s"
 }
 

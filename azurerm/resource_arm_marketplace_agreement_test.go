@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -94,7 +94,7 @@ func testCheckAzureRMMarketplaceAgreementExists(resourceName string) resource.Te
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
 
-		client := testAccProvider.Meta().(*ArmClient).compute.MarketplaceAgreementsClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.MarketplaceAgreementsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, publisher, offer, plan)
@@ -119,7 +119,7 @@ func testCheckAzureRMMarketplaceAgreementDestroy(s *terraform.State) error {
 		plan := rs.Primary.Attributes["plan"]
 		publisher := rs.Primary.Attributes["publisher"]
 
-		client := testAccProvider.Meta().(*ArmClient).compute.MarketplaceAgreementsClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.MarketplaceAgreementsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, publisher, offer, plan)

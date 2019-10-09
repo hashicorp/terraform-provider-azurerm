@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -66,7 +66,7 @@ func TestAccAzureRMApiManagementApiSchema_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiSchemaDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiSchemasClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiSchemasClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -107,7 +107,7 @@ func testCheckAzureRMApiManagementApiSchemaExists(name string) resource.TestChec
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiSchemasClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiSchemasClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, schemaID)

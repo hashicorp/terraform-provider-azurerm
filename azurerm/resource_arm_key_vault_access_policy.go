@@ -6,15 +6,15 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	uuid "github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
-
-	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -109,8 +109,9 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 }
 
 func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
 	vaultId := d.Get("key_vault_id").(string)
@@ -276,8 +277,9 @@ func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 

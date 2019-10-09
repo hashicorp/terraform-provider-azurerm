@@ -6,10 +6,11 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -63,8 +64,9 @@ func resourceArmBatchApplication() *schema.Resource {
 }
 
 func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.ApplicationClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.ApplicationClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -111,8 +113,9 @@ func resourceArmBatchApplicationCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.ApplicationClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.ApplicationClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -145,8 +148,9 @@ func resourceArmBatchApplicationRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.ApplicationClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.ApplicationClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -171,8 +175,9 @@ func resourceArmBatchApplicationUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchApplicationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.ApplicationClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.ApplicationClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

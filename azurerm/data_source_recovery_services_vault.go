@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,8 +37,9 @@ func dataSourceArmRecoveryServicesVault() *schema.Resource {
 }
 
 func dataSourceArmRecoveryServicesVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).recoveryServices.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).RecoveryServices.VaultsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

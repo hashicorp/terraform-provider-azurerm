@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -83,7 +83,7 @@ func resourceArmLogicAppTriggerRecurrenceRead(d *schema.ResourceData, meta inter
 	logicAppName := id.Path["workflows"]
 	name := id.Path["triggers"]
 
-	t, app, err := retrieveLogicAppTrigger(meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}

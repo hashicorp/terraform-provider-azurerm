@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -111,7 +111,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		operationID := rs.Primary.Attributes["operation_id"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationPoliciesClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationID)
 		if err != nil {
@@ -127,7 +127,7 @@ func testCheckAzureRMApiManagementAPIOperationPolicyExists(resourceName string) 
 }
 
 func testCheckAzureRMApiManagementAPIOperationPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationPoliciesClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api_operation_policy" {

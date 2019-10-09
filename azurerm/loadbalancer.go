@@ -7,9 +7,12 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
+
+// TODO: refactor this
 
 func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error) {
 	id, err := azure.ParseAzureResourceID(loadBalancerId)
@@ -22,9 +25,10 @@ func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error)
 	return resGroup, name, nil
 }
 
-func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
-	client := meta.(*ArmClient).network.LoadBalancersClient
-	ctx := meta.(*ArmClient).StopContext
+func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
+	client := meta.(*ArmClient).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)
 	if err != nil {

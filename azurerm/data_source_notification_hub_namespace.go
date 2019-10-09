@@ -4,8 +4,9 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,8 +60,9 @@ func dataSourceNotificationHubNamespace() *schema.Resource {
 }
 
 func resourceArmDataSourceNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.NamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

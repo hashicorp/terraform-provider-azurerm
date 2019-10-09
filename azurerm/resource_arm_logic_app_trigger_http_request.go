@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -121,7 +121,7 @@ func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta inte
 	logicAppName := id.Path["workflows"]
 	name := id.Path["triggers"]
 
-	t, app, err := retrieveLogicAppTrigger(meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}
