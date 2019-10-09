@@ -18,7 +18,7 @@ BUG FIXES:
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
 * `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
-* `azurer_storage_account` - Ignore Advanced Threat Protection read errors in Azure Germany [GH-4564]
+* `azurere_storage_account` - Ignore Advanced Threat Protection read errors in Azure Germany [GH-4564]
 
 ## 1.35.0 (October 04, 2019)
 
