@@ -91,11 +91,11 @@ resource "azurerm_private_link_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the private endpoint. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the Name of the Private Link Endpoint. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Private Link Endpoint exists.
 
-* `location` - (Optional) Resource location. Changing this forces a new resource to be created.
+* `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `manual_private_link_service_connection` - (Optional) A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource. One or more `manual_private_link_service_connection` block defined below.
 
@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) The ID of the subnet from which the private IP will be allocated.
 
-* `tags` - (Optional) Resource tags. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 
 ---
 

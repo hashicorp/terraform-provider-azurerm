@@ -27,9 +27,9 @@ output "subnet_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the private endpoint.
+* `name` - (Required) Specifies the Name of the Private Link Endpoint.
 
-* `resource_group_name` - (Required) The Name of the Resource Group where the App Service exists.
+* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Private Link Endpoint exists.
 
 ## Attributes Reference
 
@@ -37,7 +37,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Prviate Link Endpoint.
 
-* `location` - Resource location.
+* `location` - The supported Azure location where the resource exists.
 
 * `manual_private_link_service_connection` - A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource. One or more `manual_private_link_service_connection` block as defined below.
 
@@ -47,7 +47,7 @@ The following attributes are exported:
 
 * `subnet_id` - The ID of the subnet from which the private IP will be allocated.
 
-* `tags` - Resource tags.
+* `tags` - A mapping of tags assigned to the resource.
 
 ---
 
