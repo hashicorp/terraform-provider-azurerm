@@ -143,7 +143,7 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 				resLocation = *res.Location
 			}
 
-			resTags := make(map[string]interface{}, 0)
+			resTags := make(map[string]interface{})
 			if res.Tags != nil {
 				resTags = make(map[string]interface{}, len(res.Tags))
 				for key, value := range res.Tags {
