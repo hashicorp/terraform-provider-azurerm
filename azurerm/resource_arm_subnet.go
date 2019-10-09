@@ -207,12 +207,12 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		// between the tool sets, which means true == Disabled.
 		//
 		// To enable private endpoints you must disable the network policies for the
-		// subnet because Network policies like network security groups are not 
+		// subnet because Network policies like network security groups are not
 		// supported by private endpoints.
 		privateEndpointNetworkPolicies := "Enabled"
-		
+
 		if v.(bool) {
-			privateEndpointNetworkPolicies = "Disabled" 
+			privateEndpointNetworkPolicies = "Disabled"
 		}
 		properties.PrivateEndpointNetworkPolicies = &privateEndpointNetworkPolicies
 	}
@@ -306,7 +306,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		// between the tool sets, which means true == Disabled.
 		//
 		// To enable private endpoints you must disable the network policies for the
-		// subnet because Network policies like network security groups are not 
+		// subnet because Network policies like network security groups are not
 		// supported by private endpoints.
 		if privateEndpointNetworkPolicies := props.PrivateEndpointNetworkPolicies; privateEndpointNetworkPolicies != nil {
 			d.Set("disable_private_endpoint_network_policies", *privateEndpointNetworkPolicies == "Disabled")

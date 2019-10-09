@@ -115,7 +115,7 @@ The `manual_private_link_service_connection` block supports the following:
 
 * `group_ids` - (Optional) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
 
-* `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to 140 chars.
+* `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to `140` chars.
 
 
 ---
@@ -128,7 +128,7 @@ The `private_link_service_connection` block supports the following:
 
 * `group_ids` - (Optional) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
 
-* `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to 140 chars.
+* `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to `140` chars.
 
 
 ## Attributes Reference

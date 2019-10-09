@@ -35,6 +35,10 @@ func stringMaxLength(maxLength int) func(i interface{}, k string) (_ []string, e
 			return nil, []error{fmt.Errorf("%q must not be longer than %d characters, got %d", k, maxLength, len(v))}
 		}
 
+		if strings.TrimSpace(v) == "" {
+			return nil, []error{fmt.Errorf("%q must not be empty", k)}
+		}
+
 		return
 	}
 }

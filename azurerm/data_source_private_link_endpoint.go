@@ -118,7 +118,7 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }

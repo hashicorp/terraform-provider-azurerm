@@ -122,10 +122,10 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 							Computed: true,
 						},
 						"request_message": {
-							Type:     schema.TypeString,
-							Optional: true, 
+							Type:         schema.TypeString,
+							Optional:     true,
 							ValidateFunc: validate.PrivateLinkEnpointRequestMessage,
-							Default:  "Please approve my connection",
+							Default:      "Please approve my connection",
 						},
 					},
 				},
