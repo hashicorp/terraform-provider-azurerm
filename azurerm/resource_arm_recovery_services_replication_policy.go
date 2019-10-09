@@ -3,14 +3,14 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -61,7 +61,8 @@ func resourceArmRecoveryServicesReplicationPolicyCreate(d *schema.ResourceData, 
 	name := d.Get("name").(string)
 
 	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
@@ -112,7 +113,8 @@ func resourceArmRecoveryServicesReplicationPolicyUpdate(d *schema.ResourceData, 
 	name := d.Get("name").(string)
 
 	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	recoveryPoint := int32(d.Get("recovery_point_retention_in_minutes").(int))
 	appConsitency := int32(d.Get("application_consistent_snapshot_frequency_in_minutes").(int))
@@ -155,7 +157,8 @@ func resourceArmRecoveryServicesReplicationPolicyRead(d *schema.ResourceData, me
 	name := id.Path["replicationPolicies"]
 
 	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
@@ -187,7 +190,8 @@ func resourceArmSiteRecoveryReplicationPolicyDelete(d *schema.ResourceData, meta
 	name := id.Path["replicationPolicies"]
 
 	client := meta.(*ArmClient).RecoveryServices.ReplicationPoliciesClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	future, err := client.Delete(ctx, name)
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -87,7 +88,8 @@ func resourceArmNetworkProfile() *schema.Resource {
 
 func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.ProfileClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Network Profile creation")
 
@@ -157,7 +159,8 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.ProfileClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -200,7 +203,8 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.ProfileClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

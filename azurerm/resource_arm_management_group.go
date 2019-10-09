@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,7 +60,8 @@ func resourceArmManagementGroup() *schema.Resource {
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ManagementGroups.GroupsClient
 	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	armTenantID := meta.(*ArmClient).tenantId
 
 	groupId := d.Get("group_id").(string)
@@ -158,7 +160,8 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ManagementGroups.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseManagementGroupId(d.Id())
 	if err != nil {
@@ -205,7 +208,8 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).ManagementGroups.GroupsClient
 	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseManagementGroupId(d.Id())
 	if err != nil {

@@ -3,15 +3,14 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -80,7 +79,8 @@ func resourceArmRecoveryServicesContainerMappingCreate(d *schema.ResourceData, m
 	name := d.Get("name").(string)
 
 	client := meta.(*ArmClient).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, protectionContainerName, name)
@@ -133,7 +133,8 @@ func resourceArmRecoveryServicesContainerMappingRead(d *schema.ResourceData, met
 	name := id.Path["replicationProtectionContainerMappings"]
 
 	client := meta.(*ArmClient).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, protectionContainerName, name)
 	if err != nil {
@@ -168,7 +169,8 @@ func resourceArmSiteRecoveryServicesContainerMappingDelete(d *schema.ResourceDat
 	instanceType := string(siterecovery.InstanceTypeBasicReplicationProviderSpecificContainerMappingInputInstanceTypeA2A)
 
 	client := meta.(*ArmClient).RecoveryServices.ContainerMappingClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	input := siterecovery.RemoveProtectionContainerMappingInput{
 		Properties: &siterecovery.RemoveProtectionContainerMappingInputProperties{

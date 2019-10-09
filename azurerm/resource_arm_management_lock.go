@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,7 +60,8 @@ func resourceArmManagementLock() *schema.Resource {
 
 func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Resource.LocksClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Management Lock creation.")
 
 	name := d.Get("name").(string)
@@ -107,7 +109,8 @@ func resourceArmManagementLockCreateUpdate(d *schema.ResourceData, meta interfac
 
 func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Resource.LocksClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureRMLockId(d.Id())
 	if err != nil {
@@ -136,7 +139,8 @@ func resourceArmManagementLockRead(d *schema.ResourceData, meta interface{}) err
 
 func resourceArmManagementLockDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Resource.LocksClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureRMLockId(d.Id())
 	if err != nil {

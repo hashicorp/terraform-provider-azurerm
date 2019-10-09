@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	mapsint "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,7 +70,8 @@ func resourceArmMapsAccount() *schema.Resource {
 
 func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Maps.AccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
@@ -119,7 +121,8 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Maps.AccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -159,7 +162,8 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Maps.AccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

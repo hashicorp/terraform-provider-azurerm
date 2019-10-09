@@ -7,6 +7,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,7 +48,8 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 
 func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mysql.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
 
@@ -86,7 +88,8 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 
 func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mysql.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -117,7 +120,8 @@ func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{})
 
 func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mysql.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

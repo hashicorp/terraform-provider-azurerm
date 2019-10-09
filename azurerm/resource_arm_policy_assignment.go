@@ -1,23 +1,21 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
-	"time"
-
-	"context"
 	"strconv"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -109,7 +107,8 @@ func resourceArmPolicyAssignment() *schema.Resource {
 
 func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Policy.AssignmentsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
@@ -196,7 +195,8 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 
 func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Policy.AssignmentsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 
@@ -245,7 +245,8 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Policy.AssignmentsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 

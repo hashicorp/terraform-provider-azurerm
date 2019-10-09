@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -206,7 +207,8 @@ func resourceArmMySqlServer() *schema.Resource {
 
 func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server creation.")
 
@@ -276,7 +278,8 @@ func resourceArmMySqlServerCreate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Server update.")
 
@@ -326,7 +329,8 @@ func resourceArmMySqlServerUpdate(d *schema.ResourceData, meta interface{}) erro
 
 func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -372,7 +376,8 @@ func resourceArmMySqlServerRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmMySqlServerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mysql.ServersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
