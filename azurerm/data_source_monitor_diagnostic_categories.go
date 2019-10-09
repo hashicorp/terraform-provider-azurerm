@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,6 +14,11 @@ import (
 func dataSourceArmMonitorDiagnosticCategories() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmMonitorDiagnosticCategoriesRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"resource_id": {
 				Type:         schema.TypeString,

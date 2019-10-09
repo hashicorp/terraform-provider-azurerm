@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -12,6 +13,11 @@ import (
 func dataSourceArmTrafficManagerGeographicalLocation() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmTrafficManagerGeographicalLocationRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,

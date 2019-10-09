@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -14,6 +15,10 @@ import (
 func dataSourceArmBatchAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBatchAccountRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
