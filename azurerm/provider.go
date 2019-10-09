@@ -119,7 +119,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_recovery_services_vault":                 dataSourceArmRecoveryServicesVault(),
 		"azurerm_recovery_services_protection_policy_vm":  dataSourceArmRecoveryServicesProtectionPolicyVm(),
 		"azurerm_redis_cache":                             dataSourceArmRedisCache(),
-		"azurerm_resource":                                dataSourceArmResource(),
+		"azurerm_resources":                               dataSourceArmResources(),
 		"azurerm_resource_group":                          dataSourceArmResourceGroup(),
 		"azurerm_role_definition":                         dataSourceArmRoleDefinition(),
 		"azurerm_route_table":                             dataSourceArmRouteTable(),

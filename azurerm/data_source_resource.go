@@ -12,33 +12,24 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
-func dataSourceArmResource() *schema.Resource {
+func dataSourceArmResources() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmResourceRead,
+		Read: dataSourceArmResourcesRead,
 		Schema: map[string]*schema.Schema{
-			"resource_id": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"name", "resource_group_name", "type", "required_tags"},
-			},
 			"name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"resource_id"},
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"resource_group_name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"resource_id"},
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"type": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"resource_id"},
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 
 			"required_tags": tags.Schema(),
@@ -69,7 +60,7 @@ func dataSourceArmResource() *schema.Resource {
 	}
 }
 
-func dataSourceArmResourceRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Resource.ResourcesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -77,7 +68,11 @@ func dataSourceArmResourceRead(d *schema.ResourceData, meta interface{}) error {
 	resourceGroupName := d.Get("resource_group_name").(string)
 	resourceName := d.Get("name").(string)
 	resourceType := d.Get("type").(string)
-	resourceID := d.Get("resource_id").(string)
+	requiredTags := d.Get("required_tags").(map[string]interface{})
+
+	if resourceGroupName == "" && resourceName == "" && resourceType == "" {
+		return fmt.Errorf("At least one of `name`, `resource_group_name` or `type` must be specified")
+	}
 
 	var filter string
 
@@ -102,10 +97,7 @@ func dataSourceArmResourceRead(d *schema.ResourceData, meta interface{}) error {
 		filter = filter + v
 	}
 
-	requiredTags := d.Get("required_tags").(map[string]interface{})
-
 	resources := make([]map[string]interface{}, 0)
-
 	resource, err := client.ListComplete(ctx, filter, "", nil)
 	if err != nil {
 		return fmt.Errorf("Error getting resources: %+v", err)
@@ -113,57 +105,61 @@ func dataSourceArmResourceRead(d *schema.ResourceData, meta interface{}) error {
 
 	for resource.NotDone() {
 		res := resource.Value()
-
-		// currently the Azure-Go-SDK method "GetByID" does not work for some resources, as the
-		// API Version is hard coded, therefore we use ListComplete and look for the ResourceID 'manually'
-		if resourceID != "" && *res.ID != resourceID {
-			err = resource.NextWithContext(ctx)
-			if err != nil {
-				return fmt.Errorf("Error loading Resource List: %s", err)
-			}
+		if res.ID == nil {
 			continue
 		}
 
-		// currently its not supported to use a other filters together with the tags filter
+		// currently its not supported to use tags filter with other filters
 		// therefore we need to filter the resources manually.
 		tagMatches := 0
-		for requiredTagName, requiredTagVal := range requiredTags {
-			for tagName, tagVal := range res.Tags {
-				if requiredTagName == tagName && requiredTagVal == *tagVal {
-					tagMatches++
+		if res.Tags != nil {
+			for requiredTagName, requiredTagVal := range requiredTags {
+				for tagName, tagVal := range res.Tags {
+					if requiredTagName == tagName && requiredTagVal == *tagVal {
+						tagMatches++
+					}
 				}
 			}
 		}
 
 		if tagMatches == len(requiredTags) {
-			s := make(map[string]interface{})
-
-			if v := *res.Name; v != "" {
-				s["name"] = v
+			resName := ""
+			if res.Name != nil {
+				resName = *res.Name
 			}
 
-			if v := *res.ID; v != "" {
-				s["id"] = v
+			resID := ""
+			if res.ID != nil {
+				resID = *res.ID
 			}
 
-			if v := *res.Type; v != "" {
-				s["type"] = v
+			resType := ""
+			if res.Type != nil {
+				resType = *res.Type
 			}
 
-			if v := *res.Location; v != "" {
-				s["location"] = v
+			resLocation := ""
+			if res.Location != nil {
+				resLocation = *res.Location
 			}
 
-			tags := make(map[string]interface{}, len(res.Tags))
-			for key, value := range res.Tags {
-				tags[key] = *value
+			resTags := make(map[string]interface{}, 0)
+			if res.Tags != nil {
+				resTags = make(map[string]interface{}, len(res.Tags))
+				for key, value := range res.Tags {
+					resTags[key] = *value
+				}
 			}
 
-			s["tags"] = tags
-
-			resources = append(resources, s)
+			resources = append(resources, map[string]interface{}{
+				"name":     resName,
+				"id":       resID,
+				"type":     resType,
+				"location": resLocation,
+				"tags":     resTags,
+			})
 		} else {
-			log.Printf("[DEBUG] azurerm_resource - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)
+			log.Printf("[DEBUG] azurerm_resources - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)
 		}
 
 		err = resource.NextWithContext(ctx)

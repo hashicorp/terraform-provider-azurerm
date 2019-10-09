@@ -9,12 +9,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMResource_ByResourceID(t *testing.T) {
-	dataSourceName := "data.azurerm_resource.test"
+func TestAccDataSourceAzureRMResources_ByName(t *testing.T) {
+	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResource_ByResourceID(ri, rs, location)
+	config := testAccDataSourceAzureRMResources_ByName(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -30,12 +30,12 @@ func TestAccDataSourceAzureRMResource_ByResourceID(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMResource_ByName(t *testing.T) {
-	dataSourceName := "data.azurerm_resource.test"
+func TestAccDataSourceAzureRMResources_ByResourceGroup(t *testing.T) {
+	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResource_ByName(ri, rs, location)
+	config := testAccDataSourceAzureRMResources_ByResourceGroup(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -51,33 +51,12 @@ func TestAccDataSourceAzureRMResource_ByName(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMResource_ByResourceGroup(t *testing.T) {
-	dataSourceName := "data.azurerm_resource.test"
+func TestAccDataSourceAzureRMResources_ByResourceType(t *testing.T) {
+	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResource_ByResourceGroup(ri, rs, location)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "resources.#", "1"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDataSourceAzureRMResource_ByResourceType(t *testing.T) {
-	dataSourceName := "data.azurerm_resource.test"
-	ri := tf.AccRandTimeInt()
-	rs := acctest.RandString(4)
-	location := testLocation()
-	config := testAccDataSourceAzureRMResource_ByResourceType(ri, rs, location)
+	config := testAccDataSourceAzureRMResources_ByResourceType(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -93,12 +72,12 @@ func TestAccDataSourceAzureRMResource_ByResourceType(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMResource_FilteredByTags(t *testing.T) {
-	dataSourceName := "data.azurerm_resource.test"
+func TestAccDataSourceAzureRMResources_FilteredByTags(t *testing.T) {
+	dataSourceName := "data.azurerm_resources.test"
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResource_FilteredByTags(ri, rs, location)
+	config := testAccDataSourceAzureRMResources_FilteredByTags(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -114,57 +93,46 @@ func TestAccDataSourceAzureRMResource_FilteredByTags(t *testing.T) {
 	})
 }
 
-func testAccDataSourceAzureRMResource_ByResourceID(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMResources_ByName(rInt int, rString string, location string) string {
 	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_resource" "test" {
-  resource_id = "${azurerm_storage_account.test.id}"
-}
-`, r)
-}
-
-func testAccDataSourceAzureRMResource_ByName(rInt int, rString string, location string) string {
-	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
-	return fmt.Sprintf(`
-%s
-
-data "azurerm_resource" "test" {
+data "azurerm_resources" "test" {
   name	= "${azurerm_storage_account.test.name}"
 }
 `, r)
 }
 
-func testAccDataSourceAzureRMResource_ByResourceGroup(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMResources_ByResourceGroup(rInt int, rString string, location string) string {
 	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_resource" "test" {
+data "azurerm_resources" "test" {
   resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
 }
 `, r)
 }
 
-func testAccDataSourceAzureRMResource_ByResourceType(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMResources_ByResourceType(rInt int, rString string, location string) string {
 	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_resource" "test" {
+data "azurerm_resources" "test" {
 	resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
   type 								= "Microsoft.Storage/storageAccounts"
 }
 `, r)
 }
 
-func testAccDataSourceAzureRMResource_FilteredByTags(rInt int, rString string, location string) string {
+func testAccDataSourceAzureRMResources_FilteredByTags(rInt int, rString string, location string) string {
 	r := testAccDataSourceAzureRMStorageAccount_basic(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_resource" "test" {
+data "azurerm_resources" "test" {
   name                = "${azurerm_storage_account.test.name}"
 	resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
 	
