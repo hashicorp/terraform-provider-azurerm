@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -100,8 +100,8 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 				Default:          "standard",
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					"standard",
-					"wildcard",
+					"Standard",
+					"WildCard",
 				}, true),
 			},
 
@@ -185,7 +185,7 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 }
 
 func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesOrderClient
+	client := meta.(*ArmClient).Web.CertificatesOrderClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
@@ -208,10 +208,19 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
+	distinguishedName := d.Get("distinguished_name").(string)
+	csr := d.Get("csr").(string)
+	keySize := d.Get("key_size").(int)
+	autoRenew := d.Get("auto_renew").(bool)
+	validityInYears := d.Get("validity_in_years").(int)
 
-	// if v, ok := d.GetOk("certificates"); ok { }
-
-	properties := web.AppServiceCertificateOrderProperties{}
+	properties := web.AppServiceCertificateOrderProperties{
+		DistinguishedName: utils.String(distinguishedName),
+		Csr:               utils.String(csr),
+		KeySize:           utils.Int32(int32(keySize)),
+		AutoRenew:         utils.Bool(autoRenew),
+		ValidityInYears:   utils.Int32(int32(validityInYears)),
+	}
 
 	if v, ok := d.GetOk("product_type"); ok {
 		productType := v.(string)
@@ -220,29 +229,6 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 		} else if productType == "wildcard" {
 			properties.ProductType = web.StandardDomainValidatedWildCardSsl
 		}
-	}
-
-	if v, ok := d.GetOk("distinguished_name"); ok {
-		distinguishedName := v.(string)
-		properties.DistinguishedName = utils.String(distinguishedName)
-	}
-
-	if v, ok := d.GetOk("csr"); ok {
-		csr := v.(string)
-		properties.Csr = utils.String(csr)
-	}
-
-	if v, ok := d.GetOk("key_size"); ok {
-		keySize := v.(int)
-		properties.KeySize = utils.Int32(int32(keySize))
-	}
-
-	autoRenew := d.Get("auto_renew").(bool)
-	properties.AutoRenew = utils.Bool(autoRenew)
-
-	if v, ok := d.GetOk("validity_in_years"); ok {
-		validityInYears := v.(int)
-		properties.ValidityInYears = utils.Int32(int32(validityInYears))
 	}
 
 	certificateOrder := web.AppServiceCertificateOrder{
@@ -275,7 +261,7 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesOrderClient
+	client := meta.(*ArmClient).Web.CertificatesOrderClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -344,7 +330,7 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesOrderClient
+	client := meta.(*ArmClient).Web.CertificatesOrderClient
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

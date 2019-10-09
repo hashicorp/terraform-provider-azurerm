@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -22,7 +22,7 @@ func dataSourceArmAppServiceCertificateOrder() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
 
@@ -157,7 +157,7 @@ func dataSourceArmAppServiceCertificateOrder() *schema.Resource {
 }
 
 func dataSourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.CertificatesOrderClient
+	client := meta.(*ArmClient).Web.CertificatesOrderClient
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)

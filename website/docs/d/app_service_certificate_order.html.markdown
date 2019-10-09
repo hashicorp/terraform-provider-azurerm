@@ -41,7 +41,7 @@ output "certificate_order_id" {
 
 * `csr` - Last CSR that was created for this order.
 
-* `distinguished_name` - Certificate distinguished name.
+* `distinguished_name` - The Distinguished Name for the App Service Certificate Order.
 
 * `key_size` - Certificate key size.
 
@@ -61,7 +61,7 @@ output "certificate_order_id" {
 
 * `expiration_time` - Certificate expiration time.
 
-* `is_private_key_external` - true if private key is external; otherwise, false.
+* `is_private_key_external` - Whether the private key is external or not.
 
 * `app_service_certificate_not_renewable_reasons` - Reasons why App Service Certificate is not renewable at the current moment.
 

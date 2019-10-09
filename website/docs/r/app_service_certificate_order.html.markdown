@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `csr` - (Optional) Last CSR that was created for this order.
 
-* `distinguished_name` - (Optional) Certificate distinguished name.
+* `distinguished_name` - (Optional) The Distinguished Name for the App Service Certificate Order.
 
 -> **NOTE:** Either `csr` or `distinguished_name` must be set - but not both.
 
@@ -72,7 +72,7 @@ The following attributes are exported:
 
 * `expiration_time` - Certificate expiration time.
 
-* `is_private_key_external` - true if private key is external; otherwise, false.
+* `is_private_key_external` - Whether the private key is external or not. 
 
 * `app_service_certificate_not_renewable_reasons` - Reasons why App Service Certificate is not renewable at the current moment.
 
