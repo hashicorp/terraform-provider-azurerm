@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
 )
@@ -110,7 +111,8 @@ func resourceArmStorageShare() *schema.Resource {
 	}
 }
 func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	storageClient := meta.(*ArmClient).Storage
 
 	accountName := d.Get("storage_account_name").(string)
@@ -169,7 +171,8 @@ func resourceArmStorageShareCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	storageClient := meta.(*ArmClient).Storage
 
 	id, err := shares.ParseResourceID(d.Id())
@@ -228,7 +231,8 @@ func resourceArmStorageShareRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	storageClient := meta.(*ArmClient).Storage
 
 	id, err := shares.ParseResourceID(d.Id())
@@ -291,7 +295,8 @@ func resourceArmStorageShareUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmStorageShareDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	storageClient := meta.(*ArmClient).Storage
 
 	id, err := shares.ParseResourceID(d.Id())
