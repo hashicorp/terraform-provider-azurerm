@@ -4,13 +4,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func resourceArmStorageManagementPolicy() *schema.Resource {
@@ -128,7 +126,8 @@ func resourceArmStorageManagementPolicy() *schema.Resource {
 
 func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	storageAccountId := d.Get("storage_account_id").(string)
 
@@ -174,7 +173,8 @@ func resourceArmStorageManagementPolicyCreateOrUpdate(d *schema.ResourceData, me
 
 func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 
@@ -207,7 +207,8 @@ func resourceArmStorageManagementPolicyRead(d *schema.ResourceData, meta interfa
 
 func resourceArmStorageManagementPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.ManagementPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id := d.Id()
 

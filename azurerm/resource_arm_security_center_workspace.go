@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -49,7 +50,8 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	priceClient := meta.(*ArmClient).SecurityCenter.PricingClient
 	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := securityCenterWorkspaceName
 
@@ -133,7 +135,8 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 
 func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, securityCenterWorkspaceName)
 	if err != nil {
@@ -154,9 +157,10 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmSecurityCenterWorkspaceDelete(_ *schema.ResourceData, meta interface{}) error {
+func resourceArmSecurityCenterWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Delete(ctx, securityCenterWorkspaceName)
 	if err != nil {

@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -103,7 +104,8 @@ func resourceArmSharedImage() *schema.Resource {
 
 func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.GalleryImagesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Shared Image creation.")
 
@@ -174,7 +176,8 @@ func resourceArmSharedImageCreateUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.GalleryImagesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -221,7 +224,8 @@ func resourceArmSharedImageRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmSharedImageDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.GalleryImagesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

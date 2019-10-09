@@ -108,7 +108,7 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 	}
 
 	managedDiskId := d.Get("managed_disk_id").(string)
-	managedDisk, err := retrieveDataDiskAttachmentManagedDisk(meta, managedDiskId)
+	managedDisk, err := retrieveDataDiskAttachmentManagedDisk(d, meta, managedDiskId)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Managed Disk %q: %+v", managedDiskId, err)
 	}
@@ -292,9 +292,10 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 	return nil
 }
 
-func retrieveDataDiskAttachmentManagedDisk(meta interface{}, id string) (*compute.Disk, error) {
+func retrieveDataDiskAttachmentManagedDisk(d *schema.ResourceData, meta interface{}, id string) (*compute.Disk, error) {
 	client := meta.(*ArmClient).Compute.DisksClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedId, err := azure.ParseAzureResourceID(id)
 	if err != nil {
