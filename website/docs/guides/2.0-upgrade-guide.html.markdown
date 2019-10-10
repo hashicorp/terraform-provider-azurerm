@@ -11,7 +11,7 @@ description: |-
 
 Terraform initially shipped support for the AzureRM Provider back in December 2015.
 
-Since then we've added support for 191 Resources, 58 Data Sources and have launched a couple of related Providers in the form of [the Azure Active Directory Provider](https://www.terraform.io/docs/providers/azuread/index.html) and [the Azure Stack Provider](https://www.terraform.io/docs/providers/azurestack/index.html).
+Since then we've added support for 305 Resources, 92 Data Sources and have launched a couple of related Providers in the form of [the Azure Active Directory Provider](https://www.terraform.io/docs/providers/azuread/index.html) and [the Azure Stack Provider](https://www.terraform.io/docs/providers/azurestack/index.html).
 
 Version 2.0 of the AzureRM Provider is a major release and as such includes some larger-scale changes which are outlined in this document.
 
@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.34.0"
+  version = "=1.36.0"
 }
 ```
 
@@ -74,7 +74,7 @@ A resource with the ID /subscriptions/00000000-0000-0000-0000-000000000000/resou
 
 Information on how to import a given Resource can be found in the documentation for that Resource - for example here's how to [here's how to import a Resource Group in Terraform](/docs/providers/azurerm/r/resource_group.html#import).
 
-You can opt into this behaviour in version 1.22 of the AzureRM Provider by setting the Environment Variable `ARM_PROVIDER_STRICT` to `true`.
+You can opt into this behaviour from version 1.22 of the AzureRM Provider by setting the Environment Variable `ARM_PROVIDER_STRICT` to `true`.
 
 ## Custom Timeouts for Resources
 
