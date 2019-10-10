@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -133,7 +134,7 @@ func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, 
 	clusterName := d.Get("cluster_name").(string)
 	databaseName := d.Get("database_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		connectionModel, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(connectionModel.Response) {
