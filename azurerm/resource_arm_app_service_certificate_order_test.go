@@ -1,8 +1,8 @@
 package azurerm
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -14,7 +14,7 @@ import (
 
 func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
-    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
 	}
 
@@ -48,7 +48,7 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 
 func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
-    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
 	}
 
@@ -87,7 +87,7 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 	}
 
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
-    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
 	}
 
@@ -116,7 +116,7 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 
 func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
-    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
 	}
 
@@ -153,7 +153,7 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 
 func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
-    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
 		return
 	}
 
