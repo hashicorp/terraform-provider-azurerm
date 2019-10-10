@@ -50,8 +50,9 @@ func resourceArmStreamAnalyticsReferenceInputBlob() *schema.Resource {
 			},
 
 			"path_pattern": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"storage_account_key": {
