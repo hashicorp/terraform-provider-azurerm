@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -99,7 +99,7 @@ func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
 }
 
 func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mssql.ServerSecurityAlertPoliciesClient
+	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for mssql server security alert policy creation.")
@@ -133,7 +133,7 @@ func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceDat
 }
 
 func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mssql.ServerSecurityAlertPoliciesClient
+	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] reading mssql server security alert policy")
@@ -206,7 +206,7 @@ func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta 
 }
 
 func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mssql.ServerSecurityAlertPoliciesClient
+	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] deleting mssql server security alert policy.")
