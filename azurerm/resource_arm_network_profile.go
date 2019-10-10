@@ -125,11 +125,11 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	locks.ByName(name, azureNetworkProfileResourceName)
 	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	locks.MultipleByName(subnetsToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
 	parameters := network.Profile{
 		Location: &location,
@@ -232,11 +232,11 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(name, azureNetworkProfileResourceName)
 	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	locks.MultipleByName(subnetsToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
 	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("Error deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
