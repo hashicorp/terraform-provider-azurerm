@@ -1,9 +1,10 @@
 package azurerm
 
 import (
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-	"time"
 )
 
 func resourceArmAutomationVariableString() *schema.Resource {

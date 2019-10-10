@@ -1,8 +1,9 @@
 package azurerm
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceArmAutomationVariableInt() *schema.Resource {
