@@ -35,6 +35,13 @@ If you're using ACS with Kubernetes, we'd recommend migrating to AKS / the 'azur
 More information can be found here: https://azure.microsoft.com/en-us/updates/azure-container-service-will-retire-on-january-31-2020/
 `,
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(80 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(80 * time.Minute),
+			Delete: schema.DefaultTimeout(80 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
