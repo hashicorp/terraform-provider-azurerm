@@ -48,9 +48,9 @@ func resourceArmHealthcareService() *schema.Resource {
 			},
 
 			"cosmosdb_throughput": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1000,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1000,
 				ValidateFunc: validation.IntBetween(1, 10000),
 			},
 
