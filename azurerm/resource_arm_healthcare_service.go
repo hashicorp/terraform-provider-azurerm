@@ -39,11 +39,11 @@ func resourceArmHealthcareService() *schema.Resource {
 			"kind": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "fhir",
+				Default:  string(healthcareapis.Fhir),
 				ValidateFunc: validation.StringInSlice([]string{
-					"fhir",
-					"fhir-Stu3",
-					"fhir-R4",
+					string(healthcareapis.Fhir),
+					string(healthcareapis.FhirR4),
+					string(healthcareapis.FhirStu3),
 				}, false),
 			},
 
@@ -51,6 +51,7 @@ func resourceArmHealthcareService() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  1000,
+				ValidateFunc: validation.IntBetween(1, 10000),
 			},
 
 			"access_policy_object_ids": {
@@ -310,30 +311,13 @@ func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healt
 		return &healthcareapis.ServiceCorsConfigurationInfo{}
 	}
 
-	allowedOrigins := make([]string, 0)
-	allowedHeaders := make([]string, 0)
-	allowedMethods := make([]string, 0)
-	maxAgeInSeconds := int32(0)
-	allowCredentials := true
-
-	/*for _, attr := range corsConfigRaw {
-		corsConfigAttr := attr.(map[string]interface{})
-
-		allowedOrigins = *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].([]interface{}))
-		allowedHeaders = *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].([]interface{}))
-		allowedMethods = *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
-		maxAgeInSeconds = int32(corsConfigAttr["max_age_in_seconds"].(int))
-		allowCredentials = corsConfigAttr["allow_credentials"].(bool)
-	}
-	*/
-
 	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
 
-	allowedOrigins = *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].([]interface{}))
-	allowedHeaders = *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].([]interface{}))
-	allowedMethods = *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
-	maxAgeInSeconds = int32(corsConfigAttr["max_age_in_seconds"].(int))
-	allowCredentials = corsConfigAttr["allow_credentials"].(bool)
+	allowedOrigins := *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].([]interface{}))
+	allowedHeaders := *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].([]interface{}))
+	allowedMethods := *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
+	maxAgeInSeconds := int32(corsConfigAttr["max_age_in_seconds"].(int))
+	allowCredentials := corsConfigAttr["allow_credentials"].(bool)
 
 	cors := &healthcareapis.ServiceCorsConfigurationInfo{
 		Origins:          &allowedOrigins,
@@ -352,22 +336,10 @@ func expandAzureRMhealthcareapisAuthentication(d *schema.ResourceData) *healthca
 		return &healthcareapis.ServiceAuthenticationConfigurationInfo{}
 	}
 
-	authority := ""
-	audience := ""
-	smart_proxy_enabled := true
-	/*
-		for _, attr := range authConfigRaw {
-			authConfigAttr := attr.(map[string]interface{})
-
-			authority = authConfigAttr["authority"].(string)
-			audience = authConfigAttr["audience"].(string)
-			smart_proxy_enabled = authConfigAttr["smart_proxy_enabled"].(bool)
-		}
-	*/
 	authConfigAttr := authConfigRaw[0].(map[string]interface{})
-	authority = authConfigAttr["authority"].(string)
-	audience = authConfigAttr["audience"].(string)
-	smart_proxy_enabled = authConfigAttr["smart_proxy_enabled"].(bool)
+	authority := authConfigAttr["authority"].(string)
+	audience := authConfigAttr["audience"].(string)
+	smart_proxy_enabled := authConfigAttr["smart_proxy_enabled"].(bool)
 
 	auth := &healthcareapis.ServiceAuthenticationConfigurationInfo{
 		Authority:         &authority,

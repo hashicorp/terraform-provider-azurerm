@@ -25,7 +25,9 @@ output "healthcare_service_id" {
     resource_group_name = "sample-resource-group"
     kind                = "fhir-R4"
     cosmosdb_throughput = "2000"
+
     access_policy_object_ids = [ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
+
     tags = {
      "environment" = "testenv"
      "purpose"     = "AcceptanceTests"

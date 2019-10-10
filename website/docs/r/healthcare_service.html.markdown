@@ -19,15 +19,17 @@ resource "azurerm_healthcare_service" "example" {
   location            = "westus2"
   kind                = "fhir-R4"
   cosmosdb_throughput = "2000"
+
   access_policy_object_ids = [ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
+
   tags = {
    "environment" = "testenv"
    "purpose"     = "AcceptanceTests"
   }
 
   authentication_configuration {
-    authority = "https://login.microsoftonline.com/$%7Bdata.azurerm_client_config.current.tenant_id%7D"
-    audience  = "https://azurehealthcareapis.com/"
+    authority           = "https://login.microsoftonline.com/$%7Bdata.azurerm_client_config.current.tenant_id%7D"
+    audience            = "https://azurehealthcareapis.com/"
     smart_proxy_enabled = "true"
   }
 
