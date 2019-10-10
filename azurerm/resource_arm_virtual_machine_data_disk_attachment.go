@@ -164,6 +164,8 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 
 	virtualMachine.StorageProfile.DataDisks = &disks
 
+	// fixes #2485
+	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
 
@@ -277,6 +279,8 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 
 	virtualMachine.StorageProfile.DataDisks = &dataDisks
 
+	// fixes #2485
+	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
 
