@@ -156,7 +156,6 @@ func resourceArmBastionHostRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("dns_name", props.DNSName)
 
 		if ipConfigs := props.IPConfigurations; ipConfigs != nil {
-
 			if err := d.Set("ip_configuration", flattenArmBastionHostIPConfiguration(ipConfigs)); err != nil {
 				return fmt.Errorf("Error flattening `ip_configuration`: %+v", err)
 			}
