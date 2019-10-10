@@ -97,12 +97,12 @@ func resourceArmStreamAnalyticsReferenceInputBlobCreateUpdate(d *schema.Resource
 		existing, err := client.Get(ctx, resourceGroup, jobName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Stream Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Stream Analytics Reference Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_stream_input_blob", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", *existing.ID)
 		}
 	}
 

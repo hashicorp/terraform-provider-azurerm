@@ -14,7 +14,7 @@ resource "azurerm_storage_account" "example" {
 }
 
 resource "azurerm_storage_container" "example" {
-  name                  = "example"
+  name                  = "${var.prefix}example"
   resource_group_name   = "${azurerm_resource_group.example.name}"
   storage_account_name  = "${azurerm_storage_account.example.name}"
   container_access_type = "private"
@@ -44,7 +44,7 @@ QUERY
 }
 
 resource "azurerm_stream_analytics_reference_input_blob" "test" {
-  name                         = "blob-reference-input"
+  name                         = "${var.prefix}-blob-reference-input"
   stream_analytics_job_name    = "${azurerm_stream_analytics_job.example.name}"
   resource_group_name          = "${azurerm_stream_analytics_job.example.resource_group_name}"
   storage_account_name         = "${azurerm_storage_account.example.name}"
