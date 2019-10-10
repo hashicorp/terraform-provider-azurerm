@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_data_factory` [GH-4517]
+* **New Resource:** `azurerm_bastion_host` [GH-4096]
 * **New Resource:** `azurerm_kusto_eventhub_data_connection` [GH-4385]
 
 IMPROVEMENTS:
