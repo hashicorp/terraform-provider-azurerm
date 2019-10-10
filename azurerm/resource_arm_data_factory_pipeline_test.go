@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -78,7 +78,7 @@ func TestAccAzureRMDataFactoryPipeline_update(t *testing.T) {
 }
 
 func testCheckAzureRMDataFactoryPipelineDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactory.PipelinesClient
+	client := testAccProvider.Meta().(*ArmClient).DataFactory.PipelinesClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_data_factory_pipeline" {
 			continue
@@ -113,7 +113,7 @@ func testCheckAzureRMDataFactoryPipelineExists(resourceName string) resource.Tes
 		dataFactoryName := rs.Primary.Attributes["data_factory_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactory.PipelinesClient
+		client := testAccProvider.Meta().(*ArmClient).DataFactory.PipelinesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
 		if err != nil {

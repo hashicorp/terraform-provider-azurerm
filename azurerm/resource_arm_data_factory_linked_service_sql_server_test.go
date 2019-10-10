@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -68,7 +68,7 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactory.LinkedServiceClient
+		client := testAccProvider.Meta().(*ArmClient).DataFactory.LinkedServiceClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dataFactoryName, name, "")
@@ -85,7 +85,7 @@ func testCheckAzureRMDataFactoryLinkedServiceSQLServerExists(name string) resour
 }
 
 func testCheckAzureRMDataFactoryLinkedServiceSQLServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactory.LinkedServiceClient
+	client := testAccProvider.Meta().(*ArmClient).DataFactory.LinkedServiceClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

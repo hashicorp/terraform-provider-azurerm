@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -170,7 +170,7 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for DNS CNAME record: %s", cnameName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
+		conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, cnameName, dns.CNAME)
 		if err != nil {
@@ -186,7 +186,7 @@ func testCheckAzureRMDnsCNameRecordExists(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMDnsCNameRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).dns.RecordSetsClient
+	conn := testAccProvider.Meta().(*ArmClient).Dns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

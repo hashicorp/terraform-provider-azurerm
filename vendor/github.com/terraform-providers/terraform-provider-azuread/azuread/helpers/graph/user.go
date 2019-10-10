@@ -8,7 +8,6 @@ import (
 )
 
 func UserGetByObjectId(client *graphrbac.UsersClient, ctx context.Context, objectId string) (*graphrbac.User, error) {
-
 	filter := fmt.Sprintf("objectId eq '%s'", objectId)
 	resp, err := client.ListComplete(ctx, filter)
 	if err != nil {

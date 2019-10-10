@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -147,7 +147,7 @@ func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCh
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).policy.AssignmentsClient
+		client := testAccProvider.Meta().(*ArmClient).Policy.AssignmentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		id := rs.Primary.ID
@@ -165,7 +165,7 @@ func testCheckAzureRMPolicyAssignmentExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMPolicyAssignmentDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).policy.AssignmentsClient
+	client := testAccProvider.Meta().(*ArmClient).Policy.AssignmentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

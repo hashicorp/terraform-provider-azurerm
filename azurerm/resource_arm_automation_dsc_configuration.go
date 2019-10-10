@@ -7,12 +7,13 @@ import (
 	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -75,8 +76,9 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 }
 
 func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscConfigurationClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.DscConfigurationClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Dsc Configuration creation.")
 
@@ -133,8 +135,9 @@ func resourceArmAutomationDscConfigurationCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscConfigurationClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.DscConfigurationClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -185,8 +188,9 @@ func resourceArmAutomationDscConfigurationRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAutomationDscConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.DscConfigurationClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.DscConfigurationClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

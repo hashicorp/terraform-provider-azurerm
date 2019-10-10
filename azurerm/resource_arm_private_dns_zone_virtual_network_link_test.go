@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -116,7 +117,7 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS zone virtual network link: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).privateDns.VirtualNetworkLinksClient
+		client := testAccProvider.Meta().(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, dnsZoneName, name)
@@ -133,7 +134,7 @@ func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkExists(resourceName string)
 }
 
 func testCheckAzureRMPrivateDnsZoneVirtualNetworkLinkDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).privateDns.VirtualNetworkLinksClient
+	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.VirtualNetworkLinksClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

@@ -5,12 +5,15 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -56,13 +59,7 @@ func resourceArmFrontDoor() *schema.Resource {
 
 			"location": azure.SchemaLocation(),
 
-			// Product Backlog Item #: 4642226 Resource id should not be case sensitive
-			//
-			// Description:
-			// Resource Group currently is case sensitive in AFD RP, but it should not be.
-			// To make it case insentivie, we need to migrate and normalize the existing values in storage.
-			// Multiple steps are needed to perform this migration.
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"routing_rule": {
 				Type:     schema.TypeList,
@@ -426,7 +423,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
@@ -440,14 +437,15 @@ func resourceArmFrontDoor() *schema.Resource {
 }
 
 func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	subscriptionId := meta.(*ArmClient).subscriptionId
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -455,7 +453,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_front_door", *resp.ID)
+			return tf.ImportAsExistsError("azurerm_frontdoor", *resp.ID)
 		}
 	}
 
@@ -469,7 +467,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
 	enabledState := d.Get("load_balancer_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	frontDoorParameters := frontdoor.FrontDoor{
 		Location: utils.String(location),
@@ -483,7 +481,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorPath),
 			EnabledState:          expandArmFrontDoorEnabledState(enabledState),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontDoorParameters)
@@ -511,8 +509,9 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		frontendEndpointName := frontendEndpoint["name"].(string)
 
 		// Get current state of endpoint from Azure
-		client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
-		ctx := meta.(*ArmClient).StopContext
+		client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
+		ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+		defer cancel()
 
 		resp, err := client.Get(ctx, resourceGroup, name, frontendEndpointName)
 		if err != nil {
@@ -540,12 +539,12 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 					customHTTPSConfigurationUpdate := makeCustomHttpsConfiguration(customHttpsConfiguration)
 
 					// Enable Custom Domain HTTPS for the Frontend Endpoint
-					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
+					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, true, name, frontendEndpointName, resourceGroup, customHTTPSConfigurationUpdate, meta); err != nil {
 						return fmt.Errorf("Unable enable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 					}
 				} else if !customHttpsProvisioningEnabled && provisioningState == frontdoor.CustomHTTPSProvisioningStateEnabled {
 					// Disable Custom Domain HTTPS for the Frontend Endpoint
-					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(false, name, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
+					if err := resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d, false, name, frontendEndpointName, resourceGroup, frontdoor.CustomHTTPSConfiguration{}, meta); err != nil {
 						return fmt.Errorf("Unable to disable Custom Domain HTTPS for Frontend Endpoint %q (Resource Group %q): %+v", frontendEndpointName, resourceGroup, err)
 					}
 				}
@@ -556,9 +555,10 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceArmFrontDoorRead(d, meta)
 }
 
-func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(d *schema.ResourceData, enableCustomHttpsProvisioning bool, frontDoorName string, frontendEndpointName string, resourceGroup string, customHTTPSConfiguration frontdoor.CustomHTTPSConfiguration, meta interface{}) error {
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if enableCustomHttpsProvisioning {
 		future, err := client.EnableHTTPS(ctx, resourceGroup, frontDoorName, frontendEndpointName, customHTTPSConfiguration)
@@ -584,8 +584,9 @@ func resourceArmFrontDoorFrontendEndpointEnableHttpsProvisioning(enableCustomHtt
 }
 
 func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -626,7 +627,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 
 		if frontendEndpoints := properties.FrontendEndpoints; frontendEndpoints != nil {
 			if resp.Name != nil {
-				if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(frontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
+				if frontDoorFrontendEndpoints, err := flattenArmFrontDoorFrontendEndpoint(d, frontendEndpoints, resourceGroup, *resp.Name, meta); frontDoorFrontendEndpoints != nil {
 					if err := d.Set("frontend_endpoint", frontDoorFrontendEndpoints); err != nil {
 						return fmt.Errorf("Error setting `frontend_endpoint`: %+v", err)
 					}
@@ -651,14 +652,13 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).frontdoor.FrontDoorsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Frontdoor.FrontDoorsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -1158,7 +1158,7 @@ func flattenArmFrontDoorBackend(input *[]frontdoor.Backend) []interface{} {
 	return output
 }
 
-func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) ([]interface{}, error) {
+func flattenArmFrontDoorFrontendEndpoint(d *schema.ResourceData, input *[]frontdoor.FrontendEndpoint, resourceGroup string, frontDoorName string, meta interface{}) ([]interface{}, error) {
 	if input == nil {
 		return make([]interface{}, 0), fmt.Errorf("Cannot read Front Door Frontend Endpoint (Resource Group %q): slice is empty", resourceGroup)
 	}
@@ -1175,8 +1175,9 @@ func flattenArmFrontDoorFrontendEndpoint(input *[]frontdoor.FrontendEndpoint, re
 
 			// Need to call frontEndEndpointClient here to get customConfiguration information from that client
 			// because the information is hidden from the main frontDoorClient "by design"...
-			client := meta.(*ArmClient).frontdoor.FrontDoorsFrontendClient
-			ctx := meta.(*ArmClient).StopContext
+			client := meta.(*ArmClient).Frontdoor.FrontDoorsFrontendClient
+			ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+			defer cancel()
 
 			resp, err := client.Get(ctx, resourceGroup, frontDoorName, *name)
 			if err != nil {
@@ -1427,7 +1428,6 @@ func flattenArmFrontDoorFrontendEndpointsSubResources(input *[]frontdoor.SubReso
 }
 
 func makeCustomHttpsConfiguration(customHttpsConfiguration map[string]interface{}) frontdoor.CustomHTTPSConfiguration {
-
 	customHTTPSConfigurationUpdate := frontdoor.CustomHTTPSConfiguration{
 		ProtocolType: frontdoor.ServerNameIndication,
 	}

@@ -5,17 +5,16 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
@@ -72,8 +71,9 @@ func resourceArmDataLakeAnalyticsAccount() *schema.Resource {
 }
 
 func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -135,8 +135,9 @@ func resourceArmDateLakeAnalyticsAccountCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -169,8 +170,9 @@ func resourceArmDateLakeAnalyticsAccountUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -205,8 +207,9 @@ func resourceArmDateLakeAnalyticsAccountRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmDateLakeAnalyticsAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).datalake.AnalyticsAccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Datalake.AnalyticsAccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

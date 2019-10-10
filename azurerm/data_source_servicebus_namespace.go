@@ -3,16 +3,22 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmServiceBusNamespaceRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -61,14 +67,21 @@ func dataSourceArmServiceBusNamespace() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ServiceBus.NamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
+	clientStable := meta.(*ArmClient).ServiceBus.NamespacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -93,7 +106,11 @@ func dataSourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface
 		d.Set("capacity", sku.Capacity)
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
+	if properties := resp.SBNamespaceProperties; properties != nil {
+		d.Set("zone_redundant", properties.ZoneRedundant)
+	}
+
+	keys, err := clientStable.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	} else {

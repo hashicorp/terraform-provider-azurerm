@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -27,18 +27,8 @@ func expandTags(tagsMap map[string]interface{}) map[string]*string {
 }
 
 // nolint: deadcode unused
-func tagsForDataSourceSchema() *schema.Schema {
-	return tags.SchemaDataSource()
-}
-
-// nolint: deadcode unused
 func tagsSchema() *schema.Schema {
 	return tags.Schema()
-}
-
-// nolint: deadcode unused
-func tagsForceNewSchema() *schema.Schema {
-	return tags.ForceNewSchema()
 }
 
 // nolint: deadcode unused

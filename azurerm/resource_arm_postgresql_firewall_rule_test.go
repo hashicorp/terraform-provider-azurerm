@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -82,7 +82,7 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Firewall Rule: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgres.FirewallRulesClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.FirewallRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -99,7 +99,7 @@ func testCheckAzureRMPostgreSQLFirewallRuleExists(resourceName string) resource.
 }
 
 func testCheckAzureRMPostgreSQLFirewallRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgres.DatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).Postgres.DatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
