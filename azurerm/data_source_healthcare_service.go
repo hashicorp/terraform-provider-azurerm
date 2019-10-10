@@ -161,6 +161,4 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
-
-	return nil
 }
