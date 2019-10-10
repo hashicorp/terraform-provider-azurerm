@@ -10,7 +10,39 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetAppAccount_basic(t *testing.T) {
+func TestAccAzureRMNetAppAccount(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests since
+	// Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
+	// The CI system runs all tests in parallel, so the tests need to be changed to run one at a time.
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic": testAccAzureRMNetAppAccount_basic,
+		},
+		"complete": {
+			"complete": testAccAzureRMNetAppAccount_complete,
+		},
+		"update": {
+			"update": testAccAzureRMNetAppAccount_update,
+		},
+		"DataSource": {
+			"basic": testAccDataSourceAzureRMNetAppAccount_basic,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccAzureRMNetAppAccount_basic(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -21,7 +53,7 @@ func TestAccAzureRMNetAppAccount_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_basic(ri, location),
+				Config: testAccAzureRMNetAppAccount_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
 				),
@@ -35,7 +67,7 @@ func TestAccAzureRMNetAppAccount_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNetAppAccount_complete(t *testing.T) {
+func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -46,7 +78,7 @@ func TestAccAzureRMNetAppAccount_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_complete(ri, location),
+				Config: testAccAzureRMNetAppAccount_completeConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "1"),
@@ -63,7 +95,7 @@ func TestAccAzureRMNetAppAccount_complete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMNetAppAccount_update(t *testing.T) {
+func testAccAzureRMNetAppAccount_update(t *testing.T) {
 	resourceName := "azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -74,14 +106,14 @@ func TestAccAzureRMNetAppAccount_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetAppAccount_basic(ri, location),
+				Config: testAccAzureRMNetAppAccount_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "0"),
 				),
 			},
 			{
-				Config: testAccAzureRMNetAppAccount_complete(ri, location),
+				Config: testAccAzureRMNetAppAccount_completeConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppAccountExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "active_directory.#", "1"),
@@ -146,7 +178,7 @@ func testCheckAzureRMNetAppAccountDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNetAppAccount_basic(rInt int, location string) string {
+func testAccAzureRMNetAppAccount_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"
@@ -161,7 +193,7 @@ resource "azurerm_netapp_account" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMNetAppAccount_complete(rInt int, location string) string {
+func testAccAzureRMNetAppAccount_completeConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-netapp-%d"

@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMNetAppAccount_basic(t *testing.T) {
+func testAccDataSourceAzureRMNetAppAccount_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_netapp_account.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -18,7 +18,7 @@ func TestAccDataSourceAzureRMNetAppAccount_basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceNetAppAccount_basic(ri, location),
+				Config: testAccDataSourceNetAppAccount_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
@@ -28,8 +28,8 @@ func TestAccDataSourceAzureRMNetAppAccount_basic(t *testing.T) {
 	})
 }
 
-func testAccDataSourceNetAppAccount_basic(rInt int, location string) string {
-	config := testAccAzureRMNetAppAccount_basic(rInt, location)
+func testAccDataSourceNetAppAccount_basicConfig(rInt int, location string) string {
+	config := testAccAzureRMNetAppAccount_basicConfig(rInt, location)
 	return fmt.Sprintf(`
 %s
 

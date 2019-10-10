@@ -90,6 +90,7 @@ func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
+	// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
 	currentTags := make(map[string]*string)
 	if v := resp.Tags; v != nil {
 		tagMap := v.(map[string]interface{})

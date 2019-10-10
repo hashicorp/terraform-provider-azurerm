@@ -3,7 +3,7 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_account"
 sidebar_current: "docs-azurerm-resource-netapp-account"
 description: |-
-  Manages Azure NetApp Account instance.
+  Manages Azure NetApp Account instance. Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
 ---
 
 # azurerm_netapp_account
