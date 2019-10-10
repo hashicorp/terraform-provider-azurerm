@@ -91,13 +91,15 @@ resource "azurerm_private_link_endpoint" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the Name of the Private Link Endpoint. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the Name of the `Private Link Endpoint`. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Private Link Endpoint exists.
+* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the `Private Link Endpoint` exists.
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `manual_private_link_service_connection` - (Optional) A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource. One or more `manual_private_link_service_connection` block defined below.
+* `manual_private_link_service_connection` - (Optional) A grouping of information about the connection to the remote resource. One or more `manual_private_link_service_connection` block defined below.
+
+-> ** NOTE:** A `manual_private_link_service_connection` is used when the service principal, that Terraform is running as, does not have sufficient access to approve connections for the remote `azurerm_private_link_service`.
 
 * `private_link_service_connection` - (Optional) A grouping of information about the connection to the remote resource. One or more `private_link_service_connection` block defined below.
 
@@ -109,7 +111,7 @@ The following arguments are supported:
 
 The `manual_private_link_service_connection` block supports the following:
 
-* `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
+* `name` - (Required) Specifies the name of the `manual_private_link_service_connection`. This name can be used to access the resource.
 
 * `private_link_service_id` - (Required) The resource id of private link service.
 
@@ -122,7 +124,7 @@ The `manual_private_link_service_connection` block supports the following:
 
 The `private_link_service_connection` block supports the following:
 
-* `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
+* `name` - (Required) Specifies the name of the `private_link_service_connection`. This name can be used to access the resource.
 
 * `private_link_service_id` - (Required) The resource id of private link service.
 
@@ -137,32 +139,32 @@ The following attributes are exported:
 
 * `id` - The ID of the Prviate Link Endpoint.
 
-* `network_interface_ids` - Displays an list of network interface IDs that have been created for this Private Link Endpoint.
+* `network_interface_ids` - Displays an list of network interface IDs that have been created for this `Private Link Endpoint`.
 
 ---
 
 The `private_link_service_connection` block exports the following:
 
-* `state_action_required` - A message indicating if changes on the service provider require any updates on the consumer.
+* `state_action_required` - A message indicating if changes on the `Private Link Service` provider require any updates on the `Private Link Endpoint`.
 
 * `state_description` - The reason for `approval`/`rejection` of the connection.
 
-* `state_status` - Indicates whether the connection has been `Approved`, `Rejected` or `Removed` by the owner of the service.
+* `state_status` - Indicates whether the `Private Link Service` connection has been `Approved`, `Rejected` or `Removed` by the owner of the `Private Link Service`.
 
 ---
 
 The `manual_private_link_service_connection` block exports the following:
 
-* `state_action_required` - A message indicating if changes on the service provider require any updates on the consumer.
+* `state_action_required` - A message indicating if changes on the `Private Link Service` provider require any updates on the `Private Link Endpoint`.
 
-* `state_description` - The reason for `approval`/`rejection` of the connection.
+* `state_description` - The reason for `approval`/`rejection` of the `Private Link Service` connection.
 
-* `state_status` - Indicates whether the connection has been `Approved`, `Rejected` or `Removed` by the owner of the service.
+* `state_status` - Indicates whether the `Private Link Service` connection has been `Approved`, `Rejected` or `Removed` by the owner of the `Private Link Service`.
 
 
 ## Import
 
-Private Link Endpoint can be imported using the `resource id`, e.g.
+The `Private Link Endpoint` can be imported using the `resource id`, e.g.
 
 ```shell
 $ terraform import azurerm_private_link_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.Network/privateEndpoints/example-private-link-endpoint

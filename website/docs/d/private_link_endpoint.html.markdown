@@ -27,9 +27,9 @@ output "subnet_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the Name of the Private Link Endpoint.
+* `name` - (Required) Specifies the Name of the `Private Link Endpoint`.
 
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the Private Link Endpoint exists.
+* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the `Private Link Endpoint` exists.
 
 ## Attributes Reference
 
@@ -39,7 +39,7 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the resource exists.
 
-* `manual_private_link_service_connection` - A grouping of information about the connection to the remote resource. Used when the network admin does not have access to approve connections to the remote resource. One or more `manual_private_link_service_connection` block as defined below.
+* `manual_private_link_service_connection` - A grouping of information about the connection to the remote resource. One or more `manual_private_link_service_connection` block as defined below.
 
 * `private_link_service_connection` - A grouping of information about the connection to the remote resource. One or more `private_link_service_connection` block as defined below.
 
@@ -51,37 +51,37 @@ The following attributes are exported:
 
 ---
 
-The `manual_private_link_service_connection` block contains the following:
+The `manual_private_link_service_connection` block exports the following:
 
-* `name` - The name of the resource that is unique within a resource group. This name can be used to access the resource.
+* `name` - Specifies the name of the `manual_private_link_service_connection`. This name can be used to access the resource.
 
 * `private_link_service_id` - The resource id of the Private Link Service.
 
 * `group_ids` - The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
 
-* `request_message` - A message passed to the owner of the remote resource with this connection request. Restricted to 140 chars.
+* `request_message` - A message passed to the owner of the remote resource with this connection request. Restricted to `140` chars.
 
-* `state_action_required` - A message indicating if changes on the service provider require any updates on the consumer.
+* `state_action_required` - A message indicating if changes on the `Private Link Service` provider require any updates on the `Private Link Endpoint`.
 
 * `state_description` - The reason for `approval`/`rejection` of the connection.
 
-* `state_status` - Indicates whether the connection has been `Approved`, `Rejected` or `Removed` by the owner of the service.
+* `state_status` - Indicates whether the `Private Link Service` connection has been `Approved`, `Rejected` or `Removed` by the owner of the `Private Link Service`.
 
 ---
 
-The `private_link_service_connection` block contains the following:
+The `private_link_service_connection` block exports the following:
 
-* `name` - The name of the resource that is unique within a resource group. This name can be used to access the resource.
+* `name` - Specifies the name of the `private_link_service_connection`. This name can be used to access the resource.
 
 * `private_link_service_id` - The resource id of Private Link Service.
 
 * `group_ids` - The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
 
-* `request_message` - A message passed to the owner of the remote resource with this connection request. Restricted to 140 chars.
+* `request_message` - A message passed to the owner of the remote resource with this connection request. Restricted to `140` chars.
 
-* `state_action_required` - A message indicating if changes on the service provider require any updates on the consumer.
+* `state_action_required` - A message indicating if changes on the `Private Link Service` provider require any updates on the `Private Link Endpoint`.
 
 * `state_description` - The reason for `approval`/`rejection` of the connection.
 
-* `state_status` - Indicates whether the connection has been `Approved`, `Rejected` or `Removed` by the owner of the service.
+* `state_status` - Indicates whether the `Private Link Service` connection has been `Approved`, `Rejected` or `Removed` by the owner of the `Private Link Service`.
 
