@@ -335,7 +335,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 	customBlockResponseBody := d.Get("custom_block_response_body").(string)
 	customRules := d.Get("custom_rule").([]interface{})
 	managedRules := d.Get("managed_rule").([]interface{})
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	frontdoorWebApplicationFirewallPolicy := frontdoor.WebApplicationFirewallPolicy{
 		Name:     utils.String(name),
@@ -348,7 +348,7 @@ func resourceArmFrontDoorFirewallPolicyCreateUpdate(d *schema.ResourceData, meta
 			CustomRules:  expandArmFrontDoorFirewallCustomRules(customRules),
 			ManagedRules: expandArmFrontDoorFirewallManagedRules(managedRules),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if redirectUrl != "" {

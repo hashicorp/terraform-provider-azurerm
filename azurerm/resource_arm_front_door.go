@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	afd "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -427,7 +428,7 @@ func resourceArmFrontDoor() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
@@ -471,7 +472,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	frontendEndpoints := d.Get("frontend_endpoint").([]interface{})
 	backendPoolsSettings := d.Get("enforce_backend_pools_certificate_name_check").(bool)
 	enabledState := d.Get("load_balancer_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	frontDoorParameters := frontdoor.FrontDoor{
 		Location: utils.String(location),
@@ -485,7 +486,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			LoadBalancingSettings: expandArmFrontDoorLoadBalancingSettingsModel(loadBalancingSettings, frontDoorPath),
 			EnabledState:          expandArmFrontDoorEnabledState(enabledState),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, frontDoorParameters)
@@ -656,9 +657,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error {
