@@ -3,8 +3,8 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,7 +15,7 @@ func testCheckAzureRMHDInsightClusterDestroy(terraformResourceName string) func(
 				continue
 			}
 
-			client := testAccProvider.Meta().(*ArmClient).hdinsight.ClustersClient
+			client := testAccProvider.Meta().(*ArmClient).HDInsight.ClustersClient
 			ctx := testAccProvider.Meta().(*ArmClient).StopContext
 			name := rs.Primary.Attributes["name"]
 			resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -43,7 +43,7 @@ func testCheckAzureRMHDInsightClusterExists(resourceName string) resource.TestCh
 		clusterName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).hdinsight.ClustersClient
+		client := testAccProvider.Meta().(*ArmClient).HDInsight.ClustersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, clusterName)
 		if err != nil {

@@ -6,7 +6,7 @@ description: |-
   Manages a Private DNS CNAME Record.
 ---
 
-# azurerm_dns_a_record
+# azurerm_private_dns_cname_record
 
 Enables you to manage DNS CNAME Records within Azure Private DNS.
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -124,7 +124,7 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgres.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -149,7 +149,7 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).postgres.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
@@ -172,7 +172,7 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 }
 
 func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgres.ConfigurationsClient
+	client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

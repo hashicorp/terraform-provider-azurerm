@@ -5,13 +5,14 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -86,8 +87,9 @@ func resourceArmNetworkProfile() *schema.Resource {
 }
 
 func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ProfileClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.ProfileClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Network Profile creation")
 
@@ -123,11 +125,11 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	locks.ByName(name, azureNetworkProfileResourceName)
 	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	locks.MultipleByName(subnetsToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
 	parameters := network.Profile{
 		Location: &location,
@@ -156,8 +158,9 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ProfileClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.ProfileClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -199,8 +202,9 @@ func resourceArmNetworkProfileRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.ProfileClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.ProfileClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -228,11 +232,11 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(name, azureNetworkProfileResourceName)
 	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	locks.MultipleByName(subnetsToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
 	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("Error deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)

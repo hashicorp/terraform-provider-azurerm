@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -53,8 +54,9 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 }
 
 func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.FirewallRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Firewall Rule creation.")
 
@@ -107,8 +109,9 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.FirewallRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -137,8 +140,9 @@ func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysql.FirewallRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

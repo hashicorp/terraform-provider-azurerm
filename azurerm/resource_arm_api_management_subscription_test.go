@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -146,7 +146,7 @@ func TestAccAzureRMAPIManagementSubscription_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagement.SubscriptionsClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.SubscriptionsClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_subscription" {
 			continue
@@ -179,7 +179,7 @@ func testCheckAzureRMAPIManagementSubscriptionExists(resourceName string) resour
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagement.SubscriptionsClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.SubscriptionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {

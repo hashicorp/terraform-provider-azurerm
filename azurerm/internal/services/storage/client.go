@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
@@ -18,7 +20,9 @@ import (
 )
 
 type Client struct {
-	AccountsClient storage.AccountsClient
+	AccountsClient           *storage.AccountsClient
+	FileSystemsClient        *filesystems.Client
+	ManagementPoliciesClient storage.ManagementPoliciesClient
 
 	environment az.Environment
 }
@@ -27,11 +31,19 @@ func BuildClient(options *common.ClientOptions) *Client {
 	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
 
+	fileSystemsClient := filesystems.NewWithEnvironment(options.Environment)
+	fileSystemsClient.Authorizer = options.StorageAuthorizer
+
+	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&managementPoliciesClient.Client, options.ResourceManagerAuthorizer)
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	return &Client{
-		AccountsClient: accountsClient,
-		environment:    options.Environment,
+		AccountsClient:           &accountsClient,
+		FileSystemsClient:        &fileSystemsClient,
+		ManagementPoliciesClient: managementPoliciesClient,
+		environment:              options.Environment,
 	}
 }
 

@@ -3,9 +3,11 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +20,10 @@ Information on migrating to the new AzureAD Provider can be found here: https://
 As such the Azure Active Directory resources within the AzureRM Provider are now deprecated and will be removed in v2.0 of the AzureRM Provider.
 `,
 		Read: dataSourceArmAzureADApplicationRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"object_id": {
@@ -74,8 +80,9 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 }
 
 func dataSourceArmAzureADApplicationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).graph.ApplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Graph.ApplicationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	var application graphrbac.Application
 

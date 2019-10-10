@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -542,7 +542,7 @@ func testCheckAzureRMPublicIpExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIPName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.PublicIPsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.PublicIPsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, publicIPName, "")
@@ -572,7 +572,7 @@ func testCheckAzureRMPublicIpDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for public ip: %s", publicIpName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.PublicIPsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.PublicIPsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, publicIpName)
 		if err != nil {
@@ -588,7 +588,7 @@ func testCheckAzureRMPublicIpDisappears(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMPublicIpDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.PublicIPsClient
+	client := testAccProvider.Meta().(*ArmClient).Network.PublicIPsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

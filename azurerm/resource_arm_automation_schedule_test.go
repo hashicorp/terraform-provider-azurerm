@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -269,7 +269,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 }
 
 func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.ScheduleClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.ScheduleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -303,7 +303,7 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAutomationScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).automation.ScheduleClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.ScheduleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API

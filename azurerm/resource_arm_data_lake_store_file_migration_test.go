@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 // NOTE: this is intentionally an acceptance test (and we're not explicitly setting the env)
@@ -16,7 +16,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false, "", true)
+	client, err := getArmClient(config, false, "0.0.0", "", true)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return
@@ -24,7 +24,7 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 
 	client.StopContext = testAccProvider.StopContext()
 
-	filesClient := client.datalake.StoreFilesClient
+	filesClient := client.Datalake.StoreFilesClient
 
 	cases := map[string]struct {
 		StateVersion       int

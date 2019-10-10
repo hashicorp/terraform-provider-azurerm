@@ -9,14 +9,15 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -217,8 +218,9 @@ func resourceArmAutomationSchedule() *schema.Resource {
 }
 
 func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ScheduleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.ScheduleClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Schedule creation.")
 
@@ -310,8 +312,9 @@ func resourceArmAutomationScheduleCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ScheduleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.ScheduleClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -370,8 +373,9 @@ func resourceArmAutomationScheduleRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmAutomationScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.ScheduleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.ScheduleClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

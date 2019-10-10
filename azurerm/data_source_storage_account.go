@@ -4,17 +4,23 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	azautorest "github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmStorageAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmStorageAccountRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -257,9 +263,10 @@ func dataSourceArmStorageAccount() *schema.Resource {
 }
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
 	client := meta.(*ArmClient).Storage.AccountsClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)

@@ -158,6 +158,7 @@ It is recommended to follow the steps outlined
 Since the contents of the dashboard JSON can be quite lengthy, use a template file to improve readability:
 
 `dash.tpl`:
+
 ```JSON
 {
     "lenses": {
@@ -192,6 +193,7 @@ Since the contents of the dashboard JSON can be quite lengthy, use a template fi
 This is then referenced in the `.tf` file by using a [`template_file`](https://www.terraform.io/docs/providers/template/d/file.html) data source (terraform 0.11 or earlier), or the [`templatefile`](https://www.terraform.io/docs/configuration/functions/templatefile.html) function (terraform 0.12+).
 
 `main.tf` (terraform 0.11 or earlier):
+
 ```hcl
 data "template_file" "dash-template" {
   template = "${file("${path.module}/dash.tpl")}"
@@ -217,6 +219,7 @@ resource "azurerm_dashboard" "my-board" {
 ```
 
 `main.tf` (terraform 0.12+)
+
 ```hcl
 ...
 

@@ -3,18 +3,24 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmKubernetesClusterRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -66,6 +72,19 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"kube_dashboard": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"azure_policy": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
@@ -403,8 +422,9 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 }
 
 func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.KubernetesClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Containers.KubernetesClustersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -621,6 +641,20 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 		kubeDashboards = append(kubeDashboards, output)
 	}
 	values["kube_dashboard"] = kubeDashboards
+
+	azurePolicies := make([]interface{}, 0)
+	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
+		enabled := false
+		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		azurePolicies = append(azurePolicies, output)
+	}
+	values["azure_policy"] = azurePolicies
 
 	return []interface{}{values}
 }

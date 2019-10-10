@@ -64,7 +64,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Load Balancer to which the resource is attached.
+* `id` - The ID of the Load Balancer Probe.
 
 ## Import
 
