@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"os"
 	"fmt"
 	"testing"
 
@@ -12,6 +13,11 @@ import (
 )
 
 func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceCertificateOrder_basic(ri, testLocation())
@@ -41,6 +47,11 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceCertificateOrder_wildcard(ri, testLocation())
@@ -75,6 +86,11 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 		return
 	}
 
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
@@ -99,6 +115,11 @@ func TestAccAzureRMAppServiceCertificateOrder_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMAppServiceCertificateOrder_complete(ri, testLocation(), 4096)
@@ -131,6 +152,11 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 }
 
 func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	resourceName := "azurerm_app_service_certificate_order.test"
 	ri := tf.AccRandTimeInt()
 

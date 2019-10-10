@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"os"
 	"fmt"
 	"testing"
 
@@ -9,6 +10,11 @@ import (
 )
 
 func TestAccDataSourceAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
@@ -31,6 +37,11 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
@@ -53,6 +64,11 @@ func TestAccDataSourceAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 }
 
 func TestAccDataSourceAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
+	if os.Getenv("ARM_RUN_TEST_APP_SERVICE_CERTIFICATE") == "" {
+    	t.Skip("Skipping as ARM_RUN_TEST_APP_SERVICE_CERTIFICATE is not specified")
+		return
+	}
+
 	dataSourceName := "data.azurerm_app_service_certificate_order.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
