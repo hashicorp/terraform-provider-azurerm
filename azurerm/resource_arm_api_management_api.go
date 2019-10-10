@@ -260,8 +260,6 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		apiType = apimanagement.APIType(apimanagement.SoapToRest)
 	}
 
-	log.Printf("[DEBUG] Jared was here: %q", versionSetId)
-
 	var params apimanagement.APICreateOrUpdateParameter
 	if versionSetId != "" {
 		params = apimanagement.APICreateOrUpdateParameter{
