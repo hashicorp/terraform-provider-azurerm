@@ -430,9 +430,7 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
 			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
 		}
-
 	}
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
