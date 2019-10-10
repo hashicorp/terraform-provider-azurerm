@@ -52,6 +52,7 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure Region where the Service should be created.
 
 ~> **Please Note**: Not all locations support this resource. Some are West US 2, North Central US, and UK West. 
+
 * `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
 
 ## Attributes Reference

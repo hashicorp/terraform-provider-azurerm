@@ -123,7 +123,6 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[WARN] Healthcare Service %q was not found (Resource Group %q)", name, resourceGroup)
@@ -160,7 +159,7 @@ func dataSourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	return tags.FlattenAndSet(d, resp.Tags)
 
 	return nil
 }

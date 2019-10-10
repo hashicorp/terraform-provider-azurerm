@@ -47,6 +47,7 @@ The following attributes are exported:
 * `location` - The Azure Region where the Service is located.
 
 ~> **Please Note**: Not all locations support this resource. Some are West US 2, North Central US, and UK West. 
+
 * `kind` - The type of the service. i.e.: "fhir", "fhir-Stu3" and "fhir-R4".
 * `cosmosdb_offer_throughput` - The provisioned throughput for the backing database.
 * `tags` - A mapping of tags to assign to the resource.
