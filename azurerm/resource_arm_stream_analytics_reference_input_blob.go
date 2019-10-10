@@ -85,28 +85,7 @@ func resourceArmStreamAnalyticsReferenceInputBlob() *schema.Resource {
 	}
 }
 
-func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).StreamAnalytics.InputsClient
-	ctx := meta.(*ArmClient).StopContext
-
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input Blob creation.")
-	name := d.Get("name").(string)
-	jobName := d.Get("stream_analytics_job_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Reference Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", *existing.ID)
-		}
-	}
-
+func getBlobReferenceInputProps(ctx context.Context, d *schema.ResourceData) streamanalytics.Input {
 	containerName := d.Get("storage_container_name").(string)
 	dateFormat := d.Get("date_format").(string)
 	pathPattern := d.Get("path_pattern").(string)
@@ -142,6 +121,33 @@ func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, 
 			Serialization: serialization,
 		},
 	}
+
+	return props
+}
+
+func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).StreamAnalytics.InputsClient
+	ctx := meta.(*ArmClient).StopContext
+
+	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input Blob creation.")
+	name := d.Get("name").(string)
+	jobName := d.Get("stream_analytics_job_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	if requireResourcesToBeImported && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, jobName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Stream Analytics Reference Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", *existing.ID)
+		}
+	}
+
+	props := getBlobReferenceInputProps(ctx, d)
 
 	if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
 		return fmt.Errorf("Error Creating Stream Analytics Reference Input Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
@@ -169,54 +175,7 @@ func resourceArmStreamAnalyticsReferenceInputBlobUpdate(d *schema.ResourceData, 
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Reference Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", *existing.ID)
-		}
-	}
-
-	containerName := d.Get("storage_container_name").(string)
-	dateFormat := d.Get("date_format").(string)
-	pathPattern := d.Get("path_pattern").(string)
-	storageAccountKey := d.Get("storage_account_key").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-	timeFormat := d.Get("time_format").(string)
-
-	serializationRaw := d.Get("serialization").([]interface{})
-	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
-	if err != nil {
-		return fmt.Errorf("Error expanding `serialization`: %+v", err)
-	}
-
-	props := streamanalytics.Input{
-		Name: utils.String(name),
-		Properties: &streamanalytics.ReferenceInputProperties{
-			Type: streamanalytics.TypeReference,
-			Datasource: &streamanalytics.BlobReferenceInputDataSource{
-				Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob,
-				BlobReferenceInputDataSourceProperties: &streamanalytics.BlobReferenceInputDataSourceProperties{
-					Container:   utils.String(containerName),
-					DateFormat:  utils.String(dateFormat),
-					PathPattern: utils.String(pathPattern),
-					TimeFormat:  utils.String(timeFormat),
-					StorageAccounts: &[]streamanalytics.StorageAccount{
-						{
-							AccountName: utils.String(storageAccountName),
-							AccountKey:  utils.String(storageAccountKey),
-						},
-					},
-				},
-			},
-			Serialization: serialization,
-		},
-	}
+	props := getBlobReferenceInputProps(ctx, d)
 
 	if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
 		return fmt.Errorf("Error Updating Stream Analytics Reference Input Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
