@@ -170,12 +170,12 @@ func resourceArmApiManagementApi() *schema.Resource {
 
 			"version": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 
 			"version_set_id": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -243,6 +243,9 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
 
+	version := d.Get("version").(string)
+	versionSetId := d.Get("version_set_id").(string)
+
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 
@@ -257,16 +260,36 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		apiType = apimanagement.APIType(apimanagement.SoapToRest)
 	}
 
-	params := apimanagement.APICreateOrUpdateParameter{
-		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
-			APIType:                       apiType,
-			Description:                   utils.String(description),
-			DisplayName:                   utils.String(displayName),
-			Path:                          utils.String(path),
-			Protocols:                     protocols,
-			ServiceURL:                    utils.String(serviceUrl),
-			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
-		},
+	log.Printf("[DEBUG] Jared was here: %q", versionSetId)
+
+	var params apimanagement.APICreateOrUpdateParameter
+	if versionSetId != "" {
+		params = apimanagement.APICreateOrUpdateParameter{
+			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
+				APIType:                       apiType,
+				Description:                   utils.String(description),
+				DisplayName:                   utils.String(displayName),
+				Path:                          utils.String(path),
+				Protocols:                     protocols,
+				ServiceURL:                    utils.String(serviceUrl),
+				SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
+				APIVersion:                    utils.String(version),
+				APIVersionSetID:               utils.String(versionSetId),
+			},
+		}
+	} else {
+		params = apimanagement.APICreateOrUpdateParameter{
+			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
+				APIType:                       apiType,
+				Description:                   utils.String(description),
+				DisplayName:                   utils.String(displayName),
+				Path:                          utils.String(path),
+				Protocols:                     protocols,
+				ServiceURL:                    utils.String(serviceUrl),
+				SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
+				APIVersion:                    utils.String(version),
+			},
+		}
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {
