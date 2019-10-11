@@ -33,7 +33,6 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 			"backend_ip_configurations": {
 				Type:     schema.TypeList,
 				Optional: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
