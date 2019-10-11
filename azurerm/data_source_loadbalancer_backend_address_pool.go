@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
@@ -32,13 +31,17 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 			},
 
 			"backend_ip_configurations": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
 				},
-				Set: schema.HashString,
 			},
 		},
 	}
@@ -63,17 +66,25 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 
 	d.SetId(*bap.ID)
 
-	var backendIpConfigurations []string
+	backendIPConfigurations := make([]interface{}, 0)
 
 	if props := bap.BackendAddressPoolPropertiesFormat; props != nil {
-		if configs := props.BackendIPConfigurations; configs != nil {
-			for _, backendConfig := range *configs {
-				backendIpConfigurations = append(backendIpConfigurations, *backendConfig.ID)
+
+		if beipConfigs := props.BackendIPConfigurations; beipConfigs != nil {
+
+			for _, config := range *beipConfigs {
+				ipConfig := make(map[string]interface{})
+
+				if id := config.ID; id != nil {
+					ipConfig["id"] = *id
+
+					backendIPConfigurations = append(backendIPConfigurations, ipConfig)
+				}
 			}
 		}
 	}
 
-	d.Set("backend_ip_configurations", backendIpConfigurations)
+	d.Set("backend_ip_configurations", backendIPConfigurations)
 
 	return nil
 }

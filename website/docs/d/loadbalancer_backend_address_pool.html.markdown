@@ -28,8 +28,8 @@ output "backend_address_pool_id" {
   value = data.azurerm_lb_backend_address_pool.test.id
 }
 
-output "backend_ip_configurations" {
-  value = join(",", data.azurerm_lb_backend_address_pool.beap.backend_ip_configurations)
+output "backend_ip_configuration_ids" {
+  value = data.azurerm_lb_backend_address_pool.beap.backend_ip_configurations.*.id
 }
 ```
 
