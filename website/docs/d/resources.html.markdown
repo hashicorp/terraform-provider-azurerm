@@ -8,18 +8,20 @@ description: |-
 
 # Data Source: azurerm_resources
 
-Use this data source to access information about an existing resources.
+Use this data source to access information about existing resources.
 
 ## Example Usage
 
 ```hcl
-// Get Resources from a Resource Group
+# Get Resources from a Resource Group
 data "azurerm_resources" "test" {
-  resource_group_name = "myResourceGroup"
+  resource_group_name = "example-resources"
 }
 
-// Get Resources with specific Tags
+# Get Resources with specific Tags
 data "azurerm_resources" "test" {
+  resource_group_name = "example-resources"
+
   required_tags {
     environment = "production"
     role        = "webserver"

@@ -1,11 +1,14 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -97,14 +100,27 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 		filter = filter + v
 	}
 
+	// Waiting for the resources to become available to account for replication lag
+	log.Printf("[DEBUG] Waiting for the resources to become available to account for replication lag")
+	stateConf := &resource.StateChangeConf{
+		Pending:                   []string{"ResourcesNotFound"},
+		Target:                    []string{"ResourcesFound"},
+		Refresh:                   dataArmResourcesStateStatusCodeRefreshFunc(ctx, meta, filter),
+		Timeout:                   1 * time.Minute,
+		MinTimeout:                10 * time.Second,
+		ContinuousTargetOccurence: 2,
+	}
+
+	_, _ = stateConf.WaitForState()
+
 	resources := make([]map[string]interface{}, 0)
-	resource, err := client.ListComplete(ctx, filter, "", nil)
+	resourcesResp, err := client.ListComplete(ctx, filter, "", nil)
 	if err != nil {
 		return fmt.Errorf("Error getting resources: %+v", err)
 	}
 
-	for resource.NotDone() {
-		res := resource.Value()
+	for resourcesResp.NotDone() {
+		res := resourcesResp.Value()
 		if res.ID == nil {
 			continue
 		}
@@ -115,7 +131,7 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 		if res.Tags != nil {
 			for requiredTagName, requiredTagVal := range requiredTags {
 				for tagName, tagVal := range res.Tags {
-					if requiredTagName == tagName && requiredTagVal == *tagVal {
+					if requiredTagName == tagName && tagVal != nil && requiredTagVal == *tagVal {
 						tagMatches++
 					}
 				}
@@ -147,7 +163,9 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 			if res.Tags != nil {
 				resTags = make(map[string]interface{}, len(res.Tags))
 				for key, value := range res.Tags {
-					resTags[key] = *value
+					if value != nil {
+						resTags[key] = *value
+					}
 				}
 			}
 
@@ -162,7 +180,7 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 			log.Printf("[DEBUG] azurerm_resources - resources %q (id: %q) skipped as a required tag is not set or has the wrong value.", *res.Name, *res.ID)
 		}
 
-		err = resource.NextWithContext(ctx)
+		err = resourcesResp.NextWithContext(ctx)
 		if err != nil {
 			return fmt.Errorf("Error loading Resource List: %s", err)
 		}
@@ -174,4 +192,21 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
+}
+
+func dataArmResourcesStateStatusCodeRefreshFunc(ctx context.Context, meta interface{}, filter string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resourcesClient := meta.(*ArmClient).Resource.ResourcesClient
+		resp, err := resourcesClient.ListComplete(ctx, filter, "", nil)
+
+		if err != nil {
+			return nil, "", fmt.Errorf("Error while waiting for the resources to become available: %+v", err)
+		}
+
+		if resp.Value().ID == nil {
+			return resp, "ResourcesNotFound", nil
+		}
+
+		return resp, "ResourcesFound", nil
+	}
 }
