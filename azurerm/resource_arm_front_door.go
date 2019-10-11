@@ -121,7 +121,7 @@ func resourceArmFrontDoor() *schema.Resource {
 									},
 									"custom_host": {
 										Type:     schema.TypeString,
-										Required: true,
+										Optional: true,
 									},
 									"custom_path": {
 										Type:     schema.TypeString,
@@ -1018,6 +1018,9 @@ func expandArmFrontDoorRedirectConfiguration(input []interface{}) frontdoor.Redi
 
 	// The way the API works is if you don't include the attribute in the structure
 	// it is treated as Preserve instead of Replace...
+	if customHost != "" {
+		redirectConfiguration.CustomHost = utils.String(customHost)
+	}
 	if customPath != "" {
 		redirectConfiguration.CustomPath = utils.String(customPath)
 	}
@@ -1352,10 +1355,6 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 								c["cache_use_dynamic_compression"] = true
 							}
 						}
-					} else {
-						// Set Defaults
-						c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
-						c["cache_use_dynamic_compression"] = false
 					}
 
 					rc = append(rc, c)
