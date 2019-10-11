@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -26,6 +27,13 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 		Delete: resourceArmKeyVaultAccessPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{

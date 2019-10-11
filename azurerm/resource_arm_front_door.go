@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -26,6 +27,13 @@ func resourceArmFrontDoor() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(6 * time.Hour),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(6 * time.Hour),
+			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
