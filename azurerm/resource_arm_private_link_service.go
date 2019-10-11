@@ -90,7 +90,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 						"private_ip_address": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: valadate.IPv4Address,
+							ValidateFunc: validate.IPv4Address,
 						},
 						// Only IPv4 is supported by the API, but I am exposing this
 						// as they will support IPv6 in a future release.
@@ -273,9 +273,8 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", azure.NormalizeLocation(*resp.Location))
+
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
 		if props.AutoApproval != nil {

@@ -2,8 +2,8 @@ package network
 
 import (
 	"fmt"
-	"net"
-
+	
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 

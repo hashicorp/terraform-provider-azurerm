@@ -165,17 +165,17 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azure.NormalizeLocation(*location))
+	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
 		if props.AutoApproval != nil {
-			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
+			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 			}
 		}
 		if props.Visibility != nil {
-			if err := d.Set("visibility_subscription_ids", flattenArmPrivateLinkServicePropertiesVisibility(props.Visibility)); err != nil {
+			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 			}
 		}

@@ -177,7 +177,7 @@ func testCheckAzureRMPrivateLinkServiceDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMPrivateLinkService_basic(rInt int, location string) string {
-	fmt.Sprintf(`
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_private_link_service" "test" {
