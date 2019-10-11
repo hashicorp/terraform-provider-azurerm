@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `disable_private_link_service_network_policies` - (Optional) Enable or Disable network policies on private link service in the subnet. Default is `false`.
+* `disable_private_link_service_network_policies` - (Optional) Enable or Disable network policies on the `private link service` in the subnet. Default is `false`.
 
--> **NOTE:** In order to choose a source IP address for your Private Link service, an explicit disable setting `disable_private_link_service_network_policies` is required on the subnet. This setting is only applicable for the specific private IP address you chose as the source IP of the Private Link service. For other resources in the subnet, access is controlled based on Network Security Groups (NSG) security rules definition.
+-> **NOTE:** In order to choose a source IP address for your `private link service`, an explicit disable setting is required on the subnet(e.g. `disable_private_link_service_network_policies` = `True`). This setting is only applicable for the specific private IP address that you chose as the source IP of the `private link service`. For other resources in the subnet, access is controlled based on the Network Security Groups(NSG) rule definitions.
 
 * `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 
