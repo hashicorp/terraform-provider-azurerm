@@ -195,9 +195,9 @@ func dataSourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta in
 		d.Set("app_service_certificate_not_renewable_reasons", utils.FlattenStringSlice(props.AppServiceCertificateNotRenewableReasons))
 
 		if productType := props.ProductType; productType == web.StandardDomainValidatedSsl {
-			d.Set("product_type", "standard")
+			d.Set("product_type", "Standard")
 		} else if productType == web.StandardDomainValidatedWildCardSsl {
-			d.Set("product_type", "wildcard")
+			d.Set("product_type", "WildCard")
 		}
 
 		if lastCertificateIssuanceTime := props.LastCertificateIssuanceTime; lastCertificateIssuanceTime != nil {

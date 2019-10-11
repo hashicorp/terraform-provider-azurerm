@@ -34,7 +34,7 @@ func TestAccAzureRMAppServiceCertificateOrder_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
-					resource.TestCheckResourceAttr(resourceName, "product_type", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "Standard"),
 				),
 			},
 			{
@@ -68,7 +68,7 @@ func TestAccAzureRMAppServiceCertificateOrder_wildcard(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=*.example.com"),
-					resource.TestCheckResourceAttr(resourceName, "product_type", "wildcard"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "WildCard"),
 				),
 			},
 			{
@@ -136,7 +136,7 @@ func TestAccAzureRMAppServiceCertificateOrder_complete(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
-					resource.TestCheckResourceAttr(resourceName, "product_type", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "Standard"),
 					resource.TestCheckResourceAttr(resourceName, "validity_in_years", "1"),
 					resource.TestCheckResourceAttr(resourceName, "auto_renew", "false"),
 					resource.TestCheckResourceAttr(resourceName, "key_size", "4096"),
@@ -172,7 +172,7 @@ func TestAccAzureRMAppServiceCertificateOrder_update(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "csr"),
 					resource.TestCheckResourceAttrSet(resourceName, "domain_verification_token"),
 					resource.TestCheckResourceAttr(resourceName, "distinguished_name", "CN=example.com"),
-					resource.TestCheckResourceAttr(resourceName, "product_type", "standard"),
+					resource.TestCheckResourceAttr(resourceName, "product_type", "Standard"),
 				),
 			},
 			{
