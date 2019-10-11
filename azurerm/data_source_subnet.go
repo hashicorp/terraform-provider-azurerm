@@ -91,10 +91,8 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
-		if privateLinkServiceNetworkPolicies := props.PrivateLinkServiceNetworkPolicies; privateLinkServiceNetworkPolicies != nil {
-			if err := d.Set("disable_private_link_service_network_policies", *privateLinkServiceNetworkPolicies == "Disabled"); err != nil {
-				return err
-			}
+		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
+			d.Set("disable_private_link_service_network_policies", *p == "Disabled")
 		}
 
 		if props.NetworkSecurityGroup != nil {

@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service"
 sidebar_current: "docs-azurerm-resource-private-link-service"
 description: |-
-  Manages an Azure PrivateLinkService instance.
+  Manages an Azure Private Link Service.
 ---
 
 # azurerm_private_link_service
 
-Managea an Azure PrivateLinkService instance.
+Manages an Azure Private Link Service.
 
 
 ## Private Link Service Usage
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `load_balancer_frontend_ip_configuration_ids` - (Required) A list of `Standard` Load Balancer resource ids to direct the service network traffic toward.
 
-* `private_endpoint_connection` - (Optional) One or more `private_endpoint_connection` blocks as defined below.
+* `private_link_endpoint_connection` - (Optional) One or more `private_link_endpoint_connection` blocks as defined below.
 
 * `visibility_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
 
@@ -109,28 +109,28 @@ The `nat_ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) The resource ID of the subnet to be used by the service.
 
-* `private_ip_address_version` - (Optional) The ip address version of the `ip_configuration`, supported values are `IPv4` or `IPv6`. Defaults to `IPv4`.
+* `private_ip_address_version` - (Optional) The ip address version of the `ip_configuration`, the supported value is `IPv4`. Defaults to `IPv4`.
 
 -> **NOTE:** Private Link Service Supports `IPv4` traffic only.
 
 
 ---
 
-The `private_endpoint_connection` block contains the following:
+The `private_link_endpoint_connection` block contains the following:
 
-* `id` - (Computed) The resource ID of the `private_endpoint_connection`.
+* `id` - (Computed) The resource ID of the `private_link_endpoint_connection`.
 
 * `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
-* `private_endpoint_location` - (Required) The resource location of the `private_endpoint`.
+* `private_link_endpoint_id` - (Required) The Private Link Endpoint ID.
 
-* `private_endpoint_id` - (Required) The Private Endpoint ID.
+* `private_link_endpoint_location` - (Required) The resource location of the `private_link_endpoint`.
 
 * `state_action_required` - (Computed) A message indicating if changes on the service provider require any updates by the consumer.
 
 * `state_description` - (Computed) The reason for approval/rejection of the connection.
 
-* `state_status` - (Computed) Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+* `state_status` - (Computed) Indicates whether the connection has been `Approved`, `Rejected`, or `Removed` by the owner of the service.
 
 
 ## Attributes Reference
@@ -143,15 +143,15 @@ The following attributes are exported:
 
 ---
 
-* A `private_endpoint_connection` block contains:
+* A `private_link_endpoint_connection` exports the following:
 
-* `id` - The resource ID of the `private_endpoint_connection`.
+* `id` - The resource ID of the `private_link_endpoint_connection`.
 
 * `state_action_required` - A message indicating if changes on the service provider require any updates by the consumer.
 
 * `state_description` - The reason for approval/rejection of the connection.
 
-* `state_status` - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+* `state_status` - Indicates whether the connection has been `Approved`, `Rejected`, or `Removed` by the owner of the service.
 
 
 ## Import

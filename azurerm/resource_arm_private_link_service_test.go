@@ -177,18 +177,91 @@ func testCheckAzureRMPrivateLinkServiceDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMPrivateLinkService_basic(rInt int, location string) string {
-	return testAccAzureRMPrivateLinkServiceTemplate(rInt, location, testAccAzureRMPrivateLinkServiceTemplate_basic(rInt))
+	fmt.Sprintf(`
+%s
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestpls-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_update(rInt int, location string) string {
-	return testAccAzureRMPrivateLinkServiceTemplate(rInt, location, testAccAzureRMPrivateLinkServiceTemplate_update(rInt))
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestpls-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+
+  tags = {
+    env = "test"
+  }
+}
+`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt)
 }
 
 func testAccAzureRMPrivateLinkService_complete(rInt int, location string) string {
-	return testAccAzureRMPrivateLinkServiceTemplate(rInt, location, testAccAzureRMPrivateLinkServiceTemplate_complete(rInt))
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestpls-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
+  visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+    private_ip_address           = "10.5.1.17"
+    private_ip_address_version   = "IPv4"
+    private_ip_allocation_method = "Static"
+  }
+
+  nat_ip_configuration {
+    name                         = "secondaryIpConfiguration-%d"
+    subnet_id                    = azurerm_subnet.test.id
+    private_ip_address           = "10.5.1.18"
+    private_ip_address_version   = "IPv4"
+    private_ip_allocation_method = "Static"
+    primary                      = false
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+    azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+
+  tags = {
+    env = "test"
+  }
+}
+`, testAccAzureRMPrivateLinkServiceTemplate(rInt, location), rInt, rInt, rInt)
 }
 
-func testAccAzureRMPrivateLinkServiceTemplate(rInt int, location string, privateLinkTemplate string) string {
+func testAccAzureRMPrivateLinkServiceTemplate(rInt int, location string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
@@ -232,86 +305,5 @@ resource "azurerm_lb" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
-
-%s
-`, rInt, location, rInt, rInt, rInt, rInt, privateLinkTemplate)
-}
-
-func testAccAzureRMPrivateLinkServiceTemplate_basic(rInt int) string {
-	return fmt.Sprintf(`
-resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
-
-  nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-  }
-
-  load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.test.frontend_ip_configuration.0.id
-  ]
-}
-`, rInt, rInt)
-}
-
-func testAccAzureRMPrivateLinkServiceTemplate_update(rInt int) string {
-	return fmt.Sprintf(`
-resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
-
-  nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-  }
-
-  load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.test.frontend_ip_configuration.0.id
-  ]
-
-  tags = {
-    env = "test"
-  }
-}
-`, rInt, rInt)
-}
-
-func testAccAzureRMPrivateLinkServiceTemplate_complete(rInt int) string {
-	return fmt.Sprintf(`
-resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
-  location                       = azurerm_resource_group.test.location
-  resource_group_name            = azurerm_resource_group.test.name
-  auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
-  visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
-
-  nat_ip_configuration {
-    name                         = "primaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
-    private_ip_address_version   = "IPv4"
-    private_ip_allocation_method = "Static"
-  }
-
-  nat_ip_configuration {
-    name                         = "secondaryIpConfiguration-%d"
-    subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.18"
-    private_ip_address_version   = "IPv4"
-    private_ip_allocation_method = "Static"
-    primary                      = false
-  }
-
-  load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.test.frontend_ip_configuration.0.id
-  ]
-
-  tags = {
-    env = "test"
-  }
-}
-`, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }

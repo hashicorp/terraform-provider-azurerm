@@ -175,11 +175,11 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		// To enable private endpoints you must disable the network policies for the
 		// subnet because Network policies like network security groups are not
 		// supported by private endpoints.
-		privateLinkServiceNetworkPolicies := "Enabled"
+		p := "Enabled"
 		if v.(bool) {
-			privateLinkServiceNetworkPolicies = "Disabled"
+			p = "Disabled"
 		}
-		properties.PrivateLinkServiceNetworkPolicies = &privateLinkServiceNetworkPolicies
+		properties.PrivateLinkServiceNetworkPolicies = &p
 	}
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {

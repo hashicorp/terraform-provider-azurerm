@@ -50,7 +50,7 @@ The following attributes are exported:
 
 * `network_interfaces` - A list of network interface resource ids that are being used by the service.
 
-* `private_endpoint_connection` - One or more `private_endpoint_connection` blocks as defined below.
+* `private_link_endpoint_connection` - One or more `private_link_endpoint_connection` blocks as defined below.
 
 * `visibility_subscription_ids` - A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
 
@@ -59,7 +59,7 @@ The following attributes are exported:
 
 ---
 
-The `nat_ip_configuration` block contains the following:
+The `nat_ip_configuration` block exports the following:
 
 * `name` - The name of private link service ip configuration.
 
@@ -73,17 +73,17 @@ The `nat_ip_configuration` block contains the following:
 
 ---
 
-The `private_endpoint_connection` block contains the following:
+The `private_link_endpoint_connection` block exports the following:
 
 * `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
 
-* `private_endpoint_location` - (Required) The resource location of the `private_endpoint`.
+* `private_link_endpoint_id` - (Required) The Private Link Endpoint ID.
 
-* `private_endpoint_id` - (Required) The Private Endpoint ID.
+* `private_link_endpoint_location` - (Required) The resource location of the `private_link_endpoint`.
 
 * `state_action_required` - (Computed) A message indicating if changes on the service provider require any updates by the consumer.
 
 * `state_description` - (Computed) The reason for approval/rejection of the connection.
 
-* `state_status` - (Computed) Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+* `state_status` - (Computed) Indicates whether the connection has been `Approved`, `Rejected`, or `Removed` by the owner of the service.
 

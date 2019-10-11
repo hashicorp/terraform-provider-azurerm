@@ -91,7 +91,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"private_endpoint_connection": {
+			"private_link_endpoint_connection": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -105,11 +105,11 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"private_endpoint_id": {
+						"private_link_endpoint_id": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"private_endpoint_location": azure.SchemaLocationForDataSource(),
+						"private_link_endpoint_location": azure.SchemaLocationForDataSource(),
 						"state_action_required": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -119,28 +119,6 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 							Computed: true,
 						},
 						"state_status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"private_link_service_connection_state": {
-				Type:     schema.TypeList,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"action_required": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -180,17 +158,17 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		}
 		return fmt.Errorf("Error reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read ID for Private Link Service %q (Resource Group %q)", name, resourceGroup)
+	}
 
 	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("location", azure.NormalizeLocation(*location))
+
 	if props := resp.PrivateLinkServiceProperties; props != nil {
-		if err := d.Set("alias", props.Alias); err != nil {
-			return fmt.Errorf("Error setting `alias`: %+v", err)
-		}
+		d.Set("alias", props.Alias)
 		if props.AutoApproval != nil {
 			if err := d.Set("auto_approval_subscription_ids", flattenArmPrivateLinkServicePropertiesAutoApproval(props.AutoApproval)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
@@ -217,8 +195,8 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
 		if connectionProps := props.PrivateEndpointConnections; connectionProps != nil {
-			if err := d.Set("private_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(connectionProps)); err != nil {
-				return fmt.Errorf("Error setting `private_endpoint_connection`: %+v", err)
+			if err := d.Set("private_link_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(connectionProps)); err != nil {
+				return fmt.Errorf("Error setting `private_link_endpoint_connection`: %+v", err)
 			}
 		}
 	}
