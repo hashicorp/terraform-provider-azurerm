@@ -36,7 +36,6 @@ func resourceArmKustoCluster() *schema.Resource {
 			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
-
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
