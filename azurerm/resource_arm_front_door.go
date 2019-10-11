@@ -1355,10 +1355,6 @@ func flattenArmFrontDoorRoutingRule(input *[]frontdoor.RoutingRule) []interface{
 								c["cache_use_dynamic_compression"] = true
 							}
 						}
-					} else {
-						// Set Defaults
-						c["cache_query_parameter_strip_directive"] = string(frontdoor.StripNone)
-						c["cache_use_dynamic_compression"] = false
 					}
 
 					rc = append(rc, c)
