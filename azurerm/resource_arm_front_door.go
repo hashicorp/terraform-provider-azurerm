@@ -28,10 +28,10 @@ func resourceArmFrontDoor() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
+			Create: schema.DefaultTimeout(6 * time.Hour),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Update: schema.DefaultTimeout(6 * time.Hour),
+			Delete: schema.DefaultTimeout(6 * time.Hour),
 		},
 
 		Schema: map[string]*schema.Schema{
