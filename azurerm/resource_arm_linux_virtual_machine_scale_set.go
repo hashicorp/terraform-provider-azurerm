@@ -35,6 +35,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 
+
 		// TODO: exposing requireGuestProvisionSignal once it's available
 		// https://github.com/Azure/azure-rest-api-specs/pull/7246
 
