@@ -38,6 +38,13 @@ func resourceArmSchedulerJob() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		CustomizeDiff: resourceArmSchedulerJobCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
