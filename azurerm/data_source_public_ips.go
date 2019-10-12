@@ -17,6 +17,10 @@ func dataSourceArmPublicIPs() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPublicIPsRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 

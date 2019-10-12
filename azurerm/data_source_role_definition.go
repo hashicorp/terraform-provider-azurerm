@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -13,6 +14,11 @@ import (
 func dataSourceArmRoleDefinition() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmRoleDefinitionRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 
 			"name": {

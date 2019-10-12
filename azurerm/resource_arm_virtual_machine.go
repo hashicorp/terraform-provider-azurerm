@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
@@ -54,6 +55,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 		// TODO: use a custom importer so that `delete_os_disk_on_termination` and `delete_data_disks_on_termination` are set
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -837,7 +845,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			}
 
 			if osDisk := profile.OsDisk; osDisk != nil {
-				diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(osDisk.ManagedDisk, meta)
+				diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(d, osDisk.ManagedDisk, meta)
 				if err != nil {
 					return fmt.Errorf("Error flattening `storage_os_disk`: %#v", err)
 				}
@@ -849,7 +857,7 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 			if dataDisks := profile.DataDisks; dataDisks != nil {
 				disksInfo := make([]*compute.Disk, len(*dataDisks))
 				for i, dataDisk := range *dataDisks {
-					diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(dataDisk.ManagedDisk, meta)
+					diskInfo, err := resourceArmVirtualMachineGetManagedDiskInfo(d, dataDisk.ManagedDisk, meta)
 					if err != nil {
 						return fmt.Errorf("[DEBUG] Error getting managed data disk detailed information: %#v", err)
 					}
@@ -969,7 +977,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 					return fmt.Errorf("Error deleting OS Disk VHD: %+v", err)
 				}
 			} else if osDisk.ManagedDisk != nil {
-				if err = resourceArmVirtualMachineDeleteManagedDisk(osDisk.ManagedDisk, meta); err != nil {
+				if err = resourceArmVirtualMachineDeleteManagedDisk(d, osDisk.ManagedDisk, meta); err != nil {
 					return fmt.Errorf("Error deleting OS Managed Disk: %+v", err)
 				}
 			}
@@ -994,7 +1002,7 @@ func resourceArmVirtualMachineDelete(d *schema.ResourceData, meta interface{}) e
 						return fmt.Errorf("Error deleting Data Disk VHD: %+v", err)
 					}
 				} else if disk.ManagedDisk != nil {
-					if err = resourceArmVirtualMachineDeleteManagedDisk(disk.ManagedDisk, meta); err != nil {
+					if err = resourceArmVirtualMachineDeleteManagedDisk(d, disk.ManagedDisk, meta); err != nil {
 						return fmt.Errorf("Error deleting Data Managed Disk: %+v", err)
 					}
 				}
@@ -1042,7 +1050,7 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 	return nil
 }
 
-func resourceArmVirtualMachineDeleteManagedDisk(disk *compute.ManagedDiskParameters, meta interface{}) error {
+func resourceArmVirtualMachineDeleteManagedDisk(d *schema.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) error {
 	if disk == nil {
 		return fmt.Errorf("`disk` was nil`")
 	}
@@ -1052,7 +1060,8 @@ func resourceArmVirtualMachineDeleteManagedDisk(disk *compute.ManagedDiskParamet
 	managedDiskID := *disk.ID
 
 	client := meta.(*ArmClient).Compute.DisksClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(managedDiskID)
 	if err != nil {
@@ -1924,9 +1933,10 @@ func resourceArmVirtualMachineStorageImageReferenceHash(v interface{}) int {
 	return hashcode.String(buf.String())
 }
 
-func resourceArmVirtualMachineGetManagedDiskInfo(disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
+func resourceArmVirtualMachineGetManagedDiskInfo(d *schema.ResourceData, disk *compute.ManagedDiskParameters, meta interface{}) (*compute.Disk, error) {
 	client := meta.(*ArmClient).Compute.DisksClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if disk == nil || disk.ID == nil {
 		return nil, nil

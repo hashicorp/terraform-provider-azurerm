@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,6 +14,10 @@ import (
 func dataSourceArmSchedulerJobCollection() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSchedulerJobCollectionRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		DeprecationMessage: "Scheduler Job Collection has been deprecated in favour of Logic Apps - more information can be found at https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps",
 

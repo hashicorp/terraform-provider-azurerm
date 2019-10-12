@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_data_factory` [GH-4517]
+* **New Resource:** `azurerm_bastion_host` [GH-4096]
 * **New Resource:** `azurerm_kusto_eventhub_data_connection` [GH-4385]
 
 IMPROVEMENTS:
@@ -10,14 +11,18 @@ IMPROVEMENTS:
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
+* `azurerm_frontdoor` - update `custom_host` to be optional, add `redirect_configuration` to documentation. [GH-4601]
 * `azurerm_kubernetes_cluster` - allow the `aci_connector_linux` to be disabled by allowing the subnet property be empty [GH-4541]
 * `azurerm_kubernetes_cluster` - add support for the `azure_policy` property in the `addon_profile` block [GH-4498]
 
 BUG FIXES:
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` [GH-4534]
-* `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
+* `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
+* `azurerm_sql_database` - ensure the `read_scale` property is always set during initial creation [GH-4573]
+* `azurere_storage_account` - Ignore Advanced Threat Protection read errors in Azure Germany [GH-4564]
+* `azurerm_virtual_machine_data_disk_attachment` - will no longer remove the identity block when making an update [GH-4538]
 
 ## 1.35.0 (October 04, 2019)
 

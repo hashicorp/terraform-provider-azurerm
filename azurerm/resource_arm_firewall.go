@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -27,6 +28,13 @@ func resourceArmFirewall() *schema.Resource {
 		Delete: resourceArmFirewallDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(40 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(40 * time.Minute),
+			Delete: schema.DefaultTimeout(40 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -119,11 +127,11 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(name, azureFirewallResourceName)
 	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	locks.MultipleByName(subnetToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
 
 	parameters := network.AzureFirewall{
 		Location: &location,
@@ -265,11 +273,11 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(name, azureFirewallResourceName)
 	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
-
 	locks.MultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

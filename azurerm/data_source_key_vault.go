@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -15,6 +16,10 @@ import (
 func dataSourceArmKeyVault() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmKeyVaultRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
