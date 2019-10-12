@@ -159,7 +159,6 @@ func dataSourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface
 			d.Set("subnet_id", subnet.ID)
 		}
 	}
-	tags.FlattenAndSet(d, resp.Tags)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
