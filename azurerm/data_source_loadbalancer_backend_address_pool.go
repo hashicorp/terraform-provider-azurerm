@@ -68,13 +68,10 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 	backendIPConfigurations := make([]interface{}, 0)
 	if props := bap.BackendAddressPoolPropertiesFormat; props != nil {
 		if beipConfigs := props.BackendIPConfigurations; beipConfigs != nil {
-
 			for _, config := range *beipConfigs {
 				ipConfig := make(map[string]interface{})
-
 				if id := config.ID; id != nil {
 					ipConfig["id"] = *id
-
 					backendIPConfigurations = append(backendIPConfigurations, ipConfig)
 				}
 			}
