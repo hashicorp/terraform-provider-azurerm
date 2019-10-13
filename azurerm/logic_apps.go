@@ -5,8 +5,12 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,10 +25,11 @@ func resourceLogicAppTriggerUpdate(d *schema.ResourceData, meta interface{}, log
 }
 
 func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, kind string, propertyName string, logicAppId string, name string, vals map[string]interface{}, resourceName string) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Logic.WorkflowsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(logicAppId)
+	id, err := azure.ParseAzureResourceID(logicAppId)
 	if err != nil {
 		return err
 	}
@@ -35,8 +40,8 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions or Triggers conflicting
-	azureRMLockByName(logicAppName, logicAppResourceName)
-	defer azureRMUnlockByName(logicAppName, logicAppResourceName)
+	locks.ByName(logicAppName, logicAppResourceName)
+	defer locks.UnlockByName(logicAppName, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, logicAppName)
 	if err != nil {
@@ -60,7 +65,7 @@ func resourceLogicAppComponentUpdate(d *schema.ResourceData, meta interface{}, k
 	definition := read.WorkflowProperties.Definition.(map[string]interface{})
 	vs := definition[propertyName].(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		if _, hasExisting := vs[name]; hasExisting {
 			return tf.ImportAsExistsError(resourceName, resourceId)
 		}
@@ -98,14 +103,15 @@ func resourceLogicAppTriggerRemove(d *schema.ResourceData, meta interface{}, res
 }
 
 func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, kind, propertyName, resourceGroup, logicAppName, name string) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Logic.WorkflowsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q Deletion", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
-	azureRMLockByName(logicAppName, logicAppResourceName)
-	defer azureRMUnlockByName(logicAppName, logicAppResourceName)
+	locks.ByName(logicAppName, logicAppResourceName)
+	defer locks.UnlockByName(logicAppName, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, logicAppName)
 	if err != nil {
@@ -146,23 +152,24 @@ func resourceLogicAppComponentRemove(d *schema.ResourceData, meta interface{}, k
 	return nil
 }
 
-func retrieveLogicAppAction(meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	return retrieveLogicAppComponent(meta, resourceGroup, "Action", "actions", logicAppName, name)
+func retrieveLogicAppAction(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+	return retrieveLogicAppComponent(d, meta, resourceGroup, "Action", "actions", logicAppName, name)
 }
 
-func retrieveLogicAppTrigger(meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	return retrieveLogicAppComponent(meta, resourceGroup, "Trigger", "triggers", logicAppName, name)
+func retrieveLogicAppTrigger(d *schema.ResourceData, meta interface{}, resourceGroup, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+	return retrieveLogicAppComponent(d, meta, resourceGroup, "Trigger", "triggers", logicAppName, name)
 }
 
-func retrieveLogicAppComponent(meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
-	client := meta.(*ArmClient).logicWorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+func retrieveLogicAppComponent(d *schema.ResourceData, meta interface{}, resourceGroup, kind, propertyName, logicAppName, name string) (*map[string]interface{}, *logic.Workflow, error) {
+	client := meta.(*ArmClient).Logic.WorkflowsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[DEBUG] Preparing arguments for Logic App Workspace %q (Resource Group %q) %s %q", logicAppName, resourceGroup, kind, name)
 
 	// lock to prevent against Actions, Parameters or Actions conflicting
-	azureRMLockByName(logicAppName, logicAppResourceName)
-	defer azureRMUnlockByName(logicAppName, logicAppResourceName)
+	locks.ByName(logicAppName, logicAppResourceName)
+	defer locks.UnlockByName(logicAppName, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, logicAppName)
 	if err != nil {

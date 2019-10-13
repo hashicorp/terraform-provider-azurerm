@@ -5,20 +5,19 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
-	"time"
-
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,6 +29,13 @@ func resourceArmPolicyDefinition() *schema.Resource {
 		Delete: resourceArmPolicyDefinitionDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceArmPolicyDefinitionImport,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -102,8 +108,9 @@ func resourceArmPolicyDefinition() *schema.Resource {
 }
 
 func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Policy.DefinitionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	policyType := d.Get("policy_type").(string)
@@ -112,7 +119,7 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	managementGroupID := d.Get("management_group_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -198,8 +205,9 @@ func resourceArmPolicyDefinitionCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Policy.DefinitionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())
 	if err != nil {
@@ -246,8 +254,9 @@ func resourceArmPolicyDefinitionRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyDefinitionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policyDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Policy.DefinitionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name, err := parsePolicyDefinitionNameFromId(d.Id())
 	if err != nil {
@@ -295,7 +304,7 @@ func parseManagementGroupIdFromPolicyId(id string) string {
 	return ""
 }
 
-func policyDefinitionRefreshFunc(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
+func policyDefinitionRefreshFunc(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := getPolicyDefinition(ctx, client, name, managementGroupID)
 
@@ -322,7 +331,7 @@ func resourceArmPolicyDefinitionImport(d *schema.ResourceData, meta interface{})
 	return schema.ImportStatePassthrough(d, meta)
 }
 
-func getPolicyDefinition(ctx context.Context, client policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
+func getPolicyDefinition(ctx context.Context, client *policy.DefinitionsClient, name string, managementGroupID string) (res policy.Definition, err error) {
 	if managementGroupID == "" {
 		res, err = client.Get(ctx, name)
 	} else {

@@ -2,21 +2,29 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSnapshotRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			// Computed
 			"os_type": {
@@ -99,8 +107,9 @@ func dataSourceArmSnapshot() *schema.Resource {
 }
 
 func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).snapshotsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.SnapshotsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -123,22 +132,16 @@ func dataSourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if props.EncryptionSettings != nil {
-			d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettings))
+		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
 		}
 	}
 
 	if data := resp.CreationData; data != nil {
 		d.Set("creation_option", string(data.CreateOption))
-		if data.SourceURI != nil {
-			d.Set("source_uri", *data.SourceURI)
-		}
-		if data.SourceResourceID != nil {
-			d.Set("source_resource_id", *data.SourceResourceID)
-		}
-		if data.StorageAccountID != nil {
-			d.Set("storage_account_id", *data.StorageAccountID)
-		}
+		d.Set("source_uri", data.SourceURI)
+		d.Set("source_resource_id", data.SourceResourceID)
+		d.Set("storage_account_id", data.StorageAccountID)
 	}
 
 	return nil

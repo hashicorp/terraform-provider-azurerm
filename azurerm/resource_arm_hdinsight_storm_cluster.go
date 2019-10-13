@@ -3,11 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,12 +51,19 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaHDInsightName(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"cluster_version": azure.SchemaHDInsightClusterVersion(),
 
@@ -92,7 +103,7 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"https_endpoint": {
 				Type:     schema.TypeString,
@@ -108,14 +119,15 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdinsightClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).HDInsight.ClustersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	clusterVersion := d.Get("cluster_version").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	tier := hdinsight.Tier(d.Get("tier").(string))
 
 	componentVersionsRaw := d.Get("component_version").([]interface{})
@@ -141,7 +153,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error expanding `roles`: %+v", err)
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -172,7 +184,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 				Roles: roles,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
@@ -198,11 +210,12 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsightClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsightConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -229,7 +242,7 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	// storage_account isn't returned so I guess we just leave it ¯\_(ツ)_/¯
@@ -263,9 +276,7 @@ func resourceArmHDInsightStormClusterRead(d *schema.ResourceData, meta interface
 		d.Set("ssh_endpoint", sshEndpoint)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func expandHDInsightStormComponentVersion(input []interface{}) map[string]*string {

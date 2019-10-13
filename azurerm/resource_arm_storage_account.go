@@ -3,16 +3,28 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2018-02-01/storage"
+	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
+	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
 
 const blobStorageAccountDefaultAccessTier = "Hot"
@@ -24,11 +36,19 @@ func resourceArmStorageAccount() *schema.Resource {
 		Update: resourceArmStorageAccountUpdate,
 		Delete: resourceArmStorageAccountDelete,
 
+		MigrateState:  resourceStorageAccountMigrateState,
+		SchemaVersion: 2,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		MigrateState:  resourceStorageAccountMigrateState,
-		SchemaVersion: 2,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -38,9 +58,9 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validateArmStorageAccountName,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"account_kind": {
 				Type:     schema.TypeString,
@@ -49,6 +69,8 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(storage.Storage),
 					string(storage.BlobStorage),
+					string(storage.BlockBlobStorage),
+					string(storage.FileStorage),
 					string(storage.StorageV2),
 				}, true),
 				Default: string(storage.Storage),
@@ -60,7 +82,7 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:         true,
 				Deprecated:       "This field has been split into `account_tier` and `account_replication_type`",
 				ValidateFunc:     validateArmStorageAccountType,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_tier": {
@@ -71,7 +93,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"Standard",
 					"Premium",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"account_replication_type": {
@@ -83,7 +105,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					"GRS",
 					"RAGRS",
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			// Only valid for BlobStorage & StorageV2 accounts, defaults to "Hot" in create function
@@ -105,7 +127,7 @@ func resourceArmStorageAccount() *schema.Resource {
 					string(storage.MicrosoftKeyvault),
 					string(storage.MicrosoftStorage),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"custom_domain": {
@@ -152,10 +174,17 @@ func resourceArmStorageAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"enable_advanced_threat_protection": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false, // TODO remove this in 2.0 so we can use GetOkExists to guard the ATP client use
+			},
+
 			"network_rules": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"bypass": {
@@ -173,17 +202,223 @@ func resourceArmStorageAccount() *schema.Resource {
 							},
 							Set: schema.HashString,
 						},
+
 						"ip_rules": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
 						},
+
 						"virtual_network_subnet_ids": {
 							Type:     schema.TypeSet,
 							Optional: true,
+							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Set:      schema.HashString,
+						},
+
+						"default_action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(storage.DefaultActionAllow),
+								string(storage.DefaultActionDeny),
+							}, false),
+						},
+					},
+				},
+			},
+
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, true),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"tags": {
+				Type:         schema.TypeMap,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validateAzureRMStorageAccountTags,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
+
+			"queue_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"cors_rule": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 5,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"allowed_origins": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
+									},
+									"exposed_headers": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
+									},
+									"allowed_headers": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.NoEmptyStrings,
+										},
+									},
+									"allowed_methods": {
+										Type:     schema.TypeList,
+										Required: true,
+										MaxItems: 64,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											Elem: &schema.Schema{
+												Type: schema.TypeString,
+												ValidateFunc: validation.StringInSlice([]string{
+													"DELETE",
+													"GET",
+													"HEAD",
+													"MERGE",
+													"POST",
+													"OPTIONS",
+													"PUT"}, false),
+											},
+										},
+									},
+									"max_age_in_seconds": {
+										Type:         schema.TypeInt,
+										Required:     true,
+										ValidateFunc: validation.IntBetween(1, 2000000000),
+									},
+								},
+							},
+						},
+						"logging": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"delete": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"read": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"write": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+						"hour_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+						"minute_metrics": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"version": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"enabled": {
+										Type:     schema.TypeBool,
+										Required: true,
+									},
+									"include_apis": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+									"retention_policy_days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
 						},
 					},
 				},
@@ -354,40 +589,6 @@ func resourceArmStorageAccount() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
-			"identity": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-							ValidateFunc: validation.StringInSlice([]string{
-								"SystemAssigned",
-							}, true),
-						},
-						"principal_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"tenant_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"tags": {
-				Type:         schema.TypeMap,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validateAzureRMStorageAccountTags,
-			},
 		},
 	}
 }
@@ -396,7 +597,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 	tagsMap := v.(map[string]interface{})
 
 	if len(tagsMap) > 15 {
-		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to each ARM resource"))
+		errors = append(errors, fmt.Errorf("a maximum of 15 tags can be applied to storage account ARM resource"))
 	}
 
 	for k, v := range tagsMap {
@@ -404,7 +605,7 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 			errors = append(errors, fmt.Errorf("the maximum length for a tag key is 128 characters: %q is %d characters", k, len(k)))
 		}
 
-		value, err := tagValueToString(v)
+		value, err := tags.TagValueToString(v)
 		if err != nil {
 			errors = append(errors, err)
 		} else if len(value) > 256 {
@@ -416,14 +617,16 @@ func validateAzureRMStorageAccountTags(v interface{}, _ string) (warnings []stri
 }
 
 func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).Storage.AccountsClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	storageAccountName := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported {
-		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+	if features.ShouldResourcesBeImported() {
+		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Storage Account %q (Resource Group %q): %s", storageAccountName, resourceGroupName, err)
@@ -436,8 +639,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	accountKind := d.Get("account_kind").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 	enableBlobEncryption := d.Get("enable_blob_encryption").(bool)
 	enableFileEncryption := d.Get("enable_file_encryption").(bool)
 	enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
@@ -448,14 +651,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
 	storageAccountEncryptionSource := d.Get("account_encryption_source").(string)
 
-	networkRules := expandStorageAccountNetworkRules(d)
-
 	parameters := storage.AccountCreateParameters{
 		Location: &location,
 		Sku: &storage.Sku{
 			Name: storage.SkuName(storageType),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		Kind: storage.Kind(accountKind),
 		AccountPropertiesCreateParameters: &storage.AccountPropertiesCreateParameters{
 			Encryption: &storage.Encryption{
@@ -469,7 +670,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 				KeySource: storage.KeySource(storageAccountEncryptionSource),
 			},
 			EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			NetworkRuleSet:         networkRules,
+			NetworkRuleSet:         expandStorageAccountNetworkRules(d),
 			IsHnsEnabled:           &isHnsEnabled,
 		},
 	}
@@ -490,8 +691,8 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	// AccessTier is only valid for BlobStorage and StorageV2 accounts
-	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) {
+	// AccessTier is only valid for BlobStorage, StorageV2, and FileStorage accounts
+	if accountKind == string(storage.BlobStorage) || accountKind == string(storage.StorageV2) || accountKind == string(storage.FileStorage) {
 		accessTier, ok := d.GetOk("access_tier")
 		if !ok {
 			// default to "Hot"
@@ -505,6 +706,13 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	// AccountTier must be Premium for FileStorage
+	if accountKind == string(storage.FileStorage) {
+		if string(parameters.Sku.Tier) == string(storage.StandardLRS) {
+			return fmt.Errorf("A `account_tier` of `Standard` is not supported for FileStorage accounts.")
+		}
+	}
+
 	// Create
 	future, err := client.Create(ctx, resourceGroupName, storageAccountName, parameters)
 	if err != nil {
@@ -515,7 +723,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error waiting for Azure Storage Account %q to be created: %+v", storageAccountName, err)
 	}
 
-	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName)
+	account, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 	if err != nil {
 		return fmt.Errorf("Error retrieving Azure Storage Account %q: %+v", storageAccountName, err)
 	}
@@ -527,6 +735,37 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
+	// as this is not available in all regions, and presumably off by default
+	// lets only try to set this value when true
+	// TODO in 2.0 switch to guarding this with d.GetOkExists() ?
+	if v := d.Get("enable_advanced_threat_protection").(bool); v {
+		advancedThreatProtectionSetting := security.AdvancedThreatProtectionSetting{
+			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
+				IsEnabled: utils.Bool(v),
+			},
+		}
+
+		if _, err = advancedThreatProtectionClient.Create(ctx, d.Id(), advancedThreatProtectionSetting); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+		}
+	}
+
+	if val, ok := d.GetOk("queue_properties"); ok {
+		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
+
+		queueProperties, err := expandQueueProperties(val.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
+		}
+
+		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	return resourceArmStorageAccountRead(d, meta)
 }
 
@@ -534,9 +773,12 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 // and idempotent operation for CreateOrUpdate. In particular updating all of the parameters
 // available requires a call to Update per parameter...
 func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
-	id, err := parseAzureResourceID(d.Id())
+	client := meta.(*ArmClient).Storage.AccountsClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -589,10 +831,10 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("tags") {
-		tags := d.Get("tags").(map[string]interface{})
+		t := d.Get("tags").(map[string]interface{})
 
 		opts := storage.AccountUpdateParameters{
-			Tags: expandTags(tags),
+			Tags: tags.Expand(t),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
@@ -631,17 +873,15 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 			d.SetPartial("enable_file_encryption")
 		}
 
-		_, err := client.Update(ctx, resourceGroupName, storageAccountName, opts)
-		if err != nil {
+		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
 			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
 		}
 	}
 
 	if d.HasChange("custom_domain") {
-		customDomain := expandStorageAccountCustomDomain(d)
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				CustomDomain: customDomain,
+				CustomDomain: expandStorageAccountCustomDomain(d),
 			},
 		}
 
@@ -667,10 +907,8 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("identity") {
-		storageAccountIdentity := expandAzureRmStorageAccountIdentity(d)
-
 		opts := storage.AccountUpdateParameters{
-			Identity: storageAccountIdentity,
+			Identity: expandAzureRmStorageAccountIdentity(d),
 		}
 
 		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
@@ -679,11 +917,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("network_rules") {
-		networkRules := expandStorageAccountNetworkRules(d)
-
 		opts := storage.AccountUpdateParameters{
 			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: networkRules,
+				NetworkRuleSet: expandStorageAccountNetworkRules(d),
 			},
 		}
 
@@ -694,23 +930,57 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetPartial("network_rules")
 	}
 
+	if d.HasChange("enable_advanced_threat_protection") {
+		opts := security.AdvancedThreatProtectionSetting{
+			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
+				IsEnabled: utils.Bool(d.Get("enable_advanced_threat_protection").(bool)),
+			},
+		}
+
+		if _, err := advancedThreatProtectionClient.Create(ctx, d.Id(), opts); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account enable_advanced_threat_protection %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("enable_advanced_threat_protection")
+	}
+
+	if d.HasChange("queue_properties") {
+		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
+
+		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
+		}
+
+		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("queue_properties")
+	}
+
 	d.Partial(false)
 	return resourceArmStorageAccountRead(d, meta)
 }
 
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).Storage.AccountsClient
+	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	name := id.Path["storageAccounts"]
 	resGroup := id.ResourceGroup
 
-	resp, err := client.GetProperties(ctx, resGroup, name)
+	resp, err := client.GetProperties(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -719,16 +989,35 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading the state of AzureRM Storage Account %q: %+v", name, err)
 	}
 
+	// handle the user not having permissions to list the keys
+	d.Set("primary_connection_string", "")
+	d.Set("secondary_connection_string", "")
+	d.Set("primary_blob_connection_string", "")
+	d.Set("secondary_blob_connection_string", "")
+	d.Set("primary_access_key", "")
+	d.Set("secondary_access_key", "")
+
 	keys, err := client.ListKeys(ctx, resGroup, name)
 	if err != nil {
-		return err
+		// the API returns a 200 with an inner error of a 409..
+		var hasWriteLock bool
+		var doesntHavePermissions bool
+		if e, ok := err.(azautorest.DetailedError); ok {
+			if status, ok := e.StatusCode.(int); ok {
+				hasWriteLock = status == http.StatusConflict
+				doesntHavePermissions = status == http.StatusUnauthorized
+			}
+		}
+
+		if !hasWriteLock && !doesntHavePermissions {
+			return fmt.Errorf("Error listing Keys for Storage Account %q (Resource Group %q): %s", name, resGroup, err)
+		}
 	}
 
-	accessKeys := *keys.Keys
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("account_kind", resp.Kind)
 
@@ -765,69 +1054,113 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("primary_location", props.PrimaryLocation)
 		d.Set("secondary_location", props.SecondaryLocation)
 
-		if len(accessKeys) > 0 {
-			pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[0].Value, endpointSuffix)
-			d.Set("primary_connection_string", pcs)
-		}
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			if len(storageAccountKeys) > 0 {
+				pcs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[0].Value, endpointSuffix)
+				d.Set("primary_connection_string", pcs)
+			}
 
-		if len(accessKeys) > 1 {
-			scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *accessKeys[1].Value, endpointSuffix)
-			d.Set("secondary_connection_string", scs)
+			if len(storageAccountKeys) > 1 {
+				scs := fmt.Sprintf("DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s", *resp.Name, *storageAccountKeys[1].Value, endpointSuffix)
+				d.Set("secondary_connection_string", scs)
+			}
 		}
 
 		if err := flattenAndSetAzureRmStorageAccountPrimaryEndpoints(d, props.PrimaryEndpoints); err != nil {
 			return fmt.Errorf("error setting primary endpoints and hosts for blob, queue, table and file: %+v", err)
 		}
 
-		var primaryBlobConnectStr string
-		if v := props.PrimaryEndpoints; v != nil {
-			primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[0].Value)
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			var primaryBlobConnectStr string
+			if v := props.PrimaryEndpoints; v != nil {
+				primaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[0].Value)
+			}
+			d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 		}
-		d.Set("primary_blob_connection_string", primaryBlobConnectStr)
 
 		if err := flattenAndSetAzureRmStorageAccountSecondaryEndpoints(d, props.SecondaryEndpoints); err != nil {
 			return fmt.Errorf("error setting secondary endpoints and hosts for blob, queue, table: %+v", err)
 		}
 
-		var secondaryBlobConnectStr string
-		if v := props.SecondaryEndpoints; v != nil {
-			secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, accessKeys[1].Value)
+		if accessKeys := keys.Keys; accessKeys != nil {
+			storageAccountKeys := *accessKeys
+			var secondaryBlobConnectStr string
+			if v := props.SecondaryEndpoints; v != nil {
+				secondaryBlobConnectStr = getBlobConnectionString(v.Blob, resp.Name, storageAccountKeys[1].Value)
+			}
+			d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 		}
-		d.Set("secondary_blob_connection_string", secondaryBlobConnectStr)
 
-		networkRules := props.NetworkRuleSet
-		if networkRules != nil {
+		if networkRules := props.NetworkRuleSet; networkRules != nil {
 			if err := d.Set("network_rules", flattenStorageAccountNetworkRules(networkRules)); err != nil {
 				return fmt.Errorf("Error setting `network_rules`: %+v", err)
 			}
 		}
 	}
 
-	d.Set("primary_access_key", accessKeys[0].Value)
-	d.Set("secondary_access_key", accessKeys[1].Value)
+	if accessKeys := keys.Keys; accessKeys != nil {
+		storageAccountKeys := *accessKeys
+		d.Set("primary_access_key", storageAccountKeys[0].Value)
+		d.Set("secondary_access_key", storageAccountKeys[1].Value)
+	}
 
 	identity := flattenAzureRmStorageAccountIdentity(resp.Identity)
 	if err := d.Set("identity", identity); err != nil {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
+	// TODO in 2.0 switch to guarding this with d.GetOkExists()
+	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
+	if err != nil {
+		msg := err.Error()
+		if msg != "The resource namespace 'Microsoft.Security' is invalid." {
+			if !strings.Contains(msg, "No registered resource provider found for location '") {
+				if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
+					return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
+				}
+			}
+		}
+	} else {
+		if atpp := atp.AdvancedThreatProtectionProperties; atpp != nil {
+			d.Set("enable_advanced_threat_protection", atpp.IsEnabled)
+		}
+	}
 
-	return nil
+	queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error building Queues Client: %s", err)
+	}
+
+	queueProps, err := queueClient.GetServiceProperties(ctx, name)
+	if err != nil {
+		if queueProps.Response.Response != nil && !utils.ResponseWasNotFound(queueProps.Response) {
+			return fmt.Errorf("Error reading queue properties for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
+	if err := d.Set("queue_properties", flattenQueueProperties(queueProps)); err != nil {
+		return fmt.Errorf("Error setting `queue_properties `for AzureRM Storage Account %q: %+v", name, err)
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	storageClient := meta.(*ArmClient).Storage
+	client := storageClient.AccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	name := id.Path["storageAccounts"]
 	resourceGroup := id.ResourceGroup
 
-	read, err := client.GetProperties(ctx, resourceGroup, name)
+	read, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(read.Response) {
 			return nil
@@ -846,7 +1179,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 						continue
 					}
 
-					id, err2 := parseAzureResourceID(*v.VirtualNetworkResourceID)
+					id, err2 := azure.ParseAzureResourceID(*v.VirtualNetworkResourceID)
 					if err2 != nil {
 						return err2
 					}
@@ -858,8 +1191,8 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
@@ -867,6 +1200,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 			return fmt.Errorf("Error issuing delete request for Storage Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
+
+	// remove this from the cache
+	storageClient.ClearFromCache(resourceGroup, name)
 
 	return nil
 }
@@ -907,13 +1243,15 @@ func expandStorageAccountNetworkRules(d *schema.ResourceData) *storage.NetworkRu
 	}
 
 	networkRule := networkRules[0].(map[string]interface{})
-	networkRuleSet := &storage.NetworkRuleSet{}
+	networkRuleSet := &storage.NetworkRuleSet{
+		IPRules:             expandStorageAccountIPRules(networkRule),
+		VirtualNetworkRules: expandStorageAccountVirtualNetworks(networkRule),
+		Bypass:              expandStorageAccountBypass(networkRule),
+	}
 
-	networkRuleSet.IPRules = expandStorageAccountIPRules(networkRule)
-	networkRuleSet.VirtualNetworkRules = expandStorageAccountVirtualNetworks(networkRule)
-	networkRuleSet.Bypass = expandStorageAccountBypass(networkRule)
-	// Default Access is disabled when network rules are set.
-	networkRuleSet.DefaultAction = storage.DefaultActionDeny
+	if v := networkRule["default_action"]; v != nil {
+		networkRuleSet.DefaultAction = storage.DefaultAction(v.(string))
+	}
 
 	return networkRuleSet
 }
@@ -961,6 +1299,112 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
+func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
+	var err error
+	properties := queues.StorageServiceProperties{}
+	if len(input) == 0 {
+		return properties, nil
+	}
+
+	attrs := input[0].(map[string]interface{})
+
+	properties.Cors = expandQueuePropertiesCors(attrs["cors_rule"].([]interface{}))
+	properties.Logging = expandQueuePropertiesLogging(attrs["logging"].([]interface{}))
+	properties.MinuteMetrics, err = expandQueuePropertiesMetrics(attrs["minute_metrics"].([]interface{}))
+	if err != nil {
+		return properties, fmt.Errorf("Error expanding `minute_metrics`: %+v", err)
+	}
+	properties.HourMetrics, err = expandQueuePropertiesMetrics(attrs["hour_metrics"].([]interface{}))
+	if err != nil {
+		return properties, fmt.Errorf("Error expanding `hour_metrics`: %+v", err)
+	}
+
+	return properties, nil
+}
+
+func expandQueuePropertiesMetrics(input []interface{}) (*queues.MetricsConfig, error) {
+	if len(input) == 0 {
+		return &queues.MetricsConfig{}, nil
+	}
+
+	metricsAttr := input[0].(map[string]interface{})
+
+	metrics := &queues.MetricsConfig{
+		Version: metricsAttr["version"].(string),
+		Enabled: metricsAttr["enabled"].(bool),
+	}
+
+	if v, ok := metricsAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			metrics.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	if v, ok := metricsAttr["include_apis"]; ok {
+		includeAPIs := v.(bool)
+		if metrics.Enabled {
+			metrics.IncludeAPIs = &includeAPIs
+		} else if includeAPIs {
+			return nil, fmt.Errorf("`include_apis` may only be set when `enabled` is true")
+		}
+	}
+
+	return metrics, nil
+}
+
+func expandQueuePropertiesLogging(input []interface{}) *queues.LoggingConfig {
+	if len(input) == 0 {
+		return &queues.LoggingConfig{}
+	}
+
+	loggingAttr := input[0].(map[string]interface{})
+	logging := &queues.LoggingConfig{
+		Version: loggingAttr["version"].(string),
+		Delete:  loggingAttr["delete"].(bool),
+		Read:    loggingAttr["read"].(bool),
+		Write:   loggingAttr["write"].(bool),
+	}
+
+	if v, ok := loggingAttr["retention_policy_days"]; ok {
+		if days := v.(int); days > 0 {
+			logging.RetentionPolicy = queues.RetentionPolicy{
+				Days:    days,
+				Enabled: true,
+			}
+		}
+	}
+
+	return logging
+}
+
+func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
+	if len(input) == 0 {
+		return &queues.Cors{}
+	}
+
+	corsRules := make([]queues.CorsRule, 0)
+	for _, attr := range input {
+		corsRuleAttr := attr.(map[string]interface{})
+		corsRule := queues.CorsRule{}
+
+		corsRule.AllowedOrigins = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_origins"].([]interface{})), ",")
+		corsRule.ExposedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["exposed_headers"].([]interface{})), ",")
+		corsRule.AllowedHeaders = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_headers"].([]interface{})), ",")
+		corsRule.AllowedMethods = strings.Join(*utils.ExpandStringSlice(corsRuleAttr["allowed_methods"].([]interface{})), ",")
+		corsRule.MaxAgeInSeconds = corsRuleAttr["max_age_in_seconds"].(int)
+
+		corsRules = append(corsRules, corsRule)
+	}
+
+	cors := &queues.Cors{
+		CorsRule: corsRules,
+	}
+	return cors
+}
+
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
 	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
 		return []interface{}{}
@@ -970,6 +1414,7 @@ func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interfac
 	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
 	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
+	networkRules["default_action"] = string(input.DefaultAction)
 
 	return []interface{}{networkRules}
 }
@@ -995,6 +1440,106 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	}
 
 	return virtualNetworks
+}
+
+func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
+	if input.Response.Response == nil {
+		return []interface{}{}
+	}
+
+	queueProperties := make(map[string]interface{})
+
+	if cors := input.Cors; cors != nil {
+		if len(cors.CorsRule) > 0 {
+			if cors.CorsRule[0].AllowedOrigins != "" {
+				queueProperties["cors_rule"] = flattenQueuePropertiesCorsRule(input.Cors.CorsRule)
+			}
+		}
+	}
+
+	if logging := input.Logging; logging != nil {
+		if logging.Version != "" {
+			queueProperties["logging"] = flattenQueuePropertiesLogging(*logging)
+		}
+	}
+
+	if hourMetrics := input.HourMetrics; hourMetrics != nil {
+		if hourMetrics.Version != "" {
+			queueProperties["hour_metrics"] = flattenQueuePropertiesMetrics(*hourMetrics)
+		}
+	}
+
+	if minuteMetrics := input.MinuteMetrics; minuteMetrics != nil {
+		if minuteMetrics.Version != "" {
+			queueProperties["minute_metrics"] = flattenQueuePropertiesMetrics(*minuteMetrics)
+		}
+	}
+
+	if len(queueProperties) == 0 {
+		return []interface{}{}
+	}
+	return []interface{}{queueProperties}
+}
+
+func flattenQueuePropertiesMetrics(input queues.MetricsConfig) []interface{} {
+	metrics := make(map[string]interface{})
+
+	metrics["version"] = input.Version
+	metrics["enabled"] = input.Enabled
+
+	if input.IncludeAPIs != nil {
+		metrics["include_apis"] = *input.IncludeAPIs
+	}
+
+	if input.RetentionPolicy.Enabled {
+		metrics["retention_policy_days"] = input.RetentionPolicy.Days
+	}
+
+	return []interface{}{metrics}
+}
+
+func flattenQueuePropertiesCorsRule(input []queues.CorsRule) []interface{} {
+	corsRules := make([]interface{}, 0)
+
+	for _, corsRule := range input {
+		attr := make(map[string]interface{})
+
+		attr["allowed_origins"] = flattenCorsProperty(corsRule.AllowedOrigins)
+		attr["allowed_methods"] = flattenCorsProperty(corsRule.AllowedMethods)
+		attr["allowed_headers"] = flattenCorsProperty(corsRule.AllowedHeaders)
+		attr["exposed_headers"] = flattenCorsProperty(corsRule.ExposedHeaders)
+		attr["max_age_in_seconds"] = corsRule.MaxAgeInSeconds
+
+		corsRules = append(corsRules, attr)
+	}
+
+	return corsRules
+}
+
+func flattenQueuePropertiesLogging(input queues.LoggingConfig) []interface{} {
+	logging := make(map[string]interface{})
+
+	logging["version"] = input.Version
+	logging["delete"] = input.Delete
+	logging["read"] = input.Read
+	logging["write"] = input.Write
+
+	if input.RetentionPolicy.Enabled {
+		logging["retention_policy_days"] = input.RetentionPolicy.Days
+	}
+
+	return []interface{}{logging}
+}
+
+func flattenCorsProperty(input string) []interface{} {
+	results := make([]interface{}, 0, len(input))
+
+	origins := strings.Split(input, ",")
+	for _, origin := range origins {
+		results = append(results, origin)
+	}
+
+	return results
 }
 
 func flattenStorageAccountBypass(input storage.Bypass) []interface{} {
@@ -1146,7 +1691,9 @@ func setEndpointAndHost(d *schema.ResourceData, ordinalString string, endpointTy
 		host = u.Host
 	}
 
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_endpoint", ordinalString, typeString), endpoint)
+	// lintignore: R001
 	d.Set(fmt.Sprintf("%s_%s_host", ordinalString, typeString), host)
 	return nil
 }

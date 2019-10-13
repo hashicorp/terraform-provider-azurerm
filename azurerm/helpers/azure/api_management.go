@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -253,7 +253,7 @@ func ExpandApiManagementOperationParameterContract(input []interface{}) *[]apima
 			Type:         utils.String(paramType),
 			Required:     utils.Bool(required),
 			DefaultValue: utils.String(defaultValue),
-			Values:       utils.ExpandStringArray(valuesRaw),
+			Values:       utils.ExpandStringSlice(valuesRaw),
 		}
 		outputs = append(outputs, output)
 	}
@@ -290,7 +290,7 @@ func FlattenApiManagementOperationParameterContract(input *[]apimanagement.Param
 			output["default_value"] = *v.DefaultValue
 		}
 
-		output["values"] = schema.NewSet(schema.HashString, utils.FlattenStringArray(v.Values))
+		output["values"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(v.Values))
 
 		outputs = append(outputs, output)
 	}

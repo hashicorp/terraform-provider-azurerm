@@ -1,16 +1,256 @@
 package azure
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
+
+func SchemaAppServiceAadAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"client_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"client_secret": {
+					Type:      schema.TypeString,
+					Optional:  true,
+					Sensitive: true,
+				},
+				"allowed_audiences": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceFacebookAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"app_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"app_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+				"oauth_scopes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceGoogleAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"client_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"client_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+				"oauth_scopes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceMicrosoftAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"client_id": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"client_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+				"oauth_scopes": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceTwitterAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"consumer_key": {
+					Type:     schema.TypeString,
+					Required: true,
+				},
+				"consumer_secret": {
+					Type:      schema.TypeString,
+					Required:  true,
+					Sensitive: true,
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceAuthSettings() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"enabled": {
+					Type:     schema.TypeBool,
+					Required: true,
+				},
+				"additional_login_params": {
+					Type:     schema.TypeMap,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
+				"allowed_external_redirect_urls": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem:     &schema.Schema{Type: schema.TypeString},
+				},
+				"default_provider": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AzureActiveDirectory),
+						string(web.Facebook),
+						string(web.Google),
+						string(web.MicrosoftAccount),
+						string(web.Twitter),
+					}, false),
+				},
+				"issuer": {
+					Type:         schema.TypeString,
+					Optional:     true,
+					ValidateFunc: validate.URLIsHTTPOrHTTPS,
+				},
+				"runtime_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
+				"token_refresh_extension_hours": {
+					Type:     schema.TypeFloat,
+					Optional: true,
+					Default:  72,
+				},
+				"token_store_enabled": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+				"unauthenticated_client_action": {
+					Type:     schema.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AllowAnonymous),
+						string(web.RedirectToLoginPage),
+					}, false),
+				},
+				"active_directory": SchemaAppServiceAadAuthSettings(),
+				"facebook":         SchemaAppServiceFacebookAuthSettings(),
+				"google":           SchemaAppServiceGoogleAuthSettings(),
+				"microsoft":        SchemaAppServiceMicrosoftAuthSettings(),
+				"twitter":          SchemaAppServiceTwitterAuthSettings(),
+			},
+		},
+	}
+}
+
+func SchemaAppServiceIdentity() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.ManagedServiceIdentityTypeNone),
+						string(web.ManagedServiceIdentityTypeSystemAssigned),
+						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
+						string(web.ManagedServiceIdentityTypeUserAssigned),
+					}, true),
+					DiffSuppressFunc: suppress.CaseDifference,
+				},
+				"principal_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"tenant_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+				"identity_ids": {
+					Type:     schema.TypeList,
+					Optional: true,
+					MinItems: 1,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validation.NoZeroValues,
+					},
+				},
+			},
+		},
+	}
+}
 
 func SchemaAppServiceSiteConfig() *schema.Schema {
 	return &schema.Schema{
@@ -63,12 +303,23 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
 								Type:     schema.TypeString,
-								Required: true,
+								Optional: true,
+							},
+							"virtual_network_subnet_id": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 							"subnet_mask": {
 								Type:     schema.TypeString,
 								Optional: true,
-								Default:  "255.255.255.255",
+								Computed: true,
+								// TODO we should fix this in 2.0
+								// This attribute was made with the assumption that `ip_address` was the only valid option
+								// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
+								// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
+								// and `subnet_mask` is not.
+								// Default:  "255.255.255.255",
 							},
 						},
 					},
@@ -202,7 +453,14 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						string(web.FtpsOnly),
 					}, false),
 				},
+
 				"linux_fx_version": {
+					Type:     schema.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
+				"windows_fx_version": {
 					Type:     schema.TypeString,
 					Optional: true,
 					Computed: true,
@@ -224,25 +482,157 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Optional: true,
 				},
 
-				"cors": {
+				"cors": SchemaWebCorsSettings(),
+			},
+		},
+	}
+}
+
+func SchemaAppServiceLogsConfig() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"application_logs": {
 					Type:     schema.TypeList,
 					Optional: true,
 					Computed: true,
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
-							"allowed_origins": {
-								Type:     schema.TypeSet,
-								Required: true,
-								Elem:     &schema.Schema{Type: schema.TypeString},
-							},
-							"support_credentials": {
-								Type:     schema.TypeBool,
+							"azure_blob_storage": {
+								Type:     schema.TypeList,
 								Optional: true,
-								Default:  false,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"level": {
+											Type:     schema.TypeString,
+											Required: true,
+											ValidateFunc: validation.StringInSlice([]string{
+												string(web.Error),
+												string(web.Information),
+												string(web.Off),
+												string(web.Verbose),
+												string(web.Warning),
+											}, false),
+										},
+										"sas_url": {
+											Type:      schema.TypeString,
+											Required:  true,
+											Sensitive: true,
+										},
+										"retention_in_days": {
+											Type:     schema.TypeInt,
+											Required: true,
+										},
+									},
+								},
 							},
 						},
 					},
+				},
+				"http_logs": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Computed: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"file_system": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"retention_in_mb": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: validation.IntBetween(25, 100),
+										},
+										"retention_in_days": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: validation.IntAtLeast(0),
+										},
+									},
+								},
+								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+							},
+							"azure_blob_storage": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"sas_url": {
+											Type:      schema.TypeString,
+											Required:  true,
+											Sensitive: true,
+										},
+										"retention_in_days": {
+											Type:     schema.TypeInt,
+											Required: true,
+										},
+									},
+								},
+								ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func SchemaAppServiceStorageAccounts() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"type": {
+					Type:     schema.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(web.AzureBlob),
+						string(web.AzureFiles),
+					}, false),
+				},
+
+				"account_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"share_name": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"access_key": {
+					Type:         schema.TypeString,
+					Required:     true,
+					Sensitive:    true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+
+				"mount_path": {
+					Type:     schema.TypeString,
+					Optional: true,
 				},
 			},
 		},
@@ -287,6 +677,10 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"virtual_network_subnet_id": {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
@@ -368,6 +762,11 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Computed: true,
 				},
 
+				"windows_fx_version": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
 				"min_tls_version": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -401,35 +800,218 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 	}
 }
 
-func ExpandAppServiceCorsSettings(input interface{}) web.CorsSettings {
-	settings := input.([]interface{})
-	corsSettings := web.CorsSettings{}
+func ExpandAppServiceAuthSettings(input []interface{}) web.SiteAuthSettingsProperties {
+	siteAuthSettingsProperties := web.SiteAuthSettingsProperties{}
 
-	if len(settings) == 0 {
-		return corsSettings
+	if len(input) == 0 {
+		return siteAuthSettingsProperties
 	}
 
-	setting := settings[0].(map[string]interface{})
+	setting := input[0].(map[string]interface{})
 
-	if v, ok := setting["allowed_origins"]; ok {
-		input := v.(*schema.Set).List()
+	if v, ok := setting["enabled"]; ok {
+		siteAuthSettingsProperties.Enabled = utils.Bool(v.(bool))
+	}
 
-		allowedOrigins := make([]string, 0)
-		for _, param := range input {
-			allowedOrigins = append(allowedOrigins, param.(string))
+	if v, ok := setting["additional_login_params"]; ok {
+		input := v.(map[string]interface{})
+
+		additionalLoginParams := make([]string, 0)
+		for k, v := range input {
+			additionalLoginParams = append(additionalLoginParams, fmt.Sprintf("%s=%s", k, v.(string)))
 		}
 
-		corsSettings.AllowedOrigins = &allowedOrigins
+		siteAuthSettingsProperties.AdditionalLoginParams = &additionalLoginParams
 	}
 
-	if v, ok := setting["support_credentials"]; ok {
-		corsSettings.SupportCredentials = utils.Bool(v.(bool))
+	if v, ok := setting["allowed_external_redirect_urls"]; ok {
+		input := v.([]interface{})
+
+		allowedExternalRedirectUrls := make([]string, 0)
+		for _, param := range input {
+			allowedExternalRedirectUrls = append(allowedExternalRedirectUrls, param.(string))
+		}
+
+		siteAuthSettingsProperties.AllowedExternalRedirectUrls = &allowedExternalRedirectUrls
 	}
 
-	return corsSettings
+	if v, ok := setting["default_provider"]; ok {
+		siteAuthSettingsProperties.DefaultProvider = web.BuiltInAuthenticationProvider(v.(string))
+	}
+
+	if v, ok := setting["issuer"]; ok {
+		siteAuthSettingsProperties.Issuer = utils.String(v.(string))
+	}
+
+	if v, ok := setting["runtime_version"]; ok {
+		siteAuthSettingsProperties.RuntimeVersion = utils.String(v.(string))
+	}
+
+	if v, ok := setting["token_refresh_extension_hours"]; ok {
+		siteAuthSettingsProperties.TokenRefreshExtensionHours = utils.Float(v.(float64))
+	}
+
+	if v, ok := setting["token_store_enabled"]; ok {
+		siteAuthSettingsProperties.TokenStoreEnabled = utils.Bool(v.(bool))
+	}
+
+	if v, ok := setting["unauthenticated_client_action"]; ok {
+		siteAuthSettingsProperties.UnauthenticatedClientAction = web.UnauthenticatedClientAction(v.(string))
+	}
+
+	if v, ok := setting["active_directory"]; ok {
+		activeDirectorySettings := v.([]interface{})
+
+		for _, setting := range activeDirectorySettings {
+			if setting == nil {
+				continue
+			}
+
+			activeDirectorySetting := setting.(map[string]interface{})
+
+			if v, ok := activeDirectorySetting["client_id"]; ok {
+				siteAuthSettingsProperties.ClientID = utils.String(v.(string))
+			}
+
+			if v, ok := activeDirectorySetting["client_secret"]; ok {
+				siteAuthSettingsProperties.ClientSecret = utils.String(v.(string))
+			}
+
+			if v, ok := activeDirectorySetting["allowed_audiences"]; ok {
+				input := v.([]interface{})
+
+				allowedAudiences := make([]string, 0)
+				for _, param := range input {
+					allowedAudiences = append(allowedAudiences, param.(string))
+				}
+
+				siteAuthSettingsProperties.AllowedAudiences = &allowedAudiences
+			}
+		}
+	}
+
+	if v, ok := setting["facebook"]; ok {
+		facebookSettings := v.([]interface{})
+
+		for _, setting := range facebookSettings {
+			facebookSetting := setting.(map[string]interface{})
+
+			if v, ok := facebookSetting["app_id"]; ok {
+				siteAuthSettingsProperties.FacebookAppID = utils.String(v.(string))
+			}
+
+			if v, ok := facebookSetting["app_secret"]; ok {
+				siteAuthSettingsProperties.FacebookAppSecret = utils.String(v.(string))
+			}
+
+			if v, ok := facebookSetting["oauth_scopes"]; ok {
+				input := v.([]interface{})
+
+				oauthScopes := make([]string, 0)
+				for _, param := range input {
+					oauthScopes = append(oauthScopes, param.(string))
+				}
+
+				siteAuthSettingsProperties.FacebookOAuthScopes = &oauthScopes
+			}
+		}
+	}
+
+	if v, ok := setting["google"]; ok {
+		googleSettings := v.([]interface{})
+
+		for _, setting := range googleSettings {
+			googleSetting := setting.(map[string]interface{})
+
+			if v, ok := googleSetting["client_id"]; ok {
+				siteAuthSettingsProperties.GoogleClientID = utils.String(v.(string))
+			}
+
+			if v, ok := googleSetting["client_secret"]; ok {
+				siteAuthSettingsProperties.GoogleClientSecret = utils.String(v.(string))
+			}
+
+			if v, ok := googleSetting["oauth_scopes"]; ok {
+				input := v.([]interface{})
+
+				oauthScopes := make([]string, 0)
+				for _, param := range input {
+					oauthScopes = append(oauthScopes, param.(string))
+				}
+
+				siteAuthSettingsProperties.GoogleOAuthScopes = &oauthScopes
+			}
+		}
+	}
+
+	if v, ok := setting["microsoft"]; ok {
+		microsoftSettings := v.([]interface{})
+
+		for _, setting := range microsoftSettings {
+			microsoftSetting := setting.(map[string]interface{})
+
+			if v, ok := microsoftSetting["client_id"]; ok {
+				siteAuthSettingsProperties.MicrosoftAccountClientID = utils.String(v.(string))
+			}
+
+			if v, ok := microsoftSetting["client_secret"]; ok {
+				siteAuthSettingsProperties.MicrosoftAccountClientSecret = utils.String(v.(string))
+			}
+
+			if v, ok := microsoftSetting["oauth_scopes"]; ok {
+				input := v.([]interface{})
+
+				oauthScopes := make([]string, 0)
+				for _, param := range input {
+					oauthScopes = append(oauthScopes, param.(string))
+				}
+
+				siteAuthSettingsProperties.MicrosoftAccountOAuthScopes = &oauthScopes
+			}
+		}
+	}
+
+	if v, ok := setting["twitter"]; ok {
+		twitterSettings := v.([]interface{})
+
+		for _, setting := range twitterSettings {
+			twitterSetting := setting.(map[string]interface{})
+
+			if v, ok := twitterSetting["consumer_key"]; ok {
+				siteAuthSettingsProperties.TwitterConsumerKey = utils.String(v.(string))
+			}
+
+			if v, ok := twitterSetting["consumer_secret"]; ok {
+				siteAuthSettingsProperties.TwitterConsumerSecret = utils.String(v.(string))
+			}
+		}
+	}
+
+	return siteAuthSettingsProperties
 }
 
-func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
+func FlattenAdditionalLoginParams(input *[]string) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if input == nil {
+		return result
+	}
+
+	for _, k := range *input {
+		parts := strings.Split(k, "=")
+		if len(parts) != 2 {
+			continue // Params not following the format `key=value` is considered malformed and will be ignored.
+		}
+		key := parts[0]
+		value := parts[1]
+
+		result[key] = value
+	}
+
+	return result
+}
+
+func FlattenAppServiceAuthSettings(input *web.SiteAuthSettingsProperties) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -437,27 +1019,357 @@ func FlattenAppServiceCorsSettings(input *web.CorsSettings) []interface{} {
 
 	result := make(map[string]interface{})
 
-	allowedOrigins := make([]interface{}, 0)
-	if s := input.AllowedOrigins; s != nil {
-		for _, v := range *s {
-			allowedOrigins = append(allowedOrigins, v)
-		}
+	if input.Enabled != nil {
+		result["enabled"] = *input.Enabled
 	}
-	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
 
-	if input.SupportCredentials != nil {
-		result["support_credentials"] = *input.SupportCredentials
+	result["additional_login_params"] = FlattenAdditionalLoginParams(input.AdditionalLoginParams)
+
+	allowedExternalRedirectUrls := make([]string, 0)
+	if s := input.AllowedExternalRedirectUrls; s != nil {
+		allowedExternalRedirectUrls = *s
 	}
+	result["allowed_external_redirect_urls"] = allowedExternalRedirectUrls
+
+	if input.DefaultProvider != "" {
+		result["default_provider"] = input.DefaultProvider
+	}
+
+	if input.Issuer != nil {
+		result["issuer"] = *input.Issuer
+	}
+
+	if input.RuntimeVersion != nil {
+		result["runtime_version"] = *input.RuntimeVersion
+	}
+
+	if input.TokenRefreshExtensionHours != nil {
+		result["token_refresh_extension_hours"] = *input.TokenRefreshExtensionHours
+	}
+
+	if input.TokenStoreEnabled != nil {
+		result["token_store_enabled"] = *input.TokenStoreEnabled
+	}
+
+	if input.UnauthenticatedClientAction != "" {
+		result["unauthenticated_client_action"] = input.UnauthenticatedClientAction
+	}
+
+	activeDirectorySettings := make([]interface{}, 0)
+
+	if input.ClientID != nil {
+		activeDirectorySetting := make(map[string]interface{})
+
+		activeDirectorySetting["client_id"] = *input.ClientID
+
+		if input.ClientSecret != nil {
+			activeDirectorySetting["client_secret"] = *input.ClientSecret
+		}
+
+		if input.AllowedAudiences != nil {
+			activeDirectorySetting["allowed_audiences"] = *input.AllowedAudiences
+		}
+
+		activeDirectorySettings = append(activeDirectorySettings, activeDirectorySetting)
+	}
+
+	result["active_directory"] = activeDirectorySettings
+
+	facebookSettings := make([]interface{}, 0)
+
+	if input.FacebookAppID != nil {
+		facebookSetting := make(map[string]interface{})
+
+		facebookSetting["app_id"] = *input.FacebookAppID
+
+		if input.FacebookAppSecret != nil {
+			facebookSetting["app_secret"] = *input.FacebookAppSecret
+		}
+
+		if input.FacebookOAuthScopes != nil {
+			facebookSetting["oauth_scopes"] = *input.FacebookOAuthScopes
+		}
+
+		facebookSettings = append(facebookSettings, facebookSetting)
+	}
+
+	result["facebook"] = facebookSettings
+
+	googleSettings := make([]interface{}, 0)
+
+	if input.GoogleClientID != nil {
+		googleSetting := make(map[string]interface{})
+
+		googleSetting["client_id"] = *input.GoogleClientID
+
+		if input.GoogleClientSecret != nil {
+			googleSetting["client_secret"] = *input.GoogleClientSecret
+		}
+
+		if input.GoogleOAuthScopes != nil {
+			googleSetting["oauth_scopes"] = *input.GoogleOAuthScopes
+		}
+
+		googleSettings = append(googleSettings, googleSetting)
+	}
+
+	result["google"] = googleSettings
+
+	microsoftSettings := make([]interface{}, 0)
+
+	if input.MicrosoftAccountClientID != nil {
+		microsoftSetting := make(map[string]interface{})
+
+		microsoftSetting["client_id"] = *input.MicrosoftAccountClientID
+
+		if input.MicrosoftAccountClientSecret != nil {
+			microsoftSetting["client_secret"] = *input.MicrosoftAccountClientSecret
+		}
+
+		if input.MicrosoftAccountOAuthScopes != nil {
+			microsoftSetting["oauth_scopes"] = *input.MicrosoftAccountOAuthScopes
+		}
+
+		microsoftSettings = append(microsoftSettings, microsoftSetting)
+	}
+
+	result["microsoft"] = microsoftSettings
+
+	twitterSettings := make([]interface{}, 0)
+
+	if input.TwitterConsumerKey != nil {
+		twitterSetting := make(map[string]interface{})
+
+		twitterSetting["consumer_key"] = *input.TwitterConsumerKey
+
+		if input.TwitterConsumerSecret != nil {
+			twitterSetting["consumer_secret"] = *input.TwitterConsumerSecret
+		}
+
+		twitterSettings = append(twitterSettings, twitterSetting)
+	}
+
+	result["twitter"] = twitterSettings
 
 	return append(results, result)
 }
 
-func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
+func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	appLogs := make([]interface{}, 0)
+	if input.ApplicationLogs != nil {
+		appLogsItem := make(map[string]interface{})
+
+		blobStorage := make([]interface{}, 0)
+		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
+			blobStorageItem := make(map[string]interface{})
+
+			blobStorageItem["level"] = string(blobStorageInput.Level)
+
+			if blobStorageInput.SasURL != nil {
+				blobStorageItem["sas_url"] = *blobStorageInput.SasURL
+			}
+
+			if blobStorageInput.RetentionInDays != nil {
+				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
+			}
+
+			// The API returns a non nil application logs object when other logs are specified so we'll check that this structure is empty before adding it to the statefile.
+			if blobStorageInput.SasURL != nil && *blobStorageInput.SasURL != "" {
+				blobStorage = append(blobStorage, blobStorageItem)
+			}
+		}
+		appLogsItem["azure_blob_storage"] = blobStorage
+		appLogs = append(appLogs, appLogsItem)
+	}
+	result["application_logs"] = appLogs
+
+	httpLogs := make([]interface{}, 0)
+	if input.HTTPLogs != nil {
+		httpLogsItem := make(map[string]interface{})
+
+		fileSystem := make([]interface{}, 0)
+		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
+			fileSystemItem := make(map[string]interface{})
+
+			if fileSystemInput.RetentionInDays != nil {
+				fileSystemItem["retention_in_days"] = *fileSystemInput.RetentionInDays
+			}
+
+			if fileSystemInput.RetentionInMb != nil {
+				fileSystemItem["retention_in_mb"] = *fileSystemInput.RetentionInMb
+			}
+
+			// The API returns a non nil filesystem logs object when other logs are specified so we'll check that this is disabled before adding it to the statefile.
+			if fileSystemInput.Enabled != nil && *fileSystemInput.Enabled {
+				fileSystem = append(fileSystem, fileSystemItem)
+			}
+		}
+
+		blobStorage := make([]interface{}, 0)
+		if blobStorageInput := input.HTTPLogs.AzureBlobStorage; blobStorageInput != nil {
+			blobStorageItem := make(map[string]interface{})
+
+			if blobStorageInput.SasURL != nil {
+				blobStorageItem["sas_url"] = *blobStorageInput.SasURL
+			}
+
+			if blobStorageInput.RetentionInDays != nil {
+				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
+			}
+
+			// The API returns a non nil blob logs object when other logs are specified so we'll check that this is disabled before adding it to the statefile.
+			if blobStorageInput.Enabled != nil && *blobStorageInput.Enabled {
+				blobStorage = append(blobStorage, blobStorageItem)
+			}
+		}
+
+		httpLogsItem["file_system"] = fileSystem
+		httpLogsItem["azure_blob_storage"] = blobStorage
+		httpLogs = append(httpLogs, httpLogsItem)
+	}
+	result["http_logs"] = httpLogs
+
+	return append(results, result)
+}
+
+func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	configs := input.([]interface{})
-	siteConfig := web.SiteConfig{}
+	logs := web.SiteLogsConfigProperties{}
 
 	if len(configs) == 0 {
-		return siteConfig
+		return logs
+	}
+
+	config := configs[0].(map[string]interface{})
+
+	if v, ok := config["application_logs"]; ok {
+		appLogsConfigs := v.([]interface{})
+
+		for _, config := range appLogsConfigs {
+			appLogsConfig := config.(map[string]interface{})
+
+			logs.ApplicationLogs = &web.ApplicationLogsConfig{}
+
+			if v, ok := appLogsConfig["azure_blob_storage"]; ok {
+				storageConfigs := v.([]interface{})
+
+				for _, config := range storageConfigs {
+					storageConfig := config.(map[string]interface{})
+
+					logs.ApplicationLogs.AzureBlobStorage = &web.AzureBlobStorageApplicationLogsConfig{
+						Level:           web.LogLevel(storageConfig["level"].(string)),
+						SasURL:          utils.String(storageConfig["sas_url"].(string)),
+						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+					}
+				}
+			}
+		}
+	}
+
+	if v, ok := config["http_logs"]; ok {
+		httpLogsConfigs := v.([]interface{})
+
+		for _, config := range httpLogsConfigs {
+			httpLogsConfig := config.(map[string]interface{})
+
+			logs.HTTPLogs = &web.HTTPLogsConfig{}
+
+			if v, ok := httpLogsConfig["file_system"]; ok {
+				fileSystemConfigs := v.([]interface{})
+
+				for _, config := range fileSystemConfigs {
+					fileSystemConfig := config.(map[string]interface{})
+
+					logs.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
+						RetentionInMb:   utils.Int32(int32(fileSystemConfig["retention_in_mb"].(int))),
+						RetentionInDays: utils.Int32(int32(fileSystemConfig["retention_in_days"].(int))),
+						Enabled:         utils.Bool(true),
+					}
+				}
+			}
+
+			if v, ok := httpLogsConfig["azure_blob_storage"]; ok {
+				storageConfigs := v.([]interface{})
+
+				for _, config := range storageConfigs {
+					storageConfig := config.(map[string]interface{})
+
+					logs.HTTPLogs.AzureBlobStorage = &web.AzureBlobStorageHTTPLogsConfig{
+						SasURL:          utils.String(storageConfig["sas_url"].(string)),
+						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+						Enabled:         utils.Bool(true),
+					}
+				}
+			}
+		}
+	}
+
+	return logs
+}
+
+func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
+	identities := d.Get("identity").([]interface{})
+	if len(identities) == 0 {
+		return nil
+	}
+	identity := identities[0].(map[string]interface{})
+	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
+
+	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
+	for _, id := range identity["identity_ids"].([]interface{}) {
+		identityIds[id.(string)] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+	}
+
+	managedServiceIdentity := web.ManagedServiceIdentity{
+		Type: identityType,
+	}
+
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
+		managedServiceIdentity.UserAssignedIdentities = identityIds
+	}
+
+	return &managedServiceIdentity
+}
+
+func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface{} {
+	if identity == nil {
+		return make([]interface{}, 0)
+	}
+
+	result := make(map[string]interface{})
+	result["type"] = string(identity.Type)
+
+	if identity.PrincipalID != nil {
+		result["principal_id"] = *identity.PrincipalID
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = *identity.TenantID
+	}
+
+	identityIds := make([]string, 0)
+	if identity.UserAssignedIdentities != nil {
+		for key := range identity.UserAssignedIdentities {
+			identityIds = append(identityIds, key)
+		}
+	}
+	result["identity_ids"] = identityIds
+
+	return []interface{}{result}
+}
+
+func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
+	configs := input.([]interface{})
+	siteConfig := &web.SiteConfig{}
+
+	if len(configs) == 0 {
+		return siteConfig, nil
 	}
 
 	config := configs[0].(map[string]interface{})
@@ -501,6 +1413,10 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.LinuxFxVersion = utils.String(v.(string))
 	}
 
+	if v, ok := config["windows_fx_version"]; ok {
+		siteConfig.WindowsFxVersion = utils.String(v.(string))
+	}
+
 	if v, ok := config["http2_enabled"]; ok {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
@@ -508,26 +1424,44 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	if v, ok := config["ip_restriction"]; ok {
 		ipSecurityRestrictions := v.([]interface{})
 		restrictions := make([]web.IPSecurityRestriction, 0)
-		for _, ipSecurityRestriction := range ipSecurityRestrictions {
+		for i, ipSecurityRestriction := range ipSecurityRestrictions {
 			restriction := ipSecurityRestriction.(map[string]interface{})
 
 			ipAddress := restriction["ip_address"].(string)
-			mask := restriction["subnet_mask"].(string)
-			// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
-			// so translate the IP and mask if necessary
-			restrictionMask := ""
-			cidrAddress := ipAddress
-			if mask != "" {
-				ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
-				cidrAddress = ipNet.String()
-			} else if !strings.Contains(ipAddress, "/") {
-				cidrAddress += "/32"
+			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
+			if vNetSubnetID != "" && ipAddress != "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
 			}
 
-			restrictions = append(restrictions, web.IPSecurityRestriction{
-				IPAddress:  &cidrAddress,
-				SubnetMask: &restrictionMask,
-			})
+			if vNetSubnetID == "" && ipAddress == "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+			}
+
+			ipSecurityRestriction := web.IPSecurityRestriction{}
+			if ipAddress != "" {
+				mask := restriction["subnet_mask"].(string)
+				if mask == "" {
+					mask = "255.255.255.255"
+				}
+				// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
+				// so translate the IP and mask if necessary
+				restrictionMask := ""
+				cidrAddress := ipAddress
+				if mask != "" {
+					ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
+					cidrAddress = ipNet.String()
+				} else if !strings.Contains(ipAddress, "/") {
+					cidrAddress += "/32"
+				}
+				ipSecurityRestriction.IPAddress = &cidrAddress
+				ipSecurityRestriction.SubnetMask = &restrictionMask
+			}
+
+			if vNetSubnetID != "" {
+				ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+			}
+
+			restrictions = append(restrictions, ipSecurityRestriction)
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
@@ -582,11 +1516,11 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 
 	if v, ok := config["cors"]; ok {
 		corsSettings := v.(interface{})
-		expand := ExpandAppServiceCorsSettings(corsSettings)
+		expand := ExpandWebCorsSettings(corsSettings)
 		siteConfig.Cors = &expand
 	}
 
-	return siteConfig
+	return siteConfig, nil
 }
 
 func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
@@ -654,6 +1588,9 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 			if subnet := v.SubnetMask; subnet != nil {
 				block["subnet_mask"] = *subnet
 			}
+			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+				block["virtual_network_subnet_id"] = *vNetSubnetID
+			}
 			restrictions = append(restrictions, block)
 		}
 	}
@@ -689,6 +1626,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 		result["linux_fx_version"] = *input.LinuxFxVersion
 	}
 
+	if input.WindowsFxVersion != nil {
+		result["windows_fx_version"] = *input.WindowsFxVersion
+	}
+
 	if input.VnetName != nil {
 		result["virtual_network_name"] = *input.VnetName
 	}
@@ -697,7 +1638,58 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["ftps_state"] = string(input.FtpsState)
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
-	result["cors"] = FlattenAppServiceCorsSettings(input.Cors)
+	result["cors"] = FlattenWebCorsSettings(input.Cors)
 
 	return append(results, result)
+}
+
+func ExpandAppServiceStorageAccounts(d *schema.ResourceData) map[string]*web.AzureStorageInfoValue {
+	input := d.Get("storage_account").(*schema.Set).List()
+	output := make(map[string]*web.AzureStorageInfoValue, len(input))
+
+	for _, v := range input {
+		vals := v.(map[string]interface{})
+
+		saName := vals["name"].(string)
+		saType := vals["type"].(string)
+		saAccountName := vals["account_name"].(string)
+		saShareName := vals["share_name"].(string)
+		saAccessKey := vals["access_key"].(string)
+		saMountPath := vals["mount_path"].(string)
+
+		output[saName] = &web.AzureStorageInfoValue{
+			Type:        web.AzureStorageType(saType),
+			AccountName: utils.String(saAccountName),
+			ShareName:   utils.String(saShareName),
+			AccessKey:   utils.String(saAccessKey),
+			MountPath:   utils.String(saMountPath),
+		}
+	}
+
+	return output
+}
+
+func FlattenAppServiceStorageAccounts(input map[string]*web.AzureStorageInfoValue) []interface{} {
+	results := make([]interface{}, 0)
+
+	for k, v := range input {
+		result := make(map[string]interface{})
+		result["name"] = k
+		result["type"] = string(v.Type)
+		if v.AccountName != nil {
+			result["account_name"] = *v.AccountName
+		}
+		if v.ShareName != nil {
+			result["share_name"] = *v.ShareName
+		}
+		if v.AccessKey != nil {
+			result["access_key"] = *v.AccessKey
+		}
+		if v.MountPath != nil {
+			result["mount_path"] = *v.MountPath
+		}
+		results = append(results, result)
+	}
+
+	return results
 }

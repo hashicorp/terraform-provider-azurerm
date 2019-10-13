@@ -86,6 +86,7 @@ func (client ContainerHostMappingsClient) GetContainerHostMappingPreparer(ctx co
 		"api-version": APIVersion,
 	}
 
+	containerHostMapping.MappedControllerResourceID = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),

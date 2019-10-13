@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,7 +39,7 @@ func TestAccAzureRMApiManagementUser_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementUser_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -226,7 +227,7 @@ func TestAccAzureRMApiManagementUser_complete(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementUserDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementUsersClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.UsersClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_user" {
@@ -264,7 +265,7 @@ func testCheckAzureRMApiManagementUserExists(resourceName string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementUsersClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.UsersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, userId)
 		if err != nil {
@@ -272,7 +273,7 @@ func testCheckAzureRMApiManagementUserExists(resourceName string) resource.TestC
 				return fmt.Errorf("Bad: User %q (API Management Service %q / Resource Group %q) does not exist", userId, serviceName, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on apiManagementUsersClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.UsersClient: %+v", err)
 		}
 
 		return nil
@@ -285,12 +286,12 @@ func testAccAzureRMApiManagementUser_basic(rInt int, location string) string {
 %s
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test"
-  email                 = "azure-acctest%d@example.com"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%d@example.com"
 }
 `, template, rInt, rInt)
 }
@@ -301,13 +302,13 @@ func testAccAzureRMApiManagementUser_requiresImport(rInt int, location string) s
 %s
 
 resource "azurerm_api_management_user" "import" {
-  user_id               = "${azurerm_api_management_user.test.user_id}"
-  api_management_name   = "${azurerm_api_management_user.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_user.test.resource_group_name}"
-  first_name            = "${azurerm_api_management_user.test.first_name}"
-  last_name             = "${azurerm_api_management_user.test.last_name}"
-  email                 = "${azurerm_api_management_user.test.email}"
-  state                 = "${azurerm_api_management_user.test.state}"
+  user_id             = "${azurerm_api_management_user.test.user_id}"
+  api_management_name = "${azurerm_api_management_user.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_user.test.resource_group_name}"
+  first_name          = "${azurerm_api_management_user.test.first_name}"
+  last_name           = "${azurerm_api_management_user.test.last_name}"
+  email               = "${azurerm_api_management_user.test.email}"
+  state               = "${azurerm_api_management_user.test.state}"
 }
 `, template)
 }
@@ -318,14 +319,14 @@ func testAccAzureRMApiManagementUser_password(rInt int, location string) string 
 %s
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test"
-  email                 = "azure-acctest%d@example.com"
-  state                 = "active"
-  password              = "3991bb15-282d-4b9b-9de3-3d5fc89eb530"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%d@example.com"
+  state               = "active"
+  password            = "3991bb15-282d-4b9b-9de3-3d5fc89eb530"
 }
 `, template, rInt, rInt)
 }
@@ -336,13 +337,13 @@ func testAccAzureRMApiManagementUser_updatedActive(rInt int, location string) st
 %s
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test"
-  email                 = "azure-acctest%d@example.com"
-  state                 = "active"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%d@example.com"
+  state               = "active"
 }
 `, template, rInt, rInt)
 }
@@ -353,13 +354,13 @@ func testAccAzureRMApiManagementUser_updatedBlocked(rInt int, location string) s
 %s
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance Updated"
-  last_name             = "Test Updated"
-  email                 = "azure-acctest%d@example.com"
-  state                 = "blocked"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance Updated"
+  last_name           = "Test Updated"
+  email               = "azure-acctest%d@example.com"
+  state               = "blocked"
 }
 `, template, rInt, rInt)
 }
@@ -370,14 +371,14 @@ func testAccAzureRMApiManagementUser_invited(rInt int, location string) string {
 %s
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test User"
-  email                 = "azure-acctest%d@example.com"
-  state                 = "blocked"
-  confirmation          = "invite"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test User"
+  email               = "azure-acctest%d@example.com"
+  state               = "blocked"
+  confirmation        = "invite"
 }
 `, template, rInt, rInt)
 }
@@ -388,14 +389,14 @@ func testAccAzureRMApiManagementUser_signUp(rInt int, location string) string {
 %s
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test User"
-  email                 = "azure-acctest%d@example.com"
-  state                 = "blocked"
-  confirmation          = "signup"
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test User"
+  email               = "azure-acctest%d@example.com"
+  state               = "blocked"
+  confirmation        = "signup"
 }
 `, template, rInt, rInt)
 }
@@ -406,15 +407,15 @@ func testAccAzureRMApiManagementUser_complete(rInt int, location string) string 
 %s
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "acctestuser%d"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Acceptance"
-  last_name             = "Test"
-  email                 = "azure-acctest%d@example.com"
-  state                 = "active"
-  confirmation          = "signup"
-  note                  = "Used for testing in dimension C-137."
+  user_id             = "acctestuser%d"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Acceptance"
+  last_name           = "Test"
+  email               = "azure-acctest%d@example.com"
+  state               = "active"
+  confirmation        = "signup"
+  note                = "Used for testing in dimension C-137."
 }
 `, template, rInt, rInt)
 }
@@ -433,10 +434,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 `, rInt, location, rInt)
 }

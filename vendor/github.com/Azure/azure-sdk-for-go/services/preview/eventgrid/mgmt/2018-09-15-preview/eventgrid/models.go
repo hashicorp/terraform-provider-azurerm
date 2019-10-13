@@ -18,6 +18,7 @@ package eventgrid
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
@@ -635,11 +636,11 @@ type Domain struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource
 	Tags map[string]*string `json:"tags"`
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -654,15 +655,6 @@ func (d Domain) MarshalJSON() ([]byte, error) {
 	}
 	if d.Tags != nil {
 		objectMap["tags"] = d.Tags
-	}
-	if d.ID != nil {
-		objectMap["id"] = d.ID
-	}
-	if d.Name != nil {
-		objectMap["name"] = d.Name
-	}
-	if d.Type != nil {
-		objectMap["type"] = d.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -738,9 +730,9 @@ func (d *Domain) UnmarshalJSON(body []byte) error {
 
 // DomainProperties properties of the Domain
 type DomainProperties struct {
-	// ProvisioningState - Provisioning state of the domain. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Canceled', 'Failed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the domain. Possible values include: 'Creating', 'Updating', 'Deleting', 'Succeeded', 'Canceled', 'Failed'
 	ProvisioningState DomainProvisioningState `json:"provisioningState,omitempty"`
-	// Endpoint - Endpoint for the domain.
+	// Endpoint - READ-ONLY; Endpoint for the domain.
 	Endpoint *string `json:"endpoint,omitempty"`
 	// InputSchema - This determines the format that Event Grid should expect for incoming events published to the domain. Possible values include: 'InputSchemaEventGridSchema', 'InputSchemaCustomEventSchema', 'InputSchemaCloudEventV01Schema'
 	InputSchema InputSchema `json:"inputSchema,omitempty"`
@@ -814,7 +806,7 @@ type DomainsCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *DomainsCreateOrUpdateFuture) Result(client DomainsClient) (d Domain, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -843,7 +835,7 @@ type DomainsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *DomainsDeleteFuture) Result(client DomainsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -882,7 +874,7 @@ type DomainsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *DomainsUpdateFuture) Result(client DomainsClient) (d Domain, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.DomainsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -904,11 +896,11 @@ func (future *DomainsUpdateFuture) Result(client DomainsClient) (d Domain, err e
 // DomainTopic domain Topic
 type DomainTopic struct {
 	autorest.Response `json:"-"`
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1030,11 +1022,11 @@ type EventSubscription struct {
 	autorest.Response `json:"-"`
 	// EventSubscriptionProperties - Properties of the event subscription
 	*EventSubscriptionProperties `json:"properties,omitempty"`
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1043,15 +1035,6 @@ func (es EventSubscription) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if es.EventSubscriptionProperties != nil {
 		objectMap["properties"] = es.EventSubscriptionProperties
-	}
-	if es.ID != nil {
-		objectMap["id"] = es.ID
-	}
-	if es.Name != nil {
-		objectMap["name"] = es.Name
-	}
-	if es.Type != nil {
-		objectMap["type"] = es.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -1298,9 +1281,9 @@ type EventSubscriptionFullURL struct {
 
 // EventSubscriptionProperties properties of the Event Subscription
 type EventSubscriptionProperties struct {
-	// Topic - Name of the topic of the event subscription.
+	// Topic - READ-ONLY; Name of the topic of the event subscription.
 	Topic *string `json:"topic,omitempty"`
-	// ProvisioningState - Provisioning state of the event subscription. Possible values include: 'EventSubscriptionProvisioningStateCreating', 'EventSubscriptionProvisioningStateUpdating', 'EventSubscriptionProvisioningStateDeleting', 'EventSubscriptionProvisioningStateSucceeded', 'EventSubscriptionProvisioningStateCanceled', 'EventSubscriptionProvisioningStateFailed', 'EventSubscriptionProvisioningStateAwaitingManualAction'
+	// ProvisioningState - READ-ONLY; Provisioning state of the event subscription. Possible values include: 'EventSubscriptionProvisioningStateCreating', 'EventSubscriptionProvisioningStateUpdating', 'EventSubscriptionProvisioningStateDeleting', 'EventSubscriptionProvisioningStateSucceeded', 'EventSubscriptionProvisioningStateCanceled', 'EventSubscriptionProvisioningStateFailed', 'EventSubscriptionProvisioningStateAwaitingManualAction'
 	ProvisioningState EventSubscriptionProvisioningState `json:"provisioningState,omitempty"`
 	// Destination - Information about the destination where events have to be delivered for the event subscription.
 	Destination BasicEventSubscriptionDestination `json:"destination,omitempty"`
@@ -1422,7 +1405,7 @@ type EventSubscriptionsCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *EventSubscriptionsCreateOrUpdateFuture) Result(client EventSubscriptionsClient) (es EventSubscription, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1451,7 +1434,7 @@ type EventSubscriptionsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *EventSubscriptionsDeleteFuture) Result(client EventSubscriptionsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1481,7 +1464,7 @@ type EventSubscriptionsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *EventSubscriptionsUpdateFuture) Result(client EventSubscriptionsClient) (es EventSubscription, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.EventSubscriptionsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -1598,11 +1581,11 @@ func (esup *EventSubscriptionUpdateParameters) UnmarshalJSON(body []byte) error 
 type EventType struct {
 	// EventTypeProperties - Properties of the event type.
 	*EventTypeProperties `json:"properties,omitempty"`
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -1611,15 +1594,6 @@ func (et EventType) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if et.EventTypeProperties != nil {
 		objectMap["properties"] = et.EventTypeProperties
-	}
-	if et.ID != nil {
-		objectMap["id"] = et.ID
-	}
-	if et.Name != nil {
-		objectMap["name"] = et.Name
-	}
-	if et.Type != nil {
-		objectMap["type"] = et.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -2577,11 +2551,11 @@ type OperationsListResult struct {
 
 // Resource definition of a Resource
 type Resource struct {
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3252,11 +3226,11 @@ type Topic struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource
 	Tags map[string]*string `json:"tags"`
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3271,15 +3245,6 @@ func (t Topic) MarshalJSON() ([]byte, error) {
 	}
 	if t.Tags != nil {
 		objectMap["tags"] = t.Tags
-	}
-	if t.ID != nil {
-		objectMap["id"] = t.ID
-	}
-	if t.Name != nil {
-		objectMap["name"] = t.Name
-	}
-	if t.Type != nil {
-		objectMap["type"] = t.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3355,9 +3320,9 @@ func (t *Topic) UnmarshalJSON(body []byte) error {
 
 // TopicProperties properties of the Topic
 type TopicProperties struct {
-	// ProvisioningState - Provisioning state of the topic. Possible values include: 'TopicProvisioningStateCreating', 'TopicProvisioningStateUpdating', 'TopicProvisioningStateDeleting', 'TopicProvisioningStateSucceeded', 'TopicProvisioningStateCanceled', 'TopicProvisioningStateFailed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the topic. Possible values include: 'TopicProvisioningStateCreating', 'TopicProvisioningStateUpdating', 'TopicProvisioningStateDeleting', 'TopicProvisioningStateSucceeded', 'TopicProvisioningStateCanceled', 'TopicProvisioningStateFailed'
 	ProvisioningState TopicProvisioningState `json:"provisioningState,omitempty"`
-	// Endpoint - Endpoint for the topic.
+	// Endpoint - READ-ONLY; Endpoint for the topic.
 	Endpoint *string `json:"endpoint,omitempty"`
 	// InputSchema - This determines the format that Event Grid should expect for incoming events published to the topic. Possible values include: 'InputSchemaEventGridSchema', 'InputSchemaCustomEventSchema', 'InputSchemaCloudEventV01Schema'
 	InputSchema InputSchema `json:"inputSchema,omitempty"`
@@ -3431,7 +3396,7 @@ type TopicsCreateOrUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *TopicsCreateOrUpdateFuture) Result(client TopicsClient) (t Topic, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3459,7 +3424,7 @@ type TopicsDeleteFuture struct {
 // If the operation has not completed it will return an error.
 func (future *TopicsDeleteFuture) Result(client TopicsClient) (ar autorest.Response, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsDeleteFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3497,7 +3462,7 @@ type TopicsUpdateFuture struct {
 // If the operation has not completed it will return an error.
 func (future *TopicsUpdateFuture) Result(client TopicsClient) (t Topic, err error) {
 	var done bool
-	done, err = future.Done(client)
+	done, err = future.DoneWithContext(context.Background(), client)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "eventgrid.TopicsUpdateFuture", "Result", future.Response(), "Polling failure")
 		return
@@ -3521,11 +3486,11 @@ type TopicTypeInfo struct {
 	autorest.Response `json:"-"`
 	// TopicTypeProperties - Properties of the topic type info
 	*TopicTypeProperties `json:"properties,omitempty"`
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3534,15 +3499,6 @@ func (tti TopicTypeInfo) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
 	if tti.TopicTypeProperties != nil {
 		objectMap["properties"] = tti.TopicTypeProperties
-	}
-	if tti.ID != nil {
-		objectMap["id"] = tti.ID
-	}
-	if tti.Name != nil {
-		objectMap["name"] = tti.Name
-	}
-	if tti.Type != nil {
-		objectMap["type"] = tti.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3642,11 +3598,11 @@ type TrackedResource struct {
 	Location *string `json:"location,omitempty"`
 	// Tags - Tags of the resource
 	Tags map[string]*string `json:"tags"`
-	// ID - Fully qualified identifier of the resource
+	// ID - READ-ONLY; Fully qualified identifier of the resource
 	ID *string `json:"id,omitempty"`
-	// Name - Name of the resource
+	// Name - READ-ONLY; Name of the resource
 	Name *string `json:"name,omitempty"`
-	// Type - Type of the resource
+	// Type - READ-ONLY; Type of the resource
 	Type *string `json:"type,omitempty"`
 }
 
@@ -3658,15 +3614,6 @@ func (tr TrackedResource) MarshalJSON() ([]byte, error) {
 	}
 	if tr.Tags != nil {
 		objectMap["tags"] = tr.Tags
-	}
-	if tr.ID != nil {
-		objectMap["id"] = tr.ID
-	}
-	if tr.Name != nil {
-		objectMap["name"] = tr.Name
-	}
-	if tr.Type != nil {
-		objectMap["type"] = tr.Type
 	}
 	return json.Marshal(objectMap)
 }
@@ -3760,6 +3707,6 @@ func (whesd *WebHookEventSubscriptionDestination) UnmarshalJSON(body []byte) err
 type WebHookEventSubscriptionDestinationProperties struct {
 	// EndpointURL - The URL that represents the endpoint of the destination of an event subscription.
 	EndpointURL *string `json:"endpointUrl,omitempty"`
-	// EndpointBaseURL - The base URL that represents the endpoint of the destination of an event subscription.
+	// EndpointBaseURL - READ-ONLY; The base URL that represents the endpoint of the destination of an event subscription.
 	EndpointBaseURL *string `json:"endpointBaseUrl,omitempty"`
 }

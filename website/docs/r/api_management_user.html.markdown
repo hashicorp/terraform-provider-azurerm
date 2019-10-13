@@ -25,20 +25,17 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_user" "test" {
-  user_id               = "5931a75ae4bbd512288c680b"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  first_name            = "Example"
-  last_name             = "User"
-  email                 = "tom+tfdev@hashicorp.com"
-  state                 = "active"
+  user_id             = "5931a75ae4bbd512288c680b"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  first_name          = "Example"
+  last_name           = "User"
+  email               = "tom+tfdev@hashicorp.com"
+  state               = "active"
 }
 ```
 

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -127,7 +127,6 @@ func TestAccDataSourceArmStorageAccountSas_servicesString(t *testing.T) {
 			t.Fatalf("Failed to build resource type string: expected: %s, result: %s", test.expected, result)
 		}
 	}
-
 }
 
 func TestAccDataSourceArmStorageAccountSas_permissionsString(t *testing.T) {

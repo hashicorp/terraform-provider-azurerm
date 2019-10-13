@@ -2,23 +2,29 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmSubscription() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceArmSubscriptionRead,
+		Read: dataSourceArmSubscriptionRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 		Schema: azure.SchemaSubscription(true),
 	}
 }
 
 func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	groupClient := client.subscriptionsClient
-	ctx := client.StopContext
+	groupClient := client.Subscription.Client
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	subscriptionId := d.Get("subscription_id").(string)
 	if subscriptionId == "" {
@@ -31,12 +37,13 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error: Subscription %q was not found", subscriptionId)
 		}
 
-		return fmt.Errorf("Error reading subscription: %+v", err)
+		return fmt.Errorf("Error reading Subscription: %+v", err)
 	}
 
 	d.SetId(*resp.ID)
 	d.Set("subscription_id", resp.SubscriptionID)
 	d.Set("display_name", resp.DisplayName)
+	d.Set("tenant_id", resp.TenantID)
 	d.Set("state", resp.State)
 	if resp.SubscriptionPolicies != nil {
 		d.Set("location_placement_id", resp.SubscriptionPolicies.LocationPlacementID)

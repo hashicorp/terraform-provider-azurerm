@@ -3,16 +3,24 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmCosmosDBAccount() *schema.Resource {
+func dataSourceArmCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmCosmosDBAccountRead,
+		Read: dataSourceArmCosmosDbAccountRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -20,11 +28,11 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"offer_type": {
 				Type:     schema.TypeString,
@@ -176,9 +184,10 @@ func dataSourceArmCosmosDBAccount() *schema.Resource {
 	}
 }
 
-func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cosmosDBClient
-	ctx := meta.(*ArmClient).StopContext
+func dataSourceArmCosmosDbAccountRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -197,10 +206,9 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	d.Set("kind", string(resp.Kind))
-	flattenAndSetTags(d, resp.Tags)
 
 	if props := resp.DatabaseAccountProperties; props != nil {
 		d.Set("offer_type", string(props.DatabaseAccountOfferType))
@@ -218,7 +226,7 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		for _, l := range *props.FailoverPolicies {
 			locations[*l.FailoverPriority] = map[string]interface{}{
 				"id":                *l.ID,
-				"location":          azureRMNormalizeLocation(*l.LocationName),
+				"location":          azure.NormalizeLocation(*l.LocationName),
 				"failover_priority": int(*l.FailoverPriority),
 			}
 		}
@@ -237,18 +245,30 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		readEndpoints := make([]string, 0)
 		if locations := props.ReadLocations; locations != nil {
 			for _, l := range *locations {
+				if l.DocumentEndpoint == nil {
+					continue
+				}
+
 				readEndpoints = append(readEndpoints, *l.DocumentEndpoint)
 			}
 		}
-		d.Set("read_endpoints", readEndpoints)
+		if err := d.Set("read_endpoints", readEndpoints); err != nil {
+			return fmt.Errorf("Error setting `read_endpoints`: %s", err)
+		}
 
 		writeEndpoints := make([]string, 0)
 		if locations := props.WriteLocations; locations != nil {
 			for _, l := range *locations {
+				if l.DocumentEndpoint == nil {
+					continue
+				}
+
 				writeEndpoints = append(writeEndpoints, *l.DocumentEndpoint)
 			}
 		}
-		d.Set("write_endpoints", writeEndpoints)
+		if err := d.Set("write_endpoints", writeEndpoints); err != nil {
+			return fmt.Errorf("Error setting `write_endpoints`: %s", err)
+		}
 
 		d.Set("enable_multiple_write_locations", resp.EnableMultipleWriteLocations)
 	}
@@ -269,7 +289,7 @@ func dataSourceArmCosmosDBAccountRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("secondary_readonly_master_key", readonlyKeys.SecondaryReadonlyMasterKey)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenAzureRmCosmosDBAccountCapabilitiesAsList(capabilities *[]documentdb.Capability) *[]map[string]interface{} {

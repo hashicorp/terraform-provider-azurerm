@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMRedisCacheFamily_validation(t *testing.T) {
@@ -130,7 +131,7 @@ func TestAccAzureRMRedisCache_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRedisCache_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -577,12 +578,12 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Redis Instance: %s", redisName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).redisClient
+		conn := testAccProvider.Meta().(*ArmClient).Redis.Client
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, redisName)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on redisClient: %+v", err)
+			return fmt.Errorf("Bad: Get on redis.Client: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
@@ -594,7 +595,7 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).redisClient
+	conn := testAccProvider.Meta().(*ArmClient).Redis.Client
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -634,6 +635,27 @@ func TestAccAzureRMRedisCache_SubscribeAllEvents(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMRedisCacheExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMRedisCache_WithoutAuth(t *testing.T) {
+	resourceName := "azurerm_redis_cache.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMRedisCacheWithoutAuth(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMRedisCacheDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMRedisCacheExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "redis_configuration.0.enable_authentication", "false"),
 				),
 			},
 		},
@@ -1092,6 +1114,43 @@ resource "azurerm_redis_cache" "test" {
   subnet_id           = "${azurerm_subnet.test.id}"
   redis_configuration {}
   zones               = ["1"]
+}
+`, ri, location, ri, ri)
+}
+
+func testAccAzureRMRedisCacheWithoutAuth(ri int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "testsubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_redis_cache" "test" {
+  name                = "acctestRedis-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  capacity            = 1
+  family              = "P"
+  sku_name            = "Premium"
+  enable_non_ssl_port = false
+  subnet_id           = "${azurerm_subnet.test.id}"
+  redis_configuration {
+		enable_authentication = false
+	}
 }
 `, ri, location, ri, ri)
 }

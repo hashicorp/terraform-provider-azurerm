@@ -6,16 +6,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/satori/go.uuid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	uuid "github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,6 +32,13 @@ func resourceArmSqlDatabase() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -38,9 +47,9 @@ func resourceArmSqlDatabase() *schema.Resource {
 				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:         schema.TypeString,
@@ -141,17 +150,28 @@ func resourceArmSqlDatabase() *schema.Resource {
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.Basic),
-					string(sql.Standard),
-					string(sql.Premium),
+					string(sql.Business),
+					string(sql.BusinessCritical),
 					string(sql.DataWarehouse),
+					string(sql.Free),
+					string(sql.GeneralPurpose),
+					string(sql.Hyperscale),
+					string(sql.Premium),
+					string(sql.PremiumRS),
+					string(sql.Standard),
+					string(sql.Stretch),
+					string(sql.System),
+					string(sql.System2),
+					string(sql.Web),
 				}, true),
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:             schema.TypeString,
+				DiffSuppressFunc: suppress.CaseDifference,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
 			},
 
 			"max_size_bytes": {
@@ -291,11 +311,16 @@ func resourceArmSqlDatabase() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"read_scale": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
 			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
 			if hasThreatDetection {
 				if tl := threatDetection.([]interface{}); len(tl) > 0 {
@@ -316,17 +341,18 @@ func resourceArmSqlDatabase() *schema.Resource {
 }
 
 func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.DatabasesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -349,7 +375,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		DatabaseProperties: &sql.DatabaseProperties{
 			CreateMode: sql.CreateMode(createMode),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("source_database_id"); ok {
@@ -415,6 +441,13 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	readScale := d.Get("read_scale").(bool)
+	if readScale {
+		properties.DatabaseProperties.ReadScale = sql.ReadScaleEnabled
+	} else {
+		properties.DatabaseProperties.ReadScale = sql.ReadScaleDisabled
+	}
+
 	// The requested Service Objective Name does not match the requested Service Objective Id.
 	if d.HasChange("requested_service_objective_name") && !d.HasChange("requested_service_objective_id") {
 		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
@@ -456,7 +489,7 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*resp.ID)
 
-	threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+	threatDetectionClient := meta.(*ArmClient).Sql.DatabaseThreatDetectionPoliciesClient
 	if _, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection); err != nil {
 		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
 	}
@@ -465,10 +498,11 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.DatabasesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -488,7 +522,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
 	}
 
-	threatDetectionClient := meta.(*ArmClient).sqlDatabaseThreatDetectionPoliciesClient
+	threatDetectionClient := meta.(*ArmClient).Sql.DatabaseThreatDetectionPoliciesClient
 	threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
 	if err == nil {
 		flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(d, threatDetection)
@@ -500,7 +534,7 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("server_name", serverName)
@@ -533,18 +567,24 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
+
+		readScale := props.ReadScale
+		if readScale == sql.ReadScaleEnabled {
+			d.Set("read_scale", true)
+		} else {
+			d.Set("read_scale", false)
+		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.DatabasesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -579,7 +619,6 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 }
 
 func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
-
 	// The SQL database threat detection API always returns the default value even if never set.
 	// If the values are on their default one, threat it as not set.
 	properties := policy.DatabaseSecurityAlertPolicyProperties

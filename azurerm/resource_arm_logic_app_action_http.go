@@ -3,13 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
-
 	"net/http"
+	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 func resourceArmLogicAppActionHTTP() *schema.Resource {
@@ -20,6 +21,13 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 		Delete: resourceArmLogicAppActionHTTPDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -40,11 +48,11 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(http.MethodDelete),
-					string(http.MethodGet),
-					string(http.MethodPatch),
-					string(http.MethodPost),
-					string(http.MethodPut),
+					http.MethodDelete,
+					http.MethodGet,
+					http.MethodPatch,
+					http.MethodPost,
+					http.MethodPut,
 				}, false),
 			},
 
@@ -61,6 +69,9 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 			"headers": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 	}
@@ -99,7 +110,7 @@ func resourceArmLogicAppActionHTTPCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -108,7 +119,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 	logicAppName := id.Path["workflows"]
 	name := id.Path["actions"]
 
-	t, app, err := retrieveLogicAppAction(meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppAction(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}
@@ -162,7 +173,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppActionHTTPDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +194,7 @@ func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[st
 	headers := make(map[string]string)
 
 	for i, v := range headersRaw {
-		value, err := tagValueToString(v)
+		value, err := tags.TagValueToString(v)
 		if err != nil {
 			return nil, err
 		}

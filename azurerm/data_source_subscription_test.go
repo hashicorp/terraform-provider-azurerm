@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
@@ -22,6 +22,7 @@ func TestAccDataSourceAzureRMSubscription_current(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "subscription_id"),
 					testCheckAzureRMSubscriptionId(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "tenant_id"),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
 				),
 			},
@@ -42,6 +43,7 @@ func TestAccDataSourceAzureRMSubscription_specific(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "subscription_id"),
 					testCheckAzureRMSubscriptionId(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "display_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "tenant_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "location_placement_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "quota_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "spending_limit"),

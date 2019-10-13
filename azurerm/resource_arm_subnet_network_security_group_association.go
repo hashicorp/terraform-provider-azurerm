@@ -3,11 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networkSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,6 +23,13 @@ func resourceArmSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 		Delete: resourceArmSubnetNetworkSecurityGroupAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -39,33 +51,37 @@ func resourceArmSubnetNetworkSecurityGroupAssociation() *schema.Resource {
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> Network Security Group Association creation.")
 
 	subnetId := d.Get("subnet_id").(string)
 	networkSecurityGroupId := d.Get("network_security_group_id").(string)
 
-	parsedSubnetId, err := parseAzureResourceID(subnetId)
+	parsedSubnetId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err
 	}
 
-	networkSecurityGroupName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
 	if err != nil {
 		return err
 	}
 
-	azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+	locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 
 	subnetName := parsedSubnetId.Path["subnets"]
 	virtualNetworkName := parsedSubnetId.Path["virtualNetworks"]
 	resourceGroup := parsedSubnetId.ResourceGroup
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
+
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
 	subnet, err := client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")
 	if err != nil {
@@ -77,7 +93,7 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 	}
 
 	if props := subnet.SubnetPropertiesFormat; props != nil {
-		if requireResourcesToBeImported {
+		if features.ShouldResourcesBeImported() {
 			if nsg := props.NetworkSecurityGroup; nsg != nil {
 				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
 				if nsg.ID != nil && subnet.ID != nil {
@@ -111,10 +127,11 @@ func resourceArmSubnetNetworkSecurityGroupAssociationCreate(d *schema.ResourceDa
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -152,10 +169,11 @@ func resourceArmSubnetNetworkSecurityGroupAssociationRead(d *schema.ResourceData
 }
 
 func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -185,19 +203,19 @@ func resourceArmSubnetNetworkSecurityGroupAssociationDelete(d *schema.ResourceDa
 	}
 
 	// once we have the network security group id to lock on, lock on that
-	networkSecurityGroupName, err := parseNetworkSecurityGroupName(*props.NetworkSecurityGroup.ID)
+	parsedNetworkSecurityGroupId, err := networkSvc.ParseNetworkSecurityGroupResourceID(*props.NetworkSecurityGroup.ID)
 	if err != nil {
 		return err
 	}
 
-	azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+	locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 
-	azureRMLockByName(virtualNetworkName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(virtualNetworkName, virtualNetworkResourceName)
+	locks.ByName(virtualNetworkName, virtualNetworkResourceName)
+	defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
 
-	azureRMLockByName(subnetName, subnetResourceName)
-	defer azureRMUnlockByName(subnetName, subnetResourceName)
+	locks.ByName(subnetName, subnetResourceName)
+	defer locks.UnlockByName(subnetName, subnetResourceName)
 
 	// then re-retrieve it to ensure we've got the latest state
 	read, err = client.Get(ctx, resourceGroup, virtualNetworkName, subnetName, "")

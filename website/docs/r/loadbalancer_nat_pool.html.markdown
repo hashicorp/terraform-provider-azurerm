@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_lb_nat_pool
 
-Manages a Load Balancer NAT pool.
+Manages a Load Balancer NAT pool. 
+
+-> **NOTE:** This resource cannot be used with with virtual machines, instead use the `azurerm_lb_nat_rule` resource.
 
 ~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
@@ -21,10 +23,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "PublicIPForLB"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
+  name                = "PublicIPForLB"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -67,7 +69,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Load Balancer to which the resource is attached.
+* `id` - The ID of the Load Balancer NAT pool.
 
 ## Import
 

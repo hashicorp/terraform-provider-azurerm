@@ -2,14 +2,22 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmSchedulerJobCollection() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSchedulerJobCollectionRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		DeprecationMessage: "Scheduler Job Collection has been deprecated in favour of Logic Apps - more information can be found at https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps",
 
@@ -19,11 +27,11 @@ func dataSourceArmSchedulerJobCollection() *schema.Resource {
 				Required: true,
 			},
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -73,8 +81,9 @@ func dataSourceArmSchedulerJobCollection() *schema.Resource {
 }
 
 func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).schedulerJobCollectionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Scheduler.JobCollectionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -94,10 +103,8 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 	d.Set("name", collection.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := collection.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
-
-	flattenAndSetTags(d, collection.Tags)
 
 	//resource specific
 	if properties := collection.Properties; properties != nil {
@@ -111,5 +118,5 @@ func dataSourceArmSchedulerJobCollectionRead(d *schema.ResourceData, meta interf
 		}
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, collection.Tags)
 }

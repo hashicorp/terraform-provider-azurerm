@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMSqlDatabase_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMSqlDatabase_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -298,9 +299,38 @@ func TestAccAzureRMSqlDatabase_threatDetectionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	preConfig := testAccAzureRMSqlDatabase_readScale(ri, location, true)
+	postConfig := testAccAzureRMSqlDatabase_readScale(ri, location, false)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "read_scale", "true"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "read_scale", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -310,7 +340,7 @@ func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFu
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
@@ -336,7 +366,7 @@ func testCheckAzureRMSqlDatabaseDestroy(s *terraform.State) error {
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, databaseName, "")
@@ -366,7 +396,7 @@ func testCheckAzureRMSqlDatabaseDisappears(resourceName string) resource.TestChe
 		serverName := rs.Primary.Attributes["server_name"]
 		databaseName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, databaseName); err != nil {
@@ -788,4 +818,33 @@ resource "azurerm_sql_database" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt, state)
+}
+
+func testAccAzureRMSqlDatabase_readScale(rInt int, location string, readScale bool) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "readscaletestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "readscaletestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                = "readscaletestdb%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_sql_server.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  edition             = "Premium"
+  collation           = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes      = "1073741824"
+  read_scale		  = %t
+}
+`, rInt, location, rInt, rInt, readScale)
 }

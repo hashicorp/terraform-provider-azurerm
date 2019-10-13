@@ -2,11 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,13 +16,17 @@ func dataSourceArmBatchPool() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBatchPoolRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: azure.ValidateAzureRMBatchPoolName,
 			},
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -110,6 +116,39 @@ func dataSourceArmBatchPool() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"container_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"container_registries": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"registry_server": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"user_name": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"password": {
+										Type:      schema.TypeString,
+										Computed:  true,
+										Sensitive: true,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 			"certificate": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -169,6 +208,9 @@ func dataSourceArmBatchPool() *schema.Resource {
 						"environment": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"user_identity": {
@@ -240,13 +282,14 @@ func dataSourceArmBatchPool() *schema.Resource {
 }
 
 func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batchPoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -274,14 +317,20 @@ func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error 
 			}
 		}
 
-		if props.DeploymentConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
-			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
+		if dcfg := props.DeploymentConfiguration; dcfg != nil {
+			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
+				if err := d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration)); err != nil {
+					return fmt.Errorf("error setting `container_configuration`: %v", err)
+				}
 
-			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
+				if err := d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(vmcfg.ImageReference)); err != nil {
+					return fmt.Errorf("error setting `storage_image_reference`: %v", err)
+				}
 
-			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
-			d.Set("node_agent_sku_id", props.DeploymentConfiguration.VirtualMachineConfiguration.NodeAgentSkuID)
+				if err := d.Set("node_agent_sku_id", vmcfg.NodeAgentSkuID); err != nil {
+					return fmt.Errorf("error setting `node_agent_sku_id`: %v", err)
+				}
+			}
 		}
 
 		if err := d.Set("certificate", azure.FlattenBatchPoolCertificateReferences(props.Certificates)); err != nil {

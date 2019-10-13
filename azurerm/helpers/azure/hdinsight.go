@@ -7,8 +7,8 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -54,7 +54,7 @@ func SchemaHDInsightClusterVersion() *schema.Schema {
 	}
 }
 
-func hdinsightClusterVersionDiffSuppressFunc(k, old, new string, d *schema.ResourceData) bool {
+func hdinsightClusterVersionDiffSuppressFunc(_, old, new string, _ *schema.ResourceData) bool {
 	// `3.6` gets converted to `3.6.1000.67`; so let's just compare major/minor if possible
 	o := strings.Split(old, ".")
 	n := strings.Split(new, ".")
@@ -94,6 +94,10 @@ func SchemaHDInsightsGateway() *schema.Schema {
 					Required:  true,
 					ForceNew:  true,
 					Sensitive: true,
+					// Azure returns the key as *****. We'll suppress that here.
+					DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+						return (new == d.Get(k).(string)) && (old == "*****")
+					},
 				},
 			},
 		},

@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -109,7 +110,7 @@ func TestAccAzureRMAppServicePlan_basicLinux(t *testing.T) {
 }
 
 func TestAccAzureRMAppServicePlan_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -273,8 +274,58 @@ func TestAccAzureRMAppServicePlan_consumptionPlan(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppServicePlan_premiumConsumptionPlan(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_premiumConsumptionPlan(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "ElasticPremium"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "EP1"),
+					resource.TestCheckResourceAttr(resourceName, "maximum_elastic_worker_count", "20"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppServicePlan_basicWindowsContainer(t *testing.T) {
+	resourceName := "azurerm_app_service_plan.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServicePlanDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAppServicePlan_basicWindowsContainer(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServicePlanExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "kind", "xenon"),
+					resource.TestCheckResourceAttr(resourceName, "is_xenon", "true"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "PremiumContainer"),
+					resource.TestCheckResourceAttr(resourceName, "sku.0.size", "PC2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMAppServicePlanDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
+	conn := testAccProvider.Meta().(*ArmClient).Web.AppServicePlansClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_plan" {
@@ -314,7 +365,7 @@ func testCheckAzureRMAppServicePlanExists(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for App Service Plan: %s", appServicePlanName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).appServicePlansClient
+		conn := testAccProvider.Meta().(*ArmClient).Web.AppServicePlansClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, appServicePlanName)
 		if err != nil {
@@ -367,9 +418,7 @@ resource "azurerm_app_service_plan" "test" {
     size = "B1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 `, rInt, location, rInt)
 }
@@ -390,9 +439,7 @@ resource "azurerm_app_service_plan" "import" {
     size = "B1"
   }
 
-  properties {
-    reserved = true
-  }
+  reserved = true
 }
 `, template)
 }
@@ -499,10 +546,8 @@ resource "azurerm_app_service_plan" "test" {
     size = "S1"
   }
 
-  properties {
-    per_site_scaling = true
-    reserved         = false
-  }
+  per_site_scaling = true
+  reserved         = false
 
   tags = {
     environment = "Test"
@@ -555,6 +600,51 @@ resource "azurerm_app_service_plan" "test" {
   sku {
     tier = "Dynamic"
     size = "Y1"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_premiumConsumptionPlan(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  kind                = "elastic"
+
+  maximum_elastic_worker_count = 20
+
+  sku {
+    tier = "ElasticPremium"
+    size = "EP1"
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMAppServicePlan_basicWindowsContainer(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  kind                = "xenon"
+  is_xenon            = true
+
+  sku {
+    tier = "PremiumContainer"
+    size = "PC2"
   }
 }
 `, rInt, location, rInt)

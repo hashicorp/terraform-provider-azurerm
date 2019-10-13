@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_container_group
 
-Manage as an Azure Container Group instance.
+Manages as an Azure Container Group instance.
 
 ## Example Usage
 
@@ -65,11 +65,13 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
+~> **Note:** managed identities are not supported for containers in virtual networks.
+
 * `container` - (Required) The definition of a container that is part of the group as documented in the `container` block below. Changing this forces a new resource to be created.
 
-~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported.
-
 * `os_type` - (Required) The OS for the container group. Allowed values are `Linux` and `Windows`. Changing this forces a new resource to be created.
+
+~> **Note:** if `os_type` is set to `Windows` currently only a single `container` block is supported. Windows containers are not supported in virtual networks.
 
 ---
 
@@ -77,7 +79,13 @@ The following arguments are supported:
 
 * `dns_name_label` - (Optional) The DNS label/name for the container groups IP. Changing this forces a new resource to be created.
 
-* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` is the only acceptable value at this time. Changing this forces a new resource to be created.
+~> **Note:** DNS label/name is not supported when deploying to virtual networks.
+
+* `ip_address_type` - (Optional) Specifies the ip address type of the container. `Public` or `Private`. Changing this forces a new resource to be created. If set to `Private`, `network_profile_id` also needs to be set.
+
+~> **Note:** `dns_name_label`, `identity` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
+
+* `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
 * `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
 
@@ -149,7 +157,7 @@ A `image_registry_credential` block supports:
 
 A `log_analytics` block supports:
 
-* `log_type` - (Required) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`. Changing this forces a new resource to be created.
+* `log_type` - (Optional) The log type which should be used. Possible values are `ContainerInsights` and `ContainerInstanceLogs`. Changing this forces a new resource to be created.
 
 * `workspace_id` - (Required) The Workspace ID of the Log Analytics Workspace. Changing this forces a new resource to be created.
 

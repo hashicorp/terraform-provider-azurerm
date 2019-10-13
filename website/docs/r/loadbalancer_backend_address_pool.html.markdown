@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_lb_backend_address_pool
 
-Manage a Load Balancer Backend Address Pool.
+Manages a Load Balancer Backend Address Pool.
 
 ~> **NOTE:** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
@@ -21,10 +21,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "PublicIPForLB"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
+  name                = "PublicIPForLB"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {

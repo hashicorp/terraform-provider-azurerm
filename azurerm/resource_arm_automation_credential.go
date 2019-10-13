@@ -3,10 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +25,13 @@ func resourceArmAutomationCredential() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -28,7 +39,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"account_name": {
 				Type:     schema.TypeString,
@@ -56,8 +67,9 @@ func resourceArmAutomationCredential() *schema.Resource {
 }
 
 func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationCredentialClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.CredentialClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
 
@@ -65,7 +77,7 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 	resGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("account_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -110,10 +122,11 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationCredentialClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.CredentialClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -143,10 +156,11 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationCredentialClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.CredentialClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

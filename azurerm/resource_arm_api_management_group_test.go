@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -38,7 +39,7 @@ func TestAccAzureRMAPIManagementGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -139,7 +140,7 @@ func TestAccAzureRMAPIManagementGroup_descriptionDisplayNameUpdate(t *testing.T)
 }
 
 func testCheckAzureRMAPIManagementGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementGroupClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_group" {
 			continue
@@ -174,14 +175,14 @@ func testCheckAzureRMAPIManagementGroupExists(resourceName string) resource.Test
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementGroupClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.GroupClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: API Management Group %q (Resource Group %q / API Management Service %q) does not exist", name, resourceGroup, serviceName)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementGroupClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.GroupClient: %+v", err)
 		}
 
 		return nil
@@ -202,10 +203,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_group" "test" {
@@ -245,10 +243,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_group" "test" {

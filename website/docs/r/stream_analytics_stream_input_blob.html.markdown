@@ -37,16 +37,16 @@ resource "azurerm_storage_container" "example" {
   container_access_type = "private"
 }
 
-resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
-  name                         = "eventhub-stream-input"
-  stream_analytics_job_name    = "${data.azurerm_stream_analytics_job.example.name}"
-  resource_group_name          = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
-  storage_account_name         = "${azurerm_storage_account.example.name}"
-  storage_account_key          = "${azurerm_storage_account.example.primary_access_key}"
-  storage_container_name       = "${azurerm_storage_container.example.name}"
-  path_pattern                 = "some-random-pattern"
-  date_format                  = "yyyy/MM/dd"
-  time_format                  = "HH"
+resource "azurerm_stream_analytics_stream_input_blob" "test" {
+  name                      = "eventhub-stream-input"
+  stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
+  resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
+  storage_account_name      = "${azurerm_storage_account.example.name}"
+  storage_account_key       = "${azurerm_storage_account.example.primary_access_key}"
+  storage_container_name    = "${azurerm_storage_container.example.name}"
+  path_pattern              = "some-random-pattern"
+  date_format               = "yyyy/MM/dd"
+  time_format               = "HH"
 
   serialization {
     type     = "Json"
@@ -85,7 +85,7 @@ A `serialization` block supports the following:
 
 * `type` - (Required) The serialization format used for incoming data streams. Possible values are `Avro`, `Csv` and `Json`.
 
-* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output.
+* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
 -> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
 

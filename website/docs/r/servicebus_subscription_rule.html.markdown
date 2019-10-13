@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_servicebus_subscription_rule
 
-Manage a ServiceBus Subscription Rule.
+Manages a ServiceBus Subscription Rule.
 
 ## Example Usage (SQL Filter)
 
@@ -160,5 +160,5 @@ The following attributes are exported:
 Service Bus Subscription Rule can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_subscription.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1/rules/sbrule1
+terraform import azurerm_servicebus_subscription_rule.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1/rules/sbrule1
 ```

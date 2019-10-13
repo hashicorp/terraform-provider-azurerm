@@ -8,10 +8,12 @@ description: |-
 
 # azurerm_virtual_machine_scale_set
 
-Manage a virtual machine scale set.
+Manages a virtual machine scale set.
 
-~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
+~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
+-> **NOTE:** The `azurerm_virtual_machine_scale_set` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
 
 ## Example Usage with Managed Disks (Recommended)
 
@@ -153,7 +155,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
       primary                                = true
       subnet_id                              = "${azurerm_subnet.test.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
-      load_balancer_inbound_nat_rules_ids    = ["${element(azurerm_lb_nat_pool.lbnatpool.*.id, count.index)}"]
+      load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.lbnatpool.id}"]
     }
   }
 
@@ -274,6 +276,8 @@ The following arguments are supported:
 * `os_profile_windows_config` - (Required, when a windows machine) A Windows config block as documented below.
 
 * `os_profile_linux_config` - (Required, when a linux machine) A Linux config block as documented below.
+
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
 * `sku` - (Required) A sku block as documented below.
 
@@ -434,9 +438,9 @@ output "principal_id" {
 
 * `name` - (Required) Specifies name of the IP configuration.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
-* `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of one application gateway. Multiple scale sets cannot use the same application gateway.
+* `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of multiple application gateways. Multiple scale sets cannot use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
-* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
+* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT pools for load balancers. A scale set can reference inbound nat pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
 * `primary` - (Required) Specifies if this ip_configuration is the primary one.
 * `application_security_group_ids` - (Optional) Specifies up to `20` application security group IDs.
 * `public_ip_address_configuration` - (Optional) Describes a virtual machines scale set IP Configuration's PublicIPAddress configuration. The public_ip_address_configuration is documented below.
@@ -444,7 +448,7 @@ output "principal_id" {
 `public_ip_address_configuration` supports the following:
 
 * `name` - (Required) The name of the public ip address configuration
-* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 32.
+* `idle_timeout` - (Required) The idle timeout in minutes. This value must be between 4 and 30.
 * `domain_name_label` - (Required) The domain name label for the dns settings.
 
 `storage_profile_os_disk` supports the following:
@@ -489,6 +493,7 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 * `type` - (Required) The type of extension, available types for a publisher can be found using the Azure CLI.
 * `type_handler_version` - (Required) Specifies the version of the extension to use, available versions can be found using the Azure CLI.
 * `auto_upgrade_minor_version` - (Optional) Specifies whether or not to use the latest minor version available.
+* `provision_after_extensions` - (Optional) Specifies a dependency array of extensions required to be executed before, the array stores the name of each extension.
 * `settings` - (Required) The settings passed to the extension, these are specified as a JSON object in a string.
 * `protected_settings` - (Optional) The protected_settings passed to the extension, like settings, these are specified as a JSON object in a string.
 

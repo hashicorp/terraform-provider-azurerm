@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -102,7 +103,7 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_rightsUpdate(t *testing.T) {
 	})
 }
 func TestAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -132,7 +133,7 @@ func TestAccAzureRMServiceBusQueueAuthorizationRule_requiresImport(t *testing.T)
 }
 
 func testCheckAzureRMServiceBusQueueAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
+	conn := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -172,7 +173,7 @@ func testCheckAzureRMServiceBusQueueAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Queue Authorization Rule: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).serviceBusQueuesClient
+		conn := testAccProvider.Meta().(*ArmClient).ServiceBus.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, queueName, name)
