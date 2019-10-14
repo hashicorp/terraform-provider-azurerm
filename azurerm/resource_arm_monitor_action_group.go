@@ -178,7 +178,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"automation_account_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.UUID,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 						"runbook_name": {
 							Type:         schema.TypeString,
