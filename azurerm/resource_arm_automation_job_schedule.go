@@ -61,6 +61,9 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 				Type:     schema.TypeMap,
 				Optional: true,
 				ForceNew: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 				ValidateFunc: func(v interface{}, _ string) (warnings []string, errors []error) {
 					m := v.(map[string]interface{})
 

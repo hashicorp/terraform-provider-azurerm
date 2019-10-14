@@ -281,11 +281,11 @@ resource "azurerm_automation_job_schedule" "test" {
   runbook_name            = "${azurerm_automation_runbook.test.name}"
 
   parameters = {
-    OutPut                = "Earth"
-    Case                  = "MATTERS"
-    KeepCount             = 20
-    WebhookUri            = "http://www.example.com/hook"
-    URL                   = "https://www.Example.com"
+    output                = "Earth"
+    case                  = "MATTERS"
+    keepcount             = 20
+    webhookuri            = "http://www.example.com/hook"
+    url                   = "https://www.Example.com"
   }
 }
 `, template)
@@ -300,11 +300,11 @@ func checkAccAzureRMAutomationJobSchedule_complete(resourceName string) resource
 		resource.TestCheckResourceAttrSet(resourceName, "schedule_name"),
 		resource.TestCheckResourceAttrSet(resourceName, "runbook_name"),
 		resource.TestCheckResourceAttr(resourceName, "parameters.%", "5"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.Output", "Earth"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.Case", "MATTERS"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.KeepCount", "20"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.WebhookUri", "http://www.example.com/hook"),
-		resource.TestCheckResourceAttr(resourceName, "parameters.URL", "https://www.Example.com"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.output", "Earth"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.case", "MATTERS"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.keepcount", "20"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.webhookuri", "http://www.example.com/hook"),
+		resource.TestCheckResourceAttr(resourceName, "parameters.url", "https://www.Example.com"),
 	)
 }
 
