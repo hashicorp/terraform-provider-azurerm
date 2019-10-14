@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -113,7 +113,7 @@ func TestAccAzureRMAutomationJobSchedule_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automationJobScheduleClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.JobScheduleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -152,7 +152,7 @@ func testCheckAzureRMAutomationJobScheduleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAutomationJobScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).automationJobScheduleClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.JobScheduleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
