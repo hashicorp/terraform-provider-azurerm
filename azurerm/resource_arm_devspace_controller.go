@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
+	"github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -73,13 +73,6 @@ func resourceArmDevSpaceController() *schema.Resource {
 				},
 			},
 
-			"host_suffix": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"target_container_host_resource_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -98,6 +91,11 @@ func resourceArmDevSpaceController() *schema.Resource {
 			"tags": tags.Schema(),
 
 			"data_plane_fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"host_suffix": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -133,7 +131,6 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 
 	sku := expandDevSpaceControllerSku(d)
 
-	hostSuffix := d.Get("host_suffix").(string)
 	tarCHResId := d.Get("target_container_host_resource_id").(string)
 	tarCHCredBase64 := d.Get("target_container_host_credentials_base64").(string)
 
@@ -142,7 +139,6 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 		Tags:     tags.Expand(t),
 		Sku:      sku,
 		ControllerProperties: &devspaces.ControllerProperties{
-			HostSuffix:                           &hostSuffix,
 			TargetContainerHostResourceID:        &tarCHResId,
 			TargetContainerHostCredentialsBase64: &tarCHCredBase64,
 		},

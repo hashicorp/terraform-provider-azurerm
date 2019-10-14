@@ -163,7 +163,6 @@ resource "azurerm_devspace_controller" "test" {
   name                                     = "acctestdsc%d"
   location                                 = "${azurerm_resource_group.test.location}"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
-  host_suffix                              = "suffix"
   target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
   target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
 
@@ -184,7 +183,6 @@ resource "azurerm_devspace_controller" "import" {
   name                                     = "${azurerm_devspace_controller.test.name}"
   location                                 = "${azurerm_devspace_controller.test.location}"
   resource_group_name                      = "${azurerm_devspace_controller.test.resource_group_name}"
-  host_suffix                              = "${azurerm_devspace_controller.test.host_suffix}"
   target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
   target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
 
