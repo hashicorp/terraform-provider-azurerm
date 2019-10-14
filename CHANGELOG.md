@@ -10,7 +10,9 @@ FEATURES:
 IMPROVEMENTS:
 
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
+* dependencies: updating to `v34.1.0` of `github.com/Azure/azure-sdk-for-go` [GH-4609]
 * devspace: updating to API version `2019-04-01` [GH-4597]
+* frontdoor: updating to use API version `2019-04-01` [GH-4609]
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
 * Data Source: `azurerm_lb_backend_address_pool` - exposing `backend_ip_configurations` [GH-4605]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
