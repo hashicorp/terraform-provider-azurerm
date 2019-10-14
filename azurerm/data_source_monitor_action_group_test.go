@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
@@ -72,7 +73,8 @@ func TestAccDataSourceArmMonitorActionGroup_disabledBasic(t *testing.T) {
 func TestAccDataSourceArmMonitorActionGroup_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccDataSourceArmMonitorActionGroup_complete(ri, testLocation())
+	rs := acctest.RandString(5)
+	config := testAccDataSourceArmMonitorActionGroup_complete(ri, rs, testLocation())
 
 	aaName := fmt.Sprintf("acctestAA-%d", ri)
 	faName := fmt.Sprintf("acctestFA-%d", ri)
@@ -173,7 +175,7 @@ data "azurerm_monitor_action_group" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccDataSourceArmMonitorActionGroup_complete(rInt int, location string) string {
+func testAccDataSourceArmMonitorActionGroup_complete(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -313,7 +315,7 @@ SCHEMA
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestSA-%d"
+	name                     = "acctestsa%s"
 	resource_group_name      = "${azurerm_resource_group.test.name}"
 	location                 = "${azurerm_resource_group.test.location}"
 	account_tier             = "Standard"
@@ -343,5 +345,5 @@ data "azurerm_monitor_action_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_monitor_action_group.test.name}"
 }
-`, rInt, location, rInt, rInt, rInt, rInt/1e12, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rString, rInt, rInt)
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -379,7 +380,8 @@ func TestAccAzureRMMonitorActionGroup_logicAppReceiver(t *testing.T) {
 func TestAccAzureRMMonitorActionGroup_azureFunctionReceiver(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMonitorActionGroup_azureFunctionReceiver(ri, testLocation())
+	rs := acctest.RandString(4)
+	config := testAccAzureRMMonitorActionGroup_azureFunctionReceiver(ri, rs, testLocation())
 
 	faName := fmt.Sprintf("acctestFA-%d", ri)
 	resGroup := fmt.Sprintf("acctestRG-%d", ri)
@@ -419,7 +421,8 @@ func TestAccAzureRMMonitorActionGroup_azureFunctionReceiver(t *testing.T) {
 func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMMonitorActionGroup_complete(ri, testLocation())
+	rs := acctest.RandString(4)
+	config := testAccAzureRMMonitorActionGroup_complete(ri, rs, testLocation())
 
 	aaName := fmt.Sprintf("acctestAA-%d", ri)
 	faName := fmt.Sprintf("acctestFA-%d", ri)
@@ -518,6 +521,7 @@ func TestAccAzureRMMonitorActionGroup_disabledUpdate(t *testing.T) {
 func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
 	location := testLocation()
 	emailConfig := testAccAzureRMMonitorActionGroup_emailReceiver(ri, location)
 	itsmConfig := testAccAzureRMMonitorActionGroup_itsmReceiver(ri, location)
@@ -527,7 +531,7 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 	automationRunbookConfig := testAccAzureRMMonitorActionGroup_automationRunbookReceiver(ri, location)
 	voiceConfig := testAccAzureRMMonitorActionGroup_voiceReceiver(ri, location)
 	logicAppConfig := testAccAzureRMMonitorActionGroup_logicAppReceiver(ri, location)
-	azureFunctionConfig := testAccAzureRMMonitorActionGroup_azureFunctionReceiver(ri, location)
+	azureFunctionConfig := testAccAzureRMMonitorActionGroup_azureFunctionReceiver(ri, rs, location)
 
 	aaName := fmt.Sprintf("acctestAA-%d", ri)
 	faName := fmt.Sprintf("acctestFA-%d", ri)
@@ -715,9 +719,10 @@ func TestAccAzureRMMonitorActionGroup_singleReceiverUpdate(t *testing.T) {
 func TestAccAzureRMMonitorActionGroup_multipleReceiversUpdate(t *testing.T) {
 	resourceName := "azurerm_monitor_action_group.test"
 	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
 	location := testLocation()
 	basicConfig := testAccAzureRMMonitorActionGroup_basic(ri, location)
-	completeConfig := testAccAzureRMMonitorActionGroup_complete(ri, location)
+	completeConfig := testAccAzureRMMonitorActionGroup_complete(ri, rs, location)
 
 	aaName := fmt.Sprintf("acctestAA-%d", ri)
 	faName := fmt.Sprintf("acctestFA-%d", ri)
@@ -1055,7 +1060,7 @@ SCHEMA
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMMonitorActionGroup_azureFunctionReceiver(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_azureFunctionReceiver(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -1076,7 +1081,7 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-	name                     = "acctestSA-%d"
+	name                     = "acctestsa%s"
 	resource_group_name      = "${azurerm_resource_group.test.name}"
 	location                 = "${azurerm_resource_group.test.location}"
 	account_tier             = "Standard"
@@ -1101,10 +1106,10 @@ resource "azurerm_function_app" "test" {
 	app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
 	storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 }
-`, rInt, location, rInt, rInt/1e12, rInt, rInt)
+`, rInt, location, rInt, rString, rInt, rInt)
 }
 
-func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string {
+func testAccAzureRMMonitorActionGroup_complete(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 	resource "azurerm_resource_group" "test" {
 		name     = "acctestRG-%d"
@@ -1239,7 +1244,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 	}
 
 	resource "azurerm_storage_account" "test" {
-		name                     = "acctestSA-%d"
+		name                     = "acctestsa%s"
 		resource_group_name      = "${azurerm_resource_group.test.name}"
 		location                 = "${azurerm_resource_group.test.location}"
 		account_tier             = "Standard"
@@ -1264,7 +1269,7 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, location string) string
 		app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
 		storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 	}
-`, rInt, location, rInt, rInt, rInt, rInt/1e12, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rString, rInt, rInt)
 }
 
 func testAccAzureRMMonitorActionGroup_disabledBasic(rInt int, location string) string {
