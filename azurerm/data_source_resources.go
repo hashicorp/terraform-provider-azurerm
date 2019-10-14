@@ -1,14 +1,11 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -100,19 +97,6 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 		filter = filter + v
 	}
 
-	// Waiting for the resources to become available to account for replication lag
-	log.Printf("[DEBUG] Waiting for the resources to become available to account for replication lag")
-	stateConf := &resource.StateChangeConf{
-		Pending:                   []string{"ResourcesNotFound"},
-		Target:                    []string{"ResourcesFound"},
-		Refresh:                   dataArmResourcesStateStatusCodeRefreshFunc(ctx, meta, filter),
-		Timeout:                   1 * time.Minute,
-		MinTimeout:                10 * time.Second,
-		ContinuousTargetOccurence: 2,
-	}
-
-	_, _ = stateConf.WaitForState()
-
 	resources := make([]map[string]interface{}, 0)
 	resourcesResp, err := client.ListComplete(ctx, filter, "", nil)
 	if err != nil {
@@ -192,21 +176,4 @@ func dataSourceArmResourcesRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return nil
-}
-
-func dataArmResourcesStateStatusCodeRefreshFunc(ctx context.Context, meta interface{}, filter string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		resourcesClient := meta.(*ArmClient).Resource.ResourcesClient
-		resp, err := resourcesClient.ListComplete(ctx, filter, "", nil)
-
-		if err != nil {
-			return nil, "", fmt.Errorf("Error while waiting for the resources to become available: %+v", err)
-		}
-
-		if resp.Value().ID == nil {
-			return resp, "ResourcesNotFound", nil
-		}
-
-		return resp, "ResourcesFound", nil
-	}
 }

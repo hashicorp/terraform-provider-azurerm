@@ -14,14 +14,16 @@ func TestAccDataSourceAzureRMResources_ByName(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResources_ByName(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+			},
+			{
+				Config: testAccDataSourceAzureRMResources_ByName(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "resources.#", "1"),
 				),
@@ -35,14 +37,16 @@ func TestAccDataSourceAzureRMResources_ByResourceGroup(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResources_ByResourceGroup(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+			},
+			{
+				Config: testAccDataSourceAzureRMResources_ByResourceGroup(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "resources.#", "1"),
 				),
@@ -56,14 +60,16 @@ func TestAccDataSourceAzureRMResources_ByResourceType(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResources_ByResourceType(ri, rs, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+			},
+			{
+				Config: testAccDataSourceAzureRMResources_ByResourceType(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "resources.#", "1"),
 				),
@@ -77,14 +83,16 @@ func TestAccDataSourceAzureRMResources_FilteredByTags(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	location := testLocation()
-	config := testAccDataSourceAzureRMResources_FilteredByTags(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccDataSourceAzureRMStorageAccount_basic(ri, rs, location),
+			},
+			{
+				Config: testAccDataSourceAzureRMResources_FilteredByTags(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "resources.#", "1"),
 				),
