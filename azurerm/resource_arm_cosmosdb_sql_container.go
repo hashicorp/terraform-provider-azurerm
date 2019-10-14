@@ -17,8 +17,9 @@ import (
 
 func resourceArmCosmosDbSQLContainer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbSQLContainerCreate,
+		Create: resourceArmCosmosDbSQLContainerCreateUpdate,
 		Read:   resourceArmCosmosDbSQLContainerRead,
+		Update: resourceArmCosmosDbSQLContainerCreateUpdate,
 		Delete: resourceArmCosmosDbSQLContainerDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -85,7 +86,7 @@ func resourceArmCosmosDbSQLContainer() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbSQLContainerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbSQLContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()

@@ -17,8 +17,9 @@ import (
 
 func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbCassandraKeyspaceCreate,
+		Create: resourceArmCosmosDbCassandraKeyspaceCreateUpdate,
 		Read:   resourceArmCosmosDbCassandraKeyspaceRead,
+		Update: resourceArmCosmosDbCassandraKeyspaceCreateUpdate,
 		Delete: resourceArmCosmosDbCassandraKeyspaceDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -52,7 +53,7 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbCassandraKeyspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
