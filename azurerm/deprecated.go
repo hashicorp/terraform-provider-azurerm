@@ -27,18 +27,8 @@ func expandTags(tagsMap map[string]interface{}) map[string]*string {
 }
 
 // nolint: deadcode unused
-func tagsForDataSourceSchema() *schema.Schema {
-	return tags.SchemaDataSource()
-}
-
-// nolint: deadcode unused
 func tagsSchema() *schema.Schema {
 	return tags.Schema()
-}
-
-// nolint: deadcode unused
-func tagsForceNewSchema() *schema.Schema {
-	return tags.ForceNewSchema()
 }
 
 // nolint: deadcode unused

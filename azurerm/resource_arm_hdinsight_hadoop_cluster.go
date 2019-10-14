@@ -7,8 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/hashicorp/terraform/helper/resource"
+
+	// "github.com/hashicorp/terraform/helper/resource"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -18,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -83,6 +86,12 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 			}
 
 			return nil
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -189,7 +198,8 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).HDInsight.ClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -318,7 +328,8 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interface{}) error {
 	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
 	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

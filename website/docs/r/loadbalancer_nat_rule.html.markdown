@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_lb_nat_rule
 
-Manages a Load Balancer NAT Rule.
+Manages a Load Balancer NAT Rule. 
+
+-> **NOTE:** This resource cannot be used with with virtual machine scale sets, instead use the `azurerm_lb_nat_pool` resource.
 
 ~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
@@ -66,7 +68,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Load Balancer to which the resource is attached.
+* `id` - The ID of the Load Balancer NAT Rule.
 
 ## Import
 

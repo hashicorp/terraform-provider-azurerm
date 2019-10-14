@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -14,6 +15,10 @@ import (
 func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmKubernetesServiceVersionsRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"location": azure.SchemaLocation(),

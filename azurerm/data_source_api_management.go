@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -15,6 +16,10 @@ import (
 func dataSourceApiManagementService() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceApiManagementRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementDataSourceName(),

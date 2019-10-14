@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -9,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +22,13 @@ func resourceArmRecoveryServicesProtectionContainer() *schema.Resource {
 		Delete: resourceArmSiteRecoveryProtectionContainerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -54,7 +63,8 @@ func resourceArmRecoveryServicesProtectionContainerCreate(d *schema.ResourceData
 	name := d.Get("name").(string)
 
 	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, fabricName, name)
@@ -103,7 +113,8 @@ func resourceArmRecoveryServicesProtectionContainerRead(d *schema.ResourceData, 
 	name := id.Path["replicationProtectionContainers"]
 
 	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, fabricName, name)
 	if err != nil {
@@ -133,7 +144,8 @@ func resourceArmSiteRecoveryProtectionContainerDelete(d *schema.ResourceData, me
 	name := id.Path["replicationProtectionContainers"]
 
 	client := meta.(*ArmClient).RecoveryServices.ProtectionContainerClient(resGroup, vaultName)
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	future, err := client.Delete(ctx, fabricName, name)
 	if err != nil {
