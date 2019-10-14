@@ -12,7 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -109,7 +109,7 @@ func resourceArmKeyVaultAccessPolicy() *schema.Resource {
 }
 
 func resourceArmKeyVaultAccessPolicyCreateOrDelete(d *schema.ResourceData, meta interface{}, action keyvault.AccessPolicyUpdateKind) error {
-	client := meta.(*ArmClient).Keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] Preparing arguments for Key Vault Access Policy: %s.", action)
 
@@ -276,7 +276,7 @@ func resourceArmKeyVaultAccessPolicyUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmKeyVaultAccessPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Keyvault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.VaultsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

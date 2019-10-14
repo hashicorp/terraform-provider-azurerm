@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -395,7 +395,7 @@ func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *
 }
 
 func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
+	conn := testAccProvider.Meta().(*ArmClient).Eventhub.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -432,7 +432,7 @@ func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Namespace: %s", namespaceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
+		conn := testAccProvider.Meta().(*ArmClient).Eventhub.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName)

@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -91,7 +91,7 @@ func resourceArmDevTestPolicy() *schema.Resource {
 }
 
 func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.PoliciesClient
+	client := meta.(*ArmClient).DevTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for DevTest Policy creation")
@@ -151,7 +151,7 @@ func resourceArmDevTestPolicyCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.PoliciesClient
+	client := meta.(*ArmClient).DevTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -190,7 +190,7 @@ func resourceArmDevTestPolicyRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmDevTestPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestLabs.PoliciesClient
+	client := meta.(*ArmClient).DevTestLabs.PoliciesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

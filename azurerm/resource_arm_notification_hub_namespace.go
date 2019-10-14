@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -108,7 +108,7 @@ func resourceArmNotificationHubNamespace() *schema.Resource {
 }
 
 func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.NamespacesClient
+	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	// Remove in 2.0
@@ -191,7 +191,7 @@ func resourceArmNotificationHubNamespaceCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.NamespacesClient
+	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -241,7 +241,7 @@ func resourceArmNotificationHubNamespaceRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNotificationHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.NamespacesClient
+	client := meta.(*ArmClient).NotificationHubs.NamespacesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

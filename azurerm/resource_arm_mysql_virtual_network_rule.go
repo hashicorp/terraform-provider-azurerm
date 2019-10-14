@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -78,7 +78,7 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 
 	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*ArmClient).network.SubnetsClient
+	subnetsClient := meta.(*ArmClient).Network.SubnetsClient
 	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err

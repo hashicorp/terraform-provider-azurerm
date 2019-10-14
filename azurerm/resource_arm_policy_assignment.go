@@ -14,10 +14,10 @@ import (
 	"strconv"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -108,7 +108,7 @@ func resourceArmPolicyAssignment() *schema.Resource {
 }
 
 func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -195,7 +195,7 @@ func resourceArmPolicyAssignmentCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()
@@ -244,7 +244,7 @@ func resourceArmPolicyAssignmentRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmPolicyAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).policy.AssignmentsClient
+	client := meta.(*ArmClient).Policy.AssignmentsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id := d.Id()

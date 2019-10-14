@@ -10,7 +10,7 @@ func TestParseNetworkSecurityGroup(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *RouteTableResourceID
+		Expected *NetworkSecurityGroupResourceID
 	}{
 		{
 			Name:     "Empty",
@@ -30,7 +30,7 @@ func TestParseNetworkSecurityGroup(t *testing.T) {
 		{
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/networkSecurityGroups/example",
-			Expected: &RouteTableResourceID{
+			Expected: &NetworkSecurityGroupResourceID{
 				Name: "example",
 				Base: azure.ResourceID{
 					ResourceGroup: "foo",

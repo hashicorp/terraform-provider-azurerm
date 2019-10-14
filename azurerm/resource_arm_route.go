@@ -9,8 +9,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -73,7 +73,7 @@ func resourceArmRoute() *schema.Resource {
 }
 
 func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RoutesClient
+	client := meta.(*ArmClient).Network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -133,7 +133,7 @@ func resourceArmRouteCreateUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RoutesClient
+	client := meta.(*ArmClient).Network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -167,7 +167,7 @@ func resourceArmRouteRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmRouteDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.RoutesClient
+	client := meta.(*ArmClient).Network.RoutesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
@@ -29,8 +29,8 @@ func Provider() terraform.ResourceProvider {
 	//		(so we can remove `getBlobStorageClientForStorageAccount` from `config.go`)
 	//  4. (DONE) Introducing a parent struct which becomes a nested field in `config.go`
 	//  	for those properties, to ease migration (probably internal/common/clients.go)
+	//	5. (DONE) Making the SDK Clients public in the ArmClient
 	//
-	//	5. Making the SDK Clients public in the ArmClient
 	//  6. Migrating the Fields from the `ArmClient` to the new base `Client`
 	//		But leaving the referencing accessing the top-level field e.g.
 	//			type Client struct { // ./azurerm/internal/common/client.go
@@ -453,6 +453,11 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
+	}
+
+	// 2.0 resources
+	if features.SupportsTwoPointZeroResources() {
+		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
 	}
 
 	// avoids this showing up in test output

@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -43,7 +43,7 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 }
 
 func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
+	client := meta.(*ArmClient).Compute.ProximityPlacementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for AzureRM Proximity Placement Group creation.")
@@ -81,7 +81,7 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
+	client := meta.(*ArmClient).Compute.ProximityPlacementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -110,7 +110,7 @@ func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
+	client := meta.(*ArmClient).Compute.ProximityPlacementGroupsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

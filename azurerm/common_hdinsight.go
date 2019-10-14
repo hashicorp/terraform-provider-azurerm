@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -16,7 +16,7 @@ import (
 
 func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema.UpdateFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
-		client := meta.(*ArmClient).hdinsight.ClustersClient
+		client := meta.(*ArmClient).HDInsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
 		id, err := azure.ParseAzureResourceID(d.Id())
@@ -63,10 +63,9 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		if clusterKind == "Hadoop" {
 			if d.HasChange("roles.0.edge_node") {
 				log.Printf("[DEBUG] Detected change in edge nodes")
-				o, n := d.GetChange("roles.0.edge_node.0.target_instance_count")
 				edgeNodeRaw := d.Get("roles.0.edge_node").([]interface{})
 				edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
-				applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
+				applicationsClient := meta.(*ArmClient).HDInsight.ApplicationsClient
 
 				// Note: API currently doesn't support updating number of edge nodes
 				// if anything in the edge nodes changes, delete edge nodes then recreate them
@@ -102,7 +101,7 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 
 func hdinsightClusterDelete(clusterKind string) schema.DeleteFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
-		client := meta.(*ArmClient).hdinsight.ClustersClient
+		client := meta.(*ArmClient).HDInsight.ClustersClient
 		ctx := meta.(*ArmClient).StopContext
 
 		id, err := azure.ParseAzureResourceID(d.Id())

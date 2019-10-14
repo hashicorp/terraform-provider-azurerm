@@ -5,10 +5,11 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -59,7 +60,8 @@ func resourceArmAutomationCredential() *schema.Resource {
 
 func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.CredentialClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Credential creation.")
 
@@ -113,7 +115,8 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.CredentialClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -146,7 +149,8 @@ func resourceArmAutomationCredentialRead(d *schema.ResourceData, meta interface{
 
 func resourceArmAutomationCredentialDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.CredentialClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

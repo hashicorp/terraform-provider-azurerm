@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -198,7 +198,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 }
 
 func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
 
@@ -304,7 +304,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
 
@@ -395,7 +395,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
-	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
+	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
 
@@ -464,8 +464,8 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 }
 
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
-	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
+	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -552,7 +552,7 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
+	client := meta.(*ArmClient).Containers.RegistriesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())

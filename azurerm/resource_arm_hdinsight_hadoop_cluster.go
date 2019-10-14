@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/validation"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -188,7 +188,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdinsight.ClustersClient
+	client := meta.(*ArmClient).HDInsight.ClustersClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -277,7 +277,7 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 	// We can only add an edge node after creation
 	if v, ok := d.GetOk("roles.0.edge_node"); ok {
 		edgeNodeRaw := v.([]interface{})
-		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
+		applicationsClient := meta.(*ArmClient).HDInsight.ApplicationsClient
 		edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
 
 		err := createHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
@@ -316,8 +316,8 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
+	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -372,7 +372,7 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 		}
 		flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, hadoopRoles)
 
-		applicationsClient := meta.(*ArmClient).hdinsight.ApplicationsClient
+		applicationsClient := meta.(*ArmClient).HDInsight.ApplicationsClient
 
 		edgeNode, err := applicationsClient.Get(ctx, resourceGroup, name, name)
 		if err != nil {
@@ -479,7 +479,7 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 
 func retryHDInsightEdgeNodeGet(resGroup string, name string, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		client := meta.(*ArmClient).hdinsight.ApplicationsClient
+		client := meta.(*ArmClient).HDInsight.ApplicationsClient
 		ctx := meta.(*ArmClient).StopContext
 
 		if _, err := client.Get(ctx, resGroup, name, name); err != nil {
