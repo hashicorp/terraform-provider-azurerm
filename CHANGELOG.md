@@ -12,6 +12,7 @@ IMPROVEMENTS:
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
 * devspace: updating to API version `2019-04-01` [GH-4597]
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
+* Data Source: `azurerm_lb_backend_address_pool` - exposing `backend_ip_configurations` [GH-4605]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
 * `azurerm_frontdoor` - update `custom_host` to be optional, add `redirect_configuration` to documentation. [GH-4601]
 * `azurerm_kubernetes_cluster` - allow the `aci_connector_linux` to be disabled by allowing the subnet property be empty [GH-4541]
