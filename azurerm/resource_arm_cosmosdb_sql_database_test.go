@@ -36,6 +36,45 @@ func TestAccAzureRMCosmosDbSqlDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbSqlDatabase_update(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_sql_database.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+
+				Config: testAccAzureRMCosmosDbSqlDatabase_complete(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+
+				Config: testAccAzureRMCosmosDbSqlDatabase_update(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbSqlDatabaseDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -100,6 +139,32 @@ resource "azurerm_cosmosdb_sql_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
+}
+`, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
+}
+
+func testAccAzureRMCosmosDbSqlDatabase_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  throughput          = 600
+}
+`, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
+}
+
+func testAccAzureRMCosmosDbSqlDatabase_update(rInt int, location string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  throughput          = 400
 }
 `, testAccAzureRMCosmosDBAccount_basic(rInt, location, string(documentdb.Eventual), "", ""), rInt)
 }

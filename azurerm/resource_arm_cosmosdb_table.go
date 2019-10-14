@@ -41,6 +41,13 @@ func resourceArmCosmosDbTable() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
+
+			"throughput": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      400,
+				ValidateFunc: validate.CosmosThroughput,
+			},
 		},
 	}
 }
@@ -53,6 +60,7 @@ func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) er
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
+	throughput := d.Get("throughput").(int)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetTable(ctx, resourceGroup, account, name)
@@ -86,6 +94,23 @@ func resourceArmCosmosDbTableCreate(d *schema.ResourceData, meta interface{}) er
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Table %s (Account %s): %+v", name, account, err)
+	}
+
+	throughputParameters := documentdb.ThroughputUpdateParameters{
+		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+			Resource: &documentdb.ThroughputResource{
+				Throughput: utils.Int32(int32(throughput)),
+			},
+		},
+	}
+
+	throughputFuture, err := client.UpdateTableThroughput(ctx, resourceGroup, account, name, throughputParameters)
+	if err != nil {
+		return fmt.Errorf("Error setting Throughput for Cosmos Table %s (Account %s): %+v", name, account, err)
+	}
+
+	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Table %s (Account %s): %+v", name, account, err)
 	}
 
 	resp, err := client.GetTable(ctx, resourceGroup, account, name)
@@ -127,6 +152,15 @@ func resourceArmCosmosDbTableRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("account_name", id.Account)
 	if props := resp.TableProperties; props != nil {
 		d.Set("name", props.ID)
+	}
+
+	throughputResp, err := client.GetTableThroughput(ctx, id.ResourceGroup, id.Account, id.Table)
+	if err != nil {
+		return fmt.Errorf("Error reading Throughput on Cosmos Table %s (Account %s) ID: %v", id.Table, id.Account, err)
+	}
+
+	if throughput := throughputResp.Throughput; throughput != nil {
+		d.Set("throughput", int(*throughput))
 	}
 
 	return nil

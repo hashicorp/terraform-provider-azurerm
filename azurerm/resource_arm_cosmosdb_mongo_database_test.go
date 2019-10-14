@@ -35,6 +35,43 @@ func TestAccAzureRMCosmosDbMongoDatabase_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMCosmosDbMongoDatabase_update(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+	resourceName := "azurerm_cosmosdb_mongo_database.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMCosmosDbMongoDatabase_complete(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "600"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMCosmosDbMongoDatabase_update(ri, testLocation()),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMCosmosDbMongoDatabaseDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -99,6 +136,32 @@ resource "azurerm_cosmosdb_mongo_database" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
   account_name        = "${azurerm_cosmosdb_account.test.name}"
+}
+`, testAccAzureRMCosmosDBAccount_mongoDB(rInt, location), rInt)
+}
+
+func testAccAzureRMCosmosDbMongoDatabase_complete(rInt int, location string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  throughput          = 600
+}
+`, testAccAzureRMCosmosDBAccount_mongoDB(rInt, location), rInt)
+}
+
+func testAccAzureRMCosmosDbMongoDatabase_update(rInt int, location string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_mongo_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = "${azurerm_cosmosdb_account.test.resource_group_name}"
+  account_name        = "${azurerm_cosmosdb_account.test.name}"
+  throughput		  = 400
 }
 `, testAccAzureRMCosmosDBAccount_mongoDB(rInt, location), rInt)
 }

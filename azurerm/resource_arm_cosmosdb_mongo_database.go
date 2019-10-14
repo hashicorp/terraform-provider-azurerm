@@ -41,6 +41,13 @@ func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
+
+			"throughput": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      400,
+				ValidateFunc: validate.CosmosThroughput,
+			},
 		},
 	}
 }
@@ -53,6 +60,7 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
+	throughput := d.Get("throughput").(int)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
@@ -86,6 +94,23 @@ func resourceArmCosmosDbMongoDatabaseCreate(d *schema.ResourceData, meta interfa
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
+	}
+
+	throughputParameters := documentdb.ThroughputUpdateParameters{
+		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+			Resource: &documentdb.ThroughputResource{
+				Throughput: utils.Int32(int32(throughput)),
+			},
+		},
+	}
+
+	throughputFuture, err := client.UpdateMongoDBDatabaseThroughput(ctx, resourceGroup, account, name, throughputParameters)
+	if err != nil {
+		return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Database %s (Account %s): %+v", name, account, err)
+	}
+
+	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
 	}
 
 	resp, err := client.GetMongoDBDatabase(ctx, resourceGroup, account, name)
@@ -127,6 +152,15 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 	d.Set("account_name", id.Account)
 	if props := resp.MongoDBDatabaseProperties; props != nil {
 		d.Set("name", props.ID)
+	}
+
+	throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database)
+	if err != nil {
+		return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+	}
+
+	if throughput := throughputResp.Throughput; throughput != nil {
+		d.Set("throughput", int(*throughput))
 	}
 
 	return nil

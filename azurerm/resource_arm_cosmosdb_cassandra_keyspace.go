@@ -41,6 +41,13 @@ func resourceArmCosmosDbCassandraKeyspace() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.CosmosAccountName,
 			},
+
+			"throughput": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      400,
+				ValidateFunc: validate.CosmosThroughput,
+			},
 		},
 	}
 }
@@ -53,6 +60,7 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
+	throughput := d.Get("throughput").(int)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
@@ -86,6 +94,23 @@ func resourceArmCosmosDbCassandraKeyspaceCreate(d *schema.ResourceData, meta int
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
+	}
+
+	throughputParameters := documentdb.ThroughputUpdateParameters{
+		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+			Resource: &documentdb.ThroughputResource{
+				Throughput: utils.Int32(int32(throughput)),
+			},
+		},
+	}
+
+	throughputFuture, err := client.UpdateCassandraKeyspaceThroughput(ctx, resourceGroup, account, name, throughputParameters)
+	if err != nil {
+		return fmt.Errorf("Error setting Throughput for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
+	}
+
+	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Cassandra Keyspace %s (Account %s): %+v", name, account, err)
 	}
 
 	resp, err := client.GetCassandraKeyspace(ctx, resourceGroup, account, name)
@@ -127,6 +152,15 @@ func resourceArmCosmosDbCassandraKeyspaceRead(d *schema.ResourceData, meta inter
 	d.Set("account_name", id.Account)
 	if props := resp.CassandraKeyspaceProperties; props != nil {
 		d.Set("name", props.ID)
+	}
+
+	throughputResp, err := client.GetCassandraKeyspaceThroughput(ctx, id.ResourceGroup, id.Account, id.Keyspace)
+	if err != nil {
+		return fmt.Errorf("Error reading Throughput on Cosmos Cassandra Keyspace %s (Account %s): %+v", id.Keyspace, id.Account, err)
+	}
+
+	if throughput := throughputResp.Throughput; throughput != nil {
+		d.Set("throughput", int(*throughput))
 	}
 
 	return nil
