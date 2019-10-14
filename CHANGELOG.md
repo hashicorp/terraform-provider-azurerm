@@ -10,6 +10,7 @@ FEATURES:
 IMPROVEMENTS:
 
 * 2.0 prep: groundwork required for custom timeouts [GH-4475]
+* devspace: updating to API version `2019-04-01` [GH-4597]
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
 * `azurerm_frontdoor` - update `custom_host` to be optional, add `redirect_configuration` to documentation. [GH-4601]
@@ -18,6 +19,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` [GH-4534]
+* `azurerm_devspace_controller`: the `host_suffix` field is now read-only due to a change in Azure [GH-4597]
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
 * `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
