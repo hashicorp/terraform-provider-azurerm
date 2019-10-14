@@ -3,12 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,9 +25,16 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"automation_account_name": {
 				Type:         schema.TypeString,
@@ -69,8 +79,9 @@ func resourceArmAutomationJobSchedule() *schema.Resource {
 }
 
 func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationJobScheduleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.JobScheduleClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Job Schedule creation.")
 
@@ -140,8 +151,9 @@ func resourceArmAutomationJobScheduleCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationJobScheduleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.JobScheduleClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -176,7 +188,7 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 	if v := resp.JobScheduleProperties.Parameters; v != nil {
 		jsParameters := make(map[string]interface{})
 		for key, value := range v {
-			jsParameters[key] = value
+			jsParameters[strings.ToLower(key)] = value
 		}
 		d.Set("parameters", jsParameters)
 	}
@@ -185,8 +197,9 @@ func resourceArmAutomationJobScheduleRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAutomationJobScheduleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automationJobScheduleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.JobScheduleClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {

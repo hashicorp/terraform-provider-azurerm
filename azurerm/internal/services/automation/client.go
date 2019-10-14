@@ -11,6 +11,7 @@ type Client struct {
 	CredentialClient            *automation.CredentialClient
 	DscConfigurationClient      *automation.DscConfigurationClient
 	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
+	JobScheduleClient           *automation.JobScheduleClient
 	ModuleClient                *automation.ModuleClient
 	RunbookClient               *automation.RunbookClient
 	RunbookDraftClient          *automation.RunbookDraftClient
