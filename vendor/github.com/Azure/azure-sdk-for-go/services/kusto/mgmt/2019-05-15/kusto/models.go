@@ -161,13 +161,15 @@ const (
 	SOHSV DataFormat = "SOHSV"
 	// TSV ...
 	TSV DataFormat = "TSV"
+	// TSVE ...
+	TSVE DataFormat = "TSVE"
 	// TXT ...
 	TXT DataFormat = "TXT"
 )
 
 // PossibleDataFormatValues returns an array of possible values for the DataFormat const type.
 func PossibleDataFormatValues() []DataFormat {
-	return []DataFormat{AVRO, CSV, JSON, MULTIJSON, PSV, RAW, SCSV, SINGLEJSON, SOHSV, TSV, TXT}
+	return []DataFormat{AVRO, CSV, JSON, MULTIJSON, PSV, RAW, SCSV, SINGLEJSON, SOHSV, TSV, TSVE, TXT}
 }
 
 // Kind enumerates the values for kind.
@@ -1363,7 +1365,7 @@ type EventGridConnectionProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
-	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO'
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO', 'TSVE'
 	DataFormat DataFormat `json:"dataFormat,omitempty"`
 }
 
@@ -1503,7 +1505,7 @@ type EventHubConnectionProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
-	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO'
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO', 'TSVE'
 	DataFormat DataFormat `json:"dataFormat,omitempty"`
 	// EventSystemProperties - System properties of the event hub
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`
@@ -1645,7 +1647,7 @@ type IotHubConnectionProperties struct {
 	TableName *string `json:"tableName,omitempty"`
 	// MappingRuleName - The mapping rule to be used to ingest the data. Optionally the mapping information can be added to each message.
 	MappingRuleName *string `json:"mappingRuleName,omitempty"`
-	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO'
+	// DataFormat - The data format of the message. Optionally the data format can be added to each message. Possible values include: 'MULTIJSON', 'JSON', 'CSV', 'TSV', 'SCSV', 'SOHSV', 'PSV', 'TXT', 'RAW', 'SINGLEJSON', 'AVRO', 'TSVE'
 	DataFormat DataFormat `json:"dataFormat,omitempty"`
 	// EventSystemProperties - System properties of the iot hub
 	EventSystemProperties *[]string `json:"eventSystemProperties,omitempty"`

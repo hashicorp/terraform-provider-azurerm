@@ -13,15 +13,15 @@ Manages a DevSpace Controller.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG1"
-  location = "westeurope"
+resource "azurerm_resource_group" "example" {
+  name     = "example_resources"
+  location = "West Europe"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   dns_prefix          = "acctestaks1"
 
   agent_pool_profile {
@@ -38,8 +38,8 @@ resource "azurerm_kubernetes_cluster" "test" {
 
 resource "azurerm_devspace_controller" "test" {
   name                = "acctestdsc1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   sku {
     name = "S1"
@@ -68,8 +68,6 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as documented below. Changing this forces a new resource to be created.
 
-* `host_suffix` - (Required) The host suffix for the DevSpace Controller. Changing this forces a new resource to be created.
-
 * `target_container_host_resource_id` - (Required) The resource id of Azure Kubernetes Service cluster. Changing this forces a new resource to be created.
 
 * `target_container_host_credentials_base64` - (Required) Base64 encoding of `kube_config_raw` of Azure Kubernetes Service cluster. Changing this forces a new resource to be created.
@@ -90,6 +88,9 @@ The following attributes are exported:
 * `id` - The ID of the DevSpace Controller.
 
 * `data_plane_fqdn` - DNS name for accessing DataPlane services.
+
+* `host_suffix` - The host suffix for the DevSpace Controller.
+
 
 ## Import
 

@@ -29,6 +29,19 @@ func dataSourceArmLoadBalancerBackendAddressPool() *schema.Resource {
 				Required:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
+
+			"backend_ip_configurations": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -45,12 +58,27 @@ func dataSourceArmLoadBalancerBackendAddressPoolRead(d *schema.ResourceData, met
 		return fmt.Errorf("Unable to retrieve Backend Address Pool %q since Load Balancer %q was not found", name, loadBalancerId)
 	}
 
-	config, _, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
+	bap, _, exists := findLoadBalancerBackEndAddressPoolByName(loadBalancer, name)
 	if !exists {
 		return fmt.Errorf("Backend Address Pool %q was not found in Load Balancer %q", name, loadBalancerId)
 	}
 
-	d.SetId(*config.ID)
+	d.SetId(*bap.ID)
+
+	backendIPConfigurations := make([]interface{}, 0)
+	if props := bap.BackendAddressPoolPropertiesFormat; props != nil {
+		if beipConfigs := props.BackendIPConfigurations; beipConfigs != nil {
+			for _, config := range *beipConfigs {
+				ipConfig := make(map[string]interface{})
+				if id := config.ID; id != nil {
+					ipConfig["id"] = *id
+					backendIPConfigurations = append(backendIPConfigurations, ipConfig)
+				}
+			}
+		}
+	}
+
+	d.Set("backend_ip_configurations", backendIPConfigurations)
 
 	return nil
 }

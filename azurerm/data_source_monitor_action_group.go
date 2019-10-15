@@ -89,6 +89,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},

@@ -32,6 +32,13 @@ As such the Azure Active Directory resources within the AzureRM Provider are now
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"service_principal_id": {
 				Type:         schema.TypeString,

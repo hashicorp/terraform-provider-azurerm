@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,6 +25,13 @@ func resourceArmKustoEventHubDataConnection() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -133,7 +142,7 @@ func resourceArmKustoEventHubDataConnectionCreateUpdate(d *schema.ResourceData, 
 	clusterName := d.Get("cluster_name").(string)
 	databaseName := d.Get("database_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		connectionModel, err := client.Get(ctx, resourceGroup, clusterName, databaseName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(connectionModel.Response) {
