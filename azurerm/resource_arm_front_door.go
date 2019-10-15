@@ -172,11 +172,12 @@ func resourceArmFrontDoor() *schema.Resource {
 										Required:     true,
 										ValidateFunc: afd.ValidateBackendPoolRoutingRuleName,
 									},
+									// Remove default value for #4461
 									"cache_use_dynamic_compression": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Default:  false,
 									},
+									// Remove default value for #4461
 									"cache_query_parameter_strip_directive": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -184,12 +185,12 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.StripAll),
 											string(frontdoor.StripNone),
 										}, false),
-										Default: string(frontdoor.StripNone),
 									},
 									"custom_forwarding_path": {
 										Type:     schema.TypeString,
 										Optional: true,
 									},
+									// Added Portal Default value for #4461
 									"forwarding_protocol": {
 										Type:     schema.TypeString,
 										Optional: true,
@@ -198,7 +199,7 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.HTTPSOnly),
 											string(frontdoor.MatchRequest),
 										}, false),
-										Default: string(frontdoor.MatchRequest),
+										Default: string(frontdoor.HTTPSOnly),
 									},
 								},
 							},
@@ -1050,20 +1051,9 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 
 	customForwardingPath := v["custom_forwarding_path"].(string)
 	forwardingProtocol := v["forwarding_protocol"].(string)
+	backendPoolName := v["backend_pool_name"].(string)
 	cacheUseDynamicCompression := v["cache_use_dynamic_compression"].(bool)
 	cacheQueryParameterStripDirective := v["cache_query_parameter_strip_directive"].(string)
-	backendPoolName := v["backend_pool_name"].(string)
-
-	useDynamicCompression := frontdoor.DynamicCompressionEnabledDisabled
-
-	if cacheUseDynamicCompression {
-		useDynamicCompression = frontdoor.DynamicCompressionEnabledEnabled
-	}
-
-	cacheConfiguration := &frontdoor.CacheConfiguration{
-		QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
-		DynamicCompression:           useDynamicCompression,
-	}
 
 	backend := &frontdoor.SubResource{
 		ID: utils.String(frontDoorPath + "/BackendPools/" + backendPoolName),
@@ -1071,9 +1061,17 @@ func expandArmFrontDoorForwardingConfiguration(input []interface{}, frontDoorPat
 
 	forwardingConfiguration := frontdoor.ForwardingConfiguration{
 		ForwardingProtocol: frontdoor.ForwardingProtocol(forwardingProtocol),
-		CacheConfiguration: cacheConfiguration,
 		BackendPool:        backend,
 		OdataType:          frontdoor.OdataTypeMicrosoftAzureFrontDoorModelsFrontdoorForwardingConfiguration,
+	}
+
+	// Per the portal, if you enable the cache the cache_query_parameter_strip_directive
+	// is then a required attribute else the CacheConfiguration type is null
+	if cacheUseDynamicCompression {
+		forwardingConfiguration.CacheConfiguration = &frontdoor.CacheConfiguration{
+			DynamicCompression:           frontdoor.DynamicCompressionEnabledEnabled,
+			QueryParameterStripDirective: frontdoor.Query(cacheQueryParameterStripDirective),
+		}
 	}
 
 	if customForwardingPath != "" {

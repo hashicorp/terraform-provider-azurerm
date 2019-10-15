@@ -65,9 +65,17 @@ func ValidateFrontdoorSettings(d *schema.ResourceDiff) error {
 			if err := VerifyBackendPoolExists(fc["backend_pool_name"].(string), backendPools); err != nil {
 				return fmt.Errorf(`"routing_rule":%q is invalid. %+v`, routingRuleName, err)
 			}
+
+			// Check 3. validate if the cache_query_parameter_strip_directive is defined
+			//          that the cache_use_dynamic_compression is set to true
+			if cacheQueryParameterStripDirective := fc["cache_query_parameter_strip_directive"].(string); cacheQueryParameterStripDirective != "" {
+				if !fc["cache_use_dynamic_compression"].(bool) {
+					return fmt.Errorf(`"routing_rule": %q is invalid. "cache_use_dynamic_compression" must be set to "true" if the "cache_query_parameter_strip_directive" attribute is defined`, routingRuleName)
+				}
+			}
 		}
 
-		// Check 3. validate that each routing rule frontend_endpoints are actually defined in the resource schema
+		// Check 4. validate that each routing rule frontend_endpoints are actually defined in the resource schema
 		if routingRuleFrontends := routingRule["frontend_endpoints"].([]interface{}); len(routingRuleFrontends) > 0 {
 			if err := VerifyRoutingRuleFrontendEndpoints(routingRuleFrontends, configFrontendEndpoints); err != nil {
 				return fmt.Errorf(`"routing_rule":%q %+v`, routingRuleName, err)
