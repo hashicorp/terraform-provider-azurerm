@@ -54,9 +54,9 @@ The following attributes are exported:
 
 Authentication Configuration
 
-* `authority` - The Azure AD Tenant.
-* `audience` - The audience of the Service.
-* `smart_proxy_enabled` - If the service is using the SMART on FHIR proxy.
+* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service.
+* `audience` - The intended audience to receive authentication tokens for the service..
+* `smart_proxy_enabled` - Enabled status of the 'SMART on FHIR' option for mobile and web implementations.
 
 CORS Configuration
 
