@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +23,13 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 		Delete: resourceArmMediaServicesAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -67,7 +76,8 @@ func resourceArmMediaServicesAccount() *schema.Resource {
 
 func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Media.ServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	accountName := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -101,7 +111,8 @@ func resourceArmMediaServicesAccountCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Media.ServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -143,7 +154,8 @@ func resourceArmMediaServicesAccountRead(d *schema.ResourceData, meta interface{
 
 func resourceArmMediaServicesAccountDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Media.ServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

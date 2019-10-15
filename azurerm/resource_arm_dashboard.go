@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-preview/portal"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +24,13 @@ func resourceArmDashboard() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -45,7 +54,8 @@ func resourceArmDashboard() *schema.Resource {
 
 func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Portal.DashboardsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	t := d.Get("tags").(map[string]interface{})
 	name := d.Get("name").(string)
@@ -83,7 +93,8 @@ func resourceArmDashboardCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Portal.DashboardsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, parseErr := azure.ParseAzureResourceID(d.Id())
 	if parseErr != nil {
@@ -118,7 +129,8 @@ func resourceArmDashboardRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmDashboardDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Portal.DashboardsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, parseErr := azure.ParseAzureResourceID(d.Id())
 	if parseErr != nil {

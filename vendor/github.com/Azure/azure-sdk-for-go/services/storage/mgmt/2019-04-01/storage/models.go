@@ -272,6 +272,21 @@ func PossibleKindValues() []Kind {
 	return []Kind{BlobStorage, BlockBlobStorage, FileStorage, Storage, StorageV2}
 }
 
+// LargeFileSharesState enumerates the values for large file shares state.
+type LargeFileSharesState string
+
+const (
+	// Disabled ...
+	Disabled LargeFileSharesState = "Disabled"
+	// Enabled ...
+	Enabled LargeFileSharesState = "Enabled"
+)
+
+// PossibleLargeFileSharesStateValues returns an array of possible values for the LargeFileSharesState const type.
+func PossibleLargeFileSharesStateValues() []LargeFileSharesState {
+	return []LargeFileSharesState{Disabled, Enabled}
+}
+
 // LeaseDuration enumerates the values for lease duration.
 type LeaseDuration string
 
@@ -832,6 +847,145 @@ type AccountListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; Gets the list of storage accounts and their properties.
 	Value *[]Account `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Request URL that can be used to query next page of storage accounts. Returned when total number of requested storage accounts exceed maximum page size.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// AccountListResultIterator provides access to a complete listing of Account values.
+type AccountListResultIterator struct {
+	i    int
+	page AccountListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AccountListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AccountListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AccountListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AccountListResultIterator) Response() AccountListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AccountListResultIterator) Value() Account {
+	if !iter.page.NotDone() {
+		return Account{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AccountListResultIterator type.
+func NewAccountListResultIterator(page AccountListResultPage) AccountListResultIterator {
+	return AccountListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (alr AccountListResult) IsEmpty() bool {
+	return alr.Value == nil || len(*alr.Value) == 0
+}
+
+// accountListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (alr AccountListResult) accountListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(alr.NextLink)))
+}
+
+// AccountListResultPage contains a page of Account values.
+type AccountListResultPage struct {
+	fn  func(context.Context, AccountListResult) (AccountListResult, error)
+	alr AccountListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AccountListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.alr)
+	if err != nil {
+		return err
+	}
+	page.alr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AccountListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AccountListResultPage) NotDone() bool {
+	return !page.alr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AccountListResultPage) Response() AccountListResult {
+	return page.alr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AccountListResultPage) Values() []Account {
+	if page.alr.IsEmpty() {
+		return nil
+	}
+	return *page.alr.Value
+}
+
+// Creates a new instance of the AccountListResultPage type.
+func NewAccountListResultPage(getNextPage func(context.Context, AccountListResult) (AccountListResult, error)) AccountListResultPage {
+	return AccountListResultPage{fn: getNextPage}
 }
 
 // AccountProperties properties of the storage account.
@@ -872,6 +1026,8 @@ type AccountProperties struct {
 	GeoReplicationStats *GeoReplicationStats `json:"geoReplicationStats,omitempty"`
 	// FailoverInProgress - READ-ONLY; If the failover is in progress, the value will be true, otherwise, it will be null.
 	FailoverInProgress *bool `json:"failoverInProgress,omitempty"`
+	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
+	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
 }
 
 // AccountPropertiesCreateParameters the parameters used to create the storage account.
@@ -890,6 +1046,8 @@ type AccountPropertiesCreateParameters struct {
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// IsHnsEnabled - Account HierarchicalNamespace enabled if sets to true.
 	IsHnsEnabled *bool `json:"isHnsEnabled,omitempty"`
+	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
+	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
 }
 
 // AccountPropertiesUpdateParameters the parameters used when updating a storage account.
@@ -906,6 +1064,8 @@ type AccountPropertiesUpdateParameters struct {
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// NetworkRuleSet - Network rule set
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
+	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
+	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
 }
 
 // AccountRegenerateKeyParameters the parameters used to regenerate the storage account key.
@@ -1274,6 +1434,14 @@ type BlobServicePropertiesProperties struct {
 	DeleteRetentionPolicy *DeleteRetentionPolicy `json:"deleteRetentionPolicy,omitempty"`
 	// AutomaticSnapshotPolicyEnabled - Automatic Snapshot is enabled if set to true.
 	AutomaticSnapshotPolicyEnabled *bool `json:"automaticSnapshotPolicyEnabled,omitempty"`
+	// ChangeFeed - The blob service properties for change feed events.
+	ChangeFeed *ChangeFeed `json:"changeFeed,omitempty"`
+}
+
+// ChangeFeed the blob service properties for change feed events.
+type ChangeFeed struct {
+	// Enabled - Indicates whether change feed event logging is enabled for the Blob service.
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // CheckNameAvailabilityResult the CheckNameAvailability operation response.
@@ -1285,6 +1453,23 @@ type CheckNameAvailabilityResult struct {
 	Reason Reason `json:"reason,omitempty"`
 	// Message - READ-ONLY; Gets an error message explaining the Reason value in more detail.
 	Message *string `json:"message,omitempty"`
+}
+
+// CloudError an error response from the Storage service.
+type CloudError struct {
+	Error *CloudErrorBody `json:"error,omitempty"`
+}
+
+// CloudErrorBody an error response from the Storage service.
+type CloudErrorBody struct {
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
+	Code *string `json:"code,omitempty"`
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
+	Message *string `json:"message,omitempty"`
+	// Target - The target of the particular error. For example, the name of the property in error.
+	Target *string `json:"target,omitempty"`
+	// Details - A list of additional details about the error.
+	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
 // ContainerProperties the properties of a container.
@@ -1424,23 +1609,6 @@ type Endpoints struct {
 	Web *string `json:"web,omitempty"`
 	// Dfs - READ-ONLY; Gets the dfs endpoint.
 	Dfs *string `json:"dfs,omitempty"`
-}
-
-// ErrorResponse an error response from the Storage service.
-type ErrorResponse struct {
-	Error *ErrorResponseBody `json:"error,omitempty"`
-}
-
-// ErrorResponseBody an error response from the Storage service.
-type ErrorResponseBody struct {
-	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
-	Code *string `json:"code,omitempty"`
-	// Message - A message describing the error, intended to be suitable for display in a user interface.
-	Message *string `json:"message,omitempty"`
-	// Target - The target of the particular error. For example, the name of the property in error.
-	Target *string `json:"target,omitempty"`
-	// Details - A list of additional details about the error.
-	Details *[]ErrorResponseBody `json:"details,omitempty"`
 }
 
 // FileServiceItems ...

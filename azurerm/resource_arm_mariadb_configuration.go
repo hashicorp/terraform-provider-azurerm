@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +22,13 @@ func resourceArmMariaDbConfiguration() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -53,7 +62,8 @@ func resourceArmMariaDbConfiguration() *schema.Resource {
 
 func resourceArmMariaDbConfigurationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).MariaDB.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDb Configuration creation.")
 
@@ -92,7 +102,8 @@ func resourceArmMariaDbConfigurationCreateUpdate(d *schema.ResourceData, meta in
 
 func resourceArmMariaDbConfigurationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).MariaDB.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -123,7 +134,8 @@ func resourceArmMariaDbConfigurationRead(d *schema.ResourceData, meta interface{
 
 func resourceArmMariaDbConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).MariaDB.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -12,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +25,13 @@ func resourceArmDevTestLab() *schema.Resource {
 		Delete: resourceArmDevTestLabDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -86,7 +95,8 @@ func resourceArmDevTestLab() *schema.Resource {
 
 func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.LabsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Lab creation")
 
@@ -143,7 +153,8 @@ func resourceArmDevTestLabCreateUpdate(d *schema.ResourceData, meta interface{})
 
 func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.LabsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -186,7 +197,8 @@ func resourceArmDevTestLabRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmDevTestLabDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).DevTestLabs.LabsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

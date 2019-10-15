@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,6 +14,11 @@ import (
 func dataSourceArmMonitorActionGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmMonitorActionGroupRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -82,6 +88,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 						"service_uri": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},

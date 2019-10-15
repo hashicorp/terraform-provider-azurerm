@@ -2,21 +2,19 @@ package azurerm
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 	resourceName := "azurerm_frontdoor.test"
 	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	config := testAccAzureRMFrontDoor_basic(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -24,38 +22,9 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFrontDoor_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "load_balancer_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "enforce_backend_pools_certificate_name_check", "false"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.name", fmt.Sprintf("testAccBackendBing-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.address", "www.bing.com"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.http_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.priority", "1"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.successful_samples_required", "2"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.name", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.host_name", fmt.Sprintf("testAccFrontDoor-%d.azurefd.net", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRule1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.0", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.1", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.forwarding_protocol", "MatchRequest"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.patterns_to_match.0", "/*"),
 				),
 			},
 			{
@@ -67,12 +36,15 @@ func TestAccAzureRMFrontDoor_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMFrontDoor_update(t *testing.T) {
+func TestAccAzureRMFrontDoor_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_frontdoor.test"
 	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	config := testAccAzureRMFrontDoor_basic(ri, rs, testLocation())
-	update := testAccAzureRMFrontDoor_complete(ri, rs, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -80,66 +52,61 @@ func TestAccAzureRMFrontDoor_update(t *testing.T) {
 		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMFrontDoor_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(resourceName),
 				),
 			},
 			{
-				Config: update,
+				Config:      testAccAzureRMFrontDoor_requiresImport(ri, location),
+				ExpectError: testRequiresImportError("azurerm_frontdoor"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMFrontDoor_update(t *testing.T) {
+	resourceName := "azurerm_frontdoor.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFrontDoorDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFrontDoor_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "friendly_name", "tafd"),
-					resource.TestCheckResourceAttr(resourceName, "enforce_backend_pools_certificate_name_check", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.name", fmt.Sprintf("testAccBackendGoogle-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.address", "www.google.com"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.http_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.priority", "1"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "true"),
 				),
 			},
 			{
-				Config: config,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMFrontDoor_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "load_balancer_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "enforce_backend_pools_certificate_name_check", "false"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.name", fmt.Sprintf("testAccBackendBing-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.address", "www.bing.com"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.http_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.priority", "1"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.successful_samples_required", "2"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.name", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.host_name", fmt.Sprintf("testAccFrontDoor-%d.azurefd.net", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRule1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.0", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.1", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "false"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.forwarding_protocol", "MatchRequest"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccFrontendEndpoint1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.patterns_to_match.0", "/*"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMFrontDoor_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFrontDoorExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -148,8 +115,8 @@ func TestAccAzureRMFrontDoor_update(t *testing.T) {
 func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 	resourceName := "azurerm_frontdoor.test"
 	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	config := testAccAzureRMFrontDoor_complete(ri, rs, testLocation())
+	location := testLocation()
+	config := testAccAzureRMFrontDoor_complete(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -160,43 +127,6 @@ func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "friendly_name", "tafd"),
-					resource.TestCheckResourceAttr(resourceName, "load_balancer_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "enforce_backend_pools_certificate_name_check", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.name", fmt.Sprintf("testAccBackendBing-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.address", "www.bing.com"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.http_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.priority", "1"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.0.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.address", "www.google.com"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.load_balancing_name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.health_probe_name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.http_port", "80"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.priority", "1"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool.1.backend.0.weight", "50"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.name", fmt.Sprintf("testAccHealthProbeSetting1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_health_probe.0.protocol", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.name", fmt.Sprintf("testAccLoadBalancingSettings1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "backend_pool_load_balancing.0.successful_samples_required", "2"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.name", fmt.Sprintf("testAccFrontendBing-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.host_name", fmt.Sprintf("testAccFrontDoor-%d.azurefd.net", ri)),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.custom_https_provisioning_enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "frontend_endpoint.0.session_affinity_ttl_seconds", "0"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.name", fmt.Sprintf("testAccRoutingRule1-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.0", "Http"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.accepted_protocols.1", "Https"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_use_dynamic_compression", "true"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.forwarding_protocol", "MatchRequest"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.forwarding_configuration.0.cache_query_parameter_strip_directive", "StripNone"),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.frontend_endpoints.0", fmt.Sprintf("testAccFrontendBing-%d", ri)),
-					resource.TestCheckResourceAttr(resourceName, "routing_rule.0.patterns_to_match.0", "/*"),
 				),
 			},
 			{
@@ -211,8 +141,8 @@ func TestAccAzureRMFrontDoor_complete(t *testing.T) {
 func TestAccAzureRMFrontDoor_waf(t *testing.T) {
 	resourceName := "azurerm_frontdoor.test"
 	ri := tf.AccRandTimeInt()
-	rs := strings.ToLower(acctest.RandString(5))
-	config := testAccAzureRMFrontDoor_waf(ri, rs, testLocation())
+	location := testLocation()
+	config := testAccAzureRMFrontDoor_waf(ri, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -223,8 +153,6 @@ func TestAccAzureRMFrontDoor_waf(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFrontDoorExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("testAccFrontDoor-%d", ri)),
-					resource.TestCheckResourceAttrSet(resourceName, "frontend_endpoint.0.web_application_firewall_policy_link_id"),
 				),
 			},
 			{
@@ -284,40 +212,47 @@ func testCheckAzureRMFrontDoorDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMFrontDoor_basic(rInt int, rString string, location string) string {
+func testAccAzureRMFrontDoor_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRG-%[1]d"
-  location = "%[3]s"
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+locals {
+  backend_name        = "backend-bing"
+  endpoint_name       = "frontend-endpoint"
+  health_probe_name   = "health-probe"
+  load_balancing_name = "load-balancing-setting"
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "testAccFrontDoor-%[1]d"
-  location                                     = "${azurerm_resource_group.test.location}"
-  resource_group_name                          = "${azurerm_resource_group.test.name}"
+  name                                         = "acctestfd-%d"
+  location                                     = azurerm_resource_group.test.location
+  resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
 
   routing_rule {
-      name                    = "testAccRoutingRule1-%[1]d"
+      name                    = "routing-rule"
       accepted_protocols      = ["Http", "Https"]
       patterns_to_match       = ["/*"]
-      frontend_endpoints      = ["testAccFrontendEndpoint1-%[1]d"]
+      frontend_endpoints      = [ local.endpoint_name ]
       forwarding_configuration {
           forwarding_protocol = "MatchRequest"
-          backend_pool_name   = "testAccBackendBing-%[1]d"
+          backend_pool_name   = local.backend_name
       }
   }
 
   backend_pool_load_balancing {
-    name = "testAccLoadBalancingSettings1-%[1]d"
+    name = local.load_balancing_name
   }
 
   backend_pool_health_probe {
-    name = "testAccHealthProbeSetting1-%[1]d"
+    name = local.health_probe_name
   }
 
   backend_pool {
-      name            = "testAccBackendBing-%[1]d"
+      name            = local.backend_name
       backend {
           host_header = "www.bing.com"
           address     = "www.bing.com"
@@ -325,161 +260,196 @@ resource "azurerm_frontdoor" "test" {
           https_port  = 443
       }
 
-      load_balancing_name = "testAccLoadBalancingSettings1-%[1]d"
-      health_probe_name   = "testAccHealthProbeSetting1-%[1]d"
+      load_balancing_name = local.load_balancing_name
+      health_probe_name   = local.health_probe_name
   }
 
   frontend_endpoint {
-    name                              = "testAccFrontendEndpoint1-%[1]d"
-    host_name                         = "testAccFrontDoor-%[1]d.azurefd.net"
+    name                              = local.endpoint_name
+    host_name                         = "acctestfd-%d.azurefd.net"
     custom_https_provisioning_enabled = false
   }
 }
-`, rInt, rString, location)
+`, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMFrontDoor_complete(rInt int, rString string, location string) string {
+func testAccAzureRMFrontDoor_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMFrontDoor_basic(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "testAccRG-%[1]d"
-  location = "%[3]s"
-}
+%s
 
-resource "azurerm_frontdoor" "test" {
-  name                                         = "testAccFrontDoor-%[1]d"
-  friendly_name                                = "tafd"
-  location                                     = "${azurerm_resource_group.test.location}"
-  resource_group_name                          = "${azurerm_resource_group.test.name}"
-  load_balancer_enabled                        = true
-  enforce_backend_pools_certificate_name_check = true
+resource "azurerm_frontdoor" "import" {
+  name                                         = azurerm_frontdoor.test.name
+  location                                     = azurerm_frontdoor.test.location
+  resource_group_name                          = azurerm_frontdoor.test.resource_group_name
+  enforce_backend_pools_certificate_name_check = azurerm_frontdoor.test.enforce_backend_pools_certificate_name_check
 
   routing_rule {
-      name                              = "testAccRoutingRule1-%[1]d"
-      enabled                           = true
-      accepted_protocols                = ["Http", "Https"]
-      patterns_to_match                 = ["/*"]
-      frontend_endpoints                = ["testAccFrontendBing-%[1]d"]
-      forwarding_configuration {
-          forwarding_protocol           = "MatchRequest"
-          cache_use_dynamic_compression = true
-          backend_pool_name             = "testAccBackendBing-%[1]d"
-      }
+    name               = "routing-rule"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = [local.endpoint_name]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = local.backend_name
+    }
   }
 
   backend_pool_load_balancing {
-    name                            = "testAccLoadBalancingSettings1-%[1]d"
-    sample_size                     = 4
-    successful_samples_required     = 2
-    additional_latency_milliseconds = 0
+    name = local.load_balancing_name
   }
 
   backend_pool_health_probe {
-    name                = "testAccHealthProbeSetting1-%[1]d"
-    path                = "/"
-    protocol            = "Https"
-    interval_in_seconds = 120
+    name = local.health_probe_name
   }
 
   backend_pool {
-      name = "testAccBackendBing-%[1]d"
-      backend {
-        enabled     = true
-        host_header = "www.bing.com"
-        address     = "www.bing.com"
-        http_port   = 80
-        https_port  = 443
-        weight      = 50
-        priority    = 1
-      }
-
-      load_balancing_name = "testAccLoadBalancingSettings1-%[1]d"
-      health_probe_name   = "testAccHealthProbeSetting1-%[1]d"
-  }
-
-  backend_pool {
-    name          = "testAccBackendGoogle-%[1]d"
+    name = local.backend_name
     backend {
-      enabled     = true
-      host_header = "www.google.com"
-      address     = "www.google.com"
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
       http_port   = 80
       https_port  = 443
-      weight      = 50
-      priority    = 1
     }
 
-    load_balancing_name = "testAccLoadBalancingSettings1-%[1]d"
-    health_probe_name   = "testAccHealthProbeSetting1-%[1]d"
+    load_balancing_name = local.load_balancing_name
+    health_probe_name   = local.health_probe_name
   }
 
   frontend_endpoint {
-    name                                         = "testAccFrontendBing-%[1]d"
-    host_name                                    = "testAccFrontDoor-%[1]d.azurefd.net"
-    session_affinity_enabled                     = true
-    session_affinity_ttl_seconds                 = 0
-    custom_https_provisioning_enabled            = false
+    name                              = local.endpoint_name
+    host_name                         = "acctestfd-%d.azurefd.net"
+    custom_https_provisioning_enabled = false
   }
 }
-`, rInt, rString, location)
+`, template, rInt)
 }
 
-func testAccAzureRMFrontDoor_waf(rInt int, rString string, location string) string {
+func testAccAzureRMFrontDoor_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "testAccRG-%[1]d"
-  location = "%[3]s"
+  name     = "acctestrg-%d"
+  location = "%s"
 }
 
-resource "azurerm_frontdoor_firewall_policy" "test" {
-  name                              = "accTestWAF%[1]d"
-  resource_group_name               = azurerm_resource_group.test.name
-  mode                              = "Prevention"
+locals {
+  backend_name        = "backend-bing"
+  endpoint_name       = "frontend-endpoint"
+  health_probe_name   = "health-probe"
+  load_balancing_name = "load-balancing-setting"
 }
 
 resource "azurerm_frontdoor" "test" {
-  name                                         = "testAccFrontDoor-%[1]d"
-  location                                     = "${azurerm_resource_group.test.location}"
-  resource_group_name                          = "${azurerm_resource_group.test.name}"
+  name                                         = "acctestfd-%d"
+  location                                     = azurerm_resource_group.test.location
+  resource_group_name                          = azurerm_resource_group.test.name
   enforce_backend_pools_certificate_name_check = false
 
   routing_rule {
-      name                    = "testAccRoutingRule1-%[1]d"
-      accepted_protocols      = ["Http", "Https"]
-      patterns_to_match       = ["/*"]
-      frontend_endpoints      = ["testAccFrontendEndpoint1-%[1]d"]
-      forwarding_configuration {
-          forwarding_protocol = "MatchRequest"
-          backend_pool_name   = "testAccBackendBing-%[1]d"
-      }
+    name               = "routing-rule"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = [local.endpoint_name]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = local.backend_name
+    }
   }
 
   backend_pool_load_balancing {
-    name = "testAccLoadBalancingSettings1-%[1]d"
+    name = local.load_balancing_name
   }
 
   backend_pool_health_probe {
-    name = "testAccHealthProbeSetting1-%[1]d"
+    name = local.health_probe_name
   }
 
   backend_pool {
-      name            = "testAccBackendBing-%[1]d"
-      backend {
-          host_header = "www.bing.com"
-          address     = "www.bing.com"
-          http_port   = 80
-          https_port  = 443
-      }
+    name = local.backend_name
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
 
-      load_balancing_name = "testAccLoadBalancingSettings1-%[1]d"
-      health_probe_name   = "testAccHealthProbeSetting1-%[1]d"
+    load_balancing_name = local.load_balancing_name
+    health_probe_name   = local.health_probe_name
   }
 
   frontend_endpoint {
-    name                                    = "testAccFrontendEndpoint1-%[1]d"
-    host_name                               = "testAccFrontDoor-%[1]d.azurefd.net"
+    name                              = local.endpoint_name
+    host_name                         = "acctestfd-%d.azurefd.net"
+    custom_https_provisioning_enabled = false
+  }
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMFrontDoor_waf(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+locals {
+  backend_name        = "backend-bing"
+  endpoint_name       = "frontend-endpoint"
+  health_probe_name   = "health-probe"
+  load_balancing_name = "load-balancing-setting"
+}
+
+resource "azurerm_frontdoor_firewall_policy" "test" {
+  name                = "acctestwafp%d"
+  resource_group_name = azurerm_resource_group.test.name
+  mode                = "Prevention"
+}
+
+resource "azurerm_frontdoor" "test" {
+  name                                         = "acctestfd-%d"
+  location                                     = azurerm_resource_group.test.location
+  resource_group_name                          = azurerm_resource_group.test.name
+  enforce_backend_pools_certificate_name_check = false
+
+  routing_rule {
+    name               = "routing-rule"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = [local.endpoint_name]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = local.backend_name
+    }
+  }
+
+  backend_pool_load_balancing {
+    name = local.load_balancing_name
+  }
+
+  backend_pool_health_probe {
+    name = local.health_probe_name
+  }
+
+  backend_pool {
+    name = local.backend_name
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
+
+    load_balancing_name = local.load_balancing_name
+    health_probe_name   = local.health_probe_name
+  }
+
+  frontend_endpoint {
+    name                                    = local.endpoint_name
+    host_name                               = "acctestfd-%d.azurefd.net"
     custom_https_provisioning_enabled       = false
     web_application_firewall_policy_link_id = azurerm_frontdoor_firewall_policy.test.id
   }
 }
-`, rInt, rString, location)
+`, rInt, location, rInt, rInt, rInt)
 }
