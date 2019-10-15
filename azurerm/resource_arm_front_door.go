@@ -200,7 +200,7 @@ func resourceArmFrontDoor() *schema.Resource {
 											string(frontdoor.HTTPSOnly),
 											string(frontdoor.MatchRequest),
 										}, false),
-										Default: string(frontdoor.HTTPSOnly),
+										Default: string(frontdoor.MatchRequest),
 									},
 								},
 							},
