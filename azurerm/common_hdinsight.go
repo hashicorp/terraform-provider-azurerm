@@ -93,7 +93,6 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				if _, err := stateConf.WaitForState(); err != nil {
 					return fmt.Errorf("Error waiting for HDInsight Cluster %q (Resource Group %q) to be running: %s", name, resourceGroup, err)
 				}
-
 			}
 		}
 
