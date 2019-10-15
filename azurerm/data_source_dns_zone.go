@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
@@ -15,6 +16,10 @@ import (
 func dataSourceArmDnsZone() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmDnsZoneRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

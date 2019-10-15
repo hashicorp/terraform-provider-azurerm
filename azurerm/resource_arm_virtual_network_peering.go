@@ -31,6 +31,13 @@ func resourceArmVirtualNetworkPeering() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -111,7 +118,7 @@ func resourceArmVirtualNetworkPeeringCreateUpdate(d *schema.ResourceData, meta i
 	peerMutex.Lock()
 	defer peerMutex.Unlock()
 
-	if err := resource.Retry(300*time.Second, retryVnetPeeringsClientCreateUpdate(resGroup, vnetName, name, peer, meta)); err != nil {
+	if err := resource.Retry(300*time.Second, retryVnetPeeringsClientCreateUpdate(d, resGroup, vnetName, name, peer, meta)); err != nil {
 		return err
 	}
 
@@ -214,10 +221,11 @@ func getVirtualNetworkPeeringProperties(d *schema.ResourceData) *network.Virtual
 	}
 }
 
-func retryVnetPeeringsClientCreateUpdate(resGroup string, vnetName string, name string, peer network.VirtualNetworkPeering, meta interface{}) func() *resource.RetryError {
+func retryVnetPeeringsClientCreateUpdate(d *schema.ResourceData, resGroup string, vnetName string, name string, peer network.VirtualNetworkPeering, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
 		vnetPeeringsClient := meta.(*ArmClient).Network.VnetPeeringsClient
-		ctx := meta.(*ArmClient).StopContext
+		ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+		defer cancel()
 
 		future, err := vnetPeeringsClient.CreateOrUpdate(ctx, resGroup, vnetName, name, peer)
 		if err != nil {

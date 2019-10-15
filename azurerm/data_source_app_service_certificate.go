@@ -16,6 +16,10 @@ func dataSourceAppServiceCertificate() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAppServiceCertificateRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,

@@ -43,12 +43,12 @@ func (client Client) FindResourceGroup(ctx context.Context, accountName string) 
 		return nil, fmt.Errorf("Error listing Storage Accounts (to find Resource Group for %q): %s", accountName, err)
 	}
 
-	if accounts.Value == nil {
+	if accounts.Values() == nil {
 		return nil, nil
 	}
 
 	var resourceGroup *string
-	for _, account := range *accounts.Value {
+	for _, account := range accounts.Values() {
 		if account.Name == nil || account.ID == nil {
 			continue
 		}

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,6 +14,10 @@ import (
 func dataSourceArmBatchCertificate() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBatchCertificateRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

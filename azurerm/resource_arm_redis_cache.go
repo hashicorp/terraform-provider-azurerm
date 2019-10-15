@@ -35,6 +35,13 @@ func resourceArmRedisCache() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -325,10 +332,13 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		locks.ByName(subnetName, subnetResourceName)
-		defer locks.UnlockByName(subnetName, subnetResourceName)
+
 		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
 		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
+
 		parameters.SubnetID = utils.String(v.(string))
 	}
 
@@ -579,10 +589,12 @@ func resourceArmRedisCacheDelete(d *schema.ResourceData, meta interface{}) error
 		}
 		subnetName := parsed.Path["subnets"]
 		virtualNetworkName := parsed.Path["virtualNetworks"]
-		locks.ByName(subnetName, subnetResourceName)
-		defer locks.UnlockByName(subnetName, subnetResourceName)
+
 		locks.ByName(virtualNetworkName, virtualNetworkResourceName)
 		defer locks.UnlockByName(virtualNetworkName, virtualNetworkResourceName)
+
+		locks.ByName(subnetName, subnetResourceName)
+		defer locks.UnlockByName(subnetName, subnetResourceName)
 	}
 	future, err := client.Delete(ctx, resGroup, name)
 	if err != nil {

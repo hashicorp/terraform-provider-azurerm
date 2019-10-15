@@ -81,7 +81,7 @@ A `frontend_ip_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the Load Balancer to which the resource is attached.
+* `id` - The ID of the Load Balancer Outbound Rule.
 
 ## Import
 

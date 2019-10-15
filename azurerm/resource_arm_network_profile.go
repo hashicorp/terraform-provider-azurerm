@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -26,6 +27,13 @@ func resourceArmNetworkProfile() *schema.Resource {
 		Delete: resourceArmNetworkProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -125,11 +133,11 @@ func resourceArmNetworkProfileCreateUpdate(d *schema.ResourceData, meta interfac
 	locks.ByName(name, azureNetworkProfileResourceName)
 	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	locks.MultipleByName(subnetsToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
 	parameters := network.Profile{
 		Location: &location,
@@ -232,11 +240,11 @@ func resourceArmNetworkProfileDelete(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(name, azureNetworkProfileResourceName)
 	defer locks.UnlockByName(name, azureNetworkProfileResourceName)
 
-	locks.MultipleByName(subnetsToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetsToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetsToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, subnetResourceName)
 
 	if _, err = client.Delete(ctx, resourceGroup, name); err != nil {
 		return fmt.Errorf("Error deleting Network Profile %q (Resource Group %q): %+v", name, resourceGroup, err)
