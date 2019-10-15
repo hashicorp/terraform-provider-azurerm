@@ -41,9 +41,9 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   webhook_receiver {
-    name        			= "callmyapiaswell"
-    service_uri 			= "http://example.com/alert"
-	use_common_alert_schema = true
+    name                    = "callmyapiaswell"
+    service_uri             = "http://example.com/alert"
+    use_common_alert_schema = true
   }
 }
 ```
