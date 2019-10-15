@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
@@ -597,7 +598,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := afd.ParseAzureResourceIDLowerPath(d.Id())
 	if err != nil {
 		return err
 	}
@@ -669,7 +670,7 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := afd.ParseAzureResourceIDLowerPath(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1407,11 +1408,11 @@ func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType s
 	name := ""
 
 	if id := input.ID; id != nil {
-		aid, err := parseAzureResourceID(*id)
+		aid, err := afd.ParseAzureResourceIDLowerPath(*id)
 		if err != nil {
 			return ""
 		}
-		name = aid.Path[resourceType]
+		name = aid.Path[strings.ToLower(resourceType)]
 	}
 
 	return name
