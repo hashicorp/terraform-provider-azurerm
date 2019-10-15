@@ -114,7 +114,7 @@ func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
 	}
 
-	if dbHasThroughputConfigured {
+	if dbHasThroughputConfigured && !d.IsNewResource() {
 		throughputParameters := documentdb.ThroughputUpdateParameters{
 			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
 				Resource: &documentdb.ThroughputResource{
