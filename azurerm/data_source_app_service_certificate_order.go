@@ -94,21 +94,6 @@ func dataSourceArmAppServiceCertificateOrder() *schema.Resource {
 				Computed: true,
 			},
 
-			"serial_number": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"last_certificate_issuance_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"next_auto_renewal_time_stamp": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"expiration_time": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -127,28 +112,19 @@ func dataSourceArmAppServiceCertificateOrder() *schema.Resource {
 				},
 			},
 
-			"signed_certificate": {
-				Type:     schema.TypeList,
+			"signed_certificate_thumbprint": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: appServiceCertificateDetailsSchema(),
-				},
 			},
 
-			"root": {
-				Type:     schema.TypeList,
+			"root_thumbprint": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: appServiceCertificateDetailsSchema(),
-				},
 			},
 
-			"intermediate": {
-				Type:     schema.TypeList,
+			"intermediate_thumbprint": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: appServiceCertificateDetailsSchema(),
-				},
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -189,7 +165,6 @@ func dataSourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta in
 		d.Set("validity_in_years", props.ValidityInYears)
 		d.Set("domain_verification_token", props.DomainVerificationToken)
 		d.Set("status", string(props.Status))
-		d.Set("serial_number", props.SerialNumber)
 		d.Set("is_private_key_external", props.IsPrivateKeyExternal)
 		d.Set("certificates", flattenArmCertificateOrderCertificate(props.Certificates))
 		d.Set("app_service_certificate_not_renewable_reasons", utils.FlattenStringSlice(props.AppServiceCertificateNotRenewableReasons))
@@ -200,21 +175,21 @@ func dataSourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta in
 			d.Set("product_type", "WildCard")
 		}
 
-		if lastCertificateIssuanceTime := props.LastCertificateIssuanceTime; lastCertificateIssuanceTime != nil {
-			d.Set("last_certificate_issuance_time", lastCertificateIssuanceTime.Format(time.RFC3339))
-		}
-
-		if nextAutoRenewalTimeStamp := props.NextAutoRenewalTimeStamp; nextAutoRenewalTimeStamp != nil {
-			d.Set("next_auto_renewal_time_stamp", nextAutoRenewalTimeStamp.Format(time.RFC3339))
-		}
-
 		if expirationTime := props.ExpirationTime; expirationTime != nil {
 			d.Set("expiration_time", expirationTime.Format(time.RFC3339))
 		}
 
-		d.Set("signed_certificate", flattenArmCertificateOrderCertificateDetails(props.SignedCertificate))
-		d.Set("root", flattenArmCertificateOrderCertificateDetails(props.Root))
-		d.Set("intermediate", flattenArmCertificateOrderCertificateDetails(props.Intermediate))
+		if signedCertificate := props.SignedCertificate; signedCertificate != nil {
+			d.Set("signed_certificate_thumbprint", signedCertificate.Thumbprint)
+		}
+
+		if root := props.Root; root != nil {
+			d.Set("root_thumbprint", root.Thumbprint)
+		}
+
+		if intermediate := props.Intermediate; intermediate != nil {
+			d.Set("intermediate_thumbprint", intermediate.Thumbprint)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)

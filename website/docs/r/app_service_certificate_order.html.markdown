@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `key_size` - (Optional) Certificate key size.
 
-* `product_type` - (Optional) Certificate product type.
+* `product_type` - (Optional) Certificate product type, such as `Standard` or `WildCard`.
 
 * `validity_in_years` - (Optional) Duration in years (must be between 1 and 3).
 
@@ -64,27 +64,23 @@ The following attributes are exported:
 
 * `status` - Current order status.
 
-* `serial_number` - Current serial number of the certificate.
-
-* `last_certificate_issuance_time` - Certificate last issuance time.
-
-* `next_auto_renewal_time_stamp` - Time stamp when the certificate would be auto renewed next
-
 * `expiration_time` - Certificate expiration time.
 
-* `is_private_key_external` - Whether the private key is external or not. 
+* `is_private_key_external` - Whether the private key is external or not.
 
 * `app_service_certificate_not_renewable_reasons` - Reasons why App Service Certificate is not renewable at the current moment.
 
-* `signed_certificate` - Signed certificate. A `signed_certificate` block as defined below.
+* `signed_certificate_thumbprint` - Certificate thumbprint for signed certificate.
 
-* `root` - Root certificate. A `root` block as defined below.
+* `root_thumbprint` - Certificate thumbprint for root certificate.
 
-* `intermediate` - Intermediate certificate. An `intermediate` block as defined below.
+* `intermediate_thumbprint` - Certificate thumbprint intermediate certificate.
 
 * `tags` - A mapping of tags to assign to the resource.
 
 ---
+
+`certificates` supports the following:
 
 * `certificate_name` - The name of the App Service Certificate.
 
@@ -93,72 +89,6 @@ The following attributes are exported:
 * `key_vault_secret_name` - Key Vault secret name.
 
 * `provisioning_state` - Status of the Key Vault secret.
-
----
-
-`signed_certificate` supports the following:
-
-* `issuer` - Certificate Issuer.
-
-* `not_after` - Date Certificate is valid to.
-
-* `not_before` - Date Certificate is valid from.
-
-* `raw_data` - Raw certificate data.
-
-* `serial_number` - Certificate Serial Number.
-
-* `signature_algorithm` - Certificate Signature algorithm.
-
-* `subject` - Certificate Subject.
-
-* `thumbprint` - Certificate Thumbprint.
-
-* `version` - Certificate Version.
-
----
-
-`root` supports the following:
-
-* `issuer` - Certificate Issuer.
-
-* `not_after` - Date Certificate is valid to.
-
-* `not_before` - Date Certificate is valid from.
-
-* `raw_data` - Raw certificate data.
-
-* `serial_number` - Certificate Serial Number.
-
-* `signature_algorithm` - Certificate Signature algorithm.
-
-* `subject` - Certificate Subject.
-
-* `thumbprint` - Certificate Thumbprint.
-
-* `version` - Certificate Version.
-
----
-
-`intermediate` supports the following:
-
-* `issuer` - Certificate Issuer.
-
-* `not_after` - Date Certificate is valid to.
-
-* `not_before` - Date Certificate is valid from.
-
-* `raw_data` - Raw certificate data.
-
-* `serial_number` - Certificate Serial Number.
-
-* `signature_algorithm` - Certificate Signature algorithm.
-
-* `subject` - Certificate Subject.
-
-* `thumbprint` - Certificate Thumbprint.
-
-* `version` - Certificate Version.
 
 ## Import
 

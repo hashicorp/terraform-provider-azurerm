@@ -97,7 +97,7 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 			"product_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
-				Default:          "standard",
+				Default:          "Standard",
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					"Standard",
@@ -122,21 +122,6 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 				Computed: true,
 			},
 
-			"serial_number": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"last_certificate_issuance_time": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"next_auto_renewal_time_stamp": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"expiration_time": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -155,28 +140,19 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 				},
 			},
 
-			"signed_certificate": {
-				Type:     schema.TypeList,
+			"signed_certificate_thumbprint": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: appServiceCertificateDetailsSchema(),
-				},
 			},
 
-			"root": {
-				Type:     schema.TypeList,
+			"root_thumbprint": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: appServiceCertificateDetailsSchema(),
-				},
 			},
 
-			"intermediate": {
-				Type:     schema.TypeList,
+			"intermediate_thumbprint": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: appServiceCertificateDetailsSchema(),
-				},
 			},
 
 			"tags": tags.Schema(),
@@ -222,13 +198,13 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 		ValidityInYears:   utils.Int32(int32(validityInYears)),
 	}
 
-	if v, ok := d.GetOk("product_type"); ok {
-		productType := v.(string)
-		if productType == "standard" {
-			properties.ProductType = web.StandardDomainValidatedSsl
-		} else if productType == "wildcard" {
-			properties.ProductType = web.StandardDomainValidatedWildCardSsl
-		}
+	productType := d.Get("product_type").(string)
+	if productType == "Standard" {
+		properties.ProductType = web.StandardDomainValidatedSsl
+	} else if productType == "WildCard" {
+		properties.ProductType = web.StandardDomainValidatedWildCardSsl
+	} else {
+		return fmt.Errorf("Error setting `product_type` for App Service Certificate Order %q (Resource Group %q), either `Standard` or `WildCard`.", name, resourceGroup)
 	}
 
 	certificateOrder := web.AppServiceCertificateOrder{
@@ -298,7 +274,6 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 		d.Set("validity_in_years", props.ValidityInYears)
 		d.Set("domain_verification_token", props.DomainVerificationToken)
 		d.Set("status", string(props.Status))
-		d.Set("serial_number", props.SerialNumber)
 		d.Set("is_private_key_external", props.IsPrivateKeyExternal)
 		d.Set("certificates", flattenArmCertificateOrderCertificate(props.Certificates))
 		d.Set("app_service_certificate_not_renewable_reasons", utils.FlattenStringSlice(props.AppServiceCertificateNotRenewableReasons))
@@ -309,21 +284,21 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 			d.Set("product_type", "WildCard")
 		}
 
-		if lastCertificateIssuanceTime := props.LastCertificateIssuanceTime; lastCertificateIssuanceTime != nil {
-			d.Set("last_certificate_issuance_time", lastCertificateIssuanceTime.Format(time.RFC3339))
-		}
-
-		if nextAutoRenewalTimeStamp := props.NextAutoRenewalTimeStamp; nextAutoRenewalTimeStamp != nil {
-			d.Set("next_auto_renewal_time_stamp", nextAutoRenewalTimeStamp.Format(time.RFC3339))
-		}
-
 		if expirationTime := props.ExpirationTime; expirationTime != nil {
 			d.Set("expiration_time", expirationTime.Format(time.RFC3339))
 		}
 
-		d.Set("signed_certificate", flattenArmCertificateOrderCertificateDetails(props.SignedCertificate))
-		d.Set("root", flattenArmCertificateOrderCertificateDetails(props.Root))
-		d.Set("intermediate", flattenArmCertificateOrderCertificateDetails(props.Intermediate))
+		if signedCertificate := props.SignedCertificate; signedCertificate != nil {
+			d.Set("signed_certificate_thumbprint", signedCertificate.Thumbprint)
+		}
+
+		if root := props.Root; root != nil {
+			d.Set("root_thumbprint", root.Thumbprint)
+		}
+
+		if intermediate := props.Intermediate; intermediate != nil {
+			d.Set("intermediate_thumbprint", intermediate.Thumbprint)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -372,103 +347,4 @@ func flattenArmCertificateOrderCertificate(input map[string]*web.AppServiceCerti
 	}
 
 	return results
-}
-
-func flattenArmCertificateOrderCertificateDetails(input *web.CertificateDetails) []interface{} {
-	results := make([]interface{}, 0)
-
-	if input == nil {
-		return results
-	}
-
-	result := make(map[string]interface{})
-
-	if version := input.Version; version != nil {
-		result["version"] = version
-	}
-
-	if serialNumber := input.SerialNumber; serialNumber != nil {
-		result["serial_number"] = serialNumber
-	}
-
-	if thumbprint := input.Thumbprint; thumbprint != nil {
-		result["thumbprint"] = thumbprint
-	}
-
-	if subject := input.Subject; subject != nil {
-		result["subject"] = subject
-	}
-
-	if notBefore := input.NotBefore; notBefore != nil {
-		result["not_before"] = notBefore.Format(time.RFC3339)
-	}
-
-	if notAfter := input.NotAfter; notAfter != nil {
-		result["not_after"] = notAfter.Format(time.RFC3339)
-	}
-
-	if signatureAlgorithm := input.SignatureAlgorithm; signatureAlgorithm != nil {
-		result["signature_algorithm"] = signatureAlgorithm
-	}
-
-	if issuer := input.Issuer; issuer != nil {
-		result["issuer"] = issuer
-	}
-
-	if rawData := input.RawData; rawData != nil {
-		result["raw_data"] = rawData
-	}
-
-	results = append(results, result)
-
-	return results
-}
-
-func appServiceCertificateDetailsSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"version": {
-			Type:     schema.TypeInt,
-			Computed: true,
-		},
-
-		"serial_number": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"thumbprint": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"subject": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"signature_algorithm": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"issuer": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"raw_data": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"not_before": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-
-		"not_after": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
-	}
 }

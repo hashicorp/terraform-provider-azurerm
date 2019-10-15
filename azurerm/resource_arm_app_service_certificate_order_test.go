@@ -271,7 +271,7 @@ resource "azurerm_app_service_certificate_order" "test" {
   location = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
   distinguished_name = "CN=example.com"
-  product_type = "standard"
+  product_type = "Standard"
 }
 `, rInt, location, rInt)
 }
@@ -288,7 +288,7 @@ resource "azurerm_app_service_certificate_order" "test" {
   location = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
   distinguished_name = "CN=*.example.com"
-  product_type = "wildcard"
+  product_type = "WildCard"
 }
 `, rInt, location, rInt)
 }
@@ -320,7 +320,7 @@ resource "azurerm_app_service_certificate_order" "test" {
   location = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
   distinguished_name = "CN=example.com"
-  product_type = "standard"
+  product_type = "Standard"
   auto_renew = false
   validity_in_years = 1
   key_size = %d
