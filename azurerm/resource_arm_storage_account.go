@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
@@ -40,6 +41,13 @@ func resourceArmStorageAccount() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -1107,9 +1115,11 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
 	if err != nil {
 		msg := err.Error()
-		if !strings.Contains(msg, "No registered resource provider found for location '") {
-			if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
-				return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
+		if msg != "The resource namespace 'Microsoft.Security' is invalid." {
+			if !strings.Contains(msg, "No registered resource provider found for location '") {
+				if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
+					return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
+				}
 			}
 		}
 	} else {

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -24,6 +25,13 @@ func resourceArmVirtualMachineDataDiskAttachment() *schema.Resource {
 		Delete: resourceArmVirtualMachineDataDiskAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -164,6 +172,8 @@ func resourceArmVirtualMachineDataDiskAttachmentCreateUpdate(d *schema.ResourceD
 
 	virtualMachine.StorageProfile.DataDisks = &disks
 
+	// fixes #2485
+	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
 
@@ -277,6 +287,8 @@ func resourceArmVirtualMachineDataDiskAttachmentDelete(d *schema.ResourceData, m
 
 	virtualMachine.StorageProfile.DataDisks = &dataDisks
 
+	// fixes #2485
+	virtualMachine.Identity = nil
 	// fixes #1600
 	virtualMachine.Resources = nil
 

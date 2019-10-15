@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -16,6 +17,10 @@ import (
 func dataSourceArmCosmosDbAccount() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmCosmosDbAccountRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces"
 
 // InstanceType enumerates the values for instance type.
 type InstanceType string
@@ -86,6 +86,7 @@ func PossibleSkuTierValues() []SkuTier {
 // ContainerHostMapping container host mapping object specifying the Container host resource ID and its
 // associated Controller resource.
 type ContainerHostMapping struct {
+	autorest.Response `json:"-"`
 	// ContainerHostResourceID - ARM ID of the Container Host resource
 	ContainerHostResourceID *string `json:"containerHostResourceId,omitempty"`
 	// MappedControllerResourceID - READ-ONLY; ARM ID of the mapped Controller resource
@@ -207,12 +208,6 @@ func (c *Controller) UnmarshalJSON(body []byte) error {
 
 // ControllerConnectionDetails ...
 type ControllerConnectionDetails struct {
-	// AuthKey - READ-ONLY; Authentication key for communicating with services.
-	AuthKey *string `json:"authKey,omitempty"`
-	// WorkspaceStorageAccountName - READ-ONLY; Workspace storage account name.
-	WorkspaceStorageAccountName *string `json:"workspaceStorageAccountName,omitempty"`
-	// WorkspaceStorageSasToken - READ-ONLY; Workspace storage account SAS token.
-	WorkspaceStorageSasToken              *string                                    `json:"workspaceStorageSasToken,omitempty"`
 	OrchestratorSpecificConnectionDetails BasicOrchestratorSpecificConnectionDetails `json:"orchestratorSpecificConnectionDetails,omitempty"`
 }
 
@@ -225,33 +220,6 @@ func (ccd *ControllerConnectionDetails) UnmarshalJSON(body []byte) error {
 	}
 	for k, v := range m {
 		switch k {
-		case "authKey":
-			if v != nil {
-				var authKey string
-				err = json.Unmarshal(*v, &authKey)
-				if err != nil {
-					return err
-				}
-				ccd.AuthKey = &authKey
-			}
-		case "workspaceStorageAccountName":
-			if v != nil {
-				var workspaceStorageAccountName string
-				err = json.Unmarshal(*v, &workspaceStorageAccountName)
-				if err != nil {
-					return err
-				}
-				ccd.WorkspaceStorageAccountName = &workspaceStorageAccountName
-			}
-		case "workspaceStorageSasToken":
-			if v != nil {
-				var workspaceStorageSasToken string
-				err = json.Unmarshal(*v, &workspaceStorageSasToken)
-				if err != nil {
-					return err
-				}
-				ccd.WorkspaceStorageSasToken = &workspaceStorageSasToken
-			}
 		case "orchestratorSpecificConnectionDetails":
 			if v != nil {
 				orchestratorSpecificConnectionDetails, err := unmarshalBasicOrchestratorSpecificConnectionDetails(*v)
@@ -423,7 +391,7 @@ func NewControllerListPage(getNextPage func(context.Context, ControllerList) (Co
 type ControllerProperties struct {
 	// ProvisioningState - READ-ONLY; Provisioning state of the Azure Dev Spaces Controller. Possible values include: 'Succeeded', 'Failed', 'Canceled', 'Updating', 'Creating', 'Deleting', 'Deleted'
 	ProvisioningState ProvisioningState `json:"provisioningState,omitempty"`
-	// HostSuffix - DNS suffix for public endpoints running in the Azure Dev Spaces Controller.
+	// HostSuffix - READ-ONLY; DNS suffix for public endpoints running in the Azure Dev Spaces Controller.
 	HostSuffix *string `json:"hostSuffix,omitempty"`
 	// DataPlaneFqdn - READ-ONLY; DNS name for accessing DataPlane services
 	DataPlaneFqdn *string `json:"dataPlaneFqdn,omitempty"`
@@ -488,7 +456,8 @@ func (future *ControllersDeleteFuture) Result(client ControllersClient) (ar auto
 // ControllerUpdateParameters parameters for updating an Azure Dev Spaces Controller.
 type ControllerUpdateParameters struct {
 	// Tags - Tags for the Azure Dev Spaces Controller.
-	Tags map[string]*string `json:"tags"`
+	Tags                                  map[string]*string `json:"tags"`
+	*ControllerUpdateParametersProperties `json:"properties,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for ControllerUpdateParameters.
@@ -497,7 +466,49 @@ func (cup ControllerUpdateParameters) MarshalJSON() ([]byte, error) {
 	if cup.Tags != nil {
 		objectMap["tags"] = cup.Tags
 	}
+	if cup.ControllerUpdateParametersProperties != nil {
+		objectMap["properties"] = cup.ControllerUpdateParametersProperties
+	}
 	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ControllerUpdateParameters struct.
+func (cup *ControllerUpdateParameters) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				cup.Tags = tags
+			}
+		case "properties":
+			if v != nil {
+				var controllerUpdateParametersProperties ControllerUpdateParametersProperties
+				err = json.Unmarshal(*v, &controllerUpdateParametersProperties)
+				if err != nil {
+					return err
+				}
+				cup.ControllerUpdateParametersProperties = &controllerUpdateParametersProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// ControllerUpdateParametersProperties ...
+type ControllerUpdateParametersProperties struct {
+	// TargetContainerHostCredentialsBase64 - Credentials of the target container host (base64).
+	TargetContainerHostCredentialsBase64 *string `json:"targetContainerHostCredentialsBase64,omitempty"`
 }
 
 // ErrorDetails ...
@@ -551,6 +562,13 @@ func (kcd KubernetesConnectionDetails) AsOrchestratorSpecificConnectionDetails()
 // AsBasicOrchestratorSpecificConnectionDetails is the BasicOrchestratorSpecificConnectionDetails implementation for KubernetesConnectionDetails.
 func (kcd KubernetesConnectionDetails) AsBasicOrchestratorSpecificConnectionDetails() (BasicOrchestratorSpecificConnectionDetails, bool) {
 	return &kcd, true
+}
+
+// ListConnectionDetailsParameters parameters for listing connection details of an Azure Dev Spaces
+// Controller.
+type ListConnectionDetailsParameters struct {
+	// TargetContainerHostResourceID - Resource ID of the target container host mapped to the Azure Dev Spaces Controller.
+	TargetContainerHostResourceID *string `json:"targetContainerHostResourceId,omitempty"`
 }
 
 // BasicOrchestratorSpecificConnectionDetails base class for types that supply values used to connect to container
@@ -803,12 +821,6 @@ func (page ResourceProviderOperationListPage) Values() []ResourceProviderOperati
 // Creates a new instance of the ResourceProviderOperationListPage type.
 func NewResourceProviderOperationListPage(getNextPage func(context.Context, ResourceProviderOperationList) (ResourceProviderOperationList, error)) ResourceProviderOperationListPage {
 	return ResourceProviderOperationListPage{fn: getNextPage}
-}
-
-// SetObject ...
-type SetObject struct {
-	autorest.Response `json:"-"`
-	Value             interface{} `json:"value,omitempty"`
 }
 
 // Sku model representing SKU for Azure Dev Spaces Controller.

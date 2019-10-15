@@ -13,6 +13,10 @@ func dataSourceArmClientConfig() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmClientConfigRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"client_id": {
 				Type:     schema.TypeString,

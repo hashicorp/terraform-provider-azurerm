@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_lb_nat_pool
 
-Manages a Load Balancer NAT pool.
+Manages a Load Balancer NAT pool. 
+
+-> **NOTE:** This resource cannot be used with with virtual machines, instead use the `azurerm_lb_nat_rule` resource.
 
 ~> **NOTE** When using this resource, the Load Balancer needs to have a FrontEnd IP Configuration Attached
 
@@ -67,7 +69,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Load Balancer to which the resource is attached.
+* `id` - The ID of the Load Balancer NAT pool.
 
 ## Import
 

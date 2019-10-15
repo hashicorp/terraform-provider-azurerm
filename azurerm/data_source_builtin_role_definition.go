@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,6 +12,10 @@ import (
 func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBuiltInRoleDefinitionRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		DeprecationMessage: `This Data Source has been deprecated in favour of the 'azurerm_role_definition' resource that now can look up role definitions by names.
 
