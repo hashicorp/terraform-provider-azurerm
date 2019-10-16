@@ -41,8 +41,9 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   webhook_receiver {
-    name        = "callmyapiaswell"
-    service_uri = "http://example.com/alert"
+    name                    = "callmyapiaswell"
+    service_uri             = "http://example.com/alert"
+    use_common_alert_schema = true
   }
 }
 ```
@@ -81,6 +82,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the webhook receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `service_uri` - (Required) The URI where webhooks should be sent.
+* `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
 ## Attributes Reference
 

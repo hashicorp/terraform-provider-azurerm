@@ -3,14 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +24,13 @@ func resourceArmStreamAnalyticsOutputSql() *schema.Resource {
 		Delete: resourceArmStreamAnalyticsOutputSqlDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -86,7 +95,8 @@ func resourceArmStreamAnalyticsOutputSql() *schema.Resource {
 
 func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).StreamAnalytics.OutputsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] Preparing arguments for Azure Stream Analytics SQL Output creation.")
 	name := d.Get("name").(string)
@@ -151,7 +161,8 @@ func resourceArmStreamAnalyticsOutputSqlCreateUpdate(d *schema.ResourceData, met
 
 func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).StreamAnalytics.OutputsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -193,7 +204,8 @@ func resourceArmStreamAnalyticsOutputSqlRead(d *schema.ResourceData, meta interf
 
 func resourceArmStreamAnalyticsOutputSqlDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).StreamAnalytics.OutputsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

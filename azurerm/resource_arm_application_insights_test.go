@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -224,7 +224,7 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
+	conn := testAccProvider.Meta().(*ArmClient).AppInsights.ComponentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -263,7 +263,7 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
+		conn := testAccProvider.Meta().(*ArmClient).AppInsights.ComponentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

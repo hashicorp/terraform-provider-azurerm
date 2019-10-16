@@ -8,19 +8,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -31,6 +31,13 @@ func resourceArmContainerGroup() *schema.Resource {
 		Delete: resourceArmContainerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -446,8 +453,9 @@ func resourceArmContainerGroup() *schema.Resource {
 }
 
 func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Containers.GroupsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -532,8 +540,9 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -593,8 +602,9 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).containers.GroupsClient
+	client := meta.(*ArmClient).Containers.GroupsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -638,7 +648,7 @@ func resourceArmContainerGroupDelete(d *schema.ResourceData, meta interface{}) e
 			return err
 		}
 
-		networkProfileClient := meta.(*ArmClient).network.ProfileClient
+		networkProfileClient := meta.(*ArmClient).Network.ProfileClient
 		networkProfileResourceGroup := parsedProfileId.ResourceGroup
 		networkProfileName := parsedProfileId.Path["networkProfiles"]
 

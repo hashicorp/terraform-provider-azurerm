@@ -2,17 +2,23 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmBatchPool() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBatchPoolRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -276,13 +282,14 @@ func dataSourceArmBatchPool() *schema.Resource {
 }
 
 func dataSourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

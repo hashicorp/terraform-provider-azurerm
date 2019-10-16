@@ -3,17 +3,23 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceApiManagementService() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceApiManagementRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaApiManagementDataSourceName(),
@@ -159,14 +165,14 @@ func dataSourceApiManagementService() *schema.Resource {
 }
 
 func dataSourceApiManagementRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ServiceClient
+	client := meta.(*ArmClient).ApiManagement.ServiceClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
-
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("API Management Service %q (Resource Group %q) was not found", name, resourceGroup)

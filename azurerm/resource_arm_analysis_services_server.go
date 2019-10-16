@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/analysisservices/mgmt/2017-08-01/analysisservices"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +24,13 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 		Read:   resourceArmAnalysisServicesServerRead,
 		Update: resourceArmAnalysisServicesServerUpdate,
 		Delete: resourceArmAnalysisServicesServerDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -114,8 +123,9 @@ func resourceArmAnalysisServicesServer() *schema.Resource {
 }
 
 func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
@@ -174,8 +184,9 @@ func resourceArmAnalysisServicesServerCreate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -232,8 +243,9 @@ func resourceArmAnalysisServicesServerRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Analysis Services Server creation.")
 
@@ -268,8 +280,9 @@ func resourceArmAnalysisServicesServerUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAnalysisServicesServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).analysisservices.ServerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).AnalysisServices.ServerClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -3,14 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +25,13 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -43,8 +52,9 @@ func resourceArmProximityPlacementGroup() *schema.Resource {
 }
 
 func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.ProximityPlacementGroupsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Proximity Placement Group creation.")
 
@@ -81,8 +91,9 @@ func resourceArmProximityPlacementGroupCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.ProximityPlacementGroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -110,8 +121,9 @@ func resourceArmProximityPlacementGroupRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmProximityPlacementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.ProximityPlacementGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.ProximityPlacementGroupsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -82,7 +82,7 @@ func testCheckAzureRMRecoveryServicesVaultDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.VaultsClient
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -114,7 +114,7 @@ func testCheckAzureRMRecoveryServicesVaultExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Recovery Services Vault: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.VaultsClient
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.VaultsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)

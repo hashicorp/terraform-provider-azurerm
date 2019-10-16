@@ -3,15 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +25,13 @@ func resourceArmBatchCertificate() *schema.Resource {
 		Delete: resourceArmBatchCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -88,8 +97,9 @@ func resourceArmBatchCertificate() *schema.Resource {
 }
 
 func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.CertificateClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate creation.")
 
@@ -150,8 +160,9 @@ func resourceArmBatchCertificateCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.CertificateClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -186,8 +197,9 @@ func resourceArmBatchCertificateRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.CertificateClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch certificate update.")
 
@@ -237,8 +249,9 @@ func resourceArmBatchCertificateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmBatchCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.CertificateClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.CertificateClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

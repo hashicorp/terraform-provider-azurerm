@@ -10,13 +10,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/resources"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +27,13 @@ func resourceArmTemplateDeployment() *schema.Resource {
 		Read:   resourceArmTemplateDeploymentRead,
 		Update: resourceArmTemplateDeploymentCreateUpdate,
 		Delete: resourceArmTemplateDeploymentDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(180 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(180 * time.Minute),
+			Delete: schema.DefaultTimeout(180 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -81,16 +89,16 @@ func resourceArmTemplateDeployment() *schema.Resource {
 }
 
 func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	deployClient := client.resource.DeploymentsClient
-	ctx := client.StopContext
+	client := meta.(*ArmClient).Resource.DeploymentsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	deploymentMode := d.Get("deployment_mode").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := deployClient.Get(ctx, resourceGroup, name)
+		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of existing Template Deployment %s (resource group %s) %v", name, resourceGroup, err)
@@ -144,16 +152,16 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 		Properties: &properties,
 	}
 
-	future, err := deployClient.CreateOrUpdate(ctx, resourceGroup, name, deployment)
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
 	if err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, deployClient.Client); err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for deployment: %+v", err)
 	}
 
-	read, err := deployClient.Get(ctx, resourceGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
@@ -167,9 +175,9 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	deployClient := client.resource.DeploymentsClient
-	ctx := client.StopContext
+	client := meta.(*ArmClient).Resource.DeploymentsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -181,7 +189,7 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 		name = id.Path["Deployments"]
 	}
 
-	resp, err := deployClient.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -233,9 +241,9 @@ func resourceArmTemplateDeploymentRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient)
-	deployClient := client.resource.DeploymentsClient
-	ctx := client.StopContext
+	client := meta.(*ArmClient).Resource.DeploymentsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -247,12 +255,12 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		name = id.Path["Deployments"]
 	}
 
-	_, err = deployClient.Delete(ctx, resourceGroup, name)
+	_, err = client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 
-	return waitForTemplateDeploymentToBeDeleted(ctx, deployClient, resourceGroup, name)
+	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name)
 }
 
 // TODO: move this out into the new `helpers` structure

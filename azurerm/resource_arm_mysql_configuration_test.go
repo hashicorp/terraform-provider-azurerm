@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -118,7 +118,7 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mysql.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Mysql.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -143,7 +143,7 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).mysql.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Mysql.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
@@ -166,7 +166,7 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 }
 
 func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mysql.ConfigurationsClient
+	client := testAccProvider.Meta().(*ArmClient).Mysql.ConfigurationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

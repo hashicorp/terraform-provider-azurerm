@@ -75,6 +75,7 @@ func (a servicePrincipalClientCertificateAuth) getAuthorizationToken(sender auto
 
 func (a servicePrincipalClientCertificateAuth) populateConfig(c *Config) error {
 	c.AuthenticatedAsAServicePrincipal = true
+	c.GetAuthenticatedObjectID = buildServicePrincipalObjectIDFunc(c)
 	return nil
 }
 

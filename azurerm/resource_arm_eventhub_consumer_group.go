@@ -3,13 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +23,13 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 		Delete: resourceArmEventHubConsumerGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -59,8 +68,9 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 }
 
 func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.ConsumerGroupClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.ConsumerGroupClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Consumer Group creation.")
 
 	name := d.Get("name").(string)
@@ -110,8 +120,9 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.ConsumerGroupClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.ConsumerGroupClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -141,8 +152,9 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventhub.ConsumerGroupClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.ConsumerGroupClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

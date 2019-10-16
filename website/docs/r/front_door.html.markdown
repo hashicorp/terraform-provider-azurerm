@@ -72,7 +72,7 @@ The following arguments are supported:
 
 * `name` - (Required) Name of the Front Door which is globally unique. Changing this forces a new resource to be created.
 
-* `resource_group` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Name of the Resource group within the Azure subscription. Changing this forces a new resource to be created.
 
 * `location` - (Required) Resource location. Changing this forces a new resource to be created.
 
@@ -81,6 +81,8 @@ The following arguments are supported:
 * `backend_pool_health_probe` - (Required) A `backend_pool_health_probe` block as defined below.
 
 * `backend_pool_load_balancing` - (Required) A `backend_pool_load_balancing` block as defined below.
+
+* `enforce_backend_pools_certificate_name_check` - (Required) Whether to enforce certificate name check on HTTPS requests to all backend pools. No effect on non-HTTPS requests. Permitted values are `true` or `false`.
 
 * `load_balancer_enabled` - (Optional) Operational status of the Front Door load balancer. Permitted values are `true` or `false` Defaults to `true`.
 
@@ -132,7 +134,7 @@ The `frontend_endpoint` block supports the following:
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
 
-* `enable_custom_https_provisioning` - (Required) Name of the Frontend Endpoint.
+* `custom_https_provisioning_enabled` - (Required) Name of the Frontend Endpoint.
 
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 
@@ -176,6 +178,8 @@ The `routing_rule` block supports the following:
 
 * `forwarding_configuration` - (Optional) A `forwarding_configuration` block as defined below.
 
+* `redirect_configuration`   - (Optional) A `redirect_configuration` block as defined below.
+
 ---
 
 The `forwarding_configuration` block supports the following:
@@ -189,6 +193,22 @@ The `forwarding_configuration` block supports the following:
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
 
 * `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HTTPOnly`, `HTTPSOnly`, or `MatchRequest`. Defaults to `MatchRequest`.
+
+---
+
+The `redirect_configuration` block supports the following:
+
+* `custom_host` - (Optional)  Set this to change the URL for the redirection. 
+
+* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HTTPOnly`, `HTTPSOnly`, `MatchRequest`. Defaults to `MatchRequest`
+
+* `redirect_type` - (Optional) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`. Defaults to `Found`
+
+* `custom_fragment` - (Optional) The destination fragment in the portion of URL after '#'. Set this to add a fragment to the redirect URL.
+
+* `custom_path` - (Optional) The path to retain as per the incoming request, or update in the URL for the redirection.
+
+* `custom_query_string` - (Optional) Replace any existing query string from the incoming request URL.
 
 ---
 

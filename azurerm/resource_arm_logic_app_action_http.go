@@ -3,12 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
-
 	"net/http"
+	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
@@ -21,6 +21,13 @@ func resourceArmLogicAppActionHTTP() *schema.Resource {
 		Delete: resourceArmLogicAppActionHTTPDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -112,7 +119,7 @@ func resourceArmLogicAppActionHTTPRead(d *schema.ResourceData, meta interface{})
 	logicAppName := id.Path["workflows"]
 	name := id.Path["actions"]
 
-	t, app, err := retrieveLogicAppAction(meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppAction(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}

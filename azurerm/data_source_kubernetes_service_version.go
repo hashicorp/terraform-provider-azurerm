@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -14,6 +15,10 @@ import (
 func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmKubernetesServiceVersionsRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"location": azure.SchemaLocation(),
@@ -38,7 +43,7 @@ func dataSourceArmKubernetesServiceVersions() *schema.Resource {
 }
 
 func dataSourceArmKubernetesServiceVersionsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.ServicesClient
+	client := meta.(*ArmClient).Containers.ServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	location := azure.NormalizeLocation(d.Get("location").(string))

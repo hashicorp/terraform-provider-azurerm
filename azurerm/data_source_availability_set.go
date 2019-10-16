@@ -4,17 +4,24 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmAvailabilitySet() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmAvailabilitySetRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
@@ -50,8 +57,9 @@ func dataSourceArmAvailabilitySet() *schema.Resource {
 }
 
 func dataSourceArmAvailabilitySetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.AvailabilitySetsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.AvailabilitySetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)

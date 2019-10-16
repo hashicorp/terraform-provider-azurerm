@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -81,7 +81,7 @@ func TestAccAzureRMAPIManagementProperty_update(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementPropertyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagement.PropertyClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.PropertyClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_property" {
 			continue
@@ -116,7 +116,7 @@ func testCheckAzureRMAPIManagementPropertyExists(resourceName string) resource.T
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagement.PropertyClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.PropertyClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, serviceName, name)
 		if err != nil {

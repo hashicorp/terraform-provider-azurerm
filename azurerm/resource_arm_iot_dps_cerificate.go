@@ -2,14 +2,15 @@ package azurerm
 
 import (
 	"fmt"
-
-	"github.com/hashicorp/terraform/helper/schema"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +23,13 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -52,8 +60,9 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 }
 
 func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -95,8 +104,9 @@ func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -124,8 +134,9 @@ func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmIotDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.DPSCertificateClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

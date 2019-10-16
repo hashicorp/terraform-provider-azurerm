@@ -3,10 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +21,14 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -38,8 +48,9 @@ func resourceArmAppServiceActiveSlot() *schema.Resource {
 }
 
 func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Web.AppServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	appServiceName := d.Get("app_service_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -79,8 +90,9 @@ func resourceArmAppServiceActiveSlotCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmAppServiceActiveSlotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Web.AppServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

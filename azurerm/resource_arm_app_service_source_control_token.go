@@ -3,12 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +24,13 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 		Delete: resourceArmAppServiceSourceControlTokenDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -54,8 +63,9 @@ func resourceArmAppServiceSourceControlToken() *schema.Resource {
 }
 
 func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Web.BaseClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Source Control Token creation.")
 
@@ -91,9 +101,9 @@ func resourceArmAppServiceSourceControlTokenCreateUpdate(d *schema.ResourceData,
 }
 
 func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
-	ctx := meta.(*ArmClient).StopContext
-
+	client := meta.(*ArmClient).Web.BaseClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	scmType := d.Id()
 
 	resp, err := client.GetSourceControl(ctx, scmType)
@@ -117,8 +127,9 @@ func resourceArmAppServiceSourceControlTokenRead(d *schema.ResourceData, meta in
 }
 
 func resourceArmAppServiceSourceControlTokenDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.BaseClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Web.BaseClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	scmType := d.Id()
 

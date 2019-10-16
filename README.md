@@ -5,7 +5,7 @@ The AzureRM Provider supports Terraform 0.10.x and later - but Terraform 0.12.x 
 * [Terraform Website](https://www.terraform.io)
 * [AzureRM Provider Documentation](https://www.terraform.io/docs/providers/azurerm/index.html)
 * [AzureRM Provider Usage Examples](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples)
-* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LTJkZTJhNTg3NTE5ZTdjZjFhMThmMTVmOTg5YWJkMDU1YTMzN2YyOWJmZGM3MGI4OTQ0ODQxNTEyNjdjMDAxMjM))
+* [Slack Workspace for Contributors](https://terraform-azure.slack.com) ([Request Invite](https://join.slack.com/t/terraform-azure/shared_invite/enQtNDMzNjQ5NzcxMDc3LWNiY2ZhNThhNDgzNmY0MTM0N2MwZjE4ZGU0MjcxYjUyMzRmN2E5NjZhZmQ0ZTA1OTExMGNjYzA4ZDkwZDYxNDE))
 
 ## Usage Example
 
@@ -14,7 +14,7 @@ The AzureRM Provider supports Terraform 0.10.x and later - but Terraform 0.12.x 
 provider "azurerm" {
   # We recommend pinning to the specific version of the Azure Provider you're using
   # since new versions are released frequently
-  version = "=1.34.0"
+  version = "=1.36.0"
 
   # More information on the authentication methods supported by
   # the AzureRM Provider can be found here:

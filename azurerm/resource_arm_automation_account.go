@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +26,13 @@ func resourceArmAutomationAccount() *schema.Resource {
 		Delete: resourceArmAutomationAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -95,8 +104,9 @@ func resourceArmAutomationAccount() *schema.Resource {
 }
 
 func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.AccountClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// Remove in 2.0
 	var sku automation.Sku
@@ -167,9 +177,10 @@ func resourceArmAutomationAccountCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.AccountClient
-	registrationClient := meta.(*ArmClient).automation.AgentRegistrationInfoClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.AccountClient
+	registrationClient := meta.(*ArmClient).Automation.AgentRegistrationInfoClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -233,8 +244,9 @@ func resourceArmAutomationAccountRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.AccountClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

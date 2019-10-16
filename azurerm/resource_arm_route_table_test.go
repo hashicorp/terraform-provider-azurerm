@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -341,7 +341,7 @@ func testCheckAzureRMRouteTableExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.RouteTablesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.RouteTablesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
@@ -370,7 +370,7 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 			return fmt.Errorf("Bad: no resource group found in state for route table: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.RouteTablesClient
+		client := testAccProvider.Meta().(*ArmClient).Network.RouteTablesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, name)
@@ -389,7 +389,7 @@ func testCheckAzureRMRouteTableDisappears(resourceName string) resource.TestChec
 }
 
 func testCheckAzureRMRouteTableDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.RouteTablesClient
+	client := testAccProvider.Meta().(*ArmClient).Network.RouteTablesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

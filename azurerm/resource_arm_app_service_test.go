@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -2058,7 +2058,7 @@ func TestAccAzureRMAppService_basicWindowsContainer(t *testing.T) {
 }
 
 func testCheckAzureRMAppServiceDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+	client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service" {
@@ -2098,7 +2098,7 @@ func testCheckAzureRMAppServiceExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for App Service: %s", appServiceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, appServiceName)
 		if err != nil {
