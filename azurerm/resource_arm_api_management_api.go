@@ -260,34 +260,21 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 		apiType = apimanagement.APIType(apimanagement.SoapToRest)
 	}
 
-	var params apimanagement.APICreateOrUpdateParameter
+	params := apimanagement.APICreateOrUpdateParameter{
+		APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
+			APIType:                       apiType,
+			Description:                   utils.String(description),
+			DisplayName:                   utils.String(displayName),
+			Path:                          utils.String(path),
+			Protocols:                     protocols,
+			ServiceURL:                    utils.String(serviceUrl),
+			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
+			APIVersion:                    utils.String(version),
+		},
+	}
+
 	if versionSetId != "" {
-		params = apimanagement.APICreateOrUpdateParameter{
-			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
-				APIType:                       apiType,
-				Description:                   utils.String(description),
-				DisplayName:                   utils.String(displayName),
-				Path:                          utils.String(path),
-				Protocols:                     protocols,
-				ServiceURL:                    utils.String(serviceUrl),
-				SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
-				APIVersion:                    utils.String(version),
-				APIVersionSetID:               utils.String(versionSetId),
-			},
-		}
-	} else {
-		params = apimanagement.APICreateOrUpdateParameter{
-			APICreateOrUpdateProperties: &apimanagement.APICreateOrUpdateProperties{
-				APIType:                       apiType,
-				Description:                   utils.String(description),
-				DisplayName:                   utils.String(displayName),
-				Path:                          utils.String(path),
-				Protocols:                     protocols,
-				ServiceURL:                    utils.String(serviceUrl),
-				SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
-				APIVersion:                    utils.String(version),
-			},
-		}
+		params.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {
