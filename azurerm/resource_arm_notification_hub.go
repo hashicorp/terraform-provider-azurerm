@@ -34,6 +34,14 @@ func resourceArmNotificationHub() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			// NOTE: the ForceNew is to workaround a bug in the Azure SDK where nil-values aren't sent to the API.
 			// Bug: https://github.com/Azure/azure-sdk-for-go/issues/2246

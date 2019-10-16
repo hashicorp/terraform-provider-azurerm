@@ -2,8 +2,9 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -25,6 +26,13 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 		Delete: resourceArmMonitorActionGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -161,6 +169,11 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -280,11 +293,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.URLIsHTTPOrHTTPS,
-						},
-						"use_common_alert_schema": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
 						},
 					},
 				},
@@ -517,8 +525,9 @@ func expandMonitorActionGroupWebHookReceiver(v []interface{}) *[]insights.Webhoo
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 		receiver := insights.WebhookReceiver{
-			Name:       utils.String(val["name"].(string)),
-			ServiceURI: utils.String(val["service_uri"].(string)),
+			Name:                 utils.String(val["name"].(string)),
+			ServiceURI:           utils.String(val["service_uri"].(string)),
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -596,6 +605,7 @@ func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver)
 			if receiver.EmailAddress != nil {
 				val["email_address"] = *receiver.EmailAddress
 			}
+
 			result = append(result, val)
 		}
 	}
@@ -659,6 +669,7 @@ func flattenMonitorActionGroupSmsReceiver(receivers *[]insights.SmsReceiver) []i
 			if receiver.PhoneNumber != nil {
 				val["phone_number"] = *receiver.PhoneNumber
 			}
+
 			result = append(result, val)
 		}
 	}
@@ -676,6 +687,10 @@ func flattenMonitorActionGroupWebHookReceiver(receivers *[]insights.WebhookRecei
 			if receiver.ServiceURI != nil {
 				val["service_uri"] = *receiver.ServiceURI
 			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
+
 			result = append(result, val)
 		}
 	}

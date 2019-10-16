@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2018-01-10/siterecovery"
@@ -26,6 +27,13 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 		Delete: resourceArmRecoveryReplicatedItemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(80 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(80 * time.Minute),
+			Delete: schema.DefaultTimeout(80 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
