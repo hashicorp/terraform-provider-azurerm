@@ -86,6 +86,12 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_catalogInfo(t *testing.T
 					resource.TestCheckResourceAttr(resourceName, "catalog_info.0.pricing_tier", "Basic"),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"catalog_info.0.administrator_password"},
+			},
 		},
 	})
 }
@@ -109,6 +115,12 @@ func TestAccAzureRMDataFactoryIntegrationRuntimeManaged_customSetupScript(t *tes
 					resource.TestCheckResourceAttrSet(resourceName, "custom_setup_script.0.blob_container_uri"),
 					resource.TestCheckResourceAttrSet(resourceName, "custom_setup_script.0.sas_token"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"custom_setup_script.0.sas_token"},
 			},
 		},
 	})
