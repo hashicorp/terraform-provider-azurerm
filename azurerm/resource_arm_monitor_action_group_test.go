@@ -1166,8 +1166,8 @@ func testAccAzureRMMonitorActionGroup_complete(rInt int, rString, location strin
 
 		webhook_receiver {
 			name        = "callmybackupapi"
-	  	service_uri = "https://backup.example.com/warning"
-  		use_common_alert_schema = true
+	  		service_uri = "https://backup.example.com/warning"
+  			use_common_alert_schema = true
 		}
 
 		automation_runbook_receiver {
