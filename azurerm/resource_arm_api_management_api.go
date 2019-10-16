@@ -315,6 +315,9 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		revision = strings.Split(apiid, "=")[1]
 	}
 
+	version := id.Path["version"]
+	versionSetId := id.Path["version_set_id"]
+
 	resp, err := client.Get(ctx, resourceGroup, serviceName, apiid)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -329,6 +332,8 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("api_management_name", serviceName)
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+	d.Set("version", version)
+	d.Set("version_set_id", versionSetId)
 
 	if props := resp.APIContractProperties; props != nil {
 		d.Set("description", props.Description)
@@ -339,8 +344,6 @@ func resourceArmApiManagementApiRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("service_url", props.ServiceURL)
 		d.Set("revision", props.APIRevision)
 		d.Set("soap_pass_through", string(props.APIType) == string(apimanagement.SoapPassThrough))
-		d.Set("version", props.APIVersion)
-		d.Set("version_set_id", props.APIVersionSetID)
 
 		if err := d.Set("protocols", flattenApiManagementApiProtocols(props.Protocols)); err != nil {
 			return fmt.Errorf("Error setting `protocols`: %s", err)
