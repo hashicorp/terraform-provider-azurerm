@@ -72,6 +72,11 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -212,6 +217,11 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -294,10 +304,38 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
 
+			"arm_role_receiver": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"role_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UUID,
+						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
 			"tags": tags.Schema(),
 		},
 	}
@@ -336,6 +374,7 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 	voiceReceiversRaw := d.Get("voice_receiver").([]interface{})
 	logicAppReceiversRaw := d.Get("logic_app_receiver").([]interface{})
 	azureFunctionReceiversRaw := d.Get("azure_function_receiver").([]interface{})
+	armRoleReceiversRaw := d.Get("arm_role_receiver").([]interface{})
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
@@ -354,6 +393,7 @@ func resourceArmMonitorActionGroupCreateUpdate(d *schema.ResourceData, meta inte
 			VoiceReceivers:             expandMonitorActionGroupVoiceReceiver(voiceReceiversRaw),
 			LogicAppReceivers:          expandMonitorActionGroupLogicAppReceiver(logicAppReceiversRaw),
 			AzureFunctionReceivers:     expandMonitorActionGroupAzureFunctionReceiver(azureFunctionReceiversRaw),
+			ArmRoleReceivers:           expandMonitorActionGroupArmRoleReceiver(armRoleReceiversRaw),
 		},
 		Tags: expandedTags,
 	}
@@ -438,6 +478,9 @@ func resourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{})
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
 			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
 		}
+		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupArmRoleReceiver(group.ArmRoleReceivers)); err != nil {
+			return fmt.Errorf("Error setting `arm_role_receiver`: %+v", err)
+		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -469,8 +512,9 @@ func expandMonitorActionGroupEmailReceiver(v []interface{}) *[]insights.EmailRec
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 		receiver := insights.EmailReceiver{
-			Name:         utils.String(val["name"].(string)),
-			EmailAddress: utils.String(val["email_address"].(string)),
+			Name:                 utils.String(val["name"].(string)),
+			EmailAddress:         utils.String(val["email_address"].(string)),
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -539,12 +583,13 @@ func expandMonitorActionGroupAutomationRunbookReceiver(v []interface{}) *[]insig
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 		receiver := insights.AutomationRunbookReceiver{
-			Name:                utils.String(val["name"].(string)),
-			AutomationAccountID: utils.String(val["automation_account_id"].(string)),
-			RunbookName:         utils.String(val["runbook_name"].(string)),
-			WebhookResourceID:   utils.String(val["webhook_resource_id"].(string)),
-			IsGlobalRunbook:     utils.Bool(val["is_global_runbook"].(bool)),
-			ServiceURI:          utils.String(val["service_uri"].(string)),
+			Name:                 utils.String(val["name"].(string)),
+			AutomationAccountID:  utils.String(val["automation_account_id"].(string)),
+			RunbookName:          utils.String(val["runbook_name"].(string)),
+			WebhookResourceID:    utils.String(val["webhook_resource_id"].(string)),
+			IsGlobalRunbook:      utils.Bool(val["is_global_runbook"].(bool)),
+			ServiceURI:           utils.String(val["service_uri"].(string)),
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -570,9 +615,10 @@ func expandMonitorActionGroupLogicAppReceiver(v []interface{}) *[]insights.Logic
 	for _, receiverValue := range v {
 		val := receiverValue.(map[string]interface{})
 		receiver := insights.LogicAppReceiver{
-			Name:        utils.String(val["name"].(string)),
-			ResourceID:  utils.String(val["resource_id"].(string)),
-			CallbackURL: utils.String(val["callback_url"].(string)),
+			Name:                 utils.String(val["name"].(string)),
+			ResourceID:           utils.String(val["resource_id"].(string)),
+			CallbackURL:          utils.String(val["callback_url"].(string)),
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -588,6 +634,21 @@ func expandMonitorActionGroupAzureFunctionReceiver(v []interface{}) *[]insights.
 			FunctionAppResourceID: utils.String(val["function_app_resource_id"].(string)),
 			FunctionName:          utils.String(val["function_name"].(string)),
 			HTTPTriggerURL:        utils.String(val["http_trigger_url"].(string)),
+			UseCommonAlertSchema:  utils.Bool(val["use_common_alert_schema"].(bool)),
+		}
+		receivers = append(receivers, receiver)
+	}
+	return &receivers
+}
+
+func expandMonitorActionGroupArmRoleReceiver(v []interface{}) *[]insights.ArmRoleReceiver {
+	receivers := make([]insights.ArmRoleReceiver, 0)
+	for _, receiverValue := range v {
+		val := receiverValue.(map[string]interface{})
+		receiver := insights.ArmRoleReceiver{
+			Name:                 utils.String(val["name"].(string)),
+			RoleID:               utils.String(val["role_id"].(string)),
+			UseCommonAlertSchema: utils.Bool(val["use_common_alert_schema"].(bool)),
 		}
 		receivers = append(receivers, receiver)
 	}
@@ -605,7 +666,9 @@ func flattenMonitorActionGroupEmailReceiver(receivers *[]insights.EmailReceiver)
 			if receiver.EmailAddress != nil {
 				val["email_address"] = *receiver.EmailAddress
 			}
-
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
 			result = append(result, val)
 		}
 	}
@@ -648,6 +711,9 @@ func flattenMonitorActionGroupAzureAppPushReceiver(receivers *[]insights.AzureAp
 			}
 			if receiver.EmailAddress != nil {
 				val["email_address"] = *receiver.EmailAddress
+			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
 			}
 			result = append(result, val)
 		}
@@ -720,6 +786,9 @@ func flattenMonitorActionGroupAutomationRunbookReceiver(receivers *[]insights.Au
 			if receiver.ServiceURI != nil {
 				val["service_uri"] = *receiver.ServiceURI
 			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
 			result = append(result, val)
 		}
 	}
@@ -760,6 +829,9 @@ func flattenMonitorActionGroupLogicAppReceiver(receivers *[]insights.LogicAppRec
 			if receiver.CallbackURL != nil {
 				val["callback_url"] = *receiver.CallbackURL
 			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
 			result = append(result, val)
 		}
 	}
@@ -782,6 +854,29 @@ func flattenMonitorActionGroupAzureFunctionReceiver(receivers *[]insights.AzureF
 			}
 			if receiver.HTTPTriggerURL != nil {
 				val["http_trigger_url"] = *receiver.HTTPTriggerURL
+			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
+			}
+			result = append(result, val)
+		}
+	}
+	return result
+}
+
+func flattenMonitorActionGroupArmRoleReceiver(receivers *[]insights.ArmRoleReceiver) []interface{} {
+	result := make([]interface{}, 0)
+	if receivers != nil {
+		for _, receiver := range *receivers {
+			val := make(map[string]interface{})
+			if receiver.Name != nil {
+				val["name"] = *receiver.Name
+			}
+			if receiver.RoleID != nil {
+				val["role_id"] = *receiver.RoleID
+			}
+			if receiver.UseCommonAlertSchema != nil {
+				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
 			}
 			result = append(result, val)
 		}

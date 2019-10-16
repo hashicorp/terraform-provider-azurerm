@@ -51,6 +51,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -173,6 +178,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -215,6 +225,11 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -239,6 +254,34 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 						"http_trigger_url": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+			"arm_role_receiver": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"role_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.UUID,
+						},
+						"use_common_alert_schema": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
 						},
 					},
 				},
@@ -302,6 +345,9 @@ func dataSourceArmMonitorActionGroupRead(d *schema.ResourceData, meta interface{
 
 		if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
 			return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
+		}
+		if err = d.Set("arm_role_receiver", flattenMonitorActionGroupArmRoleReceiver(group.ArmRoleReceivers)); err != nil {
+			return fmt.Errorf("Error setting `arm_role_receiver`: %+v", err)
 		}
 	}
 
