@@ -32,7 +32,7 @@ func dataSourceArmFirewall() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"ip_configuration": {
+			"ip_configurations": {
 				Type:     schema.TypeList,
 				Computed: true,
 				MaxItems: 1,
@@ -96,8 +96,8 @@ func dataSourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
 		ipConfigs := flattenArmFirewallIPConfigurations(props.IPConfigurations)
-		if err := d.Set("ip_configuration", ipConfigs); err != nil {
-			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+		if err := d.Set("ip_configurations", ipConfigs); err != nil {
+			return fmt.Errorf("Error setting `ip_configurations`: %+v", err)
 		}
 	}
 

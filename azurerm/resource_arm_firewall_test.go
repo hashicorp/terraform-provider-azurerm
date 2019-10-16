@@ -62,16 +62,16 @@ func TestAccAzureRMFirewall_basicOld(t *testing.T) {
 				Config: testAccAzureRMFirewall_basicOld(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_configuration.0.private_ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configurations.0.name", "configuration"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_configurations.0.private_ip_address"),
 				),
 			},
 			{
 				Config: testAccAzureRMFirewall_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_configuration.0.private_ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configurations.0.name", "configuration"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_configurations.0.private_ip_address"),
 				),
 			},
 			{
@@ -97,8 +97,8 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 				Config: testAccAzureRMFirewall_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMFirewallExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "ip_configuration.0.name", "configuration"),
-					resource.TestCheckResourceAttrSet(resourceName, "ip_configuration.0.private_ip_address"),
+					resource.TestCheckResourceAttr(resourceName, "ip_configurations.0.name", "configuration"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_configurations.0.private_ip_address"),
 				),
 			},
 			{
@@ -316,7 +316,7 @@ resource "azurerm_firewall" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  ip_configuration {
+  ip_configurations {
     name                          = "configuration"
     subnet_id                     = "${azurerm_subnet.test.id}"
     internal_public_ip_address_id = "${azurerm_public_ip.test.id}"
@@ -359,7 +359,7 @@ resource "azurerm_firewall" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  ip_configuration {
+  ip_configurations {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
@@ -378,7 +378,7 @@ resource "azurerm_firewall" "import" {
   location            = "${azurerm_firewall.test.location}"
   resource_group_name = "${azurerm_firewall.test.resource_group_name}"
 
-  ip_configuration {
+  ip_configurations {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
@@ -421,7 +421,7 @@ resource "azurerm_firewall" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  ip_configuration {
+  ip_configurations {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
@@ -469,7 +469,7 @@ resource "azurerm_firewall" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  ip_configuration {
+  ip_configurations {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"

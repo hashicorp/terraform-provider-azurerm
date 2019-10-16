@@ -20,7 +20,7 @@ data "azurerm_firewall" "test" {
 }
 
 output "firewall_private_ip" {
-  value = "${data.azurerm_firewall.test.ip_configuration.0.private_ip_address}"
+  value = "${data.azurerm_firewall.test.ip_configurations.0.private_ip_address}"
 }
 ```
 
@@ -36,11 +36,11 @@ The following attributes are exported:
 
 * `id` - The Resource ID of the Azure Firewall.
 
-* `ip_configuration` - A `ip_configuration` block as defined below.
+* `ip_configurations` - A `ip_configurations` block as defined below.
 
 ---
 
-A `ip_configuration` block exports the following:
+A `ip_configurations` block exports the following:
 
 * `subnet_id` - The Resource ID of the subnet where the Azure Firewall is deployed.
 
