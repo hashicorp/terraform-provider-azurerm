@@ -1,19 +1,21 @@
 package sql
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
-	DatabasesClient                       *sql.DatabasesClient
-	DatabaseThreatDetectionPoliciesClient *sql.DatabaseThreatDetectionPoliciesClient
-	ElasticPoolsClient                    *sql.ElasticPoolsClient
-	FirewallRulesClient                   *sql.FirewallRulesClient
-	FailoverGroupsClient                  *sql.FailoverGroupsClient
-	ServersClient                         *sql.ServersClient
-	ServerAzureADAdministratorsClient     *sql.ServerAzureADAdministratorsClient
-	VirtualNetworkRulesClient             *sql.VirtualNetworkRulesClient
+	DatabasesClient                          *sql.DatabasesClient
+	DatabaseThreatDetectionPoliciesClient    *sql.DatabaseThreatDetectionPoliciesClient
+	ElasticPoolsClient                       *sql.ElasticPoolsClient
+	FirewallRulesClient                      *sql.FirewallRulesClient
+	FailoverGroupsClient                     *sql.FailoverGroupsClient
+	ServersClient                            *sql.ServersClient
+	ServerAzureADAdministratorsClient        *sql.ServerAzureADAdministratorsClient
+	VirtualNetworkRulesClient                *sql.VirtualNetworkRulesClient
+	ServerBlobAuditingPoliciesClient         *sql.ServerBlobAuditingPoliciesClient
+	ExtendedServerBlobAuditingPoliciesClient *sql.ExtendedServerBlobAuditingPoliciesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -42,14 +44,22 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VirtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
+	ServerBlobAuditingPoliciesClient := sql.NewServerBlobAuditingPoliciesClient(o.SubscriptionId)
+	o.ConfigureClient(&ServerBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
+	ExtendedServerBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClient(o.SubscriptionId)
+	o.ConfigureClient(&ExtendedServerBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
-		DatabasesClient:                       &DatabasesClient,
-		DatabaseThreatDetectionPoliciesClient: &DatabaseThreatDetectionPoliciesClient,
-		ElasticPoolsClient:                    &ElasticPoolsClient,
-		FailoverGroupsClient:                  &FailoverGroupsClient,
-		FirewallRulesClient:                   &FirewallRulesClient,
-		ServersClient:                         &ServersClient,
-		ServerAzureADAdministratorsClient:     &ServerAzureADAdministratorsClient,
-		VirtualNetworkRulesClient:             &VirtualNetworkRulesClient,
+		DatabasesClient:                          &DatabasesClient,
+		DatabaseThreatDetectionPoliciesClient:    &DatabaseThreatDetectionPoliciesClient,
+		ElasticPoolsClient:                       &ElasticPoolsClient,
+		FailoverGroupsClient:                     &FailoverGroupsClient,
+		FirewallRulesClient:                      &FirewallRulesClient,
+		ServersClient:                            &ServersClient,
+		ServerAzureADAdministratorsClient:        &ServerAzureADAdministratorsClient,
+		VirtualNetworkRulesClient:                &VirtualNetworkRulesClient,
+		ServerBlobAuditingPoliciesClient:         &ServerBlobAuditingPoliciesClient,
+		ExtendedServerBlobAuditingPoliciesClient: &ExtendedServerBlobAuditingPoliciesClient,
 	}
 }

@@ -418,6 +418,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_sql_failover_group":                                                     resourceArmSqlFailoverGroup(),
 		"azurerm_sql_firewall_rule":                                                      resourceArmSqlFirewallRule(),
 		"azurerm_sql_server":                                                             resourceArmSqlServer(),
+		"azurerm_sql_server_blob_auditing_policies":                                      resourceArmSqlServerBlobAuditingPolicies(),
+		"azurerm_sql_extended_server_blob_auditing_policies":                             resourceArmSqlExtendedServerBlobAuditingPolicies(),
 		"azurerm_sql_virtual_network_rule":                                               resourceArmSqlVirtualNetworkRule(),
 		"azurerm_storage_account":                                                        resourceArmStorageAccount(),
 		"azurerm_storage_blob":                                                           resourceArmStorageBlob(),
