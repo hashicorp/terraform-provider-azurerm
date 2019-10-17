@@ -35,7 +35,6 @@ func dataSourceArmFirewall() *schema.Resource {
 			"ip_configurations": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
