@@ -281,7 +281,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"emails": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
@@ -289,7 +289,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 													},
 												},
 												"dns_names": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
@@ -297,7 +297,7 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 													},
 												},
 												"upns": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
