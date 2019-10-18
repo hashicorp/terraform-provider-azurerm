@@ -42,6 +42,7 @@ output "action_group_id" {
 * `voice_receiver` - One or more `voice_receiver` blocks as defined below.
 * `azure_function_receiver` - One or more `azure_function_receiver` blocks as defined below.
 * `logic_app_receiver` - One or more `logic_app_receiver` blocks as defined below.
+* `arm_role_receiver` - One or more `arm_role_receiver` blocks as defined below.
 
 ---
 
@@ -49,6 +50,7 @@ output "action_group_id" {
 
 * `name` - The name of the email receiver.
 * `email_address` - The email address of this receiver.
+* `use_common_alert_schema` - Indicates whether to use common alert schema.
 
 ---
 
@@ -81,6 +83,7 @@ output "action_group_id" {
 
 * `name` - The name of the webhook receiver. 
 * `service_uri` - The URI where webhooks should be sent.
+* `use_common_alert_schema` - Indicates whether to use common alert schema.
 
 ---
 
@@ -92,6 +95,7 @@ output "action_group_id" {
 * `webhook_resource_id` - The resource id for webhook linked to this runbook.
 * `is_global_runbook` - Indicates whether this instance is global runbook.
 * `service_uri` - The URI where webhooks should be sent.
+* `use_common_alert_schema` - Indicates whether to use common alert schema.
 
 ---
 
@@ -109,6 +113,7 @@ output "action_group_id" {
 * `function_app_resouce_id` - The Azure resource ID of the function app.
 * `function_name` - The function name in the function app.
 * `http_trigger_url` - The http trigger url where http request sent to.
+* `use_common_alert_schema` - Indicates whether to use common alert schema.
 
 ---
 
@@ -117,3 +122,13 @@ output "action_group_id" {
 * `name` - The name of the logic app receiver. 
 * `resource_id` - The Azure resource ID of the logic app.
 * `callback_url` - The callback url where http request sent to.
+* `use_common_alert_schema` - Indicates whether to use common alert schema.
+
+---
+
+`arm_role_receiver` supports the following:
+
+* `name` - The name of the ARM role receiver.
+* `role_id` - The arm role id.
+* `use_common_alert_schema` - Indicates whether to use common alert schema.
+

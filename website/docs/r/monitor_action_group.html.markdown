@@ -114,6 +114,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the email receiver. Names must be unique (case-insensitive) across all receivers within an action group.
 * `email_address` - (Required) The email address of this receiver.
+* `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
 ---
 
@@ -158,6 +159,7 @@ The following arguments are supported:
 * `webhook_resource_id` - (Required) The resource id for webhook linked to this runbook.
 * `is_global_runbook` - (Required) Indicates whether this instance is global runbook.
 * `service_uri` - (Required) The URI where webhooks should be sent.
+* `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
 ---
 
@@ -175,6 +177,7 @@ The following arguments are supported:
 * `function_app_resouce_id` - (Required) The Azure resource ID of the function app.
 * `function_name` - (Required) The function name in the function app.
 * `http_trigger_url` - (Required) The http trigger url where http request sent to.
+* `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
 ---
 
@@ -183,6 +186,15 @@ The following arguments are supported:
 * `name` - (Required) The name of the logic app receiver.
 * `resource_id` - (Required) The Azure resource ID of the logic app.
 * `callback_url` - (Required) The callback url where http request sent to.
+* `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
+
+---
+
+`arm_role_receiver` supports the following:
+
+* `name` - (Required) The name of the ARM role receiver.
+* `role_id` - (Required) The arm role id.
+* `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 
 ## Attributes Reference
 
