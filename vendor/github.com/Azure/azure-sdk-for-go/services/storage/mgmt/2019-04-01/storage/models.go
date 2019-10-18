@@ -272,6 +272,21 @@ func PossibleKindValues() []Kind {
 	return []Kind{BlobStorage, BlockBlobStorage, FileStorage, Storage, StorageV2}
 }
 
+// LargeFileSharesState enumerates the values for large file shares state.
+type LargeFileSharesState string
+
+const (
+	// Disabled ...
+	Disabled LargeFileSharesState = "Disabled"
+	// Enabled ...
+	Enabled LargeFileSharesState = "Enabled"
+)
+
+// PossibleLargeFileSharesStateValues returns an array of possible values for the LargeFileSharesState const type.
+func PossibleLargeFileSharesStateValues() []LargeFileSharesState {
+	return []LargeFileSharesState{Disabled, Enabled}
+}
+
 // LeaseDuration enumerates the values for lease duration.
 type LeaseDuration string
 
@@ -832,6 +847,145 @@ type AccountListResult struct {
 	autorest.Response `json:"-"`
 	// Value - READ-ONLY; Gets the list of storage accounts and their properties.
 	Value *[]Account `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Request URL that can be used to query next page of storage accounts. Returned when total number of requested storage accounts exceed maximum page size.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// AccountListResultIterator provides access to a complete listing of Account values.
+type AccountListResultIterator struct {
+	i    int
+	page AccountListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *AccountListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *AccountListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter AccountListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter AccountListResultIterator) Response() AccountListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter AccountListResultIterator) Value() Account {
+	if !iter.page.NotDone() {
+		return Account{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the AccountListResultIterator type.
+func NewAccountListResultIterator(page AccountListResultPage) AccountListResultIterator {
+	return AccountListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (alr AccountListResult) IsEmpty() bool {
+	return alr.Value == nil || len(*alr.Value) == 0
+}
+
+// accountListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (alr AccountListResult) accountListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if alr.NextLink == nil || len(to.String(alr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(alr.NextLink)))
+}
+
+// AccountListResultPage contains a page of Account values.
+type AccountListResultPage struct {
+	fn  func(context.Context, AccountListResult) (AccountListResult, error)
+	alr AccountListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *AccountListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/AccountListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.alr)
+	if err != nil {
+		return err
+	}
+	page.alr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *AccountListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page AccountListResultPage) NotDone() bool {
+	return !page.alr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page AccountListResultPage) Response() AccountListResult {
+	return page.alr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page AccountListResultPage) Values() []Account {
+	if page.alr.IsEmpty() {
+		return nil
+	}
+	return *page.alr.Value
+}
+
+// Creates a new instance of the AccountListResultPage type.
+func NewAccountListResultPage(getNextPage func(context.Context, AccountListResult) (AccountListResult, error)) AccountListResultPage {
+	return AccountListResultPage{fn: getNextPage}
 }
 
 // AccountProperties properties of the storage account.
@@ -872,13 +1026,15 @@ type AccountProperties struct {
 	GeoReplicationStats *GeoReplicationStats `json:"geoReplicationStats,omitempty"`
 	// FailoverInProgress - READ-ONLY; If the failover is in progress, the value will be true, otherwise, it will be null.
 	FailoverInProgress *bool `json:"failoverInProgress,omitempty"`
+	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
+	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
 }
 
 // AccountPropertiesCreateParameters the parameters used to create the storage account.
 type AccountPropertiesCreateParameters struct {
 	// CustomDomain - User domain assigned to the storage account. Name is the CNAME source. Only one custom domain is supported per storage account at this time. To clear the existing custom domain, use an empty string for the custom domain name property.
 	CustomDomain *CustomDomain `json:"customDomain,omitempty"`
-	// Encryption - Provides the encryption settings on the account. If left unspecified the account encryption settings will remain the same. The default setting is unencrypted.
+	// Encryption - Not applicable. Azure Storage encryption is enabled for all storage accounts and cannot be disabled.
 	Encryption *Encryption `json:"encryption,omitempty"`
 	// NetworkRuleSet - Network rule set
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
@@ -890,6 +1046,8 @@ type AccountPropertiesCreateParameters struct {
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// IsHnsEnabled - Account HierarchicalNamespace enabled if sets to true.
 	IsHnsEnabled *bool `json:"isHnsEnabled,omitempty"`
+	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
+	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
 }
 
 // AccountPropertiesUpdateParameters the parameters used when updating a storage account.
@@ -906,6 +1064,8 @@ type AccountPropertiesUpdateParameters struct {
 	EnableHTTPSTrafficOnly *bool `json:"supportsHttpsTrafficOnly,omitempty"`
 	// NetworkRuleSet - Network rule set
 	NetworkRuleSet *NetworkRuleSet `json:"networkAcls,omitempty"`
+	// LargeFileSharesState - Allow large file shares if sets to Enabled. It cannot be disabled once it is enabled. Possible values include: 'Disabled', 'Enabled'
+	LargeFileSharesState LargeFileSharesState `json:"largeFileSharesState,omitempty"`
 }
 
 // AccountRegenerateKeyParameters the parameters used to regenerate the storage account key.
@@ -1184,6 +1344,13 @@ func (bc *BlobContainer) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// BlobServiceItems ...
+type BlobServiceItems struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List of blob services returned.
+	Value *[]BlobServiceProperties `json:"value,omitempty"`
+}
+
 // BlobServiceProperties the properties of a storage account’s Blob service.
 type BlobServiceProperties struct {
 	autorest.Response `json:"-"`
@@ -1267,6 +1434,14 @@ type BlobServicePropertiesProperties struct {
 	DeleteRetentionPolicy *DeleteRetentionPolicy `json:"deleteRetentionPolicy,omitempty"`
 	// AutomaticSnapshotPolicyEnabled - Automatic Snapshot is enabled if set to true.
 	AutomaticSnapshotPolicyEnabled *bool `json:"automaticSnapshotPolicyEnabled,omitempty"`
+	// ChangeFeed - The blob service properties for change feed events.
+	ChangeFeed *ChangeFeed `json:"changeFeed,omitempty"`
+}
+
+// ChangeFeed the blob service properties for change feed events.
+type ChangeFeed struct {
+	// Enabled - Indicates whether change feed event logging is enabled for the Blob service.
+	Enabled *bool `json:"enabled,omitempty"`
 }
 
 // CheckNameAvailabilityResult the CheckNameAvailability operation response.
@@ -1278,6 +1453,23 @@ type CheckNameAvailabilityResult struct {
 	Reason Reason `json:"reason,omitempty"`
 	// Message - READ-ONLY; Gets an error message explaining the Reason value in more detail.
 	Message *string `json:"message,omitempty"`
+}
+
+// CloudError an error response from the Storage service.
+type CloudError struct {
+	Error *CloudErrorBody `json:"error,omitempty"`
+}
+
+// CloudErrorBody an error response from the Storage service.
+type CloudErrorBody struct {
+	// Code - An identifier for the error. Codes are invariant and are intended to be consumed programmatically.
+	Code *string `json:"code,omitempty"`
+	// Message - A message describing the error, intended to be suitable for display in a user interface.
+	Message *string `json:"message,omitempty"`
+	// Target - The target of the particular error. For example, the name of the property in error.
+	Target *string `json:"target,omitempty"`
+	// Details - A list of additional details about the error.
+	Details *[]CloudErrorBody `json:"details,omitempty"`
 }
 
 // ContainerProperties the properties of a container.
@@ -1346,14 +1538,14 @@ type CustomDomain struct {
 
 // DateAfterCreation object to define the number of days after creation.
 type DateAfterCreation struct {
-	// DaysAfterCreationGreaterThan - Integer value indicating the age in days after creation
-	DaysAfterCreationGreaterThan *int32 `json:"daysAfterCreationGreaterThan,omitempty"`
+	// DaysAfterCreationGreaterThan - Value indicating the age in days after creation
+	DaysAfterCreationGreaterThan *float64 `json:"daysAfterCreationGreaterThan,omitempty"`
 }
 
 // DateAfterModification object to define the number of days after last modification.
 type DateAfterModification struct {
-	// DaysAfterModificationGreaterThan - Integer value indicating the age in days after last modification
-	DaysAfterModificationGreaterThan *int32 `json:"daysAfterModificationGreaterThan,omitempty"`
+	// DaysAfterModificationGreaterThan - Value indicating the age in days after last modification
+	DaysAfterModificationGreaterThan *float64 `json:"daysAfterModificationGreaterThan,omitempty"`
 }
 
 // DeleteRetentionPolicy the blob service properties for soft delete.
@@ -1417,6 +1609,428 @@ type Endpoints struct {
 	Web *string `json:"web,omitempty"`
 	// Dfs - READ-ONLY; Gets the dfs endpoint.
 	Dfs *string `json:"dfs,omitempty"`
+}
+
+// FileServiceItems ...
+type FileServiceItems struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List of file services returned.
+	Value *[]FileServiceProperties `json:"value,omitempty"`
+}
+
+// FileServiceProperties the properties of File services in storage account.
+type FileServiceProperties struct {
+	autorest.Response `json:"-"`
+	// FileServicePropertiesProperties - The properties of File services in storage account.
+	*FileServicePropertiesProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FileServiceProperties.
+func (fsp FileServiceProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fsp.FileServicePropertiesProperties != nil {
+		objectMap["properties"] = fsp.FileServicePropertiesProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for FileServiceProperties struct.
+func (fsp *FileServiceProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var fileServiceProperties FileServicePropertiesProperties
+				err = json.Unmarshal(*v, &fileServiceProperties)
+				if err != nil {
+					return err
+				}
+				fsp.FileServicePropertiesProperties = &fileServiceProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				fsp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				fsp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				fsp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// FileServicePropertiesProperties the properties of File services in storage account.
+type FileServicePropertiesProperties struct {
+	// Cors - Specifies CORS rules for the File service. You can include up to five CorsRule elements in the request. If no CorsRule elements are included in the request body, all CORS rules will be deleted, and CORS will be disabled for the File service.
+	Cors *CorsRules `json:"cors,omitempty"`
+}
+
+// FileShare properties of the file share, including Id, resource name, resource type, Etag.
+type FileShare struct {
+	autorest.Response `json:"-"`
+	// FileShareProperties - Properties of the file share.
+	*FileShareProperties `json:"properties,omitempty"`
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FileShare.
+func (fs FileShare) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fs.FileShareProperties != nil {
+		objectMap["properties"] = fs.FileShareProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for FileShare struct.
+func (fs *FileShare) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var fileShareProperties FileShareProperties
+				err = json.Unmarshal(*v, &fileShareProperties)
+				if err != nil {
+					return err
+				}
+				fs.FileShareProperties = &fileShareProperties
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				fs.Etag = &etag
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				fs.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				fs.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				fs.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// FileShareItem the file share properties be listed out.
+type FileShareItem struct {
+	// FileShareProperties - The file share properties be listed out.
+	*FileShareProperties `json:"properties,omitempty"`
+	// Etag - READ-ONLY; Resource Etag.
+	Etag *string `json:"etag,omitempty"`
+	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; The name of the resource
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FileShareItem.
+func (fsi FileShareItem) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fsi.FileShareProperties != nil {
+		objectMap["properties"] = fsi.FileShareProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for FileShareItem struct.
+func (fsi *FileShareItem) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var fileShareProperties FileShareProperties
+				err = json.Unmarshal(*v, &fileShareProperties)
+				if err != nil {
+					return err
+				}
+				fsi.FileShareProperties = &fileShareProperties
+			}
+		case "etag":
+			if v != nil {
+				var etag string
+				err = json.Unmarshal(*v, &etag)
+				if err != nil {
+					return err
+				}
+				fsi.Etag = &etag
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				fsi.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				fsi.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				fsi.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// FileShareItems response schema. Contains list of shares returned, and if paging is requested or
+// required, a URL to next page of shares.
+type FileShareItems struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List of file shares returned.
+	Value *[]FileShareItem `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Request URL that can be used to query next page of shares. Returned when total number of requested shares exceed maximum page size.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// FileShareItemsIterator provides access to a complete listing of FileShareItem values.
+type FileShareItemsIterator struct {
+	i    int
+	page FileShareItemsPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *FileShareItemsIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileShareItemsIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *FileShareItemsIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter FileShareItemsIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter FileShareItemsIterator) Response() FileShareItems {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter FileShareItemsIterator) Value() FileShareItem {
+	if !iter.page.NotDone() {
+		return FileShareItem{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the FileShareItemsIterator type.
+func NewFileShareItemsIterator(page FileShareItemsPage) FileShareItemsIterator {
+	return FileShareItemsIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (fsi FileShareItems) IsEmpty() bool {
+	return fsi.Value == nil || len(*fsi.Value) == 0
+}
+
+// fileShareItemsPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (fsi FileShareItems) fileShareItemsPreparer(ctx context.Context) (*http.Request, error) {
+	if fsi.NextLink == nil || len(to.String(fsi.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(fsi.NextLink)))
+}
+
+// FileShareItemsPage contains a page of FileShareItem values.
+type FileShareItemsPage struct {
+	fn  func(context.Context, FileShareItems) (FileShareItems, error)
+	fsi FileShareItems
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *FileShareItemsPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/FileShareItemsPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.fsi)
+	if err != nil {
+		return err
+	}
+	page.fsi = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *FileShareItemsPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page FileShareItemsPage) NotDone() bool {
+	return !page.fsi.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page FileShareItemsPage) Response() FileShareItems {
+	return page.fsi
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page FileShareItemsPage) Values() []FileShareItem {
+	if page.fsi.IsEmpty() {
+		return nil
+	}
+	return *page.fsi.Value
+}
+
+// Creates a new instance of the FileShareItemsPage type.
+func NewFileShareItemsPage(getNextPage func(context.Context, FileShareItems) (FileShareItems, error)) FileShareItemsPage {
+	return FileShareItemsPage{fn: getNextPage}
+}
+
+// FileShareProperties the properties of the file share.
+type FileShareProperties struct {
+	// LastModifiedTime - READ-ONLY; Returns the date and time the share was last modified.
+	LastModifiedTime *date.Time `json:"lastModifiedTime,omitempty"`
+	// Metadata - A name-value pair to associate with the share as metadata.
+	Metadata map[string]*string `json:"metadata"`
+	// ShareQuota - The maximum size of the share, in gigabytes. Must be greater than 0, and less than or equal to 5TB (5120).
+	ShareQuota *int32 `json:"shareQuota,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for FileShareProperties.
+func (fsp FileShareProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if fsp.Metadata != nil {
+		objectMap["metadata"] = fsp.Metadata
+	}
+	if fsp.ShareQuota != nil {
+		objectMap["shareQuota"] = fsp.ShareQuota
+	}
+	return json.Marshal(objectMap)
 }
 
 // GeoReplicationStats statistics related to replication for storage account's Blob, Table, Queue and File
@@ -1899,7 +2513,7 @@ type ListServiceSasResponse struct {
 // ManagementPolicy the Get Storage Account ManagementPolicies operation response.
 type ManagementPolicy struct {
 	autorest.Response `json:"-"`
-	// ManagementPolicyProperties - READ-ONLY; Returns the Storage Account Data Policies Rules.
+	// ManagementPolicyProperties - Returns the Storage Account Data Policies Rules.
 	*ManagementPolicyProperties `json:"properties,omitempty"`
 	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
 	ID *string `json:"id,omitempty"`
@@ -1912,6 +2526,9 @@ type ManagementPolicy struct {
 // MarshalJSON is the custom marshaler for ManagementPolicy.
 func (mp ManagementPolicy) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
+	if mp.ManagementPolicyProperties != nil {
+		objectMap["properties"] = mp.ManagementPolicyProperties
+	}
 	return json.Marshal(objectMap)
 }
 

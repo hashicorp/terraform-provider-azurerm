@@ -1,6 +1,6 @@
 package azure
 
-import "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
+import "github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 
 func FindNetworkInterfaceIPConfiguration(input *[]network.InterfaceIPConfiguration, name string) *network.InterfaceIPConfiguration {
 	if input == nil {

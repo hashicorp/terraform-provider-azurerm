@@ -1,19 +1,21 @@
 package azurerm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
-
 	"time"
 
-	"bytes"
-
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -51,6 +53,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				ValidateFunc: validateArmContainerServiceOrchestrationPlatform,
 			},
 
+			//lintignore:S018
 			"master_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -78,6 +81,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceMasterProfileHash,
 			},
 
+			//lintignore:S018
 			"linux_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -106,6 +110,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceLinuxProfilesHash,
 			},
 
+			//lintignore:S018
 			"agent_pool_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -139,13 +144,14 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 						"vm_size": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
 				Set: resourceAzureRMContainerServiceAgentPoolProfilesHash,
 			},
 
+			//lintignore:S018
 			"service_principal": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -167,6 +173,7 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceServicePrincipalProfileHash,
 			},
 
+			//lintignore:S018
 			"diagnostics_profile": {
 				Type:     schema.TypeSet,
 				Required: true,
@@ -187,22 +194,23 @@ More information can be found here: https://azure.microsoft.com/en-us/updates/az
 				Set: resourceAzureRMContainerServiceDiagnosticProfilesHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	ctx := meta.(*ArmClient).StopContext
-	containerServiceClient := client.containers.ServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	containerServiceClient := client.Containers.ServicesClient
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Container Service creation.")
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := containerServiceClient.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -224,7 +232,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 	agentProfiles := expandAzureRmContainerServiceAgentProfiles(d)
 	diagnosticsProfile := expandAzureRmContainerServiceDiagnostics(d)
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := containerservice.ContainerService{
 		Name:     &name,
@@ -238,7 +246,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 			AgentPoolProfiles:  &agentProfiles,
 			DiagnosticsProfile: &diagnosticsProfile,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	servicePrincipalProfile := expandAzureRmContainerServiceServicePrincipal(d)
@@ -277,16 +285,17 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) error {
-	containerServiceClient := meta.(*ArmClient).containers.ServicesClient
+	containerServiceClient := meta.(*ArmClient).Containers.ServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["containerServices"]
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := containerServiceClient.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -324,23 +333,22 @@ func resourceArmContainerServiceRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("diagnostics_profile", diagnosticProfile)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerServiceDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient)
-	containerServiceClient := client.containers.ServicesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	containerServiceClient := client.Containers.ServicesClient
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["containerServices"]
 
-	ctx := meta.(*ArmClient).StopContext
 	future, err := containerServiceClient.Delete(ctx, resGroup, name)
 
 	if err != nil {
@@ -408,7 +416,6 @@ func flattenAzureRmContainerServiceAgentPoolProfiles(profiles *[]containerservic
 }
 
 func flattenAzureRmContainerServiceServicePrincipalProfile(profile *containerservice.ServicePrincipalProfile) *schema.Set {
-
 	if profile == nil {
 		return nil
 	}
@@ -503,7 +510,6 @@ func expandAzureRmContainerServiceMasterProfile(d *schema.ResourceData) containe
 }
 
 func expandAzureRmContainerServiceServicePrincipal(d *schema.ResourceData) *containerservice.ServicePrincipalProfile {
-
 	value, exists := d.GetOk("service_principal")
 	if !exists {
 		return nil
@@ -549,7 +555,7 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		ctx := client.StopContext
-		res, err := client.containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
+		res, err := client.Containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)
 		}

@@ -8,15 +8,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
-	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,6 +29,13 @@ func resourceArmBatchPool() *schema.Resource {
 		Delete: resourceArmBatchPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -116,6 +124,7 @@ func resourceArmBatchPool() *schema.Resource {
 			"container_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
+				MinItems: 1,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -123,6 +132,35 @@ func resourceArmBatchPool() *schema.Resource {
 							Type:         schema.TypeString,
 							Optional:     true,
 							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"container_registries": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							ForceNew:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"registry_server": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"user_name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"password": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ForceNew:     true,
+										Sensitive:    true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -252,6 +290,9 @@ func resourceArmBatchPool() *schema.Resource {
 						"environment": {
 							Type:     schema.TypeMap,
 							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						"user_identity": {
@@ -335,8 +376,9 @@ func resourceArmBatchPool() *schema.Resource {
 }
 
 func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.PoolClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch pool creation.")
 
@@ -347,7 +389,7 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 	vmSize := d.Get("vm_size").(string)
 	maxTasksPerNode := int32(d.Get("max_tasks_per_node").(int))
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -467,10 +509,11 @@ func resourceArmBatchPoolCreate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -555,10 +598,11 @@ func resourceArmBatchPoolUpdate(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -593,7 +637,6 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 		if props.DeploymentConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration != nil &&
 			props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference != nil {
-
 			imageReference := props.DeploymentConfiguration.VirtualMachineConfiguration.ImageReference
 
 			d.Set("storage_image_reference", azure.FlattenBatchPoolImageReference(imageReference))
@@ -602,7 +645,7 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 
 		if dcfg := props.DeploymentConfiguration; dcfg != nil {
 			if vmcfg := dcfg.VirtualMachineConfiguration; vmcfg != nil {
-				d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(vmcfg.ContainerConfiguration))
+				d.Set("container_configuration", azure.FlattenBatchPoolContainerConfiguration(d, vmcfg.ContainerConfiguration))
 			}
 		}
 
@@ -617,10 +660,11 @@ func resourceArmBatchPoolRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmBatchPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).batch.PoolClient
+	client := meta.(*ArmClient).Batch.PoolClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -692,7 +736,7 @@ func expandBatchPoolScaleSettings(d *schema.ResourceData) (*batch.ScaleSettings,
 	return scaleSettings, nil
 }
 
-func waitForBatchPoolPendingResizeOperation(ctx context.Context, client batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
+func waitForBatchPoolPendingResizeOperation(ctx context.Context, client *batch.PoolClient, resourceGroup string, accountName string, poolName string) error {
 	// waiting for the pool to be in steady state
 	log.Printf("[INFO] waiting for the pending resize operation on this pool to be stopped...")
 	isSteady := false

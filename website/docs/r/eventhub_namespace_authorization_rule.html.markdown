@@ -13,12 +13,12 @@ Manages an Authorization Rule for an Event Hub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
+resource "azurerm_resource_group" "example" {
+  name     = "resourcegroup"
   location = "West US"
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "acceptanceTestEventHubNamespace"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -30,7 +30,7 @@ resource "azurerm_eventhub_namespace" "test" {
   }
 }
 
-resource "azurerm_eventhub_namespace_authorization_rule" "test" {
+resource "azurerm_eventhub_namespace_authorization_rule" "example" {
   name                = "navi"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The EventHub ID.
+* `id` - The EventHub Namespace Authorization Rule ID.
 
 * `primary_key` - The Primary Key for the Authorization Rule.
 

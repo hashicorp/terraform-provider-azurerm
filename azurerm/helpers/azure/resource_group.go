@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 )
 
@@ -47,8 +47,8 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
-	if len(value) > 80 {
-		errors = append(errors, fmt.Errorf("%q may not exceed 80 characters in length", k))
+	if len(value) > 90 {
+		errors = append(errors, fmt.Errorf("%q may not exceed 90 characters in length", k))
 	}
 
 	if strings.HasSuffix(value, ".") {

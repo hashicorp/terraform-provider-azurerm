@@ -7,9 +7,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func getTrafficManagerFQDN(hostname string) (string, error) {
@@ -46,7 +47,7 @@ func TestAccAzureRMTrafficManagerProfile_geographic(t *testing.T) {
 	})
 }
 func TestAccAzureRMTrafficManagerProfile_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -379,7 +380,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManager.ProfilesClient
+		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -395,7 +396,7 @@ func testCheckAzureRMTrafficManagerProfileExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMTrafficManagerProfileDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).trafficManager.ProfilesClient
+	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.ProfilesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_profile" {

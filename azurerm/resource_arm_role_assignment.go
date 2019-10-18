@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-01-01-preview/authorization"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +24,13 @@ func resourceArmRoleAssignment() *schema.Resource {
 		Delete: resourceArmRoleAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -64,14 +71,26 @@ func resourceArmRoleAssignment() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
+			"principal_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"skip_service_principal_aad_check": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
-	roleAssignmentsClient := meta.(*ArmClient).authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*ArmClient).authorization.RoleDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	roleAssignmentsClient := meta.(*ArmClient).Authorization.RoleAssignmentsClient
+	roleDefinitionsClient := meta.(*ArmClient).Authorization.RoleDefinitionsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	scope := d.Get("scope").(string)
@@ -105,7 +124,7 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		name = uuid
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := roleAssignmentsClient.Get(ctx, scope, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -125,7 +144,13 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 		},
 	}
 
-	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(scope, name, properties, meta)); err != nil {
+	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
+
+	if skipPrincipalCheck {
+		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
+	}
+
+	if err := resource.Retry(300*time.Second, retryRoleAssignmentsClient(d, scope, name, properties, meta)); err != nil {
 		return err
 	}
 
@@ -142,9 +167,10 @@ func resourceArmRoleAssignmentCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).authorization.RoleAssignmentsClient
-	roleDefinitionsClient := meta.(*ArmClient).authorization.RoleDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Authorization.RoleAssignmentsClient
+	roleDefinitionsClient := meta.(*ArmClient).Authorization.RoleDefinitionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.GetByID(ctx, d.Id())
 	if err != nil {
@@ -163,6 +189,7 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("scope", props.Scope)
 		d.Set("role_definition_id", props.RoleDefinitionID)
 		d.Set("principal_id", props.PrincipalID)
+		d.Set("principal_type", props.PrincipalType)
 
 		//allows for import when role name is used (also if the role name changes a plan will show a diff)
 		if roleId := props.RoleDefinitionID; roleId != nil {
@@ -181,8 +208,9 @@ func resourceArmRoleAssignmentRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRoleAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).authorization.RoleAssignmentsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Authorization.RoleAssignmentsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseRoleAssignmentId(d.Id())
 	if err != nil {
@@ -211,10 +239,11 @@ func validateRoleDefinitionName(i interface{}, k string) ([]string, []error) {
 	return nil, nil
 }
 
-func retryRoleAssignmentsClient(scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
+func retryRoleAssignmentsClient(d *schema.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}) func() *resource.RetryError {
 	return func() *resource.RetryError {
-		roleAssignmentsClient := meta.(*ArmClient).authorization.RoleAssignmentsClient
-		ctx := meta.(*ArmClient).StopContext
+		roleAssignmentsClient := meta.(*ArmClient).Authorization.RoleAssignmentsClient
+		ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+		defer cancel()
 
 		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
 		if err != nil {

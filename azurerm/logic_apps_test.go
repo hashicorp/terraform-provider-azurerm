@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestCheckFunc {
@@ -17,7 +18,7 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 		}
 
 		logicAppId := rs.Primary.Attributes["logic_app_id"]
-		id, err := parseAzureResourceID(logicAppId)
+		id, err := azure.ParseAzureResourceID(logicAppId)
 		if err != nil {
 			return err
 		}
@@ -26,7 +27,7 @@ func testCheckAzureRMLogicAppActionExists(resourceName string) resource.TestChec
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).logic.WorkflowsClient
+		client := testAccProvider.Meta().(*ArmClient).Logic.WorkflowsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)
@@ -65,7 +66,7 @@ func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestChe
 		}
 
 		logicAppId := rs.Primary.Attributes["logic_app_id"]
-		id, err := parseAzureResourceID(logicAppId)
+		id, err := azure.ParseAzureResourceID(logicAppId)
 		if err != nil {
 			return err
 		}
@@ -74,7 +75,7 @@ func testCheckAzureRMLogicAppTriggerExists(resourceName string) resource.TestChe
 		workflowName := id.Path["workflows"]
 		resourceGroup := id.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).logic.WorkflowsClient
+		client := testAccProvider.Meta().(*ArmClient).Logic.WorkflowsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, workflowName)

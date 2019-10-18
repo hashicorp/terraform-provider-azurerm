@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +26,13 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 		Delete: resourceArmTrafficManagerEndpointDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -70,7 +81,7 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 					string(trafficmanager.EndpointStatusDisabled),
 					string(trafficmanager.EndpointStatusEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"weight": {
@@ -161,8 +172,9 @@ func resourceArmTrafficManagerEndpoint() *schema.Resource {
 }
 
 func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Endpoint creation.")
 
@@ -172,7 +184,7 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 	profileName := d.Get("profile_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, profileName, endpointType, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -209,9 +221,11 @@ func resourceArmTrafficManagerEndpointCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -228,7 +242,6 @@ func resourceArmTrafficManagerEndpointRead(d *schema.ResourceData, meta interfac
 	profileName := id.Path["trafficManagerProfiles"]
 	name := id.Path[endpointType]
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resGroup, profileName, endpointType, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -303,9 +316,11 @@ func flattenAzureRMTrafficManagerEndpointCustomHeaderConfig(input *[]trafficmana
 }
 
 func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.EndpointsClient
+	client := meta.(*ArmClient).TrafficManager.EndpointsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -315,7 +330,6 @@ func resourceArmTrafficManagerEndpointDelete(d *schema.ResourceData, meta interf
 
 	// endpoint name is keyed by endpoint type in ARM ID
 	name := id.Path[endpointType]
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Delete(ctx, resGroup, profileName, endpointType, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {

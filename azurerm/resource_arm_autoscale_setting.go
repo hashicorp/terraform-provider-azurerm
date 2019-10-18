@@ -6,14 +6,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,6 +36,13 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 		Delete: resourceArmAutoScaleSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -119,7 +130,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 												"time_grain": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateIso8601Duration(),
+													ValidateFunc: validate.ISO8601Duration,
 												},
 												"statistic": {
 													Type:     schema.TypeString,
@@ -130,12 +141,12 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.MetricStatisticTypeMin),
 														string(insights.MetricStatisticTypeSum),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"time_window": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateIso8601Duration(),
+													ValidateFunc: validate.ISO8601Duration,
 												},
 												"time_aggregation": {
 													Type:     schema.TypeString,
@@ -147,7 +158,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.TimeAggregationTypeMinimum),
 														string(insights.TimeAggregationTypeTotal),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"operator": {
 													Type:     schema.TypeString,
@@ -160,7 +171,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.LessThanOrEqual),
 														string(insights.NotEquals),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"threshold": {
 													Type:     schema.TypeFloat,
@@ -182,7 +193,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.ScaleDirectionDecrease),
 														string(insights.ScaleDirectionIncrease),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"type": {
 													Type:     schema.TypeString,
@@ -192,7 +203,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 														string(insights.ExactCount),
 														string(insights.PercentChangeCount),
 													}, true),
-													DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+													DiffSuppressFunc: suppress.CaseDifference,
 												},
 												"value": {
 													Type:         schema.TypeInt,
@@ -202,7 +213,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 												"cooldown": {
 													Type:         schema.TypeString,
 													Required:     true,
-													ValidateFunc: validateIso8601Duration(),
+													ValidateFunc: validate.ISO8601Duration,
 												},
 											},
 										},
@@ -225,12 +236,12 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 									"start": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateRFC3339Date,
+										ValidateFunc: validate.RFC3339Time,
 									},
 									"end": {
 										Type:         schema.TypeString,
 										Required:     true,
-										ValidateFunc: validateRFC3339Date,
+										ValidateFunc: validate.RFC3339Time,
 									},
 								},
 							},
@@ -261,7 +272,7 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 												"Saturday",
 												"Sunday",
 											}, true),
-											DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+											DiffSuppressFunc: suppress.CaseDifference,
 										},
 									},
 									"hours": {
@@ -334,6 +345,9 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 									"properties": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},
@@ -342,19 +356,20 @@ As such the existing 'azurerm_autoscale_setting' resource is deprecated and will
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -380,8 +395,8 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 		return fmt.Errorf("Error expanding `profile`: %+v", err)
 	}
 
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	parameters := insights.AutoscaleSettingResource{
 		Location: utils.String(location),
@@ -412,10 +427,11 @@ func resourceArmAutoScaleSettingCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -456,17 +472,16 @@ func resourceArmAutoScaleSettingRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// Return a new tag map filtered by the specified tag names.
-	tagMap := filterTags(resp.Tags, "$type")
-	flattenAndSetTags(d, tagMap)
-
-	return nil
+	tagMap := tags.Filter(resp.Tags, "$type")
+	return tags.FlattenAndSet(d, tagMap)
 }
 
 func resourceArmAutoScaleSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.AutoscaleSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.AutoscaleSettingsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -865,7 +880,6 @@ func flattenAzureRmAutoScaleSettingRecurrence(input *insights.Recurrence) []inte
 	result := make(map[string]interface{})
 
 	if schedule := input.Schedule; schedule != nil {
-
 		if timezone := schedule.TimeZone; timezone != nil {
 			result["timezone"] = *timezone
 		}

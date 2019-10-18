@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerregistry/mgmt/2018-09-01/containerregistry"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,6 +32,13 @@ func resourceArmContainerRegistry() *schema.Resource {
 		},
 		MigrateState:  resourceAzureRMContainerRegistryMigrateState,
 		SchemaVersion: 2,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -45,7 +56,7 @@ func resourceArmContainerRegistry() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          string(containerregistry.Classic),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(containerregistry.Classic),
 					string(containerregistry.Basic),
@@ -152,11 +163,33 @@ func resourceArmContainerRegistry() *schema.Resource {
 								},
 							},
 						},
+
+						"virtual_network": {
+							Type:       schema.TypeSet,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(containerregistry.Allow),
+										}, false),
+									},
+									"subnet_id": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 
 		CustomizeDiff: func(d *schema.ResourceDiff, v interface{}) error {
@@ -173,14 +206,15 @@ func resourceArmContainerRegistry() *schema.Resource {
 }
 
 func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Containers.RegistriesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry creation.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -193,10 +227,23 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
+	availabilityRequest := containerregistry.RegistryNameCheckRequest{
+		Name: utils.String(name),
+		Type: utils.String("Microsoft.ContainerRegistry/registries"),
+	}
+	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
+	if err != nil {
+		return fmt.Errorf("Error checking if the name %q was available: %+v", name, err)
+	}
+
+	if !*available.NameAvailable {
+		return fmt.Errorf("The name %q used for the Container Registry needs to be globally unique and isn't available: %s", name, *available.Message)
+	}
+
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	geoReplicationLocations := d.Get("georeplication_locations").(*schema.Set)
 
 	networkRuleSet := expandNetworkRuleSet(d.Get("network_rule_set").([]interface{}))
@@ -215,7 +262,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 			NetworkRuleSet:   networkRuleSet,
 		},
 
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
@@ -245,7 +292,7 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 	if geoReplicationLocations != nil && geoReplicationLocations.Len() > 0 {
 		// the ACR is being created so no previous geo-replication locations
 		oldGeoReplicationLocations := []interface{}{}
-		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations, geoReplicationLocations.List())
+		err = applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations, geoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -266,8 +313,9 @@ func resourceArmContainerRegistryCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Containers.RegistriesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Container Registry update.")
 
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -275,7 +323,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	sku := d.Get("sku").(string)
 	adminUserEnabled := d.Get("admin_enabled").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	old, new := d.GetChange("georeplication_locations")
 	hasGeoReplicationChanges := d.HasChange("georeplication_locations")
@@ -296,7 +344,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 			Name: containerregistry.SkuName(sku),
 			Tier: containerregistry.SkuTier(sku),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("storage_account_id"); ok {
@@ -320,7 +368,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 
 	// if the registry had replications and is updated to another Sku than premium - remove old locations
 	if !strings.EqualFold(sku, string(containerregistry.Premium)) && oldGeoReplicationLocations != nil && oldGeoReplicationLocations.Len() > 0 {
-		err := applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
+		err := applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -336,7 +384,7 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	}
 
 	if strings.EqualFold(sku, string(containerregistry.Premium)) && hasGeoReplicationChanges {
-		err = applyGeoReplicationLocations(meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
+		err = applyGeoReplicationLocations(d, meta, resourceGroup, name, oldGeoReplicationLocations.List(), newGeoReplicationLocations.List())
 		if err != nil {
 			return fmt.Errorf("Error applying geo replications for Container Registry %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -356,9 +404,10 @@ func resourceArmContainerRegistryUpdate(d *schema.ResourceData, meta interface{}
 	return resourceArmContainerRegistryRead(d, meta)
 }
 
-func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
-	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+func applyGeoReplicationLocations(d *schema.ResourceData, meta interface{}, resourceGroup string, name string, oldGeoReplicationLocations []interface{}, newGeoReplicationLocations []interface{}) error {
+	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing to apply geo-replications for AzureRM Container Registry.")
 
 	createLocations := make(map[string]bool)
@@ -426,11 +475,12 @@ func applyGeoReplicationLocations(meta interface{}, resourceGroup string, name s
 }
 
 func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
-	replicationClient := meta.(*ArmClient).containers.ReplicationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Containers.RegistriesClient
+	replicationClient := meta.(*ArmClient).Containers.ReplicationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -487,8 +537,6 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("admin_password", "")
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	replications, err := replicationClient.List(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on Azure Container Registry %s for replications: %s", name, err)
@@ -512,14 +560,15 @@ func resourceArmContainerRegistryRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("georeplication_locations", georeplication_locations)
 	}
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).containers.RegistriesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Containers.RegistriesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -573,16 +622,28 @@ func expandNetworkRuleSet(profiles []interface{}) *containerregistry.NetworkRule
 	ipRules := make([]containerregistry.IPRule, 0)
 	for _, ipRuleInterface := range ipRuleConfigs {
 		config := ipRuleInterface.(map[string]interface{})
-		ipRules =
-			append(ipRules, containerregistry.IPRule{
-				Action:           containerregistry.Action(config["action"].(string)),
-				IPAddressOrRange: utils.String(config["ip_range"].(string)),
-			})
+		newIpRule := containerregistry.IPRule{
+			Action:           containerregistry.Action(config["action"].(string)),
+			IPAddressOrRange: utils.String(config["ip_range"].(string)),
+		}
+		ipRules = append(ipRules, newIpRule)
+	}
+
+	networkRuleConfigs := profile["virtual_network"].(*schema.Set).List()
+	virtualNetworkRules := make([]containerregistry.VirtualNetworkRule, 0)
+	for _, networkRuleInterface := range networkRuleConfigs {
+		config := networkRuleInterface.(map[string]interface{})
+		newVirtualNetworkRule := containerregistry.VirtualNetworkRule{
+			Action:                   containerregistry.Action(config["action"].(string)),
+			VirtualNetworkResourceID: utils.String(config["subnet_id"].(string)),
+		}
+		virtualNetworkRules = append(virtualNetworkRules, newVirtualNetworkRule)
 	}
 
 	networkRuleSet := containerregistry.NetworkRuleSet{
-		DefaultAction: containerregistry.DefaultAction(profile["default_action"].(string)),
-		IPRules:       &ipRules,
+		DefaultAction:       containerregistry.DefaultAction(profile["default_action"].(string)),
+		IPRules:             &ipRules,
+		VirtualNetworkRules: &virtualNetworkRules,
 	}
 	return &networkRuleSet
 }
@@ -611,6 +672,20 @@ func flattenNetworkRuleSet(networkRuleSet *containerregistry.NetworkRuleSet) []i
 	}
 
 	values["ip_rule"] = ipRules
+
+	virtualNetworkRules := make([]interface{}, 0)
+
+	if networkRuleSet.VirtualNetworkRules != nil {
+		for _, virtualNetworkRule := range *networkRuleSet.VirtualNetworkRules {
+			value := make(map[string]interface{})
+			value["action"] = string(virtualNetworkRule.Action)
+
+			value["subnet_id"] = virtualNetworkRule.VirtualNetworkResourceID
+			virtualNetworkRules = append(virtualNetworkRules, value)
+		}
+	}
+
+	values["virtual_network"] = virtualNetworkRules
 
 	return []interface{}{values}
 }

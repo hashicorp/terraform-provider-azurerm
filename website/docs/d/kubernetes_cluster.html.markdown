@@ -78,6 +78,10 @@ A `addon_profile` block exports the following:
 
 * `oms_agent` - A `oms_agent` block.
 
+* `kube_dashboard` - A `kube_dashboard` block.
+
+* `azure_policy` - A `azure_policy` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -88,11 +92,11 @@ A `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `availability_zones` - The availability zones used for the nodes. 
+* `availability_zones` - The availability zones used for the nodes.
 
-* `enable_auto_scaling` - If the auto-scaler is enabled. 
+* `enable_auto_scaling` - If the auto-scaler is enabled.
 
-* `min_count` - Minimum number of nodes for auto-scaling 
+* `min_count` - Minimum number of nodes for auto-scaling
 
 * `max_count` - Maximum number of nodes for auto-scaling
 
@@ -192,6 +196,18 @@ A `oms_agent` block exports the following:
 * `enabled` - Is the OMS Agent Enabled?
 
 * `log_analytics_workspace_id` - The ID of the Log Analytics Workspace which the OMS Agent should send data to.
+
+---
+
+A `kube_dashboard` block supports the following:
+
+* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
+
+---
+
+A `azure_policy` block supports the following:
+
+* `enabled` - (Required) Is Azure Policy for Kubernetes enabled?
 
 ---
 

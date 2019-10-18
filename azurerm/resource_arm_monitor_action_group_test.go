@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
@@ -40,7 +41,7 @@ func TestAccAzureRMMonitorActionGroup_basic(t *testing.T) {
 }
 
 func TestAccAzureRMMonitorActionGroup_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -148,6 +149,7 @@ func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.use_common_alert_schema", "true"),
 				),
 			},
 			{
@@ -185,6 +187,7 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.use_common_alert_schema", "true"),
 				),
 			},
 			{
@@ -421,7 +424,8 @@ resource "azurerm_monitor_action_group" "test" {
 
   webhook_receiver {
     name        = "callmyapiaswell"
-    service_uri = "http://example.com/alert"
+	service_uri = "http://example.com/alert"
+	use_common_alert_schema = true
   }
 }
 `, rInt, location, rInt)
@@ -468,7 +472,8 @@ resource "azurerm_monitor_action_group" "test" {
 
   webhook_receiver {
     name        = "callmybackupapi"
-    service_uri = "https://backup.example.com/warning"
+	service_uri = "https://backup.example.com/warning"
+	use_common_alert_schema = true
   }
 }
 `, rInt, location, rInt)
@@ -491,7 +496,7 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 func testCheckAzureRMMonitorActionGroupDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).monitor.ActionGroupsClient
+	conn := testAccProvider.Meta().(*ArmClient).Monitor.ActionGroupsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -530,7 +535,7 @@ func testCheckAzureRMMonitorActionGroupExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Action Group Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).monitor.ActionGroupsClient
+		conn := testAccProvider.Meta().(*ArmClient).Monitor.ActionGroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

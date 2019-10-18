@@ -5,13 +5,18 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +28,13 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 		Delete: resourceArmTrafficManagerProfileDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -42,7 +54,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 					string(trafficmanager.ProfileStatusEnabled),
 					string(trafficmanager.ProfileStatusDisabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"traffic_routing_method": {
@@ -97,7 +109,7 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 								string(trafficmanager.HTTPS),
 								string(trafficmanager.TCP),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"port": {
 							Type:         schema.TypeInt,
@@ -131,14 +143,15 @@ func resourceArmTrafficManagerProfile() *schema.Resource {
 				Set: resourceAzureRMTrafficManagerMonitorConfigHash,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.ProfilesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).TrafficManager.ProfilesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for TrafficManager Profile creation.")
 
@@ -146,9 +159,9 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 	// must be provided in request
 	location := "global"
 	resGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -171,7 +184,7 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 		Name:              &name,
 		Location:          &location,
 		ProfileProperties: props,
-		Tags:              expandTags(tags),
+		Tags:              tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, profile); err != nil {
@@ -192,10 +205,11 @@ func resourceArmTrafficManagerProfileCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.ProfilesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).TrafficManager.ProfilesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -228,22 +242,21 @@ func resourceArmTrafficManagerProfileRead(d *schema.ResourceData, meta interface
 	monitorFlat := flattenAzureRMTrafficManagerProfileMonitorConfig(profile.MonitorConfig)
 	d.Set("monitor_config", schema.NewSet(resourceAzureRMTrafficManagerMonitorConfigHash, monitorFlat))
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmTrafficManagerProfileDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).trafficManager.ProfilesClient
+	client := meta.(*ArmClient).TrafficManager.ProfilesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resGroup := id.ResourceGroup
 	name := id.Path["trafficManagerProfiles"]
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Delete(ctx, resGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp.Response) {

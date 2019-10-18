@@ -3,11 +3,12 @@ package azuread
 import (
 	"fmt"
 
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
-	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/ar"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/graph"
+	"github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate"
 )
 
 func dataServicePrincipal() *schema.Resource {
@@ -38,6 +39,10 @@ func dataServicePrincipal() *schema.Resource {
 				ValidateFunc:  validate.UUID,
 				ConflictsWith: []string{"object_id", "display_name"},
 			},
+
+			"app_roles": graph.SchemaAppRoles(),
+
+			"oauth2_permissions": graph.SchemaOauth2Permissions(),
 		},
 	}
 }
@@ -49,7 +54,6 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 	var sp *graphrbac.ServicePrincipal
 
 	if v, ok := d.GetOk("object_id"); ok {
-
 		//use the object_id to find the Azure AD service principal
 		objectId := v.(string)
 		app, err := client.Get(ctx, objectId)
@@ -62,9 +66,7 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 		}
 
 		sp = &app
-
 	} else if _, ok := d.GetOk("display_name"); ok {
-
 		// use the display_name to find the Azure AD service principal
 		displayName := d.Get("display_name").(string)
 		filter := fmt.Sprintf("displayName eq '%s'", displayName)
@@ -88,9 +90,7 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 		if sp == nil {
 			return fmt.Errorf("A Service Principal with the Display Name %q was not found", displayName)
 		}
-
 	} else {
-
 		// use the application_id to find the Azure AD service principal
 		applicationId := d.Get("application_id").(string)
 		filter := fmt.Sprintf("appId eq '%s'", applicationId)
@@ -114,7 +114,6 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 		if sp == nil {
 			return fmt.Errorf("A Service Principal for Application ID %q was not found", applicationId)
 		}
-
 	}
 
 	if sp.ObjectID == nil {
@@ -125,6 +124,14 @@ func dataSourceActiveDirectoryServicePrincipalRead(d *schema.ResourceData, meta 
 	d.Set("application_id", sp.AppID)
 	d.Set("display_name", sp.DisplayName)
 	d.Set("object_id", sp.ObjectID)
+
+	if err := d.Set("app_roles", graph.FlattenAppRoles(sp.AppRoles)); err != nil {
+		return fmt.Errorf("Error setting `app_roles`: %+v", err)
+	}
+
+	if err := d.Set("oauth2_permissions", graph.FlattenOauth2Permissions(sp.Oauth2Permissions)); err != nil {
+		return fmt.Errorf("Error setting `oauth2_permissions`: %+v", err)
+	}
 
 	return nil
 }

@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -70,7 +71,7 @@ func TestAccAzureRMCognitiveAccount_speechServices(t *testing.T) {
 }
 
 func TestAccAzureRMCognitiveAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -164,7 +165,7 @@ func TestAccAzureRMCognitiveAccount_update(t *testing.T) {
 }
 
 func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).cognitive.AccountsClient
+	client := testAccProvider.Meta().(*ArmClient).Cognitive.AccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -183,7 +184,6 @@ func testCheckAzureRMAppCognitiveAccountDestroy(s *terraform.State) error {
 
 			return nil
 		}
-
 	}
 
 	return nil
@@ -200,7 +200,7 @@ func testCheckAzureRMCognitiveAccountExists(resourceName string) resource.TestCh
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).cognitive.AccountsClient
+		conn := testAccProvider.Meta().(*ArmClient).Cognitive.AccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.GetProperties(ctx, resourceGroup, name)

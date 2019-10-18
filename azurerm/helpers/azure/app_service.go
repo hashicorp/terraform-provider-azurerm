@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -154,6 +154,9 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 				"additional_login_params": {
 					Type:     schema.TypeMap,
 					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 				"allowed_external_redirect_urls": {
 					Type:     schema.TypeList,
@@ -300,12 +303,23 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
 								Type:     schema.TypeString,
-								Required: true,
+								Optional: true,
+							},
+							"virtual_network_subnet_id": {
+								Type:         schema.TypeString,
+								Optional:     true,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 							"subnet_mask": {
 								Type:     schema.TypeString,
 								Optional: true,
-								Default:  "255.255.255.255",
+								Computed: true,
+								// TODO we should fix this in 2.0
+								// This attribute was made with the assumption that `ip_address` was the only valid option
+								// but `virtual_network_subnet_id` is being added and doesn't need a `subnet_mask`.
+								// We'll assume a default of "255.255.255.255" in the expand code when `ip_address` is specified
+								// and `subnet_mask` is not.
+								// Default:  "255.255.255.255",
 							},
 						},
 					},
@@ -485,6 +499,7 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 				"application_logs": {
 					Type:     schema.TypeList,
 					Optional: true,
+					Computed: true,
 					MaxItems: 1,
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
@@ -516,6 +531,55 @@ func SchemaAppServiceLogsConfig() *schema.Schema {
 										},
 									},
 								},
+							},
+						},
+					},
+				},
+				"http_logs": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Computed: true,
+					MaxItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"file_system": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"retention_in_mb": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: validation.IntBetween(25, 100),
+										},
+										"retention_in_days": {
+											Type:         schema.TypeInt,
+											Required:     true,
+											ValidateFunc: validation.IntAtLeast(0),
+										},
+									},
+								},
+								ConflictsWith: []string{"logs.0.http_logs.0.azure_blob_storage"},
+							},
+							"azure_blob_storage": {
+								Type:     schema.TypeList,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &schema.Resource{
+									Schema: map[string]*schema.Schema{
+										"sas_url": {
+											Type:      schema.TypeString,
+											Required:  true,
+											Sensitive: true,
+										},
+										"retention_in_days": {
+											Type:     schema.TypeInt,
+											Required: true,
+										},
+									},
+								},
+								ConflictsWith: []string{"logs.0.http_logs.0.file_system"},
 							},
 						},
 					},
@@ -613,6 +677,10 @@ func SchemaAppServiceDataSourceSiteConfig() *schema.Schema {
 					Elem: &schema.Resource{
 						Schema: map[string]*schema.Schema{
 							"ip_address": {
+								Type:     schema.TypeString,
+								Computed: true,
+							},
+							"virtual_network_subnet_id": {
 								Type:     schema.TypeString,
 								Computed: true,
 							},
@@ -1094,14 +1162,12 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 	result := make(map[string]interface{})
 
+	appLogs := make([]interface{}, 0)
 	if input.ApplicationLogs != nil {
-		appLogs := make([]interface{}, 0)
-
 		appLogsItem := make(map[string]interface{})
 
+		blobStorage := make([]interface{}, 0)
 		if blobStorageInput := input.ApplicationLogs.AzureBlobStorage; blobStorageInput != nil {
-			blobStorage := make([]interface{}, 0)
-
 			blobStorageItem := make(map[string]interface{})
 
 			blobStorageItem["level"] = string(blobStorageInput.Level)
@@ -1114,15 +1180,61 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
 			}
 
-			blobStorage = append(blobStorage, blobStorageItem)
+			// The API returns a non nil application logs object when other logs are specified so we'll check that this structure is empty before adding it to the statefile.
+			if blobStorageInput.SasURL != nil && *blobStorageInput.SasURL != "" {
+				blobStorage = append(blobStorage, blobStorageItem)
+			}
+		}
+		appLogsItem["azure_blob_storage"] = blobStorage
+		appLogs = append(appLogs, appLogsItem)
+	}
+	result["application_logs"] = appLogs
 
-			appLogsItem["azure_blob_storage"] = blobStorage
+	httpLogs := make([]interface{}, 0)
+	if input.HTTPLogs != nil {
+		httpLogsItem := make(map[string]interface{})
+
+		fileSystem := make([]interface{}, 0)
+		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
+			fileSystemItem := make(map[string]interface{})
+
+			if fileSystemInput.RetentionInDays != nil {
+				fileSystemItem["retention_in_days"] = *fileSystemInput.RetentionInDays
+			}
+
+			if fileSystemInput.RetentionInMb != nil {
+				fileSystemItem["retention_in_mb"] = *fileSystemInput.RetentionInMb
+			}
+
+			// The API returns a non nil filesystem logs object when other logs are specified so we'll check that this is disabled before adding it to the statefile.
+			if fileSystemInput.Enabled != nil && *fileSystemInput.Enabled {
+				fileSystem = append(fileSystem, fileSystemItem)
+			}
 		}
 
-		appLogs = append(appLogs, appLogsItem)
+		blobStorage := make([]interface{}, 0)
+		if blobStorageInput := input.HTTPLogs.AzureBlobStorage; blobStorageInput != nil {
+			blobStorageItem := make(map[string]interface{})
 
-		result["application_logs"] = appLogs
+			if blobStorageInput.SasURL != nil {
+				blobStorageItem["sas_url"] = *blobStorageInput.SasURL
+			}
+
+			if blobStorageInput.RetentionInDays != nil {
+				blobStorageItem["retention_in_days"] = *blobStorageInput.RetentionInDays
+			}
+
+			// The API returns a non nil blob logs object when other logs are specified so we'll check that this is disabled before adding it to the statefile.
+			if blobStorageInput.Enabled != nil && *blobStorageInput.Enabled {
+				blobStorage = append(blobStorage, blobStorageItem)
+			}
+		}
+
+		httpLogsItem["file_system"] = fileSystem
+		httpLogsItem["azure_blob_storage"] = blobStorage
+		httpLogs = append(httpLogs, httpLogsItem)
 	}
+	result["http_logs"] = httpLogs
 
 	return append(results, result)
 }
@@ -1155,6 +1267,44 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 						Level:           web.LogLevel(storageConfig["level"].(string)),
 						SasURL:          utils.String(storageConfig["sas_url"].(string)),
 						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+					}
+				}
+			}
+		}
+	}
+
+	if v, ok := config["http_logs"]; ok {
+		httpLogsConfigs := v.([]interface{})
+
+		for _, config := range httpLogsConfigs {
+			httpLogsConfig := config.(map[string]interface{})
+
+			logs.HTTPLogs = &web.HTTPLogsConfig{}
+
+			if v, ok := httpLogsConfig["file_system"]; ok {
+				fileSystemConfigs := v.([]interface{})
+
+				for _, config := range fileSystemConfigs {
+					fileSystemConfig := config.(map[string]interface{})
+
+					logs.HTTPLogs.FileSystem = &web.FileSystemHTTPLogsConfig{
+						RetentionInMb:   utils.Int32(int32(fileSystemConfig["retention_in_mb"].(int))),
+						RetentionInDays: utils.Int32(int32(fileSystemConfig["retention_in_days"].(int))),
+						Enabled:         utils.Bool(true),
+					}
+				}
+			}
+
+			if v, ok := httpLogsConfig["azure_blob_storage"]; ok {
+				storageConfigs := v.([]interface{})
+
+				for _, config := range storageConfigs {
+					storageConfig := config.(map[string]interface{})
+
+					logs.HTTPLogs.AzureBlobStorage = &web.AzureBlobStorageHTTPLogsConfig{
+						SasURL:          utils.String(storageConfig["sas_url"].(string)),
+						RetentionInDays: utils.Int32(int32(storageConfig["retention_in_days"].(int))),
+						Enabled:         utils.Bool(true),
 					}
 				}
 			}
@@ -1214,12 +1364,12 @@ func FlattenAppServiceIdentity(identity *web.ManagedServiceIdentity) []interface
 	return []interface{}{result}
 }
 
-func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
+func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 	configs := input.([]interface{})
-	siteConfig := web.SiteConfig{}
+	siteConfig := &web.SiteConfig{}
 
 	if len(configs) == 0 {
-		return siteConfig
+		return siteConfig, nil
 	}
 
 	config := configs[0].(map[string]interface{})
@@ -1274,26 +1424,44 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 	if v, ok := config["ip_restriction"]; ok {
 		ipSecurityRestrictions := v.([]interface{})
 		restrictions := make([]web.IPSecurityRestriction, 0)
-		for _, ipSecurityRestriction := range ipSecurityRestrictions {
+		for i, ipSecurityRestriction := range ipSecurityRestrictions {
 			restriction := ipSecurityRestriction.(map[string]interface{})
 
 			ipAddress := restriction["ip_address"].(string)
-			mask := restriction["subnet_mask"].(string)
-			// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
-			// so translate the IP and mask if necessary
-			restrictionMask := ""
-			cidrAddress := ipAddress
-			if mask != "" {
-				ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
-				cidrAddress = ipNet.String()
-			} else if !strings.Contains(ipAddress, "/") {
-				cidrAddress += "/32"
+			vNetSubnetID := restriction["virtual_network_subnet_id"].(string)
+			if vNetSubnetID != "" && ipAddress != "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("only one of `ip_address` or `virtual_network_subnet_id` can set set for `site_config.0.ip_restriction.%d`", i))
 			}
 
-			restrictions = append(restrictions, web.IPSecurityRestriction{
-				IPAddress:  &cidrAddress,
-				SubnetMask: &restrictionMask,
-			})
+			if vNetSubnetID == "" && ipAddress == "" {
+				return siteConfig, fmt.Errorf(fmt.Sprintf("one of `ip_address` or `virtual_network_subnet_id` must be set set for `site_config.0.ip_restriction.%d`", i))
+			}
+
+			ipSecurityRestriction := web.IPSecurityRestriction{}
+			if ipAddress != "" {
+				mask := restriction["subnet_mask"].(string)
+				if mask == "" {
+					mask = "255.255.255.255"
+				}
+				// the 2018-02-01 API expects a blank subnet mask and an IP address in CIDR format: a.b.c.d/x
+				// so translate the IP and mask if necessary
+				restrictionMask := ""
+				cidrAddress := ipAddress
+				if mask != "" {
+					ipNet := net.IPNet{IP: net.ParseIP(ipAddress), Mask: net.IPMask(net.ParseIP(mask))}
+					cidrAddress = ipNet.String()
+				} else if !strings.Contains(ipAddress, "/") {
+					cidrAddress += "/32"
+				}
+				ipSecurityRestriction.IPAddress = &cidrAddress
+				ipSecurityRestriction.SubnetMask = &restrictionMask
+			}
+
+			if vNetSubnetID != "" {
+				ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+			}
+
+			restrictions = append(restrictions, ipSecurityRestriction)
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
@@ -1352,7 +1520,7 @@ func ExpandAppServiceSiteConfig(input interface{}) web.SiteConfig {
 		siteConfig.Cors = &expand
 	}
 
-	return siteConfig
+	return siteConfig, nil
 }
 
 func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
@@ -1419,6 +1587,9 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 			}
 			if subnet := v.SubnetMask; subnet != nil {
 				block["subnet_mask"] = *subnet
+			}
+			if vNetSubnetID := v.VnetSubnetResourceID; vNetSubnetID != nil {
+				block["virtual_network_subnet_id"] = *vNetSubnetID
 			}
 			restrictions = append(restrictions, block)
 		}

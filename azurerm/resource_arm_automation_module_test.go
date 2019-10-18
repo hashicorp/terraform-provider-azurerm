@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMAutomationModule_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationModule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -93,7 +94,7 @@ func TestAccAzureRMAutomationModule_multipleModules(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.ModuleClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.ModuleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -120,14 +121,12 @@ func testCheckAzureRMAutomationModuleDestroy(s *terraform.State) error {
 		}
 
 		return fmt.Errorf("Automation Module still exists:\n%#v", resp)
-
 	}
 
 	return nil
 }
 
 func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -143,7 +142,7 @@ func testCheckAzureRMAutomationModuleExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for Automation Module: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automation.ModuleClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.ModuleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

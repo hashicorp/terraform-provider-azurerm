@@ -99,6 +99,10 @@ func (client BaseClient) CheckDomainAvailability(ctx context.Context, parameters
 
 // CheckDomainAvailabilityPreparer prepares the CheckDomainAvailability request.
 func (client BaseClient) CheckDomainAvailabilityPreparer(ctx context.Context, parameters CheckDomainAvailabilityParameter) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
 	const APIVersion = "2017-04-18"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
@@ -108,7 +112,7 @@ func (client BaseClient) CheckDomainAvailabilityPreparer(ctx context.Context, pa
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPath("/providers/Microsoft.CognitiveServices/checkDomainAvailability"),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.CognitiveServices/checkDomainAvailability", pathParameters),
 		autorest.WithJSON(parameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
@@ -117,8 +121,8 @@ func (client BaseClient) CheckDomainAvailabilityPreparer(ctx context.Context, pa
 // CheckDomainAvailabilitySender sends the CheckDomainAvailability request. The method will close the
 // http.Response Body if it receives an error.
 func (client BaseClient) CheckDomainAvailabilitySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CheckDomainAvailabilityResponder handles the response to the CheckDomainAvailability request. The method always

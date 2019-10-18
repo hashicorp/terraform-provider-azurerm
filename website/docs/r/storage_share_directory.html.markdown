@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_storage_share_directory
 
-Manage a Directory within an Azure Storage File Share.
+Manages a Directory within an Azure Storage File Share.
 
 ## Example Usage
 
