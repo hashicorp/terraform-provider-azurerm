@@ -30,8 +30,9 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   email_receiver {
-    name          = "sendtodevops"
-    email_address = "devops@contoso.com"
+    name                    = "sendtodevops"
+    email_address           = "devops@contoso.com"
+    use_common_alert_schema = true
   }
 
   itsm_receiver {         
@@ -66,6 +67,7 @@ resource "azurerm_monitor_action_group" "test" {
     webhook_resource_id     = "/subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/rg-runbooks/providers/microsoft.automation/automationaccounts/aaa001/webhooks/webhook_alert"
     is_global_runbook       = true
     service_uri             = "https://s13events.azure-automation.net/webhooks?token=randomtoken"
+    use_common_alert_schema = true
   }
 
   voice_receiver { 
@@ -75,17 +77,26 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   logic_app_receiver {
-    name = "logicappaction"
-    resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"
-    callback_url = "https://logicapptriggerurl/..."
+    name                    = "logicappaction"
+    resource_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"
+    callback_url            = "https://logicapptriggerurl/..."
+    use_common_alert_schema = true
   }
 
   azure_function_receiver {
-    name = "funcaction"
+    name                     = "funcaction"
     function_app_resource_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-funcapp/providers/Microsoft.Web/sites/funcapp"
-    function_name = "myfunc"
-    http_trigger_url = "https://example.com/trigger"
+    function_name            = "myfunc"
+    http_trigger_url         = "https://example.com/trigger"
+    use_common_alert_schema  = true
   }
+
+  arm_role_receiver {
+    name                    = "armroleaction"
+    resource_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"
+    use_common_alert_schema = true
+  }
+
 }
 ```
 
