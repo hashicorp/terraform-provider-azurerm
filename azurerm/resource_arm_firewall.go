@@ -50,7 +50,7 @@ func resourceArmFirewall() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"ip_configurations": {
+			"ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Resource{
@@ -209,9 +209,8 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
-		ipConfigs := flattenArmFirewallIPConfigurations(props.IPConfigurations)
-		if err := d.Set("ip_configurations", ipConfigs); err != nil {
-			return fmt.Errorf("Error setting `ip_configurations`: %+v", err)
+		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 	}
 
@@ -290,7 +289,7 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 }
 
 func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
-	configs := d.Get("ip_configurations").([]interface{})
+	configs := d.Get("ip_configuration").([]interface{})
 	ipConfigs := make([]network.AzureFirewallIPConfiguration, 0)
 	subnetNamesToLock := make([]string, 0)
 	virtualNetworkNamesToLock := make([]string, 0)

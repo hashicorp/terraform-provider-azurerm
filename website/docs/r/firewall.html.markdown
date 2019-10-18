@@ -46,7 +46,7 @@ resource "azurerm_firewall" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  ip_configurations {
+  ip_configuration {
     name                 = "configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
@@ -64,13 +64,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `ip_configurations` - (Required) A `ip_configurations` block as documented below.
+* `ip_configuration` - (Required) A `ip_configuration` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-A `ip_configurations` block supports the following:
+A `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
@@ -88,11 +88,11 @@ The following attributes are exported:
 
 * `id` - The Resource ID of the Azure Firewall.
 
-* `ip_configurations` - A `ip_configurations` block as defined below.
+* `ip_configuration` - A `ip_configuration` block as defined below.
 
 ---
 
-A `ip_configurations` block exports the following:
+A `ip_configuration` block exports the following:
 
 * `private_ip_address` - The private IP address of the Azure Firewall.
 
