@@ -545,7 +545,7 @@ resource "azurerm_api_management_api" "test" {
   version			  = "v1"
   version_set_id	  = "${azurerm_api_management_api_version_set.test.id}"
 }
-`, template, rInt)
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMApiManagementApi_template(rInt int, location string) string {
