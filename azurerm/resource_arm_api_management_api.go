@@ -178,6 +178,17 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			_, hasVersion := diff.GetOk("version")
+			_, hasVersionSetId := diff.GetOk("version_set_id")
+
+			if hasVersion && !hasVersionSetId {
+				return fmt.Errorf("`version_set_id` is required when `version` is set")
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -245,6 +256,10 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
+
+	if version != "" && versionSetId == "" {
+		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
+	}
 
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
