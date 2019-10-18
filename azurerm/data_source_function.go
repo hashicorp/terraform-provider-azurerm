@@ -8,8 +8,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 
@@ -48,7 +48,7 @@ func dataSourceArmFunction() *schema.Resource {
 }
 
 func dataSourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
-	webClient := meta.(*ArmClient).web
+	webClient := meta.(*ArmClient).Web
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("function_app_name").(string)
@@ -70,7 +70,10 @@ func dataSourceArmFunctionRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error waiting for Function %q in Function app %q (Resource Group %q) to become available", functionName, name, resourceGroup)
 	}
 
-	functionSecret := resp.(webmgmt.FunctionSecrets)
+	functionSecret, cast := resp.(webmgmt.FunctionSecrets)
+	if !cast {
+		return fmt.Errorf("Error retrieving key for Function %q in Function app %q (Resource Group %q). functionSecret returned nil from API", functionName, name, resourceGroup)
+	}
 
 	if functionSecret.TriggerURL == nil {
 		return fmt.Errorf("Error retrieving key for Function %q in Function app %q (Resource Group %q). TriggerURL returned nil from API", functionName, name, resourceGroup)

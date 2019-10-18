@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -90,8 +90,6 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_storage_blob" "javazip" {
   name = "testfunc.zip"
 
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-
   storage_account_name   = "${azurerm_storage_account.test.name}"
   storage_container_name = "${azurerm_storage_container.test.name}"
 
@@ -113,8 +111,8 @@ resource "azurerm_function_app" "test" {
 }
 
 data "azurerm_function" "test" {
-  name                = "${azurerm_function_app.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  function_app_name                = "${azurerm_function_app.test.name}"
+  resource_group_name    = "${azurerm_resource_group.test.name}"
   function_name       = "testfunc"
 }
 `, rInt, location, storage)
