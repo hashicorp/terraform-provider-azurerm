@@ -712,9 +712,6 @@ func flattenMonitorActionGroupAzureAppPushReceiver(receivers *[]insights.AzureAp
 			if receiver.EmailAddress != nil {
 				val["email_address"] = *receiver.EmailAddress
 			}
-			if receiver.UseCommonAlertSchema != nil {
-				val["use_common_alert_schema"] = *receiver.UseCommonAlertSchema
-			}
 			result = append(result, val)
 		}
 	}
