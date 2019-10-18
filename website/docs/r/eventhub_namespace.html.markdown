@@ -61,9 +61,9 @@ A `network_rulesets` block supports the following:
 
 * `default_action` - (Required) The default action to take when a rule is not matched. Possible values are `Allow` and `Deny`.
 
-* `virtual_network_rule` - (Optional) One or more `network_rulesets` blocks as defined below.
+* `virtual_network_rule` - (Optional) One or more `virtual_network_rule` blocks as defined below.
 
-* `ip_rule` - (Optional) One or more `network_rulesets` blocks as defined below.
+* `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
 ---
     
