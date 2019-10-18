@@ -84,10 +84,6 @@ func resourceArmNetAppAccount() *schema.Resource {
 							Optional: true,
 							Computed: true,
 						},
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -268,9 +264,6 @@ func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory) []interf
 		}
 		if v := item.OrganizationalUnit; v != nil {
 			b["organizational_unit"] = *v
-		}
-		if v := item.ActiveDirectoryID; v != nil {
-			b["id"] = *v
 		}
 
 		results = append(results, b)

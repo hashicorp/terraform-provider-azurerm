@@ -3,13 +3,14 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_account"
 sidebar_current: "docs-azurerm-resource-netapp-account"
 description: |-
-  Manages Azure NetApp Account instance. Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
+  Manages Azure NetApp Account instance.
 ---
 
 # azurerm_netapp_account
 
 Manages Azure NetApp Account instance.
 
+~> **NOTE:** Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
 
 ## NetApp Account Usage
 
@@ -76,14 +77,6 @@ The `active_directory` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the NetApp resource.
-
-* `active_directory` - One or more `active_directory` block defined below.
-
----
-
-The `active_directory` block supports the following:
-
-* `id` - The resource ID of Active Directory.
 
 ---
 
