@@ -362,7 +362,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Certificate %q vault url form id %q: %+v", name, keyVaultId, err)
+			return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		keyVaultBaseUrl = pKeyVaultBaseUrl
