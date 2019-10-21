@@ -130,11 +130,11 @@ The `frontend_endpoint` block supports the following:
 
 * `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
 
+* `custom_https_provisioning_enabled` - (Required) Whether to allow HTTPS protocol for a custom domain that's associated with Front Door to ensure sensitive data is delivered securely via TLS/SSL encryption when sent across the internet. Valid options are `true` or `false`.
+
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
-
-* `custom_https_provisioning_enabled` - (Required) Name of the Frontend Endpoint.
 
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 
