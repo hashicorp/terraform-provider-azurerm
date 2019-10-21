@@ -132,7 +132,7 @@ func resourceAutomationVariableCreateUpdate(d *schema.ResourceData, meta interfa
 	accountName := d.Get("automation_account_name").(string)
 	varTypeLower := strings.ToLower(varType)
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
