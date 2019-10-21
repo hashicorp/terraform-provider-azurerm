@@ -110,7 +110,7 @@ resource "azurerm_sql_server" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
- name                     = "accteststorageaccount%d"
+ name                     = ""acctestsads%s""
  resource_group_name      = "${azurerm_resource_group.test.name}"
  location                 = "${azurerm_resource_group.test.location}"
  account_tier             = "Standard"
@@ -146,7 +146,7 @@ resource "azurerm_sql_server" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
- name                     = "accteststorageaccount%d"
+ name                     = ""acctestsads%s""
  resource_group_name      = "${azurerm_resource_group.test.name}"
  location                 = "${azurerm_resource_group.test.location}"
  account_tier             = "Standard"
