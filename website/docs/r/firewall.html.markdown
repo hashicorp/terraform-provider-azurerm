@@ -66,6 +66,10 @@ The following arguments are supported:
 
 * `ip_configuration` - (Required) A `ip_configuration` block as documented below.
 
+* `zones` - (Optional) Specifies the availability zones in which the Azure Firewall should be created.
+
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
