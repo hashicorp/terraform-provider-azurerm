@@ -56,6 +56,52 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_respectsAgentPoolProfileOrder(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	config := testAccAzureRMKubernetesCluster_dynamic(ri, clientId, clientSecret, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
+					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Basic"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+			{
+				// Should be no changes, since the order in the tf config hasn't changed
+				Config:   config,
+				PlanOnly: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -1109,6 +1155,71 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_id     = "%s"
     client_secret = "%s"
   }
+}
+`, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_dynamic(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  dns_prefix          = "acctestaks%d"
+
+  dynamic "agent_pool_profile" {
+    for_each = var.agent_pools
+    content {
+      count           = agent_pool_profile.value.count
+      name            = agent_pool_profile.value.name
+      vm_size         = agent_pool_profile.value.vm_size # az vm list-sizes --location centralus
+      os_type         = agent_pool_profile.value.os_type
+      os_disk_size_gb = agent_pool_profile.value.os_disk_size_gb
+    }
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+
+variable "agent_pools" {
+  type = list(object({
+    count           = number,
+    name            = string,
+    os_disk_size_gb = number,
+    os_type         = string,
+    vm_size         = string,
+  }))
+  default = [
+    {
+      count           = 1,
+      name            = "b",
+      os_disk_size_gb = 30,
+      os_type         = "Linux",
+      vm_size         = "Standard_B2s",
+    },
+    {
+      count           = 1
+      name            = "c"
+      os_disk_size_gb = 50
+      os_type         = "Linux"
+      vm_size         = "Standard_B2s",
+    },
+    {
+      count           = 1
+      name            = "a"
+      os_disk_size_gb = 50
+      os_type         = "Linux"
+      vm_size         = "Standard_B2s",
+    },
+  ]
 }
 `, rInt, location, rInt, rInt, clientId, clientSecret)
 }
