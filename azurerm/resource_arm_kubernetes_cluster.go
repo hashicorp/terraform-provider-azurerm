@@ -900,7 +900,13 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 
-		agentPoolProfiles := flattenKubernetesClusterAgentPoolProfiles(props.AgentPoolProfiles, resp.Fqdn)
+		// Gets the pool profile names from the terraform config file, so we can use them later for sorting
+		profileCount := d.Get("agent_pool_profile.#").(int)
+		profileNames := make([]string, 0, profileCount)
+		for i := 0; i < profileCount; i++ {
+			profileNames = append(profileNames, d.Get(fmt.Sprintf("agent_pool_profile.%d.name", i)).(string))
+		}
+		agentPoolProfiles := flattenKubernetesClusterAgentPoolProfiles(props.AgentPoolProfiles, profileNames, resp.Fqdn)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
@@ -1246,13 +1252,12 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]contain
 	return profiles, nil
 }
 
-func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, fqdn *string) []interface{} {
+func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.ManagedClusterAgentPoolProfile, names []string, fqdn *string) []interface{} {
 	if profiles == nil {
 		return []interface{}{}
 	}
 
-	agentPoolProfiles := make([]interface{}, 0)
-
+	agentMap := make(map[string]interface{})
 	for _, profile := range *profiles {
 		count := 0
 		if profile.Count != nil {
@@ -1318,8 +1323,14 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 			// TODO: remove in 2.0
 			"fqdn": fqdnVal,
 		}
+		agentMap[name] = agentPoolProfile
+	}
 
-		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
+	// Prevents report of non-existent diff if order returned by Azure is different
+	// from that returned in the terraform config file
+	agentPoolProfiles := make([]interface{}, 0, len(names))
+	for _, n := range names {
+		agentPoolProfiles = append(agentPoolProfiles, agentMap[n])
 	}
 
 	return agentPoolProfiles
