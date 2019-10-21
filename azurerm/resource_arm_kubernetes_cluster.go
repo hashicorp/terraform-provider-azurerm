@@ -112,14 +112,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: validate.KubernetesAgentPoolName,
 						},
 
 						"type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 							Default:  string(containerservice.AvailabilitySet),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.AvailabilitySet),
@@ -175,7 +173,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"vm_size": {
 							Type:             schema.TypeString,
 							Required:         true,
-							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc:     validate.NoEmptyStrings,
 						},
@@ -183,7 +180,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"os_disk_size_gb": {
 							Type:         schema.TypeInt,
 							Optional:     true,
-							ForceNew:     true,
 							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
@@ -191,14 +187,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"vnet_subnet_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ForceNew:     true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
 						"os_type": {
 							Type:     schema.TypeString,
 							Optional: true,
-							ForceNew: true,
 							Default:  string(containerservice.Linux),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Linux),
@@ -211,7 +205,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Computed: true,
-							ForceNew: true,
 						},
 
 						"node_taints": {
