@@ -334,10 +334,9 @@ func resourceArmFunctionAppCreate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v, ok := d.GetOk("identity.0.type"); ok {
-		siteEnvelope.Identity = &web.ManagedServiceIdentity{
-			Type: web.ManagedServiceIdentityType(v.(string)),
-		}
+	if v, ok := d.GetOk("identity"); ok {
+		identity := ExpandFunctionAppIdentity(v.([]interface{}))
+		siteEnvelope.Identity = &identity
 	}
 
 	createFuture, err := client.CreateOrUpdate(ctx, resourceGroup, name, siteEnvelope)
@@ -418,10 +417,10 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		},
 	}
 
-	if v, ok := d.GetOk("identity.0.type"); ok {
-		siteEnvelope.Identity = &web.ManagedServiceIdentity{
-			Type: web.ManagedServiceIdentityType(v.(string)),
-		}
+	if d.HasChange("identity") {
+		identityRaw := d.Get("identity").([]interface{})
+		identity := ExpandFunctionAppIdentity(identityRaw)
+		siteEnvelope.Identity = &identity
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, siteEnvelope)
@@ -821,8 +820,67 @@ func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{
 	if identity.TenantID != nil {
 		result["tenant_id"] = *identity.TenantID
 	}
+	if identity.UserAssignedIdentities != nil {
+		result["user_assigned_identity"] = flattenFunctionAppUserAssignedIdentities(identity.UserAssignedIdentities)
+	}
 
 	return []interface{}{result}
+}
+
+func ExpandFunctionAppIdentity(input []interface{}) web.ManagedServiceIdentity {
+	managedServiceIdentity := web.ManagedServiceIdentity{}
+
+	if len(input) == 0 {
+		return managedServiceIdentity
+	}
+
+	identity := input[0].(map[string]interface{})
+
+	if v, ok := identity["type"]; ok {
+		managedServiceIdentity.Type = web.ManagedServiceIdentityType(v.(string))
+	}
+
+	if v, ok := identity["principal_id"]; ok {
+		managedServiceIdentity.PrincipalID = utils.String(v.(string))
+	}
+
+	if v, ok := identity["tenant_id"]; ok {
+		managedServiceIdentity.TenantID = utils.String(v.(string))
+	}
+
+	if v, ok := identity["user_assigned_identity"]; ok {
+		userAssignedIdentities := v.([]interface{})
+		output := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue, len(userAssignedIdentities))
+
+		for _, setting := range userAssignedIdentities {
+			if setting == nil {
+				continue
+			}
+			vals := setting.(map[string]interface{})
+			csId := vals["id"].(string)
+
+			output[csId] = &web.ManagedServiceIdentityUserAssignedIdentitiesValue{}
+
+			managedServiceIdentity.UserAssignedIdentities = output
+		}
+
+	}
+
+	return managedServiceIdentity
+}
+
+func flattenFunctionAppUserAssignedIdentities(input map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue) interface{} {
+	results := make([]interface{}, 0)
+
+	for k, v := range input {
+		result := make(map[string]interface{})
+		result["id"] = k
+		result["principal_id"] = *v.PrincipalID
+		result["client_id"] = *v.ClientID
+		results = append(results, result)
+	}
+
+	return results
 }
 
 func flattenFunctionAppSiteCredential(input *web.UserProperties) []interface{} {
