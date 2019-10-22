@@ -419,23 +419,29 @@ func validateFirewallConfigurationSettings(d *schema.ResourceData) error {
 	subnetNumber := 0
 	hasInternal := false
 	hasPublic := false
+
 	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 		if subnet, exist := data["subnet_id"].(string); exist && subnet != "" {
 			subnetNumber++
 		}
+
 		if internal, exist := data["internal_public_ip_address_id"].(string); exist && internal != "" {
 			hasInternal = true
 		}
+
 		if public, exist := data["public_ip_address_id"].(string); exist && public != "" {
 			hasPublic = true
 		}
 	}
+
 	if subnetNumber != 1 {
 		return fmt.Errorf(`The "ip_configuration" is invalid, %d "subnet_id" have been set, one "subnet_id" should be set among all "ip_configuration" blocks`, subnetNumber)
 	}
+
 	if hasInternal && hasPublic {
 		return fmt.Errorf(`The "ip_configuration" is invalid, both "public_ip_address_id" and "internal_public_ip_address_id" have been set, all defined "ip_configuration" blocks must use the same attribute name.`)
 	}
+
 	return nil
 }
