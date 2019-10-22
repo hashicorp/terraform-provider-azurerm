@@ -97,6 +97,10 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
+	if err := validateFirewallConfigurationSettings(d); err != nil {
+		return fmt.Errorf("Error creating Firewall %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
+	}
+
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
 
 	name := d.Get("name").(string)
@@ -209,8 +213,10 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
-		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+		if props.IPConfigurations != nil {
+			if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
+				return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
+			}
 		}
 	}
 
@@ -406,4 +412,30 @@ func validateAzureFirewallSubnetName(v interface{}, k string) (warnings []string
 	}
 
 	return warnings, errors
+}
+
+func validateFirewallConfigurationSettings(d *schema.ResourceData) error {
+	configs := d.Get("ip_configuration").([]interface{})
+	subnetNumber := 0
+	hasInternal := false
+	hasPublic := false
+	for _, configRaw := range configs {
+		data := configRaw.(map[string]interface{})
+		if subnet, exist := data["subnet_id"].(string); exist && subnet != "" {
+			subnetNumber++
+		}
+		if internal, exist := data["internal_public_ip_address_id"].(string); exist && internal != "" {
+			hasInternal = true
+		}
+		if public, exist := data["public_ip_address_id"].(string); exist && public != "" {
+			hasPublic = true
+		}
+	}
+	if subnetNumber != 1 {
+		return fmt.Errorf(`The "ip_configuration" is invalid, %d "subnet_id" have been set, one "subnet_id" should be set among all "ip_configuration" blocks`, subnetNumber)
+	}
+	if hasInternal && hasPublic {
+		return fmt.Errorf(`The "ip_configuration" is invalid, both "public_ip_address_id" and "internal_public_ip_address_id" have been set, all defined "ip_configuration" blocks must use the same attribute name.`)
+	}
+	return nil
 }
