@@ -85,7 +85,7 @@ func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) er
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.AccountProperties; props != nil {
-		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories)); err != nil {
+		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories, d)); err != nil {
 			return fmt.Errorf("Error setting `active_directory`: %+v", err)
 		}
 	}

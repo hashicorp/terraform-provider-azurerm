@@ -51,7 +51,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 							Required: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: aznetapp.ValidateActiveDirectoryDNSName,
+								ValidateFunc: validate.IPv4Address,
 							},
 						},
 						"domain": {
@@ -74,10 +74,6 @@ func resourceArmNetAppAccount() *schema.Resource {
 							Required:     true,
 							Sensitive:    true,
 							ValidateFunc: validate.NoEmptyStrings,
-							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-								maskedNew := strings.Replace(new, new, "****************", -1)
-								return (new == d.Get(k).(string)) && (maskedNew == old)
-							},
 						},
 						"organizational_unit": {
 							Type:     schema.TypeString,
@@ -171,7 +167,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.AccountProperties; props != nil {
-		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories)); err != nil {
+		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories, d)); err != nil {
 			return fmt.Errorf("Error setting `active_directory`: %+v", err)
 		}
 	}
@@ -237,7 +233,7 @@ func expandArmNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirec
 	return &results
 }
 
-func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory) []interface{} {
+func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory, d *schema.ResourceData) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -259,8 +255,8 @@ func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory) []interf
 		if v := item.Username; v != nil {
 			b["username"] = *v
 		}
-		if v := item.Password; v != nil {
-			b["password"] = *v
+		if v, ok := d.GetOk("active_directory.0.password"); ok {
+			b["password"] = v
 		}
 		if v := item.OrganizationalUnit; v != nil {
 			b["organizational_unit"] = *v

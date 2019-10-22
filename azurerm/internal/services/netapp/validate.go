@@ -2,7 +2,6 @@ package netapp
 
 import (
 	"fmt"
-	"net"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
@@ -22,20 +21,6 @@ func ValidateActiveDirectoryDomainName(i interface{}, k string) (_ []string, err
 
 	if len(k) > 255 {
 		errors = append(errors, fmt.Errorf(`Active Directory Domain Name can not be longer than 255 characters in length, got %d characters`, len(k)))
-	}
-
-	return nil, errors
-}
-
-func ValidateActiveDirectoryDNSName(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	result := net.ParseIP(v)
-	if result.To4() == nil {
-		errors = append(errors, fmt.Errorf("%q is not a valid IPv4 IP address", v))
 	}
 
 	return nil, errors

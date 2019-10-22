@@ -58,7 +58,7 @@ The following arguments are supported:
 
 The `active_directory` block supports the following:
 
-* `dns_servers` - (Required) A list of DNS server IP addresses for the Active Directory domain.
+* `dns_servers` - (Required) A list of DNS server IP addresses for the Active Directory domain. Only allows `IPv4` address.
 
 * `domain` - (Required) Name of the Active Directory domain.
 

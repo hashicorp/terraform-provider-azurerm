@@ -15,14 +15,10 @@ func TestAccAzureRMNetAppAccount(t *testing.T) {
 	// Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
 	// The CI system runs all tests in parallel, so the tests need to be changed to run one at a time.
 	testCases := map[string]map[string]func(t *testing.T){
-		"basic": {
-			"basic": testAccAzureRMNetAppAccount_basic,
-		},
-		"complete": {
+		"Resource": {
+			"basic":    testAccAzureRMNetAppAccount_basic,
 			"complete": testAccAzureRMNetAppAccount_complete,
-		},
-		"update": {
-			"update": testAccAzureRMNetAppAccount_update,
+			"update":   testAccAzureRMNetAppAccount_update,
 		},
 		"DataSource": {
 			"basic": testAccDataSourceAzureRMNetAppAccount_basic,
@@ -30,15 +26,13 @@ func TestAccAzureRMNetAppAccount(t *testing.T) {
 	}
 
 	for group, m := range testCases {
-		m := m
-		t.Run(group, func(t *testing.T) {
-			for name, tc := range m {
-				tc := tc
+		for name, tc := range m {
+			t.Run(group, func(t *testing.T) {
 				t.Run(name, func(t *testing.T) {
 					tc(t)
 				})
-			}
-		})
+			})
+		}
 	}
 }
 
@@ -90,6 +84,10 @@ func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// Not returned from the API
+					"active_directory.0.password",
+				},
 			},
 		},
 	})
@@ -125,6 +123,10 @@ func testAccAzureRMNetAppAccount_update(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					// Not returned from the API
+					"active_directory.0.password",
+				},
 			},
 		},
 	})

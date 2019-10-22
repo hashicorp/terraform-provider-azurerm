@@ -10,7 +10,6 @@ description: |-
 
 Uses this data source to access information about an existing NetApp Account.
 
-
 ## NetApp Account Usage
 
 ```hcl
