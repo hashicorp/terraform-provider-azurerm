@@ -1620,11 +1620,11 @@ resource "azurerm_function_app" "test" {
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
   identity {
-		type = "UserAssigned"
+    type = "UserAssigned"
 
-		user_assigned_identity {
-			id = "${azurerm_user_assigned_identity.testIdentity.id}"
-		}
+    user_assigned_identity {
+      id = "${azurerm_user_assigned_identity.testIdentity.id}"
+    }
   }
 }
 `, rInt, location, storage)
@@ -1681,15 +1681,15 @@ resource "azurerm_function_app" "test" {
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
   identity {
-		type = "UserAssigned"
+    type = "UserAssigned"
 
-		user_assigned_identity {
-			id = "${azurerm_user_assigned_identity.first.id}"
-		}
+    user_assigned_identity {
+      id = "${azurerm_user_assigned_identity.first.id}"
+    }
 
-		user_assigned_identity {
-			id = "${azurerm_user_assigned_identity.second.id}"
-		}
+    user_assigned_identity {
+      id = "${azurerm_user_assigned_identity.second.id}"
+    }
   }
 }
 `, rInt, location, storage)
