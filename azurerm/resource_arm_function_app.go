@@ -143,6 +143,8 @@ func resourceArmFunctionApp() *schema.Resource {
 							DiffSuppressFunc: suppress.CaseDifference,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(web.ManagedServiceIdentityTypeSystemAssigned),
+								string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
+								string(web.ManagedServiceIdentityTypeUserAssigned),
 							}, true),
 						},
 						"principal_id": {
@@ -152,6 +154,26 @@ func resourceArmFunctionApp() *schema.Resource {
 						"tenant_id": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+						"user_assigned_identity": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"id": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+									"principal_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"client_id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
 						},
 					},
 				},
