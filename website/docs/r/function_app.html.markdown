@@ -160,7 +160,11 @@ A `cors` block supports the following:
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type of the App Service. At this time the only allowed value is `SystemAssigned`.
+* `type` - (Required) Specifies the identity type of the App Service. Possible values are `SystemAssigned`, `UserAssigned` and `SystemAssigned, UserAssigned`.
+
+~> **NOTE:** When `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned` at least one `user_assigned_identity` block must be defined.
+
+* `user_assigned_identity` - (Optional) A `user_assigned_identity` block as defined below.
 
 ---
 
@@ -236,6 +240,13 @@ A `microsoft` block supports the following:
 
 * `oauth_scopes` (Optional) The OAuth 2.0 scopes that will be requested as part of Microsoft Account authentication. https://msdn.microsoft.com/en-us/library/dn631845.aspx
 
+---
+
+A `user_assigned_identity` block supports the following:
+
+* `id` - (Required) The ID of the user-assigned managed identity.
+
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -261,6 +272,13 @@ The following attributes are exported:
 * `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
+
+
+`user_assigned_identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed User Identity.
+
+* `client_id` - The Client ID for the Service Principal associated with the Managed User Identity.
 
 
 `site_credential` exports the following:
