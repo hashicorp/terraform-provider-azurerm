@@ -78,6 +78,8 @@ A `ip_configuration` block supports the following:
 
 -> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least `/26`.
 
+-> **NOTE** The `subnet_id` is shared among multiple `ip_configuration` blocks, make sure there is one and only one `subnet_id` in all `ip_configuration` blocks.
+
 * `public_ip_address_id` - (Required) The Resource ID of the Public IP Address associated with the firewall.
 
 -> **NOTE** The Public IP must have a `Static` allocation and `Standard` sku.
