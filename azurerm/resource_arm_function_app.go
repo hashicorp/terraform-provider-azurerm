@@ -863,7 +863,6 @@ func ExpandFunctionAppIdentity(input []interface{}) web.ManagedServiceIdentity {
 
 			managedServiceIdentity.UserAssignedIdentities = output
 		}
-
 	}
 
 	return managedServiceIdentity
