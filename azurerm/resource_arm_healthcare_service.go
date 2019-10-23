@@ -266,7 +266,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 
 	flattenAndSetTags(d, resp.Tags)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
