@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 )
 
-func TestAccAzureRMDataSourceHealthcareService(t *testing.T) {
+func TestAccAzureRMDataSourceHealthcareService_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_healthcare_service.test"
 	ri := acctest.RandIntRange(10000, 99999)
 	location := testLocation()
