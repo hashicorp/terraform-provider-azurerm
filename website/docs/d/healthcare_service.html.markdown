@@ -4,7 +4,6 @@ page_title: "Azure Resource Manager: azurerm_healthcare_service"
 sidebar_current: "docs-azurerm-datasource-healthcare-service-x"
 description: |-
   Get information about an existing Healthcare Service
-
 ---
 
 # Data Source: azurerm_healthcare_service
