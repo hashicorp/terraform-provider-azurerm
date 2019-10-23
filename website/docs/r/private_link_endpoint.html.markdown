@@ -8,7 +8,9 @@ description: |-
 
 # azurerm_private_link_endpoint
 
-Manages a Azure Private Link Endpoint instance.
+Manages a Azure `Private Link Endpoint` instance.
+
+Azure `Private Link Endpoint` is a network interface that connects you privately and securely to a service powered by `Azure Private Link`. `Private Link Endpoint` uses a private IP address from your VNet, effectively bringing the service into your VNet. The service could be an Azure service such as Azure Storage, SQL, etc. or your own `Private Link Service`.
 
 ## Example Usage
 
@@ -74,12 +76,6 @@ resource "azurerm_private_link_endpoint" "example" {
   resource_group_name = azurerm_resource_group.example.name
   subnet_id           = azurerm_subnet.example.id
 
-  private_link_service_connection {
-    name                    = "exampleplsconnection"
-    private_link_service_id = azurerm_private_link_service.example.id
-    request_message         = "Please approve my connection"
-  }
-
   tags = {
     env = "example"
   }
@@ -97,40 +93,9 @@ The following arguments are supported:
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `manual_private_link_service_connection` - (Optional) A grouping of information about the connection to the remote resource. One or more `manual_private_link_service_connection` block defined below.
-
--> ** NOTE:** A `manual_private_link_service_connection` is used when the service principal, that Terraform is running as, does not have sufficient access to approve connections for the remote `azurerm_private_link_service`.
-
-* `private_link_service_connection` - (Optional) A grouping of information about the connection to the remote resource. One or more `private_link_service_connection` block defined below.
-
-* `subnet_id` - (Required) The ID of the subnet from which the private IP will be allocated.
+* `subnet_id` - (Required) The ID of the subnet from which the private IP addresses will be allocated.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
-
----
-
-The `manual_private_link_service_connection` block supports the following:
-
-* `name` - (Required) Specifies the name of the `manual_private_link_service_connection`. This name can be used to access the resource.
-
-* `private_link_service_id` - (Required) The resource id of private link service.
-
-* `group_ids` - (Optional) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
-
-* `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to `140` chars.
-
-
----
-
-The `private_link_service_connection` block supports the following:
-
-* `name` - (Required) Specifies the name of the `private_link_service_connection`. This name can be used to access the resource.
-
-* `private_link_service_id` - (Required) The resource id of private link service.
-
-* `group_ids` - (Optional) The ID(s) of the group(s) obtained from the remote resource that this private endpoint should connect to.
-
-* `request_message` - (Optional) A message passed to the owner of the remote resource with this connection request. Restricted to `140` chars.
 
 
 ## Attributes Reference
@@ -140,26 +105,6 @@ The following attributes are exported:
 * `id` - The ID of the Prviate Link Endpoint.
 
 * `network_interface_ids` - Displays an list of network interface IDs that have been created for this `Private Link Endpoint`.
-
----
-
-The `private_link_service_connection` block exports the following:
-
-* `state_action_required` - A message indicating if changes on the `Private Link Service` provider require any updates on the `Private Link Endpoint`.
-
-* `state_description` - The reason for `approval`/`rejection` of the connection.
-
-* `state_status` - Indicates whether the `Private Link Service` connection has been `Approved`, `Rejected` or `Removed` by the owner of the `Private Link Service`.
-
----
-
-The `manual_private_link_service_connection` block exports the following:
-
-* `state_action_required` - A message indicating if changes on the `Private Link Service` provider require any updates on the `Private Link Endpoint`.
-
-* `state_description` - The reason for `approval`/`rejection` of the `Private Link Service` connection.
-
-* `state_status` - Indicates whether the `Private Link Service` connection has been `Approved`, `Rejected` or `Removed` by the owner of the `Private Link Service`.
 
 
 ## Import

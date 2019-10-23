@@ -25,9 +25,6 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
-					resource.TestCheckResourceAttrSet(resourceName, "private_link_service_connection.0.private_link_service_id"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.request_message", "Please approve my connection"),
 				),
 			},
 			{
@@ -54,10 +51,6 @@ func TestAccAzureRMPrivateEndpoint_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
-					resource.TestCheckResourceAttrSet(resourceName, "private_link_service_connection.0.private_link_service_id"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.group_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.request_message", "plz approve my request"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
@@ -86,17 +79,12 @@ func TestAccAzureRMPrivateEndpoint_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
-					resource.TestCheckResourceAttrSet(resourceName, "private_link_service_connection.0.private_link_service_id"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.request_message", "Please approve my connection"),
 				),
 			},
 			{
 				Config: testAccAzureRMPrivateEndpoint_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.group_ids.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.request_message", "plz approve my request"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
@@ -105,7 +93,6 @@ func TestAccAzureRMPrivateEndpoint_update(t *testing.T) {
 				Config: testAccAzureRMPrivateEndpoint_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "private_link_service_connection.0.request_message", "Please approve my connection"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
@@ -235,11 +222,6 @@ resource "azurerm_private_link_endpoint" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id
-
-  private_link_service_connection {
-    name                    = "acctestconnection-%d"
-    private_link_service_id = azurerm_private_link_service.test.id
-  }
 }
 `, standardResources, rInt, rInt)
 }
@@ -255,13 +237,6 @@ resource "azurerm_private_link_endpoint" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id
-
-  private_link_service_connection {
-    name                    = "acctestconnection-%d"
-    private_link_service_id = azurerm_private_link_service.test.id
-    group_ids               = []
-    request_message         = "plz approve my request"
-  }
 
   tags = {
     env = "test"

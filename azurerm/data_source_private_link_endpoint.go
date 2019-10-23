@@ -25,86 +25,6 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"manual_private_link_service_connection": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_link_service_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"group_ids": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"state_action_required": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"state_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"state_status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"request_message": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
-			"private_link_service_connection": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_link_service_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"group_ids": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"state_action_required": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"state_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"state_status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"request_message": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"network_interface_ids": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -138,20 +58,17 @@ func dataSourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if resp.ID == nil || *resp.ID == "" { 
+		return fmt.Errorf("API returns a nil/empty id on Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err) 
+	} 
 	d.SetId(*resp.ID)
-
+	
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.PrivateEndpointProperties; props != nil {
-		if err := d.Set("manual_private_link_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.ManualPrivateLinkServiceConnections)); err != nil {
-			return fmt.Errorf("Error setting `manual_private_link_service_connection`: %+v", err)
-		}
-		if err := d.Set("private_link_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections)); err != nil {
-			return fmt.Errorf("Error setting `private_link_service_connection`: %+v", err)
-		}
 		if err := d.Set("network_interfaces", flattenArmPrivateLinkEndpointInterface(props.NetworkInterfaces)); err != nil {
 			return fmt.Errorf("Error setting `network_interfaces`: %+v", err)
 		}

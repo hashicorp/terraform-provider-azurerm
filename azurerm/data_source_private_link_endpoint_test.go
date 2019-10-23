@@ -21,9 +21,6 @@ func TestAccDataSourceAzureRMPrivateEndpoint_basic(t *testing.T) {
 				Config: testAccDataSourcePrivateEndpoint_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
-					resource.TestCheckResourceAttrSet(dataSourceName, "private_link_service_connections.0.private_link_service_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.request_message", "Please approve my request"),
 				),
 			},
 		},
@@ -43,10 +40,6 @@ func TestAccDataSourceAzureRMPrivateEndpoint_complete(t *testing.T) {
 				Config: testAccDataSourcePrivateEndpoint_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.name", fmt.Sprintf("acctestconnection-%d", ri)),
-					resource.TestCheckResourceAttrSet(dataSourceName, "private_link_service_connections.0.private_link_service_id"),
-					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.group_ids.#", "0"),
-					resource.TestCheckResourceAttr(dataSourceName, "private_link_service_connections.0.request_message", "plz approve my request"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.env", "test"),
 				),
