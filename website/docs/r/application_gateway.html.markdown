@@ -550,7 +550,7 @@ A `request_header_configuration` block supports the following:
 
 * `header_name` - (Required) Header name of the header configuration.
 
-* `header_value` - (Required) Header value of the header configuration.
+* `header_value` - (Required) Header value of the header configuration. For deleting a request header, please fill this field with empty string.
 
 ---
 
@@ -558,7 +558,7 @@ A `response_header_configuration` block supports the following:
 
 * `header_name` - (Required) Header name of the header configuration.
 
-* `header_value` - (Required) Header value of the header configuration.
+* `header_value` - (Required) Header value of the header configuration. For deleting a response header, please fill this field with empty string.
 
 ## Attributes Reference
 
