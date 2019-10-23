@@ -297,7 +297,7 @@ func expandAzureRMhealthcareapisAccessPolicyEntries(d *schema.ResourceData) *[]h
 
 	for _, objectId := range accessPolicyObjectIds {
 		objectIdsStr := objectId.(string)
-		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: &objectIdsStr}
+		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: &utils.String(objectId.(string))}
 		svcAccessPolicyArray = append(svcAccessPolicyArray, svcAccessPolicyObjectId)
 	}
 
