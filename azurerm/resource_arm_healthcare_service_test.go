@@ -94,7 +94,7 @@ func testAccAzureRMHealthcareService_basic(rInt int) string {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-health-%d"
   location = "%s"
 }
 
