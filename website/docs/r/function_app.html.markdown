@@ -146,7 +146,7 @@ The following arguments are supported:
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
 
-* `http2_enabled` - (Optional) Specifies whether or not the http2 protocol should be enabled.
+* `http2_enabled` - (Optional) Specifies whether or not the http2 protocol should be enabled. Defaults to `true`.
 
 * `cors` - (Optional) A `cors` block as defined below.
 
