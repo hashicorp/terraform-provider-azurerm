@@ -91,41 +91,6 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"private_link_endpoint_connection": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_link_endpoint_id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_link_endpoint_location": azure.SchemaLocationForDataSource(),
-						"state_action_required": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"state_description": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"state_status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
-
 			"alias": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -162,19 +127,18 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		return fmt.Errorf("Cannot read ID for Private Link Service %q (Resource Group %q)", name, resourceGroup)
 	}
 
-	d.SetId(*resp.ID)
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
-		if props.AutoApproval != nil {
+		if props.AutoApproval.Subscriptions != nil {
 			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 			}
 		}
-		if props.Visibility != nil {
+		if props.Visibility.Subscriptions != nil {
 			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 			}
@@ -185,21 +149,27 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
 		// 	}
 		// }
-		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
+		if props.IPConfigurations != nil {
+			if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
+			}
 		}
-		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
-			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
+		if props.LoadBalancerFrontendIPConfigurations != nil {
+			if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
+			}
 		}
-		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
-		}
-		if connectionProps := props.PrivateEndpointConnections; connectionProps != nil {
-			if err := d.Set("private_link_endpoint_connection", flattenArmPrivateLinkServicePrivateEndpointConnection(connectionProps)); err != nil {
-				return fmt.Errorf("Error setting `private_link_endpoint_connection`: %+v", err)
+		if props.NetworkInterfaces != nil {
+			if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
+				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 			}
 		}
 	}
+
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+	d.SetId(*resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
