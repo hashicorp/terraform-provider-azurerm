@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform/helper/acctest"
 )
 
-func TestAccAzureRMHealthcareService(t *testing.T) {
+func TestAccAzureRMHealthcareService_basic(t *testing.T) {
 	ri := acctest.RandIntRange(10000, 99999)
 
 	resource.ParallelTest(t, resource.TestCase{
