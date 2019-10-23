@@ -92,7 +92,6 @@ func dataSourceArmHealthcareService() *schema.Resource {
 							Computed: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
 							},
 						},
 						"max_age_in_seconds": {
