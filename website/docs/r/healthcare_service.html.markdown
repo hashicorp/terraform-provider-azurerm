@@ -47,37 +47,71 @@ resource "azurerm_healthcare_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience.
+* `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience and can contain only lowercase letters, numbers and the '-' character.
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Service.
 * `location` - (Required) Specifies the supported Azure Region where the Service should be created.
 
 ~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`. 
 
+* `access_policy_ids` - (Optional) A set of Azure object id's that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
 * `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
+* `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `400`.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `authentication_configuration` - (Optional) An `authentication_configuration` block as defined below.
+* `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
+
+---
+An `authentication_configuration` supports the following:
+
+* `authority` - (Optional) The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
+Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
+* `audience` - (Optional) The intended audience to receive authentication tokens for the service. The default value is https://azurehealthcareapis.com
+* `smart_proxy_enabled` - (Boolean) Enables the 'SMART on FHIR' option for mobile and web implementations.
+
+---
+A `cors_configuration` block supports the following:
+
+* `allowed_origins` - (Required) A set of origins to be allowed via CORS.
+* `allowed_headers` - (Required) A set of headers to be allowed via CORS.
+* `allowed_methods` - (Required) The methods to be allowed via CORS.
+* `max_age_in_seconds` - (Required) The max age to be allowed via CORS.
+* `allow_credentials` - (Boolean) If credentials are allowed via CORS.
 
 ## Attributes Reference
 
-* `cosmosdb_offer_throughput` - The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `400`.
-* `tags` - A mapping of tags to assign to the resource.
+The following attributes are exported:
 
-Authentication Configuration
+* `id` - The `id` of the Healthcare Service.
+* `access_policy_object_ids` - A set of Azure object id's that are allowed to access the Service.
+* `authentication_configuration` - An `authentication_configuration` block as defined below.
+* `cors_configuration` - A `cors_configuration` object as defined below.
+* `cosmosdb_throughput` - The provisioned throughput for the backing database.
+* `kind` - The kind or type of Healthcare Service defined.
+* `location` - The Azure Region where the Service should was created.
+* `name` - The account name of the Service.
+* `resource_group_name` - The resource group in which the Service was created.
+* `tags` - The mapping of tags to assigned to the resource.
 
-* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
-Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
-* `audience` - The intended audience to receive authentication tokens for the service. The default value is https://azurehealthcareapis.com
-* `smart_proxy_enabled` - (Boolean) Enables the 'SMART on FHIR' option for mobile and web implementations.
+---
+An `authentication_configuration` exports the following:
 
-CORS Configuration
+* `audience` - The audience that receives authentication tokens for the service.
+* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service.
+* `smart_proxy_enabled` - (Boolean) If the 'SMART on FHIR' option is enabled for mobile and web implementations.
 
-* `allowed_origins` - (Required if using CORS) The origins to be allowed via CORS.
-* `allowed_headers` - (Required if using CORS) The headers to be allowed via CORS.
-* `allowed_methods` - (Required if using CORS) The methods to be allowed via CORS.
-* `max_age_in_seconds` - (Required if using CORS) The max age to be allowed via CORS.
-* `allow_credentials` - (Required if using CORS) If credentials are allowed via CORS.
+---
+A `cors_configuration` exports the following:
+
+* `allow_credentials` - (Boolean) If credentials are allowed via CORS.
+* `allowed_headers` - A set of headers allowed via CORS.
+* `allowed_methods` - The methods allowed via CORS.
+* `allowed_origins` - A set of origins allowed via CORS.
+* `max_age_in_seconds` - The max age allowed via CORS.
+
 
 ## Import
 
-Healthcare Service can be imported using the `resource id`, e.g.
+Healthcare Service can be imported using the resource`id`, e.g.
 
 ```shell
 terraform import azurerm_healthcare_service.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group/providers/Microsoft.HealthcareApis/services/service_name

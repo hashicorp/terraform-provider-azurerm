@@ -10,6 +10,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -55,7 +56,7 @@ func resourceArmHealthcareService() *schema.Resource {
 			},
 
 			"access_policy_object_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Schema{
@@ -87,13 +88,13 @@ func resourceArmHealthcareService() *schema.Resource {
 			},
 
 			"cors_configuration": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allowed_origins": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
@@ -102,7 +103,7 @@ func resourceArmHealthcareService() *schema.Resource {
 							},
 						},
 						"allowed_headers": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Required: true,
 							MaxItems: 64,
 							Elem: &schema.Schema{
@@ -292,12 +293,11 @@ func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}
 }
 
 func expandAzureRMhealthcareapisAccessPolicyEntries(d *schema.ResourceData) *[]healthcareapis.ServiceAccessPolicyEntry {
-	accessPolicyObjectIds := d.Get("access_policy_object_ids").([]interface{})
+	accessPolicyObjectIds := d.Get("access_policy_object_ids").(*schema.Set).List()
 	svcAccessPolicyArray := make([]healthcareapis.ServiceAccessPolicyEntry, 0)
 
 	for _, objectId := range accessPolicyObjectIds {
-		objectIdsStr := objectId.(string)
-		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: &utils.String(objectId.(string))}
+		svcAccessPolicyObjectId := healthcareapis.ServiceAccessPolicyEntry{ObjectID: utils.String(objectId.(string))}
 		svcAccessPolicyArray = append(svcAccessPolicyArray, svcAccessPolicyObjectId)
 	}
 
@@ -305,7 +305,7 @@ func expandAzureRMhealthcareapisAccessPolicyEntries(d *schema.ResourceData) *[]h
 }
 
 func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healthcareapis.ServiceCorsConfigurationInfo {
-	corsConfigRaw := d.Get("cors_configuration").([]interface{})
+	corsConfigRaw := d.Get("cors_configuration").(*schema.Set).List()
 
 	if len(corsConfigRaw) == 0 {
 		return &healthcareapis.ServiceCorsConfigurationInfo{}
@@ -313,8 +313,8 @@ func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healt
 
 	corsConfigAttr := corsConfigRaw[0].(map[string]interface{})
 
-	allowedOrigins := *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].([]interface{}))
-	allowedHeaders := *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].([]interface{}))
+	allowedOrigins := *utils.ExpandStringSlice(corsConfigAttr["allowed_origins"].(*schema.Set).List())
+	allowedHeaders := *utils.ExpandStringSlice(corsConfigAttr["allowed_headers"].(*schema.Set).List())
 	allowedMethods := *utils.ExpandStringSlice(corsConfigAttr["allowed_methods"].([]interface{}))
 	maxAgeInSeconds := int32(corsConfigAttr["max_age_in_seconds"].(int))
 	allowCredentials := corsConfigAttr["allow_credentials"].(bool)

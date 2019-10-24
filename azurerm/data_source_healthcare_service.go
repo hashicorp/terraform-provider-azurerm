@@ -38,7 +38,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 			},
 
 			"access_policy_object_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -72,33 +72,29 @@ func dataSourceArmHealthcareService() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allowed_origins": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Computed: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+								Type: schema.TypeString,
 							},
 						},
 						"allowed_headers": {
-							Type:     schema.TypeList,
+							Type:     schema.TypeSet,
 							Computed: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+								Type: schema.TypeString,
 							},
 						},
 						"allowed_methods": {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
-								Type:         schema.TypeString,
+								Type: schema.TypeString,
 							},
 						},
 						"max_age_in_seconds": {
 							Type:     schema.TypeInt,
 							Computed: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validate.NoEmptyStrings,
-							},
 						},
 						"allow_credentials": {
 							Type:     schema.TypeBool,
