@@ -1641,7 +1641,7 @@ func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerse
 			val = v.List()
 		}
 
-		if len(val) > 0 {
+		if len(val) > 0 && val[0] != nil {
 			raw := val[0].(map[string]interface{})
 			clientSecret = raw["client_secret"].(string)
 		}
