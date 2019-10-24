@@ -1027,15 +1027,15 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 		return fmt.Errorf("Error parsing %q: %s", uri, err)
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q (Disk %q)!", id.AccountName, uri)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q (Disk %q)!", id.AccountName, uri)
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
+	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
@@ -1044,7 +1044,7 @@ func resourceArmVirtualMachineDeleteVhd(ctx context.Context, storageClient *intS
 		DeleteSnapshots: false,
 	}
 	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
-		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", id.BlobName, id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
