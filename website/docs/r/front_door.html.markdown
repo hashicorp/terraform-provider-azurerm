@@ -1,12 +1,12 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_frontdoor"
+page_title: "Azure Resource Manager: azurerm_front_door"
 sidebar_current: "docs-azurerm-resource-front-door"
 description: |-
   Manages an Azure Front Door instance.
 ---
 
-# azurerm_frontdoor
+# azurerm_front_door
 
 Manages an Azure Front Door instance.
 
@@ -20,7 +20,7 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 ## Example Usage
 
 ```hcl
-resource "azurerm_frontdoor" "example" {
+resource "azurerm_front_door" "example" {
   name                                         = "example-FrontDoor"
   location                                     = "${azurerm_resource_group.example.location}"
   resource_group_name                          = "${azurerm_resource_group.example.name}"
