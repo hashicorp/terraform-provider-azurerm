@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr"
 
 // KeyType enumerates the values for key type.
 type KeyType string
@@ -93,6 +93,12 @@ func PossibleSkuTierValues() []SkuTier {
 	return []SkuTier{Basic, Free, Premium, Standard}
 }
 
+// CorsSettings cross-Origin Resource Sharing (CORS) settings.
+type CorsSettings struct {
+	// AllowedOrigins - Gets or sets the list of origins that should be allowed to make cross-origin calls (for example: http://example.com:12345). Use "*" to allow all. If omitted, allow all by default.
+	AllowedOrigins *[]string `json:"allowedOrigins,omitempty"`
+}
+
 // CreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running
 // operation.
 type CreateOrUpdateFuture struct {
@@ -127,6 +133,15 @@ type CreateOrUpdateProperties struct {
 	// HostNamePrefix - Prefix for the hostName of the SignalR service. Retained for future use.
 	// The hostname will be of format: &lt;hostNamePrefix&gt;.service.signalr.net.
 	HostNamePrefix *string `json:"hostNamePrefix,omitempty"`
+	// Features - List of SignalR featureFlags. e.g. ServiceMode.
+	//
+	// FeatureFlags that are not included in the parameters for the update operation will not be modified.
+	// And the response will only include featureFlags that are explicitly set.
+	// When a featureFlag is not explicitly set, SignalR service will use its globally default value.
+	// But keep in mind, the default value doesn't mean "false". It varies in terms of different FeatureFlags.
+	Features *[]Feature `json:"features,omitempty"`
+	// Cors - Cross-Origin Resource Sharing (CORS) settings.
+	Cors *CorsSettings `json:"cors,omitempty"`
 }
 
 // CreateParameters parameters for SignalR service create/update operation.
@@ -194,6 +209,31 @@ type Dimension struct {
 	InternalName *string `json:"internalName,omitempty"`
 	// ToBeExportedForShoebox - A Boolean flag indicating whether this dimension should be included for the shoebox export scenario.
 	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
+}
+
+// Feature feature of a SignalR resource, which controls the SignalR runtime behavior.
+type Feature struct {
+	// Flag - Kind of feature. Required.
+	Flag *string `json:"flag,omitempty"`
+	// Value - Value of the feature flag. See Azure SignalR service document https://docs.microsoft.com/en-us/azure/azure-signalr/ for allowed values.
+	Value *string `json:"value,omitempty"`
+	// Properties - Optional properties related to this feature.
+	Properties map[string]*string `json:"properties"`
+}
+
+// MarshalJSON is the custom marshaler for Feature.
+func (f Feature) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if f.Flag != nil {
+		objectMap["flag"] = f.Flag
+	}
+	if f.Value != nil {
+		objectMap["value"] = f.Value
+	}
+	if f.Properties != nil {
+		objectMap["properties"] = f.Properties
+	}
+	return json.Marshal(objectMap)
 }
 
 // Keys a class represents the access keys of SignalR service.
@@ -437,15 +477,24 @@ type Properties struct {
 	ExternalIP *string `json:"externalIP,omitempty"`
 	// HostName - READ-ONLY; FQDN of the SignalR service instance. Format: xxx.service.signalr.net
 	HostName *string `json:"hostName,omitempty"`
-	// PublicPort - READ-ONLY; The publicly accessibly port of the SignalR service which is designed for browser/client side usage.
+	// PublicPort - READ-ONLY; The publicly accessible port of the SignalR service which is designed for browser/client side usage.
 	PublicPort *int32 `json:"publicPort,omitempty"`
-	// ServerPort - READ-ONLY; The publicly accessibly port of the SignalR service which is designed for customer server side usage.
+	// ServerPort - READ-ONLY; The publicly accessible port of the SignalR service which is designed for customer server side usage.
 	ServerPort *int32 `json:"serverPort,omitempty"`
 	// Version - Version of the SignalR resource. Probably you need the same or higher version of client SDKs.
 	Version *string `json:"version,omitempty"`
 	// HostNamePrefix - Prefix for the hostName of the SignalR service. Retained for future use.
 	// The hostname will be of format: &lt;hostNamePrefix&gt;.service.signalr.net.
 	HostNamePrefix *string `json:"hostNamePrefix,omitempty"`
+	// Features - List of SignalR featureFlags. e.g. ServiceMode.
+	//
+	// FeatureFlags that are not included in the parameters for the update operation will not be modified.
+	// And the response will only include featureFlags that are explicitly set.
+	// When a featureFlag is not explicitly set, SignalR service will use its globally default value.
+	// But keep in mind, the default value doesn't mean "false". It varies in terms of different FeatureFlags.
+	Features *[]Feature `json:"features,omitempty"`
+	// Cors - Cross-Origin Resource Sharing (CORS) settings.
+	Cors *CorsSettings `json:"cors,omitempty"`
 }
 
 // RegenerateKeyFuture an abstraction for monitoring and retrieving the results of a long-running
@@ -640,18 +689,25 @@ func NewResourceListPage(getNextPage func(context.Context, ResourceList) (Resour
 	return ResourceListPage{fn: getNextPage}
 }
 
-// ResourceSku the billing information of the resource.(e.g. basic vs. standard)
+// ResourceSku the billing information of the SignalR resource.
 type ResourceSku struct {
-	// Name - The name of the SKU. This is typically a letter + number code, such as A0 or P3.  Required (if sku is specified)
+	// Name - The name of the SKU. Required.
+	//
+	// Allowed values: Standard_S1, Free_F1
 	Name *string `json:"name,omitempty"`
-	// Tier - Optional tier of this particular SKU. `Basic` is deprecated, use `Standard` instead for Basic tier. Possible values include: 'Free', 'Basic', 'Standard', 'Premium'
+	// Tier - Optional tier of this particular SKU. 'Standard' or 'Free'.
+	//
+	// `Basic` is deprecated, use `Standard` instead. Possible values include: 'Free', 'Basic', 'Standard', 'Premium'
 	Tier SkuTier `json:"tier,omitempty"`
-	// Size - Optional, string. When the name field is the combination of tier and some other value, this would be the standalone code.
+	// Size - Optional string. For future use.
 	Size *string `json:"size,omitempty"`
-	// Family - Optional, string. If the service has different generations of hardware, for the same SKU, then that can be captured here.
+	// Family - Optional string. For future use.
 	Family *string `json:"family,omitempty"`
-	// Capacity - Optional, integer. If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not
-	// possible for the resource this may be omitted.
+	// Capacity - Optional, integer. The unit count of SignalR resource. 1 by default.
+	//
+	// If present, following values are allowed:
+	//     Free: 1
+	//     Standard: 1,2,5,10,20,50,100
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 
@@ -768,6 +824,28 @@ func (rt *ResourceType) UnmarshalJSON(body []byte) error {
 	}
 
 	return nil
+}
+
+// RestartFuture an abstraction for monitoring and retrieving the results of a long-running operation.
+type RestartFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *RestartFuture) Result(client Client) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "signalr.RestartFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("signalr.RestartFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
 }
 
 // ServiceSpecification an object that describes a specification.
