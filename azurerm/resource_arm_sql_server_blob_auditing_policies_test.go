@@ -29,7 +29,7 @@ func TestAccAzureRMSqlServerBlobAuditingPolicies_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password", "storage_account_access_key"},
+				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
 			},
 		},
 	})
@@ -51,15 +51,15 @@ func TestAccAzureRMSqlServerBlobAuditingPolicies_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_days", "6"),
 					resource.TestCheckResourceAttr(resourceName, "is_storage_secondary_key_in_use", "true"),
 					resource.TestCheckResourceAttr(resourceName, "audit_actions_and_groups", "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP,FAILED_DATABASE_AUTHENTICATION_GROUP"),
-					resource.TestCheckResourceAttr(resourceName, "storage_account_subscription_id", "00000000-0000-0000-3333-000000000000"),
 					resource.TestCheckResourceAttr(resourceName, "is_azure_monitor_target_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_subscription_id", "00000000-0000-0000-3333-000000000000"),
 				),
 			},
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"storage_account_access_key", "administrator_login_password"},
+				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
 			},
 		},
 	})

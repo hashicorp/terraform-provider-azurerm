@@ -40,8 +40,9 @@ func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"state": {

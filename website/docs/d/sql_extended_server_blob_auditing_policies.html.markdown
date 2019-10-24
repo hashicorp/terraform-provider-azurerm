@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_extended_server_blob_auditing_policies"
 sidebar_current: "docs-azurerm-datasource-sql-extended-server-blob-auditing-policies"
 description: |-
-  Gets information about an existing SQL Azure Database Server.
+  Gets information about an existing SQL Azure Extended Server Blob Auditing Policies.
 ---
 
-# Data Source: azurerm_sql_server_blob_auditing_policies
+# Data Source: azurerm_sql_extended_server_blob_auditing_policies
 
-Use this data source to access information about an existing SQL Azure Database Server.
+Use this data source to access information about an existing SQL Azure Extended Server Blob Auditing Policies.
 
 ## Example Usage
 
@@ -30,29 +30,28 @@ output "sql_server_id" {
   value = "${data.azurerm_sql_server_blob_auditing_policies.test.id}"
 }
 ```
-
 ## Argument Reference
 
 * `server_name` - (Required) The name of the SQL Server.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group where the SQL Server exists.
 
-* `state` - (Required) Specifies the state "Enabled"/"Disabled" of Blob Auditing Policies.
+* `state` - (Required) Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'Enabled', 'Disabled'
 
-* `storage_endpoint` - (Required) Specifies the endpoint of the storage account to be connected.
+* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
 
-* `storage_account_access_key` - (Required) Specifies the access key of the storage account to be connected.
+* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
 
 ## Attributes Reference
 
-* `retention_days` - Specifies the rentention days of the Blob Auditing Policies.
+* `retention_days` - Specifies the number of days to keep in the audit logs in the storage account.
 
-* `is_storage_secondary_key_in_use` - Specifies if the storage secondary key is in use.
+* `storage_account_subscription_id` - Specifies the blob storage subscription Id.
 
-* `audit_actions_and_groups` - List of the audit actions and groups ("SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP","FAILED_DATABASE_AUTHENTICATION_GROUP","BATCH_COMPLETED_GROUP").
+* `is_storage_secondary_key_in_use` - Specifies whether storageAccountAccessKey value is the storage's secondary key.
 
-* `is_azure_monitor_target_enabled` - Specifies if the azure monitor target is enabled.
+* `audit_actions_and_groups` - Specifies the Actions-Groups and Actions to audit.For more information, see [Database-Level Audit Actions](https://docs.microsoft.com/en-us/sql/relational-databases/security/auditing/sql-server-audit-action-groups-and-actions#database-level-audit-actions).
 
-* `storage_account_subscription_id` - Specifies the subscription id of the storage account to be connected.
+* `is_azure_monitor_target_enabled` - Specifies whether audit events are sent to Azure Monitor.For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207) or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043).
 
-* `predicate_expression` - Specifies the predicate expression of the Blob Auditing Policies.
+* `predicate_expression` - Specifies condition of where clause when creating an audit.

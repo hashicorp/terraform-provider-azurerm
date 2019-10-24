@@ -29,7 +29,6 @@ output "sql_server_id" {
   value = "${data.azurerm_sql_server_blob_auditing_policies.test.id}"
 }
 ```
-
 ## Argument Reference
 
 * `server_name` - (Required) The name of the SQL Server.

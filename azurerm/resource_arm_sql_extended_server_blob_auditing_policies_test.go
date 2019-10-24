@@ -29,7 +29,7 @@ func TestAccAzureRMSqlExtendedServerBlobAuditingPolicies_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password", "storage_account_access_key"},
+				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
 			},
 		},
 	})
@@ -60,7 +60,7 @@ func TestAccAzureRMSqlExtendedServerBlobAuditingPolicies_complete(t *testing.T) 
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password", "storage_account_access_key"},
+				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
 			},
 		},
 	})
@@ -89,7 +89,6 @@ func testCheckAzureRMSqlExtendedServerBlobAuditingPoliciesExists(resourceName st
 			}
 			return fmt.Errorf("Bad: Get SQL Server: %v Blob Auditing Policies", err)
 		}
-
 		return nil
 	}
 }
@@ -116,7 +115,6 @@ resource "azurerm_storage_account" "test" {
  location                 = "${azurerm_resource_group.test.location}"
  account_tier             = "Standard"
  account_replication_type = "GRS"
-
 }
 
 resource "azurerm_sql_extended_server_blob_auditing_policies" "test"{
@@ -152,7 +150,6 @@ resource "azurerm_storage_account" "test" {
  location                 = "${azurerm_resource_group.test.location}"
  account_tier             = "Standard"
  account_replication_type = "GRS"
-
 }
 
 resource "azurerm_sql_extended_server_blob_auditing_policies" "test"{
