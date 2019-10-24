@@ -154,6 +154,7 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
 	if err != nil {
+		d.SetId("")
 		return fmt.Errorf("Error creating deployment: %+v", err)
 	}
 
