@@ -29,7 +29,7 @@ func TestAccAzureRMSqlExtendedServerBlobAuditingPolicies_basic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+				ImportStateVerifyIgnore: []string{"administrator_login_password", "storage_account_access_key"},
 			},
 		},
 	})
@@ -52,6 +52,7 @@ func TestAccAzureRMSqlExtendedServerBlobAuditingPolicies_complete(t *testing.T) 
 					resource.TestCheckResourceAttr(resourceName, "is_storage_secondary_key_in_use", "true"),
 					resource.TestCheckResourceAttr(resourceName, "audit_actions_and_groups", "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP,FAILED_DATABASE_AUTHENTICATION_GROUP"),
 					resource.TestCheckResourceAttr(resourceName, "is_azure_monitor_target_enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "storage_account_subscription_id", "00000000-0000-0000-3333-000000000000"),
 					resource.TestCheckResourceAttr(resourceName, "predicate_expression", "object_name = 'SensitiveData'"),
 				),
 			},
@@ -59,7 +60,7 @@ func TestAccAzureRMSqlExtendedServerBlobAuditingPolicies_complete(t *testing.T) 
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+				ImportStateVerifyIgnore: []string{"administrator_login_password", "storage_account_access_key"},
 			},
 		},
 	})
@@ -73,7 +74,7 @@ func testCheckAzureRMSqlExtendedServerBlobAuditingPoliciesExists(resourceName st
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		sqlServerName := rs.Primary.Attributes["name"]
+		sqlServerName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s Blob Auditing Policies", sqlServerName)
@@ -110,7 +111,7 @@ resource "azurerm_sql_server" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
- name                     = ""acctestsads%d""
+ name                     = "accstr%d"
  resource_group_name      = "${azurerm_resource_group.test.name}"
  location                 = "${azurerm_resource_group.test.location}"
  account_tier             = "Standard"
@@ -146,7 +147,7 @@ resource "azurerm_sql_server" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
- name                     = ""acctestsads%d""
+ name                     = "accstr%d"
  resource_group_name      = "${azurerm_resource_group.test.name}"
  location                 = "${azurerm_resource_group.test.location}"
  account_tier             = "Standard"
@@ -164,6 +165,7 @@ retention_days                    = 6
 is_storage_secondary_key_in_use   = true
 audit_actions_and_groups          = "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP,FAILED_DATABASE_AUTHENTICATION_GROUP"
 is_azure_monitor_target_enabled   = true
+storage_account_subscription_id   = "00000000-0000-0000-3333-000000000000"
 predicate_expression              ="object_name = 'SensitiveData'"
 
 }

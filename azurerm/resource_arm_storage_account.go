@@ -1017,6 +1017,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("secondary_access_key", "")
 
 	keys, err := client.ListKeys(ctx, resGroup, name)
+
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool

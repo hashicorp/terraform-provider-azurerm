@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -52,8 +53,9 @@ func resourceArmSqlServerBlobAuditingPolicies() *schema.Resource {
 				Required: true,
 			},
 			"storage_account_access_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 			"retention_days": {
 				Type:     schema.TypeInt,
@@ -62,10 +64,12 @@ func resourceArmSqlServerBlobAuditingPolicies() *schema.Resource {
 			"audit_actions_and_groups": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"storage_account_subscription_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"is_storage_secondary_key_in_use": {
 				Type:     schema.TypeBool,
@@ -110,6 +114,8 @@ func resourceArmSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData
 		state = sql.BlobAuditingPolicyStateDisabled
 	}
 	storageEndpoint := d.Get("storage_endpoint").(string)
+
+	//waitForStorageAccountAccessKeyAvail(ctx, d)
 	storageAccountAccessKey := d.Get("storage_account_access_key").(string)
 
 	ServerBlobAuditingPolicyProperties := sql.ServerBlobAuditingPolicyProperties{
@@ -149,14 +155,22 @@ func resourceArmSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData
 	parameters := sql.ServerBlobAuditingPolicy{
 		ServerBlobAuditingPolicyProperties: &ServerBlobAuditingPolicyProperties,
 	}
-
-	if _, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters); err != nil {
-		return err
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if response.WasConflict(future.Response()) {
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", serverName)
+		}
+
+		return fmt.Errorf("Error waiting on create/update future for SQL Server %q Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
+	}
+
+	read, err := future.Result(*client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for SQL Server %q Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read SQL Server '%s' Blob Auditing Policies (resource group %s) ID", serverName, resGroup)
@@ -190,15 +204,13 @@ func resourceArmSqlServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta i
 
 	d.Set("server_name", name)
 	d.Set("resource_group_name", resGroup)
-
 	if serverProperties := resp.ServerBlobAuditingPolicyProperties; serverProperties != nil {
 		d.Set("state", serverProperties.State)
 		d.Set("audit_actions_and_groups", strings.Join(*serverProperties.AuditActionsAndGroups, ","))
 		d.Set("is_azure_monitor_target_enabled", serverProperties.IsAzureMonitorTargetEnabled)
 		d.Set("is_storage_secondary_key_in_use", serverProperties.IsStorageSecondaryKeyInUse)
 		d.Set("retention_days", serverProperties.RetentionDays)
-		d.Set("storage_account_access_key", serverProperties.StorageAccountAccessKey)
-		d.Set("storage_account_subscription_id", serverProperties.StorageAccountSubscriptionID)
+		d.Set("storage_account_subscription_id", serverProperties.StorageAccountSubscriptionID.String())
 		d.Set("storage_endpoint", serverProperties.StorageEndpoint)
 	}
 

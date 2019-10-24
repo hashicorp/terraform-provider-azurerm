@@ -52,8 +52,9 @@ func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
 				Required: true,
 			},
 			"storage_account_access_key": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:      schema.TypeString,
+				Required:  true,
+				Sensitive: true,
 			},
 			"retention_days": {
 				Type:     schema.TypeInt,
@@ -62,10 +63,12 @@ func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
 			"audit_actions_and_groups": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"storage_account_subscription_id": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"is_storage_secondary_key_in_use": {
 				Type:     schema.TypeBool,
@@ -206,8 +209,7 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesRead(d *schema.ResourceData
 		d.Set("is_azure_monitor_target_enabled", serverProperties.IsAzureMonitorTargetEnabled)
 		d.Set("is_storage_secondary_key_in_use", serverProperties.IsStorageSecondaryKeyInUse)
 		d.Set("retention_days", serverProperties.RetentionDays)
-		d.Set("storage_account_access_key", serverProperties.StorageAccountAccessKey)
-		d.Set("storage_account_subscription_id", serverProperties.StorageAccountSubscriptionID)
+		d.Set("storage_account_subscription_id", serverProperties.StorageAccountSubscriptionID.String())
 		d.Set("storage_endpoint", serverProperties.StorageEndpoint)
 		d.Set("predicate_expression", serverProperties.PredicateExpression)
 	}
