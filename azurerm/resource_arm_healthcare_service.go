@@ -88,7 +88,7 @@ func resourceArmHealthcareService() *schema.Resource {
 			},
 
 			"cors_configuration": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -305,7 +305,7 @@ func expandAzureRMhealthcareapisAccessPolicyEntries(d *schema.ResourceData) *[]h
 }
 
 func expandAzureRMhealthcareapisCorsConfiguration(d *schema.ResourceData) *healthcareapis.ServiceCorsConfigurationInfo {
-	corsConfigRaw := d.Get("cors_configuration").(*schema.Set).List()
+	corsConfigRaw := d.Get("cors_configuration").([]interface{})
 
 	if len(corsConfigRaw) == 0 {
 		return &healthcareapis.ServiceCorsConfigurationInfo{}
