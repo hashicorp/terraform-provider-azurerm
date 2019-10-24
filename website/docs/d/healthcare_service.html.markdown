@@ -48,20 +48,25 @@ The following attributes are exported:
 
 ~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`. 
 
-* `kind` - The type of the service. i.e.: "fhir", "fhir-Stu3" and "fhir-R4".
+* `kind` - The type of the service.
 * `cosmosdb_offer_throughput` - The provisioned throughput for the backing database.
 * `tags` - A mapping of tags to assign to the resource.
+* `authentication_configuration` - An `authentication_configuration` block as defined below.
+* `cors_configuration` - A `cors_configuration` block as defined below.
 
-Authentication Configuration
+---
+An `authentication_configuration` supports the following:
 
-* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service.
-* `audience` - The intended audience to receive authentication tokens for the service..
-* `smart_proxy_enabled` - Enabled status of the 'SMART on FHIR' option for mobile and web implementations.
+* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service. The default authority is the Directory defined in the authentication scheme in use when running Terraform.
+Authority must be registered to Azure AD and in the following format: https://{Azure-AD-endpoint}/{tenant-id}.
+* `audience` - The intended audience to receive authentication tokens for the service. The default value is https://azurehealthcareapis.com
+* `smart_proxy_enabled` - Enables the 'SMART on FHIR' option for mobile and web implementations.
 
-CORS Configuration
+---
+A `cors_configuration` block supports the following:
 
-* `allowed_origins` - The origins to be allowed via CORS.
-* `allowed_headers` - The headers to be allowed via CORS.
+* `allowed_origins` - A set of origins to be allowed via CORS.
+* `allowed_headers` - A set of headers to be allowed via CORS.
 * `allowed_methods` - The methods to be allowed via CORS.
 * `max_age_in_seconds` - The max age to be allowed via CORS.
 * `allow_credentials` - If credentials are allowed via CORS.

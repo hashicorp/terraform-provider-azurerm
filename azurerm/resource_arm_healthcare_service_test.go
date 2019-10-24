@@ -7,11 +7,11 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/hashicorp/terraform/helper/acctest"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccAzureRMHealthcareService_basic(t *testing.T) {
-	ri := acctest.RandIntRange(10000, 99999)
+	ri := tf.AccRandTimeInt() / 10
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -99,7 +99,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_healthcare_service" "test" {
-  name                = "acctest-hcs-%d"
+  name                = "testacc%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

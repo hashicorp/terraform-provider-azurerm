@@ -47,7 +47,7 @@ resource "azurerm_healthcare_service" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience and can contain only lowercase letters, numbers and the '-' character.
+* `name` - (Required) The name of the service instance. Used for service endpoint, must be unique within the audience.
 * `resource_group_name` - (Required) The name of the Resource Group in which to create the Service.
 * `location` - (Required) Specifies the supported Azure Region where the Service should be created.
 
@@ -82,32 +82,6 @@ A `cors_configuration` block supports the following:
 The following attributes are exported:
 
 * `id` - The `id` of the Healthcare Service.
-* `access_policy_object_ids` - A set of Azure object id's that are allowed to access the Service.
-* `authentication_configuration` - An `authentication_configuration` block as defined below.
-* `cors_configuration` - A `cors_configuration` object as defined below.
-* `cosmosdb_throughput` - The provisioned throughput for the backing database.
-* `kind` - The kind or type of Healthcare Service defined.
-* `location` - The Azure Region where the Service should was created.
-* `name` - The account name of the Service.
-* `resource_group_name` - The resource group in which the Service was created.
-* `tags` - The mapping of tags to assigned to the resource.
-
----
-An `authentication_configuration` exports the following:
-
-* `audience` - The audience that receives authentication tokens for the service.
-* `authority` - The Azure Active Directory (tenant) that serves as the authentication authority to access the service.
-* `smart_proxy_enabled` - (Boolean) If the 'SMART on FHIR' option is enabled for mobile and web implementations.
-
----
-A `cors_configuration` exports the following:
-
-* `allow_credentials` - (Boolean) If credentials are allowed via CORS.
-* `allowed_headers` - A set of headers allowed via CORS.
-* `allowed_methods` - The methods allowed via CORS.
-* `allowed_origins` - A set of origins allowed via CORS.
-* `max_age_in_seconds` - The max age allowed via CORS.
-
 
 ## Import
 
