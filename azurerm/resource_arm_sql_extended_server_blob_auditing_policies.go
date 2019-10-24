@@ -2,17 +2,19 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"strings"
-	"time"
 )
 
 func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
@@ -45,6 +47,13 @@ func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
 			"state": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					if !(v == "Enabled" || v == "Disabled") {
+						errs = append(errs, fmt.Errorf("%q can only be 'Enabled' or 'Disabled' ", key))
+					}
+					return
+				},
 			},
 
 			"storage_endpoint": {
@@ -69,6 +78,14 @@ func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					_, err := uuid.FromString(v)
+					if err != nil {
+						errs = append(errs, fmt.Errorf("%q is not in correct format:%+v", key, err))
+					}
+					return
+				},
 			},
 			"is_storage_secondary_key_in_use": {
 				Type:     schema.TypeBool,
@@ -91,7 +108,7 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate(d *schema.Reso
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM SQL Extended Server Blob Auditing Policies creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM SQL Server Extended Blob Auditing Policies creation.")
 
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -100,22 +117,16 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate(d *schema.Reso
 		existing, err := client.Get(ctx, resGroup, serverName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing blob auditing policies of SQL Extended Server %q  Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing blob auditing policies of SQL Server %q Extended Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_extended_server_blob_auditing_policies", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_sql_server_blob_auditing_policies", *existing.ID)
 		}
 	}
 
-	var state sql.BlobAuditingPolicyState
-	switch d.Get("state").(string) {
-	case "Enabled":
-		state = sql.BlobAuditingPolicyStateEnabled
-	case "Disabled":
-		state = sql.BlobAuditingPolicyStateDisabled
-	}
+	state := sql.BlobAuditingPolicyState(d.Get("state").(string))
 	storageEndpoint := d.Get("storage_endpoint").(string)
 	storageAccountAccessKey := d.Get("storage_account_access_key").(string)
 
@@ -136,10 +147,7 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate(d *schema.Reso
 	}
 	//storage_account_subscription_id
 	if storageAccountSubscriptionID, ok := d.GetOk("storage_account_subscription_id"); ok {
-		storageAccountSubscriptionID, err := uuid.FromString(storageAccountSubscriptionID.(string))
-		if err != nil {
-			return fmt.Errorf("Error transforming storage account subscription id from string to uuid:%s", err)
-		}
+		storageAccountSubscriptionID, _ := uuid.FromString(storageAccountSubscriptionID.(string))
 		ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &storageAccountSubscriptionID
 	}
 	//is_storage_secondary_key_in_use
@@ -161,21 +169,29 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate(d *schema.Reso
 	parameters := sql.ExtendedServerBlobAuditingPolicy{
 		ExtendedServerBlobAuditingPolicyProperties: &ExtendedServerBlobAuditingPolicyProperties,
 	}
-
-	if _, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters); err != nil {
-		return err
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Extended Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, serverName)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if response.WasConflict(future.Response()) {
+			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", serverName)
+		}
+
+		return fmt.Errorf("Error waiting on create/update future for SQL Server %q Extended Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
+	}
+
+	read, err := future.Result(*client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for SQL Server %q Extended Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
 	}
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read SQL Server '%s' Extended Blob Auditing Policies (resource group %s) ID", serverName, resGroup)
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmSqlExtendedServerBlobAuditingPoliciesRead(d, meta)
+	return resourceArmSqlServerBlobAuditingPoliciesRead(d, meta)
 }
 
 func resourceArmSqlExtendedServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
@@ -202,7 +218,6 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesRead(d *schema.ResourceData
 
 	d.Set("server_name", name)
 	d.Set("resource_group_name", resGroup)
-
 	if serverProperties := resp.ExtendedServerBlobAuditingPolicyProperties; serverProperties != nil {
 		d.Set("state", serverProperties.State)
 		d.Set("audit_actions_and_groups", strings.Join(*serverProperties.AuditActionsAndGroups, ","))

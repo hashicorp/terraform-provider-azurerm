@@ -2,18 +2,19 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"strings"
-	"time"
 )
 
 func resourceArmSqlServerBlobAuditingPolicies() *schema.Resource {
@@ -46,6 +47,13 @@ func resourceArmSqlServerBlobAuditingPolicies() *schema.Resource {
 			"state": {
 				Type:     schema.TypeString,
 				Required: true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					if !(v == "Enabled" || v == "Disabled") {
+						errs = append(errs, fmt.Errorf("%q can only be 'Enabled' or 'Disabled' ", key))
+					}
+					return
+				},
 			},
 
 			"storage_endpoint": {
@@ -70,6 +78,14 @@ func resourceArmSqlServerBlobAuditingPolicies() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+					v := val.(string)
+					_, err := uuid.FromString(v)
+					if err != nil {
+						errs = append(errs, fmt.Errorf("%q is not in correct format:%+v", key, err))
+					}
+					return
+				},
 			},
 			"is_storage_secondary_key_in_use": {
 				Type:     schema.TypeBool,
@@ -106,16 +122,8 @@ func resourceArmSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData
 		}
 	}
 
-	var state sql.BlobAuditingPolicyState
-	switch d.Get("state").(string) {
-	case "Enabled":
-		state = sql.BlobAuditingPolicyStateEnabled
-	case "Disabled":
-		state = sql.BlobAuditingPolicyStateDisabled
-	}
+	state := sql.BlobAuditingPolicyState(d.Get("state").(string))
 	storageEndpoint := d.Get("storage_endpoint").(string)
-
-	//waitForStorageAccountAccessKeyAvail(ctx, d)
 	storageAccountAccessKey := d.Get("storage_account_access_key").(string)
 
 	ServerBlobAuditingPolicyProperties := sql.ServerBlobAuditingPolicyProperties{
@@ -135,10 +143,7 @@ func resourceArmSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData
 	}
 	//storage_account_subscription_id
 	if storageAccountSubscriptionID, ok := d.GetOk("storage_account_subscription_id"); ok {
-		storageAccountSubscriptionID, err := uuid.FromString(storageAccountSubscriptionID.(string))
-		if err != nil {
-			return fmt.Errorf("Error transforming storage account subscription id from string to uuid:%s", err)
-		}
+		storageAccountSubscriptionID, _ := uuid.FromString(storageAccountSubscriptionID.(string))
 		ServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &storageAccountSubscriptionID
 	}
 	//is_storage_secondary_key_in_use

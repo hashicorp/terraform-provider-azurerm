@@ -13,8 +13,6 @@ Use this data source to access information about an existing SQL Azure Database 
 ## Example Usage
 
 ```hcl
-
-
 data "azurerm_sql_server_blob_auditing_policies" "test"{
 server_name                              = "example-server-name"
 resource_group_name                      = "example-resources"
