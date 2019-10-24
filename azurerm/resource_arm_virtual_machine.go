@@ -1406,6 +1406,9 @@ func flattenAzureRmVirtualMachineReviseDiskInfo(result map[string]interface{}, d
 
 func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, error) {
 	planConfigs := d.Get("plan").([]interface{})
+	if len(planConfigs) == 0 {
+		return nil, nil
+	}
 
 	planConfig := planConfigs[0].(map[string]interface{})
 
