@@ -64,11 +64,9 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string) {
 	}
 
 	// only one pid can be interpreted currently
-	//  hence, send partner Id if present
-	//  if partner Id isn't present, send Terraform GUID
+	// hence, send partner ID if present, otherrwise send Terraform GUID
 	if partnerID == "" {
-
-		// Microsoft’s Terraform Partner ID is a specific GUID pasted below
+		// Microsoft’s Terraform Partner ID is this specific GUID
 		partnerID = "222c6c49-1b0a-5959-a213-6608f9eb8820"
 	}
 	client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
