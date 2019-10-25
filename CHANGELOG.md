@@ -19,6 +19,7 @@ IMPROVEMENTS:
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
 * provider: sending Microsoft's Terraform Partner ID in the user agent if a custom Partner ID isn’t specified [GH-4663]
 * Data Source: `azurerm_lb_backend_address_pool` - exposing `backend_ip_configurations` [GH-4605]
+* `azurerm_cognitive_account` - support for the sku `F1` [GH-4720]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
 * `azurerm_firewall` - support for `zones` [GH-4670]
 * `azurerm_frontdoor` - update `custom_host` to be optional, add `redirect_configuration` to documentation. [GH-4601]
