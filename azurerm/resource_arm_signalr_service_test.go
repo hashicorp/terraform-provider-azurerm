@@ -480,12 +480,18 @@ resource "azurerm_signalr_service" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
   cors {
 	allowed_origins = [
 	  "http://www.contoso.com",
 	  "www.contoso.com",
 	  "contoso.com",
 	]
+  }
 }
 `, rInt, location, rInt)
 }
@@ -501,6 +507,11 @@ resource "azurerm_signalr_service" "test" {
   name                = "acctestSignalR-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
 
   features {
     flag  = "ServiceMode"
