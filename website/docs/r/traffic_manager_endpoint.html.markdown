@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_endpoint"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-endpoint"
 description: |-
-  Creates a Traffic Manager Endpoint.
+  Manages a Traffic Manager Endpoint.
 ---
 
-# azurerm\_traffic\_manager\_endpoint
+# azurerm_traffic_manager_endpoint
 
-Creates a Traffic Manager Endpoint.
+Manages a Traffic Manager Endpoint.
 
 ## Example Usage
 
@@ -17,6 +17,7 @@ resource "random_id" "server" {
   keepers = {
     azi_id = 1
   }
+
   byte_length = 8
 }
 
@@ -28,7 +29,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_traffic_manager_profile" "test" {
   name                = "${random_id.server.hex}"
   resource_group_name = "${azurerm_resource_group.test.name}"
- 
+
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -37,12 +38,15 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "http"
-    port     = 80
-    path     = "/"
+    protocol                     = "http"
+    port                         = 80
+    path                         = "/"
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 9
+    tolerated_number_of_failures = 3
   }
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -106,6 +110,29 @@ The following arguments are supported:
     parent profile to direct traffic to any of the endpoints in that child
     profile. This argument only applies to Endpoints of type `nestedEndpoints`
     and defaults to `1`.
+
+* `geo_mappings` - (Optional) A list of Geographic Regions used to distribute traffic, such as `WORLD`, `UK` or `DE`. The same location can't be specified in two endpoints. [See the Geographic Hierarchies documentation for more information](https://docs.microsoft.com/en-us/rest/api/trafficmanager/geographichierarchies/getdefault).
+
+* `custom_header` - (Optional) One or more `custom_header` blocks as defined below
+
+* `subnet` - (Optional) One or more `subnet` blocks as defined below
+
+---
+A `custom_header` block supports the following:
+
+* `name` - (Required) The name of the custom header.
+
+* `value` - (Required) The value of custom header. Applicable for Http and Https protocol. 
+
+A `subnet` block supports the following:
+
+* `first` - (Required) The First IP....
+
+* `last` - (Optional) The Last IP...
+
+* `scope` - (Optional) The Scope...
+
+-> **NOTE:** One and only one of either `last` (in case of IP range) or `scope` (in case of CIDR) must be specified.
 
 ## Attributes Reference
 

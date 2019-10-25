@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_srv_record"
 sidebar_current: "docs-azurerm-resource-dns-srv-record"
 description: |-
-  Manage a DNS SRV Record.
+  Manages a DNS SRV Record.
 ---
 
-# azurerm\_dns\_srv\_record
+# azurerm_dns_srv_record
 
 Enables you to manage DNS SRV Records within Azure DNS.
 
@@ -36,7 +36,7 @@ resource "azurerm_dns_srv_record" "test" {
     target   = "target1.contoso.com"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -49,9 +49,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `zone_name` - (Required) Specifies the DNS Zone where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields documented below.
 
@@ -79,5 +79,5 @@ The following attributes are exported:
 SRV records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_srv_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/SRV/myrecord1
+terraform import azurerm_dns_srv_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/SRV/myrecord1
 ```

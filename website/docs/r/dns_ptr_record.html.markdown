@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_ptr_record"
 sidebar_current: "docs-azurerm-resource-dns-ptr-record"
 description: |-
-  Create a DNS PTR Record.
+  Manages a DNS PTR Record.
 ---
 
-# azurerm\_dns\_ptr\_record
+# azurerm_dns_ptr_record
 
 Enables you to manage DNS PTR Records within Azure DNS.
 
@@ -40,9 +40,9 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `zone_name` - (Required) Specifies the DNS Zone where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Required) List of Fully Qualified Domain Names.
 
@@ -59,5 +59,5 @@ The following attributes are exported:
 PTR records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_ptr_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/PTR/myrecord1
+terraform import azurerm_dns_ptr_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/PTR/myrecord1
 ```

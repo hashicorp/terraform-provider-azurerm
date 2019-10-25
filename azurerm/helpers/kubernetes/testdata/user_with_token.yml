@@ -1,0 +1,10 @@
+apiVersion: v1
+clusters:
+- cluster:
+    server: https://testcluster.net:8080
+  name: test-cluster
+users:
+- name: test-user
+  user:
+    token: test-token
+kind: Config

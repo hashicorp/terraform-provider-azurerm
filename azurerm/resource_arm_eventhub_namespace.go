@@ -8,10 +8,16 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,33 +27,41 @@ var eventHubNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
 func resourceArmEventHubNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmEventHubNamespaceCreate,
+		Create: resourceArmEventHubNamespaceCreateUpdate,
 		Read:   resourceArmEventHubNamespaceRead,
-		Update: resourceArmEventHubNamespaceCreate,
+		Update: resourceArmEventHubNamespaceCreateUpdate,
 		Delete: resourceArmEventHubNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(eventhub.Basic),
 					string(eventhub.Standard),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"capacity": {
@@ -63,51 +77,146 @@ func resourceArmEventHubNamespace() *schema.Resource {
 				Default:  false,
 			},
 
+			"kafka_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
 			"maximum_throughput_units": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 20),
+				ValidateFunc: validation.IntBetween(0, 20),
+			},
+
+			"network_rulesets": {
+				Type:       schema.TypeList,
+				Optional:   true,
+				MaxItems:   1,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+
+						"default_action": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventhub.Allow),
+								string(eventhub.Deny),
+							}, false),
+						},
+
+						"virtual_network_rule": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+
+									// the API returns the subnet ID's resource group name in lowercase
+									// https://github.com/Azure/azure-sdk-for-go/issues/5855
+									"subnet_id": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateFunc:     azure.ValidateResourceID,
+										DiffSuppressFunc: suppress.CaseDifference,
+									},
+
+									"ignore_missing_virtual_network_service_endpoint": {
+										Type:     schema.TypeBool,
+										Optional: true,
+									},
+								},
+							},
+						},
+
+						"ip_rule": {
+							Type:       schema.TypeList,
+							Optional:   true,
+							MaxItems:   1,
+							ConfigMode: schema.SchemaConfigModeAttr,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"ip_mask": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"action": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  string(eventhub.NetworkRuleIPActionAllow),
+										ValidateFunc: validation.StringInSlice([]string{
+											string(eventhub.NetworkRuleIPActionAllow),
+										}, false),
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 
 			"default_primary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_secondary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_primary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_secondary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmEventHubNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Eventhub.NamespacesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Namespace creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing EventHub Namespace %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_eventhub_namespace", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := d.Get("sku").(string)
 	capacity := int32(d.Get("capacity").(int))
-	tags := d.Get("tags").(map[string]interface{})
-
+	t := d.Get("tags").(map[string]interface{})
 	autoInflateEnabled := d.Get("auto_inflate_enabled").(bool)
+	kafkaEnabled := d.Get("kafka_enabled").(bool)
 
 	parameters := eventhub.EHNamespace{
 		Location: &location,
@@ -118,13 +227,13 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 		},
 		EHNamespaceProperties: &eventhub.EHNamespaceProperties{
 			IsAutoInflateEnabled: utils.Bool(autoInflateEnabled),
+			KafkaEnabled:         utils.Bool(kafkaEnabled),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("maximum_throughput_units"); ok {
-		maximumThroughputUnits := v.(int)
-		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(int32(maximumThroughputUnits))
+		parameters.EHNamespaceProperties.MaximumThroughputUnits = utils.Int32(int32(v.(int)))
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, name, parameters)
@@ -132,8 +241,7 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error creating eventhub namespace: %+v", err)
 	}
 
@@ -148,14 +256,36 @@ func resourceArmEventHubNamespaceCreate(d *schema.ResourceData, meta interface{}
 
 	d.SetId(*read.ID)
 
+	ruleSets, hasRuleSets := d.GetOk("network_rulesets")
+	if hasRuleSets {
+		rulesets := eventhub.NetworkRuleSet{
+			NetworkRuleSetProperties: expandEventHubNamespaceNetworkRuleset(ruleSets.([]interface{})),
+		}
+
+		// cannot use network rulesets with the basic SKU
+		if parameters.Sku.Name != eventhub.Basic {
+			if _, err := client.CreateOrUpdateNetworkRuleSet(ctx, resGroup, name, rulesets); err != nil {
+				return fmt.Errorf("Error setting network ruleset properties for EventHub Namespace %q (resource group %q): %v", name, resGroup, err)
+			}
+		} else {
+			// so if the user has specified the non default rule sets throw a validation error
+			if rulesets.DefaultAction != eventhub.Deny ||
+				(rulesets.IPRules != nil && len(*rulesets.IPRules) > 0) ||
+				(rulesets.VirtualNetworkRules != nil && len(*rulesets.VirtualNetworkRules) > 0) {
+				return fmt.Errorf("network_rulesets cannot be used when the SKU is basic")
+			}
+		}
+	}
+
 	return resourceArmEventHubNamespaceRead(d, meta)
 }
 
 func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.NamespacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -172,10 +302,30 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resGroup)
-	d.Set("sku", string(resp.Sku.Name))
-	d.Set("capacity", resp.Sku.Capacity)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", string(sku.Name))
+		d.Set("capacity", sku.Capacity)
+	}
+
+	if props := resp.EHNamespaceProperties; props != nil {
+		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
+		d.Set("kafka_enabled", props.KafkaEnabled)
+		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
+	}
+
+	ruleset, err := client.GetNetworkRuleSet(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error making Read request on EventHub Namespace %q Network Ruleset: %+v", name, err)
+	}
+
+	if err := d.Set("network_rulesets", flattenEventHubNamespaceNetworkRuleset(ruleset)); err != nil {
+		return fmt.Errorf("Error setting `network_ruleset` for Evenhub Namespace %s: %v", name, err)
+	}
 
 	keys, err := client.ListKeys(ctx, resGroup, name, eventHubNamespaceDefaultAuthorizationRule)
 	if err != nil {
@@ -187,21 +337,15 @@ func resourceArmEventHubNamespaceRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("default_secondary_key", keys.SecondaryKey)
 	}
 
-	if props := resp.EHNamespaceProperties; props != nil {
-		d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
-		d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
-	}
-
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubNamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.NamespacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -219,7 +363,7 @@ func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}
 	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name)
 }
 
-func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client eventhub.NamespacesClient, resourceGroup, name string) error {
+func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for EventHub Namespace (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
@@ -235,7 +379,7 @@ func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client eventhub.Na
 	return nil
 }
 
-func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client eventhub.NamespacesClient, resourceGroup, name string) resource.StateRefreshFunc {
+func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, resourceGroup, name)
 
@@ -250,4 +394,95 @@ func eventHubNamespaceStateStatusCodeRefreshFunc(ctx context.Context, client eve
 
 		return res, strconv.Itoa(res.StatusCode), nil
 	}
+}
+
+func expandEventHubNamespaceNetworkRuleset(input []interface{}) *eventhub.NetworkRuleSetProperties {
+	if len(input) == 0 {
+		return nil
+	}
+
+	block := input[0].(map[string]interface{})
+
+	ruleset := eventhub.NetworkRuleSetProperties{
+		DefaultAction: eventhub.DefaultAction(block["default_action"].(string)),
+	}
+
+	if v, ok := block["virtual_network_rule"].([]interface{}); ok {
+		if len(v) > 0 {
+			var rules []eventhub.NWRuleSetVirtualNetworkRules
+			for _, r := range v {
+				rblock := r.(map[string]interface{})
+				rules = append(rules, eventhub.NWRuleSetVirtualNetworkRules{
+					Subnet: &eventhub.Subnet{
+						ID: utils.String(rblock["subnet_id"].(string)),
+					},
+					IgnoreMissingVnetServiceEndpoint: utils.Bool(rblock["ignore_missing_virtual_network_service_endpoint"].(bool)),
+				})
+			}
+
+			ruleset.VirtualNetworkRules = &rules
+		}
+	}
+
+	if v, ok := block["ip_rule"].([]interface{}); ok {
+		if len(v) > 0 {
+			var rules []eventhub.NWRuleSetIPRules
+			for _, r := range v {
+				rblock := r.(map[string]interface{})
+				rules = append(rules, eventhub.NWRuleSetIPRules{
+					IPMask: utils.String(rblock["ip_mask"].(string)),
+					Action: eventhub.NetworkRuleIPAction(rblock["action"].(string)),
+				})
+			}
+
+			ruleset.IPRules = &rules
+		}
+	}
+
+	return &ruleset
+}
+
+func flattenEventHubNamespaceNetworkRuleset(ruleset eventhub.NetworkRuleSet) []interface{} {
+	if ruleset.NetworkRuleSetProperties == nil {
+		return nil
+	}
+
+	vnetBlocks := make([]interface{}, 0)
+	if vnetRules := ruleset.NetworkRuleSetProperties.VirtualNetworkRules; vnetRules != nil {
+		for _, vnetRule := range *vnetRules {
+			block := make(map[string]interface{})
+
+			if s := vnetRule.Subnet; s != nil {
+				if v := s.ID; v != nil {
+					block["subnet_id"] = *v
+				}
+			}
+
+			if v := vnetRule.IgnoreMissingVnetServiceEndpoint; v != nil {
+				block["ignore_missing_virtual_network_service_endpoint"] = *v
+			}
+
+			vnetBlocks = append(vnetBlocks, block)
+		}
+	}
+	ipBlocks := make([]interface{}, 0)
+	if ipRules := ruleset.NetworkRuleSetProperties.IPRules; ipRules != nil {
+		for _, ipRule := range *ipRules {
+			block := make(map[string]interface{})
+
+			block["action"] = string(ipRule.Action)
+
+			if v := ipRule.IPMask; v != nil {
+				block["ip_mask"] = *v
+			}
+
+			ipBlocks = append(ipBlocks, block)
+		}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"default_action":       string(ruleset.DefaultAction),
+		"virtual_network_rule": vnetBlocks,
+		"ip_rule":              ipBlocks,
+	}}
 }

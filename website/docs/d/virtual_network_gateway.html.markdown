@@ -1,21 +1,21 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
-sidebar_current: "docs-azurerm-datasource-virtual-network-x"
+sidebar_current: "docs-azurerm-datasource-virtual-network-gateway"
 description: |-
-  Get information about the specified Virtual Network Gateway.
+  Gets information about an existing Virtual Network Gateway.
 ---
 
 # Data Source: azurerm_virtual_network_gateway
 
-Use this data source to access the properties of an Azure Virtual Network Gateway.
+Use this data source to access information about an existing Virtual Network Gateway.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_virtual_network_gateway" "test" {
-  name                 = "production"
-  resource_group_name  = "networking"
+  name                = "production"
+  resource_group_name = "networking"
 }
 
 output "virtual_network_gateway_id" {
@@ -54,7 +54,7 @@ output "virtual_network_gateway_id" {
 
 * `vpn_client_configuration` - A `vpn_client_configuration` block which is documented below.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.
 
 The `ip_configuration` block supports:
 
@@ -83,6 +83,15 @@ The `vpn_client_configuration` block supports:
 
 * `revoked_certificate` - One or more `revoked_certificate` blocks which
     are defined below.
+
+* `radius_server_address` - (Optional) The address of the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `radius_server_secret` - (Optional) The secret used by the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
+    The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
 
 The `bgp_settings` block supports:
 

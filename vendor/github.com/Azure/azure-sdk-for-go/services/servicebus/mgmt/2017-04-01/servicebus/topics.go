@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -41,10 +42,22 @@ func NewTopicsClientWithBaseURI(baseURI string, subscriptionID string) TopicsCli
 }
 
 // CreateOrUpdate creates a topic in the specified namespace.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. parameters is parameters supplied to create a topic resource.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// parameters - parameters supplied to create a topic resource.
 func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, parameters SBTopic) (result SBTopic, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -54,7 +67,7 @@ func (client TopicsClient) CreateOrUpdate(ctx context.Context, resourceGroupName
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: topicName,
 			Constraints: []validation.Constraint{{Target: "topicName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "CreateOrUpdate")
+		return result, validation.NewError("servicebus.TopicsClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, namespaceName, topicName, parameters)
@@ -93,7 +106,7 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/topics/{topicName}", pathParameters),
@@ -105,8 +118,8 @@ func (client TopicsClient) CreateOrUpdatePreparer(ctx context.Context, resourceG
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -122,12 +135,24 @@ func (client TopicsClient) CreateOrUpdateResponder(resp *http.Response) (result 
 	return
 }
 
-// CreateOrUpdateAuthorizationRule creates an authorizatio rule for the specified topic.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. authorizationRuleName is the authorizationrule name. parameters is the shared access
-// authorization rule.
+// CreateOrUpdateAuthorizationRule creates an authorization rule for the specified topic.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// authorizationRuleName - the authorization rule name.
+// parameters - the shared access authorization rule.
 func (client TopicsClient) CreateOrUpdateAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string, parameters SBAuthorizationRule) (result SBAuthorizationRule, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.CreateOrUpdateAuthorizationRule")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -143,7 +168,7 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRule(ctx context.Context, 
 		{TargetValue: parameters,
 			Constraints: []validation.Constraint{{Target: "parameters.SBAuthorizationRuleProperties", Name: validation.Null, Rule: false,
 				Chain: []validation.Constraint{{Target: "parameters.SBAuthorizationRuleProperties.Rights", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "CreateOrUpdateAuthorizationRule")
+		return result, validation.NewError("servicebus.TopicsClient", "CreateOrUpdateAuthorizationRule", err.Error())
 	}
 
 	req, err := client.CreateOrUpdateAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, topicName, authorizationRuleName, parameters)
@@ -183,7 +208,7 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRulePreparer(ctx context.C
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/topics/{topicName}/authorizationRules/{authorizationRuleName}", pathParameters),
@@ -195,8 +220,8 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRulePreparer(ctx context.C
 // CreateOrUpdateAuthorizationRuleSender sends the CreateOrUpdateAuthorizationRule request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) CreateOrUpdateAuthorizationRuleSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateAuthorizationRuleResponder handles the response to the CreateOrUpdateAuthorizationRule request. The method always
@@ -213,10 +238,21 @@ func (client TopicsClient) CreateOrUpdateAuthorizationRuleResponder(resp *http.R
 }
 
 // Delete deletes a topic from the specified namespace and resource group.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
 func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string, namespaceName string, topicName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -226,7 +262,7 @@ func (client TopicsClient) Delete(ctx context.Context, resourceGroupName string,
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: topicName,
 			Constraints: []validation.Constraint{{Target: "topicName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "Delete")
+		return result, validation.NewError("servicebus.TopicsClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, namespaceName, topicName)
@@ -275,8 +311,8 @@ func (client TopicsClient) DeletePreparer(ctx context.Context, resourceGroupName
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -292,10 +328,22 @@ func (client TopicsClient) DeleteResponder(resp *http.Response) (result autorest
 }
 
 // DeleteAuthorizationRule deletes a topic authorization rule.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. authorizationRuleName is the authorizationrule name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// authorizationRuleName - the authorization rule name.
 func (client TopicsClient) DeleteAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.DeleteAuthorizationRule")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -308,7 +356,7 @@ func (client TopicsClient) DeleteAuthorizationRule(ctx context.Context, resource
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "DeleteAuthorizationRule")
+		return result, validation.NewError("servicebus.TopicsClient", "DeleteAuthorizationRule", err.Error())
 	}
 
 	req, err := client.DeleteAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, topicName, authorizationRuleName)
@@ -358,8 +406,8 @@ func (client TopicsClient) DeleteAuthorizationRulePreparer(ctx context.Context, 
 // DeleteAuthorizationRuleSender sends the DeleteAuthorizationRule request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) DeleteAuthorizationRuleSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteAuthorizationRuleResponder handles the response to the DeleteAuthorizationRule request. The method always
@@ -375,10 +423,21 @@ func (client TopicsClient) DeleteAuthorizationRuleResponder(resp *http.Response)
 }
 
 // Get returns a description for the specified topic.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
 func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, namespaceName string, topicName string) (result SBTopic, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -388,7 +447,7 @@ func (client TopicsClient) Get(ctx context.Context, resourceGroupName string, na
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: topicName,
 			Constraints: []validation.Constraint{{Target: "topicName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "Get")
+		return result, validation.NewError("servicebus.TopicsClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, namespaceName, topicName)
@@ -437,8 +496,8 @@ func (client TopicsClient) GetPreparer(ctx context.Context, resourceGroupName st
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -455,10 +514,22 @@ func (client TopicsClient) GetResponder(resp *http.Response) (result SBTopic, er
 }
 
 // GetAuthorizationRule returns the specified authorization rule.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. authorizationRuleName is the authorizationrule name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// authorizationRuleName - the authorization rule name.
 func (client TopicsClient) GetAuthorizationRule(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string) (result SBAuthorizationRule, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.GetAuthorizationRule")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -471,7 +542,7 @@ func (client TopicsClient) GetAuthorizationRule(ctx context.Context, resourceGro
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "GetAuthorizationRule")
+		return result, validation.NewError("servicebus.TopicsClient", "GetAuthorizationRule", err.Error())
 	}
 
 	req, err := client.GetAuthorizationRulePreparer(ctx, resourceGroupName, namespaceName, topicName, authorizationRuleName)
@@ -521,8 +592,8 @@ func (client TopicsClient) GetAuthorizationRulePreparer(ctx context.Context, res
 // GetAuthorizationRuleSender sends the GetAuthorizationRule request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) GetAuthorizationRuleSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAuthorizationRuleResponder handles the response to the GetAuthorizationRule request. The method always
@@ -539,10 +610,21 @@ func (client TopicsClient) GetAuthorizationRuleResponder(resp *http.Response) (r
 }
 
 // ListAuthorizationRules gets authorization rules for a topic.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
 func (client TopicsClient) ListAuthorizationRules(ctx context.Context, resourceGroupName string, namespaceName string, topicName string) (result SBAuthorizationRuleListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListAuthorizationRules")
+		defer func() {
+			sc := -1
+			if result.sarlr.Response.Response != nil {
+				sc = result.sarlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -552,7 +634,7 @@ func (client TopicsClient) ListAuthorizationRules(ctx context.Context, resourceG
 				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
 		{TargetValue: topicName,
 			Constraints: []validation.Constraint{{Target: "topicName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "ListAuthorizationRules")
+		return result, validation.NewError("servicebus.TopicsClient", "ListAuthorizationRules", err.Error())
 	}
 
 	result.fn = client.listAuthorizationRulesNextResults
@@ -602,8 +684,8 @@ func (client TopicsClient) ListAuthorizationRulesPreparer(ctx context.Context, r
 // ListAuthorizationRulesSender sends the ListAuthorizationRules request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) ListAuthorizationRulesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListAuthorizationRulesResponder handles the response to the ListAuthorizationRules request. The method always
@@ -620,8 +702,8 @@ func (client TopicsClient) ListAuthorizationRulesResponder(resp *http.Response) 
 }
 
 // listAuthorizationRulesNextResults retrieves the next set of results, if any.
-func (client TopicsClient) listAuthorizationRulesNextResults(lastResults SBAuthorizationRuleListResult) (result SBAuthorizationRuleListResult, err error) {
-	req, err := lastResults.sBAuthorizationRuleListResultPreparer()
+func (client TopicsClient) listAuthorizationRulesNextResults(ctx context.Context, lastResults SBAuthorizationRuleListResult) (result SBAuthorizationRuleListResult, err error) {
+	req, err := lastResults.sBAuthorizationRuleListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "servicebus.TopicsClient", "listAuthorizationRulesNextResults", nil, "Failure preparing next results request")
 	}
@@ -642,26 +724,61 @@ func (client TopicsClient) listAuthorizationRulesNextResults(lastResults SBAutho
 
 // ListAuthorizationRulesComplete enumerates all values, automatically crossing page boundaries as required.
 func (client TopicsClient) ListAuthorizationRulesComplete(ctx context.Context, resourceGroupName string, namespaceName string, topicName string) (result SBAuthorizationRuleListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListAuthorizationRules")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	result.page, err = client.ListAuthorizationRules(ctx, resourceGroupName, namespaceName, topicName)
 	return
 }
 
 // ListByNamespace gets all the topics in a namespace.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-func (client TopicsClient) ListByNamespace(ctx context.Context, resourceGroupName string, namespaceName string) (result SBTopicListResultPage, err error) {
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// skip - skip is only used if a previous operation returned a partial result. If a previous response contains
+// a nextLink element, the value of the nextLink element will include a skip parameter that specifies a
+// starting point to use for subsequent calls.
+// top - may be used to limit the number of results to the most recent N usageDetails.
+func (client TopicsClient) ListByNamespace(ctx context.Context, resourceGroupName string, namespaceName string, skip *int32, top *int32) (result SBTopicListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListByNamespace")
+		defer func() {
+			sc := -1
+			if result.stlr.Response.Response != nil {
+				sc = result.stlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
 				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: namespaceName,
 			Constraints: []validation.Constraint{{Target: "namespaceName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "ListByNamespace")
+				{Target: "namespaceName", Name: validation.MinLength, Rule: 6, Chain: nil}}},
+		{TargetValue: skip,
+			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "skip", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
+				}}}},
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("servicebus.TopicsClient", "ListByNamespace", err.Error())
 	}
 
 	result.fn = client.listByNamespaceNextResults
-	req, err := client.ListByNamespacePreparer(ctx, resourceGroupName, namespaceName)
+	req, err := client.ListByNamespacePreparer(ctx, resourceGroupName, namespaceName, skip, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.TopicsClient", "ListByNamespace", nil, "Failure preparing request")
 		return
@@ -683,7 +800,7 @@ func (client TopicsClient) ListByNamespace(ctx context.Context, resourceGroupNam
 }
 
 // ListByNamespacePreparer prepares the ListByNamespace request.
-func (client TopicsClient) ListByNamespacePreparer(ctx context.Context, resourceGroupName string, namespaceName string) (*http.Request, error) {
+func (client TopicsClient) ListByNamespacePreparer(ctx context.Context, resourceGroupName string, namespaceName string, skip *int32, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"namespaceName":     autorest.Encode("path", namespaceName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -693,6 +810,12 @@ func (client TopicsClient) ListByNamespacePreparer(ctx context.Context, resource
 	const APIVersion = "2017-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if skip != nil {
+		queryParameters["$skip"] = autorest.Encode("query", *skip)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -706,8 +829,8 @@ func (client TopicsClient) ListByNamespacePreparer(ctx context.Context, resource
 // ListByNamespaceSender sends the ListByNamespace request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) ListByNamespaceSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByNamespaceResponder handles the response to the ListByNamespace request. The method always
@@ -724,8 +847,8 @@ func (client TopicsClient) ListByNamespaceResponder(resp *http.Response) (result
 }
 
 // listByNamespaceNextResults retrieves the next set of results, if any.
-func (client TopicsClient) listByNamespaceNextResults(lastResults SBTopicListResult) (result SBTopicListResult, err error) {
-	req, err := lastResults.sBTopicListResultPreparer()
+func (client TopicsClient) listByNamespaceNextResults(ctx context.Context, lastResults SBTopicListResult) (result SBTopicListResult, err error) {
+	req, err := lastResults.sBTopicListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "servicebus.TopicsClient", "listByNamespaceNextResults", nil, "Failure preparing next results request")
 	}
@@ -745,16 +868,38 @@ func (client TopicsClient) listByNamespaceNextResults(lastResults SBTopicListRes
 }
 
 // ListByNamespaceComplete enumerates all values, automatically crossing page boundaries as required.
-func (client TopicsClient) ListByNamespaceComplete(ctx context.Context, resourceGroupName string, namespaceName string) (result SBTopicListResultIterator, err error) {
-	result.page, err = client.ListByNamespace(ctx, resourceGroupName, namespaceName)
+func (client TopicsClient) ListByNamespaceComplete(ctx context.Context, resourceGroupName string, namespaceName string, skip *int32, top *int32) (result SBTopicListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListByNamespace")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByNamespace(ctx, resourceGroupName, namespaceName, skip, top)
 	return
 }
 
 // ListKeys gets the primary and secondary connection strings for the topic.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. authorizationRuleName is the authorizationrule name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// authorizationRuleName - the authorization rule name.
 func (client TopicsClient) ListKeys(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string) (result AccessKeys, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.ListKeys")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -767,7 +912,7 @@ func (client TopicsClient) ListKeys(ctx context.Context, resourceGroupName strin
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "ListKeys")
+		return result, validation.NewError("servicebus.TopicsClient", "ListKeys", err.Error())
 	}
 
 	req, err := client.ListKeysPreparer(ctx, resourceGroupName, namespaceName, topicName, authorizationRuleName)
@@ -817,8 +962,8 @@ func (client TopicsClient) ListKeysPreparer(ctx context.Context, resourceGroupNa
 // ListKeysSender sends the ListKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) ListKeysSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListKeysResponder handles the response to the ListKeys request. The method always
@@ -835,11 +980,23 @@ func (client TopicsClient) ListKeysResponder(resp *http.Response) (result Access
 }
 
 // RegenerateKeys regenerates primary or secondary connection strings for the topic.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. authorizationRuleName is the authorizationrule name. parameters is parameters supplied
-// to regenerate the authorization rule.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// authorizationRuleName - the authorization rule name.
+// parameters - parameters supplied to regenerate the authorization rule.
 func (client TopicsClient) RegenerateKeys(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, authorizationRuleName string, parameters RegenerateAccessKeyParameters) (result AccessKeys, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/TopicsClient.RegenerateKeys")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -852,7 +1009,7 @@ func (client TopicsClient) RegenerateKeys(ctx context.Context, resourceGroupName
 		{TargetValue: authorizationRuleName,
 			Constraints: []validation.Constraint{{Target: "authorizationRuleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "authorizationRuleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.TopicsClient", "RegenerateKeys")
+		return result, validation.NewError("servicebus.TopicsClient", "RegenerateKeys", err.Error())
 	}
 
 	req, err := client.RegenerateKeysPreparer(ctx, resourceGroupName, namespaceName, topicName, authorizationRuleName, parameters)
@@ -892,7 +1049,7 @@ func (client TopicsClient) RegenerateKeysPreparer(ctx context.Context, resourceG
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPost(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/topics/{topicName}/authorizationRules/{authorizationRuleName}/regenerateKeys", pathParameters),
@@ -904,8 +1061,8 @@ func (client TopicsClient) RegenerateKeysPreparer(ctx context.Context, resourceG
 // RegenerateKeysSender sends the RegenerateKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client TopicsClient) RegenerateKeysSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // RegenerateKeysResponder handles the response to the RegenerateKeys request. The method always

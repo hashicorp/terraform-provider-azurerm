@@ -4,76 +4,184 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMNetworkWatcher_basic(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
-	rInt := acctest.RandInt()
+func TestAccAzureRMNetworkWatcher(t *testing.T) {
+	// NOTE: this is a combined test rather than separate split out tests due to
+	// Azure only being happy about provisioning one per region at once
+	// (which our test suite can't easily workaround)
+	testCases := map[string]map[string]func(t *testing.T){
+		"basic": {
+			"basic":          testAccAzureRMNetworkWatcher_basic,
+			"requiresImport": testAccAzureRMNetworkWatcher_requiresImport,
+			"complete":       testAccAzureRMNetworkWatcher_complete,
+			"update":         testAccAzureRMNetworkWatcher_update,
+			"disappears":     testAccAzureRMNetworkWatcher_disappears,
+		},
+		"DataSource": {
+			"basic": testAccDataSourceAzureRMNetworkWatcher_basic,
+		},
+		"ConnectionMonitorOld": {
+			"addressBasic":              testAccAzureRMConnectionMonitor_addressBasic,
+			"addressComplete":           testAccAzureRMConnectionMonitor_addressComplete,
+			"addressUpdate":             testAccAzureRMConnectionMonitor_addressUpdate,
+			"vmBasic":                   testAccAzureRMConnectionMonitor_vmBasic,
+			"vmComplete":                testAccAzureRMConnectionMonitor_vmComplete,
+			"vmUpdate":                  testAccAzureRMConnectionMonitor_vmUpdate,
+			"destinationUpdate":         testAccAzureRMConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid": testAccAzureRMConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":   testAccAzureRMConnectionMonitor_conflictingDestinations,
+			"requiresImport":            testAccAzureRMConnectionMonitor_requiresImport,
+		},
+		"PacketCaptureOld": {
+			"localDisk":                  testAccAzureRMPacketCapture_localDisk,
+			"storageAccount":             testAccAzureRMPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccAzureRMPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccAzureRMPacketCapture_withFilters,
+			"requiresImport":             testAccAzureRMPacketCapture_requiresImport,
+		},
+		"ConnectionMonitor": {
+			"addressBasic":              testAccAzureRMNetworkConnectionMonitor_addressBasic,
+			"addressComplete":           testAccAzureRMNetworkConnectionMonitor_addressComplete,
+			"addressUpdate":             testAccAzureRMNetworkConnectionMonitor_addressUpdate,
+			"vmBasic":                   testAccAzureRMNetworkConnectionMonitor_vmBasic,
+			"vmComplete":                testAccAzureRMNetworkConnectionMonitor_vmComplete,
+			"vmUpdate":                  testAccAzureRMNetworkConnectionMonitor_vmUpdate,
+			"destinationUpdate":         testAccAzureRMNetworkConnectionMonitor_destinationUpdate,
+			"missingDestinationInvalid": testAccAzureRMNetworkConnectionMonitor_missingDestination,
+			"bothDestinationsInvalid":   testAccAzureRMNetworkConnectionMonitor_conflictingDestinations,
+			"requiresImport":            testAccAzureRMNetworkConnectionMonitor_requiresImport,
+		},
+		"PacketCapture": {
+			"localDisk":                  testAccAzureRMNetworkPacketCapture_localDisk,
+			"storageAccount":             testAccAzureRMNetworkPacketCapture_storageAccount,
+			"storageAccountAndLocalDisk": testAccAzureRMNetworkPacketCapture_storageAccountAndLocalDisk,
+			"withFilters":                testAccAzureRMNetworkPacketCapture_withFilters,
+			"requiresImport":             testAccAzureRMNetworkPacketCapture_requiresImport,
+		},
+	}
+
+	for group, m := range testCases {
+		m := m
+		t.Run(group, func(t *testing.T) {
+			for name, tc := range m {
+				tc := tc
+				t.Run(name, func(t *testing.T) {
+					tc(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccAzureRMNetworkWatcher_basic(t *testing.T) {
+	resourceName := "azurerm_network_watcher.test"
+	rInt := tf.AccRandTimeInt()
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
+					testCheckAzureRMNetworkWatcherExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAzureRMNetworkWatcher_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_network_watcher.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMNetworkWatcher_requiresImportConfig(rInt, location),
+				ExpectError: testRequiresImportError("azurerm_network_watcher"),
+			},
+		},
+	})
+}
+
+func testAccAzureRMNetworkWatcher_complete(t *testing.T) {
+	resourceName := "azurerm_network_watcher.test"
+	rInt := tf.AccRandTimeInt()
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccAzureRMNetworkWatcher_update(t *testing.T) {
+	resourceName := "azurerm_network_watcher.test"
+	rInt := tf.AccRandTimeInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherExists(resourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMNetworkWatcher_completeConfig(rInt, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherExists(resourceName),
 				),
 			},
 		},
 	})
 }
 
-func TestAccAzureRMNetworkWatcher_complete(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcher_complete(rInt, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMNetworkWatcher_update(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
-	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMNetworkWatcher_basic(rInt, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
-				),
-			},
-			{
-				Config: testAccAzureRMNetworkWatcher_complete(rInt, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
-				),
-			},
-		},
-	})
-}
-
-func TestAccAzureRMNetworkWatcher_disappears(t *testing.T) {
-	resourceGroup := "azurerm_network_watcher.test"
-	rInt := acctest.RandInt()
+func testAccAzureRMNetworkWatcher_disappears(t *testing.T) {
+	resourceName := "azurerm_network_watcher.test"
+	rInt := tf.AccRandTimeInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -81,10 +189,10 @@ func TestAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcher_basic(rInt, testLocation()),
+				Config: testAccAzureRMNetworkWatcher_basicConfig(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMNetworkWatcherExists(resourceGroup),
-					testCheckAzureRMNetworkWatcherDisappears(resourceGroup),
+					testCheckAzureRMNetworkWatcherExists(resourceName),
+					testCheckAzureRMNetworkWatcherDisappears(resourceName),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -92,12 +200,11 @@ func TestAccAzureRMNetworkWatcher_disappears(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMNetworkWatcherExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkWatcherExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -106,7 +213,7 @@ func testCheckAzureRMNetworkWatcherExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).watcherClient
+		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -121,12 +228,11 @@ func testCheckAzureRMNetworkWatcherExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testCheckAzureRMNetworkWatcherDisappears(name string) resource.TestCheckFunc {
+func testCheckAzureRMNetworkWatcherDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %q", name)
+			return fmt.Errorf("Not found: %q", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -135,7 +241,7 @@ func testCheckAzureRMNetworkWatcherDisappears(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Network Watcher: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).watcherClient
+		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -144,8 +250,7 @@ func testCheckAzureRMNetworkWatcherDisappears(name string) resource.TestCheckFun
 			}
 		}
 
-		err = future.WaitForCompletion(ctx, client.Client)
-		if err != nil {
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 			return fmt.Errorf("Bad: Delete on watcherClient: %+v", err)
 		}
 
@@ -155,7 +260,6 @@ func testCheckAzureRMNetworkWatcherDisappears(name string) resource.TestCheckFun
 
 func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-
 		if rs.Type != "azurerm_network_watcher" {
 			continue
 		}
@@ -163,7 +267,7 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).watcherClient
+		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
@@ -177,7 +281,7 @@ func testCheckAzureRMNetworkWatcherDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMNetworkWatcher_basic(rInt int, location string) string {
+func testAccAzureRMNetworkWatcher_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -192,7 +296,20 @@ resource "azurerm_network_watcher" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMNetworkWatcher_complete(rInt int, location string) string {
+func testAccAzureRMNetworkWatcher_requiresImportConfig(rInt int, location string) string {
+	template := testAccAzureRMNetworkWatcher_basicConfig(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_watcher" "import" {
+  name                = "${azurerm_network_watcher.test.name}"
+  location            = "${azurerm_network_watcher.test.location}"
+  resource_group_name = "${azurerm_network_watcher.test.resource_group_name}"
+}
+`, template)
+}
+
+func testAccAzureRMNetworkWatcher_completeConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -203,8 +320,9 @@ resource "azurerm_network_watcher" "test" {
   name                = "acctestnw-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  tags {
-	"Source" = "AccTests"
+
+  tags = {
+    "Source" = "AccTests"
   }
 }
 `, rInt, location, rInt)

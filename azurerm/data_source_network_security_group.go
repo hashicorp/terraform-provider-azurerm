@@ -2,23 +2,32 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmNetworkSecurityGroupRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"security_rule": {
 				Type:     schema.TypeList,
@@ -120,14 +129,15 @@ func dataSourceArmNetworkSecurityGroup() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secGroupClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SecurityGroupClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -135,7 +145,7 @@ func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interfac
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
+			return fmt.Errorf("Error: Network Security Group %q (Resource Group %q) was not found", name, resourceGroup)
 		}
 		return fmt.Errorf("Error making Read request on Network Security Group %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -144,16 +154,16 @@ func dataSourceArmNetworkSecurityGroupRead(d *schema.ResourceData, meta interfac
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
 
 	if props := resp.SecurityGroupPropertiesFormat; props != nil {
 		flattenedRules := flattenNetworkSecurityRules(props.SecurityRules)
 		if err := d.Set("security_rule", flattenedRules); err != nil {
-			return fmt.Errorf("Error flattening `security_rule`: %+v", err)
+			return fmt.Errorf("Error setting `security_rule`: %+v", err)
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

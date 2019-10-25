@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_template_deployment"
 sidebar_current: "docs-azurerm-resource-template-deployment"
 description: |-
-  Create a template deployment of resources.
+  Manages a template deployment of resources.
 ---
 
-# azurerm\_template\_deployment
+# azurerm_template_deployment
 
-Create a template deployment of resources
+Manages a template deployment of resources
 
 ~> **Note on ARM Template Deployments:** Due to the way the underlying Azure API is designed, Terraform can only manage the deployment of the ARM Template - and not any resources which are created by it.
 This means that when deleting the `azurerm_template_deployment` resource, Terraform will only remove the reference to the deployment, whilst leaving any resources created by that ARM Template Deployment.
@@ -20,7 +20,7 @@ One workaround for this is to use a unique Resource Group for each ARM Template 
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-01"
+  name     = "acctestRG-01"
   location = "West US"
 }
 
@@ -87,7 +87,7 @@ resource "azurerm_template_deployment" "test" {
 DEPLOY
 
   # these key-value pairs are passed into the ARM Template's `parameters` block
-  parameters {
+  parameters = {
     "storageAccountType" = "Standard_GRS"
   }
 
@@ -95,7 +95,7 @@ DEPLOY
 }
 
 output "storageAccountName" {
-  value = "${azurerm_template_deployment.test.outputs["storageAccountName"]}"
+  value = "${lookup(azurerm_template_deployment.test.outputs, "storageAccountName")}"
 }
 ```
 
@@ -112,9 +112,13 @@ The following arguments are supported:
     specified within the template, and Terraform will not be aware of this.
 * `template_body` - (Optional) Specifies the JSON definition for the template.
 
-~> **Note:** There's an [`file` interpolation function available](https://www.terraform.io/docs/configuration/interpolation.html#file-path-) which allows you to read this from an external file, which helps makes this more resource more readable.
+~> **Note:** There's a [`file` function available](https://www.terraform.io/docs/configuration/functions/file.html) which allows you to read this from an external file, which helps makes this more resource more readable.
 
 * `parameters` - (Optional) Specifies the name and value pairs that define the deployment parameters for the template.
+
+* `parameters_body` - (Optional) Specifies a valid Azure JSON parameters file that define the deployment parameters. It can contain KeyVault references
+
+~> **Note:** There's a [`file` function available](https://www.terraform.io/docs/configuration/functions/file.html) which allows you to read this from an external file, which helps makes this more resource more readable.
 
 ## Attributes Reference
 

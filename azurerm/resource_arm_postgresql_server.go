@@ -3,12 +3,20 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strconv"
+	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-04-30-preview/postgresql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +30,13 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -29,12 +44,12 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -43,25 +58,41 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"PGSQLB50",
-								"PGSQLB100",
-								"PGSQLS100",
-								"PGSQLS200",
-								"PGSQLS400",
-								"PGSQLS800",
+								"B_Gen4_1",
+								"B_Gen4_2",
+								"B_Gen5_1",
+								"B_Gen5_2",
+								"GP_Gen4_2",
+								"GP_Gen4_4",
+								"GP_Gen4_8",
+								"GP_Gen4_16",
+								"GP_Gen4_32",
+								"GP_Gen5_2",
+								"GP_Gen5_4",
+								"GP_Gen5_8",
+								"GP_Gen5_16",
+								"GP_Gen5_32",
+								"GP_Gen5_64",
+								"MO_Gen5_2",
+								"MO_Gen5_4",
+								"MO_Gen5_8",
+								"MO_Gen5_16",
+								"MO_Gen5_32",
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
 						"capacity": {
 							Type:     schema.TypeInt,
 							Required: true,
-							ValidateFunc: validateIntInSlice([]int{
-								50,
-								100,
-								200,
-								400,
-								800,
+							ValidateFunc: validate.IntInSlice([]int{
+								1,
+								2,
+								4,
+								8,
+								16,
+								32,
+								64,
 							}),
 						},
 
@@ -70,9 +101,20 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(postgresql.Basic),
-								string(postgresql.Standard),
+								string(postgresql.GeneralPurpose),
+								string(postgresql.MemoryOptimized),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+
+						"family": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Gen4",
+								"Gen5",
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -93,39 +135,55 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 			"version": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(postgresql.NineFullStopFive),
 					string(postgresql.NineFullStopSix),
+					string(postgresql.OneOne),
+					string(postgresql.OneZero),
+					string(postgresql.OneZeroFullStopZero),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
-				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
-			"storage_mb": {
-				Type:     schema.TypeInt,
+			"storage_profile": {
+				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
-				ValidateFunc: validateIntInSlice([]int{
-					// Basic SKU
-					51200,
-					179200,
-					307200,
-					435200,
-					563200,
-					691200,
-					819200,
-					947200,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_mb": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validate.IntBetweenAndDivisibleBy(5120, 4194304, 1024),
+						},
 
-					// Standard SKU
-					128000,
-					256000,
-					384000,
-					512000,
-					640000,
-					768000,
-					896000,
-					1024000,
-				}),
+						"backup_retention_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(7, 35),
+						},
+
+						"geo_redundant_backup": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Enabled",
+								"Disabled",
+							}, true),
+							DiffSuppressFunc: suppress.CaseDifference,
+						},
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(postgresql.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(postgresql.StorageAutogrowEnabled),
+								string(postgresql.StorageAutogrowDisabled),
+							}, false),
+						},
+					},
+				},
 			},
 
 			"ssl_enforcement": {
@@ -135,7 +193,7 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 					string(postgresql.SslEnforcementEnumDisabled),
 					string(postgresql.SslEnforcementEnumEnabled),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"fqdn": {
@@ -143,61 +201,86 @@ func resourceArmPostgreSQLServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			tier, _ := diff.GetOk("sku.0.tier")
+			storageMB, _ := diff.GetOk("storage_profile.0.storage_mb")
+
+			if strings.ToLower(tier.(string)) == "basic" && storageMB.(int) > 1048576 {
+				return fmt.Errorf("basic pricing tier only supports upto 1,048,576 MB (1TB) of storage")
+			}
+
+			return nil
 		},
 	}
 }
 
 func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Postgres.ServersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLogin := d.Get("administrator_login").(string)
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	storageMB := d.Get("storage_mb").(int)
+	createMode := "Default"
+	t := d.Get("tags").(map[string]interface{})
 
-	tags := d.Get("tags").(map[string]interface{})
+	if features.ShouldResourcesBeImported() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
+			}
+		}
 
-	sku := expandAzureRmPostgreSQLServerSku(d, storageMB)
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_postgresql_server", *existing.ID)
+		}
+	}
+
+	sku := expandAzureRmPostgreSQLServerSku(d)
+	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
 
 	properties := postgresql.ServerForCreate{
 		Location: &location,
-		Sku:      sku,
 		Properties: &postgresql.ServerPropertiesForDefaultCreate{
-			Version:                    postgresql.ServerVersion(version),
-			StorageMB:                  utils.Int64(int64(storageMB)),
-			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
 			AdministratorLogin:         utils.String(adminLogin),
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
-			CreateMode:                 postgresql.CreateModeDefault,
+			Version:                    postgresql.ServerVersion(version),
+			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
+			StorageProfile:             storageProfile,
+			CreateMode:                 postgresql.CreateMode(createMode),
 		},
-		Tags: expandTags(tags),
+		Sku:  sku,
+		Tags: tags.Expand(t),
 	}
 
-	future, err := client.Create(ctx, resGroup, name, properties)
+	future, err := client.Create(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for creation of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read PostgreSQL Server %q (Resource Group %q) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -206,49 +289,49 @@ func resourceArmPostgreSQLServerCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Postgres.ServersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Server update.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	storageMB := d.Get("storage_mb").(int)
-	sku := expandAzureRmPostgreSQLServerSku(d, storageMB)
-
-	tags := d.Get("tags").(map[string]interface{})
+	sku := expandAzureRmPostgreSQLServerSku(d)
+	storageProfile := expandAzureRmPostgreSQLStorageProfile(d)
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := postgresql.ServerUpdateParameters{
-		Sku: sku,
 		ServerUpdateParametersProperties: &postgresql.ServerUpdateParametersProperties{
-			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
-			StorageMB:                  utils.Int64(int64(storageMB)),
-			Version:                    postgresql.ServerVersion(version),
+			StorageProfile:             storageProfile,
 			AdministratorLoginPassword: utils.String(adminLoginPassword),
+			Version:                    postgresql.ServerVersion(version),
+			SslEnforcement:             postgresql.SslEnforcementEnum(sslEnforcement),
 		},
-		Tags: expandTags(tags),
+		Sku:  sku,
+		Tags: tags.Expand(t),
 	}
 
-	future, err := client.Update(ctx, resGroup, name, properties)
+	future, err := client.Update(ctx, resourceGroup, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	read, err := client.Get(ctx, resGroup, name)
+	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read PostgreSQL Server %s (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -257,98 +340,153 @@ func resourceArmPostgreSQLServerUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmPostgreSQLServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Postgres.ServersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[WARN] PostgreSQL Server '%s' was not found (resource group '%s')", name, resGroup)
+			log.Printf("[WARN] PostgreSQL Server %q was not found (resource group %q)", name, resourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Azure PostgreSQL Server %s: %+v", name, err)
+		return fmt.Errorf("Error making Read request on Azure PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	d.Set("resource_group_name", resourceGroup)
+
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
 
 	d.Set("administrator_login", resp.AdministratorLogin)
 	d.Set("version", string(resp.Version))
-	d.Set("storage_mb", int(*resp.StorageMB))
 	d.Set("ssl_enforcement", string(resp.SslEnforcement))
-	d.Set("sku", flattenPostgreSQLServerSku(resp.Sku))
 
-	flattenAndSetTags(d, resp.Tags)
+	if err := d.Set("sku", flattenPostgreSQLServerSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
+	}
+
+	if err := d.Set("storage_profile", flattenPostgreSQLStorageProfile(resp.StorageProfile)); err != nil {
+		return fmt.Errorf("Error setting `storage_profile`: %+v", err)
+	}
 
 	// Computed
 	d.Set("fqdn", resp.FullyQualifiedDomainName)
 
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPostgreSQLServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgresqlServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Postgres.ServersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Path["servers"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return err
+
+		return fmt.Errorf("Error deleting PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return err
+
+		return fmt.Errorf("Error waiting for deletion of PostgreSQL Server %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData, storageMB int) *postgresql.Sku {
-	skus := d.Get("sku").(*schema.Set).List()
+func expandAzureRmPostgreSQLServerSku(d *schema.ResourceData) *postgresql.Sku {
+	skus := d.Get("sku").([]interface{})
 	sku := skus[0].(map[string]interface{})
 
 	name := sku["name"].(string)
 	capacity := sku["capacity"].(int)
 	tier := sku["tier"].(string)
+	family := sku["family"].(string)
 
 	return &postgresql.Sku{
 		Name:     utils.String(name),
-		Capacity: utils.Int32(int32(capacity)),
 		Tier:     postgresql.SkuTier(tier),
-		Size:     utils.String(strconv.Itoa(storageMB)),
+		Capacity: utils.Int32(int32(capacity)),
+		Family:   utils.String(family),
+	}
+}
+
+func expandAzureRmPostgreSQLStorageProfile(d *schema.ResourceData) *postgresql.StorageProfile {
+	storageprofiles := d.Get("storage_profile").([]interface{})
+	storageprofile := storageprofiles[0].(map[string]interface{})
+
+	backupRetentionDays := storageprofile["backup_retention_days"].(int)
+	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
+	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
+
+	return &postgresql.StorageProfile{
+		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
+		GeoRedundantBackup:  postgresql.GeoRedundantBackup(geoRedundantBackup),
+		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     postgresql.StorageAutogrow(autoGrow),
 	}
 }
 
 func flattenPostgreSQLServerSku(resp *postgresql.Sku) []interface{} {
 	values := map[string]interface{}{}
 
-	values["name"] = *resp.Name
-	values["capacity"] = int(*resp.Capacity)
+	if name := resp.Name; name != nil {
+		values["name"] = *name
+	}
+
+	if capacity := resp.Capacity; capacity != nil {
+		values["capacity"] = *capacity
+	}
+
 	values["tier"] = string(resp.Tier)
 
-	sku := []interface{}{values}
-	return sku
+	if family := resp.Family; family != nil {
+		values["family"] = *family
+	}
+
+	return []interface{}{values}
+}
+
+func flattenPostgreSQLStorageProfile(resp *postgresql.StorageProfile) []interface{} {
+	values := map[string]interface{}{}
+
+	if storageMB := resp.StorageMB; storageMB != nil {
+		values["storage_mb"] = *storageMB
+	}
+
+	values["auto_grow"] = string(resp.StorageAutogrow)
+
+	if backupRetentionDays := resp.BackupRetentionDays; backupRetentionDays != nil {
+		values["backup_retention_days"] = *backupRetentionDays
+	}
+
+	values["geo_redundant_backup"] = string(resp.GeoRedundantBackup)
+
+	return []interface{}{values}
 }

@@ -3,13 +3,21 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/satori/go.uuid"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	uuid "github.com/satori/go.uuid"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,31 +27,42 @@ func resourceArmSqlDatabase() *schema.Resource {
 		Read:   resourceArmSqlDatabaseRead,
 		Update: resourceArmSqlDatabaseCreateUpdate,
 		Delete: resourceArmSqlDatabaseDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlDatabaseName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"create_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  string(sql.Default),
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          string(sql.Default),
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.Copy),
 					string(sql.Default),
@@ -54,7 +73,61 @@ func resourceArmSqlDatabase() *schema.Resource {
 					string(sql.Restore),
 					string(sql.RestoreLongTermRetentionBackup),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+			},
+
+			"import": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"storage_uri": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"storage_key": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+						"storage_key_type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"StorageAccessKey",
+								"SharedAccessKey",
+							}, true),
+						},
+						"administrator_login": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"administrator_login_password": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+						"authentication_type": {
+							Type:             schema.TypeString,
+							Required:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"ADPassword",
+								"SQL",
+							}, true),
+						},
+						"operation_mode": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "Import",
+							DiffSuppressFunc: suppress.CaseDifference,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Import",
+							}, true),
+						},
+					},
+				},
 			},
 
 			"source_database_id": {
@@ -67,26 +140,38 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateRFC3339Date,
+				ValidateFunc: validate.RFC3339Time,
 			},
 
 			"edition": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				Computed:         true,
+				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(sql.Basic),
-					string(sql.Standard),
-					string(sql.Premium),
+					string(sql.Business),
+					string(sql.BusinessCritical),
 					string(sql.DataWarehouse),
+					string(sql.Free),
+					string(sql.GeneralPurpose),
+					string(sql.Hyperscale),
+					string(sql.Premium),
+					string(sql.PremiumRS),
+					string(sql.Standard),
+					string(sql.Stretch),
+					string(sql.System),
+					string(sql.System2),
+					string(sql.Web),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
 
 			"collation": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:             schema.TypeString,
+				DiffSuppressFunc: suppress.CaseDifference,
+				Optional:         true,
+				Computed:         true,
+				ForceNew:         true,
 			},
 
 			"max_size_bytes": {
@@ -99,14 +184,15 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"requested_service_objective_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Computed:         true,
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
+				ValidateFunc:     validate.NoEmptyStrings,
 				// TODO: add validation once the Enum's complete
 				// https://github.com/Azure/azure-rest-api-specs/issues/1609
 			},
@@ -115,7 +201,7 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validateRFC3339Date,
+				ValidateFunc: validate.RFC3339Time,
 			},
 
 			"elastic_pool_name": {
@@ -139,28 +225,157 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"threat_detection_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"disabled_alerts": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Set:      schema.HashString,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+								ValidateFunc: validation.StringInSlice([]string{
+									"Sql_Injection",
+									"Sql_Injection_Vulnerability",
+									"Access_Anomaly",
+								}, true),
+							},
+						},
+
+						"email_account_admins": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sql.SecurityAlertPolicyEmailAccountAdminsDisabled),
+								string(sql.SecurityAlertPolicyEmailAccountAdminsEnabled),
+							}, true),
+						},
+
+						"email_addresses": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
+						},
+
+						"retention_days": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(0),
+						},
+
+						"state": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          string(sql.SecurityAlertPolicyStateDisabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sql.SecurityAlertPolicyStateDisabled),
+								string(sql.SecurityAlertPolicyStateEnabled),
+								string(sql.SecurityAlertPolicyStateNew),
+							}, true),
+						},
+
+						"storage_account_access_key": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"storage_endpoint": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+
+						"use_server_default": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							DiffSuppressFunc: suppress.CaseDifference,
+							Default:          string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(sql.SecurityAlertPolicyUseServerDefaultDisabled),
+								string(sql.SecurityAlertPolicyUseServerDefaultEnabled),
+							}, true),
+						},
+					},
+				},
+			},
+
+			"read_scale": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"tags": tags.Schema(),
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			threatDetection, hasThreatDetection := diff.GetOk("threat_detection_policy")
+			if hasThreatDetection {
+				if tl := threatDetection.([]interface{}); len(tl) > 0 {
+					t := tl[0].(map[string]interface{})
+
+					state := strings.ToLower(t["state"].(string))
+					_, hasStorageEndpoint := t["storage_endpoint"]
+					_, hasStorageAccountAccessKey := t["storage_account_access_key"]
+					if state == "enabled" && !hasStorageEndpoint && !hasStorageAccountAccessKey {
+						return fmt.Errorf("`storage_endpoint` and `storage_account_access_key` are required when `state` is `Enabled`")
+					}
+				}
+			}
+
+			return nil
 		},
 	}
 }
 
 func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
+	client := meta.(*ArmClient).Sql.DatabasesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-
-	location := d.Get("location").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	createMode := d.Get("create_mode").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serverName, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_sql_database", *existing.ID)
+		}
+	}
+
+	threatDetection, err := expandArmSqlServerThreatDetectionPolicy(d, location)
+	if err != nil {
+		return fmt.Errorf("Error parsing the database threat detection policy: %+v", err)
+	}
 
 	properties := sql.Database{
 		Location: utils.String(location),
 		DatabaseProperties: &sql.DatabaseProperties{
 			CreateMode: sql.CreateMode(createMode),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("source_database_id"); ok {
@@ -185,9 +400,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("source_database_deletion_date"); ok {
 		sourceDatabaseDeletionString := v.(string)
-		sourceDatabaseDeletionDate, err := date.ParseTime(time.RFC3339, sourceDatabaseDeletionString)
-		if err != nil {
-			return fmt.Errorf("`source_database_deletion_date` wasn't a valid RFC3339 date %q: %+v", sourceDatabaseDeletionString, err)
+		sourceDatabaseDeletionDate, err2 := date.ParseTime(time.RFC3339, sourceDatabaseDeletionString)
+		if err2 != nil {
+			return fmt.Errorf("`source_database_deletion_date` wasn't a valid RFC3339 date %q: %+v", sourceDatabaseDeletionString, err2)
 		}
 
 		properties.DatabaseProperties.SourceDatabaseDeletionDate = &date.Time{
@@ -197,9 +412,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("requested_service_objective_id"); ok {
 		requestedServiceObjectiveID := v.(string)
-		id, err := uuid.FromString(requestedServiceObjectiveID)
-		if err != nil {
-			return fmt.Errorf("`requested_service_objective_id` wasn't a valid UUID %q: %+v", requestedServiceObjectiveID, err)
+		id, err2 := uuid.FromString(requestedServiceObjectiveID)
+		if err2 != nil {
+			return fmt.Errorf("`requested_service_objective_id` wasn't a valid UUID %q: %+v", requestedServiceObjectiveID, err2)
 		}
 		properties.DatabaseProperties.RequestedServiceObjectiveID = &id
 	}
@@ -216,9 +431,9 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	if v, ok := d.GetOk("restore_point_in_time"); ok {
 		restorePointInTime := v.(string)
-		restorePointInTimeDate, err := date.ParseTime(time.RFC3339, restorePointInTime)
-		if err != nil {
-			return fmt.Errorf("`restore_point_in_time` wasn't a valid RFC3339 date %q: %+v", restorePointInTime, err)
+		restorePointInTimeDate, err2 := date.ParseTime(time.RFC3339, restorePointInTime)
+		if err2 != nil {
+			return fmt.Errorf("`restore_point_in_time` wasn't a valid RFC3339 date %q: %+v", restorePointInTime, err2)
 		}
 
 		properties.DatabaseProperties.RestorePointInTime = &date.Time{
@@ -226,32 +441,68 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	ctx := meta.(*ArmClient).StopContext
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
-	if err != nil {
-		return err
+	readScale := d.Get("read_scale").(bool)
+	if readScale {
+		properties.DatabaseProperties.ReadScale = sql.ReadScaleEnabled
+	} else {
+		properties.DatabaseProperties.ReadScale = sql.ReadScaleDisabled
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
+	// The requested Service Objective Name does not match the requested Service Objective Id.
+	if d.HasChange("requested_service_objective_name") && !d.HasChange("requested_service_objective_id") {
+		properties.DatabaseProperties.RequestedServiceObjectiveID = nil
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
+	}
+
+	if _, ok := d.GetOk("import"); ok {
+		if !strings.EqualFold(createMode, "default") {
+			return fmt.Errorf("import can only be used when create_mode is Default")
+		}
+		importParameters := expandAzureRmSqlDatabaseImport(d)
+		importFuture, err2 := client.CreateImportOperation(ctx, resourceGroup, serverName, name, importParameters)
+		if err2 != nil {
+			return err2
+		}
+
+		// this is set in config.go, but something sets
+		// it back to 15 minutes, which isn't long enough
+		// for most imports
+		client.Client.PollingDuration = 60 * time.Minute
+
+		if err = importFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return err
+		}
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name, "")
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for SQL Database %q (Resource Group %q, Server %q): %+v", name, resourceGroup, serverName, err)
 	}
 
 	d.SetId(*resp.ID)
+
+	threatDetectionClient := meta.(*ArmClient).Sql.DatabaseThreatDetectionPoliciesClient
+	if _, err = threatDetectionClient.CreateOrUpdate(ctx, resourceGroup, serverName, name, *threatDetection); err != nil {
+		return fmt.Errorf("Error setting database threat detection policy: %+v", err)
+	}
 
 	return resourceArmSqlDatabaseRead(d, meta)
 }
 
 func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.DatabasesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -271,9 +522,21 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
 	}
 
+	threatDetectionClient := meta.(*ArmClient).Sql.DatabaseThreatDetectionPoliciesClient
+	threatDetection, err := threatDetectionClient.Get(ctx, resourceGroup, serverName, name)
+	if err == nil {
+		flattenedThreatDetection := flattenArmSqlServerThreatDetectionPolicy(d, threatDetection)
+		if err := d.Set("threat_detection_policy", flattenedThreatDetection); err != nil {
+			return fmt.Errorf("Error setting `threat_detection_policy`: %+v", err)
+		}
+	}
+
 	d.Set("name", resp.Name)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
 	d.Set("resource_group_name", resourceGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
 	d.Set("server_name", serverName)
 
 	if props := resp.DatabaseProperties; props != nil {
@@ -304,18 +567,24 @@ func resourceArmSqlDatabaseRead(d *schema.ResourceData, meta interface{}) error 
 		}
 
 		d.Set("encryption", flattenEncryptionStatus(props.TransparentDataEncryption))
+
+		readScale := props.ReadScale
+		if readScale == sql.ReadScaleEnabled {
+			d.Set("read_scale", true)
+		} else {
+			d.Set("read_scale", false)
+		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlDatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.DatabasesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -330,10 +599,6 @@ func resourceArmSqlDatabaseDelete(d *schema.ResourceData, meta interface{}) erro
 			return nil
 		}
 
-		return fmt.Errorf("Error making Read request on Sql Database %s: %+v", name, err)
-	}
-
-	if err != nil {
 		return fmt.Errorf("Error deleting SQL Database: %+v", err)
 	}
 
@@ -351,4 +616,124 @@ func flattenEncryptionStatus(encryption *[]sql.TransparentDataEncryption) string
 	}
 
 	return ""
+}
+
+func flattenArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, policy sql.DatabaseSecurityAlertPolicy) []interface{} {
+	// The SQL database threat detection API always returns the default value even if never set.
+	// If the values are on their default one, threat it as not set.
+	properties := policy.DatabaseSecurityAlertPolicyProperties
+	if properties == nil {
+		return []interface{}{}
+	}
+
+	threatDetectionPolicy := make(map[string]interface{})
+
+	threatDetectionPolicy["state"] = string(properties.State)
+	threatDetectionPolicy["email_account_admins"] = string(properties.EmailAccountAdmins)
+	threatDetectionPolicy["use_server_default"] = string(properties.UseServerDefault)
+
+	if disabledAlerts := properties.DisabledAlerts; disabledAlerts != nil {
+		flattenedAlerts := schema.NewSet(schema.HashString, []interface{}{})
+		if v := *disabledAlerts; v != "" {
+			parsedAlerts := strings.Split(v, ";")
+			for _, a := range parsedAlerts {
+				flattenedAlerts.Add(a)
+			}
+		}
+		threatDetectionPolicy["disabled_alerts"] = flattenedAlerts
+	}
+	if emailAddresses := properties.EmailAddresses; emailAddresses != nil {
+		flattenedEmails := schema.NewSet(schema.HashString, []interface{}{})
+		if v := *emailAddresses; v != "" {
+			parsedEmails := strings.Split(*emailAddresses, ";")
+			for _, e := range parsedEmails {
+				flattenedEmails.Add(e)
+			}
+		}
+		threatDetectionPolicy["email_addresses"] = flattenedEmails
+	}
+	if properties.StorageEndpoint != nil {
+		threatDetectionPolicy["storage_endpoint"] = *properties.StorageEndpoint
+	}
+	if properties.RetentionDays != nil {
+		threatDetectionPolicy["retention_days"] = int(*properties.RetentionDays)
+	}
+
+	// If storage account access key is in state read it to the new state, as the API does not return it for security reasons
+	if v, ok := d.GetOk("threat_detection_policy.0.storage_account_access_key"); ok {
+		threatDetectionPolicy["storage_account_access_key"] = v.(string)
+	}
+
+	return []interface{}{threatDetectionPolicy}
+}
+
+func expandAzureRmSqlDatabaseImport(d *schema.ResourceData) sql.ImportExtensionRequest {
+	v := d.Get("import")
+	dbimportRefs := v.([]interface{})
+	dbimportRef := dbimportRefs[0].(map[string]interface{})
+	return sql.ImportExtensionRequest{
+		Name: utils.String("terraform"),
+		ImportExtensionProperties: &sql.ImportExtensionProperties{
+			StorageKeyType:             sql.StorageKeyType(dbimportRef["storage_key_type"].(string)),
+			StorageKey:                 utils.String(dbimportRef["storage_key"].(string)),
+			StorageURI:                 utils.String(dbimportRef["storage_uri"].(string)),
+			AdministratorLogin:         utils.String(dbimportRef["administrator_login"].(string)),
+			AdministratorLoginPassword: utils.String(dbimportRef["administrator_login_password"].(string)),
+			AuthenticationType:         sql.AuthenticationType(dbimportRef["authentication_type"].(string)),
+			OperationMode:              utils.String(dbimportRef["operation_mode"].(string)),
+		},
+	}
+}
+
+func expandArmSqlServerThreatDetectionPolicy(d *schema.ResourceData, location string) (*sql.DatabaseSecurityAlertPolicy, error) {
+	policy := sql.DatabaseSecurityAlertPolicy{
+		Location: utils.String(location),
+		DatabaseSecurityAlertPolicyProperties: &sql.DatabaseSecurityAlertPolicyProperties{
+			State: sql.SecurityAlertPolicyStateDisabled,
+		},
+	}
+	properties := policy.DatabaseSecurityAlertPolicyProperties
+
+	td, ok := d.GetOk("threat_detection_policy")
+	if !ok {
+		return &policy, nil
+	}
+
+	if tdl := td.([]interface{}); len(tdl) > 0 {
+		threatDetection := tdl[0].(map[string]interface{})
+
+		properties.State = sql.SecurityAlertPolicyState(threatDetection["state"].(string))
+		properties.EmailAccountAdmins = sql.SecurityAlertPolicyEmailAccountAdmins(threatDetection["email_account_admins"].(string))
+		properties.UseServerDefault = sql.SecurityAlertPolicyUseServerDefault(threatDetection["use_server_default"].(string))
+
+		if v, ok := threatDetection["disabled_alerts"]; ok {
+			alerts := v.(*schema.Set).List()
+			expandedAlerts := make([]string, len(alerts))
+			for i, a := range alerts {
+				expandedAlerts[i] = a.(string)
+			}
+			properties.DisabledAlerts = utils.String(strings.Join(expandedAlerts, ";"))
+		}
+		if v, ok := threatDetection["email_addresses"]; ok {
+			emails := v.(*schema.Set).List()
+			expandedEmails := make([]string, len(emails))
+			for i, e := range emails {
+				expandedEmails[i] = e.(string)
+			}
+			properties.EmailAddresses = utils.String(strings.Join(expandedEmails, ";"))
+		}
+		if v, ok := threatDetection["retention_days"]; ok {
+			properties.RetentionDays = utils.Int32(int32(v.(int)))
+		}
+		if v, ok := threatDetection["storage_account_access_key"]; ok {
+			properties.StorageAccountAccessKey = utils.String(v.(string))
+		}
+		if v, ok := threatDetection["storage_endpoint"]; ok {
+			properties.StorageEndpoint = utils.String(v.(string))
+		}
+
+		return &policy, nil
+	}
+
+	return &policy, nil
 }

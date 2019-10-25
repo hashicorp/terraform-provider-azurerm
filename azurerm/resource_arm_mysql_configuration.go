@@ -3,9 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-04-30-preview/mysql"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,8 +17,16 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 		Create: resourceArmMySQLConfigurationCreate,
 		Read:   resourceArmMySQLConfigurationRead,
 		Delete: resourceArmMySQLConfigurationDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -25,12 +36,13 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMySqlServerName,
 			},
 
 			"value": {
@@ -43,15 +55,15 @@ func resourceArmMySQLConfiguration() *schema.Resource {
 }
 
 func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.ConfigurationsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MySQL Configuration creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	serverName := d.Get("server_name").(string)
-
 	value := d.Get("value").(string)
 
 	properties := mysql.Configuration{
@@ -62,20 +74,19 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, properties)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing create/update request for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for create/update of MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error issuing get request for MySQL Configuration %s (resource group %s, server name %s): %v", name, resourceGroup, serverName, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read MySQL Configuration %s (resource group %s) ID", name, resourceGroup)
+		return fmt.Errorf("Cannot read MySQL Configuration %s (resource group %s, server name %s) ID", name, resourceGroup, serverName)
 	}
 
 	d.SetId(*read.ID)
@@ -84,10 +95,11 @@ func resourceArmMySQLConfigurationCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -115,10 +127,11 @@ func resourceArmMySQLConfigurationRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.ConfigurationsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,10 +157,5 @@ func resourceArmMySQLConfigurationDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

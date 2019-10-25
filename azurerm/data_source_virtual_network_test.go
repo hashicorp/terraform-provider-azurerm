@@ -4,18 +4,20 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_virtual_network.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	name := fmt.Sprintf("acctestvnet-%d", ri)
+	location := testLocation()
 	config := testAccDataSourceArmVirtualNetwork_basic(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -23,6 +25,7 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "name", name),
+					resource.TestCheckResourceAttr(dataSourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(dataSourceName, "dns_servers.0", "10.0.0.4"),
 					resource.TestCheckResourceAttr(dataSourceName, "address_spaces.0", "10.0.0.0/16"),
 					resource.TestCheckResourceAttr(dataSourceName, "subnets.0", "subnet1"),
@@ -34,12 +37,12 @@ func TestAccDataSourceArmVirtualNetwork_basic(t *testing.T) {
 
 func TestAccDataSourceArmVirtualNetwork_peering(t *testing.T) {
 	dataSourceName := "data.azurerm_virtual_network.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
 	virtualNetworkName := fmt.Sprintf("acctestvnet-1-%d", ri)
 	location := testLocation()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -82,7 +85,7 @@ data "azurerm_virtual_network" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   name                = "${azurerm_virtual_network.test.name}"
 }
-	`, rInt, location, rInt)
+`, rInt, location, rInt)
 }
 
 func testAccDataSourceArmVirtualNetwork_peering(rInt int, location string) string {

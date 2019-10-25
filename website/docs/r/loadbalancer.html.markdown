@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb"
 sidebar_current: "docs-azurerm-resource-loadbalancer-x"
 description: |-
-  Create a LoadBalancer Resource.
+  Manages a Load Balancer Resource.
 ---
 
-# azurerm\_lb
+# azurerm_lb
 
-Create a LoadBalancer Resource.
+Manages a Load Balancer Resource.
 
 ## Example Usage
 
@@ -19,10 +19,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                         = "PublicIPForLB"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "static"
+  name                = "PublicIPForLB"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_lb" "test" {
@@ -41,32 +41,31 @@ resource "azurerm_lb" "test" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the LoadBalancer.
-* `resource_group_name` - (Required) The name of the resource group in which to create the LoadBalancer.
-* `location` - (Required) Specifies the supported Azure location where the resource exists.
-* `frontend_ip_configuration` - (Optional) A frontend ip configuration block as documented below.
+* `name` - (Required) Specifies the name of the Load Balancer.
+* `resource_group_name` - (Required) The name of the Resource Group in which to create the Load Balancer.
+* `location` - (Required) Specifies the supported Azure Region where the Load Balancer should be created.
+* `frontend_ip_configuration` - (Optional) One or multiple `frontend_ip_configuration` blocks as documented below.
 * `sku` - (Optional) The SKU of the Azure Load Balancer. Accepted values are `Basic` and `Standard`. Defaults to `Basic`.
-
--> **Note:** The `Standard` SKU is currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions `Standard` SKU's are available in are available here](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-overview)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `frontend_ip_configuration` supports the following:
 
 * `name` - (Required) Specifies the name of the frontend ip configuration.
-* `subnet_id` - (Optional) Reference to subnet associated with the IP Configuration.
+* `subnet_id` - The ID of the Subnet which should be associated with the IP Configuration.
 * `private_ip_address` - (Optional) Private IP Address to assign to the Load Balancer. The last one and first four IPs in any range are reserved and cannot be manually assigned.
-* `private_ip_address_allocation` - (Optional) Defines how a private IP address is assigned. Options are Static or Dynamic.
-* `public_ip_address_id` - (Optional) Reference to Public IP address to be associated with the Load Balancer.
-* `zones` - (Optional) A collection containing the availability zone to allocate the IP in.
+* `private_ip_address_allocation` - (Optional) The allocation method for the Private IP Address used by this Load Balancer. Possible values as `Dynamic` and `Static`.
+* `public_ip_address_id` - (Optional) The ID of a Public IP Address which should be associated with the Load Balancer.
+* `public_ip_prefix_id` - (Optional) The ID of a Public IP Prefix which should be associated with the Load Balancer. Public IP Prefix can only be used with outbound rules.
+* `zones` - (Optional) A list of Availability Zones which the Load Balancer's IP Addresses should be created in.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Please Note**: Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The LoadBalancer ID.
+* `id` - The Load Balancer ID.
 * `private_ip_address` - The first private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 * `private_ip_addresses` - The list of private IP address assigned to the load balancer in `frontend_ip_configuration` blocks, if any.
 

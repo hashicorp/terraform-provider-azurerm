@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-mysql-firewall-rule"
 description: |-
-  Creates a Firewall Rule for a MySQL Server.
+  Manages a Firewall Rule for a MySQL Server.
 ---
 
 # azurerm_mysql_firewall_rule
 
-Creates a Firewall Rule for a MySQL Server
+Manages a Firewall Rule for a MySQL Server
 
 ## Example Usage (Single IP Address)
 

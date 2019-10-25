@@ -4,10 +4,17 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/operationalinsights/mgmt/2015-11-01-preview/operationalinsights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +28,13 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -29,9 +43,9 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				ValidateFunc: validateAzureRmLogAnalyticsWorkspaceName,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -39,13 +53,14 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(operationalinsights.Free),
+					string(operationalinsights.PerGB2018),
 					string(operationalinsights.PerNode),
 					string(operationalinsights.Premium),
 					string(operationalinsights.Standalone),
 					string(operationalinsights.Standard),
-					string(operationalinsights.Unlimited),
+					string("Unlimited"), // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"retention_in_days": {
@@ -66,29 +81,45 @@ func resourceArmLogAnalyticsWorkspace() *schema.Resource {
 			},
 
 			"primary_shared_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"secondary_shared_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).workspacesClient
-	ctx := meta.(*ArmClient).StopContext
-	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics workspace creation.")
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Log Analytics Workspace %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_log_analytics_workspace", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuName := d.Get("sku").(string)
 	sku := &operationalinsights.Sku{
 		Name: operationalinsights.SkuNameEnum(skuName),
@@ -96,12 +127,12 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 
 	retentionInDays := int32(d.Get("retention_in_days").(int))
 
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := operationalinsights.Workspace{
 		Name:     &name,
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		WorkspaceProperties: &operationalinsights.WorkspaceProperties{
 			Sku:             sku,
 			RetentionInDays: &retentionInDays,
@@ -113,8 +144,7 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -130,13 +160,13 @@ func resourceArmLogAnalyticsWorkspaceCreateUpdate(d *schema.ResourceData, meta i
 	d.SetId(*read.ID)
 
 	return resourceArmLogAnalyticsWorkspaceRead(d, meta)
-
 }
 
 func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).workspacesClient
-	ctx := meta.(*ArmClient).StopContext
-	id, err := parseAzureResourceID(d.Id())
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -153,8 +183,11 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("location", resp.Location)
 	d.Set("resource_group_name", resGroup)
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
 	d.Set("workspace_id", resp.CustomerID)
 	d.Set("portal_url", resp.PortalURL)
 	if sku := resp.Sku; sku != nil {
@@ -170,14 +203,14 @@ func resourceArmLogAnalyticsWorkspaceRead(d *schema.ResourceData, meta interface
 		d.Set("secondary_shared_key", sharedKeys.SecondarySharedKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).workspacesClient
-	ctx := meta.(*ArmClient).StopContext
-	id, err := parseAzureResourceID(d.Id())
+	client := meta.(*ArmClient).LogAnalytics.WorkspacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -197,7 +230,7 @@ func resourceArmLogAnalyticsWorkspaceDelete(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (ws []string, errors []error) {
+func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, _ string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	r, _ := regexp.Compile("^[A-Za-z0-9][A-Za-z0-9-]+[A-Za-z0-9]$")
@@ -210,5 +243,5 @@ func validateAzureRmLogAnalyticsWorkspaceName(v interface{}, k string) (ws []str
 		errors = append(errors, fmt.Errorf("Workspace Name can only be between 4 and 63 letters"))
 	}
 
-	return
+	return warnings, errors
 }

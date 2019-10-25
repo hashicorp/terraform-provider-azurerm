@@ -3,11 +3,18 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-04-02/cdn"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2017-10-12/cdn"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +28,13 @@ func resourceArmCdnEndpoint() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -28,9 +42,9 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"profile_name": {
 				Type:     schema.TypeString,
@@ -147,7 +161,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 								string(cdn.Allow),
 								string(cdn.Block),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"country_codes": {
 							Type:     schema.TypeList,
@@ -170,7 +184,7 @@ func resourceArmCdnEndpoint() *schema.Resource {
 					string(cdn.LargeFileDownload),
 					string(cdn.VideoOnDemandMediaStreaming),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"host_name": {
@@ -178,21 +192,36 @@ func resourceArmCdnEndpoint() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cdn.EndpointsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM CDN EndPoint creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	profileName := d.Get("profile_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, profileName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_cdn_endpoint", *existing.ID)
+		}
+	}
+
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	httpAllowed := d.Get("is_http_allowed").(bool)
 	httpsAllowed := d.Get("is_https_allowed").(bool)
 	compressionEnabled := d.Get("is_compression_enabled").(bool)
@@ -202,7 +231,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
 	if err != nil {
@@ -220,7 +249,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(originHostHeader),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if optimizationType != "" {
@@ -246,8 +275,7 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error creating CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for CDN Endpoint %q (Profile %q / Resource Group %q) to finish creating: %+v", name, profileName, resourceGroup, err)
 	}
 
@@ -262,8 +290,9 @@ func resourceArmCdnEndpointCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) error {
-	endpointsClient := meta.(*ArmClient).cdnEndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	endpointsClient := meta.(*ArmClient).Cdn.EndpointsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -277,7 +306,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 	probePath := d.Get("probe_path").(string)
 	optimizationType := d.Get("optimization_type").(string)
 	contentTypes := expandArmCdnEndpointContentTypesToCompress(d)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	geoFilters, err := expandArmCdnEndpointGeoFilters(d)
 	if err != nil {
@@ -294,7 +323,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 			QueryStringCachingBehavior: cdn.QueryStringCachingBehavior(cachingBehaviour),
 			OriginHostHeader:           utils.String(hostHeader),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if optimizationType != "" {
@@ -312,8 +341,7 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error updating CDN Endpoint %q (Profile %q / Resource Group %q): %s", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, endpointsClient.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, endpointsClient.Client); err != nil {
 		return fmt.Errorf("Error waiting for the CDN Endpoint %q (Profile %q / Resource Group %q) to finish updating: %+v", name, profileName, resourceGroup, err)
 	}
 
@@ -321,10 +349,11 @@ func resourceArmCdnEndpointUpdate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cdn.EndpointsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -350,7 +379,7 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("profile_name", profileName)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.EndpointProperties; props != nil {
@@ -366,30 +395,29 @@ func resourceArmCdnEndpointRead(d *schema.ResourceData, meta interface{}) error 
 
 		contentTypes := flattenAzureRMCdnEndpointContentTypes(props.ContentTypesToCompress)
 		if err := d.Set("content_types_to_compress", contentTypes); err != nil {
-			return fmt.Errorf("Error flattening `content_types_to_compress`: %+v", err)
+			return fmt.Errorf("Error setting `content_types_to_compress`: %+v", err)
 		}
 
 		geoFilters := flattenCdnEndpointGeoFilters(props.GeoFilters)
 		if err := d.Set("geo_filter", geoFilters); err != nil {
-			return fmt.Errorf("Error flattening `geo_filter`: %+v", err)
+			return fmt.Errorf("Error setting `geo_filter`: %+v", err)
 		}
 
 		origins := flattenAzureRMCdnEndpointOrigin(props.Origins)
 		if err := d.Set("origin", origins); err != nil {
-			return fmt.Errorf("Error flattening `origin`: %+v", err)
+			return fmt.Errorf("Error setting `origin`: %+v", err)
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).cdnEndpointsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Cdn.EndpointsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -408,8 +436,7 @@ func resourceArmCdnEndpointDelete(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error deleting CDN Endpoint %q (Profile %q / Resource Group %q): %+v", name, profileName, resourceGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -423,27 +450,25 @@ func expandArmCdnEndpointGeoFilters(d *schema.ResourceData) (*[]cdn.GeoFilter, e
 	filters := make([]cdn.GeoFilter, 0)
 
 	inputFilters := d.Get("geo_filter").([]interface{})
-	if inputFilters != nil {
-		for _, v := range inputFilters {
-			input := v.(map[string]interface{})
-			action := input["action"].(string)
-			relativePath := input["relative_path"].(string)
+	for _, v := range inputFilters {
+		input := v.(map[string]interface{})
+		action := input["action"].(string)
+		relativePath := input["relative_path"].(string)
 
-			inputCountryCodes := input["country_codes"].([]interface{})
-			countryCodes := make([]string, 0)
+		inputCountryCodes := input["country_codes"].([]interface{})
+		countryCodes := make([]string, 0)
 
-			for _, v := range inputCountryCodes {
-				countryCode := v.(string)
-				countryCodes = append(countryCodes, countryCode)
-			}
-
-			filter := cdn.GeoFilter{
-				Action:       cdn.GeoFilterActions(action),
-				RelativePath: utils.String(relativePath),
-				CountryCodes: &countryCodes,
-			}
-			filters = append(filters, filter)
+		for _, v := range inputCountryCodes {
+			countryCode := v.(string)
+			countryCodes = append(countryCodes, countryCode)
 		}
+
+		filter := cdn.GeoFilter{
+			Action:       cdn.GeoFilterActions(action),
+			RelativePath: utils.String(relativePath),
+			CountryCodes: &countryCodes,
+		}
+		filters = append(filters, filter)
 	}
 
 	return &filters, nil
@@ -454,7 +479,7 @@ func flattenCdnEndpointGeoFilters(input *[]cdn.GeoFilter) []interface{} {
 
 	if filters := input; filters != nil {
 		for _, filter := range *filters {
-			output := make(map[string]interface{}, 0)
+			output := make(map[string]interface{})
 
 			output["action"] = string(filter.Action)
 			if path := filter.RelativePath; path != nil {

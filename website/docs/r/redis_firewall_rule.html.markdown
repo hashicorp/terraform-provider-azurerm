@@ -1,17 +1,15 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_firewall_rule"
-sidebar_current: "docs-azurerm-resource-redis-firewall-rule"
+sidebar_current: "docs-azurerm-redis-firewall-rule"
 description: |-
-  Manages a Firewall Rule associated with a Premium Redis Cache.
+  Manages a Firewall Rule associated with a Redis Cache.
 
 ---
 
 # azurerm_redis_firewall_rule
 
-Manages a Firewall Rule associated with a Premium Redis Cache.
-
-~> **Note:** Redis Firewall Rules can only be assigned to a Redis Cache with a `Premium` SKU.
+Manages a Firewall Rule associated with a Redis Cache.
 
 ## Example Usage
 
@@ -75,3 +73,11 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The Redis Firewall Rule ID.
+
+## Import
+
+Redis Firewall Rules can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_redis_firewall_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/Redis/cache1/firewallRules/rule1
+```

@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_basic(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -27,12 +28,12 @@ func TestAccDataSourceAzureRMSnapshot_importBasic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAzureRMSnapshot_importEncryption(t *testing.T) {
+func TestAccDataSourceAzureRMSnapshot_encryption(t *testing.T) {
 	dataSourceName := "data.azurerm_snapshot.snapshot"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -51,7 +52,7 @@ func TestAccDataSourceAzureRMSnapshot_importEncryption(t *testing.T) {
 func testAccDataSourceAzureRMSnapshot_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -84,7 +85,7 @@ func testAccDataSourceAzureRMSnapshot_encryption(rInt int, rString string, locat
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -114,7 +115,7 @@ resource "azurerm_key_vault" "test" {
     key_permissions = [
       "create",
       "delete",
-      "get"
+      "get",
     ]
 
     secret_permissions = [
@@ -124,7 +125,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-   enabled_for_disk_encryption = true
+  enabled_for_disk_encryption = true
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -155,7 +156,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
-  disk_size_gb  	  = "20"
+  disk_size_gb        = "20"
 
   encryption_settings {
     enabled = true

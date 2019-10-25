@@ -1,630 +1,368 @@
 package azurerm
 
 import (
-	"bytes"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
-	"io"
 	"log"
-	"os"
-	"runtime"
 	"strings"
-	"sync"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/storage"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
 
 func resourceArmStorageBlob() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageBlobCreate,
-		Read:   resourceArmStorageBlobRead,
-		Exists: resourceArmStorageBlobExists,
-		Delete: resourceArmStorageBlobDelete,
+		Create:        resourceArmStorageBlobCreate,
+		Read:          resourceArmStorageBlobRead,
+		Update:        resourceArmStorageBlobUpdate,
+		Delete:        resourceArmStorageBlobDelete,
+		MigrateState:  resourceStorageBlobMigrateState,
+		SchemaVersion: 1,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				// TODO: add validation
 			},
-			"resource_group_name": resourceGroupNameSchema(),
+
 			"storage_account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"storage_container_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-			"type": {
 				Type:         schema.TypeString,
-				Optional:     true,
+				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobType,
+				ValidateFunc: validateArmStorageAccountName,
 			},
+
+			"storage_container_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateArmStorageContainerName,
+			},
+
+			"type": {
+				Type:             schema.TypeString,
+				Required:         true,
+				ForceNew:         true,
+				DiffSuppressFunc: suppress.CaseDifference, // TODO: remove in 2.0
+				ValidateFunc: validation.StringInSlice([]string{
+					"Append",
+					"Block",
+					"Page",
+				}, true),
+			},
+
 			"size": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ForceNew:     true,
 				Default:      0,
-				ValidateFunc: validateArmStorageBlobSize,
+				ValidateFunc: validate.IntDivisibleBy(512),
 			},
+
+			"access_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(blobs.Archive),
+					string(blobs.Cool),
+					string(blobs.Hot),
+				}, false),
+			},
+
+			"content_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "application/octet-stream",
+			},
+
 			"source": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"source_uri"},
+				ConflictsWith: []string{"source_uri", "source_content"},
 			},
+
+			"source_content": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"source", "source_uri"},
+			},
+
 			"source_uri": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ForceNew:      true,
-				ConflictsWith: []string{"source"},
+				ConflictsWith: []string{"source", "source_content"},
 			},
+
 			"url": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"parallelism": {
+				// TODO: @tombuildsstuff - a note this only works for Page blobs
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      8,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobParallelism,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
+
+			"metadata": storage.MetaDataSchema(),
+
+			// Deprecated fields
 			"attempts": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      1,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageBlobAttempts,
+				Deprecated:   "Retries are now handled by the Azure SDK as such this field is no longer necessary and will be removed in v2.0 of the Azure Provider",
+				ValidateFunc: validation.IntAtLeast(1),
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupNameDeprecated(),
 		},
 	}
 }
 
-func validateArmStorageBlobParallelism(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Parallelism %q is invalid, must be greater than 0", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobAttempts(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value <= 0 {
-		errors = append(errors, fmt.Errorf("Blob Attempts %q is invalid, must be greater than 0", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobSize(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-
-	if value%512 != 0 {
-		errors = append(errors, fmt.Errorf("Blob Size %q is invalid, must be a multiple of 512", value))
-	}
-
-	return
-}
-
-func validateArmStorageBlobType(v interface{}, k string) (ws []string, errors []error) {
-	value := strings.ToLower(v.(string))
-	validTypes := map[string]struct{}{
-		"block": struct{}{},
-		"page":  struct{}{},
-	}
-
-	if _, ok := validTypes[value]; !ok {
-		errors = append(errors, fmt.Errorf("Blob type %q is invalid, must be %q or %q", value, "block", "page"))
-	}
-	return
-}
-
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
-	if err != nil {
-		return err
-	}
-	if !accountExists {
-		return fmt.Errorf("Storage Account %q Not Found", storageAccountName)
-	}
-
+	accountName := d.Get("storage_account_name").(string)
+	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
-	blobType := d.Get("type").(string)
-	cont := d.Get("storage_container_name").(string)
-	sourceUri := d.Get("source_uri").(string)
 
-	log.Printf("[INFO] Creating blob %q in storage account %q", name, storageAccountName)
-	if sourceUri != "" {
-		options := &storage.CopyOptions{}
-		container := blobClient.GetContainerReference(cont)
-		blob := container.GetBlobReference(name)
-		err := blob.Copy(sourceUri, options)
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+	if err != nil {
+		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", accountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Blob %q (Container %q / Account %q)", name, containerName, accountName)
+	}
+
+	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
+	if err != nil {
+		return fmt.Errorf("Error building Blobs Client: %s", err)
+	}
+
+	id := blobsClient.GetResourceID(accountName, containerName, name)
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		input := blobs.GetPropertiesInput{}
+		props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 		if err != nil {
-			return fmt.Errorf("Error creating storage blob on Azure: %s", err)
+			if !utils.ResponseWasNotFound(props.Response) {
+				return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, *resourceGroup, err)
+			}
 		}
-	} else {
-		switch strings.ToLower(blobType) {
-		case "block":
-			options := &storage.PutBlobOptions{}
-			container := blobClient.GetContainerReference(cont)
-			blob := container.GetBlobReference(name)
-			err := blob.CreateBlockBlob(options)
-			if err != nil {
-				return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-			}
-
-			source := d.Get("source").(string)
-			if source != "" {
-				parallelism := d.Get("parallelism").(int)
-				attempts := d.Get("attempts").(int)
-				if err := resourceArmStorageBlobBlockUploadFromSource(cont, name, source, blobClient, parallelism, attempts); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
-			}
-		case "page":
-			source := d.Get("source").(string)
-			if source != "" {
-				parallelism := d.Get("parallelism").(int)
-				attempts := d.Get("attempts").(int)
-				if err := resourceArmStorageBlobPageUploadFromSource(cont, name, source, blobClient, parallelism, attempts); err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
-			} else {
-				size := int64(d.Get("size").(int))
-				options := &storage.PutBlobOptions{}
-
-				container := blobClient.GetContainerReference(cont)
-				blob := container.GetBlobReference(name)
-				blob.Properties.ContentLength = size
-				err := blob.PutPageBlob(options)
-				if err != nil {
-					return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-				}
-			}
+		if !utils.ResponseWasNotFound(props.Response) {
+			return tf.ImportAsExistsError("azurerm_storage_blob", id)
 		}
 	}
 
-	d.SetId(name)
+	log.Printf("[DEBUG] Creating Blob %q in Container %q within Storage Account %q..", name, containerName, accountName)
+	metaDataRaw := d.Get("metadata").(map[string]interface{})
+	blobInput := storage.BlobUpload{
+		AccountName:   accountName,
+		ContainerName: containerName,
+		BlobName:      name,
+		Client:        blobsClient,
+
+		BlobType:      d.Get("type").(string),
+		ContentType:   d.Get("content_type").(string),
+		MetaData:      storage.ExpandMetaData(metaDataRaw),
+		Parallelism:   d.Get("parallelism").(int),
+		Size:          d.Get("size").(int),
+		Source:        d.Get("source").(string),
+		SourceContent: d.Get("source_content").(string),
+		SourceUri:     d.Get("source_uri").(string),
+	}
+	if err := blobInput.Create(ctx); err != nil {
+		return fmt.Errorf("Error creating Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+	}
+	log.Printf("[DEBUG] Created Blob %q in Container %q within Storage Account %q.", name, containerName, accountName)
+
+	d.SetId(id)
+
+	return resourceArmStorageBlobUpdate(d, meta)
+}
+
+func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := blobs.ParseResourceID(d.Id())
+	if err != nil {
+		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
+	}
+
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	if err != nil {
+		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Blob %q (Container %q / Account %q)", id.BlobName, id.ContainerName, id.AccountName)
+	}
+
+	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
+	if err != nil {
+		return fmt.Errorf("Error building Blobs Client: %s", err)
+	}
+
+	if d.HasChange("access_tier") {
+		// this is only applicable for Gen2/BlobStorage accounts
+		log.Printf("[DEBUG] Updating Access Tier for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		accessTier := blobs.AccessTier(d.Get("access_tier").(string))
+
+		if _, err := blobsClient.SetTier(ctx, id.AccountName, id.ContainerName, id.BlobName, accessTier); err != nil {
+			return fmt.Errorf("Error updating Access Tier for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		}
+
+		log.Printf("[DEBUG] Updated Access Tier for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	}
+
+	if d.HasChange("content_type") {
+		log.Printf("[DEBUG] Updating Properties for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		input := blobs.SetPropertiesInput{
+			ContentType: utils.String(d.Get("content_type").(string)),
+		}
+		if _, err := blobsClient.SetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
+			return fmt.Errorf("Error updating Properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		}
+		log.Printf("[DEBUG] Updated Properties for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	}
+
+	if d.HasChange("metadata") {
+		log.Printf("[DEBUG] Updating MetaData for Blob %q (Container %q / Account %q)...", id.BlobName, id.ContainerName, id.AccountName)
+		metaDataRaw := d.Get("metadata").(map[string]interface{})
+		input := blobs.SetMetaDataInput{
+			MetaData: storage.ExpandMetaData(metaDataRaw),
+		}
+		if _, err := blobsClient.SetMetaData(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
+			return fmt.Errorf("Error updating MetaData for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+		}
+		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	}
+
 	return resourceArmStorageBlobRead(d, meta)
 }
 
-type resourceArmStorageBlobPage struct {
-	offset  int64
-	section *io.SectionReader
-}
-
-func resourceArmStorageBlobPageUploadFromSource(container, name, source string, client *storage.BlobStorageClient, parallelism, attempts int) error {
-	workerCount := parallelism * runtime.NumCPU()
-
-	file, err := os.Open(source)
-	if err != nil {
-		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
-	}
-	defer file.Close()
-
-	blobSize, pageList, err := resourceArmStorageBlobPageSplit(file)
-	if err != nil {
-		return fmt.Errorf("Error splitting source file %q into pages: %s", source, err)
-	}
-
-	options := &storage.PutBlobOptions{}
-	containerRef := client.GetContainerReference(container)
-	blob := containerRef.GetBlobReference(name)
-	blob.Properties.ContentLength = blobSize
-	err = blob.PutPageBlob(options)
-	if err != nil {
-		return fmt.Errorf("Error creating storage blob on Azure: %s", err)
-	}
-
-	pages := make(chan resourceArmStorageBlobPage, len(pageList))
-	errors := make(chan error, len(pageList))
-	wg := &sync.WaitGroup{}
-	wg.Add(len(pageList))
-
-	total := int64(0)
-	for _, page := range pageList {
-		total += page.section.Size()
-		pages <- page
-	}
-	close(pages)
-
-	for i := 0; i < workerCount; i++ {
-		go resourceArmStorageBlobPageUploadWorker(resourceArmStorageBlobPageUploadContext{
-			container: container,
-			name:      name,
-			source:    source,
-			blobSize:  blobSize,
-			client:    client,
-			pages:     pages,
-			errors:    errors,
-			wg:        wg,
-			attempts:  attempts,
-		})
-	}
-
-	wg.Wait()
-
-	if len(errors) > 0 {
-		return fmt.Errorf("Error while uploading source file %q: %s", source, <-errors)
-	}
-
-	return nil
-}
-
-func resourceArmStorageBlobPageSplit(file *os.File) (int64, []resourceArmStorageBlobPage, error) {
-	const (
-		minPageSize int64 = 4 * 1024
-		maxPageSize int64 = 4 * 1024 * 1024
-	)
-
-	info, err := file.Stat()
-	if err != nil {
-		return int64(0), nil, fmt.Errorf("Could not stat file %q: %s", file.Name(), err)
-	}
-
-	blobSize := info.Size()
-	if info.Size()%minPageSize != 0 {
-		blobSize = info.Size() + (minPageSize - (info.Size() % minPageSize))
-	}
-
-	emptyPage := make([]byte, minPageSize)
-
-	type byteRange struct {
-		offset int64
-		length int64
-	}
-
-	var nonEmptyRanges []byteRange
-	var currentRange byteRange
-	for i := int64(0); i < blobSize; i += minPageSize {
-		pageBuf := make([]byte, minPageSize)
-		_, err = file.ReadAt(pageBuf, i)
-		if err != nil && err != io.EOF {
-			return int64(0), nil, fmt.Errorf("Could not read chunk at %d: %s", i, err)
-		}
-
-		if bytes.Equal(pageBuf, emptyPage) {
-			if currentRange.length != 0 {
-				nonEmptyRanges = append(nonEmptyRanges, currentRange)
-			}
-			currentRange = byteRange{
-				offset: i + minPageSize,
-			}
-		} else {
-			currentRange.length += minPageSize
-			if currentRange.length == maxPageSize || (currentRange.offset+currentRange.length == blobSize) {
-				nonEmptyRanges = append(nonEmptyRanges, currentRange)
-				currentRange = byteRange{
-					offset: i + minPageSize,
-				}
-			}
-		}
-	}
-
-	var pages []resourceArmStorageBlobPage
-	for _, nonEmptyRange := range nonEmptyRanges {
-		pages = append(pages, resourceArmStorageBlobPage{
-			offset:  nonEmptyRange.offset,
-			section: io.NewSectionReader(file, nonEmptyRange.offset, nonEmptyRange.length),
-		})
-	}
-
-	return info.Size(), pages, nil
-}
-
-type resourceArmStorageBlobPageUploadContext struct {
-	container string
-	name      string
-	source    string
-	blobSize  int64
-	client    *storage.BlobStorageClient
-	pages     chan resourceArmStorageBlobPage
-	errors    chan error
-	wg        *sync.WaitGroup
-	attempts  int
-}
-
-func resourceArmStorageBlobPageUploadWorker(ctx resourceArmStorageBlobPageUploadContext) {
-	for page := range ctx.pages {
-		start := page.offset
-		end := page.offset + page.section.Size() - 1
-		if end > ctx.blobSize-1 {
-			end = ctx.blobSize - 1
-		}
-		size := end - start + 1
-
-		chunk := make([]byte, size)
-		_, err := page.section.Read(chunk)
-		if err != nil && err != io.EOF {
-			ctx.errors <- fmt.Errorf("Error reading source file %q at offset %d: %s", ctx.source, page.offset, err)
-			ctx.wg.Done()
-			continue
-		}
-
-		for x := 0; x < ctx.attempts; x++ {
-			container := ctx.client.GetContainerReference(ctx.container)
-			blob := container.GetBlobReference(ctx.name)
-			blobRange := storage.BlobRange{
-				Start: uint64(start),
-				End:   uint64(end),
-			}
-			options := &storage.PutPageOptions{}
-			reader := bytes.NewReader(chunk)
-			err = blob.WriteRange(blobRange, reader, options)
-			if err == nil {
-				break
-			}
-		}
-		if err != nil {
-			ctx.errors <- fmt.Errorf("Error writing page at offset %d for file %q: %s", page.offset, ctx.source, err)
-			ctx.wg.Done()
-			continue
-		}
-
-		ctx.wg.Done()
-	}
-}
-
-type resourceArmStorageBlobBlock struct {
-	section *io.SectionReader
-	id      string
-}
-
-func resourceArmStorageBlobBlockUploadFromSource(container, name, source string, client *storage.BlobStorageClient, parallelism, attempts int) error {
-	workerCount := parallelism * runtime.NumCPU()
-
-	file, err := os.Open(source)
-	if err != nil {
-		return fmt.Errorf("Error opening source file for upload %q: %s", source, err)
-	}
-	defer file.Close()
-
-	blockList, parts, err := resourceArmStorageBlobBlockSplit(file)
-	if err != nil {
-		return fmt.Errorf("Error reading and splitting source file for upload %q: %s", source, err)
-	}
-
-	wg := &sync.WaitGroup{}
-	blocks := make(chan resourceArmStorageBlobBlock, len(parts))
-	errors := make(chan error, len(parts))
-
-	wg.Add(len(parts))
-	for _, p := range parts {
-		blocks <- p
-	}
-	close(blocks)
-
-	for i := 0; i < workerCount; i++ {
-		go resourceArmStorageBlobBlockUploadWorker(resourceArmStorageBlobBlockUploadContext{
-			client:    client,
-			source:    source,
-			container: container,
-			name:      name,
-			blocks:    blocks,
-			errors:    errors,
-			wg:        wg,
-			attempts:  attempts,
-		})
-	}
-
-	wg.Wait()
-
-	if len(errors) > 0 {
-		return fmt.Errorf("Error while uploading source file %q: %s", source, <-errors)
-	}
-
-	containerReference := client.GetContainerReference(container)
-	blobReference := containerReference.GetBlobReference(name)
-	options := &storage.PutBlockListOptions{}
-	err = blobReference.PutBlockList(blockList, options)
-	if err != nil {
-		return fmt.Errorf("Error updating block list for source file %q: %s", source, err)
-	}
-
-	return nil
-}
-
-func resourceArmStorageBlobBlockSplit(file *os.File) ([]storage.Block, []resourceArmStorageBlobBlock, error) {
-	const (
-		idSize          = 64
-		blockSize int64 = 4 * 1024 * 1024
-	)
-	var parts []resourceArmStorageBlobBlock
-	var blockList []storage.Block
-
-	info, err := file.Stat()
-	if err != nil {
-		return nil, nil, fmt.Errorf("Error stating source file %q: %s", file.Name(), err)
-	}
-
-	for i := int64(0); i < info.Size(); i = i + blockSize {
-		entropy := make([]byte, idSize)
-		_, err = rand.Read(entropy)
-		if err != nil {
-			return nil, nil, fmt.Errorf("Error generating a random block ID for source file %q: %s", file.Name(), err)
-		}
-
-		sectionSize := blockSize
-		remainder := info.Size() - i
-		if remainder < blockSize {
-			sectionSize = remainder
-		}
-
-		block := storage.Block{
-			ID:     base64.StdEncoding.EncodeToString(entropy),
-			Status: storage.BlockStatusUncommitted,
-		}
-
-		blockList = append(blockList, block)
-
-		parts = append(parts, resourceArmStorageBlobBlock{
-			id:      block.ID,
-			section: io.NewSectionReader(file, i, sectionSize),
-		})
-	}
-
-	return blockList, parts, nil
-}
-
-type resourceArmStorageBlobBlockUploadContext struct {
-	client    *storage.BlobStorageClient
-	container string
-	name      string
-	source    string
-	attempts  int
-	blocks    chan resourceArmStorageBlobBlock
-	errors    chan error
-	wg        *sync.WaitGroup
-}
-
-func resourceArmStorageBlobBlockUploadWorker(ctx resourceArmStorageBlobBlockUploadContext) {
-	for block := range ctx.blocks {
-		buffer := make([]byte, block.section.Size())
-
-		_, err := block.section.Read(buffer)
-		if err != nil {
-			ctx.errors <- fmt.Errorf("Error reading source file %q: %s", ctx.source, err)
-			ctx.wg.Done()
-			continue
-		}
-
-		for i := 0; i < ctx.attempts; i++ {
-			container := ctx.client.GetContainerReference(ctx.container)
-			blob := container.GetBlobReference(ctx.name)
-			options := &storage.PutBlockOptions{}
-			err = blob.PutBlock(block.id, buffer, options)
-			if err == nil {
-				break
-			}
-		}
-		if err != nil {
-			ctx.errors <- fmt.Errorf("Error uploading block %q for source file %q: %s", block.id, ctx.source, err)
-			ctx.wg.Done()
-			continue
-		}
-
-		ctx.wg.Done()
-	}
-}
-
 func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
+	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return err
+		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
-	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", storageAccountName, d.Id())
+
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	if err != nil {
+		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+	}
+	if resourceGroup == nil {
+		log.Printf("[DEBUG] Unable to locate Resource Group for Blob %q (Container %q / Account %q) - assuming removed & removing from state!", id.BlobName, id.ContainerName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	exists, err := resourceArmStorageBlobExists(d, meta)
+	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
 
-	if !exists {
-		// Exists already removed this from state
-		return nil
+	log.Printf("[INFO] Retrieving Storage Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
+	input := blobs.GetPropertiesInput{}
+	props, err := blobsClient.GetProperties(ctx, id.AccountName, id.ContainerName, id.BlobName, input)
+	if err != nil {
+		if utils.ResponseWasNotFound(props.Response) {
+			log.Printf("[INFO] Blob %q was not found in Container %q / Account %q - assuming removed & removing from state...", id.BlobName, id.ContainerName, id.AccountName)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving properties for Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
 	}
 
-	name := d.Get("name").(string)
-	storageContainerName := d.Get("storage_container_name").(string)
+	d.Set("name", id.BlobName)
+	d.Set("storage_container_name", id.ContainerName)
+	d.Set("storage_account_name", id.AccountName)
+	d.Set("resource_group_name", resourceGroup)
 
-	container := blobClient.GetContainerReference(storageContainerName)
-	blob := container.GetBlobReference(name)
-	url := blob.GetURL()
-	if url == "" {
-		log.Printf("[INFO] URL for %q is empty", name)
+	d.Set("access_tier", string(props.AccessTier))
+	d.Set("content_type", props.ContentType)
+	d.Set("type", strings.TrimSuffix(string(props.BlobType), "Blob"))
+	d.Set("url", d.Id())
+
+	if err := d.Set("metadata", storage.FlattenMetaData(props.MetaData)); err != nil {
+		return fmt.Errorf("Error setting `metadata`: %+v", err)
 	}
-	d.Set("url", url)
+	// The CopySource is only returned if the blob hasn't been modified (e.g. metadata configured etc)
+	// as such, we need to conditionally set this to ensure it's trackable if possible
+	if props.CopySource != "" {
+		d.Set("source_uri", props.CopySource)
+	}
 
 	return nil
-}
-
-func resourceArmStorageBlobExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	armClient := meta.(*ArmClient)
-
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
-	if err != nil {
-		return false, err
-	}
-	if !accountExists {
-		log.Printf("[DEBUG] Storage account %q not found, removing blob %q from state", storageAccountName, d.Id())
-		d.SetId("")
-		return false, nil
-	}
-
-	name := d.Get("name").(string)
-	storageContainerName := d.Get("storage_container_name").(string)
-
-	log.Printf("[INFO] Checking for existence of storage blob %q.", name)
-	container := blobClient.GetContainerReference(storageContainerName)
-	blob := container.GetBlobReference(name)
-	exists, err := blob.Exists()
-	if err != nil {
-		return false, fmt.Errorf("error testing existence of storage blob %q: %s", name, err)
-	}
-
-	if !exists {
-		log.Printf("[INFO] Storage blob %q no longer exists, removing from state...", name)
-		d.SetId("")
-	}
-
-	return exists, nil
 }
 
 func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	armClient := meta.(*ArmClient)
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	resourceGroupName := d.Get("resource_group_name").(string)
-	storageAccountName := d.Get("storage_account_name").(string)
-
-	blobClient, accountExists, err := armClient.getBlobStorageClientForStorageAccount(resourceGroupName, storageAccountName)
+	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
-		return err
-	}
-	if !accountExists {
-		log.Printf("[INFO]Storage Account %q doesn't exist so the blob won't exist", storageAccountName)
-		return nil
+		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	name := d.Get("name").(string)
-	storageContainerName := d.Get("storage_container_name").(string)
-
-	log.Printf("[INFO] Deleting storage blob %q", name)
-	options := &storage.DeleteBlobOptions{}
-	container := blobClient.GetContainerReference(storageContainerName)
-	blob := container.GetBlobReference(name)
-	_, err = blob.DeleteIfExists(options)
+	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error deleting storage blob %q: %s", name, err)
+		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+	}
+	if resourceGroup == nil {
+		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q!", id.AccountName)
 	}
 
-	d.SetId("")
+	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
+	if err != nil {
+		return fmt.Errorf("Error building Blobs Client: %s", err)
+	}
+
+	log.Printf("[INFO] Deleting Blob %q from Container %q / Storage Account %q", id.BlobName, id.ContainerName, id.AccountName)
+	input := blobs.DeleteInput{
+		DeleteSnapshots: true,
+	}
+	if _, err := blobsClient.Delete(ctx, id.AccountName, id.ContainerName, id.BlobName, input); err != nil {
+		return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q): %s", id.BlobName, id.ContainerName, id.AccountName, err)
+	}
+
 	return nil
 }

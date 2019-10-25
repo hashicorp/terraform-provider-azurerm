@@ -1,0 +1,22 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: test-cluster-authority-data
+    server: https://testcluster.org:443
+  name: test-cluster
+contexts:
+- context:
+    cluster: test-cluster
+    user: test-user
+    namespace: test-namespace
+  name: test-cluster
+current-context: test-cluster
+users:
+- name: test-user
+  user:
+    client-certificate-data: test-client-certificate-data
+    client-key-data: test-client-key-data
+    token: test-token
+kind: Config
+preferences:
+  colors: true

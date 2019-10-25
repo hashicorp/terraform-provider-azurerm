@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"io"
 	"net/http"
 )
@@ -32,103 +33,40 @@ type RunbookDraftClient struct {
 }
 
 // NewRunbookDraftClient creates an instance of the RunbookDraftClient client.
-func NewRunbookDraftClient(subscriptionID string, resourceGroupName string) RunbookDraftClient {
-	return NewRunbookDraftClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
+func NewRunbookDraftClient(subscriptionID string) RunbookDraftClient {
+	return NewRunbookDraftClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewRunbookDraftClientWithBaseURI creates an instance of the RunbookDraftClient client.
-func NewRunbookDraftClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) RunbookDraftClient {
-	return RunbookDraftClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
-}
-
-// CreateOrUpdate updates the runbook draft with runbookStream as its content.
-//
-// automationAccountName is the automation account name. runbookName is the runbook name. runbookContent is the runbook
-// draft content. runbookContent will be closed upon successful return. Callers should ensure closure when receiving an
-// error.
-func (client RunbookDraftClient) CreateOrUpdate(ctx context.Context, automationAccountName string, runbookName string, runbookContent io.ReadCloser) (result RunbookDraftCreateOrUpdateFuture, err error) {
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.RunbookDraftClient", "CreateOrUpdate")
-	}
-
-	req, err := client.CreateOrUpdatePreparer(ctx, automationAccountName, runbookName, runbookContent)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "CreateOrUpdate", nil, "Failure preparing request")
-		return
-	}
-
-	result, err = client.CreateOrUpdateSender(req)
-	if err != nil {
-		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "CreateOrUpdate", result.Response(), "Failure sending request")
-		return
-	}
-
-	return
-}
-
-// CreateOrUpdatePreparer prepares the CreateOrUpdate request.
-func (client RunbookDraftClient) CreateOrUpdatePreparer(ctx context.Context, automationAccountName string, runbookName string, runbookContent io.ReadCloser) (*http.Request, error) {
-	pathParameters := map[string]interface{}{
-		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
-		"runbookName":           autorest.Encode("path", runbookName),
-		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
-	}
-
-	const APIVersion = "2015-10-31"
-	queryParameters := map[string]interface{}{
-		"api-version": APIVersion,
-	}
-
-	preparer := autorest.CreatePreparer(
-		autorest.AsPut(),
-		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/runbooks/{runbookName}/draft/content", pathParameters),
-		autorest.WithFile(runbookContent),
-		autorest.WithQueryParameters(queryParameters))
-	return preparer.Prepare((&http.Request{}).WithContext(ctx))
-}
-
-// CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
-// http.Response Body if it receives an error.
-func (client RunbookDraftClient) CreateOrUpdateSender(req *http.Request) (future RunbookDraftCreateOrUpdateFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
-	if err != nil {
-		return
-	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
-	return
-}
-
-// CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
-// closes the http.Response Body.
-func (client RunbookDraftClient) CreateOrUpdateResponder(resp *http.Response) (result autorest.Response, err error) {
-	err = autorest.Respond(
-		resp,
-		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
-		autorest.ByClosing())
-	result.Response = resp
-	return
+func NewRunbookDraftClientWithBaseURI(baseURI string, subscriptionID string) RunbookDraftClient {
+	return RunbookDraftClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get retrieve the runbook draft identified by runbook name.
-//
-// automationAccountName is the automation account name. runbookName is the runbook name.
-func (client RunbookDraftClient) Get(ctx context.Context, automationAccountName string, runbookName string) (result RunbookDraft, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+func (client RunbookDraftClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result RunbookDraft, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookDraftClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.RunbookDraftClient", "Get")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.RunbookDraftClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, automationAccountName, runbookName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, runbookName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "Get", nil, "Failure preparing request")
 		return
@@ -150,10 +88,10 @@ func (client RunbookDraftClient) Get(ctx context.Context, automationAccountName 
 }
 
 // GetPreparer prepares the Get request.
-func (client RunbookDraftClient) GetPreparer(ctx context.Context, automationAccountName string, runbookName string) (*http.Request, error) {
+func (client RunbookDraftClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"runbookName":           autorest.Encode("path", runbookName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -174,8 +112,8 @@ func (client RunbookDraftClient) GetPreparer(ctx context.Context, automationAcco
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -192,16 +130,30 @@ func (client RunbookDraftClient) GetResponder(resp *http.Response) (result Runbo
 }
 
 // GetContent retrieve the content of runbook draft identified by runbook name.
-//
-// automationAccountName is the automation account name. runbookName is the runbook name.
-func (client RunbookDraftClient) GetContent(ctx context.Context, automationAccountName string, runbookName string) (result ReadCloser, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+func (client RunbookDraftClient) GetContent(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result ReadCloser, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookDraftClient.GetContent")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.RunbookDraftClient", "GetContent")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.RunbookDraftClient", "GetContent", err.Error())
 	}
 
-	req, err := client.GetContentPreparer(ctx, automationAccountName, runbookName)
+	req, err := client.GetContentPreparer(ctx, resourceGroupName, automationAccountName, runbookName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "GetContent", nil, "Failure preparing request")
 		return
@@ -223,10 +175,10 @@ func (client RunbookDraftClient) GetContent(ctx context.Context, automationAccou
 }
 
 // GetContentPreparer prepares the GetContent request.
-func (client RunbookDraftClient) GetContentPreparer(ctx context.Context, automationAccountName string, runbookName string) (*http.Request, error) {
+func (client RunbookDraftClient) GetContentPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"runbookName":           autorest.Encode("path", runbookName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -247,8 +199,8 @@ func (client RunbookDraftClient) GetContentPreparer(ctx context.Context, automat
 // GetContentSender sends the GetContent request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) GetContentSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetContentResponder handles the response to the GetContent request. The method always
@@ -264,17 +216,30 @@ func (client RunbookDraftClient) GetContentResponder(resp *http.Response) (resul
 }
 
 // Publish publish runbook draft.
-//
-// automationAccountName is the automation account name. runbookName is the parameters supplied to the publish runbook
-// operation.
-func (client RunbookDraftClient) Publish(ctx context.Context, automationAccountName string, runbookName string) (result RunbookDraftPublishFuture, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the parameters supplied to the publish runbook operation.
+func (client RunbookDraftClient) Publish(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result RunbookDraftPublishFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookDraftClient.Publish")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.RunbookDraftClient", "Publish")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.RunbookDraftClient", "Publish", err.Error())
 	}
 
-	req, err := client.PublishPreparer(ctx, automationAccountName, runbookName)
+	req, err := client.PublishPreparer(ctx, resourceGroupName, automationAccountName, runbookName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "Publish", nil, "Failure preparing request")
 		return
@@ -290,10 +255,10 @@ func (client RunbookDraftClient) Publish(ctx context.Context, automationAccountN
 }
 
 // PublishPreparer prepares the Publish request.
-func (client RunbookDraftClient) PublishPreparer(ctx context.Context, automationAccountName string, runbookName string) (*http.Request, error) {
+func (client RunbookDraftClient) PublishPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"runbookName":           autorest.Encode("path", runbookName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -314,21 +279,108 @@ func (client RunbookDraftClient) PublishPreparer(ctx context.Context, automation
 // PublishSender sends the Publish request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) PublishSender(req *http.Request) (future RunbookDraftPublishFuture, err error) {
-	sender := autorest.DecorateSender(client, azure.DoRetryWithRegistration(client.Client))
-	future.Future = azure.NewFuture(req)
-	future.req = req
-	_, err = future.Done(sender)
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
-	err = autorest.Respond(future.Response(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted))
+	future.Future, err = azure.NewFutureFromResponse(resp)
 	return
 }
 
 // PublishResponder handles the response to the Publish request. The method always
 // closes the http.Response Body.
-func (client RunbookDraftClient) PublishResponder(resp *http.Response) (result Runbook, err error) {
+func (client RunbookDraftClient) PublishResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// ReplaceContent replaces the runbook draft content.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+// runbookContent - the runbook draft content.
+func (client RunbookDraftClient) ReplaceContent(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, runbookContent io.ReadCloser) (result RunbookDraftReplaceContentFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookDraftClient.ReplaceContent")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.RunbookDraftClient", "ReplaceContent", err.Error())
+	}
+
+	req, err := client.ReplaceContentPreparer(ctx, resourceGroupName, automationAccountName, runbookName, runbookContent)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "ReplaceContent", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.ReplaceContentSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "ReplaceContent", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// ReplaceContentPreparer prepares the ReplaceContent request.
+func (client RunbookDraftClient) ReplaceContentPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string, runbookContent io.ReadCloser) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"automationAccountName": autorest.Encode("path", automationAccountName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
+		"runbookName":           autorest.Encode("path", runbookName),
+		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2015-10-31"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("text/powershell"),
+		autorest.AsPut(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/runbooks/{runbookName}/draft/content", pathParameters),
+		autorest.WithFile(runbookContent),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// ReplaceContentSender sends the ReplaceContent request. The method will close the
+// http.Response Body if it receives an error.
+func (client RunbookDraftClient) ReplaceContentSender(req *http.Request) (future RunbookDraftReplaceContentFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req, sd...)
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// ReplaceContentResponder handles the response to the ReplaceContent request. The method always
+// closes the http.Response Body.
+func (client RunbookDraftClient) ReplaceContentResponder(resp *http.Response) (result ReadCloser, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
@@ -339,17 +391,31 @@ func (client RunbookDraftClient) PublishResponder(resp *http.Response) (result R
 	return
 }
 
-// UndoEdit retrieve the runbook identified by runbook name.
-//
-// automationAccountName is the automation account name. runbookName is the runbook name.
-func (client RunbookDraftClient) UndoEdit(ctx context.Context, automationAccountName string, runbookName string) (result RunbookDraftUndoEditResult, err error) {
+// UndoEdit undo draft edit to last known published state identified by runbook name.
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// runbookName - the runbook name.
+func (client RunbookDraftClient) UndoEdit(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (result RunbookDraftUndoEditResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RunbookDraftClient.UndoEdit")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.RunbookDraftClient", "UndoEdit")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.RunbookDraftClient", "UndoEdit", err.Error())
 	}
 
-	req, err := client.UndoEditPreparer(ctx, automationAccountName, runbookName)
+	req, err := client.UndoEditPreparer(ctx, resourceGroupName, automationAccountName, runbookName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.RunbookDraftClient", "UndoEdit", nil, "Failure preparing request")
 		return
@@ -371,10 +437,10 @@ func (client RunbookDraftClient) UndoEdit(ctx context.Context, automationAccount
 }
 
 // UndoEditPreparer prepares the UndoEdit request.
-func (client RunbookDraftClient) UndoEditPreparer(ctx context.Context, automationAccountName string, runbookName string) (*http.Request, error) {
+func (client RunbookDraftClient) UndoEditPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, runbookName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"runbookName":           autorest.Encode("path", runbookName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
@@ -395,8 +461,8 @@ func (client RunbookDraftClient) UndoEditPreparer(ctx context.Context, automatio
 // UndoEditSender sends the UndoEdit request. The method will close the
 // http.Response Body if it receives an error.
 func (client RunbookDraftClient) UndoEditSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UndoEditResponder handles the response to the UndoEdit request. The method always

@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_consumer_group"
-sidebar_current: "docs-azurerm-resource-eventhub-consumer-group"
+sidebar_current: "docs-azurerm-resource-messaging-eventhub-consumer-group"
 description: |-
-  Creates a new Event Hubs Consumer Group as a nested resource within an Event Hub.
+  Manages a Event Hubs Consumer Group as a nested resource within an Event Hub.
 ---
 
-# azurerm\_eventhub\_consumer\_group
+# azurerm_eventhub_consumer_group
 
-Creates a new Event Hubs Consumer Group as a nested resource within an Event Hub.
+Manages a Event Hubs Consumer Group as a nested resource within an Event Hub.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ resource "azurerm_eventhub_namespace" "test" {
   sku                 = "Basic"
   capacity            = 2
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

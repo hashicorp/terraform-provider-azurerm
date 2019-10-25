@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/dimchansky/utfbom"
 	"github.com/mitchellh/go-homedir"
@@ -38,11 +40,23 @@ type Subscription struct {
 	Name            string `json:"name"`
 	State           string `json:"state"`
 	TenantID        string `json:"tenantId"`
+	User            *User  `json:"user"`
 }
+
+// User represents a User from the Azure CLI
+type User struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+const azureProfileJSON = "azureProfile.json"
 
 // ProfilePath returns the path where the Azure Profile is stored from the Azure CLI
 func ProfilePath() (string, error) {
-	return homedir.Expand("~/.azure/azureProfile.json")
+	if cfgDir := os.Getenv("AZURE_CONFIG_DIR"); cfgDir != "" {
+		return filepath.Join(cfgDir, azureProfileJSON), nil
+	}
+	return homedir.Expand("~/.azure/" + azureProfileJSON)
 }
 
 // LoadProfile restores a Profile object from a file located at 'path'.

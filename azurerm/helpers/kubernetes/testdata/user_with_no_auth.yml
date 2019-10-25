@@ -1,0 +1,9 @@
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: test-cluster-authority-data
+    server: https://testcluster.org:443
+  name: test-cluster
+users:
+- name: test-user
+  user:

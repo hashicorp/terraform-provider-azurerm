@@ -18,13 +18,18 @@ package servicebus
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
+
+// The package's fully qualified name.
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
 
 // AccessRights enumerates the values for access rights.
 type AccessRights string
@@ -38,6 +43,26 @@ const (
 	Send AccessRights = "Send"
 )
 
+// PossibleAccessRightsValues returns an array of possible values for the AccessRights const type.
+func PossibleAccessRightsValues() []AccessRights {
+	return []AccessRights{Listen, Manage, Send}
+}
+
+// DefaultAction enumerates the values for default action.
+type DefaultAction string
+
+const (
+	// Allow ...
+	Allow DefaultAction = "Allow"
+	// Deny ...
+	Deny DefaultAction = "Deny"
+)
+
+// PossibleDefaultActionValues returns an array of possible values for the DefaultAction const type.
+func PossibleDefaultActionValues() []DefaultAction {
+	return []DefaultAction{Allow, Deny}
+}
+
 // EncodingCaptureDescription enumerates the values for encoding capture description.
 type EncodingCaptureDescription string
 
@@ -47,6 +72,11 @@ const (
 	// AvroDeflate ...
 	AvroDeflate EncodingCaptureDescription = "AvroDeflate"
 )
+
+// PossibleEncodingCaptureDescriptionValues returns an array of possible values for the EncodingCaptureDescription const type.
+func PossibleEncodingCaptureDescriptionValues() []EncodingCaptureDescription {
+	return []EncodingCaptureDescription{Avro, AvroDeflate}
+}
 
 // EntityStatus enumerates the values for entity status.
 type EntityStatus string
@@ -72,6 +102,11 @@ const (
 	Unknown EntityStatus = "Unknown"
 )
 
+// PossibleEntityStatusValues returns an array of possible values for the EntityStatus const type.
+func PossibleEntityStatusValues() []EntityStatus {
+	return []EntityStatus{Active, Creating, Deleting, Disabled, ReceiveDisabled, Renaming, Restoring, SendDisabled, Unknown}
+}
+
 // FilterType enumerates the values for filter type.
 type FilterType string
 
@@ -82,6 +117,26 @@ const (
 	FilterTypeSQLFilter FilterType = "SqlFilter"
 )
 
+// PossibleFilterTypeValues returns an array of possible values for the FilterType const type.
+func PossibleFilterTypeValues() []FilterType {
+	return []FilterType{FilterTypeCorrelationFilter, FilterTypeSQLFilter}
+}
+
+// IPAction enumerates the values for ip action.
+type IPAction string
+
+const (
+	// Accept ...
+	Accept IPAction = "Accept"
+	// Reject ...
+	Reject IPAction = "Reject"
+)
+
+// PossibleIPActionValues returns an array of possible values for the IPAction const type.
+func PossibleIPActionValues() []IPAction {
+	return []IPAction{Accept, Reject}
+}
+
 // KeyType enumerates the values for key type.
 type KeyType string
 
@@ -91,6 +146,45 @@ const (
 	// SecondaryKey ...
 	SecondaryKey KeyType = "SecondaryKey"
 )
+
+// PossibleKeyTypeValues returns an array of possible values for the KeyType const type.
+func PossibleKeyTypeValues() []KeyType {
+	return []KeyType{PrimaryKey, SecondaryKey}
+}
+
+// NameSpaceType enumerates the values for name space type.
+type NameSpaceType string
+
+const (
+	// EventHub ...
+	EventHub NameSpaceType = "EventHub"
+	// Messaging ...
+	Messaging NameSpaceType = "Messaging"
+	// Mixed ...
+	Mixed NameSpaceType = "Mixed"
+	// NotificationHub ...
+	NotificationHub NameSpaceType = "NotificationHub"
+	// Relay ...
+	Relay NameSpaceType = "Relay"
+)
+
+// PossibleNameSpaceTypeValues returns an array of possible values for the NameSpaceType const type.
+func PossibleNameSpaceTypeValues() []NameSpaceType {
+	return []NameSpaceType{EventHub, Messaging, Mixed, NotificationHub, Relay}
+}
+
+// NetworkRuleIPAction enumerates the values for network rule ip action.
+type NetworkRuleIPAction string
+
+const (
+	// NetworkRuleIPActionAllow ...
+	NetworkRuleIPActionAllow NetworkRuleIPAction = "Allow"
+)
+
+// PossibleNetworkRuleIPActionValues returns an array of possible values for the NetworkRuleIPAction const type.
+func PossibleNetworkRuleIPActionValues() []NetworkRuleIPAction {
+	return []NetworkRuleIPAction{NetworkRuleIPActionAllow}
+}
 
 // ProvisioningStateDR enumerates the values for provisioning state dr.
 type ProvisioningStateDR string
@@ -104,6 +198,11 @@ const (
 	Succeeded ProvisioningStateDR = "Succeeded"
 )
 
+// PossibleProvisioningStateDRValues returns an array of possible values for the ProvisioningStateDR const type.
+func PossibleProvisioningStateDRValues() []ProvisioningStateDR {
+	return []ProvisioningStateDR{Accepted, Failed, Succeeded}
+}
+
 // RoleDisasterRecovery enumerates the values for role disaster recovery.
 type RoleDisasterRecovery string
 
@@ -115,6 +214,11 @@ const (
 	// Secondary ...
 	Secondary RoleDisasterRecovery = "Secondary"
 )
+
+// PossibleRoleDisasterRecoveryValues returns an array of possible values for the RoleDisasterRecovery const type.
+func PossibleRoleDisasterRecoveryValues() []RoleDisasterRecovery {
+	return []RoleDisasterRecovery{Primary, PrimaryNotReplicating, Secondary}
+}
 
 // SkuName enumerates the values for sku name.
 type SkuName string
@@ -128,6 +232,11 @@ const (
 	Standard SkuName = "Standard"
 )
 
+// PossibleSkuNameValues returns an array of possible values for the SkuName const type.
+func PossibleSkuNameValues() []SkuName {
+	return []SkuName{Basic, Premium, Standard}
+}
+
 // SkuTier enumerates the values for sku tier.
 type SkuTier string
 
@@ -139,6 +248,11 @@ const (
 	// SkuTierStandard ...
 	SkuTierStandard SkuTier = "Standard"
 )
+
+// PossibleSkuTierValues returns an array of possible values for the SkuTier const type.
+func PossibleSkuTierValues() []SkuTier {
+	return []SkuTier{SkuTierBasic, SkuTierPremium, SkuTierStandard}
+}
 
 // UnavailableReason enumerates the values for unavailable reason.
 type UnavailableReason string
@@ -158,27 +272,32 @@ const (
 	TooManyNamespaceInCurrentSubscription UnavailableReason = "TooManyNamespaceInCurrentSubscription"
 )
 
+// PossibleUnavailableReasonValues returns an array of possible values for the UnavailableReason const type.
+func PossibleUnavailableReasonValues() []UnavailableReason {
+	return []UnavailableReason{InvalidName, NameInLockdown, NameInUse, None, SubscriptionIsDisabled, TooManyNamespaceInCurrentSubscription}
+}
+
 // AccessKeys namespace/ServiceBus Connection String
 type AccessKeys struct {
 	autorest.Response `json:"-"`
-	// PrimaryConnectionString - Primary connection string of the created namespace authorization rule.
+	// PrimaryConnectionString - READ-ONLY; Primary connection string of the created namespace authorization rule.
 	PrimaryConnectionString *string `json:"primaryConnectionString,omitempty"`
-	// SecondaryConnectionString - Secondary connection string of the created namespace authorization rule.
+	// SecondaryConnectionString - READ-ONLY; Secondary connection string of the created namespace authorization rule.
 	SecondaryConnectionString *string `json:"secondaryConnectionString,omitempty"`
-	// AliasPrimaryConnectionString - Primary connection string of the alias if GEO DR is enabled
+	// AliasPrimaryConnectionString - READ-ONLY; Primary connection string of the alias if GEO DR is enabled
 	AliasPrimaryConnectionString *string `json:"aliasPrimaryConnectionString,omitempty"`
-	// AliasSecondaryConnectionString - Secondary  connection string of the alias if GEO DR is enabled
+	// AliasSecondaryConnectionString - READ-ONLY; Secondary  connection string of the alias if GEO DR is enabled
 	AliasSecondaryConnectionString *string `json:"aliasSecondaryConnectionString,omitempty"`
-	// PrimaryKey - A base64-encoded 256-bit primary key for signing and validating the SAS token.
+	// PrimaryKey - READ-ONLY; A base64-encoded 256-bit primary key for signing and validating the SAS token.
 	PrimaryKey *string `json:"primaryKey,omitempty"`
-	// SecondaryKey - A base64-encoded 256-bit primary key for signing and validating the SAS token.
+	// SecondaryKey - READ-ONLY; A base64-encoded 256-bit primary key for signing and validating the SAS token.
 	SecondaryKey *string `json:"secondaryKey,omitempty"`
-	// KeyName - A string that describes the authorization rule.
+	// KeyName - READ-ONLY; A string that describes the authorization rule.
 	KeyName *string `json:"keyName,omitempty"`
 }
 
-// Action represents the filter actions which are allowed for the transformation of a message that have been matched by
-// a filter expression.
+// Action represents the filter actions which are allowed for the transformation of a message that have
+// been matched by a filter expression.
 type Action struct {
 	// SQLExpression - SQL expression. e.g. MyProperty='ABC'
 	SQLExpression *string `json:"sqlExpression,omitempty"`
@@ -191,14 +310,23 @@ type Action struct {
 // ArmDisasterRecovery single item in List or Get Alias(Disaster Recovery configuration) operation
 type ArmDisasterRecovery struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// ArmDisasterRecoveryProperties - Properties required to the Create Or Update Alias(Disaster Recovery configurations)
 	*ArmDisasterRecoveryProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ArmDisasterRecovery.
+func (adr ArmDisasterRecovery) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if adr.ArmDisasterRecoveryProperties != nil {
+		objectMap["properties"] = adr.ArmDisasterRecoveryProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for ArmDisasterRecovery struct.
@@ -208,46 +336,45 @@ func (adr *ArmDisasterRecovery) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties ArmDisasterRecoveryProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var armDisasterRecoveryProperties ArmDisasterRecoveryProperties
+				err = json.Unmarshal(*v, &armDisasterRecoveryProperties)
+				if err != nil {
+					return err
+				}
+				adr.ArmDisasterRecoveryProperties = &armDisasterRecoveryProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				adr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				adr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				adr.Type = &typeVar
+			}
 		}
-		adr.ArmDisasterRecoveryProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		adr.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		adr.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		adr.Type = &typeVar
 	}
 
 	return nil
@@ -258,30 +385,48 @@ type ArmDisasterRecoveryListResult struct {
 	autorest.Response `json:"-"`
 	// Value - List of Alias(Disaster Recovery configurations)
 	Value *[]ArmDisasterRecovery `json:"value,omitempty"`
-	// NextLink - Link to the next set of results. Not empty if Value contains incomplete list of Alias(Disaster Recovery configuration)
+	// NextLink - READ-ONLY; Link to the next set of results. Not empty if Value contains incomplete list of Alias(Disaster Recovery configuration)
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery values.
+// ArmDisasterRecoveryListResultIterator provides access to a complete listing of ArmDisasterRecovery
+// values.
 type ArmDisasterRecoveryListResultIterator struct {
 	i    int
 	page ArmDisasterRecoveryListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *ArmDisasterRecoveryListResultIterator) Next() error {
+func (iter *ArmDisasterRecoveryListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ArmDisasterRecoveryListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ArmDisasterRecoveryListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -303,6 +448,11 @@ func (iter ArmDisasterRecoveryListResultIterator) Value() ArmDisasterRecovery {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the ArmDisasterRecoveryListResultIterator type.
+func NewArmDisasterRecoveryListResultIterator(page ArmDisasterRecoveryListResultPage) ArmDisasterRecoveryListResultIterator {
+	return ArmDisasterRecoveryListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (adrlr ArmDisasterRecoveryListResult) IsEmpty() bool {
 	return adrlr.Value == nil || len(*adrlr.Value) == 0
@@ -310,11 +460,11 @@ func (adrlr ArmDisasterRecoveryListResult) IsEmpty() bool {
 
 // armDisasterRecoveryListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (adrlr ArmDisasterRecoveryListResult) armDisasterRecoveryListResultPreparer() (*http.Request, error) {
+func (adrlr ArmDisasterRecoveryListResult) armDisasterRecoveryListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if adrlr.NextLink == nil || len(to.String(adrlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(adrlr.NextLink)))
@@ -322,19 +472,36 @@ func (adrlr ArmDisasterRecoveryListResult) armDisasterRecoveryListResultPreparer
 
 // ArmDisasterRecoveryListResultPage contains a page of ArmDisasterRecovery values.
 type ArmDisasterRecoveryListResultPage struct {
-	fn    func(ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)
+	fn    func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)
 	adrlr ArmDisasterRecoveryListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *ArmDisasterRecoveryListResultPage) Next() error {
-	next, err := page.fn(page.adrlr)
+func (page *ArmDisasterRecoveryListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ArmDisasterRecoveryListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.adrlr)
 	if err != nil {
 		return err
 	}
 	page.adrlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ArmDisasterRecoveryListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -355,15 +522,23 @@ func (page ArmDisasterRecoveryListResultPage) Values() []ArmDisasterRecovery {
 	return *page.adrlr.Value
 }
 
-// ArmDisasterRecoveryProperties properties required to the Create Or Update Alias(Disaster Recovery configurations)
+// Creates a new instance of the ArmDisasterRecoveryListResultPage type.
+func NewArmDisasterRecoveryListResultPage(getNextPage func(context.Context, ArmDisasterRecoveryListResult) (ArmDisasterRecoveryListResult, error)) ArmDisasterRecoveryListResultPage {
+	return ArmDisasterRecoveryListResultPage{fn: getNextPage}
+}
+
+// ArmDisasterRecoveryProperties properties required to the Create Or Update Alias(Disaster Recovery
+// configurations)
 type ArmDisasterRecoveryProperties struct {
-	// ProvisioningState - Provisioning state of the Alias(Disaster Recovery configuration) - possible values 'Accepted' or 'Succeeded' or 'Failed'. Possible values include: 'Accepted', 'Succeeded', 'Failed'
+	// ProvisioningState - READ-ONLY; Provisioning state of the Alias(Disaster Recovery configuration) - possible values 'Accepted' or 'Succeeded' or 'Failed'. Possible values include: 'Accepted', 'Succeeded', 'Failed'
 	ProvisioningState ProvisioningStateDR `json:"provisioningState,omitempty"`
-	// PartnerNamespace - ARM Id of the Primary/Secondary eventhub namespace name, which is part of GEO DR pairning
+	// PendingReplicationOperationsCount - READ-ONLY; Number of entities pending to be replicated.
+	PendingReplicationOperationsCount *int64 `json:"pendingReplicationOperationsCount,omitempty"`
+	// PartnerNamespace - ARM Id of the Primary/Secondary eventhub namespace name, which is part of GEO DR pairing
 	PartnerNamespace *string `json:"partnerNamespace,omitempty"`
-	// AlternateName - Primary/Secondary eventhub namespace name, which is part of GEO DR pairning
+	// AlternateName - Primary/Secondary eventhub namespace name, which is part of GEO DR pairing
 	AlternateName *string `json:"alternateName,omitempty"`
-	// Role - role of namespace in GEO DR - possible values 'Primary' or 'PrimaryNotReplicating' or 'Secondary'. Possible values include: 'Primary', 'PrimaryNotReplicating', 'Secondary'
+	// Role - READ-ONLY; role of namespace in GEO DR - possible values 'Primary' or 'PrimaryNotReplicating' or 'Secondary'. Possible values include: 'Primary', 'PrimaryNotReplicating', 'Secondary'
 	Role RoleDisasterRecovery `json:"role,omitempty"`
 }
 
@@ -389,14 +564,14 @@ type CaptureDescription struct {
 
 // CheckNameAvailability description of a Check Name availability request properties.
 type CheckNameAvailability struct {
-	// Name - The Name to check the namespce name availability and The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.
+	// Name - The Name to check the namespace name availability and The namespace name can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.
 	Name *string `json:"name,omitempty"`
 }
 
 // CheckNameAvailabilityResult description of a Check Name availability request properties.
 type CheckNameAvailabilityResult struct {
 	autorest.Response `json:"-"`
-	// Message - The detailed info regarding the reason associated with the namespace.
+	// Message - READ-ONLY; The detailed info regarding the reason associated with the namespace.
 	Message *string `json:"message,omitempty"`
 	// NameAvailable - Value indicating namespace is availability, true if the namespace is available; otherwise, false.
 	NameAvailable *bool `json:"nameAvailable,omitempty"`
@@ -406,6 +581,8 @@ type CheckNameAvailabilityResult struct {
 
 // CorrelationFilter represents the correlation filter expression.
 type CorrelationFilter struct {
+	// Properties - dictionary object for custom filters
+	Properties map[string]*string `json:"properties"`
 	// CorrelationID - Identifier of the correlation.
 	CorrelationID *string `json:"correlationId,omitempty"`
 	// MessageID - Identifier of the message.
@@ -426,12 +603,60 @@ type CorrelationFilter struct {
 	RequiresPreprocessing *bool `json:"requiresPreprocessing,omitempty"`
 }
 
+// MarshalJSON is the custom marshaler for CorrelationFilter.
+func (cf CorrelationFilter) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if cf.Properties != nil {
+		objectMap["properties"] = cf.Properties
+	}
+	if cf.CorrelationID != nil {
+		objectMap["correlationId"] = cf.CorrelationID
+	}
+	if cf.MessageID != nil {
+		objectMap["messageId"] = cf.MessageID
+	}
+	if cf.To != nil {
+		objectMap["to"] = cf.To
+	}
+	if cf.ReplyTo != nil {
+		objectMap["replyTo"] = cf.ReplyTo
+	}
+	if cf.Label != nil {
+		objectMap["label"] = cf.Label
+	}
+	if cf.SessionID != nil {
+		objectMap["sessionId"] = cf.SessionID
+	}
+	if cf.ReplyToSessionID != nil {
+		objectMap["replyToSessionId"] = cf.ReplyToSessionID
+	}
+	if cf.ContentType != nil {
+		objectMap["contentType"] = cf.ContentType
+	}
+	if cf.RequiresPreprocessing != nil {
+		objectMap["requiresPreprocessing"] = cf.RequiresPreprocessing
+	}
+	return json.Marshal(objectMap)
+}
+
 // Destination capture storage details for capture description
 type Destination struct {
 	// Name - Name for capture destination
 	Name *string `json:"name,omitempty"`
-	// DestinationProperties - Properties describing the storage account, blob container and acrchive name format for capture destination
+	// DestinationProperties - Properties describing the storage account, blob container and archive name format for capture destination
 	*DestinationProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Destination.
+func (d Destination) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if d.Name != nil {
+		objectMap["name"] = d.Name
+	}
+	if d.DestinationProperties != nil {
+		objectMap["properties"] = d.DestinationProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for Destination struct.
@@ -441,33 +666,34 @@ func (d *Destination) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				d.Name = &name
+			}
+		case "properties":
+			if v != nil {
+				var destinationProperties DestinationProperties
+				err = json.Unmarshal(*v, &destinationProperties)
+				if err != nil {
+					return err
+				}
+				d.DestinationProperties = &destinationProperties
+			}
 		}
-		d.Name = &name
-	}
-
-	v = m["properties"]
-	if v != nil {
-		var properties DestinationProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
-		}
-		d.DestinationProperties = &properties
 	}
 
 	return nil
 }
 
-// DestinationProperties properties describing the storage account, blob container and acrchive name format for capture
-// destination
+// DestinationProperties properties describing the storage account, blob container and archive name format
+// for capture destination
 type DestinationProperties struct {
 	// StorageAccountResourceID - Resource id of the storage account to be used to create the blobs
 	StorageAccountResourceID *string `json:"storageAccountResourceId,omitempty"`
@@ -477,8 +703,8 @@ type DestinationProperties struct {
 	ArchiveNameFormat *string `json:"archiveNameFormat,omitempty"`
 }
 
-// ErrorResponse error reponse indicates ServiceBus service is not able to process the incoming request. The reason is
-// provided in the error message.
+// ErrorResponse error response indicates ServiceBus service is not able to process the incoming request.
+// The reason is provided in the error message.
 type ErrorResponse struct {
 	// Code - Error code.
 	Code *string `json:"code,omitempty"`
@@ -488,14 +714,23 @@ type ErrorResponse struct {
 
 // Eventhub single item in List or Get Event Hub operation
 type Eventhub struct {
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// EventhubProperties - Properties supplied to the Create Or Update Event Hub operation.
 	*EventhubProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Eventhub.
+func (e Eventhub) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if e.EventhubProperties != nil {
+		objectMap["properties"] = e.EventhubProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for Eventhub struct.
@@ -505,46 +740,45 @@ func (e *Eventhub) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties EventhubProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var eventhubProperties EventhubProperties
+				err = json.Unmarshal(*v, &eventhubProperties)
+				if err != nil {
+					return err
+				}
+				e.EventhubProperties = &eventhubProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				e.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				e.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				e.Type = &typeVar
+			}
 		}
-		e.EventhubProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		e.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		e.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		e.Type = &typeVar
 	}
 
 	return nil
@@ -555,7 +789,7 @@ type EventHubListResult struct {
 	autorest.Response `json:"-"`
 	// Value - Result of the List EventHubs operation.
 	Value *[]Eventhub `json:"value,omitempty"`
-	// NextLink - Link to the next set of results. Not empty if Value contains incomplete list of EventHubs.
+	// NextLink - READ-ONLY; Link to the next set of results. Not empty if Value contains incomplete list of EventHubs.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
@@ -565,20 +799,37 @@ type EventHubListResultIterator struct {
 	page EventHubListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *EventHubListResultIterator) Next() error {
+func (iter *EventHubListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventHubListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *EventHubListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -600,6 +851,11 @@ func (iter EventHubListResultIterator) Value() Eventhub {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the EventHubListResultIterator type.
+func NewEventHubListResultIterator(page EventHubListResultPage) EventHubListResultIterator {
+	return EventHubListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (ehlr EventHubListResult) IsEmpty() bool {
 	return ehlr.Value == nil || len(*ehlr.Value) == 0
@@ -607,11 +863,11 @@ func (ehlr EventHubListResult) IsEmpty() bool {
 
 // eventHubListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (ehlr EventHubListResult) eventHubListResultPreparer() (*http.Request, error) {
+func (ehlr EventHubListResult) eventHubListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if ehlr.NextLink == nil || len(to.String(ehlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(ehlr.NextLink)))
@@ -619,19 +875,36 @@ func (ehlr EventHubListResult) eventHubListResultPreparer() (*http.Request, erro
 
 // EventHubListResultPage contains a page of Eventhub values.
 type EventHubListResultPage struct {
-	fn   func(EventHubListResult) (EventHubListResult, error)
+	fn   func(context.Context, EventHubListResult) (EventHubListResult, error)
 	ehlr EventHubListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *EventHubListResultPage) Next() error {
-	next, err := page.fn(page.ehlr)
+func (page *EventHubListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/EventHubListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.ehlr)
 	if err != nil {
 		return err
 	}
 	page.ehlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *EventHubListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -652,13 +925,18 @@ func (page EventHubListResultPage) Values() []Eventhub {
 	return *page.ehlr.Value
 }
 
+// Creates a new instance of the EventHubListResultPage type.
+func NewEventHubListResultPage(getNextPage func(context.Context, EventHubListResult) (EventHubListResult, error)) EventHubListResultPage {
+	return EventHubListResultPage{fn: getNextPage}
+}
+
 // EventhubProperties properties supplied to the Create Or Update Event Hub operation.
 type EventhubProperties struct {
-	// PartitionIds - Current number of shards on the Event Hub.
+	// PartitionIds - READ-ONLY; Current number of shards on the Event Hub.
 	PartitionIds *[]string `json:"partitionIds,omitempty"`
-	// CreatedAt - Exact time the Event Hub was created.
+	// CreatedAt - READ-ONLY; Exact time the Event Hub was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// UpdatedAt - The exact time the message was updated.
+	// UpdatedAt - READ-ONLY; The exact time the message was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
 	// MessageRetentionInDays - Number of days to retain the events for this Event Hub, value should be 1 to 7 days
 	MessageRetentionInDays *int64 `json:"messageRetentionInDays,omitempty"`
@@ -670,119 +948,106 @@ type EventhubProperties struct {
 	CaptureDescription *CaptureDescription `json:"captureDescription,omitempty"`
 }
 
-// MessageCountDetails message Count Details.
-type MessageCountDetails struct {
-	// ActiveMessageCount - Number of active messages in the queue, topic, or subscription.
-	ActiveMessageCount *int64 `json:"activeMessageCount,omitempty"`
-	// DeadLetterMessageCount - Number of messages that are dead lettered.
-	DeadLetterMessageCount *int64 `json:"deadLetterMessageCount,omitempty"`
-	// ScheduledMessageCount - Number of scheduled messages.
-	ScheduledMessageCount *int64 `json:"scheduledMessageCount,omitempty"`
-	// TransferMessageCount - Number of messages transferred to another queue, topic, or subscription.
-	TransferMessageCount *int64 `json:"transferMessageCount,omitempty"`
-	// TransferDeadLetterMessageCount - Number of messages transferred into dead letters.
-	TransferDeadLetterMessageCount *int64 `json:"transferDeadLetterMessageCount,omitempty"`
-}
-
-// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type NamespacesCreateOrUpdateFuture struct {
-	azure.Future
-	req *http.Request
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (sn SBNamespace, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		return
-	}
-	if !done {
-		return sn, autorest.NewError("servicebus.NamespacesCreateOrUpdateFuture", "Result", "asynchronous operation has not completed")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		sn, err = client.CreateOrUpdateResponder(future.Response())
-		return
-	}
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, autorest.ChangeToGet(future.req),
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		return
-	}
-	sn, err = client.CreateOrUpdateResponder(resp)
-	return
-}
-
-// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
-type NamespacesDeleteFuture struct {
-	azure.Future
-	req *http.Request
-}
-
-// Result returns the result of the asynchronous operation.
-// If the operation has not completed it will return an error.
-func (future NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
-	var done bool
-	done, err = future.Done(client)
-	if err != nil {
-		return
-	}
-	if !done {
-		return ar, autorest.NewError("servicebus.NamespacesDeleteFuture", "Result", "asynchronous operation has not completed")
-	}
-	if future.PollingMethod() == azure.PollingLocation {
-		ar, err = client.DeleteResponder(future.Response())
-		return
-	}
-	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, autorest.ChangeToGet(future.req),
-		autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-	if err != nil {
-		return
-	}
-	ar, err = client.DeleteResponder(resp)
-	return
-}
-
-// Operation a ServiceBus REST API operation
-type Operation struct {
-	// Name - Operation name: {provider}/{resource}/{operation}
-	Name *string `json:"name,omitempty"`
-	// Display - The object that represents the operation.
-	Display *OperationDisplay `json:"display,omitempty"`
-}
-
-// OperationDisplay the object that represents the operation.
-type OperationDisplay struct {
-	// Provider - Service provider: Microsoft.ServiceBus
-	Provider *string `json:"provider,omitempty"`
-	// Resource - Resource on which the operation is performed: Invoice, etc.
-	Resource *string `json:"resource,omitempty"`
-	// Operation - Operation type: Read, write, delete, etc.
-	Operation *string `json:"operation,omitempty"`
-}
-
-// OperationListResult result of the request to list ServiceBus operations. It contains a list of operations and a URL
-// link to get the next set of results.
-type OperationListResult struct {
+// IPFilterRule single item in a List or Get IpFilterRules operation
+type IPFilterRule struct {
 	autorest.Response `json:"-"`
-	// Value - List of ServiceBus operations supported by the Microsoft.ServiceBus resource provider.
-	Value *[]Operation `json:"value,omitempty"`
-	// NextLink - URL to get the next set of operation list results if there are any.
+	// IPFilterRuleProperties - Properties supplied to create or update IpFilterRules
+	*IPFilterRuleProperties `json:"properties,omitempty"`
+	// ID - Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for IPFilterRule.
+func (ifr IPFilterRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ifr.IPFilterRuleProperties != nil {
+		objectMap["properties"] = ifr.IPFilterRuleProperties
+	}
+	if ifr.ID != nil {
+		objectMap["id"] = ifr.ID
+	}
+	if ifr.Name != nil {
+		objectMap["name"] = ifr.Name
+	}
+	if ifr.Type != nil {
+		objectMap["type"] = ifr.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for IPFilterRule struct.
+func (ifr *IPFilterRule) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var IPFilterRuleProperties IPFilterRuleProperties
+				err = json.Unmarshal(*v, &IPFilterRuleProperties)
+				if err != nil {
+					return err
+				}
+				ifr.IPFilterRuleProperties = &IPFilterRuleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ifr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ifr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ifr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// IPFilterRuleListResult the response from the List namespace operation.
+type IPFilterRuleListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Result of the List IpFilter Rules operation.
+	Value *[]IPFilterRule `json:"value,omitempty"`
+	// NextLink - Link to the next set of results. Not empty if Value contains an incomplete list of IpFilter Rules
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// OperationListResultIterator provides access to a complete listing of Operation values.
-type OperationListResultIterator struct {
+// IPFilterRuleListResultIterator provides access to a complete listing of IPFilterRule values.
+type IPFilterRuleListResultIterator struct {
 	i    int
-	page OperationListResultPage
+	page IPFilterRuleListResultPage
 }
 
 // Next advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *OperationListResultIterator) Next() error {
+func (iter *IPFilterRuleListResultIterator) Next() error {
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
@@ -794,6 +1059,728 @@ func (iter *OperationListResultIterator) Next() error {
 	}
 	iter.i = 0
 	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter IPFilterRuleListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter IPFilterRuleListResultIterator) Response() IPFilterRuleListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter IPFilterRuleListResultIterator) Value() IPFilterRule {
+	if !iter.page.NotDone() {
+		return IPFilterRule{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (ifrlr IPFilterRuleListResult) IsEmpty() bool {
+	return ifrlr.Value == nil || len(*ifrlr.Value) == 0
+}
+
+// iPFilterRuleListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (ifrlr IPFilterRuleListResult) iPFilterRuleListResultPreparer() (*http.Request, error) {
+	if ifrlr.NextLink == nil || len(to.String(ifrlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(ifrlr.NextLink)))
+}
+
+// IPFilterRuleListResultPage contains a page of IPFilterRule values.
+type IPFilterRuleListResultPage struct {
+	fn    func(IPFilterRuleListResult) (IPFilterRuleListResult, error)
+	ifrlr IPFilterRuleListResult
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *IPFilterRuleListResultPage) Next() error {
+	next, err := page.fn(page.ifrlr)
+	if err != nil {
+		return err
+	}
+	page.ifrlr = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page IPFilterRuleListResultPage) NotDone() bool {
+	return !page.ifrlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page IPFilterRuleListResultPage) Response() IPFilterRuleListResult {
+	return page.ifrlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page IPFilterRuleListResultPage) Values() []IPFilterRule {
+	if page.ifrlr.IsEmpty() {
+		return nil
+	}
+	return *page.ifrlr.Value
+}
+
+// IPFilterRuleProperties properties supplied to create or update IpFilterRules
+type IPFilterRuleProperties struct {
+	// IPMask - IP Mask
+	IPMask *string `json:"ipMask,omitempty"`
+	// Action - The IP Filter Action. Possible values include: 'Accept', 'Reject'
+	Action IPAction `json:"action,omitempty"`
+	// FilterName - IP Filter name
+	FilterName *string `json:"filterName,omitempty"`
+}
+
+// MessageCountDetails message Count Details.
+type MessageCountDetails struct {
+	// ActiveMessageCount - READ-ONLY; Number of active messages in the queue, topic, or subscription.
+	ActiveMessageCount *int64 `json:"activeMessageCount,omitempty"`
+	// DeadLetterMessageCount - READ-ONLY; Number of messages that are dead lettered.
+	DeadLetterMessageCount *int64 `json:"deadLetterMessageCount,omitempty"`
+	// ScheduledMessageCount - READ-ONLY; Number of scheduled messages.
+	ScheduledMessageCount *int64 `json:"scheduledMessageCount,omitempty"`
+	// TransferMessageCount - READ-ONLY; Number of messages transferred to another queue, topic, or subscription.
+	TransferMessageCount *int64 `json:"transferMessageCount,omitempty"`
+	// TransferDeadLetterMessageCount - READ-ONLY; Number of messages transferred into dead letters.
+	TransferDeadLetterMessageCount *int64 `json:"transferDeadLetterMessageCount,omitempty"`
+}
+
+// MigrationConfigListResult the result of the List migrationConfigurations operation.
+type MigrationConfigListResult struct {
+	autorest.Response `json:"-"`
+	// Value - List of Migration Configs
+	Value *[]MigrationConfigProperties `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to the next set of results. Not empty if Value contains incomplete list of migrationConfigurations
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// MigrationConfigListResultIterator provides access to a complete listing of MigrationConfigProperties
+// values.
+type MigrationConfigListResultIterator struct {
+	i    int
+	page MigrationConfigListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *MigrationConfigListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/MigrationConfigListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *MigrationConfigListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter MigrationConfigListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter MigrationConfigListResultIterator) Response() MigrationConfigListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter MigrationConfigListResultIterator) Value() MigrationConfigProperties {
+	if !iter.page.NotDone() {
+		return MigrationConfigProperties{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the MigrationConfigListResultIterator type.
+func NewMigrationConfigListResultIterator(page MigrationConfigListResultPage) MigrationConfigListResultIterator {
+	return MigrationConfigListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (mclr MigrationConfigListResult) IsEmpty() bool {
+	return mclr.Value == nil || len(*mclr.Value) == 0
+}
+
+// migrationConfigListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (mclr MigrationConfigListResult) migrationConfigListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if mclr.NextLink == nil || len(to.String(mclr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(mclr.NextLink)))
+}
+
+// MigrationConfigListResultPage contains a page of MigrationConfigProperties values.
+type MigrationConfigListResultPage struct {
+	fn   func(context.Context, MigrationConfigListResult) (MigrationConfigListResult, error)
+	mclr MigrationConfigListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *MigrationConfigListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/MigrationConfigListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.mclr)
+	if err != nil {
+		return err
+	}
+	page.mclr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *MigrationConfigListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page MigrationConfigListResultPage) NotDone() bool {
+	return !page.mclr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page MigrationConfigListResultPage) Response() MigrationConfigListResult {
+	return page.mclr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page MigrationConfigListResultPage) Values() []MigrationConfigProperties {
+	if page.mclr.IsEmpty() {
+		return nil
+	}
+	return *page.mclr.Value
+}
+
+// Creates a new instance of the MigrationConfigListResultPage type.
+func NewMigrationConfigListResultPage(getNextPage func(context.Context, MigrationConfigListResult) (MigrationConfigListResult, error)) MigrationConfigListResultPage {
+	return MigrationConfigListResultPage{fn: getNextPage}
+}
+
+// MigrationConfigProperties single item in List or Get Migration Config operation
+type MigrationConfigProperties struct {
+	autorest.Response `json:"-"`
+	// MigrationConfigPropertiesProperties - Properties required to the Create Migration Configuration
+	*MigrationConfigPropertiesProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for MigrationConfigProperties.
+func (mcp MigrationConfigProperties) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if mcp.MigrationConfigPropertiesProperties != nil {
+		objectMap["properties"] = mcp.MigrationConfigPropertiesProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for MigrationConfigProperties struct.
+func (mcp *MigrationConfigProperties) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var migrationConfigPropertiesProperties MigrationConfigPropertiesProperties
+				err = json.Unmarshal(*v, &migrationConfigPropertiesProperties)
+				if err != nil {
+					return err
+				}
+				mcp.MigrationConfigPropertiesProperties = &migrationConfigPropertiesProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				mcp.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				mcp.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				mcp.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// MigrationConfigPropertiesProperties properties required to the Create Migration Configuration
+type MigrationConfigPropertiesProperties struct {
+	// ProvisioningState - READ-ONLY; Provisioning state of Migration Configuration
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// PendingReplicationOperationsCount - READ-ONLY; Number of entities pending to be replicated.
+	PendingReplicationOperationsCount *int64 `json:"pendingReplicationOperationsCount,omitempty"`
+	// TargetNamespace - Existing premium Namespace ARM Id name which has no entities, will be used for migration
+	TargetNamespace *string `json:"targetNamespace,omitempty"`
+	// PostMigrationName - Name to access Standard Namespace after migration
+	PostMigrationName *string `json:"postMigrationName,omitempty"`
+	// MigrationState - READ-ONLY; State in which Standard to Premium Migration is, possible values : Unknown, Reverting, Completing, Initiating, Syncing, Active
+	MigrationState *string `json:"migrationState,omitempty"`
+}
+
+// MigrationConfigsCreateAndStartMigrationFuture an abstraction for monitoring and retrieving the results
+// of a long-running operation.
+type MigrationConfigsCreateAndStartMigrationFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *MigrationConfigsCreateAndStartMigrationFuture) Result(client MigrationConfigsClient) (mcp MigrationConfigProperties, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("servicebus.MigrationConfigsCreateAndStartMigrationFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if mcp.Response.Response, err = future.GetResult(sender); err == nil && mcp.Response.Response.StatusCode != http.StatusNoContent {
+		mcp, err = client.CreateAndStartMigrationResponder(mcp.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "servicebus.MigrationConfigsCreateAndStartMigrationFuture", "Result", mcp.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// NamespacesCreateOrUpdateFuture an abstraction for monitoring and retrieving the results of a
+// long-running operation.
+type NamespacesCreateOrUpdateFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *NamespacesCreateOrUpdateFuture) Result(client NamespacesClient) (sn SBNamespace, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesCreateOrUpdateFuture")
+		return
+	}
+	sender := autorest.DecorateSender(client, autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
+	if sn.Response.Response, err = future.GetResult(sender); err == nil && sn.Response.Response.StatusCode != http.StatusNoContent {
+		sn, err = client.CreateOrUpdateResponder(sn.Response.Response)
+		if err != nil {
+			err = autorest.NewErrorWithError(err, "servicebus.NamespacesCreateOrUpdateFuture", "Result", sn.Response.Response, "Failure responding to request")
+		}
+	}
+	return
+}
+
+// NamespacesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running
+// operation.
+type NamespacesDeleteFuture struct {
+	azure.Future
+}
+
+// Result returns the result of the asynchronous operation.
+// If the operation has not completed it will return an error.
+func (future *NamespacesDeleteFuture) Result(client NamespacesClient) (ar autorest.Response, err error) {
+	var done bool
+	done, err = future.DoneWithContext(context.Background(), client)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "servicebus.NamespacesDeleteFuture", "Result", future.Response(), "Polling failure")
+		return
+	}
+	if !done {
+		err = azure.NewAsyncOpIncompleteError("servicebus.NamespacesDeleteFuture")
+		return
+	}
+	ar.Response = future.Response()
+	return
+}
+
+// NetworkRuleSet description of NetworkRuleSet resource.
+type NetworkRuleSet struct {
+	autorest.Response `json:"-"`
+	// NetworkRuleSetProperties - NetworkRuleSet properties
+	*NetworkRuleSetProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for NetworkRuleSet.
+func (nrs NetworkRuleSet) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if nrs.NetworkRuleSetProperties != nil {
+		objectMap["properties"] = nrs.NetworkRuleSetProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for NetworkRuleSet struct.
+func (nrs *NetworkRuleSet) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var networkRuleSetProperties NetworkRuleSetProperties
+				err = json.Unmarshal(*v, &networkRuleSetProperties)
+				if err != nil {
+					return err
+				}
+				nrs.NetworkRuleSetProperties = &networkRuleSetProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				nrs.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				nrs.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				nrs.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// NetworkRuleSetListResult the response of the List NetworkRuleSet operation.
+type NetworkRuleSetListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Result of the List NetworkRuleSet operation.
+	Value *[]NetworkRuleSet `json:"value,omitempty"`
+	// NextLink - Link to the next set of results. Not empty if Value contains incomplete list of NetworkRuleSet.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// NetworkRuleSetListResultIterator provides access to a complete listing of NetworkRuleSet values.
+type NetworkRuleSetListResultIterator struct {
+	i    int
+	page NetworkRuleSetListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *NetworkRuleSetListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NetworkRuleSetListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *NetworkRuleSetListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter NetworkRuleSetListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter NetworkRuleSetListResultIterator) Response() NetworkRuleSetListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter NetworkRuleSetListResultIterator) Value() NetworkRuleSet {
+	if !iter.page.NotDone() {
+		return NetworkRuleSet{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the NetworkRuleSetListResultIterator type.
+func NewNetworkRuleSetListResultIterator(page NetworkRuleSetListResultPage) NetworkRuleSetListResultIterator {
+	return NetworkRuleSetListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (nrslr NetworkRuleSetListResult) IsEmpty() bool {
+	return nrslr.Value == nil || len(*nrslr.Value) == 0
+}
+
+// networkRuleSetListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (nrslr NetworkRuleSetListResult) networkRuleSetListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if nrslr.NextLink == nil || len(to.String(nrslr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(nrslr.NextLink)))
+}
+
+// NetworkRuleSetListResultPage contains a page of NetworkRuleSet values.
+type NetworkRuleSetListResultPage struct {
+	fn    func(context.Context, NetworkRuleSetListResult) (NetworkRuleSetListResult, error)
+	nrslr NetworkRuleSetListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *NetworkRuleSetListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NetworkRuleSetListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.nrslr)
+	if err != nil {
+		return err
+	}
+	page.nrslr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *NetworkRuleSetListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page NetworkRuleSetListResultPage) NotDone() bool {
+	return !page.nrslr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page NetworkRuleSetListResultPage) Response() NetworkRuleSetListResult {
+	return page.nrslr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page NetworkRuleSetListResultPage) Values() []NetworkRuleSet {
+	if page.nrslr.IsEmpty() {
+		return nil
+	}
+	return *page.nrslr.Value
+}
+
+// Creates a new instance of the NetworkRuleSetListResultPage type.
+func NewNetworkRuleSetListResultPage(getNextPage func(context.Context, NetworkRuleSetListResult) (NetworkRuleSetListResult, error)) NetworkRuleSetListResultPage {
+	return NetworkRuleSetListResultPage{fn: getNextPage}
+}
+
+// NetworkRuleSetProperties networkRuleSet properties
+type NetworkRuleSetProperties struct {
+	// DefaultAction - Default Action for Network Rule Set. Possible values include: 'Allow', 'Deny'
+	DefaultAction DefaultAction `json:"defaultAction,omitempty"`
+	// VirtualNetworkRules - List VirtualNetwork Rules
+	VirtualNetworkRules *[]NWRuleSetVirtualNetworkRules `json:"virtualNetworkRules,omitempty"`
+	// IPRules - List of IpRules
+	IPRules *[]NWRuleSetIPRules `json:"ipRules,omitempty"`
+}
+
+// NWRuleSetIPRules description of NetWorkRuleSet - IpRules resource.
+type NWRuleSetIPRules struct {
+	// IPMask - IP Mask
+	IPMask *string `json:"ipMask,omitempty"`
+	// Action - The IP Filter Action. Possible values include: 'NetworkRuleIPActionAllow'
+	Action NetworkRuleIPAction `json:"action,omitempty"`
+}
+
+// NWRuleSetVirtualNetworkRules description of VirtualNetworkRules - NetworkRules resource.
+type NWRuleSetVirtualNetworkRules struct {
+	// Subnet - Subnet properties
+	Subnet *Subnet `json:"subnet,omitempty"`
+	// IgnoreMissingVnetServiceEndpoint - Value that indicates whether to ignore missing VNet Service Endpoint
+	IgnoreMissingVnetServiceEndpoint *bool `json:"ignoreMissingVnetServiceEndpoint,omitempty"`
+}
+
+// Operation a ServiceBus REST API operation
+type Operation struct {
+	// Name - READ-ONLY; Operation name: {provider}/{resource}/{operation}
+	Name *string `json:"name,omitempty"`
+	// Display - The object that represents the operation.
+	Display *OperationDisplay `json:"display,omitempty"`
+}
+
+// OperationDisplay the object that represents the operation.
+type OperationDisplay struct {
+	// Provider - READ-ONLY; Service provider: Microsoft.ServiceBus
+	Provider *string `json:"provider,omitempty"`
+	// Resource - READ-ONLY; Resource on which the operation is performed: Invoice, etc.
+	Resource *string `json:"resource,omitempty"`
+	// Operation - READ-ONLY; Operation type: Read, write, delete, etc.
+	Operation *string `json:"operation,omitempty"`
+}
+
+// OperationListResult result of the request to list ServiceBus operations. It contains a list of
+// operations and a URL link to get the next set of results.
+type OperationListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; List of ServiceBus operations supported by the Microsoft.ServiceBus resource provider.
+	Value *[]Operation `json:"value,omitempty"`
+	// NextLink - READ-ONLY; URL to get the next set of operation list results if there are any.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// OperationListResultIterator provides access to a complete listing of Operation values.
+type OperationListResultIterator struct {
+	i    int
+	page OperationListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *OperationListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *OperationListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -815,6 +1802,11 @@ func (iter OperationListResultIterator) Value() Operation {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the OperationListResultIterator type.
+func NewOperationListResultIterator(page OperationListResultPage) OperationListResultIterator {
+	return OperationListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (olr OperationListResult) IsEmpty() bool {
 	return olr.Value == nil || len(*olr.Value) == 0
@@ -822,11 +1814,11 @@ func (olr OperationListResult) IsEmpty() bool {
 
 // operationListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (olr OperationListResult) operationListResultPreparer() (*http.Request, error) {
+func (olr OperationListResult) operationListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if olr.NextLink == nil || len(to.String(olr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(olr.NextLink)))
@@ -834,19 +1826,36 @@ func (olr OperationListResult) operationListResultPreparer() (*http.Request, err
 
 // OperationListResultPage contains a page of Operation values.
 type OperationListResultPage struct {
-	fn  func(OperationListResult) (OperationListResult, error)
+	fn  func(context.Context, OperationListResult) (OperationListResult, error)
 	olr OperationListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *OperationListResultPage) Next() error {
-	next, err := page.fn(page.olr)
+func (page *OperationListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/OperationListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.olr)
 	if err != nil {
 		return err
 	}
 	page.olr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *OperationListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -867,19 +1876,39 @@ func (page OperationListResultPage) Values() []Operation {
 	return *page.olr.Value
 }
 
+// Creates a new instance of the OperationListResultPage type.
+func NewOperationListResultPage(getNextPage func(context.Context, OperationListResult) (OperationListResult, error)) OperationListResultPage {
+	return OperationListResultPage{fn: getNextPage}
+}
+
 // PremiumMessagingRegions premium Messaging Region
 type PremiumMessagingRegions struct {
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
+	Properties *PremiumMessagingRegionsProperties `json:"properties,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
-	Tags       *map[string]*string                `json:"tags,omitempty"`
-	Properties *PremiumMessagingRegionsProperties `json:"properties,omitempty"`
+	Tags map[string]*string `json:"tags"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for PremiumMessagingRegions.
+func (pmr PremiumMessagingRegions) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if pmr.Properties != nil {
+		objectMap["properties"] = pmr.Properties
+	}
+	if pmr.Location != nil {
+		objectMap["location"] = pmr.Location
+	}
+	if pmr.Tags != nil {
+		objectMap["tags"] = pmr.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // PremiumMessagingRegionsListResult the response of the List PremiumMessagingRegions operation.
@@ -887,30 +1916,48 @@ type PremiumMessagingRegionsListResult struct {
 	autorest.Response `json:"-"`
 	// Value - Result of the List PremiumMessagingRegions type.
 	Value *[]PremiumMessagingRegions `json:"value,omitempty"`
-	// NextLink - Link to the next set of results. Not empty if Value contains incomplete list of PremiumMessagingRegions.
+	// NextLink - READ-ONLY; Link to the next set of results. Not empty if Value contains incomplete list of PremiumMessagingRegions.
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// PremiumMessagingRegionsListResultIterator provides access to a complete listing of PremiumMessagingRegions values.
+// PremiumMessagingRegionsListResultIterator provides access to a complete listing of
+// PremiumMessagingRegions values.
 type PremiumMessagingRegionsListResultIterator struct {
 	i    int
 	page PremiumMessagingRegionsListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *PremiumMessagingRegionsListResultIterator) Next() error {
+func (iter *PremiumMessagingRegionsListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PremiumMessagingRegionsListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *PremiumMessagingRegionsListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -932,6 +1979,11 @@ func (iter PremiumMessagingRegionsListResultIterator) Value() PremiumMessagingRe
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the PremiumMessagingRegionsListResultIterator type.
+func NewPremiumMessagingRegionsListResultIterator(page PremiumMessagingRegionsListResultPage) PremiumMessagingRegionsListResultIterator {
+	return PremiumMessagingRegionsListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (pmrlr PremiumMessagingRegionsListResult) IsEmpty() bool {
 	return pmrlr.Value == nil || len(*pmrlr.Value) == 0
@@ -939,11 +1991,11 @@ func (pmrlr PremiumMessagingRegionsListResult) IsEmpty() bool {
 
 // premiumMessagingRegionsListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (pmrlr PremiumMessagingRegionsListResult) premiumMessagingRegionsListResultPreparer() (*http.Request, error) {
+func (pmrlr PremiumMessagingRegionsListResult) premiumMessagingRegionsListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if pmrlr.NextLink == nil || len(to.String(pmrlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(pmrlr.NextLink)))
@@ -951,19 +2003,36 @@ func (pmrlr PremiumMessagingRegionsListResult) premiumMessagingRegionsListResult
 
 // PremiumMessagingRegionsListResultPage contains a page of PremiumMessagingRegions values.
 type PremiumMessagingRegionsListResultPage struct {
-	fn    func(PremiumMessagingRegionsListResult) (PremiumMessagingRegionsListResult, error)
+	fn    func(context.Context, PremiumMessagingRegionsListResult) (PremiumMessagingRegionsListResult, error)
 	pmrlr PremiumMessagingRegionsListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *PremiumMessagingRegionsListResultPage) Next() error {
-	next, err := page.fn(page.pmrlr)
+func (page *PremiumMessagingRegionsListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/PremiumMessagingRegionsListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.pmrlr)
 	if err != nil {
 		return err
 	}
 	page.pmrlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *PremiumMessagingRegionsListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -984,16 +2053,21 @@ func (page PremiumMessagingRegionsListResultPage) Values() []PremiumMessagingReg
 	return *page.pmrlr.Value
 }
 
+// Creates a new instance of the PremiumMessagingRegionsListResultPage type.
+func NewPremiumMessagingRegionsListResultPage(getNextPage func(context.Context, PremiumMessagingRegionsListResult) (PremiumMessagingRegionsListResult, error)) PremiumMessagingRegionsListResultPage {
+	return PremiumMessagingRegionsListResultPage{fn: getNextPage}
+}
+
 // PremiumMessagingRegionsProperties ...
 type PremiumMessagingRegionsProperties struct {
-	// Code - Region code
+	// Code - READ-ONLY; Region code
 	Code *string `json:"code,omitempty"`
-	// FullName - Full name of the region
+	// FullName - READ-ONLY; Full name of the region
 	FullName *string `json:"fullName,omitempty"`
 }
 
-// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation, specifies which
-// key neeeds to be reset.
+// RegenerateAccessKeyParameters parameters supplied to the Regenerate Authorization Rule operation,
+// specifies which key needs to be reset.
 type RegenerateAccessKeyParameters struct {
 	// KeyType - The access key to regenerate. Possible values include: 'PrimaryKey', 'SecondaryKey'
 	KeyType KeyType `json:"keyType,omitempty"`
@@ -1003,39 +2077,60 @@ type RegenerateAccessKeyParameters struct {
 
 // Resource the Resource definition for other than namespace.
 type Resource struct {
-	// ID - Resource Id
+	// ID - READ-ONLY; Resource Id
 	ID *string `json:"id,omitempty"`
-	// Name - Resource name
+	// Name - READ-ONLY; Resource name
 	Name *string `json:"name,omitempty"`
-	// Type - Resource type
+	// Type - READ-ONLY; Resource type
 	Type *string `json:"type,omitempty"`
 }
 
 // ResourceNamespacePatch the Resource definition.
 type ResourceNamespacePatch struct {
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// Location - Resource location
 	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
+	Tags map[string]*string `json:"tags"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceNamespacePatch.
+func (rnp ResourceNamespacePatch) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rnp.Location != nil {
+		objectMap["location"] = rnp.Location
+	}
+	if rnp.Tags != nil {
+		objectMap["tags"] = rnp.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // Rule description of Rule Resource.
 type Rule struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// Ruleproperties - Properties of Rule resource
 	*Ruleproperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for Rule.
+func (r Rule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if r.Ruleproperties != nil {
+		objectMap["properties"] = r.Ruleproperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for Rule struct.
@@ -1045,46 +2140,45 @@ func (r *Rule) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties Ruleproperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var ruleproperties Ruleproperties
+				err = json.Unmarshal(*v, &ruleproperties)
+				if err != nil {
+					return err
+				}
+				r.Ruleproperties = &ruleproperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				r.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				r.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				r.Type = &typeVar
+			}
 		}
-		r.Ruleproperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		r.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		r.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		r.Type = &typeVar
 	}
 
 	return nil
@@ -1105,20 +2199,37 @@ type RuleListResultIterator struct {
 	page RuleListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *RuleListResultIterator) Next() error {
+func (iter *RuleListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RuleListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *RuleListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -1140,6 +2251,11 @@ func (iter RuleListResultIterator) Value() Rule {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the RuleListResultIterator type.
+func NewRuleListResultIterator(page RuleListResultPage) RuleListResultIterator {
+	return RuleListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (rlr RuleListResult) IsEmpty() bool {
 	return rlr.Value == nil || len(*rlr.Value) == 0
@@ -1147,11 +2263,11 @@ func (rlr RuleListResult) IsEmpty() bool {
 
 // ruleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (rlr RuleListResult) ruleListResultPreparer() (*http.Request, error) {
+func (rlr RuleListResult) ruleListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if rlr.NextLink == nil || len(to.String(rlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(rlr.NextLink)))
@@ -1159,19 +2275,36 @@ func (rlr RuleListResult) ruleListResultPreparer() (*http.Request, error) {
 
 // RuleListResultPage contains a page of Rule values.
 type RuleListResultPage struct {
-	fn  func(RuleListResult) (RuleListResult, error)
+	fn  func(context.Context, RuleListResult) (RuleListResult, error)
 	rlr RuleListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *RuleListResultPage) Next() error {
-	next, err := page.fn(page.rlr)
+func (page *RuleListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RuleListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.rlr)
 	if err != nil {
 		return err
 	}
 	page.rlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *RuleListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -1192,6 +2325,11 @@ func (page RuleListResultPage) Values() []Rule {
 	return *page.rlr.Value
 }
 
+// Creates a new instance of the RuleListResultPage type.
+func NewRuleListResultPage(getNextPage func(context.Context, RuleListResult) (RuleListResult, error)) RuleListResultPage {
+	return RuleListResultPage{fn: getNextPage}
+}
+
 // Ruleproperties description of Rule Resource.
 type Ruleproperties struct {
 	// Action - Represents the filter actions which are allowed for the transformation of a message that have been matched by a filter expression.
@@ -1207,14 +2345,23 @@ type Ruleproperties struct {
 // SBAuthorizationRule description of a namespace authorization rule.
 type SBAuthorizationRule struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// SBAuthorizationRuleProperties - AuthorizationRule properties.
 	*SBAuthorizationRuleProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBAuthorizationRule.
+func (sar SBAuthorizationRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sar.SBAuthorizationRuleProperties != nil {
+		objectMap["properties"] = sar.SBAuthorizationRuleProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SBAuthorizationRule struct.
@@ -1224,46 +2371,45 @@ func (sar *SBAuthorizationRule) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties SBAuthorizationRuleProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var sBAuthorizationRuleProperties SBAuthorizationRuleProperties
+				err = json.Unmarshal(*v, &sBAuthorizationRuleProperties)
+				if err != nil {
+					return err
+				}
+				sar.SBAuthorizationRuleProperties = &sBAuthorizationRuleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sar.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sar.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sar.Type = &typeVar
+			}
 		}
-		sar.SBAuthorizationRuleProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		sar.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		sar.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		sar.Type = &typeVar
 	}
 
 	return nil
@@ -1278,26 +2424,44 @@ type SBAuthorizationRuleListResult struct {
 	NextLink *string `json:"nextLink,omitempty"`
 }
 
-// SBAuthorizationRuleListResultIterator provides access to a complete listing of SBAuthorizationRule values.
+// SBAuthorizationRuleListResultIterator provides access to a complete listing of SBAuthorizationRule
+// values.
 type SBAuthorizationRuleListResultIterator struct {
 	i    int
 	page SBAuthorizationRuleListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *SBAuthorizationRuleListResultIterator) Next() error {
+func (iter *SBAuthorizationRuleListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBAuthorizationRuleListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SBAuthorizationRuleListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -1319,6 +2483,11 @@ func (iter SBAuthorizationRuleListResultIterator) Value() SBAuthorizationRule {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the SBAuthorizationRuleListResultIterator type.
+func NewSBAuthorizationRuleListResultIterator(page SBAuthorizationRuleListResultPage) SBAuthorizationRuleListResultIterator {
+	return SBAuthorizationRuleListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (sarlr SBAuthorizationRuleListResult) IsEmpty() bool {
 	return sarlr.Value == nil || len(*sarlr.Value) == 0
@@ -1326,11 +2495,11 @@ func (sarlr SBAuthorizationRuleListResult) IsEmpty() bool {
 
 // sBAuthorizationRuleListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (sarlr SBAuthorizationRuleListResult) sBAuthorizationRuleListResultPreparer() (*http.Request, error) {
+func (sarlr SBAuthorizationRuleListResult) sBAuthorizationRuleListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if sarlr.NextLink == nil || len(to.String(sarlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(sarlr.NextLink)))
@@ -1338,19 +2507,36 @@ func (sarlr SBAuthorizationRuleListResult) sBAuthorizationRuleListResultPreparer
 
 // SBAuthorizationRuleListResultPage contains a page of SBAuthorizationRule values.
 type SBAuthorizationRuleListResultPage struct {
-	fn    func(SBAuthorizationRuleListResult) (SBAuthorizationRuleListResult, error)
+	fn    func(context.Context, SBAuthorizationRuleListResult) (SBAuthorizationRuleListResult, error)
 	sarlr SBAuthorizationRuleListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *SBAuthorizationRuleListResultPage) Next() error {
-	next, err := page.fn(page.sarlr)
+func (page *SBAuthorizationRuleListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBAuthorizationRuleListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.sarlr)
 	if err != nil {
 		return err
 	}
 	page.sarlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SBAuthorizationRuleListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -1371,6 +2557,11 @@ func (page SBAuthorizationRuleListResultPage) Values() []SBAuthorizationRule {
 	return *page.sarlr.Value
 }
 
+// Creates a new instance of the SBAuthorizationRuleListResultPage type.
+func NewSBAuthorizationRuleListResultPage(getNextPage func(context.Context, SBAuthorizationRuleListResult) (SBAuthorizationRuleListResult, error)) SBAuthorizationRuleListResultPage {
+	return SBAuthorizationRuleListResultPage{fn: getNextPage}
+}
+
 // SBAuthorizationRuleProperties authorizationRule properties.
 type SBAuthorizationRuleProperties struct {
 	// Rights - The rights associated with the rule.
@@ -1380,20 +2571,38 @@ type SBAuthorizationRuleProperties struct {
 // SBNamespace description of a namespace resource.
 type SBNamespace struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - The Geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// Sku - Porperties of Sku
+	// Sku - Properties of Sku
 	Sku *SBSku `json:"sku,omitempty"`
 	// SBNamespaceProperties - Properties of the namespace.
 	*SBNamespaceProperties `json:"properties,omitempty"`
+	// Location - The Geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBNamespace.
+func (sn SBNamespace) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sn.Sku != nil {
+		objectMap["sku"] = sn.Sku
+	}
+	if sn.SBNamespaceProperties != nil {
+		objectMap["properties"] = sn.SBNamespaceProperties
+	}
+	if sn.Location != nil {
+		objectMap["location"] = sn.Location
+	}
+	if sn.Tags != nil {
+		objectMap["tags"] = sn.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SBNamespace struct.
@@ -1403,76 +2612,72 @@ func (sn *SBNamespace) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["sku"]
-	if v != nil {
-		var sku SBSku
-		err = json.Unmarshal(*m["sku"], &sku)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "sku":
+			if v != nil {
+				var sku SBSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				sn.Sku = &sku
+			}
+		case "properties":
+			if v != nil {
+				var sBNamespaceProperties SBNamespaceProperties
+				err = json.Unmarshal(*v, &sBNamespaceProperties)
+				if err != nil {
+					return err
+				}
+				sn.SBNamespaceProperties = &sBNamespaceProperties
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				sn.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				sn.Tags = tags
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sn.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sn.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sn.Type = &typeVar
+			}
 		}
-		sn.Sku = &sku
-	}
-
-	v = m["properties"]
-	if v != nil {
-		var properties SBNamespaceProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
-		}
-		sn.SBNamespaceProperties = &properties
-	}
-
-	v = m["location"]
-	if v != nil {
-		var location string
-		err = json.Unmarshal(*m["location"], &location)
-		if err != nil {
-			return err
-		}
-		sn.Location = &location
-	}
-
-	v = m["tags"]
-	if v != nil {
-		var tags map[string]*string
-		err = json.Unmarshal(*m["tags"], &tags)
-		if err != nil {
-			return err
-		}
-		sn.Tags = &tags
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		sn.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		sn.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		sn.Type = &typeVar
 	}
 
 	return nil
@@ -1493,20 +2698,37 @@ type SBNamespaceListResultIterator struct {
 	page SBNamespaceListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *SBNamespaceListResultIterator) Next() error {
+func (iter *SBNamespaceListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBNamespaceListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SBNamespaceListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -1528,6 +2750,11 @@ func (iter SBNamespaceListResultIterator) Value() SBNamespace {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the SBNamespaceListResultIterator type.
+func NewSBNamespaceListResultIterator(page SBNamespaceListResultPage) SBNamespaceListResultIterator {
+	return SBNamespaceListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (snlr SBNamespaceListResult) IsEmpty() bool {
 	return snlr.Value == nil || len(*snlr.Value) == 0
@@ -1535,11 +2762,11 @@ func (snlr SBNamespaceListResult) IsEmpty() bool {
 
 // sBNamespaceListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (snlr SBNamespaceListResult) sBNamespaceListResultPreparer() (*http.Request, error) {
+func (snlr SBNamespaceListResult) sBNamespaceListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if snlr.NextLink == nil || len(to.String(snlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(snlr.NextLink)))
@@ -1547,19 +2774,36 @@ func (snlr SBNamespaceListResult) sBNamespaceListResultPreparer() (*http.Request
 
 // SBNamespaceListResultPage contains a page of SBNamespace values.
 type SBNamespaceListResultPage struct {
-	fn   func(SBNamespaceListResult) (SBNamespaceListResult, error)
+	fn   func(context.Context, SBNamespaceListResult) (SBNamespaceListResult, error)
 	snlr SBNamespaceListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *SBNamespaceListResultPage) Next() error {
-	next, err := page.fn(page.snlr)
+func (page *SBNamespaceListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBNamespaceListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.snlr)
 	if err != nil {
 		return err
 	}
 	page.snlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SBNamespaceListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -1580,36 +2824,65 @@ func (page SBNamespaceListResultPage) Values() []SBNamespace {
 	return *page.snlr.Value
 }
 
+// Creates a new instance of the SBNamespaceListResultPage type.
+func NewSBNamespaceListResultPage(getNextPage func(context.Context, SBNamespaceListResult) (SBNamespaceListResult, error)) SBNamespaceListResultPage {
+	return SBNamespaceListResultPage{fn: getNextPage}
+}
+
+// SBNamespaceMigrate namespace Migrate Object
+type SBNamespaceMigrate struct {
+	// TargetNamespaceType - Type of namespaces. Possible values include: 'Messaging', 'NotificationHub', 'Mixed', 'EventHub', 'Relay'
+	TargetNamespaceType NameSpaceType `json:"targetNamespaceType,omitempty"`
+}
+
 // SBNamespaceProperties properties of the namespace.
 type SBNamespaceProperties struct {
-	// ProvisioningState - Provisioning state of the namespace.
+	// ProvisioningState - READ-ONLY; Provisioning state of the namespace.
 	ProvisioningState *string `json:"provisioningState,omitempty"`
-	// CreatedAt - The time the namespace was created.
+	// CreatedAt - READ-ONLY; The time the namespace was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// UpdatedAt - The time the namespace was updated.
+	// UpdatedAt - READ-ONLY; The time the namespace was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
-	// ServiceBusEndpoint - Endpoint you can use to perform Service Bus operations.
+	// ServiceBusEndpoint - READ-ONLY; Endpoint you can use to perform Service Bus operations.
 	ServiceBusEndpoint *string `json:"serviceBusEndpoint,omitempty"`
-	// MetricID - Identifier for Azure Insights metrics
+	// MetricID - READ-ONLY; Identifier for Azure Insights metrics
 	MetricID *string `json:"metricId,omitempty"`
 }
 
 // SBNamespaceUpdateParameters description of a namespace resource.
 type SBNamespaceUpdateParameters struct {
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
-	// Location - Resource location
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
-	// Sku - Porperties of Sku
+	// Sku - Properties of Sku
 	Sku *SBSku `json:"sku,omitempty"`
 	// SBNamespaceProperties - Properties of the namespace.
 	*SBNamespaceProperties `json:"properties,omitempty"`
+	// Location - Resource location
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBNamespaceUpdateParameters.
+func (snup SBNamespaceUpdateParameters) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if snup.Sku != nil {
+		objectMap["sku"] = snup.Sku
+	}
+	if snup.SBNamespaceProperties != nil {
+		objectMap["properties"] = snup.SBNamespaceProperties
+	}
+	if snup.Location != nil {
+		objectMap["location"] = snup.Location
+	}
+	if snup.Tags != nil {
+		objectMap["tags"] = snup.Tags
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SBNamespaceUpdateParameters struct.
@@ -1619,76 +2892,72 @@ func (snup *SBNamespaceUpdateParameters) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["sku"]
-	if v != nil {
-		var sku SBSku
-		err = json.Unmarshal(*m["sku"], &sku)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "sku":
+			if v != nil {
+				var sku SBSku
+				err = json.Unmarshal(*v, &sku)
+				if err != nil {
+					return err
+				}
+				snup.Sku = &sku
+			}
+		case "properties":
+			if v != nil {
+				var sBNamespaceProperties SBNamespaceProperties
+				err = json.Unmarshal(*v, &sBNamespaceProperties)
+				if err != nil {
+					return err
+				}
+				snup.SBNamespaceProperties = &sBNamespaceProperties
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				snup.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				snup.Tags = tags
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				snup.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				snup.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				snup.Type = &typeVar
+			}
 		}
-		snup.Sku = &sku
-	}
-
-	v = m["properties"]
-	if v != nil {
-		var properties SBNamespaceProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
-		}
-		snup.SBNamespaceProperties = &properties
-	}
-
-	v = m["location"]
-	if v != nil {
-		var location string
-		err = json.Unmarshal(*m["location"], &location)
-		if err != nil {
-			return err
-		}
-		snup.Location = &location
-	}
-
-	v = m["tags"]
-	if v != nil {
-		var tags map[string]*string
-		err = json.Unmarshal(*m["tags"], &tags)
-		if err != nil {
-			return err
-		}
-		snup.Tags = &tags
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		snup.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		snup.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		snup.Type = &typeVar
 	}
 
 	return nil
@@ -1697,14 +2966,23 @@ func (snup *SBNamespaceUpdateParameters) UnmarshalJSON(body []byte) error {
 // SBQueue description of queue Resource.
 type SBQueue struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// SBQueueProperties - Queue Properties
 	*SBQueueProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBQueue.
+func (sq SBQueue) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if sq.SBQueueProperties != nil {
+		objectMap["properties"] = sq.SBQueueProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SBQueue struct.
@@ -1714,46 +2992,45 @@ func (sq *SBQueue) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties SBQueueProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var sBQueueProperties SBQueueProperties
+				err = json.Unmarshal(*v, &sBQueueProperties)
+				if err != nil {
+					return err
+				}
+				sq.SBQueueProperties = &sBQueueProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				sq.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				sq.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				sq.Type = &typeVar
+			}
 		}
-		sq.SBQueueProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		sq.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		sq.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		sq.Type = &typeVar
 	}
 
 	return nil
@@ -1774,20 +3051,37 @@ type SBQueueListResultIterator struct {
 	page SBQueueListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *SBQueueListResultIterator) Next() error {
+func (iter *SBQueueListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBQueueListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SBQueueListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -1809,6 +3103,11 @@ func (iter SBQueueListResultIterator) Value() SBQueue {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the SBQueueListResultIterator type.
+func NewSBQueueListResultIterator(page SBQueueListResultPage) SBQueueListResultIterator {
+	return SBQueueListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (sqlr SBQueueListResult) IsEmpty() bool {
 	return sqlr.Value == nil || len(*sqlr.Value) == 0
@@ -1816,11 +3115,11 @@ func (sqlr SBQueueListResult) IsEmpty() bool {
 
 // sBQueueListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (sqlr SBQueueListResult) sBQueueListResultPreparer() (*http.Request, error) {
+func (sqlr SBQueueListResult) sBQueueListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if sqlr.NextLink == nil || len(to.String(sqlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(sqlr.NextLink)))
@@ -1828,19 +3127,36 @@ func (sqlr SBQueueListResult) sBQueueListResultPreparer() (*http.Request, error)
 
 // SBQueueListResultPage contains a page of SBQueue values.
 type SBQueueListResultPage struct {
-	fn   func(SBQueueListResult) (SBQueueListResult, error)
+	fn   func(context.Context, SBQueueListResult) (SBQueueListResult, error)
 	sqlr SBQueueListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *SBQueueListResultPage) Next() error {
-	next, err := page.fn(page.sqlr)
+func (page *SBQueueListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBQueueListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.sqlr)
 	if err != nil {
 		return err
 	}
 	page.sqlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SBQueueListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -1861,19 +3177,24 @@ func (page SBQueueListResultPage) Values() []SBQueue {
 	return *page.sqlr.Value
 }
 
+// Creates a new instance of the SBQueueListResultPage type.
+func NewSBQueueListResultPage(getNextPage func(context.Context, SBQueueListResult) (SBQueueListResult, error)) SBQueueListResultPage {
+	return SBQueueListResultPage{fn: getNextPage}
+}
+
 // SBQueueProperties the Queue Properties definition.
 type SBQueueProperties struct {
-	// CountDetails - Message Count Details.
+	// CountDetails - READ-ONLY; Message Count Details.
 	CountDetails *MessageCountDetails `json:"countDetails,omitempty"`
-	// CreatedAt - The exact time the message was created.
+	// CreatedAt - READ-ONLY; The exact time the message was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// UpdatedAt - The exact time the message was updated.
+	// UpdatedAt - READ-ONLY; The exact time the message was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
-	// AccessedAt - Last time a message was sent, or the last time there was a receive request to this queue.
+	// AccessedAt - READ-ONLY; Last time a message was sent, or the last time there was a receive request to this queue.
 	AccessedAt *date.Time `json:"accessedAt,omitempty"`
-	// SizeInBytes - The size of the queue, in bytes.
+	// SizeInBytes - READ-ONLY; The size of the queue, in bytes.
 	SizeInBytes *int64 `json:"sizeInBytes,omitempty"`
-	// MessageCount - The number of messages in the queue.
+	// MessageCount - READ-ONLY; The number of messages in the queue.
 	MessageCount *int64 `json:"messageCount,omitempty"`
 	// LockDuration - ISO 8601 timespan duration of a peek-lock; that is, the amount of time that the message is locked for other receivers. The maximum value for LockDuration is 5 minutes; the default value is 1 minute.
 	LockDuration *string `json:"lockDuration,omitempty"`
@@ -1893,6 +3214,8 @@ type SBQueueProperties struct {
 	MaxDeliveryCount *int32 `json:"maxDeliveryCount,omitempty"`
 	// Status - Enumerates the possible values for the status of a messaging entity. Possible values include: 'Active', 'Disabled', 'Restoring', 'SendDisabled', 'ReceiveDisabled', 'Creating', 'Deleting', 'Renaming', 'Unknown'
 	Status EntityStatus `json:"status,omitempty"`
+	// EnableBatchedOperations - Value that indicates whether server-side batched operations are enabled.
+	EnableBatchedOperations *bool `json:"enableBatchedOperations,omitempty"`
 	// AutoDeleteOnIdle - ISO 8061 timeSpan idle interval after which the queue is automatically deleted. The minimum duration is 5 minutes.
 	AutoDeleteOnIdle *string `json:"autoDeleteOnIdle,omitempty"`
 	// EnablePartitioning - A value that indicates whether the queue is to be partitioned across multiple message brokers.
@@ -1918,14 +3241,23 @@ type SBSku struct {
 // SBSubscription description of subscription resource.
 type SBSubscription struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// SBSubscriptionProperties - Properties of subscriptions resource.
 	*SBSubscriptionProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBSubscription.
+func (ss SBSubscription) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if ss.SBSubscriptionProperties != nil {
+		objectMap["properties"] = ss.SBSubscriptionProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SBSubscription struct.
@@ -1935,46 +3267,45 @@ func (ss *SBSubscription) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties SBSubscriptionProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var sBSubscriptionProperties SBSubscriptionProperties
+				err = json.Unmarshal(*v, &sBSubscriptionProperties)
+				if err != nil {
+					return err
+				}
+				ss.SBSubscriptionProperties = &sBSubscriptionProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				ss.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				ss.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				ss.Type = &typeVar
+			}
 		}
-		ss.SBSubscriptionProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		ss.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		ss.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		ss.Type = &typeVar
 	}
 
 	return nil
@@ -1995,20 +3326,37 @@ type SBSubscriptionListResultIterator struct {
 	page SBSubscriptionListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *SBSubscriptionListResultIterator) Next() error {
+func (iter *SBSubscriptionListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBSubscriptionListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SBSubscriptionListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -2030,6 +3378,11 @@ func (iter SBSubscriptionListResultIterator) Value() SBSubscription {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the SBSubscriptionListResultIterator type.
+func NewSBSubscriptionListResultIterator(page SBSubscriptionListResultPage) SBSubscriptionListResultIterator {
+	return SBSubscriptionListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (sslr SBSubscriptionListResult) IsEmpty() bool {
 	return sslr.Value == nil || len(*sslr.Value) == 0
@@ -2037,11 +3390,11 @@ func (sslr SBSubscriptionListResult) IsEmpty() bool {
 
 // sBSubscriptionListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (sslr SBSubscriptionListResult) sBSubscriptionListResultPreparer() (*http.Request, error) {
+func (sslr SBSubscriptionListResult) sBSubscriptionListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if sslr.NextLink == nil || len(to.String(sslr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(sslr.NextLink)))
@@ -2049,19 +3402,36 @@ func (sslr SBSubscriptionListResult) sBSubscriptionListResultPreparer() (*http.R
 
 // SBSubscriptionListResultPage contains a page of SBSubscription values.
 type SBSubscriptionListResultPage struct {
-	fn   func(SBSubscriptionListResult) (SBSubscriptionListResult, error)
+	fn   func(context.Context, SBSubscriptionListResult) (SBSubscriptionListResult, error)
 	sslr SBSubscriptionListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *SBSubscriptionListResultPage) Next() error {
-	next, err := page.fn(page.sslr)
+func (page *SBSubscriptionListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBSubscriptionListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.sslr)
 	if err != nil {
 		return err
 	}
 	page.sslr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SBSubscriptionListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -2082,17 +3452,22 @@ func (page SBSubscriptionListResultPage) Values() []SBSubscription {
 	return *page.sslr.Value
 }
 
+// Creates a new instance of the SBSubscriptionListResultPage type.
+func NewSBSubscriptionListResultPage(getNextPage func(context.Context, SBSubscriptionListResult) (SBSubscriptionListResult, error)) SBSubscriptionListResultPage {
+	return SBSubscriptionListResultPage{fn: getNextPage}
+}
+
 // SBSubscriptionProperties description of Subscription Resource.
 type SBSubscriptionProperties struct {
-	// MessageCount - Number of messages.
+	// MessageCount - READ-ONLY; Number of messages.
 	MessageCount *int64 `json:"messageCount,omitempty"`
-	// CreatedAt - Exact time the message was created.
+	// CreatedAt - READ-ONLY; Exact time the message was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// AccessedAt - Last time there was a receive request to this subscription.
+	// AccessedAt - READ-ONLY; Last time there was a receive request to this subscription.
 	AccessedAt *date.Time `json:"accessedAt,omitempty"`
-	// UpdatedAt - The exact time the message was updated.
+	// UpdatedAt - READ-ONLY; The exact time the message was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
-	// CountDetails - Message count details
+	// CountDetails - READ-ONLY; Message count details
 	CountDetails *MessageCountDetails `json:"countDetails,omitempty"`
 	// LockDuration - ISO 8061 lock duration timespan for the subscription. The default value is 1 minute.
 	LockDuration *string `json:"lockDuration,omitempty"`
@@ -2100,6 +3475,8 @@ type SBSubscriptionProperties struct {
 	RequiresSession *bool `json:"requiresSession,omitempty"`
 	// DefaultMessageTimeToLive - ISO 8061 Default message timespan to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 	DefaultMessageTimeToLive *string `json:"defaultMessageTimeToLive,omitempty"`
+	// DeadLetteringOnFilterEvaluationExceptions - Value that indicates whether a subscription has dead letter support on filter evaluation exceptions.
+	DeadLetteringOnFilterEvaluationExceptions *bool `json:"deadLetteringOnFilterEvaluationExceptions,omitempty"`
 	// DeadLetteringOnMessageExpiration - Value that indicates whether a subscription has dead letter support when a message expires.
 	DeadLetteringOnMessageExpiration *bool `json:"deadLetteringOnMessageExpiration,omitempty"`
 	// DuplicateDetectionHistoryTimeWindow - ISO 8601 timeSpan structure that defines the duration of the duplicate detection history. The default value is 10 minutes.
@@ -2121,14 +3498,23 @@ type SBSubscriptionProperties struct {
 // SBTopic description of topic resource.
 type SBTopic struct {
 	autorest.Response `json:"-"`
-	// ID - Resource Id
-	ID *string `json:"id,omitempty"`
-	// Name - Resource name
-	Name *string `json:"name,omitempty"`
-	// Type - Resource type
-	Type *string `json:"type,omitempty"`
 	// SBTopicProperties - Properties of topic resource.
 	*SBTopicProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for SBTopic.
+func (st SBTopic) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if st.SBTopicProperties != nil {
+		objectMap["properties"] = st.SBTopicProperties
+	}
+	return json.Marshal(objectMap)
 }
 
 // UnmarshalJSON is the custom unmarshaler for SBTopic struct.
@@ -2138,46 +3524,45 @@ func (st *SBTopic) UnmarshalJSON(body []byte) error {
 	if err != nil {
 		return err
 	}
-	var v *json.RawMessage
-
-	v = m["properties"]
-	if v != nil {
-		var properties SBTopicProperties
-		err = json.Unmarshal(*m["properties"], &properties)
-		if err != nil {
-			return err
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var sBTopicProperties SBTopicProperties
+				err = json.Unmarshal(*v, &sBTopicProperties)
+				if err != nil {
+					return err
+				}
+				st.SBTopicProperties = &sBTopicProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				st.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				st.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				st.Type = &typeVar
+			}
 		}
-		st.SBTopicProperties = &properties
-	}
-
-	v = m["id"]
-	if v != nil {
-		var ID string
-		err = json.Unmarshal(*m["id"], &ID)
-		if err != nil {
-			return err
-		}
-		st.ID = &ID
-	}
-
-	v = m["name"]
-	if v != nil {
-		var name string
-		err = json.Unmarshal(*m["name"], &name)
-		if err != nil {
-			return err
-		}
-		st.Name = &name
-	}
-
-	v = m["type"]
-	if v != nil {
-		var typeVar string
-		err = json.Unmarshal(*m["type"], &typeVar)
-		if err != nil {
-			return err
-		}
-		st.Type = &typeVar
 	}
 
 	return nil
@@ -2198,20 +3583,37 @@ type SBTopicListResultIterator struct {
 	page SBTopicListResultPage
 }
 
-// Next advances to the next value.  If there was an error making
+// NextWithContext advances to the next value.  If there was an error making
 // the request the iterator does not advance and the error is returned.
-func (iter *SBTopicListResultIterator) Next() error {
+func (iter *SBTopicListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBTopicListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	iter.i++
 	if iter.i < len(iter.page.Values()) {
 		return nil
 	}
-	err := iter.page.Next()
+	err = iter.page.NextWithContext(ctx)
 	if err != nil {
 		iter.i--
 		return err
 	}
 	iter.i = 0
 	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *SBTopicListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the enumeration should be started or is not yet complete.
@@ -2233,6 +3635,11 @@ func (iter SBTopicListResultIterator) Value() SBTopic {
 	return iter.page.Values()[iter.i]
 }
 
+// Creates a new instance of the SBTopicListResultIterator type.
+func NewSBTopicListResultIterator(page SBTopicListResultPage) SBTopicListResultIterator {
+	return SBTopicListResultIterator{page: page}
+}
+
 // IsEmpty returns true if the ListResult contains no values.
 func (stlr SBTopicListResult) IsEmpty() bool {
 	return stlr.Value == nil || len(*stlr.Value) == 0
@@ -2240,11 +3647,11 @@ func (stlr SBTopicListResult) IsEmpty() bool {
 
 // sBTopicListResultPreparer prepares a request to retrieve the next set of results.
 // It returns nil if no more results exist.
-func (stlr SBTopicListResult) sBTopicListResultPreparer() (*http.Request, error) {
+func (stlr SBTopicListResult) sBTopicListResultPreparer(ctx context.Context) (*http.Request, error) {
 	if stlr.NextLink == nil || len(to.String(stlr.NextLink)) < 1 {
 		return nil, nil
 	}
-	return autorest.Prepare(&http.Request{},
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
 		autorest.AsJSON(),
 		autorest.AsGet(),
 		autorest.WithBaseURL(to.String(stlr.NextLink)))
@@ -2252,19 +3659,36 @@ func (stlr SBTopicListResult) sBTopicListResultPreparer() (*http.Request, error)
 
 // SBTopicListResultPage contains a page of SBTopic values.
 type SBTopicListResultPage struct {
-	fn   func(SBTopicListResult) (SBTopicListResult, error)
+	fn   func(context.Context, SBTopicListResult) (SBTopicListResult, error)
 	stlr SBTopicListResult
 }
 
-// Next advances to the next page of values.  If there was an error making
+// NextWithContext advances to the next page of values.  If there was an error making
 // the request the page does not advance and the error is returned.
-func (page *SBTopicListResultPage) Next() error {
-	next, err := page.fn(page.stlr)
+func (page *SBTopicListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/SBTopicListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.stlr)
 	if err != nil {
 		return err
 	}
 	page.stlr = next
 	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *SBTopicListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
 }
 
 // NotDone returns true if the page enumeration should be started or is not yet complete.
@@ -2285,19 +3709,24 @@ func (page SBTopicListResultPage) Values() []SBTopic {
 	return *page.stlr.Value
 }
 
-// SBTopicProperties the Tpoic Properties definition.
+// Creates a new instance of the SBTopicListResultPage type.
+func NewSBTopicListResultPage(getNextPage func(context.Context, SBTopicListResult) (SBTopicListResult, error)) SBTopicListResultPage {
+	return SBTopicListResultPage{fn: getNextPage}
+}
+
+// SBTopicProperties the Topic Properties definition.
 type SBTopicProperties struct {
-	// SizeInBytes - Size of the topic, in bytes.
+	// SizeInBytes - READ-ONLY; Size of the topic, in bytes.
 	SizeInBytes *int64 `json:"sizeInBytes,omitempty"`
-	// CreatedAt - Exact time the message was created.
+	// CreatedAt - READ-ONLY; Exact time the message was created.
 	CreatedAt *date.Time `json:"createdAt,omitempty"`
-	// UpdatedAt - The exact time the message was updated.
+	// UpdatedAt - READ-ONLY; The exact time the message was updated.
 	UpdatedAt *date.Time `json:"updatedAt,omitempty"`
-	// AccessedAt - Last time the message was sent, or a request was received, for this topic.
+	// AccessedAt - READ-ONLY; Last time the message was sent, or a request was received, for this topic.
 	AccessedAt *date.Time `json:"accessedAt,omitempty"`
-	// SubscriptionCount - Number of subscriptions.
+	// SubscriptionCount - READ-ONLY; Number of subscriptions.
 	SubscriptionCount *int32 `json:"subscriptionCount,omitempty"`
-	// CountDetails - Message count deatils
+	// CountDetails - READ-ONLY; Message count details
 	CountDetails *MessageCountDetails `json:"countDetails,omitempty"`
 	// DefaultMessageTimeToLive - ISO 8601 Default message timespan to live value. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 	DefaultMessageTimeToLive *string `json:"defaultMessageTimeToLive,omitempty"`
@@ -2321,8 +3750,8 @@ type SBTopicProperties struct {
 	EnableExpress *bool `json:"enableExpress,omitempty"`
 }
 
-// SQLFilter represents a filter which is a composition of an expression and an action that is executed in the pub/sub
-// pipeline.
+// SQLFilter represents a filter which is a composition of an expression and an action that is executed in
+// the pub/sub pipeline.
 type SQLFilter struct {
 	// SQLExpression - The SQL expression. e.g. MyProperty='ABC'
 	SQLExpression *string `json:"sqlExpression,omitempty"`
@@ -2343,16 +3772,224 @@ type SQLRuleAction struct {
 	RequiresPreprocessing *bool `json:"requiresPreprocessing,omitempty"`
 }
 
+// Subnet properties supplied for Subnet
+type Subnet struct {
+	// ID - Resource ID of Virtual Network Subnet
+	ID *string `json:"id,omitempty"`
+}
+
 // TrackedResource the Resource definition.
 type TrackedResource struct {
+	// Location - The Geo-location where the resource lives
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags
+	Tags map[string]*string `json:"tags"`
+	// ID - READ-ONLY; Resource Id
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type
+	Type *string `json:"type,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for TrackedResource.
+func (tr TrackedResource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if tr.Location != nil {
+		objectMap["location"] = tr.Location
+	}
+	if tr.Tags != nil {
+		objectMap["tags"] = tr.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// VirtualNetworkRule single item in a List or Get VirtualNetworkRules operation
+type VirtualNetworkRule struct {
+	autorest.Response `json:"-"`
+	// VirtualNetworkRuleProperties - Properties supplied to create or update VirtualNetworkRules
+	*VirtualNetworkRuleProperties `json:"properties,omitempty"`
 	// ID - Resource Id
 	ID *string `json:"id,omitempty"`
 	// Name - Resource name
 	Name *string `json:"name,omitempty"`
 	// Type - Resource type
 	Type *string `json:"type,omitempty"`
-	// Location - The Geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
-	// Tags - Resource tags
-	Tags *map[string]*string `json:"tags,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for VirtualNetworkRule.
+func (vnr VirtualNetworkRule) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if vnr.VirtualNetworkRuleProperties != nil {
+		objectMap["properties"] = vnr.VirtualNetworkRuleProperties
+	}
+	if vnr.ID != nil {
+		objectMap["id"] = vnr.ID
+	}
+	if vnr.Name != nil {
+		objectMap["name"] = vnr.Name
+	}
+	if vnr.Type != nil {
+		objectMap["type"] = vnr.Type
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for VirtualNetworkRule struct.
+func (vnr *VirtualNetworkRule) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var virtualNetworkRuleProperties VirtualNetworkRuleProperties
+				err = json.Unmarshal(*v, &virtualNetworkRuleProperties)
+				if err != nil {
+					return err
+				}
+				vnr.VirtualNetworkRuleProperties = &virtualNetworkRuleProperties
+			}
+		case "id":
+			if v != nil {
+				var ID string
+				err = json.Unmarshal(*v, &ID)
+				if err != nil {
+					return err
+				}
+				vnr.ID = &ID
+			}
+		case "name":
+			if v != nil {
+				var name string
+				err = json.Unmarshal(*v, &name)
+				if err != nil {
+					return err
+				}
+				vnr.Name = &name
+			}
+		case "type":
+			if v != nil {
+				var typeVar string
+				err = json.Unmarshal(*v, &typeVar)
+				if err != nil {
+					return err
+				}
+				vnr.Type = &typeVar
+			}
+		}
+	}
+
+	return nil
+}
+
+// VirtualNetworkRuleListResult the response from the List namespace operation.
+type VirtualNetworkRuleListResult struct {
+	autorest.Response `json:"-"`
+	// Value - Result of the List VirtualNetwork Rules operation.
+	Value *[]VirtualNetworkRule `json:"value,omitempty"`
+	// NextLink - Link to the next set of results. Not empty if Value contains an incomplete list of VirtualNetwork Rules
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// VirtualNetworkRuleListResultIterator provides access to a complete listing of VirtualNetworkRule values.
+type VirtualNetworkRuleListResultIterator struct {
+	i    int
+	page VirtualNetworkRuleListResultPage
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *VirtualNetworkRuleListResultIterator) Next() error {
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err := iter.page.Next()
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter VirtualNetworkRuleListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter VirtualNetworkRuleListResultIterator) Response() VirtualNetworkRuleListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter VirtualNetworkRuleListResultIterator) Value() VirtualNetworkRule {
+	if !iter.page.NotDone() {
+		return VirtualNetworkRule{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (vnrlr VirtualNetworkRuleListResult) IsEmpty() bool {
+	return vnrlr.Value == nil || len(*vnrlr.Value) == 0
+}
+
+// virtualNetworkRuleListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (vnrlr VirtualNetworkRuleListResult) virtualNetworkRuleListResultPreparer() (*http.Request, error) {
+	if vnrlr.NextLink == nil || len(to.String(vnrlr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare(&http.Request{},
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(vnrlr.NextLink)))
+}
+
+// VirtualNetworkRuleListResultPage contains a page of VirtualNetworkRule values.
+type VirtualNetworkRuleListResultPage struct {
+	fn    func(VirtualNetworkRuleListResult) (VirtualNetworkRuleListResult, error)
+	vnrlr VirtualNetworkRuleListResult
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *VirtualNetworkRuleListResultPage) Next() error {
+	next, err := page.fn(page.vnrlr)
+	if err != nil {
+		return err
+	}
+	page.vnrlr = next
+	return nil
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page VirtualNetworkRuleListResultPage) NotDone() bool {
+	return !page.vnrlr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page VirtualNetworkRuleListResultPage) Response() VirtualNetworkRuleListResult {
+	return page.vnrlr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page VirtualNetworkRuleListResultPage) Values() []VirtualNetworkRule {
+	if page.vnrlr.IsEmpty() {
+		return nil
+	}
+	return *page.vnrlr.Value
+}
+
+// VirtualNetworkRuleProperties properties supplied to create or update VirtualNetworkRules
+type VirtualNetworkRuleProperties struct {
+	// VirtualNetworkSubnetID - Resource ID of Virtual Network Subnet
+	VirtualNetworkSubnetID *string `json:"virtualNetworkSubnetId,omitempty"`
 }

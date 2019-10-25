@@ -2,16 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceAppServicePlan() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceAppServicePlanRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -20,9 +25,9 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"kind": {
 				Type:     schema.TypeString,
@@ -76,26 +81,36 @@ func dataSourceAppServicePlan() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"maximum_elastic_worker_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"is_xenon": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServicePlansClient
+	client := meta.(*ArmClient).Web.AppServicePlansClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error making Read request on App Service Plan %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if utils.ResponseWasNotFound(resp.Response) {
-		d.SetId("")
-		return nil
+		return fmt.Errorf("Error: App Service Plan %q (Resource Group %q) was not found", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -105,22 +120,28 @@ func dataSourceAppServicePlanRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("kind", resp.Kind)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.AppServicePlanProperties; props != nil {
-		d.Set("properties", flattenAppServiceProperties(props))
+		if err := d.Set("properties", flattenAppServiceProperties(props)); err != nil {
+			return fmt.Errorf("Error setting `properties`: %+v", err)
+		}
 
 		if props.MaximumNumberOfWorkers != nil {
 			d.Set("maximum_number_of_workers", int(*props.MaximumNumberOfWorkers))
 		}
+
+		if props.MaximumElasticWorkerCount != nil {
+			d.Set("maximum_elastic_worker_count", int(*props.MaximumElasticWorkerCount))
+		}
+
+		d.Set("is_xenon", props.IsXenon)
 	}
 
-	if sku := resp.Sku; sku != nil {
-		d.Set("sku", flattenAppServicePlanSku(sku))
+	if err := d.Set("sku", flattenAppServicePlanSku(resp.Sku)); err != nil {
+		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

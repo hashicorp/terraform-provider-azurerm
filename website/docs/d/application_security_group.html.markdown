@@ -3,20 +3,18 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_security_group"
 sidebar_current: "docs-azurerm-datasource-network-application-security-group"
 description: |-
-  Get information about an Application Security Group.
+  Gets information about an existing Application Security Group.
 ---
 
 # Data Source: azurerm_application_security_group
 
-Get information about an Application Security Group.
-
--> **Note:** Application Security Groups are currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions Application Security Groups are available in are available here](https://docs.microsoft.com/en-us/azure/virtual-network/create-network-security-group-preview)
+Use this data source to access information about an existing Application Security Group.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_application_security_group" "test" {
-  name = "tf-appsecuritygroup"
+  name                = "tf-appsecuritygroup"
   resource_group_name = "my-resource-group"
 }
 
@@ -41,4 +39,4 @@ The following attributes are exported:
 
 * `location` - The supported Azure location where the Application Security Group exists.
 
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags assigned to the resource.

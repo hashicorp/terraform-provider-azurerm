@@ -2,13 +2,26 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2018-09-01-preview/authorization"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmBuiltInRoleDefinitionRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
+		DeprecationMessage: `This Data Source has been deprecated in favour of the 'azurerm_role_definition' resource that now can look up role definitions by names.
+
+As such this Data Source will be removed in v2.0 of the AzureRM Provider.
+`,
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -43,6 +56,22 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 								Type: schema.TypeString,
 							},
 						},
+						"data_actions": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
+						},
+						"not_data_actions": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+							Set: schema.HashString,
+						},
 					},
 				},
 			},
@@ -58,8 +87,9 @@ func dataSourceArmBuiltInRoleDefinition() *schema.Resource {
 }
 
 func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).roleDefinitionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Authorization.RoleDefinitionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	if name == "VirtualMachineContributor" {
@@ -83,21 +113,77 @@ func dataSourceArmBuiltInRoleDefinitionRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error loading Role Definition: %+v", err)
 	}
 
-	if props := role.Properties; props != nil {
+	if props := role.RoleDefinitionProperties; props != nil {
 		d.Set("name", props.RoleName)
 		d.Set("description", props.Description)
-		d.Set("type", props.Type)
+		d.Set("type", props.RoleType)
 
-		permissions := flattenRoleDefinitionPermissions(props.Permissions)
+		permissions := flattenRoleDefinitionDataSourcePermissions(props.Permissions)
 		if err := d.Set("permissions", permissions); err != nil {
 			return err
 		}
 
-		assignableScopes := flattenRoleDefinitionAssignableScopes(props.AssignableScopes)
+		assignableScopes := flattenRoleDefinitionDataSourceAssignableScopes(props.AssignableScopes)
 		if err := d.Set("assignable_scopes", assignableScopes); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func flattenRoleDefinitionDataSourcePermissions(input *[]authorization.Permission) []interface{} {
+	permissions := make([]interface{}, 0)
+	if input == nil {
+		return permissions
+	}
+
+	for _, permission := range *input {
+		output := make(map[string]interface{})
+
+		actions := make([]string, 0)
+		if s := permission.Actions; s != nil {
+			actions = *s
+		}
+		output["actions"] = actions
+
+		dataActions := make([]interface{}, 0)
+		if s := permission.DataActions; s != nil {
+			for _, dataAction := range *s {
+				dataActions = append(dataActions, dataAction)
+			}
+		}
+		output["data_actions"] = schema.NewSet(schema.HashString, dataActions)
+
+		notActions := make([]string, 0)
+		if s := permission.NotActions; s != nil {
+			notActions = *s
+		}
+		output["not_actions"] = notActions
+
+		notDataActions := make([]interface{}, 0)
+		if s := permission.NotDataActions; s != nil {
+			for _, dataAction := range *s {
+				notDataActions = append(notDataActions, dataAction)
+			}
+		}
+		output["not_data_actions"] = schema.NewSet(schema.HashString, notDataActions)
+
+		permissions = append(permissions, output)
+	}
+
+	return permissions
+}
+
+func flattenRoleDefinitionDataSourceAssignableScopes(input *[]string) []interface{} {
+	scopes := make([]interface{}, 0)
+	if input == nil {
+		return scopes
+	}
+
+	for _, scope := range *input {
+		scopes = append(scopes, scope)
+	}
+
+	return scopes
 }

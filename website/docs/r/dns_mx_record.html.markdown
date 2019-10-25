@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_mx_record"
 sidebar_current: "docs-azurerm-resource-dns-mx-record"
 description: |-
-  Manage a DNS MX Record.
+  Manages a DNS MX Record.
 ---
 
-# azurerm\_dns\_mx\_record
+# azurerm_dns_mx_record
 
 Enables you to manage DNS MX Records within Azure DNS.
 
@@ -39,7 +39,7 @@ resource "azurerm_dns_mx_record" "test" {
     exchange   = "mail2.contoso.com"
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -52,11 +52,11 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
 
-* `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
+* `zone_name` - (Required) Specifies the DNS Zone where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
-* `ttl` - (Required) The Time To Live (TTL) of the DNS record.
+* `ttl` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
-* `record` - (Required) A list of values that make up the SRV record. Each `record` block supports fields documented below.
+* `record` - (Required) A list of values that make up the MX record. Each `record` block supports fields documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -77,5 +77,5 @@ The following attributes are exported:
 MX records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_mx_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/MX/myrecord1
+terraform import azurerm_dns_mx_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/MX/myrecord1
 ```

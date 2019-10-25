@@ -3,9 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/sql/mgmt/2015-05-01-preview/sql"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,8 +20,16 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 		Read:   resourceArmSqlFirewallRuleRead,
 		Update: resourceArmSqlFirewallRuleCreateUpdate,
 		Delete: resourceArmSqlFirewallRuleDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -26,12 +39,13 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateMsSqlServerName,
 			},
 
 			"start_ip_address": {
@@ -50,14 +64,28 @@ func resourceArmSqlFirewallRule() *schema.Resource {
 }
 
 func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlFirewallRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.FirewallRulesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	startIPAddress := d.Get("start_ip_address").(string)
 	endIPAddress := d.Get("end_ip_address").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, serverName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_sql_firewall_rule", *existing.ID)
+		}
+	}
 
 	parameters := sql.FirewallRule{
 		FirewallRuleProperties: &sql.FirewallRuleProperties{
@@ -66,14 +94,13 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters)
-	if err != nil {
-		return fmt.Errorf("Error creating SQL Firewall Rule: %+v", err)
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serverName, name, parameters); err != nil {
+		return fmt.Errorf("Error creating SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, serverName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving SQL Firewall Rule: %+v", err)
+		return fmt.Errorf("Error retrieving SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -82,10 +109,11 @@ func resourceArmSqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlFirewallRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.FirewallRulesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -102,7 +130,7 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL Firewall Rule: %+v", err)
+		return fmt.Errorf("Error reading SQL Firewall Rule %s (Resource Group %s, Server %s): %+v", name, resourceGroup, serverName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -115,10 +143,11 @@ func resourceArmSqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmSqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).sqlFirewallRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Sql.FirewallRulesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

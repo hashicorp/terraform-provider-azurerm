@@ -1,14 +1,14 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_network_gateway"
+page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
 description: |-
-  Creates a new virtual network gateway to establish secure, cross-premises connectivity.
+  Manages a virtual network gateway to establish secure, cross-premises connectivity.
 ---
 
 # azurerm_virtual_network_gateway
 
-Creates a new Virtual Network Gateway to establish secure, cross-premises connectivity.
+Manages a Virtual Network Gateway to establish secure, cross-premises connectivity.
 
 -> **Note:** Please be aware that provisioning a Virtual Network Gateway takes a long time (between 30 minutes and 1 hour)
 
@@ -16,55 +16,57 @@ Creates a new Virtual Network Gateway to establish secure, cross-premises connec
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "test"
+  name     = "test"
   location = "West US"
 }
 
 resource "azurerm_virtual_network" "test" {
-  name = "test"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  address_space = ["10.0.0.0/16"]
+  address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "test" {
-  name = "GatewaySubnet"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "GatewaySubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_network_name = "${azurerm_virtual_network.test.name}"
-  address_prefix = "10.0.1.0/24"
+  address_prefix       = "10.0.1.0/24"
 }
 
 resource "azurerm_public_ip" "test" {
-  name = "test"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  public_ip_address_allocation = "Dynamic"
+
+  allocation_method = "Dynamic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
-  name = "test"
-  location = "${azurerm_resource_group.test.location}"
+  name                = "test"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  type = "Vpn"
+  type     = "Vpn"
   vpn_type = "RouteBased"
 
   active_active = false
-  enable_bgp = false
-	sku = "Basic"
+  enable_bgp    = false
+  sku           = "Basic"
 
   ip_configuration {
-    name = "vnetGatewayConfig"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    name                          = "vnetGatewayConfig"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
     private_ip_address_allocation = "Dynamic"
-    subnet_id = "${azurerm_subnet.test.id}"
+    subnet_id                     = "${azurerm_subnet.test.id}"
   }
 
   vpn_client_configuration {
-    address_space = [ "10.2.0.0/24" ]
+    address_space = ["10.2.0.0/24"]
 
     root_certificate {
       name = "DigiCert-Federated-ID-Root-CA"
+
       public_cert_data = <<EOF
 MIIDuzCCAqOgAwIBAgIQCHTZWCM+IlfFIRXIvyKSrjANBgkqhkiG9w0BAQsFADBn
 MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
@@ -90,7 +92,7 @@ EOF
     }
 
     revoked_certificate {
-      name = "Verizon-Global-Root-CA"
+      name       = "Verizon-Global-Root-CA"
       thumbprint = "912198EEF23DCAC40939312FEE97DD560BAE49B1"
     }
   }
@@ -133,7 +135,8 @@ The following arguments are supported:
 
 * `sku` - (Required) Configuration of the size and capacity of the virtual network
     gateway. Valid options are `Basic`, `Standard`, `HighPerformance`, `UltraPerformance`,
-    `VpnGw1`, `VpnGw2` and `VpnGw3` and depend on the `type` and `vpn_type` arguments.
+    `ErGw1AZ`, `ErGw2AZ`, `ErGw3AZ`, `VpnGw1`, `VpnGw2`, `VpnGw3`, `VpnGw1AZ`, `VpnGw2AZ`, and `VpnGw3AZ`
+    and depend on the `type` and `vpn_type` arguments.
     A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
     sku is only supported by an `ExpressRoute` gateway.
 
@@ -169,13 +172,25 @@ The `vpn_client_configuration` block supports:
 * `address_space` - (Required) The address space out of which ip addresses for
     vpn clients will be taken. You can provide more than one address space, e.g.
     in CIDR notation.
-
-* `root_certificate` - (Required) One or more `root_certificate` blocks which are
+* `root_certificate` - (Optional) One or more `root_certificate` blocks which are
     defined below. These root certificates are used to sign the client certificate
     used by the VPN clients to connect to the gateway.
+    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
 
 * `revoked_certificate` - (Optional) One or more `revoked_certificate` blocks which
     are defined below.
+    This setting is incompatible with the use of `radius_server_address` and `radius_server_secret`.
+
+* `radius_server_address` - (Optional) The address of the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `radius_server_secret` - (Optional) The secret used by the Radius server.
+    This setting is incompatible with the use of `root_certificate` and `revoked_certificate`.
+
+* `vpn_client_protocols` - (Optional) List of the protocols supported by the vpn client.
+    The supported values are `SSTP`, `IkeV2` and `OpenVPN`.
+
+-> **NOTE:** Support for `OpenVPN` as a Client Protocol is currently in Public Preview - [you can register for this Preview using this link](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-howto-openvpn).
 
 The `bgp_settings` block supports:
 
@@ -184,7 +199,7 @@ The `bgp_settings` block supports:
 * `peering_address` - (Optional) The BGP peer IP address of the virtual network
     gateway. This address is needed to configure the created gateway as a BGP Peer
     on the on-premises VPN devices. The IP address must be part of the subnet of
-    the Virtual Network Gateway.
+    the Virtual Network Gateway. Changing this forces a new resource to be created.
 
 * `peer_weight` - (Optional) The weight added to routes which have been learned
     through BGP peering. Valid values can be between `0` and `100`.

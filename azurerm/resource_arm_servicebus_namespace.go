@@ -3,11 +3,21 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -17,26 +27,39 @@ var serviceBusNamespaceDefaultAuthorizationRule = "RootManageSharedAccessKey"
 
 func resourceArmServiceBusNamespace() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmServiceBusNamespaceCreate,
+		Create: resourceArmServiceBusNamespaceCreateUpdate,
 		Read:   resourceArmServiceBusNamespaceRead,
-		Update: resourceArmServiceBusNamespaceCreate,
+		Update: resourceArmServiceBusNamespaceCreateUpdate,
 		Delete: resourceArmServiceBusNamespaceDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
 		MigrateState:  resourceAzureRMServiceBusNamespaceMigrateState,
 		SchemaVersion: 1,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile("^[a-zA-Z][-a-zA-Z0-9]{0,100}[a-zA-Z0-9]$"),
+					"The namespace can contain only letters, numbers, and hyphens. The namespace must start with a letter, and it must end with a letter or number.",
+				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -47,51 +70,76 @@ func resourceArmServiceBusNamespace() *schema.Resource {
 					string(servicebus.Standard),
 					string(servicebus.Premium),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"capacity": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validateServiceBusNamespaceCapacity,
+				Default:      0,
+				ValidateFunc: validate.IntInSlice([]int{0, 1, 2, 4, 8}),
 			},
 
 			"default_primary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_secondary_connection_string": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_primary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"default_secondary_key": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
-			"tags": tagsSchema(),
+			"zone_redundant": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmServiceBusNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
 	log.Printf("[INFO] preparing arguments for AzureRM ServiceBus Namespace creation.")
 
 	name := d.Get("name").(string)
-	location := d.Get("location").(string)
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	sku := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing ServiceBus Namespace %q (resource group %q) ID", name, resourceGroup)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_servicebus_namespace", *existing.ID)
+		}
+	}
 
 	parameters := servicebus.SBNamespace{
 		Location: &location,
@@ -99,18 +147,24 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 			Name: servicebus.SkuName(sku),
 			Tier: servicebus.SkuTier(sku),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
-	capacity := d.Get("capacity").(int)
-	if capacity > 0 {
-		skuName := strings.ToLower(string(parameters.Sku.Name))
-		premiumSku := strings.ToLower(string(servicebus.Premium))
-		if skuName != premiumSku {
-			return fmt.Errorf("`capacity` can only be set for a Premium SKU")
+	if capacity := d.Get("capacity"); capacity != nil {
+		if !strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) > 0 {
+			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 0", sku)
 		}
+		if strings.EqualFold(sku, string(servicebus.Premium)) && capacity.(int) == 0 {
+			return fmt.Errorf("Service Bus SKU %q only supports `capacity` of 1, 2, 4 or 8", sku)
+		}
+		parameters.Sku.Capacity = utils.Int32(int32(capacity.(int)))
+	}
 
-		parameters.Sku.Capacity = utils.Int32(int32(capacity))
+	if zoneRedundant, ok := d.GetOkExists("zone_redundant"); ok {
+		properties := servicebus.SBNamespaceProperties{
+			ZoneRedundant: utils.Bool(zoneRedundant.(bool)),
+		}
+		parameters.SBNamespaceProperties = &properties
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -118,8 +172,7 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return err
 	}
 
@@ -138,10 +191,12 @@ func resourceArmServiceBusNamespaceCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
+	clientStable := meta.(*ArmClient).ServiceBus.NamespacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -159,9 +214,8 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
-
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := resp.Sku; sku != nil {
@@ -169,7 +223,11 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("capacity", sku.Capacity)
 	}
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
+	if properties := resp.SBNamespaceProperties; properties != nil {
+		d.Set("zone_redundant", properties.ZoneRedundant)
+	}
+
+	keys, err := clientStable.ListKeys(ctx, resourceGroup, name, serviceBusNamespaceDefaultAuthorizationRule)
 	if err != nil {
 		log.Printf("[WARN] Unable to List default keys for Namespace %q (Resource Group %q): %+v", name, resourceGroup, err)
 	} else {
@@ -179,40 +237,33 @@ func resourceArmServiceBusNamespaceRead(d *schema.ResourceData, meta interface{}
 		d.Set("default_secondary_key", keys.SecondaryKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmServiceBusNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusNamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ServiceBus.NamespacesClientPreview
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["namespaces"]
 
-	_, err = client.Delete(ctx, resourceGroup, name)
+	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		return err
 	}
 
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if response.WasNotFound(future.Response()) {
+			return nil
+		}
+
+		return fmt.Errorf("Error deleting Service Bus %q: %+v", name, err)
+	}
+
 	return nil
-}
-
-func validateServiceBusNamespaceCapacity(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(int)
-	capacities := map[int]bool{
-		1: true,
-		2: true,
-		4: true,
-	}
-
-	if !capacities[value] {
-		errors = append(errors, fmt.Errorf("ServiceBus Namespace Capacity can only be 1, 2 or 4"))
-	}
-	return
 }

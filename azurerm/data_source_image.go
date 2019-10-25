@@ -5,16 +5,25 @@ import (
 	"log"
 	"regexp"
 	"sort"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2017-12-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmImage() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmImageRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 
 			"name_regex": {
@@ -36,9 +45,14 @@ func dataSourceArmImage() *schema.Resource {
 				ConflictsWith: []string{"name_regex"},
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
+
+			"zone_resilient": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 
 			"os_disk": {
 				Type:     schema.TypeList,
@@ -102,14 +116,15 @@ func dataSourceArmImage() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).imageClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.ImagesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 
@@ -126,26 +141,24 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 		var err error
 		if img, err = client.Get(ctx, resGroup, name, ""); err != nil {
 			if utils.ResponseWasNotFound(img.Response) {
-				d.SetId("")
-				return nil
+				return fmt.Errorf("Error: Image %q (Resource Group %q) was not found", name, resGroup)
 			}
 			return fmt.Errorf("[ERROR] Error making Read request on Azure Image %q (resource group %q): %+v", name, resGroup, err)
 		}
 	} else {
 		r := regexp.MustCompile(nameRegex.(string))
 
-		list := []compute.Image{}
+		list := make([]compute.Image, 0)
 		resp, err := client.ListByResourceGroupComplete(ctx, resGroup)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response().Response) {
-				d.SetId("")
-				return nil
+				return fmt.Errorf("Error: Unable to list images for Resource Group %q", resGroup)
 			}
 			return fmt.Errorf("[ERROR] Error getting list of images (resource group %q): %+v", resGroup, err)
 		}
 
 		for resp.NotDone() {
-			img := resp.Value()
+			img = resp.Value()
 			if r.Match(([]byte)(*img.Name)) {
 				list = append(list, img)
 			}
@@ -171,15 +184,13 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 			})
 		}
 		img = list[0]
-
 	}
 
 	d.SetId(*img.ID)
 	d.Set("name", img.Name)
 	d.Set("resource_group_name", resGroup)
-
 	if location := img.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if profile := img.StorageProfile; profile != nil {
@@ -194,9 +205,9 @@ func dataSourceArmImageRead(d *schema.ResourceData, meta interface{}) error {
 				return fmt.Errorf("[DEBUG] Error setting AzureRM Image Data Disks error: %+v", err)
 			}
 		}
+
+		d.Set("zone_resilient", profile.ZoneResilient)
 	}
 
-	flattenAndSetTags(d, img.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, img.Tags)
 }

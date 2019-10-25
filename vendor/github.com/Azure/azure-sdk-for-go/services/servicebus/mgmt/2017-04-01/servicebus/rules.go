@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -41,11 +42,24 @@ func NewRulesClientWithBaseURI(baseURI string, subscriptionID string) RulesClien
 }
 
 // CreateOrUpdate creates a new rule and updates an existing rule
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. subscriptionName is the subscription name. ruleName is the rule name. parameters is
-// parameters supplied to create a rule.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// subscriptionName - the subscription name.
+// ruleName - the rule name.
+// parameters - parameters supplied to create a rule.
 func (client RulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string, ruleName string, parameters Rule) (result Rule, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RulesClient.CreateOrUpdate")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -60,8 +74,17 @@ func (client RulesClient) CreateOrUpdate(ctx context.Context, resourceGroupName 
 				{Target: "subscriptionName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: ruleName,
 			Constraints: []validation.Constraint{{Target: "ruleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "ruleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.RulesClient", "CreateOrUpdate")
+				{Target: "ruleName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Ruleproperties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "parameters.Ruleproperties.SQLFilter", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "parameters.Ruleproperties.SQLFilter.CompatibilityLevel", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "parameters.Ruleproperties.SQLFilter.CompatibilityLevel", Name: validation.InclusiveMaximum, Rule: int64(20), Chain: nil},
+							{Target: "parameters.Ruleproperties.SQLFilter.CompatibilityLevel", Name: validation.InclusiveMinimum, Rule: 20, Chain: nil},
+						}},
+					}},
+				}}}}}); err != nil {
+		return result, validation.NewError("servicebus.RulesClient", "CreateOrUpdate", err.Error())
 	}
 
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, namespaceName, topicName, subscriptionName, ruleName, parameters)
@@ -102,7 +125,7 @@ func (client RulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ServiceBus/namespaces/{namespaceName}/topics/{topicName}/subscriptions/{subscriptionName}/rules/{ruleName}", pathParameters),
@@ -114,8 +137,8 @@ func (client RulesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client RulesClient) CreateOrUpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateOrUpdateResponder handles the response to the CreateOrUpdate request. The method always
@@ -132,10 +155,23 @@ func (client RulesClient) CreateOrUpdateResponder(resp *http.Response) (result R
 }
 
 // Delete deletes an existing rule.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. subscriptionName is the subscription name. ruleName is the rule name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// subscriptionName - the subscription name.
+// ruleName - the rule name.
 func (client RulesClient) Delete(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string, ruleName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RulesClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -151,7 +187,7 @@ func (client RulesClient) Delete(ctx context.Context, resourceGroupName string, 
 		{TargetValue: ruleName,
 			Constraints: []validation.Constraint{{Target: "ruleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "ruleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.RulesClient", "Delete")
+		return result, validation.NewError("servicebus.RulesClient", "Delete", err.Error())
 	}
 
 	req, err := client.DeletePreparer(ctx, resourceGroupName, namespaceName, topicName, subscriptionName, ruleName)
@@ -202,8 +238,8 @@ func (client RulesClient) DeletePreparer(ctx context.Context, resourceGroupName 
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client RulesClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -219,10 +255,23 @@ func (client RulesClient) DeleteResponder(resp *http.Response) (result autorest.
 }
 
 // Get retrieves the description for the specified rule.
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. subscriptionName is the subscription name. ruleName is the rule name.
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// subscriptionName - the subscription name.
+// ruleName - the rule name.
 func (client RulesClient) Get(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string, ruleName string) (result Rule, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RulesClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -238,7 +287,7 @@ func (client RulesClient) Get(ctx context.Context, resourceGroupName string, nam
 		{TargetValue: ruleName,
 			Constraints: []validation.Constraint{{Target: "ruleName", Name: validation.MaxLength, Rule: 50, Chain: nil},
 				{Target: "ruleName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.RulesClient", "Get")
+		return result, validation.NewError("servicebus.RulesClient", "Get", err.Error())
 	}
 
 	req, err := client.GetPreparer(ctx, resourceGroupName, namespaceName, topicName, subscriptionName, ruleName)
@@ -289,8 +338,8 @@ func (client RulesClient) GetPreparer(ctx context.Context, resourceGroupName str
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client RulesClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -307,10 +356,26 @@ func (client RulesClient) GetResponder(resp *http.Response) (result Rule, err er
 }
 
 // ListBySubscriptions list all the rules within given topic-subscription
-//
-// resourceGroupName is name of the Resource group within the Azure subscription. namespaceName is the namespace name
-// topicName is the topic name. subscriptionName is the subscription name.
-func (client RulesClient) ListBySubscriptions(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string) (result RuleListResultPage, err error) {
+// Parameters:
+// resourceGroupName - name of the Resource group within the Azure subscription.
+// namespaceName - the namespace name
+// topicName - the topic name.
+// subscriptionName - the subscription name.
+// skip - skip is only used if a previous operation returned a partial result. If a previous response contains
+// a nextLink element, the value of the nextLink element will include a skip parameter that specifies a
+// starting point to use for subsequent calls.
+// top - may be used to limit the number of results to the most recent N usageDetails.
+func (client RulesClient) ListBySubscriptions(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string, skip *int32, top *int32) (result RuleListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RulesClient.ListBySubscriptions")
+		defer func() {
+			sc := -1
+			if result.rlr.Response.Response != nil {
+				sc = result.rlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -322,12 +387,22 @@ func (client RulesClient) ListBySubscriptions(ctx context.Context, resourceGroup
 			Constraints: []validation.Constraint{{Target: "topicName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
 		{TargetValue: subscriptionName,
 			Constraints: []validation.Constraint{{Target: "subscriptionName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "subscriptionName", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "servicebus.RulesClient", "ListBySubscriptions")
+				{Target: "subscriptionName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: skip,
+			Constraints: []validation.Constraint{{Target: "skip", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "skip", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "skip", Name: validation.InclusiveMinimum, Rule: 0, Chain: nil},
+				}}}},
+		{TargetValue: top,
+			Constraints: []validation.Constraint{{Target: "top", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "top", Name: validation.InclusiveMaximum, Rule: int64(1000), Chain: nil},
+					{Target: "top", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+				}}}}}); err != nil {
+		return result, validation.NewError("servicebus.RulesClient", "ListBySubscriptions", err.Error())
 	}
 
 	result.fn = client.listBySubscriptionsNextResults
-	req, err := client.ListBySubscriptionsPreparer(ctx, resourceGroupName, namespaceName, topicName, subscriptionName)
+	req, err := client.ListBySubscriptionsPreparer(ctx, resourceGroupName, namespaceName, topicName, subscriptionName, skip, top)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "servicebus.RulesClient", "ListBySubscriptions", nil, "Failure preparing request")
 		return
@@ -349,7 +424,7 @@ func (client RulesClient) ListBySubscriptions(ctx context.Context, resourceGroup
 }
 
 // ListBySubscriptionsPreparer prepares the ListBySubscriptions request.
-func (client RulesClient) ListBySubscriptionsPreparer(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string) (*http.Request, error) {
+func (client RulesClient) ListBySubscriptionsPreparer(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string, skip *int32, top *int32) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"namespaceName":     autorest.Encode("path", namespaceName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -361,6 +436,12 @@ func (client RulesClient) ListBySubscriptionsPreparer(ctx context.Context, resou
 	const APIVersion = "2017-04-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if skip != nil {
+		queryParameters["$skip"] = autorest.Encode("query", *skip)
+	}
+	if top != nil {
+		queryParameters["$top"] = autorest.Encode("query", *top)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -374,8 +455,8 @@ func (client RulesClient) ListBySubscriptionsPreparer(ctx context.Context, resou
 // ListBySubscriptionsSender sends the ListBySubscriptions request. The method will close the
 // http.Response Body if it receives an error.
 func (client RulesClient) ListBySubscriptionsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListBySubscriptionsResponder handles the response to the ListBySubscriptions request. The method always
@@ -392,8 +473,8 @@ func (client RulesClient) ListBySubscriptionsResponder(resp *http.Response) (res
 }
 
 // listBySubscriptionsNextResults retrieves the next set of results, if any.
-func (client RulesClient) listBySubscriptionsNextResults(lastResults RuleListResult) (result RuleListResult, err error) {
-	req, err := lastResults.ruleListResultPreparer()
+func (client RulesClient) listBySubscriptionsNextResults(ctx context.Context, lastResults RuleListResult) (result RuleListResult, err error) {
+	req, err := lastResults.ruleListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "servicebus.RulesClient", "listBySubscriptionsNextResults", nil, "Failure preparing next results request")
 	}
@@ -413,7 +494,17 @@ func (client RulesClient) listBySubscriptionsNextResults(lastResults RuleListRes
 }
 
 // ListBySubscriptionsComplete enumerates all values, automatically crossing page boundaries as required.
-func (client RulesClient) ListBySubscriptionsComplete(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string) (result RuleListResultIterator, err error) {
-	result.page, err = client.ListBySubscriptions(ctx, resourceGroupName, namespaceName, topicName, subscriptionName)
+func (client RulesClient) ListBySubscriptionsComplete(ctx context.Context, resourceGroupName string, namespaceName string, topicName string, subscriptionName string, skip *int32, top *int32) (result RuleListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/RulesClient.ListBySubscriptions")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListBySubscriptions(ctx, resourceGroupName, namespaceName, topicName, subscriptionName, skip, top)
 	return
 }

@@ -6,18 +6,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceArmPublicIPs() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPublicIPsRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"name_prefix": {
 				Type:     schema.TypeString,
@@ -71,19 +76,15 @@ func dataSourceArmPublicIPs() *schema.Resource {
 }
 
 func dataSourceArmPublicIPsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).publicIPClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.PublicIPsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 
 	log.Printf("[DEBUG] Reading Public IP's in Resource Group %q", resourceGroup)
 	resp, err := client.List(ctx, resourceGroup)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response().Response) {
-			d.SetId("")
-			return nil
-		}
-
 		return fmt.Errorf("Error listing Public IP Addresses in the Resource Group %q: %v", resourceGroup, err)
 	}
 
@@ -144,7 +145,7 @@ func flattenDataSourcePublicIPs(input []network.PublicIPAddress) []interface{} {
 }
 
 func flattenDataSourcePublicIP(input network.PublicIPAddress) map[string]string {
-	output := make(map[string]string, 0)
+	output := make(map[string]string)
 
 	if input.ID != nil {
 		output["id"] = *input.ID

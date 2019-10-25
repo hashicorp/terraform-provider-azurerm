@@ -3,25 +3,26 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_credential"
 sidebar_current: "docs-azurerm-resource-automation-credential"
 description: |-
-  Creates a new Automation Credential.
+  Manages a Automation Credential.
 ---
 
-# azurerm\_automation\_credential
+# azurerm_automation_credential
 
-Creates a new Automation Credential.
+Manages a Automation Credential.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "example" {
- name = "resourceGroup1"
- location = "West Europe"
+  name     = "resourceGroup1"
+  location = "West Europe"
 }
 
 resource "azurerm_automation_account" "example" {
   name                = "account1"
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
+
   sku {
     name = "Basic"
   }
@@ -31,7 +32,7 @@ resource "azurerm_automation_credential" "example" {
   name                = "credential1"
   resource_group_name = "${azurerm_resource_group.example.name}"
   account_name        = "${azurerm_automation_account.example.name}"
-  username           = "example_user"
+  username            = "example_user"
   password            = "example_pwd"
   description         = "This is an example credential"
 }

@@ -4,27 +4,26 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	resourceName := "azurerm_postgresql_database.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
-
 					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
 					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
 				),
@@ -33,12 +32,84 @@ func TestAccAzureRMPostgreSQLDatabase_basic(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMPostgreSQLDatabaseExists(name string) resource.TestCheckFunc {
+func TestAccAzureRMPostgreSQLDatabase_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
+	resourceName := "azurerm_postgresql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLDatabase_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
+				),
+			},
+			{
+				Config:      testAccAzureRMPostgreSQLDatabase_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_postgresql_database"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLDatabase_charsetLowercase(t *testing.T) {
+	resourceName := "azurerm_postgresql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLDatabase_charsetLowercase(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMPostgreSQLDatabase_charsetMixedcase(t *testing.T) {
+	resourceName := "azurerm_postgresql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPostgreSQLDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPostgreSQLDatabase_charsetMixedcase(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPostgreSQLDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "charset", "UTF8"),
+					resource.TestCheckResourceAttr(resourceName, "collation", "English_United States.1252"),
+				),
+			},
+		},
+	})
+}
+
+func testCheckAzureRMPostgreSQLDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -48,7 +119,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(name string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Database: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.DatabasesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -64,7 +135,7 @@ func testCheckAzureRMPostgreSQLDatabaseExists(name string) resource.TestCheckFun
 }
 
 func testCheckAzureRMPostgreSQLDatabaseDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgresqlDatabasesClient
+	client := testAccProvider.Meta().(*ArmClient).Postgres.DatabasesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -105,15 +176,21 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
-    tier     = "Basic"
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 
@@ -122,6 +199,102 @@ resource "azurerm_postgresql_database" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_postgresql_server.test.name}"
   charset             = "UTF8"
+  collation           = "English_United States.1252"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLDatabase_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_database" "import" {
+  name                = "${azurerm_postgresql_database.test.name}"
+  resource_group_name = "${azurerm_postgresql_database.test.resource_group_name}"
+  server_name         = "${azurerm_postgresql_database.test.server_name}"
+  charset             = "${azurerm_postgresql_database.test.charset}"
+  collation           = "${azurerm_postgresql_database.test.collation}"
+}
+`, testAccAzureRMPostgreSQLDatabase_basic(rInt, location))
+}
+
+func testAccAzureRMPostgreSQLDatabase_charsetLowercase(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  ssl_enforcement              = "Enabled"
+}
+
+resource "azurerm_postgresql_database" "test" {
+  name                = "acctestdb_%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_postgresql_server.test.name}"
+  charset             = "utf8"
+  collation           = "English_United States.1252"
+}
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMPostgreSQLDatabase_charsetMixedcase(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_postgresql_server" "test" {
+  name                = "acctestpsqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "9.6"
+  ssl_enforcement              = "Enabled"
+}
+
+resource "azurerm_postgresql_database" "test" {
+  name                = "acctestdb_%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  server_name         = "${azurerm_postgresql_server.test.name}"
+  charset             = "Utf8"
   collation           = "English_United States.1252"
 }
 `, rInt, location, rInt, rInt)

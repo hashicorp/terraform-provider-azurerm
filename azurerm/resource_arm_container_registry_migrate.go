@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func resourceAzureRMContainerRegistryMigrateState(
@@ -49,13 +49,13 @@ func migrateAzureRMContainerRegistryStateV1toV2(is *terraform.InstanceState, met
 	// Basic's been renamed Classic to allow for "ManagedBasic" ¯\_(ツ)_/¯
 	is.Attributes["sku"] = "Classic"
 
-	updateV1ToV2StorageAccountName(is, meta)
+	err := updateV1ToV2StorageAccountName(is, meta)
 
 	// we have to look this up, since we don't have the resource group name
 
 	log.Printf("[DEBUG] ARM Container Registry Attributes after State Migration: %#v", is.Attributes)
 
-	return is, nil
+	return is, err
 }
 
 func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{}) error {
@@ -91,14 +91,15 @@ func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{
 }
 
 func findAzureStorageAccountIdFromName(name string, meta interface{}) (string, error) {
-	client := meta.(*ArmClient).storageServiceClient
-	accounts, err := client.List()
+	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Storage.AccountsClient
+	accounts, err := client.List(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	for _, account := range *accounts.Value {
-		if strings.ToLower(*account.Name) == strings.ToLower(name) {
+	for _, account := range accounts.Values() {
+		if strings.EqualFold(*account.Name, name) {
 			return *account.ID, nil
 		}
 	}

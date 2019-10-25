@@ -3,30 +3,30 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
 sidebar_current: "docs-azurerm-resource-compute-managed-disk"
 description: |-
-  Create a Managed Disk.
+  Manages a Managed Disk.
 ---
 
-# azurerm\_managed\_disk
+# azurerm_managed_disk
 
-Create a managed disk.
+Manages a managed disk.
 
 ## Example Usage with Create Empty
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
 resource "azurerm_managed_disk" "test" {
-  name = "acctestmd"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctestmd"
+  location             = "West US 2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Empty"
-  disk_size_gb = "1"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -36,33 +36,33 @@ resource "azurerm_managed_disk" "test" {
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name = "acctestrg"
+  name     = "acctestRG"
   location = "West US 2"
 }
 
 resource "azurerm_managed_disk" "source" {
-  name = "acctestmd1"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctestmd1"
+  location             = "West US 2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Empty"
-  disk_size_gb = "1"
+  create_option        = "Empty"
+  disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
 
 resource "azurerm_managed_disk" "copy" {
-  name = "acctestmd2"
-  location = "West US 2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                 = "acctestmd2"
+  location             = "West US 2"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_type = "Standard_LRS"
-  create_option = "Copy"
-  source_resource_id = "${azurerm_managed_disk.source.id}"
-  disk_size_gb = "1"
+  create_option        = "Copy"
+  source_resource_id   = "${azurerm_managed_disk.source.id}"
+  disk_size_gb         = "1"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -82,17 +82,21 @@ The following arguments are supported:
     Changing this forces a new resource to be created.
 
 * `storage_account_type` - (Required) The type of storage to use for the managed disk.
-    Allowable values are `Standard_LRS` or `Premium_LRS`.
+    Allowable values are `Standard_LRS`, `Premium_LRS`, `StandardSSD_LRS` or `UltraSSD_LRS`.
+
+-> **Note**: A `storage_account_type` of type `UltraSSD_LRS` and the arguments `disk_iops_read_write` and `disk_mbps_read_write` are currently in private preview and are not available to subscriptions that have not requested onboarding to `Azure Ultra Disk Storage` private preview. `Azure Ultra Disk Storage` is only available in `East US 2`, `North Europe`, and `Southeast Asia` regions. For more information see the `Azure Ultra Disk Storage` [product documentation](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/disks-enable-ultra-ssd), [product blog](https://azure.microsoft.com/en-us/blog/announcing-the-general-availability-of-azure-ultra-disk-storage/) and [FAQ](https://docs.microsoft.com/en-us/azure/virtual-machines/windows/faq-for-disks#ultra-disks).
 
 * `create_option` - (Required) The method to use when creating the managed disk. Possible values include:
  * `Import` - Import a VHD file in to the managed disk (VHD specified with `source_uri`).
  * `Empty` - Create an empty managed disk.
  * `Copy` - Copy an existing managed disk or snapshot (specified with `source_resource_id`).
  * `FromImage` - Copy a Platform Image (specified with `image_reference_id`)
+ * `Restore` - Set by Azure Backup or Site Recovery on a restored disk (specified with `source_resource_id`).
 
 * `source_uri` - (Optional) URI to a valid VHD file to be used when `create_option` is `Import`.
 
-* `source_resource_id` - (Optional) ID of an existing managed disk to copy when `create_option` is `Copy`.
+* `source_resource_id` - (Optional) ID of an existing managed disk to copy `create_option` is `Copy`
+    or the recovery point to restore when `create_option` is `Restore`
 
 * `image_reference_id` - (Optional) ID of an existing platform/marketplace disk image to copy when `create_option` is `FromImage`.
 
@@ -102,13 +106,17 @@ The following arguments are supported:
 * `disk_size_gb` - (Optional, Required for a new managed disk) Specifies the size of the managed disk to create in gigabytes.
     If `create_option` is `Copy` or `FromImage`, then the value must be equal to or greater than the source's size.
 
+* `disk_iops_read_write` - (Optional) The number of IOPS allowed for this disk; only settable for UltraSSD disks. One operation can transfer between 4k and 256k bytes.
+
+* `disk_mbps_read_write` - (Optional) The bandwidth allowed for this disk; only settable for UltraSSD disks. MBps means millions of bytes per second.
+
 * `encryption_settings` - (Optional) an `encryption_settings` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) A collection containing the availability zone to allocate the Managed Disk in.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](http://aka.ms/azenroll).
+-> **Note**: Availability Zones are [only supported in select regions at this time](https://docs.microsoft.com/en-us/azure/availability-zones/az-overview).
 
 For more information on managed disks, such as sizing options and pricing, please check out the
 [azure documentation](https://docs.microsoft.com/en-us/azure/storage/storage-managed-disks-overview).
@@ -122,11 +130,15 @@ For more information on managed disks, such as sizing options and pricing, pleas
 * `key_encryption_key` - (Optional) A `key_encryption_key` block as defined below.
 
 `disk_encryption_key` supports:
+
 * `secret_url` - (Required) The URL to the Key Vault Secret used as the Disk Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
 `key_encryption_key` supports:
-* `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_secret` resource.
+
+* `key_url` - (Required) The URL to the Key Vault Key used as the Key Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
+
 * `source_vault_id` - (Required) The URL of the Key Vault. This can be found as `vault_uri` on the `azurerm_key_vault` resource.
 
 

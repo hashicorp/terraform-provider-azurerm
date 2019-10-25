@@ -2,21 +2,35 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2016-04-01/dns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDnsZone() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDnsZoneCreate,
+		Create: resourceArmDnsZoneCreateUpdate,
 		Read:   resourceArmDnsZoneRead,
-		Update: resourceArmDnsZoneCreate,
+		Update: resourceArmDnsZoneCreateUpdate,
 		Delete: resourceArmDnsZoneDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -26,15 +40,15 @@ func resourceArmDnsZone() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"max_number_of_record_sets": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -45,35 +59,86 @@ func resourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
-			"tags": tagsSchema(),
+			"zone_type": {
+				Type:       schema.TypeString,
+				Default:    string(dns.Public),
+				Optional:   true,
+				Deprecated: "Use the `azurerm_private_dns_zone` resource instead.",
+				ValidateFunc: validation.StringInSlice([]string{
+					string(dns.Private),
+					string(dns.Public),
+				}, false),
+			},
+
+			"registration_virtual_network_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"resolution_virtual_network_ids": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).zonesClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmDnsZoneCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Dns.ZonesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	location := "global"
 
-	tags := d.Get("tags").(map[string]interface{})
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_dns_zone", *existing.ID)
+		}
+	}
+
+	location := "global"
+	zoneType := d.Get("zone_type").(string)
+	t := d.Get("tags").(map[string]interface{})
+
+	registrationVirtualNetworkIds := expandDnsZoneRegistrationVirtualNetworkIds(d)
+	resolutionVirtualNetworkIds := expandDnsZoneResolutionVirtualNetworkIds(d)
 
 	parameters := dns.Zone{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
+		ZoneProperties: &dns.ZoneProperties{
+			ZoneType:                    dns.ZoneType(zoneType),
+			RegistrationVirtualNetworks: registrationVirtualNetworkIds,
+			ResolutionVirtualNetworks:   resolutionVirtualNetworkIds,
+		},
 	}
 
 	etag := ""
 	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	resp, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch)
+	_, err := client.CreateOrUpdate(ctx, resGroup, name, parameters, etag, ifNoneMatch)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating/updating DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
+	}
+
+	resp, err := client.Get(ctx, resGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving DNS Zone %q (Resource Group %q): %s", name, resGroup, err)
 	}
 
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read DNS zone %s (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read DNS Zone %q (Resource Group %q) ID", name, resGroup)
 	}
 
 	d.SetId(*resp.ID)
@@ -82,10 +147,11 @@ func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
-	zonesClient := meta.(*ArmClient).zonesClient
-	ctx := meta.(*ArmClient).StopContext
+	zonesClient := meta.(*ArmClient).Dns.ZonesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -99,32 +165,42 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading DNS zone %s (resource group %s): %+v", name, resGroup, err)
+		return fmt.Errorf("Error reading DNS Zone %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resGroup)
 	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
 	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
+	d.Set("zone_type", resp.ZoneType)
 
-	nameServers := make([]string, 0, len(*resp.NameServers))
-	for _, ns := range *resp.NameServers {
-		nameServers = append(nameServers, ns)
+	registrationVirtualNetworks := flattenDnsZoneRegistrationVirtualNetworkIDs(resp.RegistrationVirtualNetworks)
+	if err := d.Set("registration_virtual_network_ids", registrationVirtualNetworks); err != nil {
+		return err
+	}
+
+	resolutionVirtualNetworks := flattenDnsZoneResolutionVirtualNetworkIDs(resp.ResolutionVirtualNetworks)
+	if err := d.Set("resolution_virtual_network_ids", resolutionVirtualNetworks); err != nil {
+		return err
+	}
+
+	nameServers := make([]string, 0)
+	if s := resp.NameServers; s != nil {
+		nameServers = *s
 	}
 	if err := d.Set("name_servers", nameServers); err != nil {
 		return err
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).zonesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Dns.ZonesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -141,8 +217,7 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Error deleting DNS zone %s (resource group %s): %+v", name, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
@@ -150,4 +225,56 @@ func resourceArmDnsZoneDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func expandDnsZoneResolutionVirtualNetworkIds(d *schema.ResourceData) *[]dns.SubResource {
+	resolutionVirtualNetworks := d.Get("resolution_virtual_network_ids").([]interface{})
+
+	resolutionVNetSubResources := make([]dns.SubResource, 0, len(resolutionVirtualNetworks))
+	for _, rvn := range resolutionVirtualNetworks {
+		id := rvn.(string)
+		resolutionVNetSubResources = append(resolutionVNetSubResources, dns.SubResource{
+			ID: &id,
+		})
+	}
+
+	return &resolutionVNetSubResources
+}
+
+func flattenDnsZoneRegistrationVirtualNetworkIDs(input *[]dns.SubResource) []string {
+	registrationVirtualNetworks := make([]string, 0)
+
+	if input != nil {
+		for _, rvn := range *input {
+			registrationVirtualNetworks = append(registrationVirtualNetworks, *rvn.ID)
+		}
+	}
+
+	return registrationVirtualNetworks
+}
+
+func expandDnsZoneRegistrationVirtualNetworkIds(d *schema.ResourceData) *[]dns.SubResource {
+	registrationVirtualNetworks := d.Get("registration_virtual_network_ids").([]interface{})
+
+	registrationVNetSubResources := make([]dns.SubResource, 0)
+	for _, rvn := range registrationVirtualNetworks {
+		id := rvn.(string)
+		registrationVNetSubResources = append(registrationVNetSubResources, dns.SubResource{
+			ID: &id,
+		})
+	}
+
+	return &registrationVNetSubResources
+}
+
+func flattenDnsZoneResolutionVirtualNetworkIDs(input *[]dns.SubResource) []string {
+	resolutionVirtualNetworks := make([]string, 0)
+
+	if input != nil {
+		for _, rvn := range *input {
+			resolutionVirtualNetworks = append(resolutionVirtualNetworks, *rvn.ID)
+		}
+	}
+
+	return resolutionVirtualNetworks
 }

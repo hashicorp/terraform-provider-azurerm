@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_aaaa_record"
 sidebar_current: "docs-azurerm-resource-dns-aaaa-record"
 description: |-
-  Create a DNS AAAA Record.
+  Manages a DNS AAAA Record.
 ---
 
-# azurerm\_dns\_aaaa\_record
+# azurerm_dns_aaaa_record
 
 Enables you to manage DNS AAAA Records within Azure DNS.
 
@@ -38,11 +38,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the DNS AAAA Record.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record.
+* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `records` - (Required) List of IPv6 Addresses.
 
@@ -59,5 +59,5 @@ The following attributes are exported:
 AAAA records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_aaaa_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/AAAA/myrecord1
+terraform import azurerm_dns_aaaa_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/AAAA/myrecord1
 ```

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,11 +32,15 @@ func TestSnapshotName_validation(t *testing.T) {
 		},
 		{
 			Value:    "hello-world",
-			ErrCount: 1,
+			ErrCount: 0,
 		},
 		{
 			Value:    "hello_world",
 			ErrCount: 0,
+		},
+		{
+			Value:    "hello+world",
+			ErrCount: 1,
 		},
 		{
 			Value:    str,
@@ -54,22 +60,52 @@ func TestSnapshotName_validation(t *testing.T) {
 		}
 	}
 }
-
 func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
-	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
+			},
+		},
+	})
+}
+func TestAccAzureRMSnapshot_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_snapshot.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSnapshotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSnapshotExists(resourceName),
+				),
+			},
+			{
+				Config:      testAccAzureRMSnapshot_requiresImport(ri, testLocation()),
+				ExpectError: testRequiresImportError("azurerm_snapshot"),
 			},
 		},
 	})
@@ -77,11 +113,11 @@ func TestAccAzureRMSnapshot_fromManagedDisk(t *testing.T) {
 
 func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_encryption(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -92,17 +128,23 @@ func TestAccAzureRMSnapshot_encryption(t *testing.T) {
 					testCheckAzureRMSnapshotExists(resourceName),
 				),
 			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"source_uri"},
+			},
 		},
 	})
 }
 
 func TestAccAzureRMSnapshot_update(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSnapshot_fromManagedDisk(ri, testLocation())
 	updatedConfig := testAccAzureRMSnapshot_fromManagedDiskUpdated(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -125,10 +167,10 @@ func TestAccAzureRMSnapshot_update(t *testing.T) {
 
 func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSnapshot_extendingManagedDisk(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -145,10 +187,10 @@ func TestAccAzureRMSnapshot_extendingManagedDisk(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 	resourceName := "azurerm_snapshot.second"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMSnapshot_fromExistingSnapshot(ri, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -165,11 +207,11 @@ func TestAccAzureRMSnapshot_fromExistingSnapshot(t *testing.T) {
 
 func TestAccAzureRMSnapshot_fromUnmanagedDisk(t *testing.T) {
 	resourceName := "azurerm_snapshot.test"
-	ri := acctest.RandInt()
+	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
 	config := testAccAzureRMSnapshot_fromUnmanagedDisk(ri, rs, testLocation())
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMSnapshotDestroy,
@@ -193,7 +235,7 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).snapshotsClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.SnapshotsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -209,12 +251,12 @@ func testCheckAzureRMSnapshotDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMSnapshotExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMSnapshotExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -223,7 +265,7 @@ func testCheckAzureRMSnapshotExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Snapshot: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).snapshotsClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.SnapshotsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -242,7 +284,7 @@ func testCheckAzureRMSnapshotExists(name string) resource.TestCheckFunc {
 func testAccAzureRMSnapshot_fromManagedDisk(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -265,10 +307,24 @@ resource "azurerm_snapshot" "test" {
 `, rInt, location, rInt, rInt)
 }
 
+func testAccAzureRMSnapshot_requiresImport(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_snapshot" "import" {
+  name                = "${azurerm_snapshot.test.name}"
+  location            = "${azurerm_snapshot.test.location}"
+  resource_group_name = "${azurerm_snapshot.test.resource_group_name}"
+  create_option       = "${azurerm_snapshot.test.create_option}"
+  source_uri          = "${azurerm_snapshot.test.source_uri}"
+}
+`, testAccAzureRMSnapshot_fromManagedDisk(rInt, location))
+}
+
 func testAccAzureRMSnapshot_fromManagedDiskUpdated(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -288,8 +344,8 @@ resource "azurerm_snapshot" "test" {
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
 
-  tags {
-    "Hello" = "World"
+  tags = {
+    Hello = "World"
   }
 }
 `, rInt, location, rInt, rInt)
@@ -300,7 +356,7 @@ func testAccAzureRMSnapshot_encryption(rInt int, rString string, location string
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -330,7 +386,7 @@ resource "azurerm_key_vault" "test" {
     key_permissions = [
       "create",
       "delete",
-      "get"
+      "get",
     ]
 
     secret_permissions = [
@@ -340,7 +396,7 @@ resource "azurerm_key_vault" "test" {
     ]
   }
 
-   enabled_for_disk_encryption = true
+  enabled_for_disk_encryption = true
 }
 
 resource "azurerm_key_vault_key" "test" {
@@ -371,7 +427,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
-  disk_size_gb  	  = "20"
+  disk_size_gb        = "20"
 
   encryption_settings {
     enabled = true
@@ -393,7 +449,7 @@ resource "azurerm_snapshot" "test" {
 func testAccAzureRMSnapshot_extendingManagedDisk(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -412,7 +468,7 @@ resource "azurerm_snapshot" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   create_option       = "Copy"
   source_uri          = "${azurerm_managed_disk.test.id}"
-  disk_size_gb  	  = "20"
+  disk_size_gb        = "20"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -420,7 +476,7 @@ resource "azurerm_snapshot" "test" {
 func testAccAzureRMSnapshot_fromExistingSnapshot(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -454,7 +510,7 @@ resource "azurerm_snapshot" "second" {
 func testAccAzureRMSnapshot_fromUnmanagedDisk(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg-%d"
+  name     = "acctestRG-%d"
   location = "%s"
 }
 
@@ -480,7 +536,7 @@ resource "azurerm_network_interface" "test" {
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
@@ -491,7 +547,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -504,11 +560,11 @@ resource "azurerm_storage_container" "test" {
 }
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctestvm-%d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_A0"
+  name                          = "acctestvm-%d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  vm_size                       = "Standard_F2"
   delete_os_disk_on_termination = true
 
   storage_image_reference {
@@ -535,7 +591,7 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }

@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# azurerm\_sql\_server
+# azurerm_sql_server
 
 Manages a SQL Azure Database Server.
 
@@ -30,7 +30,7 @@ resource "azurerm_sql_server" "test" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 
-  tags {
+  tags = {
     environment = "production"
   }
 }

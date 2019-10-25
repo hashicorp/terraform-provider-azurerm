@@ -2,92 +2,138 @@ package azurerm
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMServiceBusTopicAuthorizationRule_listen(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusTopicAuthorizationRule_listen(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicAuthorizationRuleExists("azurerm_servicebus_topic_authorization_rule.test"),
-				),
-			},
-		},
-	})
+	testAccAzureRMServiceBusTopicAuthorizationRule(t, true, false, false)
 }
 
 func TestAccAzureRMServiceBusTopicAuthorizationRule_send(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusTopicAuthorizationRule_send(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicAuthorizationRuleExists("azurerm_servicebus_topic_authorization_rule.test"),
-				),
-			},
-		},
-	})
+	testAccAzureRMServiceBusTopicAuthorizationRule(t, false, true, false)
 }
 
-func TestAccAzureRMServiceBusTopicAuthorizationRule_readwrite(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusTopicAuthorizationRule_readWrite(ri, testLocation())
-
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicAuthorizationRuleExists("azurerm_servicebus_topic_authorization_rule.test"),
-				),
-			},
-		},
-	})
+func TestAccAzureRMServiceBusTopicAuthorizationRule_listensend(t *testing.T) {
+	testAccAzureRMServiceBusTopicAuthorizationRule(t, true, true, false)
 }
 
 func TestAccAzureRMServiceBusTopicAuthorizationRule_manage(t *testing.T) {
-	ri := acctest.RandInt()
-	config := testAccAzureRMServiceBusTopicAuthorizationRule_manage(ri, testLocation())
+	testAccAzureRMServiceBusTopicAuthorizationRule(t, true, true, true)
+}
 
-	resource.Test(t, resource.TestCase{
+func testAccAzureRMServiceBusTopicAuthorizationRule(t *testing.T, listen, send, manage bool) {
+	resourceName := "azurerm_servicebus_topic_authorization_rule.test"
+
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(tf.AccRandTimeInt(), testLocation(), listen, send, manage),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMServiceBusTopicAuthorizationRuleExists("azurerm_servicebus_topic_authorization_rule.test"),
+					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttr(resourceName, "listen", strconv.FormatBool(listen)),
+					resource.TestCheckResourceAttr(resourceName, "send", strconv.FormatBool(send)),
+					resource.TestCheckResourceAttr(resourceName, "manage", strconv.FormatBool(manage)),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusTopicAuthorizationRule_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+	resourceName := "azurerm_servicebus_topic_authorization_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, testLocation(), true, false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send", "false"),
+					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
+				),
+			},
+			{
+				Config:      testAccAzureRMServiceBusTopicAuthorizationRule_requiresImport(ri, testLocation(), true, false, false),
+				ExpectError: testRequiresImportError("azurerm_servicebus_topic_authorization_rule"),
+			},
+		},
+	})
+}
+
+func TestAccAzureRMServiceBusTopicAuthorizationRule_rightsUpdate(t *testing.T) {
+	resourceName := "azurerm_servicebus_topic_authorization_rule.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, testLocation(), true, false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send", "false"),
+					resource.TestCheckResourceAttr(resourceName, "manage", "false"),
+				),
+			},
+			{
+				Config: testAccAzureRMServiceBusTopicAuthorizationRule_base(ri, testLocation(), true, true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "name"),
+					resource.TestCheckResourceAttrSet(resourceName, "namespace_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
+					resource.TestCheckResourceAttr(resourceName, "listen", "true"),
+					resource.TestCheckResourceAttr(resourceName, "send", "true"),
+					resource.TestCheckResourceAttr(resourceName, "manage", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
 }
 
 func testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+	conn := testAccProvider.Meta().(*ArmClient).ServiceBus.TopicsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -111,12 +157,12 @@ func testCheckAzureRMServiceBusTopicAuthorizationRuleDestroy(s *terraform.State)
 	return nil
 }
 
-func testCheckAzureRMServiceBusTopicAuthorizationRuleExists(name string) resource.TestCheckFunc {
+func testCheckAzureRMServiceBusTopicAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[name]
+		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
-			return fmt.Errorf("Not found: %s", name)
+			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
 		name := rs.Primary.Attributes["name"]
@@ -127,7 +173,7 @@ func testCheckAzureRMServiceBusTopicAuthorizationRuleExists(name string) resourc
 			return fmt.Errorf("Bad: no resource group found in state for ServiceBus Topic: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).serviceBusTopicsClient
+		conn := testAccProvider.Meta().(*ArmClient).ServiceBus.TopicsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
@@ -142,130 +188,52 @@ func testCheckAzureRMServiceBusTopicAuthorizationRuleExists(name string) resourc
 	}
 }
 
-func testAccAzureRMServiceBusTopicAuthorizationRule_listen(rInt int, location string) string {
+func testAccAzureRMServiceBusTopicAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
+  name                = "acctest-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
+  name                = "acctestservicebustopic-%[1]d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctestservicebustopicrule-%d"
+  name                = "acctest-%[1]d"
   namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name       = "${azurerm_servicebus_topic.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  listen              = true
-  send                = false
-  manage              = false
+  topic_name          = "${azurerm_servicebus_topic.test.name}"
+
+  listen = %[3]t
+  send   = %[4]t
+  manage = %[5]t
 }
-`, rInt, location, rInt, rInt, rInt)
+`, rInt, location, listen, send, manage)
 }
 
-func testAccAzureRMServiceBusTopicAuthorizationRule_send(rInt int, location string) string {
+func testAccAzureRMServiceBusTopicAuthorizationRule_requiresImport(rInt int, location string, listen, send, manage bool) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
+%s
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-}
+resource "azurerm_servicebus_topic_authorization_rule" "import" {
+  name                = "${azurerm_servicebus_topic_authorization_rule.test.name}"
+  namespace_name      = "${azurerm_servicebus_topic_authorization_rule.test.namespace_name}"
+  resource_group_name = "${azurerm_servicebus_topic_authorization_rule.test.resource_group_name}"
+  topic_name          = "${azurerm_servicebus_topic_authorization_rule.test.topic_name}"
 
-resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  listen = "${azurerm_servicebus_topic_authorization_rule.test.listen}"
+  send   = "${azurerm_servicebus_topic_authorization_rule.test.send}"
+  manage = "${azurerm_servicebus_topic_authorization_rule.test.manage}"
 }
-
-resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctestservicebustopicrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name       = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  listen              = false
-  send                = true
-  manage              = false
-}
-`, rInt, location, rInt, rInt, rInt)
-}
-
-func testAccAzureRMServiceBusTopicAuthorizationRule_readWrite(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-}
-
-resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctestservicebustopicrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name       = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  listen              = true
-  send                = true
-  manage              = false
-}
-`, rInt, location, rInt, rInt, rInt)
-}
-
-func testAccAzureRMServiceBusTopicAuthorizationRule_manage(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "acctestservicebusnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-}
-
-resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_servicebus_topic_authorization_rule" "test" {
-  name                = "acctestservicebustopicrule-%d"
-  namespace_name      = "${azurerm_servicebus_namespace.test.name}"
-  topic_name       = "${azurerm_servicebus_topic.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  listen              = true
-  send                = true
-  manage              = true
-}
-`, rInt, location, rInt, rInt, rInt)
+`, testAccAzureRMServiceBusTopicAuthorizationRule_base(rInt, location, listen, send, manage))
 }

@@ -1,13 +1,13 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventgrid_topic"
-sidebar_current: "docs-azurerm-resource-eventgrid-topic"
+sidebar_current: "docs-azurerm-resource-messaging-eventgrid-topic"
 description: |-
   Manages an EventGrid Topic
 
 ---
 
-# azurerm\_eventgrid\_topic
+# azurerm_eventgrid_topic
 
 Manages an EventGrid Topic
 
@@ -26,7 +26,7 @@ resource "azurerm_eventgrid_topic" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }

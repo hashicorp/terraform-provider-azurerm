@@ -4,32 +4,34 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 	resourceName := "azurerm_postgresql_configuration.test"
-	ri := acctest.RandInt()
-	location := testLocation()
-	config := testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, location)
-	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
+	ri := tf.AccRandTimeInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMPostgreSQLConfiguration_backslashQuote(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "on"),
 				),
 			},
 			{
-				Config: serverOnlyConfig,
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMPostgreSQLConfiguration_empty(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					// "delete" resets back to the default value
 					testCheckAzureRMPostgreSQLConfigurationValueReset(ri, "backslash_quote"),
@@ -40,12 +42,13 @@ func TestAccAzureRMPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
-	ri := acctest.RandInt()
+	resourceName := "azurerm_postgresql_configuration.test"
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_clientMinMessages(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
@@ -53,8 +56,13 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue("azurerm_postgresql_configuration.test", "DEBUG5"),
+					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "DEBUG5"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -68,12 +76,13 @@ func TestAccAzureRMPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 }
 
 func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
-	ri := acctest.RandInt()
+	resourceName := "azurerm_postgresql_configuration.test"
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 	config := testAccAzureRMPostgreSQLConfiguration_deadlockTimeout(ri, location)
 	serverOnlyConfig := testAccAzureRMPostgreSQLConfiguration_empty(ri, location)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testCheckAzureRMPostgreSQLConfigurationDestroy,
@@ -81,8 +90,13 @@ func TestAccAzureRMPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPostgreSQLConfigurationValue("azurerm_postgresql_configuration.test", "5000"),
+					testCheckAzureRMPostgreSQLConfigurationValue(resourceName, "5000"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: serverOnlyConfig,
@@ -110,7 +124,7 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 			return fmt.Errorf("Bad: no resource group found in state for PostgreSQL Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -132,11 +146,10 @@ func testCheckAzureRMPostgreSQLConfigurationValue(resourceName string, value str
 
 func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestpsqlsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
@@ -159,7 +172,7 @@ func testCheckAzureRMPostgreSQLConfigurationValueReset(rInt int, configurationNa
 }
 
 func testCheckAzureRMPostgreSQLConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).postgresqlConfigurationsClient
+	client := testAccProvider.Meta().(*ArmClient).Postgres.ConfigurationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -223,15 +236,21 @@ resource "azurerm_postgresql_server" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku {
-    name     = "PGSQLB50"
-    capacity = 50
-    tier     = "Basic"
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
   }
 
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "9.6"
-  storage_mb                   = 51200
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)

@@ -3,9 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networksvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -13,12 +21,19 @@ var subnetResourceName = "azurerm_subnet"
 
 func resourceArmSubnet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSubnetCreate,
+		Create: resourceArmSubnetCreateUpdate,
 		Read:   resourceArmSubnetRead,
-		Update: resourceArmSubnetCreate,
+		Update: resourceArmSubnetCreateUpdate,
 		Delete: resourceArmSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -28,7 +43,7 @@ func resourceArmSubnet() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"virtual_network_name": {
 				Type:     schema.TypeString,
@@ -42,13 +57,15 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"network_security_group_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "Use the `azurerm_subnet_network_security_group_association` resource instead.",
 			},
 
 			"route_table_id": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:       schema.TypeString,
+				Optional:   true,
+				Deprecated: "Use the `azurerm_subnet_route_table_association` resource instead.",
 			},
 
 			"ip_configurations": {
@@ -64,23 +81,91 @@ func resourceArmSubnet() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+
+			"delegation": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"service_delegation": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Microsoft.BareMetal/AzureVMware",
+											"Microsoft.BareMetal/CrayServers",
+											"Microsoft.Batch/batchAccounts",
+											"Microsoft.ContainerInstance/containerGroups",
+											"Microsoft.Databricks/workspaces",
+											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
+											"Microsoft.Logic/integrationServiceEnvironments",
+											"Microsoft.Netapp/volumes",
+											"Microsoft.ServiceFabricMesh/networks",
+											"Microsoft.Sql/managedInstances",
+											"Microsoft.Sql/servers",
+											"Microsoft.Web/hostingEnvironments",
+											"Microsoft.Web/serverFarms",
+										}, false),
+									},
+									"actions": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+											ValidateFunc: validation.StringInSlice([]string{
+												"Microsoft.Network/virtualNetworks/subnets/action",
+												"Microsoft.Network/virtualNetworks/subnets/join/action",
+												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+											}, false),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
 
-func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
 	name := d.Get("name").(string)
 	vnetName := d.Get("virtual_network_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, vnetName, name, "")
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Subnet %q (Virtual Network %q / Resource Group %q): %s", name, vnetName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_subnet", *existing.ID)
+		}
+	}
+
 	addressPrefix := d.Get("address_prefix").(string)
 
-	azureRMLockByName(vnetName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
@@ -92,13 +177,15 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			ID: &nsgId,
 		}
 
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(nsgId)
+		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupResourceID(nsgId)
 		if err != nil {
 			return err
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		locks.ByName(parsedNsgId.Name, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(parsedNsgId.Name, networkSecurityGroupResourceName)
+	} else {
+		properties.NetworkSecurityGroup = nil
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
@@ -107,35 +194,35 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 			ID: &rtId,
 		}
 
-		routeTableName, err := parseRouteTableName(rtId)
+		parsedRouteTableId, err := networksvc.ParseRouteTableResourceID(rtId)
 		if err != nil {
 			return err
 		}
 
-		azureRMLockByName(routeTableName, routeTableResourceName)
-		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
+	} else {
+		properties.RouteTable = nil
 	}
 
-	serviceEndpoints, serviceEndpointsErr := expandAzureRmServiceEndpoints(d)
-	if serviceEndpointsErr != nil {
-		return fmt.Errorf("Error Building list of Service Endpoints: %+v", serviceEndpointsErr)
-	}
-
+	serviceEndpoints := expandSubnetServiceEndpoints(d)
 	properties.ServiceEndpoints = &serviceEndpoints
 
+	delegations := expandSubnetDelegation(d)
+	properties.Delegations = &delegations
+
 	subnet := network.Subnet{
-		Name: &name,
+		Name:                   &name,
 		SubnetPropertiesFormat: &properties,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resGroup, vnetName, name, subnet)
 	if err != nil {
-		return fmt.Errorf("Error Creating/Updating Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("Error Creating/Updating Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return fmt.Errorf("Error waiting for completion of Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion of Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, vnetName, name, "")
@@ -143,7 +230,7 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID of Subnet %q (VN %q / Resource Group %q)", vnetName, name, resGroup)
+		return fmt.Errorf("Cannot read ID of Subnet %q (Virtual Network %q / Resource Group %q)", vnetName, name, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -152,10 +239,11 @@ func resourceArmSubnetCreate(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -180,13 +268,17 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
+		var securityGroupId *string
 		if props.NetworkSecurityGroup != nil {
-			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
+			securityGroupId = props.NetworkSecurityGroup.ID
 		}
+		d.Set("network_security_group_id", securityGroupId)
 
-		if props.RouteTable != nil {
-			d.Set("route_table_id", props.RouteTable.ID)
+		var routeTableId string
+		if props.RouteTable != nil && props.RouteTable.ID != nil {
+			routeTableId = *props.RouteTable.ID
 		}
+		d.Set("route_table_id", routeTableId)
 
 		ips := flattenSubnetIPConfigurations(props.IPConfigurations)
 		if err := d.Set("ip_configurations", ips); err != nil {
@@ -197,16 +289,22 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
 			return err
 		}
+
+		delegation := flattenSubnetDelegation(props.Delegations)
+		if err := d.Set("delegation", delegation); err != nil {
+			return fmt.Errorf("Error flattening `delegation`: %+v", err)
+		}
 	}
 
 	return nil
 }
 
 func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).subnetClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -216,67 +314,69 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		networkSecurityGroupName, err := parseNetworkSecurityGroupName(networkSecurityGroupId)
-		if err != nil {
-			return err
+		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+		if err2 != nil {
+			return err2
 		}
 
-		azureRMLockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
-		defer azureRMUnlockByName(networkSecurityGroupName, networkSecurityGroupResourceName)
+		locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
 	}
 
 	if v, ok := d.GetOk("route_table_id"); ok {
 		rtId := v.(string)
-		routeTableName, err := parseRouteTableName(rtId)
-		if err != nil {
-			return err
+		parsedRouteTableId, err2 := networksvc.ParseRouteTableResourceID(rtId)
+		if err2 != nil {
+			return err2
 		}
 
-		azureRMLockByName(routeTableName, routeTableResourceName)
-		defer azureRMUnlockByName(routeTableName, routeTableResourceName)
+		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 	}
 
-	azureRMLockByName(vnetName, virtualNetworkResourceName)
-	defer azureRMUnlockByName(vnetName, virtualNetworkResourceName)
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
-	azureRMLockByName(name, subnetResourceName)
-	defer azureRMUnlockByName(name, subnetResourceName)
+	locks.ByName(name, subnetResourceName)
+	defer locks.UnlockByName(name, subnetResourceName)
 
 	future, err := client.Delete(ctx, resGroup, vnetName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+		return fmt.Errorf("Error deleting Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
-		return fmt.Errorf("Error waiting for completion for Subnet %q (VN %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for completion for Subnet %q (Virtual Network %q / Resource Group %q): %+v", name, vnetName, resGroup, err)
 	}
 
 	return nil
 }
 
-func expandAzureRmServiceEndpoints(d *schema.ResourceData) ([]network.ServiceEndpointPropertiesFormat, error) {
+func expandSubnetServiceEndpoints(d *schema.ResourceData) []network.ServiceEndpointPropertiesFormat {
 	serviceEndpoints := d.Get("service_endpoints").([]interface{})
-	enpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
+	endpoints := make([]network.ServiceEndpointPropertiesFormat, 0)
 
-	for _, serviceEndpointsRaw := range serviceEndpoints {
-		data := serviceEndpointsRaw.(string)
-
-		endpoint := network.ServiceEndpointPropertiesFormat{
-			Service: &data,
+	for _, svcEndpointRaw := range serviceEndpoints {
+		if svc, ok := svcEndpointRaw.(string); ok {
+			endpoint := network.ServiceEndpointPropertiesFormat{
+				Service: &svc,
+			}
+			endpoints = append(endpoints, endpoint)
 		}
-
-		enpoints = append(enpoints, endpoint)
 	}
 
-	return enpoints, nil
+	return endpoints
 }
 
 func flattenSubnetServiceEndpoints(serviceEndpoints *[]network.ServiceEndpointPropertiesFormat) []string {
 	endpoints := make([]string, 0)
 
-	if serviceEndpoints != nil {
-		for _, endpoint := range *serviceEndpoints {
+	if serviceEndpoints == nil {
+		return endpoints
+	}
+
+	for _, endpoint := range *serviceEndpoints {
+		if endpoint.Service != nil {
 			endpoints = append(endpoints, *endpoint.Service)
 		}
 	}
@@ -294,4 +394,71 @@ func flattenSubnetIPConfigurations(ipConfigurations *[]network.IPConfiguration) 
 	}
 
 	return ips
+}
+
+func expandSubnetDelegation(d *schema.ResourceData) []network.Delegation {
+	delegations := d.Get("delegation").([]interface{})
+	retDelegations := make([]network.Delegation, 0)
+
+	for _, deleValue := range delegations {
+		deleData := deleValue.(map[string]interface{})
+		deleName := deleData["name"].(string)
+		srvDelegations := deleData["service_delegation"].([]interface{})
+		srvDelegation := srvDelegations[0].(map[string]interface{})
+		srvName := srvDelegation["name"].(string)
+		srvActions := srvDelegation["actions"].([]interface{})
+
+		retSrvActions := make([]string, 0)
+		for _, srvAction := range srvActions {
+			srvActionData := srvAction.(string)
+			retSrvActions = append(retSrvActions, srvActionData)
+		}
+
+		retDelegation := network.Delegation{
+			Name: &deleName,
+			ServiceDelegationPropertiesFormat: &network.ServiceDelegationPropertiesFormat{
+				ServiceName: &srvName,
+				Actions:     &retSrvActions,
+			},
+		}
+
+		retDelegations = append(retDelegations, retDelegation)
+	}
+
+	return retDelegations
+}
+
+func flattenSubnetDelegation(delegations *[]network.Delegation) []interface{} {
+	if delegations == nil {
+		return []interface{}{}
+	}
+
+	retDeles := make([]interface{}, 0)
+
+	for _, dele := range *delegations {
+		retDele := make(map[string]interface{})
+		if v := dele.Name; v != nil {
+			retDele["name"] = *v
+		}
+
+		svcDeles := make([]interface{}, 0)
+		svcDele := make(map[string]interface{})
+		if props := dele.ServiceDelegationPropertiesFormat; props != nil {
+			if v := props.ServiceName; v != nil {
+				svcDele["name"] = *v
+			}
+
+			if v := props.Actions; v != nil {
+				svcDele["actions"] = *v
+			}
+		}
+
+		svcDeles = append(svcDeles, svcDele)
+
+		retDele["service_delegation"] = svcDeles
+
+		retDeles = append(retDeles, retDele)
+	}
+
+	return retDeles
 }

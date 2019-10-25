@@ -3,15 +3,17 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_service"
 sidebar_current: "docs-azurerm-resource-container-service"
 description: |-
-  Creates an Azure Container Service instance.
+  Manages an Azure Container Service instance.
 ---
 
-# azurerm\_container\_service
+# azurerm_container_service
 
-Creates an Azure Container Service Instance
+Manages an Azure Container Service Instance
 
-~> **Note:** All arguments including the client secret will be stored in the raw state as plain-text.
+~> **NOTE:** All arguments including the client secret will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
+~> **DEPRECATED:** [Azure Container Service (ACS) has been deprecated by Azure in favour of Azure (Managed) Kubernetes Service (AKS)](https://azure.microsoft.com/en-us/updates/azure-container-service-will-retire-on-january-31-2020/). Support for ACS will be removed in the next major version of the AzureRM Provider (2.0) - and we **strongly recommend** you consider using [Azure Kubernetes Service (AKS)](kubernetes_cluster.html) for new deployments.
 
 ## Example Usage (DCOS)
 
@@ -44,14 +46,14 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent1"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   diagnostics_profile {
     enabled = false
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -88,7 +90,7 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent1"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   service_principal {
@@ -100,7 +102,7 @@ resource "azurerm_container_service" "test" {
     enabled = false
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -137,14 +139,14 @@ resource "azurerm_container_service" "test" {
     name       = "default"
     count      = 1
     dns_prefix = "acctestagent1"
-    vm_size    = "Standard_A0"
+    vm_size    = "Standard_F2"
   }
 
   diagnostics_profile {
     enabled = false
   }
 
-  tags {
+  tags = {
     Environment = "Production"
   }
 }
@@ -166,7 +168,7 @@ The following arguments are supported:
 
 * `linux_profile` - (Required) A Linux Profile block as documented below.
 
-* `agent_pool_profile` - (Required) One or more Agent Pool Profile's block as documented below.
+* `agent_pool_profile` - (Required) A Agent Pool Profile's block as documented below.
 
 * `service_principal` - (only Required when you're using `Kubernetes` as an Orchestration Platform) A Service Principal block as documented below.
 

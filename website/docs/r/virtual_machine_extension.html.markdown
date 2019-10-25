@@ -1,31 +1,33 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azure_virtual_machine_extension"
+page_title: "Azure Resource Manager: azurerm_virtual_machine_extension"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-extension"
 description: |-
-    Creates a new Virtual Machine Extension to provide post deployment
+    Manages a Virtual Machine Extension to provide post deployment
     configuration and run automated tasks.
 ---
 
 # azurerm_virtual_machine_extension
 
-Creates a new Virtual Machine Extension to provide post deployment configuration
+Manages a Virtual Machine Extension to provide post deployment configuration
 and run automated tasks.
 
-~> **Please Note:** The CustomScript extensions for Linux & Windows require that the `commandToExecute` returns a `0` exit code to be classified as successfully deployed. You can achieve this by appending `exit 0` to the end of your `commandToExecute`.
+~> **NOTE:** Custom Script Extensions for Linux & Windows require that the `commandToExecute` returns a `0` exit code to be classified as successfully deployed. You can achieve this by appending `exit 0` to the end of your `commandToExecute`.
+
+-> **NOTE:** Custom Script Extensions require that the Azure Virtual Machine Guest Agent is running on the Virtual Machine.
 
 ## Example Usage
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "acctestrg"
+  name     = "acctestRG"
   location = "West US"
 }
 
 resource "azurerm_virtual_network" "test" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
@@ -38,24 +40,24 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_network_interface" "test" {
   name                = "acctni"
-  location            = "West US"
+  location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
     name                          = "testconfiguration1"
     subnet_id                     = "${azurerm_subnet.test.id}"
-    private_ip_address_allocation = "dynamic"
+    private_ip_address_allocation = "Dynamic"
   }
 }
 
 resource "azurerm_storage_account" "test" {
   name                     = "accsa"
   resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "westus"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
@@ -69,10 +71,10 @@ resource "azurerm_storage_container" "test" {
 
 resource "azurerm_virtual_machine" "test" {
   name                  = "acctvm"
-  location              = "West US"
+  location              = "${azurerm_resource_group.test.location}"
   resource_group_name   = "${azurerm_resource_group.test.name}"
   network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  vm_size               = "Standard_A0"
+  vm_size               = "Standard_F2"
 
   storage_image_reference {
     publisher = "Canonical"
@@ -98,27 +100,27 @@ resource "azurerm_virtual_machine" "test" {
     disable_password_authentication = false
   }
 
-  tags {
+  tags = {
     environment = "staging"
   }
 }
 
 resource "azurerm_virtual_machine_extension" "test" {
   name                 = "hostname"
-  location             = "West US"
+  location             = "${azurerm_resource_group.test.location}"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   virtual_machine_name = "${azurerm_virtual_machine.test.name}"
-  publisher            = "Microsoft.OSTCExtensions"
-  type                 = "CustomScriptForLinux"
-  type_handler_version = "1.2"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
 
   settings = <<SETTINGS
 	{
-		"commandToExecute": "hostname"
+		"commandToExecute": "hostname && uptime"
 	}
 SETTINGS
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -167,6 +169,8 @@ $ az vm extension image list --location westus -o table
     extension, like settings, these are specified as a JSON object in a string.
 
 ~> **Please Note:** Certain VM Extensions require that the keys in the `protected_settings` block are case sensitive. If you're seeing unhelpful errors, please ensure the keys are consistent with how Azure is expecting them (for instance, for the `JsonADDomainExtension` extension, the keys are expected to be in `TitleCase`.)
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
 

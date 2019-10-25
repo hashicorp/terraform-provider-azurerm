@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -31,27 +32,40 @@ type HybridRunbookWorkerGroupClient struct {
 }
 
 // NewHybridRunbookWorkerGroupClient creates an instance of the HybridRunbookWorkerGroupClient client.
-func NewHybridRunbookWorkerGroupClient(subscriptionID string, resourceGroupName string) HybridRunbookWorkerGroupClient {
-	return NewHybridRunbookWorkerGroupClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
+func NewHybridRunbookWorkerGroupClient(subscriptionID string) HybridRunbookWorkerGroupClient {
+	return NewHybridRunbookWorkerGroupClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewHybridRunbookWorkerGroupClientWithBaseURI creates an instance of the HybridRunbookWorkerGroupClient client.
-func NewHybridRunbookWorkerGroupClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) HybridRunbookWorkerGroupClient {
-	return HybridRunbookWorkerGroupClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
+func NewHybridRunbookWorkerGroupClientWithBaseURI(baseURI string, subscriptionID string) HybridRunbookWorkerGroupClient {
+	return HybridRunbookWorkerGroupClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Delete delete a hybrid runbook worker group.
-//
-// automationAccountName is automation account name. hybridRunbookWorkerGroupName is the hybrid runbook worker group
-// name
-func (client HybridRunbookWorkerGroupClient) Delete(ctx context.Context, automationAccountName string, hybridRunbookWorkerGroupName string) (result autorest.Response, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// hybridRunbookWorkerGroupName - the hybrid runbook worker group name
+func (client HybridRunbookWorkerGroupClient) Delete(ctx context.Context, resourceGroupName string, automationAccountName string, hybridRunbookWorkerGroupName string) (result autorest.Response, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/HybridRunbookWorkerGroupClient.Delete")
+		defer func() {
+			sc := -1
+			if result.Response != nil {
+				sc = result.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.HybridRunbookWorkerGroupClient", "Delete")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.HybridRunbookWorkerGroupClient", "Delete", err.Error())
 	}
 
-	req, err := client.DeletePreparer(ctx, automationAccountName, hybridRunbookWorkerGroupName)
+	req, err := client.DeletePreparer(ctx, resourceGroupName, automationAccountName, hybridRunbookWorkerGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "Delete", nil, "Failure preparing request")
 		return
@@ -73,11 +87,11 @@ func (client HybridRunbookWorkerGroupClient) Delete(ctx context.Context, automat
 }
 
 // DeletePreparer prepares the Delete request.
-func (client HybridRunbookWorkerGroupClient) DeletePreparer(ctx context.Context, automationAccountName string, hybridRunbookWorkerGroupName string) (*http.Request, error) {
+func (client HybridRunbookWorkerGroupClient) DeletePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, hybridRunbookWorkerGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName":        autorest.Encode("path", automationAccountName),
 		"hybridRunbookWorkerGroupName": autorest.Encode("path", hybridRunbookWorkerGroupName),
-		"resourceGroupName":            autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":            autorest.Encode("path", resourceGroupName),
 		"subscriptionId":               autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -97,8 +111,8 @@ func (client HybridRunbookWorkerGroupClient) DeletePreparer(ctx context.Context,
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client HybridRunbookWorkerGroupClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -114,17 +128,30 @@ func (client HybridRunbookWorkerGroupClient) DeleteResponder(resp *http.Response
 }
 
 // Get retrieve a hybrid runbook worker group.
-//
-// automationAccountName is the automation account name. hybridRunbookWorkerGroupName is the hybrid runbook worker
-// group name
-func (client HybridRunbookWorkerGroupClient) Get(ctx context.Context, automationAccountName string, hybridRunbookWorkerGroupName string) (result HybridRunbookWorkerGroup, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// hybridRunbookWorkerGroupName - the hybrid runbook worker group name
+func (client HybridRunbookWorkerGroupClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, hybridRunbookWorkerGroupName string) (result HybridRunbookWorkerGroup, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/HybridRunbookWorkerGroupClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.HybridRunbookWorkerGroupClient", "Get")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.HybridRunbookWorkerGroupClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, automationAccountName, hybridRunbookWorkerGroupName)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, hybridRunbookWorkerGroupName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "Get", nil, "Failure preparing request")
 		return
@@ -146,11 +173,11 @@ func (client HybridRunbookWorkerGroupClient) Get(ctx context.Context, automation
 }
 
 // GetPreparer prepares the Get request.
-func (client HybridRunbookWorkerGroupClient) GetPreparer(ctx context.Context, automationAccountName string, hybridRunbookWorkerGroupName string) (*http.Request, error) {
+func (client HybridRunbookWorkerGroupClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, hybridRunbookWorkerGroupName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName":        autorest.Encode("path", automationAccountName),
 		"hybridRunbookWorkerGroupName": autorest.Encode("path", hybridRunbookWorkerGroupName),
-		"resourceGroupName":            autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":            autorest.Encode("path", resourceGroupName),
 		"subscriptionId":               autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -170,8 +197,8 @@ func (client HybridRunbookWorkerGroupClient) GetPreparer(ctx context.Context, au
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client HybridRunbookWorkerGroupClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -188,17 +215,31 @@ func (client HybridRunbookWorkerGroupClient) GetResponder(resp *http.Response) (
 }
 
 // ListByAutomationAccount retrieve a list of hybrid runbook worker groups.
-//
-// automationAccountName is the automation account name.
-func (client HybridRunbookWorkerGroupClient) ListByAutomationAccount(ctx context.Context, automationAccountName string) (result HybridRunbookWorkerGroupsListResultPage, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// filter - the filter to apply on the operation.
+func (client HybridRunbookWorkerGroupClient) ListByAutomationAccount(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result HybridRunbookWorkerGroupsListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/HybridRunbookWorkerGroupClient.ListByAutomationAccount")
+		defer func() {
+			sc := -1
+			if result.hrwglr.Response.Response != nil {
+				sc = result.hrwglr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.HybridRunbookWorkerGroupClient", "ListByAutomationAccount")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.HybridRunbookWorkerGroupClient", "ListByAutomationAccount", err.Error())
 	}
 
 	result.fn = client.listByAutomationAccountNextResults
-	req, err := client.ListByAutomationAccountPreparer(ctx, automationAccountName)
+	req, err := client.ListByAutomationAccountPreparer(ctx, resourceGroupName, automationAccountName, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "ListByAutomationAccount", nil, "Failure preparing request")
 		return
@@ -220,16 +261,19 @@ func (client HybridRunbookWorkerGroupClient) ListByAutomationAccount(ctx context
 }
 
 // ListByAutomationAccountPreparer prepares the ListByAutomationAccount request.
-func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountPreparer(ctx context.Context, automationAccountName string) (*http.Request, error) {
+func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
 	const APIVersion = "2015-10-31"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
+	}
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -243,8 +287,8 @@ func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountPreparer(ctx
 // ListByAutomationAccountSender sends the ListByAutomationAccount request. The method will close the
 // http.Response Body if it receives an error.
 func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByAutomationAccountResponder handles the response to the ListByAutomationAccount request. The method always
@@ -261,8 +305,8 @@ func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountResponder(re
 }
 
 // listByAutomationAccountNextResults retrieves the next set of results, if any.
-func (client HybridRunbookWorkerGroupClient) listByAutomationAccountNextResults(lastResults HybridRunbookWorkerGroupsListResult) (result HybridRunbookWorkerGroupsListResult, err error) {
-	req, err := lastResults.hybridRunbookWorkerGroupsListResultPreparer()
+func (client HybridRunbookWorkerGroupClient) listByAutomationAccountNextResults(ctx context.Context, lastResults HybridRunbookWorkerGroupsListResult) (result HybridRunbookWorkerGroupsListResult, err error) {
+	req, err := lastResults.hybridRunbookWorkerGroupsListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "listByAutomationAccountNextResults", nil, "Failure preparing next results request")
 	}
@@ -282,23 +326,47 @@ func (client HybridRunbookWorkerGroupClient) listByAutomationAccountNextResults(
 }
 
 // ListByAutomationAccountComplete enumerates all values, automatically crossing page boundaries as required.
-func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountComplete(ctx context.Context, automationAccountName string) (result HybridRunbookWorkerGroupsListResultIterator, err error) {
-	result.page, err = client.ListByAutomationAccount(ctx, automationAccountName)
+func (client HybridRunbookWorkerGroupClient) ListByAutomationAccountComplete(ctx context.Context, resourceGroupName string, automationAccountName string, filter string) (result HybridRunbookWorkerGroupsListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/HybridRunbookWorkerGroupClient.ListByAutomationAccount")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByAutomationAccount(ctx, resourceGroupName, automationAccountName, filter)
 	return
 }
 
 // Update update a hybrid runbook worker group.
-//
-// automationAccountName is the automation account name. hybridRunbookWorkerGroupName is the hybrid runbook worker
-// group name parameters is the hybrid runbook worker group
-func (client HybridRunbookWorkerGroupClient) Update(ctx context.Context, automationAccountName string, hybridRunbookWorkerGroupName string, parameters HybridRunbookWorkerGroupUpdateParameters) (result HybridRunbookWorkerGroup, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// hybridRunbookWorkerGroupName - the hybrid runbook worker group name
+// parameters - the hybrid runbook worker group
+func (client HybridRunbookWorkerGroupClient) Update(ctx context.Context, resourceGroupName string, automationAccountName string, hybridRunbookWorkerGroupName string, parameters HybridRunbookWorkerGroupUpdateParameters) (result HybridRunbookWorkerGroup, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/HybridRunbookWorkerGroupClient.Update")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.HybridRunbookWorkerGroupClient", "Update")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.HybridRunbookWorkerGroupClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, automationAccountName, hybridRunbookWorkerGroupName, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, automationAccountName, hybridRunbookWorkerGroupName, parameters)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.HybridRunbookWorkerGroupClient", "Update", nil, "Failure preparing request")
 		return
@@ -320,11 +388,11 @@ func (client HybridRunbookWorkerGroupClient) Update(ctx context.Context, automat
 }
 
 // UpdatePreparer prepares the Update request.
-func (client HybridRunbookWorkerGroupClient) UpdatePreparer(ctx context.Context, automationAccountName string, hybridRunbookWorkerGroupName string, parameters HybridRunbookWorkerGroupUpdateParameters) (*http.Request, error) {
+func (client HybridRunbookWorkerGroupClient) UpdatePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, hybridRunbookWorkerGroupName string, parameters HybridRunbookWorkerGroupUpdateParameters) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName":        autorest.Encode("path", automationAccountName),
 		"hybridRunbookWorkerGroupName": autorest.Encode("path", hybridRunbookWorkerGroupName),
-		"resourceGroupName":            autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":            autorest.Encode("path", resourceGroupName),
 		"subscriptionId":               autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -334,7 +402,7 @@ func (client HybridRunbookWorkerGroupClient) UpdatePreparer(ctx context.Context,
 	}
 
 	preparer := autorest.CreatePreparer(
-		autorest.AsJSON(),
+		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Automation/automationAccounts/{automationAccountName}/hybridRunbookWorkerGroups/{hybridRunbookWorkerGroupName}", pathParameters),
@@ -346,8 +414,8 @@ func (client HybridRunbookWorkerGroupClient) UpdatePreparer(ctx context.Context,
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client HybridRunbookWorkerGroupClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always

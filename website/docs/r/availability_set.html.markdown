@@ -24,7 +24,7 @@ resource "azurerm_availability_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-  tags {
+  tags = {
     environment = "Production"
   }
 }
@@ -42,7 +42,13 @@ The following arguments are supported:
 
 * `platform_update_domain_count` - (Optional) Specifies the number of update domains that are used. Defaults to 5.
 
+~> **NOTE:** The number of Update Domains varies depending on which Azure Region you're using - [a list can be found here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
+
 * `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used. Defaults to 3.
+
+~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - [a list can be found here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
+
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
 * `managed` - (Optional) Specifies whether the availability set is managed or not. Possible values are `true` (to specify aligned) or `false` (to specify classic). Default is `false`.
 

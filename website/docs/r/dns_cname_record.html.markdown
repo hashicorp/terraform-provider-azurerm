@@ -3,10 +3,10 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_cname_record"
 sidebar_current: "docs-azurerm-resource-dns-cname-record"
 description: |-
-  Create a DNS CNAME Record.
+  Manages a DNS CNAME Record.
 ---
 
-# azurerm\_dns\_cname\_record
+# azurerm_dns_cname_record
 
 Enables you to manage DNS CNAME Records within Azure DNS.
 
@@ -38,11 +38,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the DNS CNAME Record.
 
-* `resource_group_name` - (Required) Specifies the resource group where the resource exists. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the resource group where the DNS Zone (parent resource) exists. Changing this forces a new resource to be created.
 
 * `zone_name` - (Required) Specifies the DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
-* `TTL` - (Required) The Time To Live (TTL) of the DNS record.
+* `TTL` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `record` - (Required) The target of the CNAME.
 
@@ -59,5 +59,5 @@ The following attributes are exported:
 CNAME records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_cname_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/CNAME/myrecord1
+terraform import azurerm_dns_cname_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/CNAME/myrecord1
 ```

@@ -1,39 +1,30 @@
 ---
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
-sidebar_current: "docs-azurerm-resource-servicebus-namespace"
+sidebar_current: "docs-azurerm-resource-messaging-servicebus-namespace-x"
 description: |-
-  Create a ServiceBus Namespace.
+  Manages a ServiceBus Namespace.
 ---
 
-# azurerm\_servicebus\_namespace
+# azurerm_servicebus_namespace
 
-Create a ServiceBus Namespace.
+Manages a ServiceBus Namespace.
 
 ## Example Usage
 
 ```hcl
-variable "location" {
-  description = "Azure datacenter to deploy to."
-  default = "West US"
-}
-
-variable "servicebus_name" {
-  description = "Input your unique Azure service bus name"
-}
-
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "terraform-servicebus"
-  location = "${var.location}"
+  location = "West Europe"
 }
 
-resource "azurerm_servicebus_namespace" "test" {
-  name                = "${var.servicebus_name}"
-  location            = "${var.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "basic"
+resource "azurerm_servicebus_namespace" "example" {
+  name                = "tfex_sevicebus_namespace"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  sku                 = "Standard"
 
-  tags {
+  tags = {
     source = "terraform"
   }
 }
@@ -53,7 +44,9 @@ The following arguments are supported:
 
 * `sku` - (Required) Defines which tier to use. Options are basic, standard or premium.
 
-* `capacity` - (Optional) Specifies the capacity of a Premium namespace. Can be 1, 2 or 4.
+* `capacity` - (Optional) Specifies the capacity. When `sku` is `Premium`, capacity can be `1`, `2`, `4` or `8`. When `sku` is `Basic` or `Standard`, capacity can be `0` only.
+
+* `zone_redundant` - (Optional) Whether or not this resource is zone redundant. `sku` needs to be `Premium`. Defaults to `false`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

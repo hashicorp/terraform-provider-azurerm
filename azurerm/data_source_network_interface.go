@@ -2,16 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmNetworkInterface() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmNetworkInterfaceRead,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -20,12 +25,12 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				Required: true,
 			},
 
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
 			"location": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
 
 			"network_security_group_id": {
 				Type:     schema.TypeString,
@@ -62,6 +67,12 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						//TODO: should this be renamed to private_ip_address_allocation_method or private_ip_allocation_method ?
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -72,6 +83,13 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 							Computed: true,
 						},
 
+						"application_gateway_backend_address_pools_ids": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
 						"load_balancer_backend_address_pools_ids": {
 							Type:     schema.TypeSet,
 							Computed: true,
@@ -80,6 +98,13 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 						},
 
 						"load_balancer_inbound_nat_rules_ids": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
+						},
+
+						"application_security_group_ids": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
@@ -114,8 +139,9 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 			},
 
 			"internal_fqdn": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:       schema.TypeString,
+				Deprecated: "This field has been removed by Azure",
+				Computed:   true,
 			},
 
 			/**
@@ -149,14 +175,15 @@ func dataSourceArmNetworkInterface() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).ifaceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.InterfacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -164,8 +191,7 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	resp, err := client.Get(ctx, resGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			d.SetId("")
-			return nil
+			return fmt.Errorf("Error: Network Interface %q (Resource Group %q) was not found", name, resGroup)
 		}
 		return fmt.Errorf("Error making Read request on Azure Network Interface %q (Resource Group %q): %+v", name, resGroup, err)
 	}
@@ -179,15 +205,12 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	if iface.IPConfigurations != nil && len(*iface.IPConfigurations) > 0 {
 		configs := *iface.IPConfigurations
 
-		if configs[0].InterfaceIPConfigurationPropertiesFormat != nil {
-			privateIPAddress := configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress
-			d.Set("private_ip_address", *privateIPAddress)
-		}
+		d.Set("private_ip_address", configs[0].InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
 
 		addresses := make([]interface{}, 0)
 		for _, config := range configs {
 			if config.InterfaceIPConfigurationPropertiesFormat != nil {
-				addresses = append(addresses, *config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
+				addresses = append(addresses, config.InterfaceIPConfigurationPropertiesFormat.PrivateIPAddress)
 			}
 		}
 
@@ -201,31 +224,24 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 	}
 
 	if iface.VirtualMachine != nil {
-		d.Set("virtual_machine_id", *iface.VirtualMachine.ID)
+		d.Set("virtual_machine_id", iface.VirtualMachine.ID)
 	} else {
 		d.Set("virtual_machine_id", "")
 	}
 
 	var appliedDNSServers []string
 	var dnsServers []string
-	if iface.DNSSettings != nil {
-		if iface.DNSSettings.AppliedDNSServers != nil && len(*iface.DNSSettings.AppliedDNSServers) > 0 {
-			for _, applied := range *iface.DNSSettings.AppliedDNSServers {
-				appliedDNSServers = append(appliedDNSServers, applied)
-			}
+	if dnsSettings := iface.DNSSettings; dnsSettings != nil {
+		if s := dnsSettings.AppliedDNSServers; s != nil {
+			appliedDNSServers = *s
 		}
 
-		if iface.DNSSettings.DNSServers != nil && len(*iface.DNSSettings.DNSServers) > 0 {
-			for _, dns := range *iface.DNSSettings.DNSServers {
-				dnsServers = append(dnsServers, dns)
-			}
+		if s := dnsSettings.DNSServers; s != nil {
+			dnsServers = *s
 		}
 
-		if iface.DNSSettings.InternalFqdn != nil && *iface.DNSSettings.InternalFqdn != "" {
-			d.Set("internal_fqdn", iface.DNSSettings.InternalFqdn)
-		}
-
-		d.Set("internal_dns_name_label", iface.DNSSettings.InternalDNSNameLabel)
+		d.Set("internal_fqdn", dnsSettings.InternalFqdn)
+		d.Set("internal_dns_name_label", dnsSettings.InternalDNSNameLabel)
 	}
 
 	if iface.NetworkSecurityGroup != nil {
@@ -236,13 +252,14 @@ func dataSourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
-	d.Set("location", azureRMNormalizeLocation(*resp.Location))
+	if location := resp.Location; location != nil {
+		d.Set("location", azure.NormalizeLocation(*location))
+	}
+
 	d.Set("applied_dns_servers", appliedDNSServers)
 	d.Set("dns_servers", dnsServers)
 	d.Set("enable_ip_forwarding", resp.EnableIPForwarding)
 	d.Set("enable_accelerated_networking", resp.EnableAcceleratedNetworking)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -31,19 +32,31 @@ type DatabaseClient struct {
 }
 
 // NewDatabaseClient creates an instance of the DatabaseClient client.
-func NewDatabaseClient(subscriptionID string, filter string, filter1 string, databaseRid string, collectionRid string, region string) DatabaseClient {
-	return NewDatabaseClientWithBaseURI(DefaultBaseURI, subscriptionID, filter, filter1, databaseRid, collectionRid, region)
+func NewDatabaseClient(subscriptionID string) DatabaseClient {
+	return NewDatabaseClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewDatabaseClientWithBaseURI creates an instance of the DatabaseClient client.
-func NewDatabaseClientWithBaseURI(baseURI string, subscriptionID string, filter string, filter1 string, databaseRid string, collectionRid string, region string) DatabaseClient {
-	return DatabaseClient{NewWithBaseURI(baseURI, subscriptionID, filter, filter1, databaseRid, collectionRid, region)}
+func NewDatabaseClientWithBaseURI(baseURI string, subscriptionID string) DatabaseClient {
+	return DatabaseClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
-// ListMetricDefinitions retrieves metric defintions for the given database.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-func (client DatabaseClient) ListMetricDefinitions(ctx context.Context, resourceGroupName string, accountName string) (result MetricDefinitionsListResult, err error) {
+// ListMetricDefinitions retrieves metric definitions for the given database.
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// databaseRid - cosmos DB database rid.
+func (client DatabaseClient) ListMetricDefinitions(ctx context.Context, resourceGroupName string, accountName string, databaseRid string) (result MetricDefinitionsListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabaseClient.ListMetricDefinitions")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -51,11 +64,12 @@ func (client DatabaseClient) ListMetricDefinitions(ctx context.Context, resource
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseClient", "ListMetricDefinitions")
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.DatabaseClient", "ListMetricDefinitions", err.Error())
 	}
 
-	req, err := client.ListMetricDefinitionsPreparer(ctx, resourceGroupName, accountName)
+	req, err := client.ListMetricDefinitionsPreparer(ctx, resourceGroupName, accountName, databaseRid)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.DatabaseClient", "ListMetricDefinitions", nil, "Failure preparing request")
 		return
@@ -77,10 +91,10 @@ func (client DatabaseClient) ListMetricDefinitions(ctx context.Context, resource
 }
 
 // ListMetricDefinitionsPreparer prepares the ListMetricDefinitions request.
-func (client DatabaseClient) ListMetricDefinitionsPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client DatabaseClient) ListMetricDefinitionsPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseRid string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"databaseRid":       autorest.Encode("path", client.DatabaseRid),
+		"databaseRid":       autorest.Encode("path", databaseRid),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
@@ -101,8 +115,8 @@ func (client DatabaseClient) ListMetricDefinitionsPreparer(ctx context.Context, 
 // ListMetricDefinitionsSender sends the ListMetricDefinitions request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseClient) ListMetricDefinitionsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListMetricDefinitionsResponder handles the response to the ListMetricDefinitions request. The method always
@@ -119,9 +133,24 @@ func (client DatabaseClient) ListMetricDefinitionsResponder(resp *http.Response)
 }
 
 // ListMetrics retrieves the metrics determined by the given filter for the given database account and database.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-func (client DatabaseClient) ListMetrics(ctx context.Context, resourceGroupName string, accountName string) (result MetricListResult, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// databaseRid - cosmos DB database rid.
+// filter - an OData filter expression that describes a subset of metrics to return. The parameters that can be
+// filtered are name.value (name of the metric, can have an or of multiple names), startTime, endTime, and
+// timeGrain. The supported operator is eq.
+func (client DatabaseClient) ListMetrics(ctx context.Context, resourceGroupName string, accountName string, databaseRid string, filter string) (result MetricListResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabaseClient.ListMetrics")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -129,11 +158,12 @@ func (client DatabaseClient) ListMetrics(ctx context.Context, resourceGroupName 
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseClient", "ListMetrics")
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.DatabaseClient", "ListMetrics", err.Error())
 	}
 
-	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, accountName)
+	req, err := client.ListMetricsPreparer(ctx, resourceGroupName, accountName, databaseRid, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.DatabaseClient", "ListMetrics", nil, "Failure preparing request")
 		return
@@ -155,17 +185,17 @@ func (client DatabaseClient) ListMetrics(ctx context.Context, resourceGroupName 
 }
 
 // ListMetricsPreparer prepares the ListMetrics request.
-func (client DatabaseClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client DatabaseClient) ListMetricsPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseRid string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"databaseRid":       autorest.Encode("path", client.DatabaseRid),
+		"databaseRid":       autorest.Encode("path", databaseRid),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
 	const APIVersion = "2015-04-08"
 	queryParameters := map[string]interface{}{
-		"$filter":     autorest.Encode("query", client.Filter),
+		"$filter":     autorest.Encode("query", filter),
 		"api-version": APIVersion,
 	}
 
@@ -180,8 +210,8 @@ func (client DatabaseClient) ListMetricsPreparer(ctx context.Context, resourceGr
 // ListMetricsSender sends the ListMetrics request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseClient) ListMetricsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListMetricsResponder handles the response to the ListMetrics request. The method always
@@ -198,9 +228,23 @@ func (client DatabaseClient) ListMetricsResponder(resp *http.Response) (result M
 }
 
 // ListUsages retrieves the usages (most recent data) for the given database.
-//
-// resourceGroupName is name of an Azure resource group. accountName is cosmos DB database account name.
-func (client DatabaseClient) ListUsages(ctx context.Context, resourceGroupName string, accountName string) (result UsagesResult, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure resource group.
+// accountName - cosmos DB database account name.
+// databaseRid - cosmos DB database rid.
+// filter - an OData filter expression that describes a subset of usages to return. The supported parameter is
+// name.value (name of the metric, can have an or of multiple names).
+func (client DatabaseClient) ListUsages(ctx context.Context, resourceGroupName string, accountName string, databaseRid string, filter string) (result UsagesResult, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabaseClient.ListUsages")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
 		{TargetValue: resourceGroupName,
 			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
@@ -208,11 +252,12 @@ func (client DatabaseClient) ListUsages(ctx context.Context, resourceGroupName s
 				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
 		{TargetValue: accountName,
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 50, Chain: nil},
-				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "documentdb.DatabaseClient", "ListUsages")
+				{Target: "accountName", Name: validation.MinLength, Rule: 3, Chain: nil},
+				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-z0-9]+(-[a-z0-9]+)*`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("documentdb.DatabaseClient", "ListUsages", err.Error())
 	}
 
-	req, err := client.ListUsagesPreparer(ctx, resourceGroupName, accountName)
+	req, err := client.ListUsagesPreparer(ctx, resourceGroupName, accountName, databaseRid, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "documentdb.DatabaseClient", "ListUsages", nil, "Failure preparing request")
 		return
@@ -234,10 +279,10 @@ func (client DatabaseClient) ListUsages(ctx context.Context, resourceGroupName s
 }
 
 // ListUsagesPreparer prepares the ListUsages request.
-func (client DatabaseClient) ListUsagesPreparer(ctx context.Context, resourceGroupName string, accountName string) (*http.Request, error) {
+func (client DatabaseClient) ListUsagesPreparer(ctx context.Context, resourceGroupName string, accountName string, databaseRid string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
-		"databaseRid":       autorest.Encode("path", client.DatabaseRid),
+		"databaseRid":       autorest.Encode("path", databaseRid),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
@@ -246,8 +291,8 @@ func (client DatabaseClient) ListUsagesPreparer(ctx context.Context, resourceGro
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
-	if len(client.Filter) > 0 {
-		queryParameters["$filter"] = autorest.Encode("query", client.Filter)
+	if len(filter) > 0 {
+		queryParameters["$filter"] = autorest.Encode("query", filter)
 	}
 
 	preparer := autorest.CreatePreparer(
@@ -261,8 +306,8 @@ func (client DatabaseClient) ListUsagesPreparer(ctx context.Context, resourceGro
 // ListUsagesSender sends the ListUsages request. The method will close the
 // http.Response Body if it receives an error.
 func (client DatabaseClient) ListUsagesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListUsagesResponder handles the response to the ListUsages request. The method always

@@ -22,6 +22,7 @@ import (
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/Azure/go-autorest/autorest/validation"
+	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
 
@@ -31,26 +32,41 @@ type NodeReportsClient struct {
 }
 
 // NewNodeReportsClient creates an instance of the NodeReportsClient client.
-func NewNodeReportsClient(subscriptionID string, resourceGroupName string) NodeReportsClient {
-	return NewNodeReportsClientWithBaseURI(DefaultBaseURI, subscriptionID, resourceGroupName)
+func NewNodeReportsClient(subscriptionID string) NodeReportsClient {
+	return NewNodeReportsClientWithBaseURI(DefaultBaseURI, subscriptionID)
 }
 
 // NewNodeReportsClientWithBaseURI creates an instance of the NodeReportsClient client.
-func NewNodeReportsClientWithBaseURI(baseURI string, subscriptionID string, resourceGroupName string) NodeReportsClient {
-	return NodeReportsClient{NewWithBaseURI(baseURI, subscriptionID, resourceGroupName)}
+func NewNodeReportsClientWithBaseURI(baseURI string, subscriptionID string) NodeReportsClient {
+	return NodeReportsClient{NewWithBaseURI(baseURI, subscriptionID)}
 }
 
 // Get retrieve the Dsc node report data by node id and report id.
-//
-// automationAccountName is the automation account name. nodeID is the Dsc node id. reportID is the report id.
-func (client NodeReportsClient) Get(ctx context.Context, automationAccountName string, nodeID string, reportID string) (result DscNodeReport, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the Dsc node id.
+// reportID - the report id.
+func (client NodeReportsClient) Get(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (result DscNodeReport, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NodeReportsClient.Get")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.NodeReportsClient", "Get")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.NodeReportsClient", "Get", err.Error())
 	}
 
-	req, err := client.GetPreparer(ctx, automationAccountName, nodeID, reportID)
+	req, err := client.GetPreparer(ctx, resourceGroupName, automationAccountName, nodeID, reportID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "Get", nil, "Failure preparing request")
 		return
@@ -72,12 +88,12 @@ func (client NodeReportsClient) Get(ctx context.Context, automationAccountName s
 }
 
 // GetPreparer prepares the Get request.
-func (client NodeReportsClient) GetPreparer(ctx context.Context, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
+func (client NodeReportsClient) GetPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"nodeId":                autorest.Encode("path", nodeID),
 		"reportId":              autorest.Encode("path", reportID),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -97,8 +113,8 @@ func (client NodeReportsClient) GetPreparer(ctx context.Context, automationAccou
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client NodeReportsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -115,16 +131,31 @@ func (client NodeReportsClient) GetResponder(resp *http.Response) (result DscNod
 }
 
 // GetContent retrieve the Dsc node reports by node id and report id.
-//
-// automationAccountName is the automation account name. nodeID is the Dsc node id. reportID is the report id.
-func (client NodeReportsClient) GetContent(ctx context.Context, automationAccountName string, nodeID string, reportID string) (result ReadCloser, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the Dsc node id.
+// reportID - the report id.
+func (client NodeReportsClient) GetContent(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (result SetObject, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NodeReportsClient.GetContent")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.NodeReportsClient", "GetContent")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.NodeReportsClient", "GetContent", err.Error())
 	}
 
-	req, err := client.GetContentPreparer(ctx, automationAccountName, nodeID, reportID)
+	req, err := client.GetContentPreparer(ctx, resourceGroupName, automationAccountName, nodeID, reportID)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "GetContent", nil, "Failure preparing request")
 		return
@@ -146,12 +177,12 @@ func (client NodeReportsClient) GetContent(ctx context.Context, automationAccoun
 }
 
 // GetContentPreparer prepares the GetContent request.
-func (client NodeReportsClient) GetContentPreparer(ctx context.Context, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
+func (client NodeReportsClient) GetContentPreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, reportID string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"nodeId":                autorest.Encode("path", nodeID),
 		"reportId":              autorest.Encode("path", reportID),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -171,35 +202,50 @@ func (client NodeReportsClient) GetContentPreparer(ctx context.Context, automati
 // GetContentSender sends the GetContent request. The method will close the
 // http.Response Body if it receives an error.
 func (client NodeReportsClient) GetContentSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetContentResponder handles the response to the GetContent request. The method always
 // closes the http.Response Body.
-func (client NodeReportsClient) GetContentResponder(resp *http.Response) (result ReadCloser, err error) {
-	result.Value = &resp.Body
+func (client NodeReportsClient) GetContentResponder(resp *http.Response) (result SetObject, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
-		azure.WithErrorUnlessStatusCode(http.StatusOK))
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result.Value),
+		autorest.ByClosing())
 	result.Response = autorest.Response{Response: resp}
 	return
 }
 
 // ListByNode retrieve the Dsc node report list by node id.
-//
-// automationAccountName is the automation account name. nodeID is the parameters supplied to the list operation.
-// filter is the filter to apply on the operation.
-func (client NodeReportsClient) ListByNode(ctx context.Context, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultPage, err error) {
+// Parameters:
+// resourceGroupName - name of an Azure Resource group.
+// automationAccountName - the name of the automation account.
+// nodeID - the parameters supplied to the list operation.
+// filter - the filter to apply on the operation.
+func (client NodeReportsClient) ListByNode(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultPage, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NodeReportsClient.ListByNode")
+		defer func() {
+			sc := -1
+			if result.dnrlr.Response.Response != nil {
+				sc = result.dnrlr.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
 	if err := validation.Validate([]validation.Validation{
-		{TargetValue: client.ResourceGroupName,
-			Constraints: []validation.Constraint{{Target: "client.ResourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
-		return result, validation.NewErrorWithValidationError(err, "automation.NodeReportsClient", "ListByNode")
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._]+$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("automation.NodeReportsClient", "ListByNode", err.Error())
 	}
 
 	result.fn = client.listByNodeNextResults
-	req, err := client.ListByNodePreparer(ctx, automationAccountName, nodeID, filter)
+	req, err := client.ListByNodePreparer(ctx, resourceGroupName, automationAccountName, nodeID, filter)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "automation.NodeReportsClient", "ListByNode", nil, "Failure preparing request")
 		return
@@ -221,11 +267,11 @@ func (client NodeReportsClient) ListByNode(ctx context.Context, automationAccoun
 }
 
 // ListByNodePreparer prepares the ListByNode request.
-func (client NodeReportsClient) ListByNodePreparer(ctx context.Context, automationAccountName string, nodeID string, filter string) (*http.Request, error) {
+func (client NodeReportsClient) ListByNodePreparer(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, filter string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"automationAccountName": autorest.Encode("path", automationAccountName),
 		"nodeId":                autorest.Encode("path", nodeID),
-		"resourceGroupName":     autorest.Encode("path", client.ResourceGroupName),
+		"resourceGroupName":     autorest.Encode("path", resourceGroupName),
 		"subscriptionId":        autorest.Encode("path", client.SubscriptionID),
 	}
 
@@ -248,8 +294,8 @@ func (client NodeReportsClient) ListByNodePreparer(ctx context.Context, automati
 // ListByNodeSender sends the ListByNode request. The method will close the
 // http.Response Body if it receives an error.
 func (client NodeReportsClient) ListByNodeSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByNodeResponder handles the response to the ListByNode request. The method always
@@ -266,8 +312,8 @@ func (client NodeReportsClient) ListByNodeResponder(resp *http.Response) (result
 }
 
 // listByNodeNextResults retrieves the next set of results, if any.
-func (client NodeReportsClient) listByNodeNextResults(lastResults DscNodeReportListResult) (result DscNodeReportListResult, err error) {
-	req, err := lastResults.dscNodeReportListResultPreparer()
+func (client NodeReportsClient) listByNodeNextResults(ctx context.Context, lastResults DscNodeReportListResult) (result DscNodeReportListResult, err error) {
+	req, err := lastResults.dscNodeReportListResultPreparer(ctx)
 	if err != nil {
 		return result, autorest.NewErrorWithError(err, "automation.NodeReportsClient", "listByNodeNextResults", nil, "Failure preparing next results request")
 	}
@@ -287,7 +333,17 @@ func (client NodeReportsClient) listByNodeNextResults(lastResults DscNodeReportL
 }
 
 // ListByNodeComplete enumerates all values, automatically crossing page boundaries as required.
-func (client NodeReportsClient) ListByNodeComplete(ctx context.Context, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultIterator, err error) {
-	result.page, err = client.ListByNode(ctx, automationAccountName, nodeID, filter)
+func (client NodeReportsClient) ListByNodeComplete(ctx context.Context, resourceGroupName string, automationAccountName string, nodeID string, filter string) (result DscNodeReportListResultIterator, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/NodeReportsClient.ListByNode")
+		defer func() {
+			sc := -1
+			if result.Response().Response.Response != nil {
+				sc = result.page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	result.page, err = client.ListByNode(ctx, resourceGroupName, automationAccountName, nodeID, filter)
 	return
 }

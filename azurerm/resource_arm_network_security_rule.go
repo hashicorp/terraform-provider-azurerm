@@ -2,21 +2,35 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2017-09-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmNetworkSecurityRule() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmNetworkSecurityRuleCreate,
+		Create: resourceArmNetworkSecurityRuleCreateUpdate,
 		Read:   resourceArmNetworkSecurityRuleRead,
-		Update: resourceArmNetworkSecurityRuleCreate,
+		Update: resourceArmNetworkSecurityRuleCreateUpdate,
 		Delete: resourceArmNetworkSecurityRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -26,7 +40,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_security_group_name": {
 				Type:     schema.TypeString,
@@ -37,7 +51,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 			"description": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateStringLength(140),
+				ValidateFunc: validation.StringLenBetween(0, 140),
 			},
 
 			"protocol": {
@@ -47,8 +61,9 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleProtocolAsterisk),
 					string(network.SecurityRuleProtocolTCP),
 					string(network.SecurityRuleProtocolUDP),
+					string(network.SecurityRuleProtocolIcmp),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"source_port_range": {
@@ -107,15 +122,19 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 				ConflictsWith: []string{"destination_address_prefix"},
 			},
 
+			//lintignore:S018
 			"source_application_security_group_ids": {
 				Type:     schema.TypeSet,
+				MaxItems: 1,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
 			},
 
+			//lintignore:S018
 			"destination_application_security_group_ids": {
 				Type:     schema.TypeSet,
+				MaxItems: 1,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Set:      schema.HashString,
@@ -128,7 +147,7 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleAccessAllow),
 					string(network.SecurityRuleAccessDeny),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"priority": {
@@ -144,19 +163,33 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleDirectionInbound),
 					string(network.SecurityRuleDirectionOutbound),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 		},
 	}
 }
 
-func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secRuleClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmNetworkSecurityRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Network.SecurityRuleClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	nsgName := d.Get("network_security_group_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, nsgName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Rule %q (Network Security Group %q / Resource Group %q): %s", name, nsgName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_network_security_rule", *existing.ID)
+		}
+	}
 
 	sourcePortRange := d.Get("source_port_range").(string)
 	destinationPortRange := d.Get("destination_port_range").(string)
@@ -167,8 +200,8 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 	direction := d.Get("direction").(string)
 	protocol := d.Get("protocol").(string)
 
-	azureRMLockByName(nsgName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(nsgName, networkSecurityGroupResourceName)
+	locks.ByName(nsgName, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
 
 	rule := network.SecurityRule{
 		Name: &name,
@@ -256,17 +289,16 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error Creating/Updating Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for completion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 
 	read, err := client.Get(ctx, resGroup, nsgName, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", name, nsgName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Security Group Rule %s/%s (resource group %s) ID", nsgName, name, resGroup)
+		return fmt.Errorf("Cannot read Network Security Rule %s (NSG %q / resource group %s) ID", name, nsgName, resGroup)
 	}
 
 	d.SetId(*read.ID)
@@ -275,10 +307,11 @@ func resourceArmNetworkSecurityRuleCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secRuleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SecurityRuleClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -292,7 +325,7 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on Azure Network Security Rule %q: %+v", sgRuleName, err)
+		return fmt.Errorf("Error making Read request on Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, networkSGName, resGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -313,16 +346,25 @@ func resourceArmNetworkSecurityRuleRead(d *schema.ResourceData, meta interface{}
 		d.Set("access", string(props.Access))
 		d.Set("priority", int(*props.Priority))
 		d.Set("direction", string(props.Direction))
+
+		if err := d.Set("source_application_security_group_ids", flattenApplicationSecurityGroupIds(props.SourceApplicationSecurityGroups)); err != nil {
+			return fmt.Errorf("Error setting `source_application_security_group_ids`: %+v", err)
+		}
+
+		if err := d.Set("destination_application_security_group_ids", flattenApplicationSecurityGroupIds(props.DestinationApplicationSecurityGroups)); err != nil {
+			return fmt.Errorf("Error setting `source_application_security_group_ids`: %+v", err)
+		}
 	}
 
 	return nil
 }
 
 func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).secRuleClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SecurityRuleClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -330,18 +372,29 @@ func resourceArmNetworkSecurityRuleDelete(d *schema.ResourceData, meta interface
 	nsgName := id.Path["networkSecurityGroups"]
 	sgRuleName := id.Path["securityRules"]
 
-	azureRMLockByName(nsgName, networkSecurityGroupResourceName)
-	defer azureRMUnlockByName(nsgName, networkSecurityGroupResourceName)
+	locks.ByName(nsgName, networkSecurityGroupResourceName)
+	defer locks.UnlockByName(nsgName, networkSecurityGroupResourceName)
 
 	future, err := client.Delete(ctx, resGroup, nsgName, sgRuleName)
 	if err != nil {
 		return fmt.Errorf("Error Deleting Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
-	err = future.WaitForCompletion(ctx, client.Client)
-	if err != nil {
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		return fmt.Errorf("Error waiting for the deletion of Network Security Rule %q (NSG %q / Resource Group %q): %+v", sgRuleName, nsgName, resGroup, err)
 	}
 
-	return err
+	return nil
+}
+
+func flattenApplicationSecurityGroupIds(groups *[]network.ApplicationSecurityGroup) []string {
+	ids := make([]string, 0)
+
+	if groups != nil {
+		for _, v := range *groups {
+			ids = append(ids, *v.ID)
+		}
+	}
+
+	return ids
 }

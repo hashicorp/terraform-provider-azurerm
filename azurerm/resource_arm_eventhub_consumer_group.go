@@ -3,10 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,28 +25,38 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateEventHubConsumerName(),
 			},
 
 			"namespace_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateEventHubNamespaceName(),
 			},
 
 			"eventhub_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateEventHubName(),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
 			"user_metadata": {
 				Type:         schema.TypeString,
@@ -53,14 +68,29 @@ func resourceArmEventHubConsumerGroup() *schema.Resource {
 }
 
 func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubConsumerGroupClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.ConsumerGroupClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM EventHub Consumer Group creation.")
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
 	eventHubName := d.Get("eventhub_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resGroup, namespaceName, eventHubName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing EventHub Consumer Group %q (EventHub %q / Namespace %q / Resource Group %q): %s", name, eventHubName, namespaceName, resGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_eventhub_consumer_group", *existing.ID)
+		}
+	}
+
 	userMetaData := d.Get("user_metadata").(string)
 
 	parameters := eventhub.ConsumerGroup{
@@ -70,8 +100,7 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 		},
 	}
 
-	_, err := client.CreateOrUpdate(ctx, resGroup, namespaceName, eventHubName, name, parameters)
-	if err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, namespaceName, eventHubName, name, parameters); err != nil {
 		return err
 	}
 
@@ -91,10 +120,11 @@ func resourceArmEventHubConsumerGroupCreateUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubConsumerGroupClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.ConsumerGroupClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -122,10 +152,11 @@ func resourceArmEventHubConsumerGroupRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmEventHubConsumerGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventHubConsumerGroupClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Eventhub.ConsumerGroupClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
