@@ -87,7 +87,7 @@ func resourceArmSignalRService() *schema.Resource {
 						},
 
 						"value": {
-							Type:     schema.TypeInt,
+							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"Default",
@@ -107,7 +107,7 @@ func resourceArmSignalRService() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"allowed_origins": {
 							Type:     schema.TypeSet,
-							Computed: true,
+							Required: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 					},
@@ -252,6 +252,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -265,8 +266,14 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_address", properties.ExternalIP)
 		d.Set("public_port", properties.PublicPort)
 		d.Set("server_port", properties.ServerPort)
-		d.Set("features", flattenSignalRFeatures(properties.Features))
-		d.Set("cors", flattenSignalRCors(properties.Cors))
+
+		if err := d.Set("features", flattenSignalRFeatures(properties.Features)); err != nil {
+			return fmt.Errorf("Error setting `features`: %+v", err)
+		}
+
+		if err := d.Set("cors", flattenSignalRCors(properties.Cors)); err != nil {
+			return fmt.Errorf("Error setting `cors`: %+v", err)
+		}
 	}
 
 	d.Set("primary_access_key", keys.PrimaryKey)
@@ -325,16 +332,20 @@ func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
 	result := make([]interface{}, 0)
 	if features != nil {
 		for _, feature := range *features {
-			value := make(map[string]interface{})
-
+			flag := ""
 			if feature.Flag != nil {
-				value["flag"] = *feature.Flag
-			}
-			if feature.Value != nil {
-				value["value"] = *feature.Value
+				flag = *feature.Flag
 			}
 
-			result = append(result, value)
+			value := ""
+			if feature.Value != nil {
+				value = *feature.Value
+			}
+
+			result = append(result, map[string]interface{}{
+				"flag":  flag,
+				"value": value,
+			})
 		}
 	}
 	return result

@@ -28,13 +28,13 @@ resource "azurerm_signalr_service" "example" {
     capacity = 1
   }
 
+  cors {
+    allowed_origins = ["http://www.example.com"]
+  }
+
   features {
     flag = "ServiceMode"
     value = "Default"
-  }
-
-  cors {
-    allowed_origins = ["http://www.example.com"]
   }
 }
 ```
@@ -51,11 +51,25 @@ The following arguments are supported:
 
 * `sku` - A `sku` block as documented below.
 
-* `features` - (Optional) A `features` block as documented below.
-
 * `cors` - (Optional) A `cors` block as documented below.
 
+* `features` - (Optional) A `features` block as documented below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+
+---
+
+A `features` block supports the following:
+
+* `flag` - (Required) A kind of feature. At this time the only supported value is `ServiceMode`.
+
+* `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
 ---
 
@@ -64,20 +78,6 @@ A `sku` block supports the following:
 * `name` - (Required) Specifies which tier to use. Valid values are `Free_F1` and `Standard_S1`.
 
 * `capacity` - (Required) Specifies the number of units associated with this SignalR service. Valid values are `1`, `2`, `5`, `10`, `20`, `50` and `100`.
-
----
-
-A `features` block supports the following:
-
-* `flag` - (Required) A kind of feature. e.g. ServiceMode.
-
-* `value` - (Required) A value of a feature flag. e.g. Default, Serverless, or Classic.
-
----
-
-A `cors` block supports the following:
-
-* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
 ## Attributes Reference
 
