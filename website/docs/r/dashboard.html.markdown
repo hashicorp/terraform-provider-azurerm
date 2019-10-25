@@ -200,20 +200,20 @@ data "template_file" "dash-template" {
   vars = {
     md_content = "Variable content here!"
     video_link = "https://www.youtube.com/watch?v=......"
-    sub_id = data.azurerm_subscription.current.subscription_id
+    sub_id     = data.azurerm_subscription.current.subscription_id
   }
 }
 
 ...
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = data.template_file.dash-template.rendered
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = data.template_file.dash-template.rendered
 }
 
 ```
@@ -224,18 +224,18 @@ resource "azurerm_dashboard" "my-board" {
 ...
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = templatefile("dash.tpl", 
-                                    {
-                                        md_content = "Variable content here!",
-                                        video_link = "https://www.youtube.com/watch?v=......",
-                                        sub_id = data.azurerm_subscription.current.subscription_id 
-                                    })
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = templatefile("dash.tpl",
+    {
+      md_content = "Variable content here!",
+      video_link = "https://www.youtube.com/watch?v=......",
+      sub_id     = data.azurerm_subscription.current.subscription_id
+  })
 }
 ```
 
