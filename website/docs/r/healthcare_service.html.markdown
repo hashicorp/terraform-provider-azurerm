@@ -54,11 +54,11 @@ The following arguments are supported:
 ~> **Please Note**: Not all locations support this resource. Some are `West US 2`, `North Central US`, and `UK West`. 
 
 * `access_policy_ids` - (Optional) A set of Azure object id's that are allowed to access the Service. If not configured, the default value is the object id of the service principal or user that is running Terraform.
-* `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
-* `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `400`.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
 * `authentication_configuration` - (Optional) An `authentication_configuration` block as defined below.
+* `cosmosdb_throughput` - (Optional) The provisioned throughput for the backing database. Range of `400`-`1000`. Defaults to `400`.
 * `cors_configuration` - (Optional) A `cors_configuration` block as defined below.
+* `kind` - (Optional) The type of the service. Values at time of publication are: `fhir`, `fhir-Stu3` and `fhir-R4`. Default value is `fhir`.
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 An `authentication_configuration` supports the following:
