@@ -519,7 +519,7 @@ func testAccAzureRMKeyVaultCertificate_requiresImport(rString string, location s
 %s
 
 resource "azurerm_key_vault_certificate" "import" {
-  name     = "${azurerm_key_vault_certificate.test.name}"
+  name         = "${azurerm_key_vault_certificate.test.name}"
   key_vault_id = "${azurerm_key_vault.test.id}"
 
   certificate {

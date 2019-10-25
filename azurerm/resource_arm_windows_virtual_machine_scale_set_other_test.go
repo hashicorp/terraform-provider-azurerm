@@ -977,14 +977,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverPr
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                                              = local.vm_name
-  resource_group_name                               = azurerm_resource_group.test.name
-  location                                          = azurerm_resource_group.test.location
-  sku                                               = "Standard_F2"
-  instances                                         = 1
-  admin_username                                    = "adminuser"
-  admin_password                                    = "P@ssword1234!"
-  overprovision                                     = true
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  overprovision       = true
 
   do_not_run_extensions_on_overprovisioned_machines = true
 

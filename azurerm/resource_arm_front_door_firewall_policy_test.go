@@ -298,7 +298,7 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
     }
   }
 
-        %[2]s
+  %[2]s
 
   managed_rule {
     type    = "DefaultRuleSet"

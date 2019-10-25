@@ -31,7 +31,7 @@ func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basic(t *testing.T) {
 
 func testAccAzureRMNetworkDDoSProtectionPlanDataSource_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
-	%s
+%s
 
 data "azurerm_network_ddos_protection_plan" "test" {
   name                = "${azurerm_network_ddos_protection_plan.test.name}"
