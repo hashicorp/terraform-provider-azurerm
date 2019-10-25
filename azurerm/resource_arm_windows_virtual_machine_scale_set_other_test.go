@@ -985,6 +985,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username                                    = "adminuser"
   admin_password                                    = "P@ssword1234!"
   overprovision                                     = true
+
   do_not_run_extensions_on_overprovisioned_machines = true
 
   source_image_reference {
@@ -1192,7 +1193,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "import" {
   sku                 = azurerm_windows_virtual_machine_scale_set.test.sku
   instances           = azurerm_windows_virtual_machine_scale_set.test.instances
   admin_username      = azurerm_windows_virtual_machine_scale_set.test.admin_username
-  admin_password      = "azurerm_windows_virtual_machine_scale_set.test.admin_password
+  admin_password      = azurerm_windows_virtual_machine_scale_set.test.admin_password
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

@@ -736,7 +736,7 @@ resource "azurerm_cosmosdb_account" "test" {
   consistency_policy {
     consistency_level = "%s"
 
-    %s
+            %s
   }
 
   geo_location {
@@ -744,7 +744,7 @@ resource "azurerm_cosmosdb_account" "test" {
     failover_priority = 0
   }
 
-  %s
+      %s
 }
 `, rInt, location, rInt, consistency, consistencyOptions, additional)
 }
@@ -763,7 +763,7 @@ resource "azurerm_cosmosdb_account" "import" {
   consistency_policy {
     consistency_level = "%s"
 
-    %s
+            %s
   }
 
   geo_location {
@@ -771,7 +771,7 @@ resource "azurerm_cosmosdb_account" "import" {
     failover_priority = 0
   }
 
-  %s
+      %s
 }
 `, template, consistency, consistencyOptions, additional)
 }
@@ -861,7 +861,7 @@ func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altL
             failover_priority = 1
         }
 
-    `, altLocation))
+  `, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLocation string) string {
@@ -878,7 +878,7 @@ func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLoc
             failover_priority = 1
         }
 
-    `, altLocation))
+  `, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location string, altLocation string) string {
@@ -894,7 +894,7 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
             failover_priority = 1
         }
 
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(rInt int, location string, altLocation string, cLevel documentdb.DefaultConsistencyLevel) string {
@@ -905,7 +905,7 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(rInt int
             failover_priority = 1
         }
 
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
@@ -922,7 +922,7 @@ func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocati
             location          = "%s"
             failover_priority = 1
         }
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_emptyIpFilter(rInt int, location string, altLocation string) string {
@@ -940,7 +940,7 @@ func testAccAzureRMCosmosDBAccount_emptyIpFilter(rInt int, location string, altL
             location          = "%s"
             failover_priority = 1
         }
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_virtualNetworkFilter(rInt int, location string) string {

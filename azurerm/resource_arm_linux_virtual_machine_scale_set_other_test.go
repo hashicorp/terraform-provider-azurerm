@@ -938,7 +938,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "import" {
   sku                 = azurerm_linux_virtual_machine_scale_set.test.sku
   instances           = azurerm_linux_virtual_machine_scale_set.test.instances
   admin_username      = azurerm_linux_virtual_machine_scale_set.test.admin_username
-  admin_password      = "azurerm_linux_virtual_machine_scale_set.test.admin_password
+  admin_password      = azurerm_linux_virtual_machine_scale_set.test.admin_password
 
   disable_password_authentication = false
 

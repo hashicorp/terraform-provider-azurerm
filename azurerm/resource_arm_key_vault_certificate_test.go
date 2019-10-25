@@ -543,7 +543,8 @@ resource "azurerm_key_vault_certificate" "import" {
       content_type = "application/x-pkcs12"
     }
   }
-}`, template)
+}
+`, template)
 }
 
 func testAccAzureRMKeyVaultCertificate_basicGenerate(rString string, location string) string {
