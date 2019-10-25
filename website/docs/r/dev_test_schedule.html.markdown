@@ -27,18 +27,18 @@ resource "azurerm_dev_test_lab" "sample" {
 }
 
 resource "azurerm_dev_test_schedule" "sample" {
-  name = "LabVmAutoStart"
+  name                = "LabVmAutoStart"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   lab_name            = "${azurerm_dev_test_lab.test.name}"
-  
+
   weekly_recurrence {
     time      = "1100"
     week_days = ["Monday", "Tuesday"]
   }
 
   time_zone_id = "Pacific Standard Time"
-  task_type = "LabVmsStartupTask"
+  task_type    = "LabVmsStartupTask"
 
   notification_settings {
   }

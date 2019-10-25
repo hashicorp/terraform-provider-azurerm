@@ -18,26 +18,26 @@ variable "md_content" {
   default     = "# Hello all :)"
 }
 
-variable "video_link"{
-    description = "Link to a video"
-    default = "https://www.youtube.com/watch?v=......"
+variable "video_link" {
+  description = "Link to a video"
+  default     = "https://www.youtube.com/watch?v=......"
 }
-   
+
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_resource_group" "my-group"{
-    name = "mygroup"
-    location = "uksouth"
+resource "azurerm_resource_group" "my-group" {
+  name     = "mygroup"
+  location = "uksouth"
 }
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = <<DASH
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = <<DASH
 {
    "lenses": {
         "0": {
@@ -147,7 +147,7 @@ resource "azurerm_dashboard" "my-board" {
     }
 }
 DASH
-    }
+}
 
 ```
 

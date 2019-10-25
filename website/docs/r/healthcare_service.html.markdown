@@ -20,11 +20,11 @@ resource "azurerm_healthcare_service" "example" {
   kind                = "fhir-R4"
   cosmosdb_throughput = "2000"
 
-  access_policy_object_ids = [ "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
+  access_policy_object_ids = ["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
 
   tags = {
-   "environment" = "testenv"
-   "purpose"     = "AcceptanceTests"
+    "environment" = "testenv"
+    "purpose"     = "AcceptanceTests"
   }
 
   authentication_configuration {
@@ -34,11 +34,11 @@ resource "azurerm_healthcare_service" "example" {
   }
 
   cors_configuration {
-     allowed_origins    = ["http://www.example.com","http://www.example2.com"]
-     allowed_headers    = ["x-tempo-*","x-tempo2-*"]
-     allowed_methods    = ["GET", "PUT"]
-     max_age_in_seconds = "500"
-     allow_credentials  = "true"
+    allowed_origins    = ["http://www.example.com", "http://www.example2.com"]
+    allowed_headers    = ["x-tempo-*", "x-tempo2-*"]
+    allowed_methods    = ["GET", "PUT"]
+    max_age_in_seconds = "500"
+    allow_credentials  = "true"
   }
 }
 ```
