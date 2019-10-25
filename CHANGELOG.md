@@ -46,6 +46,7 @@ BUG FIXES:
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
 * `azurerm_sql_database` - ensure the `read_scale` property is always set during initial creation [GH-4573]
 * `azurere_storage_account` - Ignore Advanced Threat Protection read errors in Azure Germany [GH-4564]
+* `azurerm_virtual_machine` - handling the `plan` block being nil [GH-4712]
 * `azurerm_virtual_machine_data_disk_attachment` - will no longer remove the identity block when making an update [GH-4538]
 
 ## 1.35.0 (October 04, 2019)
