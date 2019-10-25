@@ -183,21 +183,22 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_stream_analytics_job" "test" {
-  name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
-  streaming_units                          = 3
+  name                = "acctestjob-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  streaming_units     = 3
 
   tags = {
     environment = "Test"
-  }  
-  
+  }
+
   transformation_query = <<QUERY
     SELECT *
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
-}`, rInt, location, rInt)
+}
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMStreamAnalyticsJob_complete(rInt int, location string) string {
