@@ -4,10 +4,12 @@ FEATURES:
 
 * **New Data Source:** `azurerm_app_service_certificate_order` [GH-4454]
 * **New Data Source:** `azurerm_data_factory` [GH-4517]
+* **New Data Source:** `azurerm_healthcare_service` [GH-4221]
 * **New Data Source:** `azurerm_resources` [GH-3529]
 * **New Resource:** `azurerm_app_service_certificate_order` [GH-4454]
 * **New Resource:** `azurerm_bastion_host` [GH-4096]
 * **New Resource:** `azurerm_data_factory_integration_runtime_managed` [GH-4342]
+* **New Resource:** `azurerm_healthcare_service` [GH-4221]
 * **New Resource:** `azurerm_kusto_eventhub_data_connection` [GH-4385]
 
 IMPROVEMENTS:
