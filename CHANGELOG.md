@@ -38,6 +38,7 @@ BUG FIXES:
 * `azurerm_key_vault_certificate` - switches the `emails`, `dns_names `, `upns` of the `subject_alternative_names` property to use `TypeSet` [GH-4645]
 * `azurerm_kubernetes_cluster` - fixing a crash when the `service_principal_profile` block was nil [GH-4697]
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
+* `azurerm_management_group` - raising the error message when an error occurs [GH-4725]
 * `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_monitor_activity_log_alert` - fixing support for the category `ServiceHealth` [GH-4646]
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
