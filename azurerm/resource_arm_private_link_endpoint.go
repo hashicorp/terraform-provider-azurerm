@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -44,8 +45,55 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			// the 'manual_private_link_service_connection' attribute has been removed
-			// as the behavior does not make sense in a terraform resource
+			"private_service_connection": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"is_manual_connection": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"private_connection_resource_id": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+						"subresource_names": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
+						"request_message": {
+							// Only valid if is_manual_connection == true. Restricted to 140 chars.
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.PrivateLinkEnpointRequestMessage,
+						},
+						"provisioning_state": {
+							// ProvisioningState - The provisioning state of the Private Link Endpoint. Possible values include: 'Succeeded', 'Updating', 'Deleting', 'Failed'
+							// PrivateLinkServiceConnectionProperties.ProvisioningState
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"status": {
+							// Status - Indicates whether the connection has been Approved/Rejected/Removed by the owner of the service.
+							// PrivateLinkServiceConnection.PrivateLinkServiceConnectionProperties.PrivateLinkServiceConnectionState.Status
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
 
 			"network_interface_ids": {
 				Type:     schema.TypeList,
@@ -67,11 +115,15 @@ func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta int
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
+	if err := aznet.ValidatePrivateLinkEndpointSettings(d); err != nil {
+		return fmt.Errorf("Error validating the configuration for the Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+				return fmt.Errorf("Error checking for present of existing Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(resp.Response) {
@@ -80,12 +132,15 @@ func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
+	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
 		PrivateEndpointProperties: &network.PrivateEndpointProperties{
+			PrivateLinkServiceConnections: expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, false),
+			ManualPrivateLinkServiceConnections: expandArmPrivateLinkEndpointServiceConnection(privateServiceConnections, true),
 			Subnet: &network.Subnet{
 				ID: utils.String(subnetId),
 			},
@@ -95,19 +150,19 @@ func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta int
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error creating Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation of Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil || *resp.ID == "" { 
-		return fmt.Errorf("API returns a nil/empty id on Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err) 
-	} 
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
 	d.SetId(*resp.ID)
 
 	return resourceArmPrivateLinkEndpointRead(d, meta)
@@ -127,11 +182,11 @@ func resourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Private Endpoint %q does not exist - removing from state", d.Id())
+			log.Printf("[INFO] Private Link Endpoint %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -169,16 +224,84 @@ func resourceArmPrivateLinkEndpointDelete(d *schema.ResourceData, meta interface
 		if response.WasNotFound(future.Response()) {
 			return nil
 		}
-		return fmt.Errorf("Error deleting Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for deleting Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
 	return nil
+}
+
+func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseManual bool) *[]network.PrivateLinkServiceConnection {
+	results := make([]network.PrivateLinkServiceConnection, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		privateConnectonResourceId := v["private_connection_resource_id"].(string)
+		subresourceNames := v["subresource_names"].([]interface{})
+		requestMessage := v["request_message"].(string)
+		isManual := v["is_manual_connection"].(bool)
+		name := v["name"].(string)
+
+		if isManual == parseManual {
+			result := network.PrivateLinkServiceConnection{
+				Name: utils.String(name),
+				PrivateLinkServiceConnectionProperties: &network.PrivateLinkServiceConnectionProperties{
+					GroupIds:             utils.ExpandStringSlice(subresourceNames),
+					PrivateLinkServiceID: utils.String(privateConnectonResourceId),
+				},
+			}
+
+			if requestMessage != "" {
+				result.PrivateLinkServiceConnectionProperties.RequestMessage = utils.String(requestMessage)
+			}
+
+			results = append(results, result)
+		}
+	}
+
+	return &results
+}
+
+func flattenArmPrivateLinkEndpointServiceConnection(input *[]network.PrivateLinkServiceConnection) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		v := make(map[string]interface{})
+
+		if name := item.Name; name != nil {
+			v["name"] = *name
+		}
+		if props := item.PrivateLinkServiceConnectionProperties; props != nil {
+			if subresourceNames := props.GroupIds; subresourceNames != nil {
+				v["subresource_names"] = utils.FlattenStringSlice(subresourceNames)
+			}
+			if privateConnectionResourceId := props.PrivateLinkServiceID; privateConnectionResourceId != nil {
+				v["private_connection_resource_id"] = *privateConnectionResourceId
+			}
+			if requestMessage := props.RequestMessage; requestMessage != nil {
+				v["request_message"] = *requestMessage
+			}
+			if provisioningState := props.ProvisioningState; provisioningState != "" {
+				v["provisioning_state"] = provisioningState
+			}
+			if s := props.PrivateLinkServiceConnectionState; s != nil {
+				if status := s.Status; status != nil {
+					v["status"] = *status
+				}
+			}
+		}
+
+		results = append(results, v)
+	}
+
+	return results
 }
 
 func flattenArmPrivateLinkEndpointInterface(input *[]network.Interface) []interface{} {

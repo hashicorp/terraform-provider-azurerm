@@ -64,7 +64,7 @@ func dataSourceArmSubnet() *schema.Resource {
 				},
 			},
 
-			"disable_private_endpoint_network_policies": {
+			"disable_private_link_endpoint_network_policies": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -98,7 +98,7 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("address_prefix", props.AddressPrefix)
 
 		if privateEndpointNetworkPolicies := props.PrivateEndpointNetworkPolicies; privateEndpointNetworkPolicies != nil {
-			if err := d.Set("disable_private_endpoint_network_policies", *privateEndpointNetworkPolicies == "Disabled"); err != nil {
+			if err := d.Set("disable_private_link_endpoint_network_policies", *privateEndpointNetworkPolicies == "Disabled"); err != nil {
 				return err
 			}
 		}

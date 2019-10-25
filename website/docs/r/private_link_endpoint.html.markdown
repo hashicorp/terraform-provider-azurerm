@@ -34,7 +34,7 @@ resource "azurerm_subnet" "example" {
   address_prefix       = "10.0.1.0/24"
 
   disable_private_link_service_network_policies = true
-  disable_private_endpoint_network_policies     = true
+  disable_private_link_endpoint_network_policies     = true
 }
 
 resource "azurerm_public_ip" "example" {
