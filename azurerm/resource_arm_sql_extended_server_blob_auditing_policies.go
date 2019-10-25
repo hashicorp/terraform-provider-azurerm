@@ -8,6 +8,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -46,15 +47,9 @@ func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
 			},
 
 			"state": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
-					v := val.(string)
-					if !(v == "Enabled" || v == "Disabled") {
-						errs = append(errs, fmt.Errorf("%q can only be 'Enabled' or 'Disabled' ", key))
-					}
-					return
-				},
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice([]string{"Enabled", "Disabled"}, false),
 			},
 
 			"storage_endpoint": {
