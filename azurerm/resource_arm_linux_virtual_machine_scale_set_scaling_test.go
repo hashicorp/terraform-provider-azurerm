@@ -427,16 +427,16 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingAutoScale(rInt int, locati
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 2
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
-  overprovision                   = true
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 2
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  overprovision       = true
 
-disable_password_authentication = false
+  disable_password_authentication = false
 
   source_image_reference {
     publisher = "Canonical"
@@ -527,14 +527,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCount(rInt int, lo
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = %d
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = %d
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -569,14 +569,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingInstanceCountIgnoreUpdated
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F4"
-  instances                       = %d
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F4"
+  instances           = %d
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -615,14 +615,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingOverProvisionDisabled(rInt
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 3
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
-  overprovision                   = false
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  overprovision       = false
 
   disable_password_authentication = false
 
@@ -664,14 +664,14 @@ resource "azurerm_proximity_placement_group" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
   proximity_placement_group_id    = azurerm_proximity_placement_group.test.id
 
@@ -707,14 +707,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingSinglePlacementGroupDisabl
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
   single_placement_group          = false
 
@@ -750,14 +750,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingUpdateSku(rInt int, locati
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = %q
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = %q
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -792,14 +792,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingUpdateSkuIgnoredUpdatedCou
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = %q
-  instances                       = 5
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = %q
+  instances           = 5
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -838,14 +838,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingZonesSingle(rInt int, loca
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
-  zones                           = ["1"]
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1"]
 
   disable_password_authentication = false
 
@@ -881,14 +881,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingZonesMultiple(rInt int, lo
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 2
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
-  zones                           = ["1", "2"]
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 2
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1", "2"]
 
   disable_password_authentication = false
 
@@ -924,15 +924,15 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_scalingZonesBalance(rInt int, loc
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 4
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
-  zones                           = ["1", "2"]
-  zone_balance                    = true
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 4
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1", "2"]
+  zone_balance        = true
 
   disable_password_authentication = false
 

@@ -853,14 +853,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkAcceleratedNetworking(rInt
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F4"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F4"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -903,14 +903,14 @@ resource "azurerm_subnet" "other" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -952,14 +952,14 @@ resource "azurerm_application_security_group" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1007,14 +1007,14 @@ resource "azurerm_application_security_group" "other" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1053,14 +1053,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkDNSServers(rInt int, locat
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1096,14 +1096,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkDNSServersUpdated(rInt int
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1139,14 +1139,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkIPForwarding(rInt int, loc
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1182,14 +1182,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkIPv6(rInt int, location st
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1260,14 +1260,14 @@ resource "azurerm_lb_nat_pool" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1304,14 +1304,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleIPConfigurations(r
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1351,14 +1351,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleIPConfigurationsIP
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_D2s_v3"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_D2s_v3"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1399,14 +1399,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICs(rInt int, loc
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1451,14 +1451,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICsMultipleIPConf
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1513,14 +1513,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICsWithDifferentD
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1567,14 +1567,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkMultipleNICsMultiplePublic
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1637,14 +1637,14 @@ resource "azurerm_network_security_group" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1692,14 +1692,14 @@ resource "azurerm_network_security_group" "other" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1735,14 +1735,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkPrivate(rInt int, location
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1777,14 +1777,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkPublicIP(rInt int, locatio
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1824,14 +1824,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkPublicIPDomainNameLabel(rI
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1878,14 +1878,14 @@ resource "azurerm_public_ip_prefix" "test" {
 }
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1925,14 +1925,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_networkPublicIPTags(rInt int, loc
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  admin_password                  = "P@ssword1234!"
- 
+  name                = "acctestvmss-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
