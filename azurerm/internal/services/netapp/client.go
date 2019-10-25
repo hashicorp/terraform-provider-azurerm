@@ -10,10 +10,10 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	AccountClient := netapp.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AccountClient.Client, o.ResourceManagerAuthorizer)
+	accountClient := netapp.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AccountClient: &AccountClient,
+		AccountClient: &accountClient,
 	}
 }

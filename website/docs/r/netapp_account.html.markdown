@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_account"
 sidebar_current: "docs-azurerm-resource-netapp-account"
 description: |-
-  Manages Azure NetApp Account instance.
+  Manages a NetApp Account.
 ---
 
 # azurerm_netapp_account
 
-Manages Azure NetApp Account instance.
+Manages a NetApp Account.
 
 ~> **NOTE:** Azure allows only one active directory can be joined to a single subscription at a time for NetApp Account.
 
@@ -16,12 +16,12 @@ Manages Azure NetApp Account instance.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG"
-  location = "Eastus2"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_netapp_account" "example" {
-  name                = "acctestnetappaccount"
+  name                = "example-netapp"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
 
@@ -33,10 +33,6 @@ resource "azurerm_netapp_account" "example" {
     domain              = "westcentralus.com"
     organizational_unit = "OU=FirstLevel"
   }
-
-  tags = {
-    foo = "bar"
-  }
 }
 ```
 
@@ -46,13 +42,11 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the NetApp Account. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group where the NetApp Account resides. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group where the NetApp Account should be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `active_directory` - (Optional) One or more `active_directory` block defined below.
-
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+* `active_directory` - (Optional) A `active_directory` block as defined below.
 
 ---
 
@@ -60,15 +54,15 @@ The `active_directory` block supports the following:
 
 * `dns_servers` - (Required) A list of DNS server IP addresses for the Active Directory domain. Only allows `IPv4` address.
 
-* `domain` - (Required) Name of the Active Directory domain.
+* `domain` - (Required) The name of the Active Directory domain.
 
-* `smb_server_name` - (Required) NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
+* `smb_server_name` - (Required) The NetBIOS name which should be used for the NetApp SMB Server, which will be registered as a computer account in the AD and used to mount volumes.
 
-* `username` - (Required) Username of Active Directory domain administrator, which have permissions to create a SMB machine account in the AD domain.
+* `username` - (Required) The Username of Active Directory Domain Administrator.
 
-* `password` - (Required) Plain text password of Active Directory domain administrator.
+* `password` - (Required) The password associated with the `username`.
 
-* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Windows Active Directory.
+* `organizational_unit` - (Optional) The Organizational Unit (OU) within the Active Directory Domain.
 
 ---
 
@@ -76,14 +70,14 @@ The `active_directory` block supports the following:
 
 The following attributes are exported:
 
-* `id` - The ID of the NetApp resource.
+* `id` - The ID of the NetApp Account.
 
 ---
 
 ## Import
 
-NetApp Account can be imported using the `resource id`, e.g.
+NetApp Accounts can be imported using the `resource id`, e.g.
 
 ```shell
-$ terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acctestRG/providers/Microsoft.NetApp/netAppAccounts/acctestnetappaccount
+$ terraform import azurerm_netapp_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1
 ```

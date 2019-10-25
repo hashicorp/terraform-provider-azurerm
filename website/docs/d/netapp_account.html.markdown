@@ -37,22 +37,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `location` - Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - The Azure Region where the NetApp Account exists.
 
-* `active_directory` - One or more `active_directory` block defined below.
-
-* `tags` - A mapping of tags to assign to the resource.
+* `active_directory` - An `active_directory` block defined below.
 
 ---
 
-The `active_directory` block contains the following:
+The `active_directory` block exports the following:
 
-* `dns_servers` - A list of DNS server IP addresses for the Active Directory domain.
+* `dns_servers` - A list of IP Addresses used as DNS Servers for the Active Directory domain.
 
-* `domain` - Name of the Active Directory domain.
+* `domain` - The Active Directory Domain Name.
 
-* `smb_server_name` - NetBIOS name of the SMB server. This name will be registered as a computer account in the AD and used to mount volumes.
+* `smb_server_name` - The NetBIOS name of the SMB Server.
 
-* `username` - Username of Active Directory domain administrator, which have permissions to create a SMB machine account in the AD domain.
+* `username` - The Username of Active Directory domain administrator.
 
-* `organizational_unit` - The Organizational Unit (OU) within the Windows Active Directory Domain the netapp is placed.
+* `organizational_unit` - The Organizational Unit (OU) within the Active Directory Domain where the NetApp is located.

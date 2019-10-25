@@ -25,3 +25,16 @@ func ValidateActiveDirectoryDomainName(i interface{}, k string) (_ []string, err
 
 	return nil, errors
 }
+
+func ValidateActiveDirectorySMBServerName(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, append(errors, fmt.Errorf("expected type of %q to be string", k))
+	}
+
+	if len(v) > 10 {
+		errors = append(errors, fmt.Errorf(`SMB server name can not be longer than 10 characters in length, got %d characters`, len(v)))
+	}
+
+	return nil, errors
+}

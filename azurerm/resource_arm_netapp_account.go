@@ -12,8 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	netAppSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,10 +32,10 @@ func resourceArmNetAppAccount() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppAccountName,
+				ValidateFunc: netAppSvc.ValidateNetAppAccountName,
 			},
 
-			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"location": azure.SchemaLocation(),
 
@@ -57,12 +56,12 @@ func resourceArmNetAppAccount() *schema.Resource {
 						"domain": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: aznetapp.ValidateActiveDirectoryDomainName,
+							ValidateFunc: netAppSvc.ValidateActiveDirectoryDomainName,
 						},
 						"smb_server_name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: netAppSvc.ValidateActiveDirectorySMBServerName,
 						},
 						"username": {
 							Type:         schema.TypeString,
@@ -78,13 +77,12 @@ func resourceArmNetAppAccount() *schema.Resource {
 						"organizational_unit": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
 			},
 
-			"tags": tags.Schema(),
+			// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
 		},
 	}
 }
@@ -110,14 +108,12 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	activeDirectories := d.Get("active_directory").([]interface{})
-	t := d.Get("tags").(map[string]interface{})
 
 	accountParameters := netapp.Account{
 		Location: utils.String(location),
 		AccountProperties: &netapp.AccountProperties{
 			ActiveDirectories: expandArmNetAppActiveDirectories(activeDirectories),
 		},
-		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, accountParameters, resourceGroup, name)
@@ -172,17 +168,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
-	currentTags := make(map[string]*string)
-	if v := resp.Tags; v != nil {
-		tagMap := v.(map[string]interface{})
-
-		for k, v := range tagMap {
-			currentTags[k] = utils.String(v.(string))
-		}
-	}
-
-	return tags.FlattenAndSet(d, currentTags)
+	return nil
 }
 
 func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
@@ -198,9 +184,6 @@ func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) er
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if response.WasNotFound(future.Response()) {
-			return nil
-		}
 		return fmt.Errorf("Error deleting NetApp Account %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

@@ -5,8 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	netAppSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -18,7 +17,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: aznetapp.ValidateNetAppAccountName,
+				ValidateFunc: netAppSvc.ValidateNetAppAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -57,7 +56,7 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
 		},
 	}
 }
@@ -90,15 +89,5 @@ func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
-	currentTags := make(map[string]*string)
-	if v := resp.Tags; v != nil {
-		tagMap := v.(map[string]interface{})
-
-		for k, v := range tagMap {
-			currentTags[k] = utils.String(v.(string))
-		}
-	}
-
-	return tags.FlattenAndSet(d, currentTags)
+	return nil
 }
