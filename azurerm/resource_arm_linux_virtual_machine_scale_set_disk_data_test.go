@@ -462,13 +462,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskBasic(rInt int, loca
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+ 
   disable_password_authentication = false
 
   source_image_reference {
@@ -510,13 +511,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskCaching(rInt int, lo
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+ 
   disable_password_authentication = false
 
   source_image_reference {
@@ -558,13 +560,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskResize(rInt int, loc
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+ 
   disable_password_authentication = false
 
   source_image_reference {
@@ -606,13 +609,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskMultiple(rInt int, l
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+ 
   disable_password_authentication = false
 
   source_image_reference {
@@ -661,13 +665,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountType(r
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2s_v2"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_F2s_v2"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+ 
   disable_password_authentication = false
 
   source_image_reference {
@@ -709,13 +714,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskStorageAccountTypeUl
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_D2s_v3"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_D2s_v3"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+ 
   disable_password_authentication = false
 
   source_image_reference {
@@ -761,13 +767,14 @@ func testAccAzureRMLinuxVirtualMachineScaleSet_disksDataDiskWriteAcceleratorEnab
 %s
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Standard_M8ms"
-  instances           = 1
-  admin_username      = "adminuser"
-  admin_password      = "P@ssword1234!"
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_M8ms"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  admin_password                  = "P@ssword1234!"
+ 
   disable_password_authentication = false
 
   source_image_reference {
@@ -783,10 +790,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "Premium_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
+    storage_account_type      = "Premium_LRS"
+    caching                   = "None"
+    disk_size_gb              = 10
+    lun                       = 10
     write_accelerator_enabled = true
   }
 

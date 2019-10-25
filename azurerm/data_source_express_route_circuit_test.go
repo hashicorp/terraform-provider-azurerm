@@ -39,9 +39,9 @@ func testAccDataSourceAzureRMExpressRoute_basic(rInt int, location string) strin
 	return fmt.Sprintf(`
 	%s
 
-	data "azurerm_express_route_circuit" test {
-		resource_group_name = "${azurerm_resource_group.test.name}"
-  		name                = "${azurerm_express_route_circuit.test.name}"
-	}
+data "azurerm_express_route_circuit" test {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "${azurerm_express_route_circuit.test.name}"
+}
 `, config)
 }

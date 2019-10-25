@@ -53,50 +53,50 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_recovery_services_fabric" "test1" {
-  resource_group_name          = "${azurerm_resource_group.test1.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.test.name}"
-  name                         = "acctest-fabric1-%d"
-  location                     = "${azurerm_resource_group.test1.location}"
+  resource_group_name = "${azurerm_resource_group.test1.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  name                = "acctest-fabric1-%d"
+  location            = "${azurerm_resource_group.test1.location}"
 }
 
 resource "azurerm_recovery_services_fabric" "test2" {
-  resource_group_name          = "${azurerm_resource_group.test1.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.test.name}"
-  name                         = "acctest-fabric2-%d"
-  location                     = "%s"
-  depends_on                   = ["azurerm_recovery_services_fabric.test1"]
+  resource_group_name = "${azurerm_resource_group.test1.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  name                = "acctest-fabric2-%d"
+  location            = "%s"
+  depends_on          = ["azurerm_recovery_services_fabric.test1"]
 }
 
 resource "azurerm_recovery_services_protection_container" "test1" {
-  resource_group_name           = "${azurerm_resource_group.test1.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.test.name}"
-  recovery_fabric_name          = "${azurerm_recovery_services_fabric.test1.name}"
-  name                          = "acctest-protection-cont1-%d"
+  resource_group_name  = "${azurerm_resource_group.test1.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.test.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.test1.name}"
+  name                 = "acctest-protection-cont1-%d"
 }
 
 resource "azurerm_recovery_services_protection_container" "test2" {
-  resource_group_name           = "${azurerm_resource_group.test1.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.test.name}"
-  recovery_fabric_name          = "${azurerm_recovery_services_fabric.test2.name}"
-  name                          = "acctest-protection-cont2-%d"
+  resource_group_name  = "${azurerm_resource_group.test1.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.test.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.test2.name}"
+  name                 = "acctest-protection-cont2-%d"
 }
 
 resource "azurerm_recovery_services_replication_policy" "test" {
-  resource_group_name           = "${azurerm_resource_group.test1.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.test.name}"
-  name                          = "acctest-policy-%d"
-  recovery_point_retention_in_minutes = "${24 * 60}"
+  resource_group_name                                  = "${azurerm_resource_group.test1.name}"
+  recovery_vault_name                                  = "${azurerm_recovery_services_vault.test.name}"
+  name                                                 = "acctest-policy-%d"
+  recovery_point_retention_in_minutes                  = "${24 * 60}"
   application_consistent_snapshot_frequency_in_minutes = "${4 * 60}"
 }
 
 resource "azurerm_recovery_services_protection_container_mapping" "test" {
-  resource_group_name            = "${azurerm_resource_group.test1.name}"
-  recovery_vault_name            = "${azurerm_recovery_services_vault.test.name}"
-  recovery_fabric_name           = "${azurerm_recovery_services_fabric.test1.name}"
+  resource_group_name                       = "${azurerm_resource_group.test1.name}"
+  recovery_vault_name                       = "${azurerm_recovery_services_vault.test.name}"
+  recovery_fabric_name                      = "${azurerm_recovery_services_fabric.test1.name}"
   recovery_source_protection_container_name = "${azurerm_recovery_services_protection_container.test1.name}"
-  recovery_target_protection_container_id = "${azurerm_recovery_services_protection_container.test2.id}"
-  recovery_replication_policy_id = "${azurerm_recovery_services_replication_policy.test.id}"
-  name                           = "mapping-%d"
+  recovery_target_protection_container_id   = "${azurerm_recovery_services_protection_container.test2.id}"
+  recovery_replication_policy_id            = "${azurerm_recovery_services_replication_policy.test.id}"
+  name                                      = "mapping-%d"
 }
 `, rInt, location, rInt, rInt, rInt, altLocation, rInt, rInt, rInt, rInt)
 }

@@ -217,8 +217,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_frontdoor_firewall_policy" "test" {
-  name                              = "testAccFrontDoorWAF%[1]d"
-  resource_group_name               = azurerm_resource_group.test.name
+  name                = "testAccFrontDoorWAF%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, rInt, location)
 }
