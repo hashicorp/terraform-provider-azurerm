@@ -48,6 +48,8 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) Specifies the ID of the Storage Account in which the Data Lake Gen2 File System should exist. Changing this forces a new resource to be created.
 
+~> **NOTE:** The Storage Account requires an account kind of either `StorageV2` or `BlobStorage` and `is_hns_enabled` has to be set to `true`.
+
 * `properties` - (Optional) A mapping of Key to Base64-Encoded Values which should be assigned to this Data Lake Gen2 File System. 
 
 ## Attributes Reference
