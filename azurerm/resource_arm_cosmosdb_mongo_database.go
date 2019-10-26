@@ -56,7 +56,6 @@ func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      nil,
 				ValidateFunc: validate.CosmosThroughput,
 			},
 		},
@@ -71,8 +70,18 @@ func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta i
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	account := d.Get("account_name").(string)
-	throughput := d.Get("throughput").(int)
-	dbHasThroughputConfigured := throughput > 0
+
+	throughput, hasThroughput := d.GetOk("throughput")
+	var throughputStr = ""
+	var throughputInt = 0
+	if hasThroughput {
+		throughputStr = fmt.Sprintf("%v", throughput)
+		var err error
+		throughputInt, err = strconv.Atoi(throughputStr)
+		if err != nil {
+			return fmt.Errorf("Configured throughput could not be converted to an integer for Cosmos Mongo Collection %s (Account %s): %+v", name, account, err)
+		}
+	}
 
 	createUpdateOptions := map[string]*string{}
 
@@ -91,8 +100,9 @@ func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta i
 
 				return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_database", id)
 			}
-		} else if dbHasThroughputConfigured {
-			createUpdateOptions["throughput"] = utils.String(strconv.Itoa(throughput))
+		}
+		if hasThroughput {
+			createUpdateOptions["throughput"] = utils.String(throughputStr)
 		}
 	}
 
@@ -114,19 +124,19 @@ func resourceArmCosmosDbMongoDatabaseCreateUpdate(d *schema.ResourceData, meta i
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Database %s (Account %s): %+v", name, account, err)
 	}
 
-	if dbHasThroughputConfigured && !d.IsNewResource() {
+	if hasThroughput && !d.IsNewResource() {
 		throughputParameters := documentdb.ThroughputUpdateParameters{
 			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
 				Resource: &documentdb.ThroughputResource{
-					Throughput: utils.Int32(int32(throughput)),
+					Throughput: utils.Int32(int32(throughputInt)),
 				},
 			},
 		}
 
 		throughputFuture, err := client.UpdateMongoDBDatabaseThroughput(ctx, resourceGroup, account, name, throughputParameters)
 		if err != nil {
-			_ = d.Set("throughput", nil)
 			if throughputFuture.Response().StatusCode == http.StatusNotFound {
+				d.Set("throughput", nil)
 				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Database %s (Account %s): %+v - "+
 					"If the database has not been created with an initial throughput, you cannot configure it later.", name, account, err)
 			}
@@ -173,22 +183,21 @@ func resourceArmCosmosDbMongoDatabaseRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error reading Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
 	}
 
-	_ = d.Set("resource_group_name", id.ResourceGroup)
-	_ = d.Set("account_name", id.Account)
+	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("account_name", id.Account)
 	if props := resp.MongoDBDatabaseProperties; props != nil {
-		_ = d.Set("name", props.ID)
+		d.Set("name", props.ID)
 	}
 
 	throughputResp, err := client.GetMongoDBDatabaseThroughput(ctx, id.ResourceGroup, id.Account, id.Database)
 	if err != nil {
 		if !utils.ResponseWasNotFound(throughputResp.Response) {
-			_ = d.Set("throughput", nil)
 			return fmt.Errorf("Error reading Throughput on Cosmos Mongo Database %s (Account %s): %+v", id.Database, id.Account, err)
+		} else {
+			d.Set("throughput", nil)
 		}
 	} else {
-		if throughput := throughputResp.Throughput; throughput != nil {
-			_ = d.Set("throughput", int(*throughput))
-		}
+		d.Set("throughput", throughputResp.Throughput)
 	}
 
 	return nil
