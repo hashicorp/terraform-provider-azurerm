@@ -412,7 +412,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log {
     category = "PipelineRuns"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       enabled = false
@@ -421,7 +421,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   log {
     category = "TriggerRuns"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       enabled = false
@@ -430,7 +430,7 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-    enabled = false
+    enabled  = false
 
     retention_policy {
       enabled = false

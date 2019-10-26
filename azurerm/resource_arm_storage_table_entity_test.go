@@ -208,7 +208,7 @@ func testAccAzureRMTableEntity_basic(rInt int, rString string, location string) 
 resource "azurerm_storage_table_entity" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
   table_name           = "${azurerm_storage_table.test.name}"
-  
+
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
   entity = {
@@ -226,7 +226,7 @@ func testAccAzureRMTableEntity_requiresImport(rInt int, rString string, location
 resource "azurerm_storage_table_entity" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
   table_name           = "${azurerm_storage_table.test.name}"
-	
+
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
   entity = {
@@ -244,12 +244,12 @@ func testAccAzureRMTableEntity_updated(rInt int, rString string, location string
 resource "azurerm_storage_table_entity" "test" {
   storage_account_name = "${azurerm_storage_account.test.name}"
   table_name           = "${azurerm_storage_table.test.name}"
-	
+
   partition_key = "test_partition%d"
   row_key       = "test_row%d"
   entity = {
-	Foo = "Bar"
-	Test = "Updated"
+    Foo  = "Bar"
+    Test = "Updated"
   }
 }
 `, template, rInt, rInt)

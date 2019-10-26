@@ -1500,22 +1500,22 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-	name                = "acctestvirtnet%d"
-	address_space       = ["172.0.0.0/16"]
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestvirtnet%d"
+  address_space       = ["172.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-	tags = {
-	  environment = "Testing"
-	}
+  tags = {
+    environment = "Testing"
   }
+}
 
-  resource "azurerm_subnet" "test" {
-	name                 = "acctestsubnet%d"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	virtual_network_name = "${azurerm_virtual_network.test.name}"
-	address_prefix       = "172.0.2.0/24"
-  }
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "172.0.2.0/24"
+}
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
@@ -1532,10 +1532,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   agent_pool_profile {
-    name    		= "default"
-    count   		= "1"
-	vm_size 		= "Standard_DS2_v2"
-	vnet_subnet_id  = "${azurerm_subnet.test.id}"
+    name           = "default"
+    count          = "1"
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = "${azurerm_subnet.test.id}"
   }
 
   service_principal {
@@ -2166,7 +2166,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "%s"
+  kubernetes_version  = "%s"
 
 
   linux_profile {
@@ -2190,7 +2190,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-	network_plugin     = "azure"
+    network_plugin    = "azure"
     load_balancer_sku = "Standard"
   }
 }
@@ -2246,7 +2246,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "%s"
+  kubernetes_version  = "%s"
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -2272,8 +2272,8 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin     = "azure"
     dns_service_ip     = "10.10.0.10"
     docker_bridge_cidr = "172.18.0.1/16"
-	service_cidr       = "10.10.0.0/16"
-	load_balancer_sku  = "Standard"
+    service_cidr       = "10.10.0.0/16"
+    load_balancer_sku  = "Standard"
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, currentKubernetesVersion, rInt, clientId, clientSecret)
@@ -2415,7 +2415,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   dns_prefix          = "acctestaks%d"
-  kubernetes_version = "%s"
+  kubernetes_version  = "%s"
 
   agent_pool_profile {
     name                = "pool1"
@@ -2424,7 +2424,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     enable_auto_scaling = "true"
     type                = "VirtualMachineScaleSets"
     vm_size             = "Standard_DS2_v2"
-    availability_zones   = ["1", "2"]
+    availability_zones  = ["1", "2"]
   }
 
   service_principal {
@@ -2433,7 +2433,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-	network_plugin     = "kubenet"
+    network_plugin    = "kubenet"
     load_balancer_sku = "Standard"
   }
 }
@@ -2465,9 +2465,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     count   = "1"
     type    = "VirtualMachineScaleSets"
     vm_size = "Standard_DS2_v2"
-	node_taints = [
+    node_taints = [
       "key=value:NoSchedule"
-	]
+    ]
   }
 
   service_principal {

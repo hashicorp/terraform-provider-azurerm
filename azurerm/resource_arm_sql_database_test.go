@@ -844,7 +844,7 @@ resource "azurerm_sql_database" "test" {
   edition             = "Premium"
   collation           = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes      = "1073741824"
-  read_scale		  = %t
+  read_scale          = %t
 }
 `, rInt, location, rInt, rInt, readScale)
 }

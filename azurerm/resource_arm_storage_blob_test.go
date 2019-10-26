@@ -1200,7 +1200,7 @@ resource "azurerm_storage_blob" "test" {
   type                   = "block"
   size                   = 5120
   content_type           = "vnd/panda+pops"
-  metadata               = {
+  metadata = {
     hello = "world"
   }
 }
@@ -1220,7 +1220,7 @@ resource "azurerm_storage_blob" "test" {
   type                   = "block"
   size                   = 5120
   content_type           = "vnd/mountain-mover-3000"
-  metadata               = {
+  metadata = {
     hello = "world"
     panda = "pops"
   }

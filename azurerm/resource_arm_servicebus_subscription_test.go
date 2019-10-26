@@ -287,6 +287,7 @@ func testAccAzureRMServiceBusSubscription_basic(rInt int, location string) strin
 
 func testAccAzureRMServiceBusSubscription_requiresImport(rInt int, location string) string {
 	return fmt.Sprintf(`
+
 %s 
 
 resource "azurerm_servicebus_subscription" "import" {
