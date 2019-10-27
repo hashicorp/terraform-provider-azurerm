@@ -1736,7 +1736,7 @@ resource "azurerm_function_app" "test" {
   storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
 
   site_config {
-    htt2_enabled = true
+    http2_enabled = true
   }
 }
 `, rInt, location, rString, rInt, rInt)

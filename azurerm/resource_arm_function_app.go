@@ -220,7 +220,7 @@ func resourceArmFunctionApp() *schema.Resource {
 						"http2_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  true,
+							Default:  false,
 						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
