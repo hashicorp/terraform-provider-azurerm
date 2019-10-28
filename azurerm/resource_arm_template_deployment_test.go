@@ -170,7 +170,7 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMTemplateDeployment_withError(ri, testLocation()),
-				ExpectError: regexp.MustCompile("Code=\"DeploymentFailed\""),
+				ExpectError: regexp.MustCompile("Error validating Template for Deployment"),
 			},
 		},
 	})
