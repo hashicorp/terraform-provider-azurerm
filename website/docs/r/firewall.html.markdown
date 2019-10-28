@@ -74,11 +74,11 @@ A `ip_configuration` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 
-* `subnet_id` - (Required) Reference to the subnet associated with the IP Configuration.
+* `subnet_id` - (Optional) Reference to the subnet associated with the IP Configuration.
 
 -> **NOTE** The Subnet used for the Firewall must have the name `AzureFirewallSubnet` and the subnet mask must be at least `/26`.
 
--> **NOTE** The `subnet_id` is shared among multiple `ip_configuration` blocks, make sure there is one and only one `subnet_id` in all `ip_configuration` blocks.
+-> **NOTE** At least one and only one `ip_configuration` block may contain a `subnet_id`.
 
 * `public_ip_address_id` - (Required) The Resource ID of the Public IP Address associated with the firewall.
 

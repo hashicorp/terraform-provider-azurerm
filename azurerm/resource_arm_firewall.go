@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
@@ -97,10 +96,6 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	if err := validateFirewallConfigurationSettings(d); err != nil {
-		return fmt.Errorf("Error creating Firewall %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
-	}
-
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
 
 	name := d.Get("name").(string)
@@ -117,6 +112,10 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		if existing.ID != nil && *existing.ID != "" {
 			return tf.ImportAsExistsError("azurerm_firewall", *existing.ID)
 		}
+	}
+
+	if err := validateFirewallConfigurationSettings(d); err != nil {
+		return fmt.Errorf("Error creating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -213,10 +212,8 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := read.AzureFirewallPropertiesFormat; props != nil {
-		if props.IPConfigurations != nil {
-			if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
-				return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
-			}
+		if err := d.Set("ip_configuration", flattenArmFirewallIPConfigurations(props.IPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `ip_configuration`: %+v", err)
 		}
 	}
 
@@ -300,7 +297,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 	subnetNamesToLock := make([]string, 0)
 	virtualNetworkNamesToLock := make([]string, 0)
 
-	for index, configRaw := range configs {
+	for _, configRaw := range configs {
 		data := configRaw.(map[string]interface{})
 		name := data["name"].(string)
 		subnetId := data["subnet_id"].(string)
@@ -311,7 +308,7 @@ func expandArmFirewallIPConfigurations(d *schema.ResourceData) (*[]network.Azure
 		}
 
 		if !exist || pubID == "" {
-			return nil, nil, nil, fmt.Errorf("one of `ip_configuration.%s.internal_public_ip_address_id` or `ip_configuration.%s.public_ip_address_id` must be set", strconv.Itoa(index), strconv.Itoa(index))
+			return nil, nil, nil, fmt.Errorf("one of `internal_public_ip_address_id` or `public_ip_address_id` must be set")
 		}
 
 		ipConfig := network.AzureFirewallIPConfiguration{
