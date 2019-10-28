@@ -37,6 +37,7 @@ IMPROVEMENTS:
 * `azurerm_subnet` - add support for the `Microsoft.Network/networkinterfaces/*` and `Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action` to the `service_delegation.action` property [GH-4690]
 
 BUG FIXES:
+
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` [GH-4534]
 * `azurerm_devspace_controller`: the `host_suffix` field is now read-only due to a change in Azure [GH-4597]
 * `azurerm_key_vault_certificate` - switches the `emails`, `dns_names `, `upns` of the `subject_alternative_names` property to use `TypeSet` [GH-4645]
@@ -50,6 +51,7 @@ BUG FIXES:
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
 * `azurerm_sql_database` - ensure the `read_scale` property is always set during initial creation [GH-4573]
 * `azurere_storage_account` - Ignore Advanced Threat Protection read errors in Azure Germany [GH-4564]
+* `azurerm_storage_blob` - making `metadata` a computed field [GH-4727]
 * `azurerm_virtual_machine` - handling the `plan` block being nil [GH-4712]
 * `azurerm_virtual_machine_data_disk_attachment` - will no longer remove the identity block when making an update [GH-4538]
 
