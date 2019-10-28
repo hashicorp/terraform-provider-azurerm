@@ -63,9 +63,13 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string) {
 		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
 	}
 
-	if partnerID != "" {
-		client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
+	// only one pid can be interpreted currently
+	// hence, send partner ID if present, otherrwise send Terraform GUID
+	if partnerID == "" {
+		// Microsoft’s Terraform Partner ID is this specific GUID
+		partnerID = "222c6c49-1b0a-5959-a213-6608f9eb8820"
 	}
+	client.UserAgent = fmt.Sprintf("%s pid-%s", client.UserAgent, partnerID)
 
 	log.Printf("[DEBUG] AzureRM Client User Agent: %s\n", client.UserAgent)
 }

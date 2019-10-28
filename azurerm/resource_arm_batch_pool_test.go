@@ -930,7 +930,7 @@ resource "azurerm_batch_certificate" "testcer" {
   account_name         = "${azurerm_batch_account.test.name}"
   certificate          = "${filebase64("testdata/batch_certificate.cer")}"
   format               = "Cer"
-  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"        # deliberately using lowercase here as verification
+  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34" # deliberately using lowercase here as verification
   thumbprint_algorithm = "SHA1"
 }
 
@@ -1017,7 +1017,7 @@ resource "azurerm_batch_pool" "test" {
 
   container_configuration {
     type = "DockerCompatible"
-    container_registries= [
+    container_registries = [
       {
         registry_server = "myContainerRegistry.azurecr.io"
         user_name       = "myUserName"
@@ -1166,11 +1166,11 @@ resource "azurerm_batch_pool" "test" {
   vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
-  
+
   fixed_scale {
     target_dedicated_nodes = 2
   }
-  
+
   storage_image_reference {
     id = "${azurerm_image.test.id}"
   }

@@ -159,7 +159,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupId)
 		_, err = subscriptionsClient.Create(ctx, groupId, subscriptionId, managementGroupCacheControl)
 		if err != nil {
-			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q", subscriptionId, groupId)
+			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q: %+v", subscriptionId, groupId, err)
 		}
 	}
 

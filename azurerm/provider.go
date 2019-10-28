@@ -60,6 +60,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_app_service_plan":                        dataSourceAppServicePlan(),
 		"azurerm_app_service_certificate":                 dataSourceAppServiceCertificate(),
 		"azurerm_app_service":                             dataSourceArmAppService(),
+		"azurerm_app_service_certificate_order":           dataSourceArmAppServiceCertificateOrder(),
 		"azurerm_application_insights":                    dataSourceArmApplicationInsights(),
 		"azurerm_application_security_group":              dataSourceArmApplicationSecurityGroup(),
 		"azurerm_automation_variable_bool":                dataSourceArmAutomationVariableBool(),
@@ -88,6 +89,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_firewall":                                dataSourceArmFirewall(),
 		"azurerm_image":                                   dataSourceArmImage(),
 		"azurerm_hdinsight_cluster":                       dataSourceArmHDInsightSparkCluster(),
+		"azurerm_healthcare_service":                      dataSourceArmHealthcareService(),
 		"azurerm_maps_account":                            dataSourceArmMapsAccount(),
 		"azurerm_key_vault_access_policy":                 dataSourceArmKeyVaultAccessPolicy(),
 		"azurerm_key_vault_key":                           dataSourceArmKeyVaultKey(),
@@ -173,6 +175,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_api_management_user":                                resourceArmApiManagementUser(),
 		"azurerm_app_service_active_slot":                            resourceArmAppServiceActiveSlot(),
 		"azurerm_app_service_certificate":                            resourceArmAppServiceCertificate(),
+		"azurerm_app_service_certificate_order":                      resourceArmAppServiceCertificateOrder(),
 		"azurerm_app_service_custom_hostname_binding":                resourceArmAppServiceCustomHostnameBinding(),
 		"azurerm_app_service_plan":                                   resourceArmAppServicePlan(),
 		"azurerm_app_service_slot":                                   resourceArmAppServiceSlot(),
@@ -188,6 +191,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_automation_credential":                              resourceArmAutomationCredential(),
 		"azurerm_automation_dsc_configuration":                       resourceArmAutomationDscConfiguration(),
 		"azurerm_automation_dsc_nodeconfiguration":                   resourceArmAutomationDscNodeConfiguration(),
+		"azurerm_automation_job_schedule":                            resourceArmAutomationJobSchedule(),
 		"azurerm_automation_module":                                  resourceArmAutomationModule(),
 		"azurerm_automation_runbook":                                 resourceArmAutomationRunbook(),
 		"azurerm_automation_schedule":                                resourceArmAutomationSchedule(),
@@ -287,6 +291,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_hdinsight_rserver_cluster":                          resourceArmHDInsightRServerCluster(),
 		"azurerm_hdinsight_spark_cluster":                            resourceArmHDInsightSparkCluster(),
 		"azurerm_hdinsight_storm_cluster":                            resourceArmHDInsightStormCluster(),
+		"azurerm_healthcare_service":                                 resourceArmHealthcareService(),
 		"azurerm_image":                                              resourceArmImage(),
 		"azurerm_iot_dps":                                            resourceArmIotDPS(),
 		"azurerm_iot_dps_certificate":                                resourceArmIotDPSCertificate(),
@@ -462,6 +467,7 @@ func Provider() terraform.ResourceProvider {
 	// 2.0 resources
 	if features.SupportsTwoPointZeroResources() {
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
+		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
 	}
 
 	// avoids this showing up in test output

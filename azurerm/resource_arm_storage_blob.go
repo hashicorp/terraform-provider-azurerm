@@ -132,7 +132,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
-			"metadata": storage.MetaDataSchema(),
+			"metadata": storage.MetaDataComputedSchema(),
 
 			// Deprecated fields
 			"attempts": {

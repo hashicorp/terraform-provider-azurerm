@@ -337,9 +337,9 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "pub1@email.com"
 
   sku {
-    name = "Developer"
+    name     = "Developer"
     capacity = 1
-	}
+  }
 }
 `, rInt, location, rInt)
 }
@@ -522,8 +522,8 @@ resource "azurerm_resource_group" "test2" {
 }
 
 resource "azurerm_resource_group" "test3" {
-	name     = "acctestRG3-%d"
-	location = "%s"
+  name     = "acctestRG3-%d"
+  location = "%s"
 }
 
 resource "azurerm_api_management" "test" {

@@ -76,5 +76,5 @@ The following attributes are exported in addition to the arguments listed above:
 Table's within a Storage Account can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_table.table1 https://example.table.core.windows.net/table1
+terraform import azurerm_storage_table.table1 "https://example.table.core.windows.net/Tables('replace-with-table-name')"
 ```

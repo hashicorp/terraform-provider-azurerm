@@ -31,7 +31,7 @@ func TestAccAzureRMDataFactoryDataSource_basic(t *testing.T) {
 func testAccAzureRMDataFactoryDataSource_basic(rInt int, location string) string {
 	config := testAccAzureRMDataFactory_basic(rInt, location)
 	return fmt.Sprintf(`
-    %s
+%s
 
 data "azurerm_data_factory" "test" {
   name                = "${azurerm_data_factory.test.name}"

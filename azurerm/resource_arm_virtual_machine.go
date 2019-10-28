@@ -476,7 +476,7 @@ func resourceArmVirtualMachine() *schema.Resource {
 							Optional:         true,
 							ForceNew:         true,
 							DiffSuppressFunc: suppress.CaseDifference,
-							ValidateFunc:     validate.VirtualMachineTimeZone(),
+							ValidateFunc:     validate.VirtualMachineTimeZoneCaseInsensitive(),
 						},
 						"winrm": {
 							Type:     schema.TypeList,
@@ -1406,6 +1406,9 @@ func flattenAzureRmVirtualMachineReviseDiskInfo(result map[string]interface{}, d
 
 func expandAzureRmVirtualMachinePlan(d *schema.ResourceData) (*compute.Plan, error) {
 	planConfigs := d.Get("plan").([]interface{})
+	if len(planConfigs) == 0 {
+		return nil, nil
+	}
 
 	planConfig := planConfigs[0].(map[string]interface{})
 

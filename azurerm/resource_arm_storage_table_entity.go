@@ -97,7 +97,7 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error building Entity Client: %s", err)
 	}
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		input := entities.GetEntityInput{
 			PartitionKey:  partitionKey,
 			RowKey:        rowKey,
