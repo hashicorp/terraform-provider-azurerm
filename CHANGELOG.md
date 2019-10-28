@@ -6,6 +6,7 @@ FEATURES:
 * **New Data Source:** `azurerm_data_factory` [GH-4517]
 * **New Data Source:** `azurerm_healthcare_service` [GH-4221]
 * **New Data Source:** `azurerm_resources` [GH-3529]
+* **New Data Source:** `azurerm_postgresql_server` [GH-4732]
 * **New Resource:** `azurerm_automation_job_schedule` [GH-3386]
 * **New Resource:** `azurerm_app_service_certificate_order` [GH-4454]
 * **New Resource:** `azurerm_bastion_host` [GH-4096]
