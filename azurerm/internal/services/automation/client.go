@@ -11,6 +11,7 @@ type Client struct {
 	CredentialClient            *automation.CredentialClient
 	DscConfigurationClient      *automation.DscConfigurationClient
 	DscNodeConfigurationClient  *automation.DscNodeConfigurationClient
+	JobScheduleClient           *automation.JobScheduleClient
 	ModuleClient                *automation.ModuleClient
 	RunbookClient               *automation.RunbookClient
 	RunbookDraftClient          *automation.RunbookDraftClient
@@ -34,6 +35,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	DscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DscNodeConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
+	JobScheduleClient := automation.NewJobScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&JobScheduleClient.Client, o.ResourceManagerAuthorizer)
+
 	ModuleClient := automation.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ModuleClient.Client, o.ResourceManagerAuthorizer)
 
@@ -55,6 +59,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		CredentialClient:            &CredentialClient,
 		DscConfigurationClient:      &DscConfigurationClient,
 		DscNodeConfigurationClient:  &DscNodeConfigurationClient,
+		JobScheduleClient:           &JobScheduleClient,
 		ModuleClient:                &ModuleClient,
 		RunbookClient:               &RunbookClient,
 		RunbookDraftClient:          &RunbookDraftClient,
