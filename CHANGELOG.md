@@ -22,6 +22,7 @@ IMPROVEMENTS:
 * frontdoor: updating to use API version `2019-04-01` [GH-4609]
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
 * provider: sending Microsoft's Terraform Partner ID in the user agent if a custom Partner ID isn’t specified [GH-4663]
+* storage: caching the storage account information to workaround the Storage API being unperformant [GH-4709]
 * Data Source: `azurerm_client_config` - fixing a crash when using MSI authentication [GH-4738]
 * Data Source: `azurerm_lb_backend_address_pool` - exposing `backend_ip_configurations` [GH-4605]
 * `azurerm_cognitive_account` - support for the sku `F1` [GH-4720]
