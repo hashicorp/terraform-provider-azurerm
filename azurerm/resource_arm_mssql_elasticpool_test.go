@@ -509,7 +509,7 @@ resource "azurerm_mssql_elasticpool" "test" {
   server_name         = "${azurerm_sql_server.test.name}"
   max_size_gb         = %.7[6]f
   zone_redundant      = %[9]t
-  
+
   sku {
     name     = "%[3]s"
     tier     = "%[4]s"

@@ -4,10 +4,14 @@ FEATURES:
 
 * **New Data Source:** `azurerm_app_service_certificate_order` [GH-4454]
 * **New Data Source:** `azurerm_data_factory` [GH-4517]
+* **New Data Source:** `azurerm_healthcare_service` [GH-4221]
 * **New Data Source:** `azurerm_resources` [GH-3529]
+* **New Data Source:** `azurerm_postgresql_server` [GH-4732]
+* **New Resource:** `azurerm_automation_job_schedule` [GH-3386]
 * **New Resource:** `azurerm_app_service_certificate_order` [GH-4454]
 * **New Resource:** `azurerm_bastion_host` [GH-4096]
 * **New Resource:** `azurerm_data_factory_integration_runtime_managed` [GH-4342]
+* **New Resource:** `azurerm_healthcare_service` [GH-4221]
 * **New Resource:** `azurerm_kusto_eventhub_data_connection` [GH-4385]
 
 IMPROVEMENTS:
@@ -17,9 +21,14 @@ IMPROVEMENTS:
 * devspace: updating to API version `2019-04-01` [GH-4597]
 * frontdoor: updating to use API version `2019-04-01` [GH-4609]
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
+* provider: sending Microsoft's Terraform Partner ID in the user agent if a custom Partner ID isn’t specified [GH-4663]
+* storage: caching the storage account information to workaround the Storage API being unperformant [GH-4709]
+* Data Source: `azurerm_client_config` - fixing a crash when using MSI authentication [GH-4738]
 * Data Source: `azurerm_lb_backend_address_pool` - exposing `backend_ip_configurations` [GH-4605]
+* `azurerm_cognitive_account` - support for the sku `F1` [GH-4720]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
 * `azurerm_firewall` - support for `zones` [GH-4670]
+* `azurerm_function_app` - add support for the `http2_enabled `property [GH-4696]
 * `azurerm_frontdoor` - update `custom_host` to be optional, add `redirect_configuration` to documentation. [GH-4601]
 * `azurerm_kubernetes_cluster` - allow the `aci_connector_linux` to be disabled by allowing the subnet property be empty [GH-4541]
 * `azurerm_kubernetes_cluster` - add support for the `azure_policy` property in the `addon_profile` block [GH-4498]
@@ -27,17 +36,27 @@ IMPROVEMENTS:
 * `azurerm_network_security_rule` - add support for `Icmp` to the `protocol` property [GH-4615]
 * `azurerm_network_security_rule` - add support for `Icmp` to the `protocol` property [GH-4615]
 * `azurerm_servicebus_namespace` - allow `capacity` to `8` for tge premium SKU [GH-4630]
+* `azurerm_subnet` - add support for the `Microsoft.DBforPostgreSQL/serversv2` and `Microsoft.StreamAnalytics/streamingJobs` to the `service_delegation.name` property [GH-4690]
+* `azurerm_subnet` - add support for the `Microsoft.Network/networkinterfaces/*` and `Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action` to the `service_delegation.action` property [GH-4690]
 
 BUG FIXES:
+
+
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` [GH-4534]
 * `azurerm_devspace_controller`: the `host_suffix` field is now read-only due to a change in Azure [GH-4597]
 * `azurerm_key_vault_certificate` - switches the `emails`, `dns_names `, `upns` of the `subject_alternative_names` property to use `TypeSet` [GH-4645]
+* `azurerm_kubernetes_cluster` - fixing a crash when the `service_principal_profile` block was nil [GH-4697]
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
+* `azurerm_key_vault` - temporarily making `sku` case insensitive to work around a breaking change in the API [GH-4714]
+* `azurerm_management_group` - raising the error message when an error occurs [GH-4725]
+* `azurerm_maps_account` - temporarily making `sku` case insensitive to work around a breaking change in the API [GH-4714]
 * `azurerm_media_services_account` - fixes the `invalid address to set: []string{"tags"}` error [GH-4537]
 * `azurerm_monitor_activity_log_alert` - fixing support for the category `ServiceHealth` [GH-4646]
 * `azurerm_network_security_group_association` - prevent deadlock between association and network interface creation [GH-4501]
 * `azurerm_sql_database` - ensure the `read_scale` property is always set during initial creation [GH-4573]
 * `azurere_storage_account` - Ignore Advanced Threat Protection read errors in Azure Germany [GH-4564]
+* `azurerm_storage_blob` - making `metadata` a computed field [GH-4727]
+* `azurerm_virtual_machine` - handling the `plan` block being nil [GH-4712]
 * `azurerm_virtual_machine_data_disk_attachment` - will no longer remove the identity block when making an update [GH-4538]
 
 ## 1.35.0 (October 04, 2019)

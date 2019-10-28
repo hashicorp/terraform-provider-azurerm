@@ -776,10 +776,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "Premium_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
+    storage_account_type      = "Premium_LRS"
+    caching                   = "None"
+    disk_size_gb              = 10
+    lun                       = 10
     write_accelerator_enabled = true
   }
 

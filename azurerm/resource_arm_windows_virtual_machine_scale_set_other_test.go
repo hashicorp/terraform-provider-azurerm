@@ -803,13 +803,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -855,13 +855,13 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -977,14 +977,15 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherDoNotRunExtensionsOnOverPr
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  overprovision        = true
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  overprovision       = true
+
   do_not_run_extensions_on_overprovisioned_machines = true
 
   source_image_reference {
@@ -1019,13 +1020,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherEnableAutomaticUpdatesDisa
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                     = local.vm_name
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  sku                      = "Standard_F2"
+  instances                = 1
+  admin_username           = "adminuser"
+  admin_password           = "P@ssword1234!"
   enable_automatic_updates = false
 
   source_image_reference {
@@ -1192,7 +1193,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "import" {
   sku                 = azurerm_windows_virtual_machine_scale_set.test.sku
   instances           = azurerm_windows_virtual_machine_scale_set.test.instances
   admin_username      = azurerm_windows_virtual_machine_scale_set.test.admin_username
-  admin_password      = "azurerm_windows_virtual_machine_scale_set.test.admin_password
+  admin_password      = azurerm_windows_virtual_machine_scale_set.test.admin_password
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1226,13 +1227,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherSecret(rInt int, location 
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1275,13 +1276,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherSecretRemoved(rInt int, lo
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1315,13 +1316,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherSecretUpdated(rInt int, lo
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1376,9 +1377,9 @@ resource "azurerm_key_vault" "test" {
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
-  sku_name = "standard"
+  sku_name                        = "standard"
   enabled_for_template_deployment = true
-  enabled_for_deployment = true
+  enabled_for_deployment          = true
 
   access_policy {
     tenant_id = data.azurerm_client_config.current.tenant_id
@@ -1505,13 +1506,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherTags(rInt int, location st
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1549,13 +1550,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherTagsUpdated(rInt int, loca
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1594,14 +1595,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherTimeZone(rInt int, locatio
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  timezone             = "Hawaiian Standard Time"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  timezone            = "Hawaiian Standard Time"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -1635,14 +1636,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_otherVMAgent(rInt int, location
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  provision_vm_agent              = %t
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  provision_vm_agent  = %t
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

@@ -93,7 +93,8 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-				}, false),
+					// TODO: revert this in 2.0
+				}, true),
 			},
 
 			"vault_uri": {

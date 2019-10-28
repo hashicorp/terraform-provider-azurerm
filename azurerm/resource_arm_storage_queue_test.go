@@ -159,20 +159,20 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", name, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", accountName, name, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s) - assuming removed", name, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
+		queuesClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
+		metaData, err := queuesClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(metaData.Response) {
 				return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) does not exist", name, accountName)
@@ -197,22 +197,21 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", name, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", accountName, name, err)
 		}
-
 		// expected if this has been deleted
-		if resourceGroup == nil {
+		if account == nil {
 			return nil
 		}
 
-		queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
+		queuesClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
 
-		props, err := queueClient.GetMetaData(ctx, accountName, name)
+		props, err := queuesClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
 			return nil
 		}

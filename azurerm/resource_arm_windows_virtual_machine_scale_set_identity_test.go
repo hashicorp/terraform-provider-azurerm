@@ -340,7 +340,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type         = "UserAssigned"
+    type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -399,7 +399,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type         = "UserAssigned"
+    type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
       azurerm_user_assigned_identity.other.id,
@@ -453,7 +453,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]

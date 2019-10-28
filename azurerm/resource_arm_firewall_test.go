@@ -557,7 +557,7 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
 
-	zones = [%s]
+  zones = [%s]
 }
 `, rInt, location, rInt, rInt, rInt, zoneString)
 }
