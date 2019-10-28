@@ -71,7 +71,11 @@ func dataSourceArmPostgreSqlServerRead(d *schema.ResourceData, meta interface{})
 
 	if id := resp.ID; id != nil {
 		d.SetId(*resp.ID)
+	if resp.ID == nil {
+		return fmt.Errorf("Error retrieving PostgreSql Server %q (Resource Group %q): `id` was nil", name, resourceGroup)
 	}
+	
+	d.SetId(*resp.ID)
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
