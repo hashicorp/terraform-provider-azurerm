@@ -63,6 +63,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_app_service_certificate_order":           dataSourceArmAppServiceCertificateOrder(),
 		"azurerm_application_insights":                    dataSourceArmApplicationInsights(),
 		"azurerm_application_security_group":              dataSourceArmApplicationSecurityGroup(),
+                "azurerm_automation_account" :                     dataSourceArmAutomationAccount(),
 		"azurerm_automation_variable_bool":                dataSourceArmAutomationVariableBool(),
 		"azurerm_automation_variable_datetime":            dataSourceArmAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":                 dataSourceArmAutomationVariableInt(),

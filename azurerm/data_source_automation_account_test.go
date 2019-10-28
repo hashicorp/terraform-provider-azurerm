@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDataSourceAutomationAccountRegistrationInformation(t *testing.T) {
-	dataSourceName := "data.azurerm_automation_account_registration_info.test"
+func TestAccDataSourceAutomationAccount(t *testing.T) {
+	dataSourceName := "data.azurerm_automation_account.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -19,7 +19,7 @@ func TestAccDataSourceAutomationAccountRegistrationInformation(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccResourceAutomationAccountRegistrationInformation_complete(ri, location),
+				Config: testAccResourceAutomationAccount_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "primary_key"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "secondary_key"),
@@ -30,7 +30,7 @@ func TestAccDataSourceAutomationAccountRegistrationInformation(t *testing.T) {
 	})
 }
 
-func testAccResourceAutomationAccountRegistrationInformation_complete(rInt int, location string) string {
+func testAccResourceAutomationAccount_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"

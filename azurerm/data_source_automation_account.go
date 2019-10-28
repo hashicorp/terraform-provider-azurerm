@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceAutomationAccountRegistrationInformation() *schema.Resource {
+func dataSourceAutomationAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAutomationAccountRegistrationInformationRead,
+		Read: dataSourceAutomationAccountRead,
 
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
@@ -42,7 +42,7 @@ func dataSourceAutomationAccountRegistrationInformation() *schema.Resource {
 	}
 }
 
-func dataSourceAutomationAccountRegistrationInformationRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceAutomationAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Automation.AgentRegistrationInfoClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
