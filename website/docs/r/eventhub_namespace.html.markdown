@@ -14,12 +14,12 @@ Manages an EventHub Namespace.
 
 ```hcl
 resource "azurerm_resource_group" "test" {
-  name     = "resourceGroup1"
-  location = "West US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acceptanceTestEventHubNamespace"
+  name                = "example-namespace"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
@@ -49,7 +49,9 @@ The following arguments are supported:
 
 * `maximum_throughput_units` - (Optional) Specifies the maximum number of throughput units when Auto Inflate is Enabled. Valid values range from `1` - `20`.
 
-* `kafka_enabled` - (Optional) Is Kafka enabled for the EventHub Namespace? Defaults to `false`. Changing this forces a new resource to be created.
+* `kafka_enabled` - (Optional / **Deprecated**) Is Kafka enabled for the EventHub Namespace? Defaults to `false`.
+
+-> **NOTE:** `kafka_enabled` is now configured depending on the `sku` being provisioned, where this is Disabled for a `Basic` sku and Enabled for a Standard sku.  
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
