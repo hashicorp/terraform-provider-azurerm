@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func TestAccDataSourceAutomationAccount(t *testing.T) {
 	dataSourceName := "data.azurerm_automation_account.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
-        resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
+	resourceGroupName := fmt.Sprintf("acctestRG-%d", ri)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -21,7 +21,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 			{
 				Config: testAccDataSourceAutomationAccount_complete(resourceGroupName, location, ri),
 				Check: resource.ComposeTestCheckFunc(
-				resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
+					resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
 				),
 			},
 		},
