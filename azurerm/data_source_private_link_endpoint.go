@@ -50,15 +50,14 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Schema{
-								Type:     schema.TypeString,
-								Computed: true,
+								Type: schema.TypeString,
 							},
 						},
 						"request_message": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"provisioning_state": {
+						"request_response": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -78,8 +77,7 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Schema{
-					Type:     schema.TypeString,
-					Computed: true,
+					Type: schema.TypeString,
 				},
 			},
 

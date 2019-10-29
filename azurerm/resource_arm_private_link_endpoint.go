@@ -32,7 +32,7 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: aznet.ValidatePrivateLinkEndpointName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -42,7 +42,7 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 			"subnet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: azure.ValidateResourceID,
 			},
 
 			"private_service_connection": {
@@ -54,20 +54,24 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ForceNew:     true,
+							ValidateFunc: aznet.ValidatePrivateLinkEndpointName,
 						},
 						"is_manual_connection": {
 							Type:     schema.TypeBool,
 							Required: true,
+							ForceNew: true,
 						},
 						"private_connection_resource_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ForceNew:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 						"subresource_names": {
 							Type:     schema.TypeList,
-							Optional: true,
+							Required: true,
+							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
 								ValidateFunc: validate.NoEmptyStrings,
@@ -78,7 +82,7 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validate.PrivateLinkEnpointRequestMessage,
 						},
-						"provisioning_state": {
+						"request_response": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -119,14 +123,15 @@ func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceGroup, name, "")
+		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Error checking for present of existing Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_private_link_endpoint", *resp.ID)
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_private_link_endpoint", *existing.ID)
 		}
 	}
 
@@ -314,72 +319,66 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 
 	if serviceConnections != nil {
 		for _, item := range *serviceConnections {
-			v := make(map[string]interface{})
+			result := make(map[string]interface{})
 
-			if name := item.Name; name != nil {
-				v["name"] = *name
+			result["is_manual_connection"] = false
+			result["private_ip_address"] = privateIpAddress
+
+			if v := item.Name; v != nil {
+				result["name"] = *v
 			}
-
-			v["is_manual_connection"] = false
-			v["private_ip_address"] = privateIpAddress
-
 			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
-				if subresourceNames := props.GroupIds; subresourceNames != nil {
-					v["subresource_names"] = utils.FlattenStringSlice(subresourceNames)
+				if v := props.GroupIds; v != nil {
+					result["subresource_names"] = utils.FlattenStringSlice(v)
 				}
-				if privateConnectionResourceId := props.PrivateLinkServiceID; privateConnectionResourceId != nil {
-					v["private_connection_resource_id"] = *privateConnectionResourceId
+				if v := props.PrivateLinkServiceID; v != nil {
+					result["private_connection_resource_id"] = *v
 				}
-				if requestMessage := props.RequestMessage; requestMessage != nil {
-					v["request_message"] = *requestMessage
-				}
-				if provisioningState := props.ProvisioningState; provisioningState != "" {
-					v["provisioning_state"] = provisioningState
-				}
-
-				if s := props.PrivateLinkServiceConnectionState; s != nil {
-					if status := s.Status; status != nil {
-						v["status"] = *status
+				if v := props.PrivateLinkServiceConnectionState; v != nil {
+					if s := v.Status; s != nil {
+						result["status"] = *s
+					}
+					if d := v.Description; d != nil {
+						result["request_response"] = *d
 					}
 				}
 			}
 
-			results = append(results, v)
+			results = append(results, result)
 		}
 	}
 
 	if manualServiceConnections != nil {
 		for _, item := range *manualServiceConnections {
-			v := make(map[string]interface{})
+			result := make(map[string]interface{})
 
-			if name := item.Name; name != nil {
-				v["name"] = *name
+			result["is_manual_connection"] = true
+			result["private_ip_address"] = privateIpAddress
+
+			if v := item.Name; v != nil {
+				result["name"] = *v
 			}
-
-			v["is_manual_connection"] = true
-			v["private_ip_address"] = privateIpAddress
-
 			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
-				if subresourceNames := props.GroupIds; subresourceNames != nil {
-					v["subresource_names"] = utils.FlattenStringSlice(subresourceNames)
+				if v := props.GroupIds; v != nil {
+					result["subresource_names"] = utils.FlattenStringSlice(v)
 				}
-				if privateConnectionResourceId := props.PrivateLinkServiceID; privateConnectionResourceId != nil {
-					v["private_connection_resource_id"] = *privateConnectionResourceId
+				if v := props.PrivateLinkServiceID; v != nil {
+					result["private_connection_resource_id"] = *v
 				}
-				if requestMessage := props.RequestMessage; requestMessage != nil {
-					v["request_message"] = *requestMessage
+				if v := props.RequestMessage; v != nil {
+					result["request_message"] = *v
 				}
-				if provisioningState := props.ProvisioningState; provisioningState != "" {
-					v["provisioning_state"] = provisioningState
-				}
-				if s := props.PrivateLinkServiceConnectionState; s != nil {
-					if status := s.Status; status != nil {
-						v["status"] = *status
+				if v := props.PrivateLinkServiceConnectionState; v != nil {
+					if s := v.Status; s != nil {
+						result["status"] = *s
+					}
+					if d := v.Description; d != nil {
+						result["request_response"] = *d
 					}
 				}
 			}
 
-			results = append(results, v)
+			results = append(results, result)
 		}
 	}
 
