@@ -5,6 +5,10 @@ FEATURES:
 * `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
 * `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
 
+BUG FIXES:
+
+* `azurerm_eventhub_namespace` - deprecating the `kafka_enabled` sproperty as it is now managed by Azure [GH-4743]
+
 ## 1.36.0 (October 29, 2019)
 
 FEATURES:
@@ -47,7 +51,6 @@ IMPROVEMENTS:
 * `azurerm_subnet` - add support for the `Microsoft.Network/networkinterfaces/*` and `Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action` to the `service_delegation.action` property ([#4690](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4690))
 
 BUG FIXES:
-
 
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` ([#4534](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4534))
 * `azurerm_devspace_controller` - the `host_suffix` field is now read-only due to a change in Azure ([#4597](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4597))
