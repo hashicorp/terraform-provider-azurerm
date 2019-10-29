@@ -4,27 +4,19 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
 )
 
 const blobStorageAccountDefaultAccessTier = "Hot"
@@ -256,138 +248,6 @@ func resourceArmAdvancedThreatProtectionUpdate(d *schema.ResourceData, meta inte
 
 	d.Partial(true)
 
-	if d.HasChange("account_replication_type") {
-		sku := storage.Sku{
-			Name: storage.SkuName(storageType),
-		}
-
-		opts := storage.AccountUpdateParameters{
-			Sku: &sku,
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account type %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("account_replication_type")
-	}
-
-	if d.HasChange("access_tier") {
-		accessTier := d.Get("access_tier").(string)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				AccessTier: storage.AccessTier(accessTier),
-			},
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account access_tier %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("access_tier")
-	}
-
-	if d.HasChange("tags") {
-		t := d.Get("tags").(map[string]interface{})
-
-		opts := storage.AccountUpdateParameters{
-			Tags: tags.Expand(t),
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account tags %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("tags")
-	}
-
-	if d.HasChange("enable_blob_encryption") || d.HasChange("enable_file_encryption") {
-		encryptionSource := d.Get("account_encryption_source").(string)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				Encryption: &storage.Encryption{
-					Services:  &storage.EncryptionServices{},
-					KeySource: storage.KeySource(encryptionSource),
-				},
-			},
-		}
-
-		if d.HasChange("enable_blob_encryption") {
-			enableEncryption := d.Get("enable_blob_encryption").(bool)
-			opts.Encryption.Services.Blob = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-
-			d.SetPartial("enable_blob_encryption")
-		}
-
-		if d.HasChange("enable_file_encryption") {
-			enableEncryption := d.Get("enable_file_encryption").(bool)
-			opts.Encryption.Services.File = &storage.EncryptionService{
-				Enabled: utils.Bool(enableEncryption),
-			}
-			d.SetPartial("enable_file_encryption")
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account Encryption %q: %+v", storageAccountName, err)
-		}
-	}
-
-	if d.HasChange("custom_domain") {
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				CustomDomain: expandStorageAccountCustomDomain(d),
-			},
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account Custom Domain %q: %+v", storageAccountName, err)
-		}
-	}
-
-	if d.HasChange("enable_https_traffic_only") {
-		enableHTTPSTrafficOnly := d.Get("enable_https_traffic_only").(bool)
-
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				EnableHTTPSTrafficOnly: &enableHTTPSTrafficOnly,
-			},
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account enable_https_traffic_only %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("enable_https_traffic_only")
-	}
-
-	if d.HasChange("identity") {
-		opts := storage.AccountUpdateParameters{
-			Identity: expandAzureRmStorageAccountIdentity(d),
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account identity %q: %+v", storageAccountName, err)
-		}
-	}
-
-	if d.HasChange("network_rules") {
-		opts := storage.AccountUpdateParameters{
-			AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
-				NetworkRuleSet: expandStorageAccountNetworkRules(d),
-			},
-		}
-
-		if _, err := client.Update(ctx, resourceGroupName, storageAccountName, opts); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account network_rules %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("network_rules")
-	}
-
 	if d.HasChange("enable_advanced_threat_protection") {
 		opts := security.AdvancedThreatProtectionSetting{
 			AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
@@ -400,33 +260,6 @@ func resourceArmAdvancedThreatProtectionUpdate(d *schema.ResourceData, meta inte
 		}
 
 		d.SetPartial("enable_advanced_threat_protection")
-	}
-
-	if d.HasChange("queue_properties") {
-		storageClient := meta.(*ArmClient).Storage
-		account, err := storageClient.FindAccount(ctx, storageAccountName)
-		if err != nil {
-			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
-		}
-		if account == nil {
-			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
-		}
-
-		queueClient, err := storageClient.QueuesClient(ctx, *account)
-		if err != nil {
-			return fmt.Errorf("Error building Queues Client: %s", err)
-		}
-
-		queueProperties, err := expandQueueProperties(d.Get("queue_properties").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("Error expanding `queue_properties` for Azure Storage Account %q: %+v", storageAccountName, err)
-		}
-
-		if _, err = queueClient.SetServiceProperties(ctx, storageAccountName, queueProperties); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account `queue_properties` %q: %+v", storageAccountName, err)
-		}
-
-		d.SetPartial("queue_properties")
 	}
 
 	d.Partial(false)
