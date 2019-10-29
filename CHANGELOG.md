@@ -2,12 +2,14 @@
 
 FEATURES:
 
-* `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
-* `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
+* **New Datasource:** `azurerm_automation_account` [GH-4740]
 
 IMPROVEMENTS:
 
+* `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
+* `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
 * sql: updating to API version `2017-03-01-preview` [GH-4242]
+
 
 BUG FIXES:
 
