@@ -38,19 +38,3 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Account exists.
-
-* `active_directory` - An `active_directory` block defined below.
-
----
-
-The `active_directory` block exports the following:
-
-* `dns_servers` - A list of IP Addresses used as DNS Servers for the Active Directory domain.
-
-* `domain` - The Active Directory Domain Name.
-
-* `smb_server_name` - The NetBIOS name of the SMB Server.
-
-* `username` - The Username of Active Directory domain administrator.
-
-* `organizational_unit` - The Organizational Unit (OU) within the Active Directory Domain where the NetApp is located.

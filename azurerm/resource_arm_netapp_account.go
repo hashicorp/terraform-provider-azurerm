@@ -3,16 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	netAppSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,10 +30,13 @@ func resourceArmNetAppAccount() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: netAppSvc.ValidateNetAppAccountName,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`(^[\da-zA-Z])([-\da-zA-Z]{1,62})([\da-zA-Z]$)`),
+					`The name must be between 3 and 64 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens.`,
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -54,14 +58,20 @@ func resourceArmNetAppAccount() *schema.Resource {
 							},
 						},
 						"domain": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: netAppSvc.ValidateActiveDirectoryDomainName,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^[(\da-zA-Z)\.]{1,255}$`),
+								`The domain name must end with a letter or number before dot and start with a letter or number after dot and can not be longer than 255 characters in length.`,
+							),
 						},
 						"smb_server_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: netAppSvc.ValidateActiveDirectorySMBServerName,
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^[\da-zA-Z]{1,10}$`),
+								`The smb server name can not be longer than 10 characters in length.`,
+							),
 						},
 						"username": {
 							Type:         schema.TypeString,
@@ -162,11 +172,6 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
-	if props := resp.AccountProperties; props != nil {
-		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories, d)); err != nil {
-			return fmt.Errorf("Error setting `active_directory`: %+v", err)
-		}
-	}
 
 	return nil
 }
@@ -214,39 +219,4 @@ func expandArmNetAppActiveDirectories(input []interface{}) *[]netapp.ActiveDirec
 		results = append(results, result)
 	}
 	return &results
-}
-
-func flattenArmNetAppActiveDirectories(input *[]netapp.ActiveDirectory, d *schema.ResourceData) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		b := make(map[string]interface{})
-
-		if v := item.DNS; v != nil {
-			dnsServers := strings.Split(*v, ",")
-			b["dns_servers"] = utils.FlattenStringSlice(&dnsServers)
-		}
-		if v := item.Domain; v != nil {
-			b["domain"] = *v
-		}
-		if v := item.SmbServerName; v != nil {
-			b["smb_server_name"] = *v
-		}
-		if v := item.Username; v != nil {
-			b["username"] = *v
-		}
-		if v, ok := d.GetOk("active_directory.0.password"); ok {
-			b["password"] = v
-		}
-		if v := item.OrganizationalUnit; v != nil {
-			b["organizational_unit"] = *v
-		}
-
-		results = append(results, b)
-	}
-
-	return results
 }

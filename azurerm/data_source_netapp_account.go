@@ -2,10 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	netAppSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,46 +16,17 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: netAppSvc.ValidateNetAppAccountName,
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringMatch(
+					regexp.MustCompile(`(^[\da-zA-Z])([-\da-zA-Z]{1,62})([\da-zA-Z]$)`),
+					`The name must be between 3 and 64 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens.`,
+				),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"location": azure.SchemaLocationForDataSource(),
-
-			"active_directory": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"dns_servers": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-						"domain": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"smb_server_name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"username": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"organizational_unit": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
-			},
 
 			// Handles tags being interface{} until https://github.com/Azure/azure-rest-api-specs/issues/7447 is fixed
 		},
@@ -82,11 +54,6 @@ func dataSourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if props := resp.AccountProperties; props != nil {
-		if err := d.Set("active_directory", flattenArmNetAppActiveDirectories(props.ActiveDirectories, d)); err != nil {
-			return fmt.Errorf("Error setting `active_directory`: %+v", err)
-		}
 	}
 
 	return nil

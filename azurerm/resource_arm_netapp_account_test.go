@@ -2,7 +2,6 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -18,13 +17,10 @@ func TestAccAzureRMNetAppAccount(t *testing.T) {
 	// The CI system runs all tests in parallel, so the tests need to be changed to run one at a time.
 	testCases := map[string]map[string]func(t *testing.T){
 		"Resource": {
-			"basic":                      testAccAzureRMNetAppAccount_basic,
-			"requiresImport":             testAccAzureRMNetAppAccount_requiresImport,
-			"complete":                   testAccAzureRMNetAppAccount_complete,
-			"update":                     testAccAzureRMNetAppAccount_update,
-			"withIncorrectAccountName":   testAccAzureRMNetAppAccount_withIncorrectAccountName,
-			"withIncorrectDomainName":    testAccAzureRMNetAppAccount_withIncorrectDomainName,
-			"withIncorrectSMBServerName": testAccAzureRMNetAppAccount_withIncorrectSMBServerName,
+			"basic":          testAccAzureRMNetAppAccount_basic,
+			"requiresImport": testAccAzureRMNetAppAccount_requiresImport,
+			"complete":       testAccAzureRMNetAppAccount_complete,
+			"update":         testAccAzureRMNetAppAccount_update,
 		},
 		"DataSource": {
 			"basic": testAccDataSourceAzureRMNetAppAccount_basic,
@@ -117,8 +113,7 @@ func testAccAzureRMNetAppAccount_complete(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					// Not returned from the API
-					"active_directory.0.password",
+					"active_directory",
 				},
 			},
 		},
@@ -154,60 +149,8 @@ func testAccAzureRMNetAppAccount_update(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
-					// Not returned from the API
-					"active_directory.0.password",
+					"active_directory",
 				},
-			},
-		},
-	})
-}
-
-func testAccAzureRMNetAppAccount_withIncorrectAccountName(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMNetAppAccount_withIncorrectAccountNameConfig(ri, location),
-				ExpectError: regexp.MustCompile("must be between 3 and 64 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens"),
-			},
-		},
-	})
-}
-
-func testAccAzureRMNetAppAccount_withIncorrectDomainName(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMNetAppAccount_withIncorrectDomainNameConfig(ri, location),
-				ExpectError: regexp.MustCompile("must end with a letter or number before dot and start with a letter or number after dot"),
-			},
-		},
-	})
-}
-
-func testAccAzureRMNetAppAccount_withIncorrectSMBServerName(t *testing.T) {
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMNetAppAccountDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccAzureRMNetAppAccount_withIncorrectSMBServerNameConfig(ri, location),
-				ExpectError: regexp.MustCompile("config is invalid: SMB server name can not be longer than 10 characters in length, got 12 characters"),
 			},
 		},
 	})
@@ -304,69 +247,6 @@ resource "azurerm_netapp_account" "test" {
     username            = "aduser"
     password            = "aduserpwd"
     smb_server_name     = "SMBSERVER"
-    dns_servers         = ["1.2.3.4"]
-	domain              = "westcentralus.com"
-	organizational_unit = "OU=FirstLevel"
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMNetAppAccount_withIncorrectAccountNameConfig(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-netapp-%d"
-  location = "%s"
-}
-
-resource "azurerm_netapp_account" "test" {
-  name                = "@abc"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-`, rInt, location)
-}
-
-func testAccAzureRMNetAppAccount_withIncorrectDomainNameConfig(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-netapp-%d"
-  location = "%s"
-}
-
-resource "azurerm_netapp_account" "test" {
-  name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  active_directory {
-    username            = "aduser"
-    password            = "aduserpwd"
-    smb_server_name     = "SMBSERVER"
-    dns_servers         = ["1.2.3.4"]
-	domain              = "@abc"
-	organizational_unit = "OU=FirstLevel"
-  }
-}
-`, rInt, location, rInt)
-}
-
-func testAccAzureRMNetAppAccount_withIncorrectSMBServerNameConfig(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-netapp-%d"
-  location = "%s"
-}
-
-resource "azurerm_netapp_account" "test" {
-  name                = "acctest-NetAppAccount-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  active_directory {
-    username            = "aduser"
-    password            = "aduserpwd"
-    smb_server_name     = "SMBSERVER123"
     dns_servers         = ["1.2.3.4"]
 	domain              = "westcentralus.com"
 	organizational_unit = "OU=FirstLevel"
