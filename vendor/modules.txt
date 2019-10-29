@@ -57,7 +57,7 @@ github.com/Azure/azure-sdk-for-go/services/preview/portal/mgmt/2019-01-01-previe
 github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
-github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr
+github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
