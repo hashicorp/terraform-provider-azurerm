@@ -1,3 +1,9 @@
+## 1.36.1 (Unreleased)
+
+FEATURES:
+
+* provider: adding a flag to allow users to opt-out of the default Terraform Partner ID [GH-4751]
+
 ## 1.36.0 (October 29, 2019)
 
 FEATURES:
