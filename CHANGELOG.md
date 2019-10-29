@@ -18,6 +18,12 @@ BUG FIXES:
 * `azurerm_lb_rule` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_storage_account` - fixing an error where Advanced Threat Protection is unavailable in Azure Germany [GH-4746]
 
+## 1.36.1 (October 29, 2019)
+
+FEATURES:
+
+* provider: adding a flag to allow users to opt-out of the default Terraform Partner ID ([#4751](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4751))
+
 ## 1.36.0 (October 29, 2019)
 
 FEATURES:
