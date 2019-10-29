@@ -35,7 +35,7 @@ IMPROVEMENTS:
 * `azurerm_monitor_action_group` - add support for the `use_common_alert_schema` webhook property [GH-4483]
 * `azurerm_network_security_rule` - add support for `Icmp` to the `protocol` property [GH-4615]
 * `azurerm_network_security_rule` - add support for `Icmp` to the `protocol` property [GH-4615]
-* `azurerm_servicebus_namespace` - allow `capacity` to `8` for tge premium SKU [GH-4630]
+* `azurerm_servicebus_namespace` - allow `capacity` to `8` for the premium SKU [GH-4630]
 * `azurerm_subnet` - add support for the `Microsoft.DBforPostgreSQL/serversv2` and `Microsoft.StreamAnalytics/streamingJobs` to the `service_delegation.name` property [GH-4690]
 * `azurerm_subnet` - add support for the `Microsoft.Network/networkinterfaces/*` and `Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action` to the `service_delegation.action` property [GH-4690]
 
@@ -43,7 +43,7 @@ BUG FIXES:
 
 
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` [GH-4534]
-* `azurerm_devspace_controller`: the `host_suffix` field is now read-only due to a change in Azure [GH-4597]
+* `azurerm_devspace_controller` - the `host_suffix` field is now read-only due to a change in Azure [GH-4597]
 * `azurerm_key_vault_certificate` - switches the `emails`, `dns_names `, `upns` of the `subject_alternative_names` property to use `TypeSet` [GH-4645]
 * `azurerm_kubernetes_cluster` - fixing a crash when the `service_principal_profile` block was nil [GH-4697]
 * `azurerm_kubernetes_cluster` - the `log_analytics_workspace_id` property is now optional [GH-4513]
