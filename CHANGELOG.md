@@ -1,8 +1,8 @@
-## 1.36.1 (Unreleased)
+## 1.36.1 (October 29, 2019)
 
 FEATURES:
 
-* provider: adding a flag to allow users to opt-out of the default Terraform Partner ID [GH-4751]
+* provider: adding a flag to allow users to opt-out of the default Terraform Partner ID ([#4751](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4751))
 
 ## 1.36.0 (October 29, 2019)
 
