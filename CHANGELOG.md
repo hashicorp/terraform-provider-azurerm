@@ -5,6 +5,10 @@ FEATURES:
 * `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
 * `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
 
+IMPROVEMENTS:
+
+* sql: updating to API version `2017-03-01-preview` [GH-4242]
+
 BUG FIXES:
 
 * `azurerm_eventhub_namespace` - deprecating the `kafka_enabled` sproperty as it is now managed by Azure [GH-4743]
