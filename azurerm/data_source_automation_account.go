@@ -52,17 +52,14 @@ func dataSourceAutomationAccountRead(d *schema.ResourceData, meta interface{}) e
 
 	resp, err := client.Get(ctx, resourceGroupName, name)
 	if err != nil {
-
 		if utils.ResponseWasNotFound(resp.Response) {
 			return fmt.Errorf("Error: Automation Account %q (Resource Group %q) was not found", name, resourceGroupName)
 		}
 		return fmt.Errorf("Error making Read request on Automation Account Registration Information %q (Resource Group %q): %+v", name, resourceGroupName, err)
 	}
 	d.SetId(*resp.ID)
-
 	d.Set("primary_key", resp.Keys.Primary)
 	d.Set("secondary_key", resp.Keys.Secondary)
 	d.Set("endpoint", resp.Endpoint)
-
 	return nil
 }
