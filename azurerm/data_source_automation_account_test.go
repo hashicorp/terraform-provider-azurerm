@@ -19,7 +19,7 @@ func TestAccDataSourceAutomationAccount(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAutomationAccount_complete(ri, location),
+				Config: testAccDataSourceAutomationAccount_complete(resourceGroupName, location, ri),
 				Check: resource.ComposeTestCheckFunc(
 				resource.TestCheckResourceAttr(dataSourceName, "resource_group_name", resourceGroupName),
 				),
