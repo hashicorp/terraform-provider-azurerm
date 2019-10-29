@@ -6,6 +6,7 @@ FEATURES:
 * **New Data Source:** `azurerm_data_factory` [GH-4517]
 * **New Data Source:** `azurerm_healthcare_service` [GH-4221]
 * **New Data Source:** `azurerm_resources` [GH-3529]
+* **New Data Source:** `azurerm_postgresql_server` [GH-4732]
 * **New Resource:** `azurerm_automation_job_schedule` [GH-3386]
 * **New Resource:** `azurerm_app_service_certificate_order` [GH-4454]
 * **New Resource:** `azurerm_bastion_host` [GH-4096]
@@ -21,6 +22,8 @@ IMPROVEMENTS:
 * frontdoor: updating to use API version `2019-04-01` [GH-4609]
 * provider: switching to use the Provider SDK from `github.com/hashicorp/terraform-provider-sdk` [GH-4474]
 * provider: sending Microsoft's Terraform Partner ID in the user agent if a custom Partner ID isn’t specified [GH-4663]
+* storage: caching the storage account information to workaround the Storage API being unperformant [GH-4709]
+* Data Source: `azurerm_client_config` - fixing a crash when using MSI authentication [GH-4738]
 * Data Source: `azurerm_lb_backend_address_pool` - exposing `backend_ip_configurations` [GH-4605]
 * `azurerm_cognitive_account` - support for the sku `F1` [GH-4720]
 * `azurerm_cosmosdb_mongo_collection` - add support for the `throughput` property [GH-4467]
@@ -37,6 +40,7 @@ IMPROVEMENTS:
 * `azurerm_subnet` - add support for the `Microsoft.Network/networkinterfaces/*` and `Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action` to the `service_delegation.action` property [GH-4690]
 
 BUG FIXES:
+
 
 * `azurerm_api_management` - deprecate the `disable_backend_ssl30`, `disable_backend_tls10`, `disable_backend_tls11`, `disable_triple_des_ciphers`, `disable_frontend_ssl30`, `disable_frontend_tls10`, `disable_frontend_tls11` properties as `true` actually meant enable in favour of `enable_backend_ssl30`, `enable_backend_tls10`, `enable_backend_tls11`, `enable_triple_des_ciphers`, `enable_frontend_ssl30`, `enable_frontend_tls10`, `enable_frontend_tls11` [GH-4534]
 * `azurerm_devspace_controller`: the `host_suffix` field is now read-only due to a change in Azure [GH-4597]

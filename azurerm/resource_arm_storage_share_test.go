@@ -206,15 +206,15 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", shareName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileSharesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
@@ -240,15 +240,15 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", shareName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileSharesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
@@ -273,15 +273,17 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
 		}
-		if resourceGroup == nil {
+
+		// expected since it's been deleted
+		if account == nil {
 			return nil
 		}
 
-		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileSharesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
