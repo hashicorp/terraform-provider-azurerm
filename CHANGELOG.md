@@ -1,4 +1,9 @@
 ## 1.37.0 (Unreleased)
+
+FEATURES:
+
+* `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
+
 ## 1.36.0 (October 29, 2019)
 
 FEATURES:
