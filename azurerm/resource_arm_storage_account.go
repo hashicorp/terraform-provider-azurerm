@@ -1134,7 +1134,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
 	if err != nil {
 		msg := err.Error()
-		if msg != "The resource namespace 'Microsoft.Security' is invalid." {
+		if !strings.Contains(msg, "The resource namespace 'Microsoft.Security' is invalid.") {
 			if !strings.Contains(msg, "No registered resource provider found for location '") {
 				if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
 					return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
