@@ -390,8 +390,8 @@ func TestAccAzureRMSignalRService_cors(t *testing.T) {
 				Config: testAccAzureRMSignalRService_withCors(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSignalRServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.cors.0.allowed_origins.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "cors.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "cors.0.allowed_origins.#", "2"),
 					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
 					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
 					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
@@ -487,8 +487,8 @@ resource "azurerm_signalr_service" "test" {
 
   cors {
 	allowed_origins = [
-	  "www.contoso.com",
-	  "contoso.com",
+	  "https://example.com",
+	  "https://contoso.com",
 	]
   }
 }
