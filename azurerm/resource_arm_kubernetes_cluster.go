@@ -1310,7 +1310,7 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 		}
 
 		enableNodePublicIP := false
-		if profile.EnableAutoScaling != nil {
+		if profile.EnableNodePublicIP != nil {
 			enableNodePublicIP = *profile.EnableNodePublicIP
 		}
 
@@ -1318,6 +1318,7 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 			"availability_zones":    utils.FlattenStringSlice(profile.AvailabilityZones),
 			"count":                 count,
 			"enable_auto_scaling":   enableAutoScaling,
+			"enable_node_public_ip": enableNodePublicIP,
 			"max_count":             maxCount,
 			"max_pods":              maxPods,
 			"min_count":             minCount,
@@ -1328,7 +1329,6 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 			"type":                  string(profile.Type),
 			"vm_size":               string(profile.VMSize),
 			"vnet_subnet_id":        subnetId,
-			"enable_node_public_ip": enableNodePublicIP,
 
 			// TODO: remove in 2.0
 			"fqdn": fqdnVal,
