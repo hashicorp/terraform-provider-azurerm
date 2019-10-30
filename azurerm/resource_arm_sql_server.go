@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -78,17 +77,15 @@ func resourceArmSqlServer() *schema.Resource {
 			"identity": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
-							Type:             schema.TypeString,
-							Required:         true,
-							DiffSuppressFunc: suppress.CaseDifference,
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"SystemAssigned",
-							}, true),
+							}, false),
 						},
 						"principal_id": {
 							Type:     schema.TypeString,
@@ -206,8 +203,8 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
-	if identity := resp.Identity; identity != nil {
-		d.Set("identity", flattenAzureRmSqlServerIdentity(*identity))
+	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	if serverProperties := resp.ServerProperties; serverProperties != nil {
@@ -242,14 +239,19 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 
 func expandAzureRmSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentity {
 	identities := d.Get("identity").([]interface{})
+	if len(identities) == 0 {
+		return &sql.ResourceIdentity{}
+	}
 	identity := identities[0].(map[string]interface{})
 	identityType := sql.IdentityType(identity["type"].(string))
 	return &sql.ResourceIdentity{
 		Type: identityType,
 	}
 }
-
-func flattenAzureRmSqlServerIdentity(identity sql.ResourceIdentity) []interface{} {
+func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
 	result := make(map[string]interface{})
 	result["type"] = identity.Type
 	if identity.PrincipalID != nil {
