@@ -183,7 +183,7 @@ func resourceArmPrivateDnsPtrRecordDelete(d *schema.ResourceData, meta interface
 }
 
 func flattenAzureRmPrivateDnsPtrRecords(records *[]privatedns.PtrRecord) []string {
-	results := make([]string, 0, len(*records))
+	results := make([]string, 0)
 
 	if records != nil {
 		for _, record := range *records {
