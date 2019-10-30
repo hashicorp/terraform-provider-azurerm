@@ -111,11 +111,11 @@ A `private_service_connection` contains:
 
 * `subresource_names` - (Required) The subresource name(s) that the Private Link Endpoint is allowed to connect to, see `Subresource Names` below. Changing this forces a new resource to be created.
 
-* `request_message` - (Optional) A message passed to the owner of the remote resource when the private link endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length.
+* `request_message` - (Optional) A message passed to the owner of the remote resource when the private link endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 
 ## Subresource Names
 
-Resource type | Subresource name | Subresource name
+Resource type | Subresource name | Subresource secondary name
 -- | -- | --
 Sql DB/DW | sqlServer | 
 Storage Account  | blob | blob_secondary
@@ -133,16 +133,17 @@ The following attributes are exported:
 
 * `network_interface_ids` - Displays an list of network interface resource IDs that have been created for this Private Link Endpoint.
 
-A `private_service_connection` - block exports the following:
+A `private_service_connection` block exports the following:
 
 * `request_response` - Possible values are as follows:
-   * `Auto-Approved` - The remote resource owner has added you to the `Auto-Approved` RBAC permission list for the remote resouce, all private link endpoint connection requests will be automatically `Approved`.
 
-   * `Deleted state` - The resource owner has `Rejected` the private link endpoint connection request and has removed your private link endpoint request from the remote resource.
+  Value | Meaning
+  -- | --
+  `Auto-Approved` | The remote resource owner has added you to the `Auto-Approved` RBAC permission list for the remote resource, all private link endpoint connection requests will be automatically `Approved`.
+  `Deleted state` | The resource owner has `Rejected` the private link endpoint connection request and has removed your private link endpoint request from the remote resource.
+  `request/response message` | If you submitted a manual private link endpoint connection request, while in the `Pending` status the `request_response` will display the same text from your `request_message` in the `private_service_connection` block above. If the private link endpoint connection request was `Rejected` by the owner of the remote resource, the text for the rejection will be displayed as the `request_response` text, if If the private link endpoint connection request was `Approved` by the owner of the remote resource, the text for the approval will be displayed as the `request_response` text
 
-   * `request/response message` - If you submitted a manual private link endpoint connection request, while in the `Pending` status the `request_response` will display the same text from your `request_message` in the `private_service_connection` block above. If the private link endpoint connection request was `Rejected` by the owner of the remote resource, the text for the rejection will be displayed as the `request_response` text, if If the private link endpoint connection request was `Approved` by the owner of the remote resource, the text for the approval will be displayed as the `request_response` text
-
-   * `status` - The current status of the privat link endpoint request, possible values will be `Pending`, `Approved`, `Rejected`, or `Disconnected`.
+* `status` - The current status of the private link endpoint request, possible values will be `Pending`, `Approved`, `Rejected`, or `Disconnected`.
 
 * `private_ip_address` - The private IP address associated with the private link endpoint, note that you will have a private IP address assigned to the private link endpoint even if the connection request was `Rejected`.
 
