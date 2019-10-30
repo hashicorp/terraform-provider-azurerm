@@ -153,7 +153,7 @@ func resourceArmPrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}
 
 	if props := resp.RecordSetProperties; props != nil {
 		if err := d.Set("records", flattenAzureRmPrivateDnsPtrRecords(resp.PtrRecords)); err != nil {
-			return err
+			return fmt.Errorf("Error setting `records`: %+v", err)
 		}
 	}
 
