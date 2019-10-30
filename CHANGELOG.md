@@ -2,16 +2,16 @@
 
 FEATURES:
 
-* **New Datasource:** `azurerm_automation_account` [GH-4740]
+* **New Data Source:** `azurerm_automation_account` [GH-4740]
 
 IMPROVEMENTS:
 
-* `azurerm_app_service_slot`: support for `auto_swap_slot_name` [GH-4752]
-* `azurerm_kubernetes_cluster`: support for `enable_node_public_ip` in `agent_pool_profile` [GH-#4613]
-* `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
-* `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
 * sql: updating to API version `2017-03-01-preview` [GH-4242]
-
+* `azurerm_app_service_slot` - support for `auto_swap_slot_name` [GH-4752]
+* `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-#4613]
+* `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
+* `azurerm_sql_server` - support for the `identity` block [GH-4754]
+* `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
 
 BUG FIXES:
 
