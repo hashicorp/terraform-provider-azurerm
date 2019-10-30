@@ -187,6 +187,9 @@ func flattenAzureRmPrivateDnsPtrRecords(records *[]privatedns.PtrRecord) []strin
 
 	if records != nil {
 		for _, record := range *records {
+			if record.Ptrdname == nil {
+				continue
+			}
 			results = append(results, *record.Ptrdname)
 		}
 	}
