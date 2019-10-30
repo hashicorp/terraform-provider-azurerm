@@ -6,10 +6,11 @@ import (
 )
 
 type Client struct {
-	AppServicePlansClient *web.AppServicePlansClient
-	AppServicesClient     *web.AppsClient
-	CertificatesClient    *web.CertificatesClient
-	BaseClient            *web.BaseClient
+	AppServicePlansClient   *web.AppServicePlansClient
+	AppServicesClient       *web.AppsClient
+	CertificatesClient      *web.CertificatesClient
+	CertificatesOrderClient *web.AppServiceCertificateOrdersClient
+	BaseClient              *web.BaseClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -22,13 +23,17 @@ func BuildClient(o *common.ClientOptions) *Client {
 	CertificatesClient := web.NewCertificatesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&CertificatesClient.Client, o.ResourceManagerAuthorizer)
 
+	CertificatesOrderClient := web.NewAppServiceCertificateOrdersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CertificatesOrderClient.Client, o.ResourceManagerAuthorizer)
+
 	BaseClient := web.NewWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&BaseClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AppServicePlansClient: &AppServicePlansClient,
-		AppServicesClient:     &AppServicesClient,
-		CertificatesClient:    &CertificatesClient,
-		BaseClient:            &BaseClient,
+		AppServicePlansClient:   &AppServicePlansClient,
+		AppServicesClient:       &AppServicesClient,
+		CertificatesClient:      &CertificatesClient,
+		CertificatesOrderClient: &CertificatesOrderClient,
+		BaseClient:              &BaseClient,
 	}
 }

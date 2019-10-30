@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -64,14 +64,14 @@ func resourceArmSqlDatabase() *schema.Resource {
 				Default:          string(sql.Default),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(sql.Copy),
-					string(sql.Default),
-					string(sql.NonReadableSecondary),
-					string(sql.OnlineSecondary),
-					string(sql.PointInTimeRestore),
-					string(sql.Recovery),
-					string(sql.Restore),
-					string(sql.RestoreLongTermRetentionBackup),
+					string(sql.CreateModeCopy),
+					string(sql.CreateModeDefault),
+					string(sql.CreateModeNonReadableSecondary),
+					string(sql.CreateModeOnlineSecondary),
+					string(sql.CreateModePointInTimeRestore),
+					string(sql.CreateModeRecovery),
+					string(sql.CreateModeRestore),
+					string(sql.CreateModeRestoreLongTermRetentionBackup),
 				}, true),
 			},
 

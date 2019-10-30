@@ -143,15 +143,15 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.TablesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
@@ -182,15 +182,15 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.TablesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
@@ -224,15 +224,15 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 		}
-		if resourceGroup == nil {
+		if account == nil {
 			return nil
 		}
 
-		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.TablesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}

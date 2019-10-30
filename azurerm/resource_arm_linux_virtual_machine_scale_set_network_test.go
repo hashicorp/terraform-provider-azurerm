@@ -860,6 +860,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -875,8 +876,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "example"
-    primary = true
+    name                          = "example"
+    primary                       = true
     enable_accelerated_networking = %t
 
     ip_configuration {
@@ -909,6 +910,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -928,10 +930,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.other.id
-      application_gateway_backend_address_pool_ids = [ azurerm_application_gateway.test.backend_address_pool.0.id ]
+      name                                         = "internal"
+      primary                                      = true
+      subnet_id                                    = azurerm_subnet.other.id
+      application_gateway_backend_address_pool_ids = [azurerm_application_gateway.test.backend_address_pool.0.id]
     }
   }
 }
@@ -957,6 +959,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -976,10 +979,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-      application_security_group_ids = [ azurerm_application_security_group.test.id ]
+      name                           = "internal"
+      primary                        = true
+      subnet_id                      = azurerm_subnet.test.id
+      application_security_group_ids = [azurerm_application_security_group.test.id]
     }
   }
 }
@@ -1011,6 +1014,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1056,6 +1060,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1071,8 +1076,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "example"
-    primary = true
+    name        = "example"
+    primary     = true
     dns_servers = ["8.8.8.8"]
 
     ip_configuration {
@@ -1098,6 +1103,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1113,8 +1119,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "example"
-    primary = true
+    name        = "example"
+    primary     = true
     dns_servers = ["1.1.1.1", "8.8.8.8"]
 
     ip_configuration {
@@ -1140,6 +1146,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1155,8 +1162,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "example"
-    primary = true
+    name                 = "example"
+    primary              = true
     enable_ip_forwarding = true
 
     ip_configuration {
@@ -1182,6 +1189,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1259,6 +1267,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1278,11 +1287,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-      load_balancer_backend_address_pool_ids = [ azurerm_lb_backend_address_pool.test.id ]
-      load_balancer_inbound_nat_rules_ids = [ azurerm_lb_nat_pool.test.id ]
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
   }
 }
@@ -1302,6 +1311,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1348,6 +1358,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1395,6 +1406,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1421,7 +1433,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "secondary"
+    name = "secondary"
 
     ip_configuration {
       name      = "internal"
@@ -1446,6 +1458,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1477,7 +1490,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "secondary"
+    name = "secondary"
 
     ip_configuration {
       name      = "third"
@@ -1507,6 +1520,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1522,8 +1536,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "primary"
-    primary = true
+    name        = "primary"
+    primary     = true
     dns_servers = ["8.8.8.8"]
 
     ip_configuration {
@@ -1534,7 +1548,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "secondary"
+    name        = "secondary"
     dns_servers = ["1.1.1.1"]
 
     ip_configuration {
@@ -1560,6 +1574,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1592,7 +1607,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "secondary"
+    name = "secondary"
 
     ip_configuration {
       name      = "second"
@@ -1629,6 +1644,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1644,8 +1660,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "example"
-    primary = true
+    name                      = "example"
+    primary                   = true
     network_security_group_id = azurerm_network_security_group.test.id
 
     ip_configuration {
@@ -1683,6 +1699,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1698,8 +1715,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   network_interface {
-    name    = "example"
-    primary = true
+    name                      = "example"
+    primary                   = true
     network_security_group_id = azurerm_network_security_group.other.id
 
     ip_configuration {
@@ -1725,6 +1742,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1766,6 +1784,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1812,6 +1831,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1865,6 +1885,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1889,8 +1910,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
 
       public_ip_address {
-        name                 = "first"
-        public_ip_prefix_id  = azurerm_public_ip_prefix.test.id
+        name                = "first"
+        public_ip_prefix_id = azurerm_public_ip_prefix.test.id
       }
     }
   }
@@ -1911,6 +1932,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -1935,7 +1957,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
       subnet_id = azurerm_subnet.test.id
 
       public_ip_address {
-        name                 = "first"
+        name = "first"
 
         ip_tag {
           tag  = "/Sql"

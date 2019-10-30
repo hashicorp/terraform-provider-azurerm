@@ -24,7 +24,7 @@ resource "azurerm_automation_account" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku_name = "Basic"
-  
+
   tags = {
     environment = "development"
   }

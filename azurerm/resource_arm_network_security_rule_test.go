@@ -351,7 +351,7 @@ resource "azurerm_network_security_rule" "test2" {
   priority                    = 101
   direction                   = "Inbound"
   access                      = "Deny"
-  protocol                    = "Tcp"
+  protocol                    = "Icmp"
   source_port_range           = "*"
   destination_port_range      = "*"
   source_address_prefix       = "*"
