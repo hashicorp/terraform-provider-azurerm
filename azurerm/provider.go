@@ -116,6 +116,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_platform_image":                          dataSourceArmPlatformImage(),
 		"azurerm_policy_definition":                       dataSourceArmPolicyDefinition(),
 		"azurerm_postgresql_server":                       dataSourcePostgreSqlServer(),
+		"azurerm_private_link_service":                    dataSourceArmPrivateLinkService(),
 		"azurerm_proximity_placement_group":               dataSourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                               dataSourceArmPublicIP(),
 		"azurerm_public_ips":                              dataSourceArmPublicIPs(),
