@@ -14,17 +14,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 //todo refactor and find a home for this wayward func
 func resourceArmKeyVaultChildResourceImporter(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	client := meta.(*ArmClient).KeyVault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
@@ -50,6 +53,13 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: resourceArmKeyVaultChildResourceImporter,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -272,28 +282,31 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"emails": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
+													Set: schema.HashString,
 												},
 												"dns_names": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
+													Set: schema.HashString,
 												},
 												"upns": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
+													Set: schema.HashString,
 												},
 											},
 										},
@@ -339,7 +352,8 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	keyVaultId := d.Get("key_vault_id").(string)
@@ -352,7 +366,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Certificate %q vault url form id %q: %+v", name, keyVaultId, err)
+			return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		keyVaultBaseUrl = pKeyVaultBaseUrl
@@ -443,7 +457,8 @@ func keyVaultCertificateCreationRefreshFunc(ctx context.Context, client *keyvaul
 func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
@@ -511,7 +526,8 @@ func resourceArmKeyVaultCertificateRead(d *schema.ResourceData, meta interface{}
 func resourceArmKeyVaultCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
 	client := meta.(*ArmClient).KeyVault.ManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
@@ -627,17 +643,17 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 				if sans[0] != nil {
 					san := sans[0].(map[string]interface{})
 
-					emails := san["emails"].([]interface{})
+					emails := san["emails"].(*schema.Set).List()
 					if len(emails) > 0 {
 						subjectAlternativeNames.Emails = utils.ExpandStringSlice(emails)
 					}
 
-					dnsNames := san["dns_names"].([]interface{})
+					dnsNames := san["dns_names"].(*schema.Set).List()
 					if len(dnsNames) > 0 {
 						subjectAlternativeNames.DNSNames = utils.ExpandStringSlice(dnsNames)
 					}
 
-					upns := san["upns"].([]interface{})
+					upns := san["upns"].(*schema.Set).List()
 					if len(upns) > 0 {
 						subjectAlternativeNames.Upns = utils.ExpandStringSlice(upns)
 					}
@@ -725,10 +741,15 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
 			sanOutput := make(map[string]interface{})
-
-			sanOutput["emails"] = utils.FlattenStringSlice(san.Emails)
-			sanOutput["dns_names"] = utils.FlattenStringSlice(san.DNSNames)
-			sanOutput["upns"] = utils.FlattenStringSlice(san.Upns)
+			if emails := san.Emails; emails != nil {
+				sanOutput["emails"] = set.FromStringSlice(*emails)
+			}
+			if dnsNames := san.DNSNames; dnsNames != nil {
+				sanOutput["dns_names"] = set.FromStringSlice(*dnsNames)
+			}
+			if upns := san.Upns; upns != nil {
+				sanOutput["upns"] = set.FromStringSlice(*upns)
+			}
 
 			sanOutputs = append(sanOutputs, sanOutput)
 		}

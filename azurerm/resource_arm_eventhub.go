@@ -3,8 +3,8 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +25,13 @@ func resourceArmEventHub() *schema.Resource {
 		Delete: resourceArmEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -144,7 +152,8 @@ func resourceArmEventHub() *schema.Resource {
 
 func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Eventhub.EventHubsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
 	name := d.Get("name").(string)
@@ -203,7 +212,8 @@ func resourceArmEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Eventhub.EventHubsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -242,7 +252,8 @@ func resourceArmEventHubRead(d *schema.ResourceData, meta interface{}) error {
 
 func resourceArmEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Eventhub.EventHubsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err

@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,6 +17,10 @@ import (
 func dataSourceArmDataFactory() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmDataFactoryRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {

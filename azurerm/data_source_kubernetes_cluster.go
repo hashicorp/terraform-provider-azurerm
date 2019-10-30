@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -16,6 +17,10 @@ import (
 func dataSourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmKubernetesClusterRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -174,6 +179,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+
+						"enable_node_public_ip": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -712,6 +722,10 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.NodeTaints != nil {
 			agentPoolProfile["node_taints"] = *profile.NodeTaints
+		}
+
+		if profile.EnableNodePublicIP != nil {
+			agentPoolProfile["enable_node_public_ip"] = *profile.EnableNodePublicIP
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)

@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -14,6 +15,11 @@ import (
 func dataSourceArmApplicationInsights() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmApplicationInsightsRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 

@@ -13,6 +13,10 @@ func dataSourceArmClientConfig() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmClientConfigRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"client_id": {
 				Type:     schema.TypeString,
@@ -86,11 +90,17 @@ func dataSourceArmClientConfigRead(d *schema.ResourceData, meta interface{}) err
 	}
 
 	d.Set("object_id", "")
-	if v, err := client.getAuthenticatedObjectID(ctx); err != nil {
-		return fmt.Errorf("Error getting authenticated object ID: %v", err)
-	} else {
-		d.Set("object_id", v)
+
+	// TODO remove this when we confirm that MSI no longer returns nil with getAuthenticatedObjectID
+	objectId := ""
+	if client.getAuthenticatedObjectID != nil {
+		v, err := client.getAuthenticatedObjectID(ctx)
+		if err != nil {
+			return fmt.Errorf("Error getting authenticated object ID: %v", err)
+		}
+		objectId = v
 	}
+	d.Set("object_id", objectId)
 
 	return nil
 }

@@ -93,16 +93,16 @@ func testCheckAzureRMDashboardDestroy(s *terraform.State) error {
 
 func testResourceArmDashboard_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
-    resource "azurerm_resource_group" "test-group"{
-        name = "acctestRG-%d"
-        location = "%s"
-    }
+resource "azurerm_resource_group" "test-group" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
 
-    resource "azurerm_dashboard" "test" {
-        name                       = "my-test-dashboard"
-        resource_group_name        = azurerm_resource_group.test-group.name
-        location                   = azurerm_resource_group.test-group.location
-        dashboard_properties       = <<DASH
+resource "azurerm_dashboard" "test" {
+  name                 = "my-test-dashboard"
+  resource_group_name  = azurerm_resource_group.test-group.name
+  location             = azurerm_resource_group.test-group.location
+  dashboard_properties = <<DASH
 {
    "lenses": {
         "0": {
@@ -134,6 +134,6 @@ func testResourceArmDashboard_basic(rInt int, location string) string {
 	}
 }
 DASH
-	}
+}
 `, rInt, location)
 }

@@ -576,7 +576,7 @@ resource "azurerm_mysql_server" "test" {
     storage_mb            = 51200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
-	auto_grow			  = "Disabled"
+    auto_grow             = "Disabled"
   }
 
   administrator_login          = "acctestun"

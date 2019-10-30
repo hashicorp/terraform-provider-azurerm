@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
 )
@@ -30,26 +32,26 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 					return []*schema.ResourceData{d}, fmt.Errorf("Error parsing ID %q for import of Data Lake Gen2 File System: %v", d.Id(), err)
 				}
 
-				// we then need to look up the Storage Account ID - so first find the resource group
-				resourceGroup, err := storageClients.FindResourceGroup(ctx, id.AccountName)
+				// we then need to look up the Storage Account ID
+				account, err := storageClients.FindAccount(ctx, id.AccountName)
 				if err != nil {
-					return []*schema.ResourceData{d}, fmt.Errorf("Error locating Resource Group for Storage Account %q to import Data Lake Gen2 File System %q: %v", id.AccountName, d.Id(), err)
+					return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving Account %q for Data Lake Gen2 File System %q: %s", id.AccountName, id.DirectoryName, err)
 				}
-
-				if resourceGroup == nil {
-					return []*schema.ResourceData{d}, fmt.Errorf("Unable to locate Resource Group for Storage Account %q to import Data Lake Gen2 File System %q", id.AccountName, d.Id())
-				}
-
-				// then pull the storage account itself
-				account, err := storageClients.AccountsClient.GetProperties(ctx, *resourceGroup, id.AccountName, "")
-				if err != nil {
-					return []*schema.ResourceData{d}, fmt.Errorf("Error retrieving Storage Account %q to import Data Lake Gen2 File System %q: %+v", id.AccountName, d.Id(), err)
+				if account == nil {
+					return []*schema.ResourceData{d}, fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 				}
 
 				d.Set("storage_account_id", account.ID)
 
 				return []*schema.ResourceData{d}, nil
 			},
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -70,7 +72,8 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*ArmClient).Storage.AccountsClient
 	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	storageID, err := storage.ParseAccountID(d.Get("storage_account_id").(string))
 	if err != nil {
@@ -121,7 +124,8 @@ func resourceArmStorageDataLakeGen2FileSystemCreate(d *schema.ResourceData, meta
 func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta interface{}) error {
 	accountsClient := meta.(*ArmClient).Storage.AccountsClient
 	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := filesystems.ParseResourceID(d.Id())
 	if err != nil {
@@ -159,7 +163,8 @@ func resourceArmStorageDataLakeGen2FileSystemUpdate(d *schema.ResourceData, meta
 
 func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := filesystems.ParseResourceID(d.Id())
 	if err != nil {
@@ -189,7 +194,8 @@ func resourceArmStorageDataLakeGen2FileSystemRead(d *schema.ResourceData, meta i
 
 func resourceArmStorageDataLakeGen2FileSystemDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.FileSystemsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := filesystems.ParseResourceID(d.Id())
 	if err != nil {

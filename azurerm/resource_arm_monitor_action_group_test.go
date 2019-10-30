@@ -149,6 +149,7 @@ func TestAccAzureRMMonitorActionGroup_webhookReceiver(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "sms_receiver.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.use_common_alert_schema", "true"),
 				),
 			},
 			{
@@ -186,6 +187,7 @@ func TestAccAzureRMMonitorActionGroup_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.0.service_uri", "http://example.com/alert"),
 					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.service_uri", "https://backup.example.com/warning"),
+					resource.TestCheckResourceAttr(resourceName, "webhook_receiver.1.use_common_alert_schema", "true"),
 				),
 			},
 			{
@@ -421,8 +423,9 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 
   webhook_receiver {
-    name        = "callmyapiaswell"
-    service_uri = "http://example.com/alert"
+    name                    = "callmyapiaswell"
+    service_uri             = "http://example.com/alert"
+    use_common_alert_schema = true
   }
 }
 `, rInt, location, rInt)
@@ -468,8 +471,9 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   webhook_receiver {
-    name        = "callmybackupapi"
-    service_uri = "https://backup.example.com/warning"
+    name                    = "callmybackupapi"
+    service_uri             = "https://backup.example.com/warning"
+    use_common_alert_schema = true
   }
 }
 `, rInt, location, rInt)

@@ -2115,7 +2115,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   tags = {
-	state  = "create"
+    state = "create"
   }
 
   sku {
@@ -2211,7 +2211,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   tags = {
-	state  = "update"
+    state = "update"
   }
 
   sku {
@@ -2307,7 +2307,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   tags = {
-	state  = "update"
+    state = "update"
   }
 
   sku {
@@ -2323,9 +2323,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   network_profile {
-    name    = "TestNetworkProfile-%[1]d"
-    primary = true
-	ip_forwarding = true
+    name          = "TestNetworkProfile-%[1]d"
+    primary       = true
+    ip_forwarding = true
 
     ip_configuration {
       name      = "TestIPConfiguration"
@@ -2404,7 +2404,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   upgrade_policy_mode = "Manual"
 
   tags = {
-	state  = "create"
+    state = "create"
   }
 
   sku {

@@ -32,6 +32,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -111,6 +112,7 @@ type ArmClient struct {
 	Frontdoor        *frontdoor.Client
 	Graph            *graph.Client
 	HDInsight        *hdinsight.Client
+	Healthcare       *healthcare.Client
 	IoTHub           *iothub.Client
 	KeyVault         *keyvault.Client
 	Kusto            *kusto.Client
@@ -150,7 +152,7 @@ type ArmClient struct {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID, disableTerraformPartnerID bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
@@ -219,6 +221,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		PollingDuration:             180 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
+		DisableTerraformPartnerID:   disableTerraformPartnerID,
 		Environment:                 *env,
 	}
 
@@ -245,6 +248,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Frontdoor = frontdoor.BuildClient(o)
 	client.Graph = graph.BuildClient(o)
 	client.HDInsight = hdinsight.BuildClient(o)
+	client.Healthcare = healthcare.BuildClient(o)
 	client.IoTHub = iothub.BuildClient(o)
 	client.KeyVault = keyvault.BuildClient(o)
 	client.Kusto = kusto.BuildClient(o)

@@ -18,26 +18,26 @@ variable "md_content" {
   default     = "# Hello all :)"
 }
 
-variable "video_link"{
-    description = "Link to a video"
-    default = "https://www.youtube.com/watch?v=......"
+variable "video_link" {
+  description = "Link to a video"
+  default     = "https://www.youtube.com/watch?v=......"
 }
-   
+
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_resource_group" "my-group"{
-    name = "mygroup"
-    location = "uksouth"
+resource "azurerm_resource_group" "my-group" {
+  name     = "mygroup"
+  location = "uksouth"
 }
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = <<DASH
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = <<DASH
 {
    "lenses": {
         "0": {
@@ -147,7 +147,7 @@ resource "azurerm_dashboard" "my-board" {
     }
 }
 DASH
-    }
+}
 
 ```
 
@@ -158,6 +158,7 @@ It is recommended to follow the steps outlined
 Since the contents of the dashboard JSON can be quite lengthy, use a template file to improve readability:
 
 `dash.tpl`:
+
 ```JSON
 {
     "lenses": {
@@ -192,47 +193,49 @@ Since the contents of the dashboard JSON can be quite lengthy, use a template fi
 This is then referenced in the `.tf` file by using a [`template_file`](https://www.terraform.io/docs/providers/template/d/file.html) data source (terraform 0.11 or earlier), or the [`templatefile`](https://www.terraform.io/docs/configuration/functions/templatefile.html) function (terraform 0.12+).
 
 `main.tf` (terraform 0.11 or earlier):
+
 ```hcl
 data "template_file" "dash-template" {
   template = "${file("${path.module}/dash.tpl")}"
   vars = {
     md_content = "Variable content here!"
     video_link = "https://www.youtube.com/watch?v=......"
-    sub_id = data.azurerm_subscription.current.subscription_id
+    sub_id     = data.azurerm_subscription.current.subscription_id
   }
 }
 
 ...
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = data.template_file.dash-template.rendered
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = data.template_file.dash-template.rendered
 }
 
 ```
 
 `main.tf` (terraform 0.12+)
+
 ```hcl
 ...
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = templatefile("dash.tpl", 
-                                    {
-                                        md_content = "Variable content here!",
-                                        video_link = "https://www.youtube.com/watch?v=......",
-                                        sub_id = data.azurerm_subscription.current.subscription_id 
-                                    })
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = templatefile("dash.tpl",
+    {
+      md_content = "Variable content here!",
+      video_link = "https://www.youtube.com/watch?v=......",
+      sub_id     = data.azurerm_subscription.current.subscription_id
+  })
 }
 ```
 

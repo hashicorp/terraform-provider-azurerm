@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-05-01/policy"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,6 +14,11 @@ import (
 func dataSourceArmPolicyDefinition() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPolicyDefinitionRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"display_name": {
 				Type:         schema.TypeString,

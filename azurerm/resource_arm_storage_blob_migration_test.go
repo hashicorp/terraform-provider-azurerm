@@ -16,7 +16,7 @@ func TestAccAzureRMStorageBlobMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false, "0.0.0", "", true)
+	client, err := getArmClient(config, false, "0.0.0", "", true, false)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return

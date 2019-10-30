@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -13,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +28,13 @@ func resourceArmFirewall() *schema.Resource {
 		Delete: resourceArmFirewallDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(40 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(40 * time.Minute),
+			Delete: schema.DefaultTimeout(40 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -80,6 +89,8 @@ func resourceArmFirewall() *schema.Resource {
 				},
 			},
 
+			"zones": azure.SchemaMultipleZones(),
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -87,7 +98,8 @@ func resourceArmFirewall() *schema.Resource {
 
 func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Azure Firewall creation")
 
@@ -110,6 +122,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 	ipConfigs, subnetToLock, vnetToLock, err := expandArmFirewallIPConfigurations(d)
+	zones := azure.ExpandZones(d.Get("zones").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("Error Building list of Azure Firewall IP Configurations: %+v", err)
 	}
@@ -117,11 +130,11 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	locks.ByName(name, azureFirewallResourceName)
 	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	locks.MultipleByName(subnetToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
-
 	locks.MultipleByName(vnetToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(subnetToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(subnetToLock, subnetResourceName)
 
 	parameters := network.AzureFirewall{
 		Location: &location,
@@ -129,6 +142,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		AzureFirewallPropertiesFormat: &network.AzureFirewallPropertiesFormat{
 			IPConfigurations: ipConfigs,
 		},
+		Zones: zones,
 	}
 
 	if !d.IsNewResource() {
@@ -173,7 +187,8 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -206,12 +221,17 @@ func resourceArmFirewallRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
+	if err := d.Set("zones", azure.FlattenZones(read.Zones)); err != nil {
+		return fmt.Errorf("Error setting `zones`: %+v", err)
+	}
+
 	return tags.FlattenAndSet(d, read.Tags)
 }
 
 func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -261,11 +281,11 @@ func resourceArmFirewallDelete(d *schema.ResourceData, meta interface{}) error {
 	locks.ByName(name, azureFirewallResourceName)
 	defer locks.UnlockByName(name, azureFirewallResourceName)
 
-	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
-	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
-
 	locks.MultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(&virtualNetworkNamesToLock, virtualNetworkResourceName)
+
+	locks.MultipleByName(&subnetNamesToLock, subnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetNamesToLock, subnetResourceName)
 
 	future, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
