@@ -820,9 +820,8 @@ func flattenFunctionAppIdentity(identity *web.ManagedServiceIdentity) interface{
 	if identity.TenantID != nil {
 		result["tenant_id"] = *identity.TenantID
 	}
-	if identity.UserAssignedIdentities != nil {
-		result["user_assigned_identity"] = flattenFunctionAppUserAssignedIdentities(identity.UserAssignedIdentities)
-	}
+
+	result["user_assigned_identity"] = flattenFunctionAppUserAssignedIdentities(identity.UserAssignedIdentities)
 
 	return []interface{}{result}
 }
@@ -874,8 +873,19 @@ func flattenFunctionAppUserAssignedIdentities(input map[string]*web.ManagedServi
 	for k, v := range input {
 		result := make(map[string]interface{})
 		result["id"] = k
-		result["principal_id"] = *v.PrincipalID
-		result["client_id"] = *v.ClientID
+
+		principalID := ""
+		if v.PrincipalID != nil {
+			principalID = *v.PrincipalID
+		}
+		result["principal_id"] = principalID
+
+		clientID := ""
+		if v.ClientID != nil {
+			clientID = *v.ClientID
+		}
+		result["client_id"] = clientID
+
 		results = append(results, result)
 	}
 

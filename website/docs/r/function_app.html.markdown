@@ -273,6 +273,7 @@ The following attributes are exported:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this App Service.
 
+---
 
 `user_assigned_identity` exports the following:
 
@@ -280,6 +281,9 @@ The following attributes are exported:
 
 * `client_id` - The Client ID for the Service Principal associated with the Managed User Identity.
 
+-> You can access the Principal ID via `${azurerm_function_app.test.identity.0.user_assigned_identity.0.principal_id}` and the Client ID via `${azurerm_function_app.test.identity.0.user_assigned_identity.0.client_id}`
+
+---
 
 `site_credential` exports the following:
 
