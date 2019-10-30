@@ -174,7 +174,7 @@ func resourceArmPrivateDnsPtrRecordDelete(d *schema.ResourceData, meta interface
 	name := id.Path["PTR"]
 	zoneName := id.Path["privateDnsZones"]
 
-	_, err = dnsClient.Get(ctx, resGroup, zoneName, privatedns.PTR, name)
+	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.PTR, name)
 	if err != nil {
 		return fmt.Errorf("Error deleting Private DNS PTR Record %s: %+v", name, err)
 	}
