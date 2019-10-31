@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -44,10 +43,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[^<>*%&:\\?.+/]{0,127}[^<>*%&:\\?.+/\s]$`),
-					`The name length must be from 1 to 128 characters. The name cannot contain special characters < > * % & : \ ? . + / and cannot end with a whitespace character.`,
-				),
+				ValidateFunc: azure.ValidateAutomationScheduleName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -59,6 +55,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Computed:      true,
 				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
 				ConflictsWith: []string{"automation_account_name"},
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"automation_account_name": {
@@ -67,6 +64,7 @@ func resourceArmAutomationSchedule() *schema.Resource {
 				Computed: true,
 				//ForceNew:      true, //todo this needs to come back once account_name has been removed
 				ConflictsWith: []string{"account_name"},
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"frequency": {

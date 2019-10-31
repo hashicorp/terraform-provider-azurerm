@@ -42,12 +42,14 @@ func resourceArmAutomationRunbook() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateAutomationRunbookName(),
 			},
 
 			"account_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"location": azure.SchemaLocation(),
