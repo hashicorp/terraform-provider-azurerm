@@ -92,6 +92,7 @@ func resourceArmAppService() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Sensitive: true,
 			},
 
 			"storage_account": azure.SchemaAppServiceStorageAccounts(),

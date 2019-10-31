@@ -63,6 +63,7 @@ func dataSourceArmAppService() *schema.Resource {
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Sensitive: true,
 			},
 
 			"connection_string": {
