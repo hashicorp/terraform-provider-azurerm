@@ -1,7 +1,6 @@
 package apimanagement
 
 import (
-	"html"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -37,8 +36,7 @@ func normalizeXmlWithDotNetInterpolationsString(input string) string {
 	value = strings.ReplaceAll(value, "    ", "")
 	value = strings.ReplaceAll(value, "  ", "")
 	value = strings.ReplaceAll(value, " ", "")
+	value = strings.ReplaceAll(value, "&quot;", "\"")
 
-	// whilst technically this is XML - Golang doesn't have an xml.UnescapeString method
-	// but this should be close-enough as it's a best-effort fallback anyway
-	return html.UnescapeString(value)
+	return value
 }

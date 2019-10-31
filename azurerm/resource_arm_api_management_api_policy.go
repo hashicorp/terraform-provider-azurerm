@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"html"
 	"log"
 	"time"
 
@@ -151,9 +152,14 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 	d.Set("api_name", apiName)
 
 	if properties := resp.PolicyContractProperties; properties != nil {
+		policyContent := ""
+		if pc := properties.PolicyContent; pc != nil {
+			policyContent = html.UnescapeString(*pc)
+		}
+
 		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", properties.PolicyContent)
+		d.Set("xml_content", policyContent)
 	}
 
 	return nil
