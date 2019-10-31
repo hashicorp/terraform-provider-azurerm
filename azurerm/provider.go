@@ -63,6 +63,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_app_service_certificate_order":           dataSourceArmAppServiceCertificateOrder(),
 		"azurerm_application_insights":                    dataSourceArmApplicationInsights(),
 		"azurerm_application_security_group":              dataSourceArmApplicationSecurityGroup(),
+		"azurerm_automation_account":                      dataSourceArmAutomationAccount(),
 		"azurerm_automation_variable_bool":                dataSourceArmAutomationVariableBool(),
 		"azurerm_automation_variable_datetime":            dataSourceArmAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":                 dataSourceArmAutomationVariableInt(),
@@ -609,10 +610,18 @@ func Provider() terraform.ResourceProvider {
 			},
 
 			"disable_correlation_request_id": {
-				Type:        schema.TypeBool,
-				Optional:    true,
+				Type:     schema.TypeBool,
+				Optional: true,
+				// TODO: add an ARM_ prefix in 2.0w
 				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
 				Description: "This will disable the x-ms-correlation-request-id header.",
+			},
+
+			"disable_terraform_partner_id": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_TERRAFORM_PARTNER_ID", false),
+				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
 
 			// Advanced feature flags
@@ -652,7 +661,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, fmt.Errorf("The provider onlt supports 3 auxiliary tenant IDs")
+			return nil, fmt.Errorf("The provider only supports 3 auxiliary tenant IDs")
 		}
 
 		builder := &authentication.Builder{
@@ -685,6 +694,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		partnerId := d.Get("partner_id").(string)
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
 		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
+		disableTerraformPartnerID := d.Get("disable_terraform_partner_id").(bool)
 
 		terraformVersion := p.TerraformVersion
 		if terraformVersion == "" {
@@ -693,7 +703,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			terraformVersion = "0.11+compatible"
 		}
 
-		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID)
+		// TODO: we should pass in an Object here
+		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID, disableTerraformPartnerID)
 		if err != nil {
 			return nil, err
 		}

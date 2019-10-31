@@ -152,7 +152,7 @@ type ArmClient struct {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID, disableTerraformPartnerID bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
@@ -221,6 +221,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		PollingDuration:             180 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
+		DisableTerraformPartnerID:   disableTerraformPartnerID,
 		Environment:                 *env,
 	}
 
