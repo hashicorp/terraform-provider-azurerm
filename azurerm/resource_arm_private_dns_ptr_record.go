@@ -153,7 +153,7 @@ func resourceArmPrivateDnsPtrRecordRead(d *schema.ResourceData, meta interface{}
 
 	if props := resp.RecordSetProperties; props != nil {
 		if err := d.Set("records", flattenAzureRmPrivateDnsPtrRecords(resp.PtrRecords)); err != nil {
-			return err
+			return fmt.Errorf("Error setting `records`: %+v", err)
 		}
 	}
 
@@ -174,7 +174,7 @@ func resourceArmPrivateDnsPtrRecordDelete(d *schema.ResourceData, meta interface
 	name := id.Path["PTR"]
 	zoneName := id.Path["privateDnsZones"]
 
-	_, err = dnsClient.Get(ctx, resGroup, zoneName, privatedns.PTR, name)
+	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.PTR, name, "")
 	if err != nil {
 		return fmt.Errorf("Error deleting Private DNS PTR Record %s: %+v", name, err)
 	}
@@ -183,10 +183,13 @@ func resourceArmPrivateDnsPtrRecordDelete(d *schema.ResourceData, meta interface
 }
 
 func flattenAzureRmPrivateDnsPtrRecords(records *[]privatedns.PtrRecord) []string {
-	results := make([]string, 0, len(*records))
+	results := make([]string, 0)
 
 	if records != nil {
 		for _, record := range *records {
+			if record.Ptrdname == nil {
+				continue
+			}
 			results = append(results, *record.Ptrdname)
 		}
 	}
