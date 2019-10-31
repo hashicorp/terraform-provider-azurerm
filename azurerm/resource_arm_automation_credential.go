@@ -48,7 +48,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Computed:      true,
 				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
 				ConflictsWith: []string{"automation_account_name"},
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc:  azure.ValidateAutomationAccountName(),
 			},
 
 			"automation_account_name": {
@@ -57,7 +57,7 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Computed: true,
 				//ForceNew:      true, //todo this needs to come back once account_name has been removed
 				ConflictsWith: []string{"account_name"},
-				ValidateFunc: azure.ValidateAutomationAccountName(),
+				ValidateFunc:  azure.ValidateAutomationAccountName(),
 			},
 
 			"username": {
