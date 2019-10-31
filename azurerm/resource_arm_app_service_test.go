@@ -2542,7 +2542,7 @@ data "azurerm_storage_account_sas" "test" {
   start  = "2019-03-21"
   expiry = "2022-03-21"
 
-    permissions {
+  permissions {
     read    = false
     write   = true
     delete  = false
@@ -2964,9 +2964,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "acctestcontainer"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  name                 = "acctestcontainer"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
 }
 
 resource "azurerm_app_service_plan" "test" {
@@ -3025,9 +3025,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "acctestcontainer"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  name                 = "acctestcontainer"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  storage_account_name = "${azurerm_storage_account.test.name}"
 }
 
 resource "azurerm_storage_share" "test" {
@@ -3376,7 +3376,7 @@ resource "azurerm_app_service" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   app_service_plan_id = "${azurerm_app_service_plan.test.id}"
   app_settings = {
-	  foo = "bar"
+    foo = "bar"
   }
   logs {
     application_logs {

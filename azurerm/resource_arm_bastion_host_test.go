@@ -187,9 +187,9 @@ func testAccAzureRMBastionHost_requiresImport(rInt int, rString string, location
 	return fmt.Sprintf(`
 %s
 resource "azurerm_bastion_host" "import" {
-  name                 = "${azurerm_bastion_host.test.name}"
-  resource_group_name  = "${azurerm_bastion_host.test.resource_group_name}"
-  location             = "${azurerm_bastion_host.test.location}"
+  name                = "${azurerm_bastion_host.test.name}"
+  resource_group_name = "${azurerm_bastion_host.test.resource_group_name}"
+  location            = "${azurerm_bastion_host.test.location}"
 
   ip_configuration {
     name                 = "configuration"

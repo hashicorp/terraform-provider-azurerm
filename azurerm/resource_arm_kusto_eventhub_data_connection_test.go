@@ -67,7 +67,7 @@ resource "azurerm_eventhub_namespace" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   sku                 = "Standard"
 }
-  
+
 resource "azurerm_eventhub" "test" {
   name                = "acctesteventhub-%d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
@@ -90,7 +90,7 @@ resource "azurerm_kusto_eventhub_data_connection" "test" {
   cluster_name        = "${azurerm_kusto_cluster.test.name}"
   database_name       = "${azurerm_kusto_database.test.name}"
 
-  eventhub_id = "${azurerm_eventhub.test.id}"
+  eventhub_id    = "${azurerm_eventhub.test.id}"
   consumer_group = "${azurerm_eventhub_consumer_group.test.name}"
 }
 `, rInt, location, rs, rInt, rInt, rInt, rInt, rInt)

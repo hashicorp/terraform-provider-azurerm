@@ -35,7 +35,7 @@ resource "azurerm_storage_table" "example" {
 resource "azurerm_storage_table_entity" "example" {
   storage_account_name = "${azurerm_storage_account.example.name}"
   table_name           = "${azurerm_storage_table.example.name}"
-  
+
   partition_key = "examplepartition"
   row_key       = "exmamplerow"
 

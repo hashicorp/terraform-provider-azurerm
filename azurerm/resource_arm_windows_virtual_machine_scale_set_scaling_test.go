@@ -427,14 +427,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingAutoScale(rInt int, loca
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 2
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  overprovision = true
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 2
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  overprovision       = true
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -525,13 +525,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCount(rInt int, 
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = %d
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = %d
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -565,13 +565,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingInstanceCountIgnoreUpdat
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F4"
-  instances            = %d
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F4"
+  instances           = %d
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -597,7 +597,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   lifecycle {
-    ignore_changes = [ "sku" ]
+    ignore_changes = ["sku"]
   }
 }
 `, template, instanceCount)
@@ -609,14 +609,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingOverProvisionDisabled(rI
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 3
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  overprovision        = false
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  overprovision       = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -656,13 +656,13 @@ resource "azurerm_proximity_placement_group" "test" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                         = local.vm_name
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Standard_F2"
+  instances                    = 1
+  admin_username               = "adminuser"
+  admin_password               = "P@ssword1234!"
   proximity_placement_group_id = azurerm_proximity_placement_group.test.id
 
   source_image_reference {
@@ -697,14 +697,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingSinglePlacementGroupDisa
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  single_placement_group          = false
+  name                   = local.vm_name
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  sku                    = "Standard_F2"
+  instances              = 1
+  admin_username         = "adminuser"
+  admin_password         = "P@ssword1234!"
+  single_placement_group = false
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -738,13 +738,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSku(rInt int, loca
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = %q
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = %q
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -778,13 +778,13 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingUpdateSkuIgnoredUpdatedC
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = %q
-  instances            = 5
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = %q
+  instances           = 5
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -822,14 +822,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesSingle(rInt int, lo
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 1
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  zones                = [ "1" ]
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 1
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1"]
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -863,14 +863,14 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesMultiple(rInt int, 
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 2
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  zones                = [ "1", "2" ]
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 2
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1", "2"]
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
@@ -904,15 +904,15 @@ func testAccAzureRMWindowsVirtualMachineScaleSet_scalingZonesBalance(rInt int, l
 %s
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                 = local.vm_name
-  resource_group_name  = azurerm_resource_group.test.name
-  location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
-  instances            = 4
-  admin_username       = "adminuser"
-  admin_password       = "P@ssword1234!"
-  zones                = [ "1", "2" ]
-  zone_balance         = true
+  name                = local.vm_name
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Standard_F2"
+  instances           = 4
+  admin_username      = "adminuser"
+  admin_password      = "P@ssword1234!"
+  zones               = ["1", "2"]
+  zone_balance        = true
 
   source_image_reference {
     publisher = "MicrosoftWindowsServer"

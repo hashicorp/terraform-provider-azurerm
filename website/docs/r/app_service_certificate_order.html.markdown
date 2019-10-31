@@ -23,8 +23,8 @@ resource "azurerm_app_service_certificate_order" "example" {
   name                = "example-cert-order"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "global"
-  distinguished_name = "CN=example.com"
-  product_type = "standard"
+  distinguished_name  = "CN=example.com"
+  product_type        = "standard"
 }
 ```
 

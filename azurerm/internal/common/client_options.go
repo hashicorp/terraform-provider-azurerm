@@ -30,6 +30,7 @@ type ClientOptions struct {
 
 	SkipProviderReg             bool
 	DisableCorrelationRequestID bool
+	DisableTerraformPartnerID   bool
 	Environment                 azure.Environment
 
 	// TODO: remove me in 2.0
@@ -37,7 +38,7 @@ type ClientOptions struct {
 }
 
 func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.Authorizer) {
-	setUserAgent(c, o.TerraformVersion, o.PartnerId)
+	setUserAgent(c, o.TerraformVersion, o.PartnerId, o.DisableTerraformPartnerID)
 
 	c.Authorizer = authorizer
 	c.Sender = sender.BuildSender("AzureRM")
@@ -52,7 +53,7 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	}
 }
 
-func setUserAgent(client *autorest.Client, tfVersion, partnerID string) {
+func setUserAgent(client *autorest.Client, tfVersion, partnerID string, disableTerraformPartnerID bool) {
 	tfUserAgent := httpclient.TerraformUserAgent(tfVersion)
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
@@ -61,6 +62,14 @@ func setUserAgent(client *autorest.Client, tfVersion, partnerID string) {
 	// append the CloudShell version to the user agent if it exists
 	if azureAgent := os.Getenv("AZURE_HTTP_USER_AGENT"); azureAgent != "" {
 		client.UserAgent = fmt.Sprintf("%s %s", client.UserAgent, azureAgent)
+	}
+
+	// only one pid can be interpreted currently
+	// hence, send partner ID if present, otherwise send Terraform GUID
+	// unless users have opted out
+	if partnerID == "" && !disableTerraformPartnerID {
+		// Microsoft’s Terraform Partner ID is this specific GUID
+		partnerID = "222c6c49-1b0a-5959-a213-6608f9eb8820"
 	}
 
 	if partnerID != "" {

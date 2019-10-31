@@ -26,7 +26,7 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "company@terraform.io"
 
   sku_name = "Developer_1"
-   
+
   policy {
     xml_content = <<XML
     <policies>

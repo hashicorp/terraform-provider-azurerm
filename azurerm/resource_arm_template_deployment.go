@@ -152,6 +152,27 @@ func resourceArmTemplateDeploymentCreateUpdate(d *schema.ResourceData, meta inte
 		Properties: &properties,
 	}
 
+	deploymentValidateResponse, err := client.Validate(ctx, resourceGroup, name, deployment)
+
+	if !d.IsNewResource() {
+		d.Partial(true)
+	}
+
+	if err != nil {
+		return fmt.Errorf("Error requesting Validation for Template Deployment %q (Resource Group %q): %+v", name, resourceGroup, err)
+	}
+
+	if deploymentValidateResponse.Error != nil {
+		if deploymentValidateResponse.Error.Message != nil {
+			return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error.Message)
+		}
+		return fmt.Errorf("Error validating Template for Deployment %q (Resource Group %q): %+v", name, resourceGroup, *deploymentValidateResponse.Error)
+	}
+
+	if !d.IsNewResource() {
+		d.Partial(false)
+	}
+
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, deployment)
 	if err != nil {
 		return fmt.Errorf("Error creating deployment: %+v", err)

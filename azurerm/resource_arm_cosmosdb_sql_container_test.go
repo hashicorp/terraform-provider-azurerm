@@ -177,7 +177,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
   partition_key_path  = "/definition/id"
   unique_key {
-	paths = ["/definition/id1", "/definition/id2"]
+    paths = ["/definition/id1", "/definition/id2"]
   }
 }
 

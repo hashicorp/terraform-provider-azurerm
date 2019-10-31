@@ -342,21 +342,21 @@ resource "azurerm_notification_hub_authorization_rule" "test1" {
 }
 
 resource "azurerm_notification_hub_authorization_rule" "test2" {
-	name                  = "acctestruletwo-%d"
-	notification_hub_name = "${azurerm_notification_hub.test.name}"
-	namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	send                  = true
-	listen                = true
+  name                  = "acctestruletwo-%d"
+  notification_hub_name = "${azurerm_notification_hub.test.name}"
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  send                  = true
+  listen                = true
 }
 
 resource "azurerm_notification_hub_authorization_rule" "test3" {
-	name                  = "acctestrulethree-%d"
-	notification_hub_name = "${azurerm_notification_hub.test.name}"
-	namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	send                  = true
-	listen                = true
+  name                  = "acctestrulethree-%d"
+  notification_hub_name = "${azurerm_notification_hub.test.name}"
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  send                  = true
+  listen                = true
 }
 
 `, template, ri, ri, ri)
