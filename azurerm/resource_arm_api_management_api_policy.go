@@ -83,7 +83,14 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 	xmlContent := d.Get("xml_content").(string)
 	xmlLink := d.Get("xml_link").(string)
 
-	if xmlContent != "" {
+	if xmlLink != "" {
+		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
+			ContentFormat: apimanagement.RawxmlLink,
+			PolicyContent: utils.String(xmlLink),
+		}
+	} else if xmlContent != "" {
+		// this is intentionally an else-if since `xml_content` is computed
+
 		// clear out any existing value for xml_link
 		if !d.IsNewResource() {
 			d.Set("xml_link", "")
@@ -92,13 +99,6 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
 			ContentFormat: apimanagement.Rawxml,
 			PolicyContent: utils.String(xmlContent),
-		}
-	}
-
-	if xmlLink != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.RawxmlLink,
-			PolicyContent: utils.String(xmlLink),
 		}
 	}
 
