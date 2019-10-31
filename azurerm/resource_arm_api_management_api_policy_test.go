@@ -83,7 +83,33 @@ func TestAccAzureRMApiManagementAPIPolicy_update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMApiManagementAPIPolicy_updated(ri, location),
+				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementAPIPolicyExists(resourceName),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"xml_link"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApiManagementAPIPolicy_customPolicy(t *testing.T) {
+	resourceName := "azurerm_api_management_api_policy.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementAPIPolicyDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementAPIPolicy_customPolicy(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementAPIPolicyExists(resourceName),
 				),
@@ -205,7 +231,7 @@ resource "azurerm_api_management_api_policy" "import" {
 `, template)
 }
 
-func testAccAzureRMApiManagementAPIPolicy_updated(rInt int, location string) string {
+func testAccAzureRMApiManagementAPIPolicy_customPolicy(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"

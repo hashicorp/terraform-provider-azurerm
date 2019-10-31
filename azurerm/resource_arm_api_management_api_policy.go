@@ -84,6 +84,11 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 	xmlLink := d.Get("xml_link").(string)
 
 	if xmlContent != "" {
+		// clear out any existing value for xml_link
+		if !d.IsNewResource() {
+			d.Set("xml_link", "")
+		}
+
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
 			ContentFormat: apimanagement.Rawxml,
 			PolicyContent: utils.String(xmlContent),
