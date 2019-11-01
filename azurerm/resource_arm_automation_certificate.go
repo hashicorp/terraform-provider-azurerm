@@ -80,7 +80,7 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	accName := d.Get("account_name").(string)
+	accountName := d.Get("account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, accName, name)
