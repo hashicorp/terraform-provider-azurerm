@@ -57,8 +57,7 @@ resource "azurerm_private_link_service" "example" {
   name                = "example-pls"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  fqdns               = ["testFqdns"]
-
+  
   nat_ip_configuration {
     name                         = "primaryIpConfiguration"
     subnet_id                    = azurerm_subnet.example.id

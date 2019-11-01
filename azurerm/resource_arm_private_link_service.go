@@ -68,6 +68,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			// 	},
 			// },
 
+			// Required by the API you can't create the resource without at least one ip configuration
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -116,6 +117,10 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
+			// private_endpoint_connections have been removed but maybe useful for the end user to
+			// understand the state of entpoints connected to this service, create a datasource?
+
+			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -203,6 +208,25 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	d.SetId(*resp.ID)
+
+	// need to check to see if they attempted to reassign primary to a different ip_configuration
+	// this is not allowed, but the API allows it to be passed and doesn't error as expected, rather it
+	// ignores the passed value if it is different than the existing value. Once a primary value
+	// has been set it cannot be changed.
+	if props := resp.PrivateLinkServiceProperties; props != nil {
+		if i := props.IPConfigurations; i != nil {
+			for _, v := range *i {
+				ipName := *v.Name
+				ipPrimary := *v.PrivateLinkServiceIPConfigurationProperties.Primary
+				for _, o := range ipConfigurations {
+					c := o.(map[string]interface{})
+					if c["name"].(string) == ipName && c["primary"].(bool) != ipPrimary {
+						return fmt.Errorf("once the primary ip configuration (name %q) has been set it cannot be changed Private Link Service %q (Resource Group %q)", ipName, name, resourceGroup)
+					}
+				}
+			}
+		}
+	}
 
 	return resourceArmPrivateLinkServiceRead(d, meta)
 }
