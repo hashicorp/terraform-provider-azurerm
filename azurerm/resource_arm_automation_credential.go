@@ -55,9 +55,9 @@ func resourceArmAutomationCredential() *schema.Resource {
 			"automation_account_name": {
 				Type:          schema.TypeString,
 				Optional:      true, //todo change to required once account_name has been removed
-				Computed:      true,
+				Computed:      true, //todo remove once account_name has been removed
 				ForceNew:      true,
-				ConflictsWith: []string{"account_name"},
+				ConflictsWith: []string{"account_name"}, //todo remove once account_name has been removed
 				ValidateFunc:  azure.ValidateAutomationAccountName(),
 			},
 
