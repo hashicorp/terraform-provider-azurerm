@@ -79,7 +79,7 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Certificate creation.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	accName := d.Get("account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
