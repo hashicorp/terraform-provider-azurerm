@@ -44,6 +44,10 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				ValidateFunc: validateAzureRMDataFactoryPipelineName,
 			},
 
+			// There's a bug in the Azure API where this is returned in lower-case
+			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
+
 			"data_factory_name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -86,12 +90,14 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  1,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"timezone": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "UTC",
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"annotations": {
@@ -101,10 +107,6 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-
-			// There's a bug in the Azure API where this is returned in lower-case
-			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 		},
 	}
 }
