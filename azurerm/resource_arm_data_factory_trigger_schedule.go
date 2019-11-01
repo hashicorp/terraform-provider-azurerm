@@ -87,16 +87,16 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 			},
 
 			"interval": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"timezone": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "UTC",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      "UTC",
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
