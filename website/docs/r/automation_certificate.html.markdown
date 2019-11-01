@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `base64` - (Required) Base64 encoded value of the certificate.
 
-* `description` -  (Optional) The description associated with this Automation Certificate.
+* `description` -  (Optional) The description of this Automation Certificate.
 
 ## Attributes Reference
 
