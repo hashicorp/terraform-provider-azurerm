@@ -46,16 +46,17 @@ func resourceArmAutomationCredential() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Computed:      true,
+				ForceNew:      true,
 				Deprecated:    "account_name has been renamed to automation_account_name for clarity and to match the azure API",
 				ConflictsWith: []string{"automation_account_name"},
 				ValidateFunc:  azure.ValidateAutomationAccountName(),
 			},
 
 			"automation_account_name": {
-				Type:     schema.TypeString,
-				Optional: true, //todo change to required once account_name has been removed
-				Computed: true,
-				//ForceNew:      true, //todo this needs to come back once account_name has been removed
+				Type:          schema.TypeString,
+				Optional:      true, //todo change to required once account_name has been removed
+				Computed:      true,
+				ForceNew:      true,
 				ConflictsWith: []string{"account_name"},
 				ValidateFunc:  azure.ValidateAutomationAccountName(),
 			},
