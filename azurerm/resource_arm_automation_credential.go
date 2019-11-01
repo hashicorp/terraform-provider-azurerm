@@ -88,7 +88,6 @@ func resourceArmAutomationCredentialCreateUpdate(d *schema.ResourceData, meta in
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	//CustomizeDiff should ensure one of these two is set
 	//todo remove this once `account_name` is removed
 	accountName := ""
 	if v, ok := d.GetOk("automation_account_name"); ok {
