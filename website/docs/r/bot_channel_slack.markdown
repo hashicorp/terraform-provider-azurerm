@@ -1,4 +1,5 @@
 ---
+subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_slack"
 sidebar_current: "docs-azurerm-resource-bot-channel-slack"

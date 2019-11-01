@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet_network_security_group_association"
 sidebar_current: "docs-azurerm-resource-network-subnet-network-security-group-association"

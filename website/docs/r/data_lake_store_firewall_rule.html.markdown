@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store_firewall_rule"
 sidebar_current: "docs-azurerm-resource-data-lake-store-firewall-rule"

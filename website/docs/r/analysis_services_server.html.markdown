@@ -1,4 +1,5 @@
 ---
+subcategory: "Analysis Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_analysis_services_server"
 sidebar_current: "docs-azurerm-resource-analysis_services_server-x"
