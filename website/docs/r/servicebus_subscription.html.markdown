@@ -89,9 +89,12 @@ The following arguments are supported:
     supports the concept of a session. Defaults to false. Changing this forces a
     new resource to be created.
 
-* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward 
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward
     messages to.
-    
+
+* `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to
+    automatically forward Dead Letter messages to.
+
 ### TimeSpan Format
 
 Some arguments for this resource are required in the TimeSpan format which is
