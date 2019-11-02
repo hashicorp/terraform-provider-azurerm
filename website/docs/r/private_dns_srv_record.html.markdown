@@ -67,7 +67,7 @@ The `record` block supports:
 
 * `priority` - (Required) Priority of the SRV record.
 
-* `weight` - (Required) Weight of the SRV record.
+* `weight` - (Required) The Weight of the SRV record.
 
 * `port` - (Required) The Port the service is listening on.
 
