@@ -694,7 +694,7 @@ func flattenMonitorActionGroupItsmReceiver(receivers *[]insights.ItsmReceiver) [
 				val["ticket_configuration"] = *receiver.TicketConfiguration
 			}
 			if receiver.Region != nil {
-				val["region"] = *receiver.Region
+				val["region"] = azure.NormalizeLocation(*receiver.Region)
 			}
 			result = append(result, val)
 		}
