@@ -15,13 +15,13 @@ Manages a Cassandra KeySpace within a Cosmos DB Account.
 ```hcl
 data "azurerm_cosmosdb_account" "example" {
   name                = "tfex-cosmosdb-account"
-  resource_group_name = "tfex-cosmosdb-account-rg"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
 }
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "example" {
   name                = "tfex-cosmos-cassandra-keyspace"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
 }
 ```
 
