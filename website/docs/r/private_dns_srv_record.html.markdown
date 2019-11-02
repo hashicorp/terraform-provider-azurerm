@@ -65,7 +65,7 @@ The following arguments are supported:
 
 The `record` block supports:
 
-* `priority` - (Required) Priority of the SRV record.
+* `priority` - (Required) The priority of the SRV record.
 
 * `weight` - (Required) The Weight of the SRV record.
 
