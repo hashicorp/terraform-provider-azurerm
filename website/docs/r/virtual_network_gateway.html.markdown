@@ -140,7 +140,7 @@ The following arguments are supported:
     A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
     sku is only supported by an `ExpressRoute` gateway.
 
-~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Standard" not "Basic"
+~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
 
 
 * `ip_configuration` (Required) One or two `ip_configuration` blocks documented below.
