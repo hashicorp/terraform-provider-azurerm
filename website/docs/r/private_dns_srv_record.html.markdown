@@ -13,7 +13,7 @@ Enables you to manage DNS SRV Records within Azure Private DNS.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
