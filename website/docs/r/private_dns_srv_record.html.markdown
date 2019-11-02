@@ -71,7 +71,7 @@ The `record` block supports:
 
 * `port` - (Required) Port the service is listening on.
 
-* `target` - (Required) FQDN of the service.
+* `target` - (Required) The FQDN of the service.
 
 ## Attributes Reference
 
