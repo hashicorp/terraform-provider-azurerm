@@ -1205,6 +1205,33 @@ func TestAccAzureRMVirtualMachineScaleSet_importBasic_managedDisk_withZones(t *t
 	})
 }
 
+func TestAccAzureRMVirtualMachineScaleSet_updateHealthProbe(t *testing.T) {
+	resourceName := "azurerm_virtual_machine_scale_set.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMVirtualMachineScaleSet_updateLoadBalancerHealthProbe(ri, testLocation())
+	updatedConfig := testAccAzureRMVirtualMachineScaleSet_updateLoadBalancerHealthProbeStandardSKU(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualMachineScaleSetDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualMachineScaleSetExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testGetAzureRMVirtualMachineScaleSet(s *terraform.State, resourceName string) (result *compute.VirtualMachineScaleSet, err error) {
 	// Ensure we have enough information in state to look up in API
 	rs, ok := s.RootModule().Resources[resourceName]
@@ -5859,7 +5886,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   health_probe_id     = "${azurerm_lb_probe.test.id}"
   depends_on          = ["azurerm_lb_rule.test"]
 
-  %[4]s 
+  %[4]s
 
   sku {
     name     = "Standard_F2"
@@ -6002,4 +6029,253 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 }
 `, rInt, location, rString)
+}
+
+func testAccAzureRMVirtualMachineScaleSet_updateLoadBalancerHealthProbe(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.0.0/16"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpip-%[1]d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 4
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = "${azurerm_resource_group.test.name}"
+  loadbalancer_id                = "${azurerm_lb.test.id}"
+  name                           = "AccTestLBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+  frontend_ip_configuration_name = "PublicIPAddress"
+  probe_id                       = "${azurerm_lb_probe.test.id}"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+}
+
+resource "azurerm_lb_probe" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "acctest-lb-probe"
+  port                = 22
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "acctestbapool"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  upgrade_policy_mode  = "Rolling"
+  automatic_os_upgrade = true
+  health_probe_id      = "${azurerm_lb_probe.test.id}"
+  depends_on           = ["azurerm_lb_rule.test"]
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 21
+    max_unhealthy_instance_percent          = 22
+    max_unhealthy_upgraded_instance_percent = 23
+    pause_time_between_batches              = "PT30S"
+  }
+
+  sku {
+    name     = "Standard_F2"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%[1]d"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name                                   = "TestIPConfiguration"
+      subnet_id                              = "${azurerm_subnet.test.id}"
+      load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
+      primary                                = true
+    }
+  }
+
+  storage_profile_os_disk {
+    name              = ""
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, rInt, location)
+}
+
+func testAccAzureRMVirtualMachineScaleSet_updateLoadBalancerHealthProbeStandardSKU(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/8"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.0.0/16"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                    = "acctestpip-%[1]d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  allocation_method       = "Dynamic"
+  idle_timeout_in_minutes = 4
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+	sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+}
+
+resource "azurerm_lb_rule" "test" {
+  resource_group_name            = "${azurerm_resource_group.test.name}"
+  loadbalancer_id                = "${azurerm_lb.test.id}"
+  name                           = "AccTestLBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 22
+  backend_port                   = 22
+  frontend_ip_configuration_name = "PublicIPAddress"
+  probe_id                       = "${azurerm_lb_probe.test.id}"
+  backend_address_pool_id        = "${azurerm_lb_backend_address_pool.test.id}"
+}
+
+resource "azurerm_lb_probe" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+  name                = "acctest-lb-probe"
+  port                = 22
+  protocol            = "Tcp"
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name                = "acctestbapool"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  loadbalancer_id     = "${azurerm_lb.test.id}"
+}
+
+resource "azurerm_virtual_machine_scale_set" "test" {
+  name                = "acctvmss-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  upgrade_policy_mode  = "Rolling"
+  automatic_os_upgrade = true
+  health_probe_id      = "${azurerm_lb_probe.test.id}"
+  depends_on           = ["azurerm_lb_rule.test"]
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent              = 21
+    max_unhealthy_instance_percent          = 22
+    max_unhealthy_upgraded_instance_percent = 23
+    pause_time_between_batches              = "PT30S"
+  }
+
+  sku {
+    name     = "Standard_F2"
+    tier     = "Standard"
+    capacity = 1
+  }
+
+  os_profile {
+    computer_name_prefix = "testvm-%[1]d"
+    admin_username       = "myadmin"
+    admin_password       = "Passwword1234"
+  }
+
+  network_profile {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name                                   = "TestIPConfiguration"
+      subnet_id                              = "${azurerm_subnet.test.id}"
+      load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.test.id}"]
+      primary                                = true
+    }
+  }
+
+  storage_profile_os_disk {
+    name              = ""
+    caching           = "ReadWrite"
+    create_option     = "FromImage"
+    managed_disk_type = "Standard_LRS"
+  }
+
+  storage_profile_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+}
+`, rInt, location)
 }
