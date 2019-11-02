@@ -101,7 +101,7 @@ func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestC
 		resourceGroup := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
+		client := testAccProvider.Meta().(*ArmClient).Sto.GroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		deleteFuture, err := client.Delete(ctx, resourceGroup)

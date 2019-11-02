@@ -17,7 +17,7 @@ func resourceArmAdvancedThreatProtection() *schema.Resource {
 		Create: resourceArmAdvancedThreatProtectionCreateUpdate,
 		Read:   resourceArmAdvancedThreatProtectionRead,
 		Update: resourceArmAdvancedThreatProtectionCreateUpdate,
-		Delete:   resourceArmAdvancedThreatProtectionDelete,
+		Delete: resourceArmAdvancedThreatProtectionDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -39,8 +39,8 @@ func resourceArmAdvancedThreatProtection() *schema.Resource {
 			},
 
 			"enable": {
-				Type:         schema.TypeBool,
-				Required:     true,
+				Type:     schema.TypeBool,
+				Required: true,
 			},
 		},
 	}
