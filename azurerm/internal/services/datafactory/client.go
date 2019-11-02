@@ -6,10 +6,11 @@ import (
 )
 
 type Client struct {
-	DatasetClient       *datafactory.DatasetsClient
-	FactoriesClient     *datafactory.FactoriesClient
-	LinkedServiceClient *datafactory.LinkedServicesClient
-	PipelinesClient     *datafactory.PipelinesClient
+	DatasetClient             *datafactory.DatasetsClient
+	FactoriesClient           *datafactory.FactoriesClient
+	IntegrationRuntimesClient *datafactory.IntegrationRuntimesClient
+	LinkedServiceClient       *datafactory.LinkedServicesClient
+	PipelinesClient           *datafactory.PipelinesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -19,6 +20,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	FactoriesClient := datafactory.NewFactoriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&FactoriesClient.Client, o.ResourceManagerAuthorizer)
 
+	IntegrationRuntimesClient := datafactory.NewIntegrationRuntimesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&IntegrationRuntimesClient.Client, o.ResourceManagerAuthorizer)
+
 	LinkedServiceClient := datafactory.NewLinkedServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LinkedServiceClient.Client, o.ResourceManagerAuthorizer)
 
@@ -26,9 +30,10 @@ func BuildClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&PipelinesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatasetClient:       &DatasetClient,
-		FactoriesClient:     &FactoriesClient,
-		LinkedServiceClient: &LinkedServiceClient,
-		PipelinesClient:     &PipelinesClient,
+		DatasetClient:             &DatasetClient,
+		FactoriesClient:           &FactoriesClient,
+		IntegrationRuntimesClient: &IntegrationRuntimesClient,
+		LinkedServiceClient:       &LinkedServiceClient,
+		PipelinesClient:           &PipelinesClient,
 	}
 }

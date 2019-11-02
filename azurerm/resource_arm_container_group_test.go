@@ -917,7 +917,7 @@ resource "azurerm_container_group" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "Private"
-  network_profile_id	=	"${azurerm_network_profile.test.id}"
+  network_profile_id  = "${azurerm_network_profile.test.id}"
   os_type             = "Linux"
 
   container {

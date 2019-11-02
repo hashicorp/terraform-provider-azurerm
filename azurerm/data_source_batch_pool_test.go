@@ -129,7 +129,7 @@ resource "azurerm_batch_pool" "test" {
 
   container_configuration {
     type = "DockerCompatible"
-    container_registries= [
+    container_registries = [
       {
         registry_server = "myContainerRegistry.azurecr.io"
         user_name       = "myUserName"

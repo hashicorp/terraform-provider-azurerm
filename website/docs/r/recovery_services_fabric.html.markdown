@@ -31,10 +31,10 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 
 resource "azurerm_recovery_services_fabric" "fabric" {
-  name                         = "primary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.primary.location}"
+  name                = "primary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.primary.location}"
 }
 ```
 

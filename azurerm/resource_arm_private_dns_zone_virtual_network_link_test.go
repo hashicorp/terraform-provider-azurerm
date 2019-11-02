@@ -186,10 +186,10 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                	= "acctest%d"
+  name                  = "acctest%d"
   private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-  virtual_network_id 	= "${azurerm_virtual_network.test.id}"
-  resource_group_name 	= "${azurerm_resource_group.test.name}"
+  virtual_network_id    = "${azurerm_virtual_network.test.id}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
 }
 
 `, rInt, location, rInt, rInt, rInt)
@@ -201,10 +201,10 @@ func testAccAzureRMPrivateDnsZoneVirtualNetworkLink_requiresImport(rInt int, loc
 %s
 
 resource "azurerm_private_dns_zone_virtual_network_link" "import" {
-  name                	= "${azurerm_private_dns_zone_virtual_network_link.test.name}
+  name                  = "${azurerm_private_dns_zone_virtual_network_link.test.name}"
   private_dns_zone_name = "${azurerm_private_dns_zone_virtual_network_link.test.private_dns_zone_name}"
-  virtual_network_id 	= "${azurerm_private_dns_zone_virtual_network_link.test.virtual_network_id}"
-  resource_group_name 	= "${azurerm_private_dns_zone_virtual_network_link.test.resource_group_name}"
+  virtual_network_id    = "${azurerm_private_dns_zone_virtual_network_link.test.virtual_network_id}"
+  resource_group_name   = "${azurerm_private_dns_zone_virtual_network_link.test.resource_group_name}"
 }
 `, template)
 }
@@ -234,11 +234,11 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                	= "acctest%d"
+  name                  = "acctest%d"
   private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-  virtual_network_id 	= "${azurerm_virtual_network.test.id}"
-  resource_group_name 	= "${azurerm_resource_group.test.name}"
-	
+  virtual_network_id    = "${azurerm_virtual_network.test.id}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+
   tags = {
     environment = "Production"
     cost_center = "MSFT"
@@ -272,11 +272,11 @@ resource "azurerm_private_dns_zone" "test" {
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
-  name                	= "acctestzone%d.com"
+  name                  = "acctestzone%d.com"
   private_dns_zone_name = "${azurerm_private_dns_zone.test.name}"
-  virtual_network_id 	= "${azurerm_virtual_network.test.id}"
-  resource_group_name 	= "${azurerm_resource_group.test.name}"
-	
+  virtual_network_id    = "${azurerm_virtual_network.test.id}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+
   tags = {
     environment = "staging"
   }

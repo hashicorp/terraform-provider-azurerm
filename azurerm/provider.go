@@ -60,8 +60,10 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_app_service_plan":                        dataSourceAppServicePlan(),
 		"azurerm_app_service_certificate":                 dataSourceAppServiceCertificate(),
 		"azurerm_app_service":                             dataSourceArmAppService(),
+		"azurerm_app_service_certificate_order":           dataSourceArmAppServiceCertificateOrder(),
 		"azurerm_application_insights":                    dataSourceArmApplicationInsights(),
 		"azurerm_application_security_group":              dataSourceArmApplicationSecurityGroup(),
+		"azurerm_automation_account":                      dataSourceArmAutomationAccount(),
 		"azurerm_automation_variable_bool":                dataSourceArmAutomationVariableBool(),
 		"azurerm_automation_variable_datetime":            dataSourceArmAutomationVariableDateTime(),
 		"azurerm_automation_variable_int":                 dataSourceArmAutomationVariableInt(),
@@ -88,6 +90,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_firewall":                                dataSourceArmFirewall(),
 		"azurerm_image":                                   dataSourceArmImage(),
 		"azurerm_hdinsight_cluster":                       dataSourceArmHDInsightSparkCluster(),
+		"azurerm_healthcare_service":                      dataSourceArmHealthcareService(),
 		"azurerm_maps_account":                            dataSourceArmMapsAccount(),
 		"azurerm_key_vault_access_policy":                 dataSourceArmKeyVaultAccessPolicy(),
 		"azurerm_key_vault_key":                           dataSourceArmKeyVaultKey(),
@@ -112,6 +115,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_notification_hub":                        dataSourceNotificationHub(),
 		"azurerm_platform_image":                          dataSourceArmPlatformImage(),
 		"azurerm_policy_definition":                       dataSourceArmPolicyDefinition(),
+		"azurerm_postgresql_server":                       dataSourcePostgreSqlServer(),
 		"azurerm_proximity_placement_group":               dataSourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                               dataSourceArmPublicIP(),
 		"azurerm_public_ips":                              dataSourceArmPublicIPs(),
@@ -173,6 +177,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_api_management_user":                                resourceArmApiManagementUser(),
 		"azurerm_app_service_active_slot":                            resourceArmAppServiceActiveSlot(),
 		"azurerm_app_service_certificate":                            resourceArmAppServiceCertificate(),
+		"azurerm_app_service_certificate_order":                      resourceArmAppServiceCertificateOrder(),
 		"azurerm_app_service_custom_hostname_binding":                resourceArmAppServiceCustomHostnameBinding(),
 		"azurerm_app_service_plan":                                   resourceArmAppServicePlan(),
 		"azurerm_app_service_slot":                                   resourceArmAppServiceSlot(),
@@ -188,6 +193,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_automation_credential":                              resourceArmAutomationCredential(),
 		"azurerm_automation_dsc_configuration":                       resourceArmAutomationDscConfiguration(),
 		"azurerm_automation_dsc_nodeconfiguration":                   resourceArmAutomationDscNodeConfiguration(),
+		"azurerm_automation_job_schedule":                            resourceArmAutomationJobSchedule(),
 		"azurerm_automation_module":                                  resourceArmAutomationModule(),
 		"azurerm_automation_runbook":                                 resourceArmAutomationRunbook(),
 		"azurerm_automation_schedule":                                resourceArmAutomationSchedule(),
@@ -230,6 +236,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_data_factory_dataset_mysql":                         resourceArmDataFactoryDatasetMySQL(),
 		"azurerm_data_factory_dataset_postgresql":                    resourceArmDataFactoryDatasetPostgreSQL(),
 		"azurerm_data_factory_dataset_sql_server_table":              resourceArmDataFactoryDatasetSQLServerTable(),
+		"azurerm_data_factory_integration_runtime_managed":           resourceArmDataFactoryIntegrationRuntimeManaged(),
 		"azurerm_data_factory_linked_service_data_lake_storage_gen2": resourceArmDataFactoryLinkedServiceDataLakeStorageGen2(),
 		"azurerm_data_factory_linked_service_mysql":                  resourceArmDataFactoryLinkedServiceMySQL(),
 		"azurerm_data_factory_linked_service_postgresql":             resourceArmDataFactoryLinkedServicePostgreSQL(),
@@ -286,6 +293,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_hdinsight_rserver_cluster":                          resourceArmHDInsightRServerCluster(),
 		"azurerm_hdinsight_spark_cluster":                            resourceArmHDInsightSparkCluster(),
 		"azurerm_hdinsight_storm_cluster":                            resourceArmHDInsightStormCluster(),
+		"azurerm_healthcare_service":                                 resourceArmHealthcareService(),
 		"azurerm_image":                                              resourceArmImage(),
 		"azurerm_iot_dps":                                            resourceArmIotDPS(),
 		"azurerm_iot_dps_certificate":                                resourceArmIotDPSCertificate(),
@@ -371,6 +379,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_zone":                                                       resourceArmPrivateDnsZone(),
 		"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
+		"azurerm_private_dns_ptr_record":                                                 resourceArmPrivateDnsPtrRecord(),
 		"azurerm_private_dns_zone_virtual_network_link":                                  resourceArmPrivateDnsZoneVirtualNetworkLink(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -461,6 +470,7 @@ func Provider() terraform.ResourceProvider {
 	// 2.0 resources
 	if features.SupportsTwoPointZeroResources() {
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
+		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
 	}
 
 	// avoids this showing up in test output
@@ -600,10 +610,18 @@ func Provider() terraform.ResourceProvider {
 			},
 
 			"disable_correlation_request_id": {
-				Type:        schema.TypeBool,
-				Optional:    true,
+				Type:     schema.TypeBool,
+				Optional: true,
+				// TODO: add an ARM_ prefix in 2.0w
 				DefaultFunc: schema.EnvDefaultFunc("DISABLE_CORRELATION_REQUEST_ID", false),
 				Description: "This will disable the x-ms-correlation-request-id header.",
+			},
+
+			"disable_terraform_partner_id": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("ARM_DISABLE_TERRAFORM_PARTNER_ID", false),
+				Description: "This will disable the Terraform Partner ID which is used if a custom `partner_id` isn't specified.",
 			},
 
 			// Advanced feature flags
@@ -643,7 +661,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		}
 
 		if len(auxTenants) > 3 {
-			return nil, fmt.Errorf("The provider onlt supports 3 auxiliary tenant IDs")
+			return nil, fmt.Errorf("The provider only supports 3 auxiliary tenant IDs")
 		}
 
 		builder := &authentication.Builder{
@@ -676,6 +694,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		partnerId := d.Get("partner_id").(string)
 		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
 		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
+		disableTerraformPartnerID := d.Get("disable_terraform_partner_id").(bool)
 
 		terraformVersion := p.TerraformVersion
 		if terraformVersion == "" {
@@ -684,7 +703,8 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			terraformVersion = "0.11+compatible"
 		}
 
-		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID)
+		// TODO: we should pass in an Object here
+		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID, disableTerraformPartnerID)
 		if err != nil {
 			return nil, err
 		}

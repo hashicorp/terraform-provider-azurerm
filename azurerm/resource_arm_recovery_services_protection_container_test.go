@@ -52,17 +52,17 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_recovery_services_fabric" "test" {
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.test.name}"
-  name                         = "acctest-fabric-%d"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  name                = "acctest-fabric-%d"
+  location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_recovery_services_protection_container" "test" {
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.test.name}"
-  recovery_fabric_name         = "${azurerm_recovery_services_fabric.test.name}"
-  name                         = "acctest-protection-cont-%d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.test.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.test.name}"
+  name                 = "acctest-protection-cont-%d"
 }
 
 `, rInt, location, rInt, rInt, rInt)

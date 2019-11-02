@@ -27,14 +27,14 @@ resource "azurerm_frontdoor" "example" {
   enforce_backend_pools_certificate_name_check = false
 
   routing_rule {
-      name                    = "exampleRoutingRule1"
-      accepted_protocols      = ["Http", "Https"]
-      patterns_to_match       = ["/*"]
-      frontend_endpoints      = ["exampleFrontendEndpoint1"]
-      forwarding_configuration {
-        forwarding_protocol   = "MatchRequest"
-        backend_pool_name     = "exampleBackendBing"
-      }
+    name               = "exampleRoutingRule1"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = ["exampleFrontendEndpoint1"]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = "exampleBackendBing"
+    }
   }
 
   backend_pool_load_balancing {
@@ -46,16 +46,16 @@ resource "azurerm_frontdoor" "example" {
   }
 
   backend_pool {
-      name            = "exampleBackendBing"
-      backend {
-          host_header = "www.bing.com"
-          address     = "www.bing.com"
-          http_port   = 80
-          https_port  = 443
-      }
+    name = "exampleBackendBing"
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
 
-      load_balancing_name = "exampleLoadBalancingSettings1"
-      health_probe_name   = "exampleHealthProbeSetting1"
+    load_balancing_name = "exampleLoadBalancingSettings1"
+    health_probe_name   = "exampleHealthProbeSetting1"
   }
 
   frontend_endpoint {
@@ -130,11 +130,11 @@ The `frontend_endpoint` block supports the following:
 
 * `host_name` - (Required) The host name of the Frontend Endpoint. Must be a domain name.
 
+* `custom_https_provisioning_enabled` - (Required) Whether to allow HTTPS protocol for a custom domain that's associated with Front Door to ensure sensitive data is delivered securely via TLS/SSL encryption when sent across the internet. Valid options are `true` or `false`.
+
 * `session_affinity_enabled` - (Optional) Whether to allow session affinity on this host. Valid options are `true` or `false` Defaults to `false`.
 
 * `session_affinity_ttl_seconds` - (Optional) The TTL to use in seconds for session affinity, if applicable. Defaults to `0`.
-
-* `custom_https_provisioning_enabled` - (Required) Name of the Frontend Endpoint.
 
 * `web_application_firewall_policy_link_id` - (Optional) Defines the Web Application Firewall policy `ID` for each host.
 

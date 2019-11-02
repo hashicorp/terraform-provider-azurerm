@@ -116,15 +116,15 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 	aclsRaw := d.Get("acl").(*schema.Set).List()
 	acls := expandStorageTableACLs(aclsRaw)
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", tableName, accountName)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
-	client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
+	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Table Client: %s", err)
 	}
@@ -134,7 +134,7 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 		existing, err := client.Exists(ctx, accountName, tableName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing) {
-				return fmt.Errorf("Error checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, *resourceGroup, err)
+				return fmt.Errorf("Error checking for existence of existing Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
 			}
 		}
 
@@ -149,7 +149,7 @@ func resourceArmStorageTableCreate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if _, err := client.SetACL(ctx, accountName, tableName, acls); err != nil {
-		return fmt.Errorf("Error setting ACL's for Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, *resourceGroup, err)
+		return fmt.Errorf("Error setting ACL's for Storage Table %q (Account %q / Resource Group %q): %+v", tableName, accountName, account.ResourceGroup, err)
 	}
 
 	d.SetId(id)
@@ -166,18 +166,17 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
 	}
-
-	if resourceGroup == nil {
+	if account == nil {
 		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	client, err := storageClient.TablesClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Table Client: %s", err)
 	}
@@ -200,7 +199,7 @@ func resourceArmStorageTableRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", id.TableName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", account.ResourceGroup)
 
 	if err := d.Set("acl", flattenStorageTableACLs(acls)); err != nil {
 		return fmt.Errorf("Error flattening `acl`: %+v", err)
@@ -219,17 +218,15 @@ func resourceArmStorageTableDelete(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+	}
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
-		return nil
-	}
-
-	client, err := storageClient.TablesClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Table Client: %s", err)
 	}
@@ -252,18 +249,15 @@ func resourceArmStorageTableUpdate(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
+	}
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	if resourceGroup == nil {
-		log.Printf("Unable to determine Resource Group for Storage Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
-		d.SetId("")
-		return nil
-	}
-
-	client, err := storageClient.TablesClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.TablesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Table Client: %s", err)
 	}

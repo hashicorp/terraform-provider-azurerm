@@ -51,7 +51,8 @@ func resourceArmMapsAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"s0",
 					"s1",
-				}, false),
+					// TODO: revert this in 2.0
+				}, true),
 			},
 
 			"tags": tags.Schema(),

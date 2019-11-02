@@ -170,7 +170,7 @@ func resourceArmKeyVaultKeyCreate(d *schema.ResourceData, meta interface{}) erro
 
 		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Key %q vault url form id %q: %+v", name, keyVaultId, err)
+			return fmt.Errorf("Error looking up Key %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		keyVaultBaseUri = pKeyVaultBaseUrl
