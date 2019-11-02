@@ -111,6 +111,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.NoEmptyStrings,
+							DiffSuppressFunc: SuppressLocationDiff,
 						},
 					},
 				},
