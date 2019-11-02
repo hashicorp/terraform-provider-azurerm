@@ -531,7 +531,7 @@ func expandMonitorActionGroupItsmReceiver(v []interface{}) *[]insights.ItsmRecei
 			WorkspaceID:         utils.String(val["workspace_id"].(string)),
 			ConnectionID:        utils.String(val["connection_id"].(string)),
 			TicketConfiguration: utils.String(val["ticket_configuration"].(string)),
-			Region:              utils.String(val["region"].(string)),
+			Region:              utils.String(azure.NormalizeLocation(val["region"].(string))),
 		}
 		receivers = append(receivers, receiver)
 	}
