@@ -53,8 +53,7 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 					},
 				},
@@ -180,8 +179,7 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 					},
 				},
@@ -227,8 +225,7 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 					},
 				},
@@ -257,8 +254,7 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 					},
 				},
@@ -270,18 +266,15 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							Computed:     true,
 						},
 						"role_id": {
 							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.UUID,
+							Computed:     true,
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Computed: true,
 						},
 					},
 				},
