@@ -69,7 +69,7 @@ The `record` block supports:
 
 * `weight` - (Required) Weight of the SRV record.
 
-* `port` - (Required) Port the service is listening on.
+* `port` - (Required) The Port the service is listening on.
 
 * `target` - (Required) The FQDN of the service.
 
