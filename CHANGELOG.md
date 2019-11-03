@@ -13,6 +13,7 @@ IMPROVEMENTS:
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.10.0` [GH-4775]
 * sql: updating to API version `2017-03-01-preview` [GH-4242]
 * `azurerm_app_service_slot` - support for `auto_swap_slot_name` [GH-4752]
+* `azurerm_automation_credential` - deprecate `account_name` in favour of `automation_account_name` [GH-4777]
 * `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
 * `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
