@@ -265,12 +265,12 @@ func dataSourceArmMonitorActionGroup() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"role_id": {
-							Type:         schema.TypeString,
-							Computed:     true,
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
