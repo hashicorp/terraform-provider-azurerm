@@ -83,12 +83,12 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			{
+			/*{
 				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(ri, testLocation(), false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAdvancedThreatProtectionIsFalse(rn),
 				),
-			},
+			},*/
 		},
 	})
 }
