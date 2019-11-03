@@ -2,13 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+	"time"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"net/http"
-	"testing"
-	"time"
 )
 
 func TestAccAzureRMDataFactoryTriggerSchedule_basic(t *testing.T) {
@@ -159,7 +160,7 @@ resource "azurerm_data_factory_trigger_schedule" "test" {
 func testAccAzureRMDataFactoryTriggerSchedule_update(rInt int, location string, endTime string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-datafactory-%d"
   location = "%s"
 }
 
@@ -170,7 +171,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_trigger_schedule" "test" {
-  name                = "acctestdf%d"
+  name                = "acctestDFTS%d"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

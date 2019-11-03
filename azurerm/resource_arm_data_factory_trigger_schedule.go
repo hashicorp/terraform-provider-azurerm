@@ -2,18 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/Azure/go-autorest/autorest/date"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -41,7 +40,7 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateAzureRMDataFactoryPipelineName,
+				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
 			},
 
 			// There's a bug in the Azure API where this is returned in lower-case
@@ -49,13 +48,10 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"data_factory_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid data_factory_name, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryName(),
 			},
 
 			"start_time": {
@@ -93,18 +89,12 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
-			"timezone": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Default:      "UTC",
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"annotations": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
 		},
@@ -139,7 +129,6 @@ func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, m
 		Recurrence: &datafactory.ScheduleTriggerRecurrence{
 			Frequency: datafactory.RecurrenceFrequency(d.Get("frequency").(string)),
 			Interval:  utils.Int32(int32(d.Get("interval").(int))),
-			TimeZone:  utils.String(d.Get("timezone").(string)),
 		},
 	}
 
@@ -227,7 +216,6 @@ func resourceArmDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta inte
 			}
 			d.Set("frequency", recurrence.Frequency)
 			d.Set("interval", recurrence.Interval)
-			d.Set("timezone", recurrence.TimeZone)
 		}
 
 		annotations := flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)
