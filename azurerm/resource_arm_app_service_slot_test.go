@@ -1387,29 +1387,6 @@ func TestAccAzureRMAppServiceSlot_windowsJava8Minor(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMAppServiceSlot_windowsJava11Minor(t *testing.T) {
-	resourceName := "azurerm_app_service_slot.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMAppServiceSlot_windowsJava(ri, testLocation(), "11.0.1", "TOMCAT", "9.0")
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMAppServiceSlotDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAppServiceSlotExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11.0.1"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "TOMCAT"),
-					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.0"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccAzureRMAppServiceSlot_windowsPHP7(t *testing.T) {
 	resourceName := "azurerm_app_service_slot.test"
 	ri := tf.AccRandTimeInt()
