@@ -14,13 +14,13 @@ Use this data source to access information about an existing Batch Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_batch_account" "test" {
+data "azurerm_batch_account" "example" {
   name                = "testbatchaccount"
   resource_group_name = "test"
 }
 
 output "pool_allocation_mode" {
-  value = "${data.azurerm_batch_account.test.pool_allocation_mode}"
+  value = "${data.azurerm_batch_account.example.pool_allocation_mode}"
 }
 ```
 

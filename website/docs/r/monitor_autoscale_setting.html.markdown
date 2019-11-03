@@ -13,20 +13,20 @@ Manages a AutoScale Setting which can be applied to Virtual Machine Scale Sets, 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
   location = "West US"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_monitor_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
 
   profile {
     name = "defaultProfile"
@@ -40,7 +40,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -60,7 +60,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -91,20 +91,20 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 ## Example Usage (repeating on weekends)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
   location = "West US"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_monitor_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
 
   profile {
     name = "Weekends"
@@ -118,7 +118,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -138,7 +138,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -177,21 +177,21 @@ resource "azurerm_monitor_autoscale_setting" "test" {
 ## Example Usage (for fixed dates)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "autoscalingTest"
   location = "West US"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_monitor_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
   enabled             = true
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
 
   profile {
     name = "forJuly"
@@ -205,7 +205,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -225,7 +225,7 @@ resource "azurerm_monitor_autoscale_setting" "test" {
     rule {
       metric_trigger {
         metric_name        = "Percentage CPU"
-        metric_resource_id = "${azurerm_virtual_machine_scale_set.test.id}"
+        metric_resource_id = "${azurerm_virtual_machine_scale_set.example.id}"
         time_grain         = "PT1M"
         statistic          = "Average"
         time_window        = "PT5M"
@@ -406,5 +406,5 @@ The following attributes are exported:
 AutoScale Setting can be imported using the `resource id`, e.g.
 
 ```
-terraform import azurerm_monitor_autoscale_setting.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
+terraform import azurerm_monitor_autoscale_setting.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/autoscalesettings/setting1
 ```

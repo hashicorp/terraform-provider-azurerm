@@ -13,13 +13,13 @@ Use this data source to access information about an existing App Service Certifi
 ## Example Usage
 
 ```hcl
-data "azurerm_app_service_certificate_order" "test" {
+data "azurerm_app_service_certificate_order" "example" {
   name                = "example-cert-order"
   resource_group_name = "example-resources"
 }
 
 output "certificate_order_id" {
-  value = "${data.azurerm_app_service_certificate_order.test.id}"
+  value = "${data.azurerm_app_service_certificate_order.example.id}"
 }
 ```
 

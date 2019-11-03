@@ -13,14 +13,14 @@ Use this data source to access information about an existing API Management User
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_user" "test" {
+data "azurerm_api_management_user" "example" {
   user_id             = "my-user"
   api_management_name = "example-apim"
   resource_group_name = "search-service"
 }
 
 output "notes" {
-  value = "${data.azurerm_api_management_user.test.notes}"
+  value = "${data.azurerm_api_management_user.example.notes}"
 }
 ```
 

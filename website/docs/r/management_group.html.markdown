@@ -58,5 +58,5 @@ The following attributes are exported:
 Management Groups can be imported using the `management group resource id`, e.g.
 
 ```shell
-terraform import azurerm_management_group.test /providers/Microsoft.Management/ManagementGroups/group1
+terraform import azurerm_management_group.example/providers/Microsoft.Management/ManagementGroups/group1
 ```

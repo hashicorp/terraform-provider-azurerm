@@ -19,7 +19,7 @@ data "azurerm_sql_server" "example" {
 }
 
 output "sql_server_id" {
-  value = "${data.azurerm_sql_server.test.id}"
+  value = "${data.azurerm_sql_server.example.id}"
 }
 ```
 

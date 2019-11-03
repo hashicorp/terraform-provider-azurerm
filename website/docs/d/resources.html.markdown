@@ -14,12 +14,12 @@ Use this data source to access information about existing resources.
 
 ```hcl
 # Get Resources from a Resource Group
-data "azurerm_resources" "test" {
+data "azurerm_resources" "example" {
   resource_group_name = "example-resources"
 }
 
 # Get Resources with specific Tags
-data "azurerm_resources" "test" {
+data "azurerm_resources" "example" {
   resource_group_name = "example-resources"
 
   required_tags {

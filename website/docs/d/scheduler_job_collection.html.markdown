@@ -15,7 +15,7 @@ Use this data source to access information about an existing Scheduler Job Colle
 ## Example Usage
 
 ```hcl
-data "azurerm_scheduler_job_collection" "test" {
+data "azurerm_scheduler_job_collection" "example" {
   name                = "tfex-job-collection"
   resource_group_name = "tfex-job-collection-rg"
 }

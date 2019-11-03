@@ -13,13 +13,13 @@ Use this data source to access information about an existing ServiceBus Namespac
 ## Example Usage
 
 ```hcl
-data "azurerm_servicebus_namespace" "test" {
+data "azurerm_servicebus_namespace" "example" {
   name                = "examplenamespace"
   resource_group_name = "example-resources"
 }
 
 output "location" {
-  value = "${data.azurerm_servicebus_namespace.test.location}"
+  value = "${data.azurerm_servicebus_namespace.example.location}"
 }
 ```
 

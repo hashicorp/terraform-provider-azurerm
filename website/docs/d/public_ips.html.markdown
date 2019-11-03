@@ -13,7 +13,7 @@ Use this data source to access information about a set of existing Public IP Add
 ## Example Usage
 
 ```hcl
-data "azurerm_public_ips" "test" {
+data "azurerm_public_ips" "example" {
   resource_group_name = "pip-test"
   attached            = false
 }

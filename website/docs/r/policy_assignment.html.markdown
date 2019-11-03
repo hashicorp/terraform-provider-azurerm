@@ -13,7 +13,7 @@ Configures the specified Policy Definition at the specified Scope. Also, Policy 
 ## Example Usage
 
 ```hcl
-resource "azurerm_policy_definition" "test" {
+resource "azurerm_policy_definition" "example" {
   name         = "my-policy-definition"
   policy_type  = "Custom"
   mode         = "All"
@@ -47,15 +47,15 @@ POLICY_RULE
 PARAMETERS
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "test-resources"
   location = "West Europe"
 }
 
-resource "azurerm_policy_assignment" "test" {
+resource "azurerm_policy_assignment" "example" {
   name                 = "example-policy-assignment"
-  scope                = "${azurerm_resource_group.test.id}"
-  policy_definition_id = "${azurerm_policy_definition.test.id}"
+  scope                = "${azurerm_resource_group.example.id}"
+  policy_definition_id = "${azurerm_policy_definition.example.id}"
   description          = "Policy Assignment created via an Acceptance Test"
   display_name         = "My Example Policy Assignment"
 

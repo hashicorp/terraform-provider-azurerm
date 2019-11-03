@@ -13,13 +13,13 @@ Use this data source to access information about an existing Application Securit
 ## Example Usage
 
 ```hcl
-data "azurerm_application_security_group" "test" {
+data "azurerm_application_security_group" "example" {
   name                = "tf-appsecuritygroup"
   resource_group_name = "my-resource-group"
 }
 
 output "application_security_group_id" {
-  value = "${data.azurerm_application_security_group.test.id}"
+  value = "${data.azurerm_application_security_group.example.id}"
 }
 ```
 

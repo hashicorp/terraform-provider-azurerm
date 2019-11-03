@@ -13,13 +13,13 @@ Use this data source to access information about an existing Virtual Network.
 ## Example Usage
 
 ```hcl
-data "azurerm_virtual_network" "test" {
+data "azurerm_virtual_network" "example" {
   name                = "production"
   resource_group_name = "networking"
 }
 
 output "virtual_network_id" {
-  value = "${data.azurerm_virtual_network.test.id}"
+  value = "${data.azurerm_virtual_network.example.id}"
 }
 ```
 

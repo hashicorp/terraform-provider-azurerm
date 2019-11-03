@@ -19,7 +19,7 @@ Manages a Key Vault Secret.
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "my-resource-group"
   location = "West US"
 }
@@ -32,10 +32,10 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "${format("%s%s", "kv", random_id.server.hex)}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
   sku_name = "premium"
@@ -61,10 +61,10 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_secret" "test" {
+resource "azurerm_key_vault_secret" "example" {
   name         = "secret-sauce"
   value        = "szechuan"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+  key_vault_id = "${azurerm_key_vault.example.id}"
 
   tags = {
     environment = "Production"
@@ -98,5 +98,5 @@ The following attributes are exported:
 Key Vault Secrets which are Enabled can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_secret.test https://example-keyvault.vault.azure.net/secrets/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_secret.examplehttps://example-keyvault.vault.azure.net/secrets/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

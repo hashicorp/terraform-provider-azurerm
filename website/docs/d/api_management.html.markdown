@@ -13,13 +13,13 @@ Use this data source to access information about an existing API Management Serv
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management" "test" {
+data "azurerm_api_management" "example" {
   name                = "search-api"
   resource_group_name = "search-service"
 }
 
 output "api_management_id" {
-  value = "${data.azurerm_api_management.test.id}"
+  value = "${data.azurerm_api_management.example.id}"
 }
 ```
 

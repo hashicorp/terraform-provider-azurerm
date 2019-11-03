@@ -17,13 +17,13 @@ Use this data source to access information about an existing Key Vault Secret.
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault_secret" "test" {
+data "azurerm_key_vault_secret" "example" {
   name         = "secret-sauce"
   key_vault_id = "${data.azurerm_key_vault.existing.id}"
 }
 
 output "secret_value" {
-  value = "${data.azurerm_key_vault_secret.test.value}"
+  value = "${data.azurerm_key_vault_secret.example.value}"
 }
 ```
 

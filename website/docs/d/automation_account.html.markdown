@@ -13,12 +13,12 @@ Use this data source to access information about an existing Automation Account 
 ## Example Usage
 
 ```hcl
-data "azurerm_automation_account_registration_info" "test" {
+data "azurerm_automation_account_registration_info" "example" {
   name                = "automation-account"
   resource_group_name = "automation-resource-group"
 }
 output "automation_account_id" {
-  value = "${data.azurerm_automation_account_registration_info.test.id}"
+  value = "${data.azurerm_automation_account_registration_info.example.id}"
 }
 ```
 

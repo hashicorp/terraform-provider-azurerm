@@ -13,13 +13,13 @@ Use this data source to access information about an existing Availability Set.
 ## Example Usage
 
 ```hcl
-data "azurerm_availability_set" "test" {
+data "azurerm_availability_set" "example" {
   name                = "tf-appsecuritygroup"
   resource_group_name = "my-resource-group"
 }
 
 output "availability_set_id" {
-  value = "${data.azurerm_availability_set.test.id}"
+  value = "${data.azurerm_availability_set.example.id}"
 }
 ```
 

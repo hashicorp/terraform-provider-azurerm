@@ -16,7 +16,7 @@ Use this data source to access information about an existing Managed Kubernetes 
 ## Example Usage
 
 ```hcl
-data "azurerm_kubernetes_cluster" "test" {
+data "azurerm_kubernetes_cluster" "example" {
   name                = "myakscluster"
   resource_group_name = "my-example-resource-group"
 }

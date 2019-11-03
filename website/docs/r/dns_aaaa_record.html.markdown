@@ -13,20 +13,20 @@ Enables you to manage DNS AAAA Records within Azure DNS.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_dns_zone" "test" {
+resource "azurerm_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_dns_aaaa_record" "test" {
+resource "azurerm_dns_aaaa_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_dns_zone.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_dns_zone.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ttl                 = 300
   records             = ["2607:f8b0:4009:1803::1005"]
 }
@@ -59,5 +59,5 @@ The following attributes are exported:
 AAAA records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_aaaa_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/AAAA/myrecord1
+terraform import azurerm_dns_aaaa_record.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/AAAA/myrecord1
 ```

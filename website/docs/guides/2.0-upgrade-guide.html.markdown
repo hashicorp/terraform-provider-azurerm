@@ -85,7 +85,7 @@ Prior to version 2.0 the Azure Provider has a default value set for resource tim
 This is useful for resources which can take a long time to delete - for example deleting the `azurerm_resource_group` resource will delete any resources within it, which can take time. Within Terraform your Terraform Configuration this could be represented like so:
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
   location = "West Europe"
 

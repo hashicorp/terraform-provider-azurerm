@@ -14,13 +14,13 @@ Use this data source to access information about an existing Stream Analytics Jo
 ## Example Usage
 
 ```hcl
-data "azurerm_stream_analytics_job" "test" {
+data "azurerm_stream_analytics_job" "example" {
   name                = "example-job"
   resource_group_name = "example-resources"
 }
 
 output "job_id" {
-  value = "${data.azurerm_stream_analytics_job.test.job_id}"
+  value = "${data.azurerm_stream_analytics_job.example.job_id}"
 }
 ```
 

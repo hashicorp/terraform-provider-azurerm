@@ -13,13 +13,13 @@ Use this data source to access information about an existing Log Analytics (form
 ## Example Usage
 
 ```hcl
-data "azurerm_log_analytics_workspace" "test" {
+data "azurerm_log_analytics_workspace" "example" {
   name                = "acctest-01"
   resource_group_name = "acctest"
 }
 
 output "log_analytics_workspace_id" {
-  value = "${data.azurerm_log_analytics_workspace.test.workspace_id}"
+  value = "${data.azurerm_log_analytics_workspace.example.workspace_id}"
 }
 ```
 

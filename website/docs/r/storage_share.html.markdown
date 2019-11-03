@@ -13,22 +13,22 @@ Manages a File Share within Azure Storage.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "azuretest"
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "azureteststorage"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_share" "testshare" {
+resource "azurerm_storage_share" "example" {
   name                 = "sharename"
-  storage_account_name = "${azurerm_storage_account.test.name}"
+  storage_account_name = "${azurerm_storage_account.example.name}"
   quota                = 50
 }
 ```
@@ -81,5 +81,5 @@ The following attributes are exported in addition to the arguments listed above:
 Storage Shares can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_share.testShare https://account1.file.core.windows.net/share1
+terraform import azurerm_storage_share.exampleShare https://account1.file.core.windows.net/share1
 ```

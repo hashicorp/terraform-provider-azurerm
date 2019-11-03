@@ -17,12 +17,12 @@ Use this data source to access information about an existing Application within 
 ## Example Usage
 
 ```hcl
-data "azurerm_azuread_application" "test" {
+data "azurerm_azuread_application" "example" {
   name = "My First AzureAD Application"
 }
 
 output "azure_active_directory_object_id" {
-  value = "${data.azurerm_azuread_application.test.id}"
+  value = "${data.azurerm_azuread_application.example.id}"
 }
 ```
 

@@ -13,13 +13,13 @@ Use this data source to access information about an existing Key Vault.
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault" "test" {
+data "azurerm_key_vault" "example" {
   name                = "mykeyvault"
   resource_group_name = "some-resource-group"
 }
 
 output "vault_uri" {
-  value = "${data.azurerm_key_vault.test.vault_uri}"
+  value = "${data.azurerm_key_vault.example.vault_uri}"
 }
 ```
 

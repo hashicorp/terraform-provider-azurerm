@@ -13,14 +13,14 @@ Use this data source to access information about an existing Notification Hub wi
 ## Example Usage
 
 ```hcl
-data "azurerm_notification_hub" "test" {
+data "azurerm_notification_hub" "example" {
   name                = "notification-hub"
   namespace_name      = "namespace-name"
   resource_group_name = "resource-group-name"
 }
 
 output "id" {
-  value = "${data.azurerm_notification_hub.test.id}"
+  value = "${data.azurerm_notification_hub.example.id}"
 }
 ```
 

@@ -13,13 +13,13 @@ Use this data source to access information about an existing Network Interface.
 ## Example Usage
 
 ```hcl
-data "azurerm_network_interface" "test" {
+data "azurerm_network_interface" "example" {
   name                = "acctest-nic"
   resource_group_name = "networking"
 }
 
 output "network_interface_id" {
-  value = "${data.azurerm_network_interface.test.id}"
+  value = "${data.azurerm_network_interface.example.id}"
 }
 ```
 
