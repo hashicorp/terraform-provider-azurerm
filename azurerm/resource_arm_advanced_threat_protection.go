@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -24,21 +25,21 @@ func resourceArmAdvancedThreatProtection() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(60 * time.Minute),
+			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(60 * time.Minute),
-			Delete: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_id": {
+			"target_resource_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"enable": {
+			"enabled": {
 				Type:     schema.TypeBool,
 				Required: true,
 			},
@@ -46,16 +47,40 @@ func resourceArmAdvancedThreatProtection() *schema.Resource {
 	}
 }
 
+type AdvancedThreatProtectionResourceID struct {
+	Base azure.ResourceID
+
+	TargetResourceID string
+}
+
+func parseVirtualMachineScaleSetResourceID(input string) (*AdvancedThreatProtectionResourceID, error) {
+	id, err := azure.ParseAzureResourceID(input)
+	if err != nil {
+		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set ID %q: %+v", input, err)
+	}
+
+	parts := strings.Split(input, "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("Error determining target resource ID, resource ID in unexacpted format: %q", id)
+	}
+
+	return &AdvancedThreatProtectionResourceID{
+		Base:             *id,
+		TargetResourceID: parts[0],
+	}, nil
+
+}
+
 func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	resourceID := d.Get("resource_id").(string)
+	resourceID := d.Get("target_resource_id").(string)
 
 	setting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
-			IsEnabled: utils.Bool(d.Get("enable").(bool)),
+			IsEnabled: utils.Bool(d.Get("enabled").(bool)),
 		},
 	}
 
@@ -77,20 +102,25 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id := d.Id()
-	parts := strings.Split(strings.Trim(id, "/"), "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
-	if len(parts) != 2 {
-		return fmt.Errorf("Error determining target resource ID, resource ID in unexacpted format: %q", id)
-	}
-	resourceID := parts[0]
-
-	atp, err := client.Get(ctx, resourceID)
+	id, err := parseVirtualMachineScaleSetResourceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error reading Advanced Threat protection for resource %q: %+v", resourceID, err)
+		return err
 	}
 
-	if atpp := atp.AdvancedThreatProtectionProperties; atpp != nil {
-		d.Set("enable", atpp.IsEnabled)
+	resp, err := client.Get(ctx, id.TargetResourceID)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("Advanced Threat Protection was not found for resource %q: %+v", id.TargetResourceID, err)
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error reading Advanced Threat protection for resource %q: %+v", id.TargetResourceID, err)
+	}
+
+	d.Set("target_resource_id", id.TargetResourceID)
+	if atpp := resp.AdvancedThreatProtectionProperties; atpp != nil {
+		d.Set("enabled", resp.IsEnabled)
 	}
 
 	return nil
@@ -101,21 +131,20 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id := d.Id()
-	parts := strings.Split(strings.Trim(id, "/"), "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
-	if len(parts) != 2 {
-		return fmt.Errorf("Error determining target resource ID, resource ID in unexacpted format: %q", id)
+	id, err := parseVirtualMachineScaleSetResourceID(d.Id())
+	if err != nil {
+		return err
 	}
-	resourceID := parts[0]
 
+	// there is no delete.. so lets just do best effort and set it to false?
 	setting := security.AdvancedThreatProtectionSetting{
 		AdvancedThreatProtectionProperties: &security.AdvancedThreatProtectionProperties{
 			IsEnabled: utils.Bool(false),
 		},
 	}
 
-	if _, err := client.Create(ctx, resourceID, setting); err != nil {
-		return fmt.Errorf("Error resetting Advanced Threat protection for resource %q: %+v", resourceID, err)
+	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
+		return fmt.Errorf("Error resetting Advanced Threat protection for resource %q: %+v", id.TargetResourceID, err)
 	}
 
 	return nil

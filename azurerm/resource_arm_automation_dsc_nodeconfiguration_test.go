@@ -167,7 +167,7 @@ resource "azurerm_automation_dsc_nodeconfiguration" "test" {
   content_embedded = <<mofcontent
 instance of MSFT_FileDirectoryConfiguration as $MSFT_FileDirectoryConfiguration1ref
 {
-  ResourceID = "[File]bla";
+  TargetResourceID = "[File]bla";
   Ensure = "Present";
   Contents = "bogus Content";
   DestinationPath = "c:\\bogus.txt";

@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// ResourceID represents a parsed long-form Azure Resource Manager ID
+// TargetResourceID represents a parsed long-form Azure Resource Manager ID
 // with the Subscription ID, Resource Group and the Provider as top-
 // level fields, and other key-value pairs available via a map in the
 // Path field.
@@ -18,7 +18,7 @@ type ResourceID struct {
 }
 
 // parseAzureResourceID converts a long-form Azure Resource Manager ID
-// into a ResourceID. We make assumptions about the structure of URLs,
+// into a TargetResourceID. We make assumptions about the structure of URLs,
 // which is obviously not good, but the best thing available given the
 // SDK.
 func ParseAzureResourceID(id string) (*ResourceID, error) {
@@ -61,7 +61,7 @@ func ParseAzureResourceID(id string) (*ResourceID, error) {
 		}
 	}
 
-	// Build up a ResourceID from the map
+	// Build up a TargetResourceID from the map
 	idObj := &ResourceID{}
 	idObj.Path = componentMap
 

@@ -5,65 +5,96 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMResourceGroup_basic(t *testing.T) {
-	resourceName := "azurerm_resource_group.test"
+func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
+	rn := "azurerm_advanced_threat_protection.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(ri, testLocation(), true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(resourceName),
+					resource.TestCheckResourceAttr(rn, "enabled", "true"),
 				),
 			},
 			{
-				ResourceName:      resourceName,
+				ResourceName:      rn,
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			{
+				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(ri, testLocation(), true, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(rn, "enabled", "false"),
+				),
+			},
+			{
+				ResourceName:      rn,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(ri, testLocation(), false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionIsFalse(rn),
+				),
+			},
 		},
 	})
 }
 
-func TestAccAzureRMResourceGroup_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
-		t.Skip("Skipping since resources aren't required to be imported")
-		return
-	}
-
-	resourceName := "azurerm_resource_group.test"
+func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
+	rn := "azurerm_advanced_threat_protection.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMResourceGroupDestroy,
+		CheckDestroy: testCheckAzureRMAdvancedThreatProtectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMResourceGroup_basic(ri, testLocation()),
+				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(ri, testLocation(), true, true),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMResourceGroupExists(resourceName),
+					resource.TestCheckResourceAttr(rn, "enabled", "true"),
 				),
 			},
 			{
-				Config:      testAccAzureRMResourceGroup_requiresImport(ri, testLocation()),
-				ExpectError: testRequiresImportError("azurerm_resource_group"),
+				ResourceName:      rn,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(ri, testLocation(), true, false),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(rn, "enabled", "false"),
+				),
+			},
+			{
+				ResourceName:      rn,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(ri, testLocation(), false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionIsFalse(rn),
+				),
 			},
 		},
 	})
 }
 
-func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheckFunc {
+/*
+func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -71,103 +102,108 @@ func testCheckAzureRMResourceGroupExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["name"]
+		AdvancedThreatProtection := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
 		client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resp, err := client.Get(ctx, resourceGroup)
+		resp, err := client.Get(ctx, AdvancedThreatProtection)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on resourceGroupClient: %+v", err)
+			return fmt.Errorf("Bad: Get on AdvancedThreatProtectionClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: resource group: %q does not exist", resourceGroup)
+			return fmt.Errorf("Bad: resource group: %q does not exist", AdvancedThreatProtection)
 		}
 
 		return nil
 	}
 }
-
-func testCheckAzureRMResourceGroupDisappears(resourceName string) resource.TestCheckFunc {
+*/
+func testCheckAzureRMAdvancedThreatProtectionIsFalse(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		// Ensure resource group exists in API
+		client := testAccProvider.Meta().(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		resourceGroup := rs.Primary.Attributes["name"]
-
-		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Sto.GroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-		deleteFuture, err := client.Delete(ctx, resourceGroup)
+		id, err := parseVirtualMachineScaleSetResourceID(rs.Primary.ID)
 		if err != nil {
-			return fmt.Errorf("Failed deleting Resource Group %q: %+v", resourceGroup, err)
+			return err
 		}
 
-		err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
+		resp, err := client.Get(ctx, id.TargetResourceID)
 		if err != nil {
-			return fmt.Errorf("Failed long polling for the deletion of Resource Group %q: %+v", resourceGroup, err)
+			return fmt.Errorf("Failed reading Advanced Threat Protection for resource %q: %+v", id.TargetResourceID, err)
+		}
+
+		if props := resp.AdvancedThreatProtectionProperties; props != nil {
+			if props.IsEnabled != nil {
+				if *props.IsEnabled {
+					return fmt.Errorf("Advanced Threat Protection is still true for resource %q: %+v", id.TargetResourceID, err)
+				}
+			}
 		}
 
 		return nil
 	}
 }
 
-func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
+func testCheckAzureRMAdvancedThreatProtectionDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_resource_group" {
+		if rs.Type != "azurerm_advanced_threat_protection" {
 			continue
 		}
 
-		resourceGroup := rs.Primary.ID
+		id, err := parseVirtualMachineScaleSetResourceID(rs.Primary.ID)
+		if err != nil {
+			return err
+		}
 
-		resp, err := client.Get(ctx, resourceGroup)
+		resp, err := client.Get(ctx, id.TargetResourceID)
 		if err != nil {
 			return nil
 		}
 
 		if resp.StatusCode != http.StatusNotFound {
-			return fmt.Errorf("Resource Group still exists:\n%#v", resp.Properties)
+			return fmt.Errorf("Advanced Threat Protection still exists:\n%#v", resp.ID)
 		}
 	}
 
 	return nil
 }
 
-func testAccAzureRMResourceGroup_basic(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
+func testAccAzureRMAdvancedThreatProtection_storageAccount(rInt int, location string, hasResource, enabled bool) string {
+	atp := ""
+	if hasResource {
+		atp = fmt.Sprintf(`
 resource "azurerm_advanced_threat_protection" "test" {
-  resource_id = azurerm_resource_group.test.id
-  enable      = true
+  target_resource_id = "${azurerm_storage_account.test.id}"
+  enabled            = %t
 }
-`, rInt, location)
-}
+`, enabled)
+	}
 
-func testAccAzureRMResourceGroup_storageAccount(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-ATP-%d"
-  location = "%s"
+  name     = "acctestRG-ATP-%[1]d"
+  location = "%[2]s"
 }
 
-resource "azurerm_storage_account" "testsa" {
-  name                = "acctest%d"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
+resource "azurerm_storage_account" "test" {
+  name                = "acctest%[3]d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-  location                 = "${azurerm_resource_group.testrg.location}"
+  location                 = "${azurerm_resource_group.test.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 
@@ -176,9 +212,43 @@ resource "azurerm_storage_account" "testsa" {
   }
 }
 
-resource "azurerm_advanced_threat_protection" "test" {
-  resource_id = azurerm_resource_group.azurerm_storage_account.id
-  enable      = true
+%[4]s
+`, rInt, location, rInt/10, atp)
 }
-`, rInt, location)
+
+func testAccAzureRMAdvancedThreatProtection_cosmosAccount(rInt int, location string, hasResource, enabled bool) string {
+	atp := ""
+	if hasResource {
+		atp = fmt.Sprintf(`
+resource "azurerm_advanced_threat_protection" "test" {
+  target_resource_id = "${azurerm_cosmosdb_account.test.id}"
+  enabled            = %t
+}
+`, enabled)
+	}
+
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-ATP-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  offer_type          = "Standard"
+
+  consistency_policy {
+    consistency_level = "%[3]s"
+  }
+
+  geo_location {
+    location          = "${azurerm_resource_group.test.location}"
+    failover_priority = 0
+  }
+}
+
+%[4]s
+`, rInt, location, string(documentdb.Eventual), atp)
 }

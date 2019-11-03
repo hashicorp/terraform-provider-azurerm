@@ -1585,7 +1585,7 @@ func validateArmStorageAccountName(v interface{}, _ string) (warnings []string, 
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long"))
+		errors = append(errors, fmt.Errorf("storage account name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long. got: %q", input))
 	}
 
 	return warnings, errors
