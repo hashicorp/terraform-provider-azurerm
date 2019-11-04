@@ -170,11 +170,13 @@ func resourceArmApiManagementApi() *schema.Resource {
 
 			"version": {
 				Type:     schema.TypeString,
+				Computed: true,
 				Optional: true,
 			},
 
 			"version_set_id": {
 				Type:     schema.TypeString,
+				Computed: true,
 				Optional: true,
 			},
 		},
