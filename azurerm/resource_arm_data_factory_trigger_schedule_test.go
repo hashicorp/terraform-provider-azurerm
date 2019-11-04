@@ -147,14 +147,25 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
+resource "azurerm_data_factory_pipeline" "test" {
+  name                = "acctest%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+
+  parameters = {
+    test = "testparameter"
+  }
+}
+
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestdf%d"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  pipeline_name       = "${azurerm_data_factory_pipeline.test.name}"
 
   annotations = ["test1", "test2", "test3"]
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMDataFactoryTriggerSchedule_update(rInt int, location string, endTime string) string {
@@ -170,15 +181,27 @@ resource "azurerm_data_factory" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
+resource "azurerm_data_factory_pipeline" "test" {
+  name                = "acctest%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  data_factory_name   = "${azurerm_data_factory.test.name}"
+
+  parameters = {
+    test = "testparameter"
+  }
+}
+
 resource "azurerm_data_factory_trigger_schedule" "test" {
   name                = "acctestDFTS%d"
   data_factory_name   = "${azurerm_data_factory.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
+  pipeline_name       = "${azurerm_data_factory_pipeline.test.name}"
 
-  annotations = ["test5"]
-  frequency   = "Day"
-  interval    = 5
-  end_time    = "%s"
+  pipeline_parameters = "${azurerm_data_factory_pipeline.test.parameters}"
+  annotations         = ["test5"]
+  frequency           = "Day"
+  interval            = 5
+  end_time            = "%s"
 }
-`, rInt, location, rInt, rInt, endTime)
+`, rInt, location, rInt, rInt, rInt, endTime)
 }

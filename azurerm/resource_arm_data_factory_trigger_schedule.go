@@ -54,6 +54,9 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				ValidateFunc: validate.DataFactoryName(),
 			},
 
+			// This time can only be  represented in UTC.
+			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
+			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"start_time": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -62,6 +65,9 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				ValidateFunc:     validate.RFC3339Time, //times in the past just start immediately
 			},
 
+			// This time can only be  represented in UTC.
+			// An issue has been filed in the SDK for the timezone attribute that doesn't seem to work
+			// https://github.com/Azure/azure-sdk-for-go/issues/6244
 			"end_time": {
 				Type:             schema.TypeString,
 				Optional:         true,
@@ -87,6 +93,20 @@ func resourceArmDataFactoryTriggerSchedule() *schema.Resource {
 				Optional:     true,
 				Default:      1,
 				ValidateFunc: validation.IntAtLeast(1),
+			},
+
+			"pipeline_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validate.DataFactoryPipelineAndTriggerName(),
+			},
+
+			"pipeline_parameters": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"annotations": {
@@ -144,8 +164,18 @@ func resourceArmDataFactoryTriggerScheduleCreateUpdate(d *schema.ResourceData, m
 		props.Recurrence.EndTime = &date.Time{Time: t}
 	}
 
+	reference := &datafactory.PipelineReference{
+		ReferenceName: utils.String(d.Get("pipeline_name").(string)),
+	}
+
 	scheduleProps := &datafactory.ScheduleTrigger{
 		ScheduleTriggerTypeProperties: props,
+		Pipelines: &[]datafactory.TriggerPipelineReference{
+			{
+				PipelineReference: reference,
+				Parameters:        d.Get("pipeline_parameters").(map[string]interface{}),
+			},
+		},
 	}
 
 	if v, ok := d.GetOk("annotations"); ok {
@@ -216,6 +246,16 @@ func resourceArmDataFactoryTriggerScheduleRead(d *schema.ResourceData, meta inte
 			}
 			d.Set("frequency", recurrence.Frequency)
 			d.Set("interval", recurrence.Interval)
+		}
+
+		if pipelines := scheduleTriggerProps.Pipelines; pipelines != nil {
+			if len(*pipelines) > 0 {
+				pipeline := *pipelines
+				if reference := pipeline[0].PipelineReference; reference != nil {
+					d.Set("pipeline_name", reference.ReferenceName)
+				}
+				d.Set("pipeline_parameters", pipeline[0].Parameters)
+			}
 		}
 
 		annotations := flattenDataFactoryAnnotations(scheduleTriggerProps.Annotations)
