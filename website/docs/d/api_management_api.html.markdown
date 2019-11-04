@@ -35,12 +35,6 @@ output "api_management_api_id" {
 
 * `revision` - (Required) The Revision of the API Management API.
 
-* `version` - (Optional) The Version number of this API, if this API is versioned.
-
-* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
-
--> **NOTE:** When `version` is set, `version_set_id` must also be specified
-
 ## Attributes Reference
 
 * `id` - The ID of the API Management API.
