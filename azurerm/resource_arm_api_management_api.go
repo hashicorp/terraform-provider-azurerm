@@ -178,17 +178,6 @@ func resourceArmApiManagementApi() *schema.Resource {
 				Optional: true,
 			},
 		},
-
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			_, hasVersion := diff.GetOk("version")
-			_, hasVersionSetId := diff.GetOk("version_set_id")
-
-			if hasVersion && !hasVersionSetId {
-				return fmt.Errorf("`version_set_id` is required when `version` is set")
-			}
-
-			return nil
-		},
 	}
 }
 
