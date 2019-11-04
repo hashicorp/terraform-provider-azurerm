@@ -1,15 +1,18 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2016-09-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,6 +30,7 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Hour * 30),
 			Update: schema.DefaultTimeout(time.Hour * 30),
@@ -35,15 +39,15 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// TODO: validation
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validateAppServicePlanName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			"number_of_ip_addresses": {
 				Type:         schema.TypeInt,
@@ -60,24 +64,25 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 					string(web.InternalLoadBalancingModePublishing),
 					string(web.InternalLoadBalancingModeWeb),
 				}, true),
-				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
 			"virtual_network": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
+				Optional: false,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"virtual_network_id": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"subnet_name": {
 							Type:             schema.TypeString,
 							Required:         true,
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 					},
 				},
@@ -93,11 +98,11 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(web.Small),
-								string(web.Medium),
-								string(web.Large),
+								string(web.WorkerSizeOptionsMedium),
+								string(web.WorkerSizeOptionsLarge),
+								"ExtraLarge", // current SDKs do not reflect actual allowed values
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"number_of_workers": {
 							Type:         schema.TypeInt,
@@ -107,10 +112,9 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 					},
 				},
 			},
-
 			"worker_pool": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true, //not required for ASEV2
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"worker_size_id": {
@@ -121,11 +125,11 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(web.Small),
-								string(web.Medium),
-								string(web.Large),
+								string(web.WorkerSizeOptionsSmall),
+								string(web.WorkerSizeOptionsMedium),
+								string(web.WorkerSizeOptionsLarge),
 							}, true),
-							DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
+							DiffSuppressFunc: suppress.CaseDifference,
 						},
 						"worker_count": {
 							Type:     schema.TypeInt,
@@ -135,18 +139,18 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
-
 func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServiceEnvironmentsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Web.AppServiceEnvironmentsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	numberOfSSLPublicIPs := d.Get("number_of_ip_addresses").(int)
 	internalLoadBalancingMode := d.Get("internal_load_balancing_mode").(string)
 	tags := d.Get("tags").(map[string]interface{})
@@ -172,11 +176,21 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		 ]
 	*/
 
+	var virtualNetwork *web.VirtualNetworkProfile
+
+	if _, ok := d.GetOk("virtual_network"); ok {
+		virtualNetwork, err = expandAppServiceEnvironmentVirtualNetwork(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `virtual_network`: %+v", err)
+		}
+	}
+
 	envelope := web.AppServiceEnvironmentResource{
 		Location: utils.String(location),
 		// TODO: work out how's best to handle ASEV2 support
 		Kind: utils.String("ASEV2"),
 		Tags: expandTags(tags),
+
 		AppServiceEnvironment: &web.AppServiceEnvironment{
 			// this is one of the older API's where name + location are required in this block
 			Name:     utils.String(name),
@@ -187,16 +201,8 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 			WorkerPools:               workerPools,
 			MultiSize:                 utils.String(frontendPool.VMSize),
 			MultiRoleCount:            utils.Int32(frontendPool.Count),
+			VirtualNetwork:            virtualNetwork,
 		},
-	}
-
-	if _, ok := d.GetOk("virtual_network"); ok {
-		virtualNetwork, err := expandAppServiceEnvironmentVirtualNetwork(d)
-		if err != nil {
-			return fmt.Errorf("Error expanding `virtual_network`: %+v", err)
-		}
-
-		envelope.VirtualNetwork = virtualNetwork
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, envelope)
@@ -204,9 +210,7 @@ func resourceArmAppServiceEnvironmentCreate(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error creating App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	waitCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutCreate))
-	defer cancel()
-	err = future.WaitForCompletion(waitCtx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		return fmt.Errorf("Error waiting for the creation of App Service Environment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -228,13 +232,15 @@ func resourceArmAppServiceEnvironmentUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServiceEnvironmentsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Web.AppServiceEnvironmentsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
+
 	resourceGroup := id.ResourceGroup
 	name := id.Path["hostingEnvironments"]
 
@@ -252,7 +258,7 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := appServiceEnvironment.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(d.Get("location").(string)))
 	}
 	flattenAndSetTags(d, appServiceEnvironment.Tags)
 
@@ -268,9 +274,11 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 			return fmt.Errorf("Error flattening `frontend_pool`: %+v", err)
 		}
 
-		workerPools := flattenAppServiceEnvironmentWorkerPools(props.WorkerPools)
-		if err := d.Set("worker_pool", workerPools); err != nil {
-			return fmt.Errorf("Error flattening `worker_pool`: %+v", err)
+		if workerPools := props.WorkerPools; workerPools != nil {
+			workerPools := flattenAppServiceEnvironmentWorkerPools(props.WorkerPools)
+			if err := d.Set("worker_pool", workerPools); err != nil {
+				return fmt.Errorf("Error flattening `worker_pool`: %+v", err)
+			}
 		}
 
 		virtualNetwork := flattenAppServiceEnvironmentVirtualNetwork(props.VirtualNetwork)
@@ -283,10 +291,11 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).appServiceEnvironmentsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Web.AppServiceEnvironmentsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -307,9 +316,7 @@ func resourceArmAppServiceEnvironmentDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	deleteCtx, cancel := context.WithTimeout(ctx, d.Timeout(schema.TimeoutDelete))
-	defer cancel()
-	err = future.WaitForCompletion(deleteCtx, client.Client)
+	err = future.WaitForCompletionRef(ctx, client.Client)
 	if err != nil {
 		if response.WasNotFound(future.Response()) {
 			return nil

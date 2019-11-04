@@ -180,6 +180,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_app_service_slot":                                   resourceArmAppServiceSlot(),
 		"azurerm_app_service_source_control_token":                   resourceArmAppServiceSourceControlToken(),
 		"azurerm_app_service":                                        resourceArmAppService(),
+		"azurerm_app_service_environment":                            resourceArmAppServiceEnvironment(),
 		"azurerm_application_gateway":                                resourceArmApplicationGateway(),
 		"azurerm_application_insights_api_key":                       resourceArmApplicationInsightsAPIKey(),
 		"azurerm_application_insights":                               resourceArmApplicationInsights(),
