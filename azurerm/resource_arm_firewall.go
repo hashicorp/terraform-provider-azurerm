@@ -115,7 +115,7 @@ func resourceArmFirewallCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := validateFirewallConfigurationSettings(d); err != nil {
-		return fmt.Errorf("Error creating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error validating Firewall %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
