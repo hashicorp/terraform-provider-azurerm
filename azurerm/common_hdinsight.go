@@ -235,7 +235,7 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 				}},
 			},
 			InstallScriptActions: installScriptActions,
-			ApplicationType:      hdinsight.CustomApplication,
+			ApplicationType:      utils.String("CustomApplication"),
 		},
 	}
 	future, err := client.Create(ctx, resourceGroup, name, name, application)

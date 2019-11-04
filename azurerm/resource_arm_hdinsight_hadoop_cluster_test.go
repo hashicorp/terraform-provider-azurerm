@@ -691,7 +691,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
   cluster_version     = "3.6"
-  tier                = "Premium"
+  tier                = "Standard"
 
   component_version {
     hadoop = "2.7"
@@ -730,6 +730,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
 
     edge_node {
+      target_instance_count = 2
       vm_size  = "Standard_D3_V2"
       install_script_action {
         name = "script1"
