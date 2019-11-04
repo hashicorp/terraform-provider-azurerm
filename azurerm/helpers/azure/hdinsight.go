@@ -152,37 +152,53 @@ func FlattenHDInsightsConfigurations(input map[string]*string) []interface{} {
 func SchemaHDInsightsStorageAccounts() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
-		Required: true,
+		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"storage_account_key": {
 					Type:         schema.TypeString,
-					Optional:     true,
+					Required:     true,
 					ForceNew:     true,
 					Sensitive:    true,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
 				"storage_container_id": {
 					Type:         schema.TypeString,
-					Optional:     true,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.NoEmptyStrings,
+				},
+				"is_default": {
+					Type:     schema.TypeBool,
+					Required: true,
+					ForceNew: true,
+				},
+			},
+		},
+	}
+}
+
+func SchemaHDInsightsGen2StorageAccounts() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"storage_resource_id": {
+					Type:         schema.TypeString,
+					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
 				"filesystem_id": {
 					Type:         schema.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
-				},
-				"storage_resource_id": {
-					Type:         schema.TypeString,
-					Optional:     true,
+					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
 				"managed_identity_resource_id": {
 					Type:         schema.TypeString,
-					Optional:     true,
+					Required:     true,
 					ForceNew:     true,
 					ValidateFunc: validate.NoEmptyStrings,
 				},
@@ -198,17 +214,35 @@ func SchemaHDInsightsStorageAccounts() *schema.Schema {
 
 // ExpandHDInsightsStorageAccounts returns an array of StorageAccount structs, as well as a ClusterIdentity
 // populated with any managed identities required for accessing Data Lake Gen2 storage.
-func ExpandHDInsightsStorageAccounts(input []interface{}) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
+func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageAccounts []interface{}) (*[]hdinsight.StorageAccount, *hdinsight.ClusterIdentity, error) {
 	results := make([]hdinsight.StorageAccount, 0)
 
 	var clusterIndentity *hdinsight.ClusterIdentity
 
-	for _, vs := range input {
+	for _, vs := range storageAccounts {
 		v := vs.(map[string]interface{})
 
 		storageAccountKey := v["storage_account_key"].(string)
-
 		storageContainerID := v["storage_container_id"].(string)
+		isDefault := v["is_default"].(bool)
+
+		uri, err := url.Parse(storageContainerID)
+
+		if err != nil {
+			return nil, nil, fmt.Errorf("Error parsing %q: %s", storageContainerID, err)
+		}
+
+		result := hdinsight.StorageAccount{
+			Name:      utils.String(uri.Host),
+			Container: utils.String(strings.TrimPrefix(uri.Path, "/")),
+			Key:       utils.String(storageAccountKey),
+			IsDefault: utils.Bool(isDefault),
+		}
+		results = append(results, result)
+	}
+
+	for _, vs := range gen2storageAccounts {
+		v := vs.(map[string]interface{})
 
 		fileSystemID := v["filesystem_id"].(string)
 		storageResourceID := v["storage_resource_id"].(string)
@@ -216,47 +250,29 @@ func ExpandHDInsightsStorageAccounts(input []interface{}) (*[]hdinsight.StorageA
 
 		isDefault := v["is_default"].(bool)
 
-		if fileSystemID == "" && storageResourceID == "" && managedIdentityResourceID == "" && storageContainerID != "" && storageAccountKey != "" {
-			uri, err := url.Parse(storageContainerID)
-			if err != nil {
-				return nil, nil, fmt.Errorf("Error parsing %q: %s", storageContainerID, err)
-			}
-
-			result := hdinsight.StorageAccount{
-				Name:      utils.String(uri.Host),
-				Container: utils.String(strings.TrimPrefix(uri.Path, "/")),
-				Key:       utils.String(storageAccountKey),
-				IsDefault: utils.Bool(isDefault),
-			}
-			results = append(results, result)
-		} else if fileSystemID != "" && storageResourceID != "" && managedIdentityResourceID != "" && storageContainerID == "" && storageAccountKey == "" {
-			uri, err := url.Parse(fileSystemID)
-			if err != nil {
-				return nil, nil, fmt.Errorf("Error parsing %q: %s", storageContainerID, err)
-			}
-
-			if clusterIndentity == nil {
-				clusterIndentity = &hdinsight.ClusterIdentity{
-					Type:                   hdinsight.UserAssigned,
-					UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
-				}
-			}
-
-			// ... API doesn't seem to require client_id or principal_id, so pass in an empty ClusterIdentityUserAssignedIdentitiesValue
-			clusterIndentity.UserAssignedIdentities[managedIdentityResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
-
-			result := hdinsight.StorageAccount{
-				Name:          utils.String(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
-				ResourceID:    utils.String(storageResourceID),
-				FileSystem:    utils.String(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
-				MsiResourceID: utils.String(managedIdentityResourceID),
-				IsDefault:     utils.Bool(isDefault),
-			}
-			results = append(results, result)
-		} else {
-			return nil, nil, fmt.Errorf(`specify either storage_container_id AND storage_account_key (for WASB blob storage), ` +
-				`or filesystem_id AND storage_resource_id AND managed_identity_resource_id (for ata Lake Storage Gen 2)`)
+		uri, err := url.Parse(fileSystemID)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Error parsing %q: %s", fileSystemID, err)
 		}
+
+		if clusterIndentity == nil {
+			clusterIndentity = &hdinsight.ClusterIdentity{
+				Type:                   hdinsight.UserAssigned,
+				UserAssignedIdentities: make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue),
+			}
+		}
+
+		// ... API doesn't seem to require client_id or principal_id, so pass in an empty ClusterIdentityUserAssignedIdentitiesValue
+		clusterIndentity.UserAssignedIdentities[managedIdentityResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
+
+		result := hdinsight.StorageAccount{
+			Name:          utils.String(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
+			ResourceID:    utils.String(storageResourceID),
+			FileSystem:    utils.String(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
+			MsiResourceID: utils.String(managedIdentityResourceID),
+			IsDefault:     utils.Bool(isDefault),
+		}
+		results = append(results, result)
 	}
 
 	return &results, clusterIndentity, nil
