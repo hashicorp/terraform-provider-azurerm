@@ -20,7 +20,7 @@ data "azurerm_dev_test_virtual_network" "test" {
 }
 
 output "lab_subnet_name" {
-  value = "${data.azurerm_dev_test_virtual_network.test.allowed_subnets.0.lab_subnet_name}
+  value = "${data.azurerm_dev_test_virtual_network.test.allowed_subnets.0.lab_subnet_name}"
 }
 ```
 

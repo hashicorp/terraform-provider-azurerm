@@ -202,6 +202,10 @@ The deprecated `fqdn_list` field in the `backend_address_pool` block will be rem
 
 The deprecated `ip_address_list` field in the `backend_address_pool` block will be removed in favour of the `ip_addresses` field, which is available from v1.22 of the AzureRM Provider.
 
+### Resource: `azurerm_automation_credential`
+
+The deprecated `account_name` field will be removed. This has been deprecated in favour of the `automation_account_name` field.
+
 ### Resource: `azurerm_automation_schedule`
 
 The deprecated `account_name` field will be removed. This has been deprecated in favour of the `automation_account_name` field.
@@ -275,6 +279,8 @@ The deprecated `location` field will be removed, since this is no longer used.
 The deprecated `location` field will be removed, since this is no longer used.
 
 ## Resource: `azurerm_eventhub_namespace`
+
+The deprecated `kafka_enabled` field will be removed, since this is no longer used.
 
 The deprecated `location` field will be removed, since this is no longer used.
 

@@ -98,7 +98,7 @@ func findAzureStorageAccountIdFromName(name string, meta interface{}) (string, e
 		return "", err
 	}
 
-	for _, account := range *accounts.Value {
+	for _, account := range accounts.Values() {
 		if strings.EqualFold(*account.Name, name) {
 			return *account.ID, nil
 		}

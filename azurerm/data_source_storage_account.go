@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -289,7 +290,7 @@ func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resourceGroup, name)
+	keys, err := client.ListKeys(ctx, resourceGroup, name, storage.Kerb)
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool

@@ -170,7 +170,7 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMTemplateDeployment_withError(ri, testLocation()),
-				ExpectError: regexp.MustCompile("Code=\"DeploymentFailed\""),
+				ExpectError: regexp.MustCompile("Error validating Template for Deployment"),
 			},
 		},
 	})
@@ -478,6 +478,7 @@ resource "azurerm_key_vault" "test-kv" {
     object_id       = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     secret_permissions = [
+      "delete",
       "get",
       "list",
       "set",
@@ -584,7 +585,7 @@ resource "azurerm_template_deployment" "test" {
 DEPLOY
 
   parameters_body = "${local.templated-file}"
-  deployment_mode = "Complete"
+  deployment_mode = "Incremental"
   depends_on      = ["azurerm_key_vault_secret.test-secret"]
 }
 `, rInt, location, location, rInt, rInt, rInt, rInt)

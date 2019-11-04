@@ -26,6 +26,8 @@ resource "azurerm_storage_account" "test" {
   location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  is_hns_enabled           = "true"
 }
 
 resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
@@ -45,6 +47,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the Data Lake Gen2 File System which should be created within the Storage Account. Must be unique within the storage account the queue is located. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Required) Specifies the ID of the Storage Account in which the Data Lake Gen2 File System should exist. Changing this forces a new resource to be created.
+
+~> **NOTE:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
 
 * `properties` - (Optional) A mapping of Key to Base64-Encoded Values which should be assigned to this Data Lake Gen2 File System. 
 

@@ -100,7 +100,7 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 		subscriptionId = uuid.NewV4().String()
 	}
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, serviceName, subscriptionId)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {

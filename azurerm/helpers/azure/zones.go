@@ -25,6 +25,18 @@ func SchemaSingleZone() *schema.Schema {
 	}
 }
 
+func SchemaMultipleZones() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MinItems: 1,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}
+
 func SchemaZonesComputed() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
@@ -46,4 +58,16 @@ func ExpandZones(v []interface{}) *[]string {
 	} else {
 		return nil
 	}
+}
+
+func FlattenZones(v *[]string) []interface{} {
+	zones := make([]interface{}, 0)
+	if v == nil {
+		return zones
+	}
+
+	for _, s := range *v {
+		zones = append(zones, s)
+	}
+	return zones
 }

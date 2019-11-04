@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -453,7 +453,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 	resourceGroup := d.Get("resource_group_name").(string)
 	subscriptionId := meta.(*ArmClient).subscriptionId
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {

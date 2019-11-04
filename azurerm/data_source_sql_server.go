@@ -47,6 +47,27 @@ func dataSourceSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 		},
 	}
@@ -81,6 +102,10 @@ func dataSourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("fqdn", props.FullyQualifiedDomainName)
 		d.Set("version", props.Version)
 		d.Set("administrator_login", props.AdministratorLogin)
+	}
+
+	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
