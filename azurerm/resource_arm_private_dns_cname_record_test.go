@@ -198,7 +198,7 @@ func testCheckAzureRMPrivateDnsCNameRecordDestroy(s *terraform.State) error {
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.A, aName)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.CNAME, aName)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {
