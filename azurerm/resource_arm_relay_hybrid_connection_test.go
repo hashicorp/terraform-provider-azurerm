@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMHybridConnection_basic(t *testing.T) {
@@ -96,7 +97,7 @@ resource "azurerm_relay_namespace" "import" {
 	resource_group_name  = "${azurerm_resource_group.test.name}"
 	relay_namespace_name = "acctestrn-%d"
 }
-`, testAccAzureRMHybridConnection_basic(rInt, location))
+`, testAccAzureRMHybridConnection_basic(rInt, location), rInt, rInt)
 }
 
 func testCheckAzureRMHybridConnectionExists(resourceName string) resource.TestCheckFunc {
