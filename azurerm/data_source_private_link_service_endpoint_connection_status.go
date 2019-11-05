@@ -42,15 +42,15 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionStatus() *schema.Resource 
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"action_required": {
+						"private_endpoint_action_required": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"description": {
+						"private_endpoint_description": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"status": {
+						"private_endpoint_status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -129,15 +129,15 @@ func flattenArmPrivateLinkServicePrivateEndpointConnections(input *[]network.Pri
 			}
 			if s := props.PrivateLinkServiceConnectionState; s != nil {
 				if a := s.ActionRequired; a != nil {
-					v["action_required"] = *a
+					v["private_endpoint_action_required"] = *a
 				} else {
-					v["action_required"] = "none"
+					v["private_endpoint_action_required"] = "none"
 				}
 				if d := s.Description; d != nil {
-					v["description"] = *d
+					v["private_endpoint_description"] = *d
 				}
 				if t := s.Status; t != nil {
-					v["status"] = *t
+					v["private_endpoint_status"] = *t
 				}
 			}
 		}
