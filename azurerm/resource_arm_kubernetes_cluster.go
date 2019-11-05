@@ -1681,13 +1681,6 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 	}
 }
 
-func expandAzureRmKubernetesClusterServicePrincipal(input []interface{}) *containerservice.ManagedClusterServicePrincipalProfile {
-	if len(input) == 0 {
-		return nil
-	}
-
-}
-
 func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile, d *schema.ResourceData) []interface{} {
 	if profile == nil {
 		return []interface{}{}

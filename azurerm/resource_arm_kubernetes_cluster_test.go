@@ -12,8 +12,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-var olderKubernetesVersion = "1.13.10"
-var currentKubernetesVersion = "1.14.6"
+var olderKubernetesVersion = "1.14.8"
+var currentKubernetesVersion = "1.15.5"
 
 func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
