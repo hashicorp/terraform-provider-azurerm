@@ -20,6 +20,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
+// TODO: more granular update tests
+// TODO: 4046 - splitting agent_pool_profile out into it's own resource
+
 func resourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmKubernetesClusterCreate,
@@ -347,6 +350,21 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"api_server_authorized_ip_ranges": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.CIDR,
+				},
+			},
+
+			"enable_pod_security_policy": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+
 			"linux_profile": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -476,6 +494,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"node_resource_group": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -535,12 +560,12 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"tags": tags.Schema(),
 
+			// Computed
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			// Computed
 			"kube_admin_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -623,28 +648,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
-			},
-
-			"node_resource_group": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-
-			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.CIDR,
-				},
-			},
-
-			"enable_pod_security_policy": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
 			},
 		},
 	}
@@ -760,6 +763,8 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["managedClusters"]
 
+	d.Partial(true)
+
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
 		servicePrincipals := d.Get("service_principal").([]interface{})
@@ -783,73 +788,120 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	dnsPrefix := d.Get("dns_prefix").(string)
-	kubernetesVersion := d.Get("kubernetes_version").(string)
-
-	linuxProfile := expandKubernetesClusterLinuxProfile(d)
-	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+	// we need to conditionally update the cluster
+	existing, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	windowsProfile := expandKubernetesClusterWindowsProfile(d)
-	networkProfile := expandKubernetesClusterNetworkProfile(d)
-	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
-	addonProfiles := expandKubernetesClusterAddonProfiles(d)
-
-	t := d.Get("tags").(map[string]interface{})
-
-	rbacRaw := d.Get("role_based_access_control").([]interface{})
-	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-
-	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
-	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
-
-	nodeResourceGroup := d.Get("node_resource_group").(string)
-
-	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
-
-	// TODO: should these values be conditionally updated?
-	parameters := containerservice.ManagedCluster{
-		Name:     &name,
-		Location: &location,
-		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
-			AadProfile:                  azureADProfile,
-			AddonProfiles:               addonProfiles,
-			AgentPoolProfiles:           &agentProfiles,
-			DNSPrefix:                   utils.String(dnsPrefix),
-			EnableRBAC:                  utils.Bool(rbacEnabled),
-			KubernetesVersion:           utils.String(kubernetesVersion),
-			LinuxProfile:                linuxProfile,
-			WindowsProfile:              windowsProfile,
-			NetworkProfile:              networkProfile,
-			ServicePrincipalProfile:     servicePrincipalProfile,
-			NodeResourceGroup:           utils.String(nodeResourceGroup),
-			EnablePodSecurityPolicy:     utils.Bool(enablePodSecurityPolicy),
-		},
-		Tags: tags.Expand(t),
+	if existing.ManagedClusterProperties == nil {
+		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", name, resourceGroup)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
-	if err != nil {
-		return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
+	updateCluster := false
+
+	// TODO: update the expand functions so we pass in the array
+	if d.HasChange("addon_profile") {
+		updateCluster = true
+		addonProfiles := expandKubernetesClusterAddonProfiles(d)
+		existing.ManagedClusterProperties.AddonProfiles = addonProfiles
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if d.HasChange("agent_pool_profile") {
+		updateCluster = true
+		agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+		if err != nil {
+			return err
+		}
+
+		existing.ManagedClusterProperties.AgentPoolProfiles = &agentProfiles
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if d.HasChange("api_server_authorized_ip_ranges") {
+		updateCluster = true
+		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
+		existing.APIServerAuthorizedIPRanges = utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 	}
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resourceGroup)
+	if d.HasChange("enable_pod_security_policy") {
+		updateCluster = true
+		enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
+		existing.ManagedClusterProperties.EnablePodSecurityPolicy = utils.Bool(enablePodSecurityPolicy)
 	}
 
-	d.SetId(*read.ID)
+	if d.HasChange("linux_profile") {
+		updateCluster = true
+		linuxProfile := expandKubernetesClusterLinuxProfile(d)
+		existing.ManagedClusterProperties.LinuxProfile = linuxProfile
+	}
+
+	// TODO: does this want to be split out
+	if d.HasChange("network_profile") {
+		updateCluster = true
+		networkProfile := expandKubernetesClusterNetworkProfile(d)
+		existing.ManagedClusterProperties.NetworkProfile = networkProfile
+	}
+
+	if d.HasChange("role_based_access_control") {
+		updateCluster = true
+		rbacRaw := d.Get("role_based_access_control").([]interface{})
+		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+		existing.ManagedClusterProperties.AadProfile = azureADProfile
+		existing.ManagedClusterProperties.EnableRBAC = utils.Bool(rbacEnabled)
+	}
+
+	if d.HasChange("tags") {
+		updateCluster = true
+		t := d.Get("tags").(map[string]interface{})
+		existing.Tags = tags.Expand(t)
+	}
+
+	if d.HasChange("windows_profile") {
+		updateCluster = true
+		windowsProfile := expandKubernetesClusterWindowsProfile(d)
+		existing.ManagedClusterProperties.WindowsProfile = windowsProfile
+	}
+
+	if updateCluster {
+		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing)
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
+	}
+
+	// then roll the version of Kubernetes if necessary
+	if d.HasChange("kubernetes_version") {
+		existing, err = client.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if existing.ManagedClusterProperties == nil {
+			return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		}
+
+		kubernetesVersion := d.Get("kubernetes_version").(string)
+		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
+		existing.ManagedClusterProperties.KubernetesVersion = utils.String(kubernetesVersion)
+
+		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing)
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
+	}
+
+	d.Partial(false)
 
 	return resourceArmKubernetesClusterRead(d, meta)
 }
