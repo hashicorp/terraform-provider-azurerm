@@ -50,16 +50,13 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			// 	},
 			// },
 
-			"nat_ip_configuration": {
+			"primary_nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_ip_allocation_method": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -71,8 +68,29 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"primary": {
-							Type:     schema.TypeBool,
+						"subnet_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			"secondary_nat_ip_configuration": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_ip_address": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"private_ip_address_version": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"subnet_id": {
@@ -150,8 +168,12 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 		// 	}
 		// }
 		if props.IPConfigurations != nil {
-			if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
-				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
+			primaryIpConfig, secondaryIpConfig := flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)
+			if err := d.Set("primary_nat_ip_configuration", primaryIpConfig); err != nil {
+				return fmt.Errorf("Error setting `primary_nat_ip_configuration`: %+v", err)
+			}
+			if err := d.Set("secondary_nat_ip_configuration", secondaryIpConfig); err != nil {
+				return fmt.Errorf("Error setting `secondary_nat_ip_configuration`: %+v", err)
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {
