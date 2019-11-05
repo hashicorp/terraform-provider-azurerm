@@ -176,7 +176,7 @@ func resourceArmPrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interfa
 	name := id.Path["CNAME"]
 	zoneName := id.Path["privateDnsZones"]
 
-	_, err = dnsClient.Get(ctx, resGroup, zoneName, privatedns.CNAME, name)
+	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.CNAME, name, "")
 	if err != nil {
 		return fmt.Errorf("Error deleting Private DNS CNAME Record %s: %+v", name, err)
 	}
