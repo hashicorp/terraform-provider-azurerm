@@ -163,11 +163,15 @@ A `agent_pool_profile` block supports the following:
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
+* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address?
+
 * `min_count` - (Optional) Minimum number of nodes for auto-scaling
 
 * `max_count` - (Optional) Maximum number of nodes for auto-scaling
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
+
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
 
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
@@ -178,8 +182,6 @@ A `agent_pool_profile` block supports the following:
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
 ~> **NOTE:** A route table should be configured on this Subnet.
-
-* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
 
 ---
 
