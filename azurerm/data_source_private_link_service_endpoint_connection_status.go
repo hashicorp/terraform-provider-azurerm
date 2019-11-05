@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 )
 
 func dataSourceArmPrivateLinkServiceEndpointConnectionStatus() *schema.Resource {
@@ -14,12 +15,15 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionStatus() *schema.Resource 
 		Read: dataSourceArmPrivateLinkServiceEndpointConnectionStatusRead,
 
 		Schema: map[string]*schema.Schema{
-			"private_link_service_id": {
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: aznet.ValidatePrivateLinkServiceName,
 			},
+
+			"location": azure.SchemaLocationForDataSource(),
+
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"private_endpoint_connections": {
 				Type:     schema.TypeList,
@@ -42,15 +46,15 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionStatus() *schema.Resource 
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"private_endpoint_action_required": {
+						"action_required": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"private_endpoint_description": {
+						"description": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"private_endpoint_status": {
+						"status": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -65,13 +69,8 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionStatusRead(d *schema.Resou
 	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := azure.ParseAzureResourceID(d.Get("private_link_service_id").(string))
-	if err != nil {
-		return err
-	}
-
-	resourceGroup := id.ResourceGroup
-	name := id.Path["privateLinkServices"]
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
@@ -80,9 +79,13 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionStatusRead(d *schema.Resou
 		}
 		return fmt.Errorf("Error reading Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil {
-		return fmt.Errorf("Cannot read ID for Private Link Service %q (Resource Group %q)", name, resourceGroup)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("API returns a nil/empty id on Private Link Service Endpoint Connection Status %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	d.Set("name", resp.Name)
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		if ip := props.PrivateEndpointConnections; ip != nil {
@@ -92,9 +95,6 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionStatusRead(d *schema.Resou
 		}
 	}
 
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Link Service Endpoint Connection Status %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
 	d.SetId(*resp.ID)
 
 	return nil
@@ -129,15 +129,15 @@ func flattenArmPrivateLinkServicePrivateEndpointConnections(input *[]network.Pri
 			}
 			if s := props.PrivateLinkServiceConnectionState; s != nil {
 				if a := s.ActionRequired; a != nil {
-					v["private_endpoint_action_required"] = *a
+					v["action_required"] = *a
 				} else {
-					v["private_endpoint_action_required"] = "none"
+					v["action_required"] = "none"
 				}
 				if d := s.Description; d != nil {
-					v["private_endpoint_description"] = *d
+					v["description"] = *d
 				}
 				if t := s.Status; t != nil {
-					v["private_endpoint_status"] = *t
+					v["status"] = *t
 				}
 			}
 		}

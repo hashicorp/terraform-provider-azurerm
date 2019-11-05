@@ -54,21 +54,27 @@ resource "azurerm_lb" "example" {
 }
 
 resource "azurerm_private_link_service" "example" {
-  name                = "example-pls"
-  location            = azurerm_resource_group.example.location
+  name                = "myPrivateLinkService"
   resource_group_name = azurerm_resource_group.example.name
-  
-  nat_ip_configuration {
-    name                         = "primaryIpConfiguration"
-    subnet_id                    = azurerm_subnet.example.id
-    private_ip_address           = "10.5.1.17"
-    private_ip_address_version   = "IPv4"
-    private_ip_allocation_method = "Static"
+  location            = azurerm_resource_group.example.location
+
+  auto_approval_subscription_ids              = ["00000000-0000-0000-0000-000000000000"]
+  visibility_subscription_ids                 = ["00000000-0000-0000-0000-000000000000"]
+  load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
+
+  primary_nat_ip_configuration {
+    name                       = "primaryIpConfiguration"
+    private_ip_address         = "10.5.1.17"
+    private_ip_address_version = "IPv4"
+    subnet_id                  = azurerm_subnet.example.id
   }
 
-  load_balancer_frontend_ip_configuration_ids = [
-    id = azurerm_lb.example.frontend_ip_configuration.0.id
-  ]
+  secondary_nat_ip_configuration {
+    name                       = "secondaryIpConfiguration"
+    private_ip_address         = "10.5.1.18"
+    private_ip_address_version = "IPv4"
+    subnet_id                  = azurerm_subnet.example.id
+  }
 }
 ```
 
@@ -84,52 +90,46 @@ The following arguments are supported:
 
 * `auto_approval_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be automatically be able to use this service.
 
-* `nat_ip_configuration` - (Required) One or more `nat_ip_configuration` blocks as defined below.
+* `visibility_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
+
+* `primary_nat_ip_configuration` - (Required) A `primary_nat_ip_configuration` block as defined below.
+
+* `secondary_nat_ip_configuration` - (Optional) Supports upto seven additional `secondary_nat_ip_configuration` blocks as defined below.
 
 * `load_balancer_frontend_ip_configuration_ids` - (Required) A list of `Standard` Load Balancer resource ids to direct the service network traffic toward.
 
 * `private_link_endpoint_connection` - (Optional) One or more `private_link_endpoint_connection` blocks as defined below.
 
-* `visibility_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
-
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 ---
 
-The `nat_ip_configuration` block supports the following:
+The `primary_nat_ip_configuration` block supports the following:
 
-* `name` - (Required) The name of private link service ip configuration.
+* `name` - (Required) The name of primary private link service NAT IP configuration. Changing this forces a new resource to be created.
 
-* `primary` - (Optional) If the `ip_configuration` is the primary ip configuration or not. Defaults to `true`.
-
-* `private_ip_address` - (Optional) The private IP address of the IP configuration.
-
-* `private_ip_allocation_method` - (Optional) The private IP address allocation method, supported values are `Static` and `Dynamic`. Defaults to `Dynamic`.
-
-* `subnet_id` - (Required) The resource ID of the subnet to be used by the service.
+* `private_ip_address` - (Optional) The private IP address of the NAT IP configuration.
 
 * `private_ip_address_version` - (Optional) The ip address version of the `ip_configuration`, the supported value is `IPv4`. Defaults to `IPv4`.
 
 -> **NOTE:** Private Link Service Supports `IPv4` traffic only.
 
+* `subnet_id` - (Required) The resource ID of the subnet to be used by the service.
+
 
 ---
 
-The `private_link_endpoint_connection` block contains the following:
+The `secondary_nat_ip_configuration` block supports the following:
 
-* `id` - (Computed) The resource ID of the `private_link_endpoint_connection`.
+* `name` - (Required) The name of secondary private link service NAT IP configuration. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name of the resource that is unique within a resource group. This name can be used to access the resource.
+* `private_ip_address` - (Optional) The private IP address of the NAT IP configuration.
 
-* `private_link_endpoint_id` - (Required) The Private Link Endpoint ID.
+* `private_ip_address_version` - (Optional) The ip address version of the `ip_configuration`, the supported value is `IPv4`. Defaults to `IPv4`.
 
-* `private_link_endpoint_location` - (Required) The resource location of the `private_link_endpoint`.
+-> **NOTE:** Private Link Service Supports `IPv4` traffic only.
 
-* `state_action_required` - (Computed) A message indicating if changes on the service provider require any updates by the consumer.
-
-* `state_description` - (Computed) The reason for approval/rejection of the connection.
-
-* `state_status` - (Computed) Indicates whether the connection has been `Approved`, `Rejected`, or `Removed` by the owner of the service.
+* `subnet_id` - (Required) The resource ID of the subnet to be used by the service.
 
 
 ## Attributes Reference
@@ -139,18 +139,6 @@ The following attributes are exported:
 * `alias` - The alias of the private link service.
 
 * `network_interfaces` - A list of network interface resource ids that are being used by the service.
-
----
-
-* A `private_link_endpoint_connection` exports the following:
-
-* `id` - The resource ID of the `private_link_endpoint_connection`.
-
-* `state_action_required` - A message indicating if changes on the service provider require any updates by the consumer.
-
-* `state_description` - The reason for approval/rejection of the connection.
-
-* `state_status` - Indicates whether the connection has been `Approved`, `Rejected`, or `Removed` by the owner of the service.
 
 
 ## Import

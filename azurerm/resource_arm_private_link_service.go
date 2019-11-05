@@ -117,6 +117,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
+							ForceNew:     true,
 							ValidateFunc: aznet.ValidatePrivateLinkServiceName,
 						},
 						"private_ip_address": {
