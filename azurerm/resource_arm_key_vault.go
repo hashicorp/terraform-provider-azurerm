@@ -155,9 +155,10 @@ func resourceArmKeyVault() *schema.Resource {
 			},
 
 			"network_acls": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressDefaultActionAllow,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"default_action": {
@@ -572,4 +573,22 @@ func expandKeyVaultNetworkAcls(input []interface{}) (*keyvault.NetworkRuleSet, [
 		VirtualNetworkRules: &networkRules,
 	}
 	return &ruleSet, subnetIds
+}
+
+func suppressDefaultActionAllow(k, old, new string, d *schema.ResourceData) bool {
+	// Azure backend will discard "Allow" network_acls, resulting in bug #2164:
+	// https://github.com/terraform-providers/terraform-provider-azurerm/issues/2164
+	// Here we suppress the diff when Azure backend returns empty network_acls
+	// and Terraform config sets network_acls with default_action "Allow"
+	if k == "network_acls.#" && old == "0" && new == "1" {
+		networkAclsRaw := d.Get("network_acls").([]interface{})
+		networkAcls, _ := expandKeyVaultNetworkAcls(networkAclsRaw)
+
+		if networkAcls != nil && networkAcls.DefaultAction == keyvault.Allow {
+			log.Print("[INFO] Setting network_acls from nil to NetworkRuleSet with default_action=\"Allow\" has no effect. Diff is suppressed.")
+			return true
+		}
+	}
+
+	return false
 }
