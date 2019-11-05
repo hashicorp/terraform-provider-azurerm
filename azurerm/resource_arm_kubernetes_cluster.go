@@ -681,17 +681,26 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
-	linuxProfile := expandKubernetesClusterLinuxProfile(d)
-	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+	linuxProfileRaw := d.Get("linux_profile").([]interface{})
+	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
+
+	agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
+	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, true)
 	if err != nil {
 		return err
 	}
-	windowsProfile := expandKubernetesClusterWindowsProfile(d)
-	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
-	networkProfile := expandKubernetesClusterNetworkProfile(d)
-	addonProfiles := expandKubernetesClusterAddonProfiles(d)
 
+	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
+	addonProfiles := expandKubernetesClusterAddonProfiles(addOnProfilesRaw)
+
+	networkProfileRaw := d.Get("network_profile").([]interface{})
+	networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+
+	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
 	t := d.Get("tags").(map[string]interface{})
+
+	windowsProfileRaw := d.Get("windows_profile").([]interface{})
+	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
@@ -800,16 +809,17 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
 	updateCluster := false
 
-	// TODO: update the expand functions so we pass in the array
 	if d.HasChange("addon_profile") {
 		updateCluster = true
-		addonProfiles := expandKubernetesClusterAddonProfiles(d)
+		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
+		addonProfiles := expandKubernetesClusterAddonProfiles(addOnProfilesRaw)
 		existing.ManagedClusterProperties.AddonProfiles = addonProfiles
 	}
 
 	if d.HasChange("agent_pool_profile") {
 		updateCluster = true
-		agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+		agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
+		agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, false)
 		if err != nil {
 			return err
 		}
@@ -831,14 +841,16 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	if d.HasChange("linux_profile") {
 		updateCluster = true
-		linuxProfile := expandKubernetesClusterLinuxProfile(d)
+		linuxProfileRaw := d.Get("linux_profile").([]interface{})
+		linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 		existing.ManagedClusterProperties.LinuxProfile = linuxProfile
 	}
 
 	// TODO: does this want to be split out
 	if d.HasChange("network_profile") {
 		updateCluster = true
-		networkProfile := expandKubernetesClusterNetworkProfile(d)
+		networkProfileRaw := d.Get("network_profile").([]interface{})
+		networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
 		existing.ManagedClusterProperties.NetworkProfile = networkProfile
 	}
 
@@ -858,7 +870,8 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	if d.HasChange("windows_profile") {
 		updateCluster = true
-		windowsProfile := expandKubernetesClusterWindowsProfile(d)
+		windowsProfileRaw := d.Get("windows_profile").([]interface{})
+		windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 		existing.ManagedClusterProperties.WindowsProfile = windowsProfile
 	}
 
@@ -1066,13 +1079,12 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 	return nil, []interface{}{}
 }
 
-func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
-	profiles := d.Get("addon_profile").([]interface{})
-	if len(profiles) == 0 {
+func expandKubernetesClusterAddonProfiles(input []interface{}) map[string]*containerservice.ManagedClusterAddonProfile {
+	if len(input) == 0 {
 		return nil
 	}
 
-	profile := profiles[0].(map[string]interface{})
+	profile := input[0].(map[string]interface{})
 	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
 
 	httpApplicationRouting := profile["http_application_routing"].([]interface{})
@@ -1235,12 +1247,12 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 	return []interface{}{values}
 }
 
-func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
-	configs := d.Get("agent_pool_profile").([]interface{})
-
+func expandKubernetesClusterAgentPoolProfiles(input []interface{}, isNewResource bool) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
 	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0)
-	for config_id := range configs {
-		config := configs[config_id].(map[string]interface{})
+
+	// TODO: fix this
+	for config_id := range input {
+		config := input[config_id].(map[string]interface{})
 
 		name := config["name"].(string)
 		poolType := config["type"].(string)
@@ -1280,13 +1292,13 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]contain
 
 			// Auto scaling will change the number of nodes, but the original count number should not be sent again.
 			// This avoid the cluster being resized after creation.
-			if *profile.EnableAutoScaling && !d.IsNewResource() {
+			if *profile.EnableAutoScaling && !isNewResource {
 				profile.Count = nil
 			}
 		}
 
-		if availavilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availavilityZones) > 0 {
-			profile.AvailabilityZones = availavilityZones
+		if availabilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availabilityZones) > 0 {
+			profile.AvailabilityZones = availabilityZones
 		}
 
 		if *profile.EnableAutoScaling && (profile.MinCount == nil || profile.MaxCount == nil) {
@@ -1392,14 +1404,12 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 	return agentPoolProfiles
 }
 
-func expandKubernetesClusterLinuxProfile(d *schema.ResourceData) *containerservice.LinuxProfile {
-	profiles := d.Get("linux_profile").([]interface{})
-
-	if len(profiles) == 0 {
+func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.LinuxProfile {
+	if len(input) == 0 {
 		return nil
 	}
 
-	config := profiles[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
 	linuxKeys := config["ssh_key"].([]interface{})
@@ -1454,14 +1464,12 @@ func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile
 	}
 }
 
-func expandKubernetesClusterWindowsProfile(d *schema.ResourceData) *containerservice.ManagedClusterWindowsProfile {
-	profiles := d.Get("windows_profile").([]interface{})
-
-	if len(profiles) == 0 {
+func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservice.ManagedClusterWindowsProfile {
+	if len(input) == 0 {
 		return nil
 	}
 
-	config := profiles[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
 	adminPassword := config["admin_password"].(string)
@@ -1498,13 +1506,12 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfileType {
-	configs := d.Get("network_profile").([]interface{})
-	if len(configs) == 0 {
+func expandKubernetesClusterNetworkProfile(input []interface{}) *containerservice.NetworkProfileType {
+	if len(input) == 0 {
 		return nil
 	}
 
-	config := configs[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
 
 	networkPlugin := config["network_plugin"].(string)
 	networkPolicy := config["network_policy"].(string)
