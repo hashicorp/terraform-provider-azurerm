@@ -696,14 +696,21 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	networkProfileRaw := d.Get("network_profile").([]interface{})
 	networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
 
-	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
+	rbacRaw := d.Get("role_based_access_control").([]interface{})
+	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+
+	// since the Create and Update use separate methods, there's no point extracting this out
+	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
+	servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
+	servicePrincipalProfile := &containerservice.ManagedClusterServicePrincipalProfile{
+		ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
+		Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
+	}
+
 	t := d.Get("tags").(map[string]interface{})
 
 	windowsProfileRaw := d.Get("windows_profile").([]interface{})
 	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
-
-	rbacRaw := d.Get("role_based_access_control").([]interface{})
-	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
 
 	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
@@ -1674,23 +1681,11 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 	}
 }
 
-func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ManagedClusterServicePrincipalProfile {
-	value, exists := d.GetOk("service_principal")
-	configs := value.([]interface{})
-
-	if !exists || len(configs) == 0 {
+func expandAzureRmKubernetesClusterServicePrincipal(input []interface{}) *containerservice.ManagedClusterServicePrincipalProfile {
+	if len(input) == 0 {
 		return nil
 	}
 
-	config := configs[0].(map[string]interface{})
-
-	clientId := config["client_id"].(string)
-	clientSecret := config["client_secret"].(string)
-
-	return &containerservice.ManagedClusterServicePrincipalProfile{
-		ClientID: &clientId,
-		Secret:   &clientSecret,
-	}
 }
 
 func flattenAzureRmKubernetesClusterServicePrincipalProfile(profile *containerservice.ManagedClusterServicePrincipalProfile, d *schema.ResourceData) []interface{} {
