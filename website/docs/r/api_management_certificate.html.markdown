@@ -72,5 +72,5 @@ In addition to all arguments above, the following attributes are exported:
 API Management Certificates can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_certificate.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/certificates/certificate1
+terraform import azurerm_api_management_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/certificates/certificate1
 ```

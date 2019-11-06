@@ -13,7 +13,7 @@ Use this data source to access information about an existing ExpressRoute circui
 ## Example Usage
 
 ```hcl
-data "azurerm_express_route_circuit" test {
+data "azurerm_express_route_circuit" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   name                = "${azurerm_express_route_circuit.example.name}"
 }

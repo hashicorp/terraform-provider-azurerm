@@ -733,5 +733,5 @@ A `rewrite_rule_set` block exports the following:
 Application Gateway's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_gateway.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
+terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
 ```

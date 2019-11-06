@@ -73,5 +73,5 @@ The following attributes are exported:
 App Service certificates can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_certificate.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificates/certificate1
+terraform import azurerm_app_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificates/certificate1
 ```

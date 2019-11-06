@@ -299,5 +299,5 @@ An `identity` block exports the following:
 API Management Services can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
+terraform import azurerm_api_management.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1
 ```

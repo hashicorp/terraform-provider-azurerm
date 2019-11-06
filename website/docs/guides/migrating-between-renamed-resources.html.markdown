@@ -79,7 +79,7 @@ We can move each of the resources which has been renamed in the state using the 
 
 ```shell
 $ terraform state mv azurerm_autoscale_setting.exampleazurerm_monitor_autoscale_setting.example
-Moved azurerm_autoscale_setting.exampleto azurerm_monitor_autoscale_setting.example
+Moved azurerm_autoscale_setting.example to azurerm_monitor_autoscale_setting.example
 ```
 
 Once this has been done, running `terraform plan` should show no changes:

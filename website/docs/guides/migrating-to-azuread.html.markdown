@@ -112,7 +112,7 @@ As the Terraform Configuration has been updated - we can move each of the resour
 
 ```shell
 $ terraform state mv azurerm_azuread_application.exampleazuread_application.example
-Moved azurerm_azuread_application.exampleto azuread_application.example
+Moved azurerm_azuread_application.example to azuread_application.example
 ```
 
 This needs to be repeated for each of the Azure Active Directory resources which exist in the state.

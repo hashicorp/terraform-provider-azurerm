@@ -37,5 +37,5 @@ The following arguments are supported:
 App Service source control tokens can be imported using the `type`, e.g.
 
 ```shell
-terraform import azurerm_app_service_source_control_token.exampleGitHub
+terraform import azurerm_app_service_source_control_token.example GitHub
 ```
