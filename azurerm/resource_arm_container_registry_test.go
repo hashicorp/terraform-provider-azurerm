@@ -672,7 +672,7 @@ resource "azurerm_container_registry" "test" {
   network_rule_set {
     default_action = "Allow"
 
-	ip_rule {
+    ip_rule {
       action   = "Allow"
       ip_range = "8.8.8.8/32"
     }
@@ -714,7 +714,7 @@ resource "azurerm_container_registry" "test" {
   network_rule_set {
     default_action = "Deny"
 
-	virtual_network {
+    virtual_network {
       action    = "Allow"
       subnet_id = "${azurerm_subnet.test.id}"
     }

@@ -232,7 +232,7 @@ resource "azurerm_automation_account" "test" {
 
   sku {
     name = "Basic"
-  } 
+  }
 }
 `, rInt, location, rInt)
 }
@@ -281,7 +281,7 @@ resource "azurerm_automation_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku_name = "Basic"
-  
+
   tags = {
     "hello" = "world"
   }

@@ -39,4 +39,16 @@ output "sql_server_id" {
 
 * `administrator_login` - The administrator username of the SQL Server.
 
+* `identity` - An `identity` block as defined below.
+
 * `tags` - A mapping of tags assigned to the resource.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The ID of the Principal (Client) in Azure Active Directory.
+
+* `tenant_id` - The ID of the Azure Active Directory Tenant.
+
+* `type` - The identity type of the SQL Server.
