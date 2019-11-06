@@ -258,7 +258,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				MaxItems: 1,
 				Optional: true,
-				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"http_application_routing": {
@@ -266,6 +265,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							MaxItems: 1,
 							ForceNew: true,
 							Optional: true,
+							Computed: true, // TODO: remove in 2.0
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -285,6 +285,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
+							Computed: true, // TODO: remove in 2.0
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -304,6 +305,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
+							Computed: true, // TODO: remove in 2.0
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -323,6 +325,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
+							Computed: true, // TODO: remove in 2.0
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -337,6 +340,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeList,
 							MaxItems: 1,
 							Optional: true,
+							Computed: true, // TODO: remove in 2.0
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"enabled": {
@@ -1087,8 +1091,20 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 }
 
 func expandKubernetesClusterAddonProfiles(input []interface{}) map[string]*containerservice.ManagedClusterAddonProfile {
+	disabled := containerservice.ManagedClusterAddonProfile{
+		Enabled: utils.Bool(false),
+	}
+
+	profiles := map[string]*containerservice.ManagedClusterAddonProfile{
+		// note: the casing on these keys is important
+		"aciConnectorLinux":      &disabled,
+		"azurepolicy":            &disabled,
+		"kubeDashboard":          &disabled,
+		"httpApplicationRouting": &disabled,
+		"omsagent":               &disabled,
+	}
 	if len(input) == 0 {
-		return nil
+		return profiles
 	}
 
 	profile := input[0].(map[string]interface{})
@@ -1161,48 +1177,6 @@ func expandKubernetesClusterAddonProfiles(input []interface{}) map[string]*conta
 }
 
 func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	values := make(map[string]interface{})
-
-	routes := make([]interface{}, 0)
-	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
-		enabled := false
-		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
-			zoneName = *v
-		}
-
-		output := map[string]interface{}{
-			"enabled":                            enabled,
-			"http_application_routing_zone_name": zoneName,
-		}
-		routes = append(routes, output)
-	}
-	values["http_application_routing"] = routes
-
-	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsagent"]; omsAgent != nil {
-		enabled := false
-		if enabledVal := omsAgent.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		workspaceId := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
-		}
-
-		output := map[string]interface{}{
-			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
-		}
-		agents = append(agents, output)
-	}
-	values["oms_agent"] = agents
-
 	aciConnectors := make([]interface{}, 0)
 	if aciConnector := profile["aciConnectorLinux"]; aciConnector != nil {
 		enabled := false
@@ -1215,27 +1189,11 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 			subnetName = *v
 		}
 
-		output := map[string]interface{}{
+		aciConnectors = append(aciConnectors, map[string]interface{}{
 			"enabled":     enabled,
 			"subnet_name": subnetName,
-		}
-		aciConnectors = append(aciConnectors, output)
+		})
 	}
-	values["aci_connector_linux"] = aciConnectors
-
-	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := profile["kubeDashboard"]; kubeDashboard != nil {
-		enabled := false
-		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		output := map[string]interface{}{
-			"enabled": enabled,
-		}
-		kubeDashboards = append(kubeDashboards, output)
-	}
-	values["kube_dashboard"] = kubeDashboards
 
 	azurePolicies := make([]interface{}, 0)
 	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
@@ -1244,14 +1202,73 @@ func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.
 			enabled = *enabledVal
 		}
 
-		output := map[string]interface{}{
+		azurePolicies = append(azurePolicies, map[string]interface{}{
 			"enabled": enabled,
-		}
-		azurePolicies = append(azurePolicies, output)
+		})
 	}
-	values["azure_policy"] = azurePolicies
 
-	return []interface{}{values}
+	httpApplicationRoutes := make([]interface{}, 0)
+	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
+		enabled := false
+		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		zoneName := ""
+		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
+			zoneName = *v
+		}
+
+		httpApplicationRoutes = append(httpApplicationRoutes, map[string]interface{}{
+			"enabled":                            enabled,
+			"http_application_routing_zone_name": zoneName,
+		})
+	}
+
+	kubeDashboards := make([]interface{}, 0)
+	if kubeDashboard := profile["kubeDashboard"]; kubeDashboard != nil {
+		enabled := false
+		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		kubeDashboards = append(kubeDashboards, map[string]interface{}{
+			"enabled": enabled,
+		})
+	}
+
+	omsAgents := make([]interface{}, 0)
+	if omsAgent := profile["omsagent"]; omsAgent != nil {
+		enabled := false
+		if enabledVal := omsAgent.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		workspaceId := ""
+		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
+			workspaceId = *workspaceResourceID
+		}
+
+		omsAgents = append(omsAgents, map[string]interface{}{
+			"enabled":                    enabled,
+			"log_analytics_workspace_id": workspaceId,
+		})
+	}
+
+	// this is a UX hack, since if the top level block isn't defined everything should be turned off
+	if len(aciConnectors) == 0 && len(azurePolicies) == 0 && len(httpApplicationRoutes) == 0 && len(kubeDashboards) == 0 && len(omsAgents) == 0 {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"aci_connector_linux": aciConnectors
+			"azure_policy": azurePolicies,
+			"http_application_routing": httpApplicationRoutes,
+			"kube_dashboard": kubeDashboards,
+			"oms_agent": omsAgents,
+		},
+	}
 }
 
 func expandKubernetesClusterAgentPoolProfiles(input []interface{}, isNewResource bool) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
