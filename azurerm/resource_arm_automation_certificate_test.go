@@ -104,6 +104,40 @@ func TestAccAzureRMAutomationCertificate_complete(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAutomationCertificate_rename(t *testing.T) {
+	resourceName := "azurerm_automation_certificate.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAutomationCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMAutomationCertificate_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationCertificateExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
+				),
+			},
+			{
+				Config: testAccAzureRMAutomationCertificate_rename(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAutomationCertificateExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d-updated", ri)),
+					resource.TestCheckResourceAttr(resourceName, "description", "This is a test certificate for terraform acceptance test"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"base64"},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
 	resourceName := "azurerm_automation_certificate.test"
 	ri := tf.AccRandTimeInt()
@@ -116,15 +150,14 @@ func TestAccAzureRMAutomationCertificate_update(t *testing.T) {
 			{
 				Config: testAccAzureRMAutomationCertificate_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
 					testCheckAzureRMAutomationCertificateExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "description", ""),
 				),
 			},
 			{
 				Config: testAccAzureRMAutomationCertificate_update(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMAutomationCertificateExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d-updated", ri)),
 					resource.TestCheckResourceAttr(resourceName, "description", "This is a test certificate for terraform acceptance test"),
 				),
 			},
@@ -269,7 +302,7 @@ resource "azurerm_automation_certificate" "test" {
 `, rInt, location, rInt, rInt, testCertBase64)
 }
 
-func testAccAzureRMAutomationCertificate_update(rInt int, location string) string {
+func testAccAzureRMAutomationCertificate_rename(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -286,6 +319,31 @@ resource "azurerm_automation_account" "test" {
 
 resource "azurerm_automation_certificate" "test" {
   name                = "acctest-%d-updated"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_automation_account.test.name}"
+  base64              = "%s"
+  description         = "This is a test certificate for terraform acceptance test"
+}
+`, rInt, location, rInt, rInt, testCertBase64)
+}
+
+func testAccAzureRMAutomationCertificate_update(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_automation_account" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku_name            = "Basic"
+}
+
+resource "azurerm_automation_certificate" "test" {
+  name                = "acctest-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_automation_account.test.name}"
   base64              = "%s"

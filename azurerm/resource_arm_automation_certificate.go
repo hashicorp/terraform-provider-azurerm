@@ -19,7 +19,7 @@ func resourceArmAutomationCertificate() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAutomationCertificateCreateUpdate,
 		Read:   resourceArmAutomationCertificateRead,
-		Update: resourceArmAutomationCertificateUpdate,
+		Update: resourceArmAutomationCertificateCreateUpdate,
 		Delete: resourceArmAutomationCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -35,8 +35,10 @@ func resourceArmAutomationCertificate() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -98,15 +100,18 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	base64 := d.Get("base64").(string)
 	description := d.Get("description").(string)
 
 	parameters := automation.CertificateCreateOrUpdateParameters{
 		CertificateCreateOrUpdateProperties: &automation.CertificateCreateOrUpdateProperties{
-			Base64Value: &base64,
 			Description: &description,
 		},
 		Name: &name,
+	}
+
+	if v, ok := d.GetOk("base64"); ok {
+		base64 := v.(string)
+		parameters.CertificateCreateOrUpdateProperties.Base64Value = &base64
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
@@ -120,36 +125,6 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 
 	if read.ID == nil {
 		return fmt.Errorf("Cannot read Automation Certificate '%s' (resource group %s) ID", name, resourceGroup)
-	}
-
-	d.SetId(*read.ID)
-
-	return resourceArmAutomationCertificateRead(d, meta)
-}
-
-func resourceArmAutomationCertificateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Automation.CertificateClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
-	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for AzureRM Automation Certificate update.")
-
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-	accountName := d.Get("account_name").(string)
-
-	description := d.Get("description").(string)
-
-	parameters := automation.CertificateUpdateParameters{
-		CertificateUpdateProperties: &automation.CertificateUpdateProperties{
-			Description: &description,
-		},
-		Name: &name,
-	}
-
-	read, err := client.Update(ctx, resourceGroup, accountName, name, parameters)
-	if err != nil {
-		return err
 	}
 
 	d.SetId(*read.ID)
