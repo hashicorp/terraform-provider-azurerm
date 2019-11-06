@@ -184,7 +184,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	autoScaledCluster := enableAutoScaling && d.IsNewResource()
 
 	// however it must always be sent for manually scaled clusters
-	manuallyScaledCluster := !enableAutoScaling
+	manuallyScaledCluster := !enableAutoScaling && (d.IsNewResource() || d.HasChange("default_node_pool.0.count"))
 
 	if autoScaledCluster || manuallyScaledCluster {
 		profile.Count = utils.Int32(int32(count))
