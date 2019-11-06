@@ -111,6 +111,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"default_node_pool": containers.SchemaDefaultNodePool(),
 
+			// TODO: remove in 2.0
 			"agent_pool_profile": {
 				Type:       schema.TypeList,
 				Optional:   true,
