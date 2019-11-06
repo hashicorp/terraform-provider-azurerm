@@ -23,6 +23,7 @@ import (
 
 // TODO: more granular update tests
 // TODO: 4046 - splitting agent_pool_profile out into it's own resource
+// TODO: document default_node_pool
 
 func resourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
@@ -108,9 +109,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
+			"default_node_pool": containers.SchemaDefaultNodePool(),
+
 			"agent_pool_profile": {
-				Type:     schema.TypeList,
-				Required: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This has been replaced by `default_node_pool` and will be removed in version 2.0 of the AzureRM Provider",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -591,10 +596,20 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	linuxProfileRaw := d.Get("linux_profile").([]interface{})
 	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 
-	agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
-	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, true)
+	agentProfiles, err := containers.ExpandDefaultNodePool(d)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
+	}
+
+	// TODO: remove me in 2.0
+	if agentProfiles == nil {
+		agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
+		agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, true)
+		if err != nil {
+			return err
+		}
+
+		agentProfiles = &agentProfilesLegacy
 	}
 
 	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
@@ -633,7 +648,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
 			AadProfile:                  azureADProfile,
 			AddonProfiles:               addonProfiles,
-			AgentPoolProfiles:           &agentProfiles,
+			AgentPoolProfiles:           agentProfiles,
 			DNSPrefix:                   utils.String(dnsPrefix),
 			EnableRBAC:                  utils.Bool(rbacEnabled),
 			KubernetesVersion:           utils.String(kubernetesVersion),
@@ -730,15 +745,25 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		existing.ManagedClusterProperties.AddonProfiles = addonProfiles
 	}
 
-	if d.HasChange("agent_pool_profile") {
+	if d.HasChange("default_node_pool") || d.HasChange("agent_pool_profile") {
 		updateCluster = true
-		agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
-		agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, false)
+		agentProfiles, err := containers.ExpandDefaultNodePool(d)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
 		}
 
-		existing.ManagedClusterProperties.AgentPoolProfiles = &agentProfiles
+		// TODO: remove me in 2.0
+		if agentProfiles == nil {
+			agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
+			agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, false)
+			if err != nil {
+				return err
+			}
+
+			agentProfiles = &agentProfilesLegacy
+		}
+
+		existing.ManagedClusterProperties.AgentPoolProfiles = agentProfiles
 	}
 
 	if d.HasChange("api_server_authorized_ip_ranges") {
@@ -884,9 +909,18 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 
+		// TODO: remove me in 2.0
 		agentPoolProfiles := flattenKubernetesClusterAgentPoolProfiles(props.AgentPoolProfiles, resp.Fqdn)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
+		}
+
+		flattenedDefaultNodePool, err := containers.FlattenDefaultNodePool(props.AgentPoolProfiles, d)
+		if err != nil {
+			return fmt.Errorf("Error flattening `default_node_pool`: %+v", err)
+		}
+		if err := d.Set("default_node_pool", flattenedDefaultNodePool); err != nil {
+			return fmt.Errorf("Error setting `default_node_pool`: %+v", err)
 		}
 
 		linuxProfile := flattenKubernetesClusterLinuxProfile(props.LinuxProfile)
