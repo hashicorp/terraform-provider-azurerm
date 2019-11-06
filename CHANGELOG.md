@@ -24,6 +24,7 @@ BUG FIXES:
 
 * `azurerm_api_management_api_policy` - sending `policy` as Raw XML [GH-4140]
 * `azurerm_bastion_host` - matching the validation for `name` used by Azure [GH-4766]
+* `azurerm_bastion_host` - support for hyphens in the `name` field within the `ip_configuration` block [GH-4814]
 * `azurerm_eventhub_namespace` - deprecating the `kafka_enabled` sproperty as it is now managed by Azure [GH-4743]
 * `azurerm_lb_probe` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_lb_rule` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
