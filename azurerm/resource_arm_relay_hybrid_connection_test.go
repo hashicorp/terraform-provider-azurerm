@@ -36,6 +36,32 @@ func TestAccAzureRMHybridConnection_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMHybridConnection_update(t *testing.T) {
+	resourceName := "azurerm_relay_hybrid_connection.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMHybridConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHybridConnection_basic(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHybridConnectionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
+				),
+			},
+			{
+				Config: testAccAzureRMHybridConnection_update(rInt, location),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "requires_client_authorization", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMHybridConnection_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -84,6 +110,30 @@ resource "azurerm_relay_hybrid_connection" "test" {
 	name                 = "acctestrnhc-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
 	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
+  }
+`, rInt, location, rInt, rInt)
+}
+
+func testAccAzureRMHybridConnection_update(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctestrn-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+	name                 = "acctestrnhc-%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
+	requires_client_authorization = false
   }
 `, rInt, location, rInt, rInt)
 }
