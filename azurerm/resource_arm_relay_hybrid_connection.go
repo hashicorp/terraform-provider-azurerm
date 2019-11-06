@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -53,10 +54,17 @@ func resourceArmHybridConnection() *schema.Resource {
 			"requires_client_authorization": {
 				Type:     schema.TypeBool,
 				Default:  true,
-				ForceNew: true,
 				Optional: true,
 			},
 		},
+
+		CustomizeDiff: customdiff.Sequence(
+			// This is to prevent this error:
+			// All fields are ForceNew or Computed w/out Optional, Update is superfluous.
+			customdiff.ForceNewIfChange("requires_client_authorization", func(old, new, meta interface{}) bool {
+				return true
+			}),
+		),
 	}
 }
 
