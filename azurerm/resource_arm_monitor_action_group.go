@@ -75,7 +75,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
@@ -293,7 +292,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"function_app_resource_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
+							ValidateFunc: azure.ValidateResourceID,
 						},
 						"function_name": {
 							Type:         schema.TypeString,
@@ -308,7 +307,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
@@ -332,7 +330,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
