@@ -52,6 +52,8 @@ func resourceArmHybridConnection() *schema.Resource {
 
 			"requires_client_authorization": {
 				Type:     schema.TypeBool,
+				Default:  true,
+				ForceNew: true,
 				Optional: true,
 			},
 		},
