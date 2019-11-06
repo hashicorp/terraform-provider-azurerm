@@ -110,7 +110,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 
 			"secondary_nat_ip_configuration": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 7,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{

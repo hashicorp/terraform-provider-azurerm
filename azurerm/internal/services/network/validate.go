@@ -68,7 +68,6 @@ func ValidatePrivateLinkServiceName(i interface{}, k string) (_ []string, errors
 	} else {
 		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])([a-zA-Z\d-\_\.]{0,78})([a-zA-Z\d\_])$`); !m {
 			errors = append(errors, fmt.Errorf("%s must be between 1 - 80 characters long, begin with a letter or number, end with a letter, number or underscore, and may contain only letters, numbers, underscores, periods, or hyphens", k))
-
 		}
 	}
 
