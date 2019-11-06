@@ -188,15 +188,21 @@ A `authentication_certificate` block supports the following:
 
 A `trusted_root_certificate` block supports the following:
 
-* `name` - (Required) The Name of the Authentication Certificate to use.
+* `name` - (Required) The Name of the Trusted Root Certificate to use.
 
-* `data` - (Required) The contents of the Authentication Certificate which should be used.
+* `data` - (Required) The contents of the Trusted Root Certificate which should be used.
 
 ---
 
 A `authentication_certificate` block, within the `backend_http_settings` block supports the following:
 
 * `name` - (Required) The name of the Authentication Certificate.
+
+---
+
+A `trusted_root_certificate` block, within the `backend_http_settings` block supports the following:
+
+* `name` - (Required) The name of the Trusted Root Certificate.
 
 ---
 
@@ -237,6 +243,8 @@ A `backend_http_settings` block supports the following:
 * `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server. Defaults to `false`.
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
+
+* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 

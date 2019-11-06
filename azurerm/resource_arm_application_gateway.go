@@ -246,6 +246,24 @@ func resourceArmApplicationGateway() *schema.Resource {
 							},
 						},
 
+						"trusted_root_certificate": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Required: true,
+									},
+
+									"id": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+
 						"connection_draining": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
@@ -2009,6 +2027,24 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			}
 
 			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates = &authCertSubResources
+		}
+
+		if v["trusted_root_certificate"] != nil {
+			trustedRootCerts := v["trusted_root_certificate"].([]interface{})
+			trustedRootCertSubResources := make([]network.SubResource, 0)
+
+			for _, rawTrustedRootCert := range trustedRootCerts {
+				trustedRootCert := rawTrustedRootCert.(map[string]interface{})
+				trustedRootCertName := trustedRootCert["name"].(string)
+				trustedRootCertID := fmt.Sprintf("%s/trustedRootCertificates/%s", gatewayID, trustedRootCertName)
+				trustedRootCertSubResource := network.SubResource{
+					ID: utils.String(trustedRootCertID),
+				}
+
+				trustedRootCertSubResources = append(trustedRootCertSubResources, trustedRootCertSubResource)
+			}
+
+			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.TrustedRootCertificates = &trustedRootCertSubResources
 		}
 
 		probeName := v["probe_name"].(string)
