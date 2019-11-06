@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -33,17 +34,18 @@ func resourceArmAutomationCertificate() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-			},
-
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
+			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
+
+			"account_name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"description": {
@@ -52,10 +54,11 @@ func resourceArmAutomationCertificate() *schema.Resource {
 			},
 
 			"base64": {
-				Type:      schema.TypeString,
-				Required:  true,
-				ForceNew:  true,
-				Sensitive: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				Sensitive:    true,
+				ValidateFunc: validate.Base64String(),
 			},
 
 			"is_exportable": {
@@ -83,10 +86,10 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 	accountName := d.Get("account_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, accName, name)
+		existing, err := client.Get(ctx, resourceGroup, accountName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Automation Certificate %q (Account %q / Resource Group %q): %s", name, accName, resGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Automation Certificate %q (Account %q / Resource Group %q): %s", name, accountName, resourceGroup, err)
 			}
 		}
 
@@ -96,31 +99,27 @@ func resourceArmAutomationCertificateCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	base64 := d.Get("base64").(string)
-	isExportable := d.Get("is_exportable").(bool)
-	thumbprint := d.Get("thumbprint").(string)
 	description := d.Get("description").(string)
 
 	parameters := automation.CertificateCreateOrUpdateParameters{
 		CertificateCreateOrUpdateProperties: &automation.CertificateCreateOrUpdateProperties{
-			Base64Value:  &base64,
-			IsExportable: &isExportable,
-			Thumbprint:   &thumbprint,
-			Description:  &description,
+			Base64Value: &base64,
+			Description: &description,
 		},
 		Name: &name,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resGroup, accName, name, parameters); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resourceGroup, accountName, name, parameters); err != nil {
 		return err
 	}
 
-	read, err := client.Get(ctx, resGroup, accName, name)
+	read, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		return err
 	}
 
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Automation Certificate '%s' (resource group %s) ID", name, resGroup)
+		return fmt.Errorf("Cannot read Automation Certificate '%s' (resource group %s) ID", name, resourceGroup)
 	}
 
 	d.SetId(*read.ID)
