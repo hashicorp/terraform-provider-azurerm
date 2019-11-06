@@ -9,7 +9,6 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -39,8 +38,10 @@ func resourceArmHybridConnection() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(6, 50),
+				ValidateFunc: validate.NoEmptyStrings,
 			},
+
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"relay_namespace_name": {
 				Type:         schema.TypeString,
@@ -48,8 +49,6 @@ func resourceArmHybridConnection() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
-
-			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"requires_client_authorization": {
 				Type:     schema.TypeBool,
@@ -67,8 +66,8 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 	log.Printf("[INFO] preparing arguments for Relay Hybrid Connection creation.")
 
 	name := d.Get("name").(string)
-	relayNamespace := d.Get("relay_namespace_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
+	relayNamespace := d.Get("relay_namespace_name").(string)
 	requireClientAuthroization := d.Get("requires_client_authorization").(bool)
 
 	parameters := relay.HybridConnection{
@@ -106,7 +105,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 	}
 	resourceGroup := id.ResourceGroup
 	relayNamespace := id.Path["namespaces"]
-	name := id.Path["HybridConnections"]
+	name := id.Path["hybridConnections"]
 
 	resp, err := client.Get(ctx, resourceGroup, relayNamespace, name)
 	if err != nil {
@@ -123,7 +122,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("relay_namespace_name", relayNamespace)
 
 	if props := resp.HybridConnectionProperties; props != nil {
-		d.Set("metric_id", props.RequiresClientAuthorization)
+		d.Set("requires_client_authorization", props.RequiresClientAuthorization)
 	}
 
 	return nil
@@ -140,7 +139,7 @@ func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{})
 	}
 	resourceGroup := id.ResourceGroup
 	relayNamespace := id.Path["namespaces"]
-	name := id.Path["HybridConnections"]
+	name := id.Path["hybridConnections"]
 
 	log.Printf("[INFO] Waiting for Relay Hybrid Connection %q (Namespace %q Resource Group %q) to be deleted", name, relayNamespace, resourceGroup)
 	rc, err := client.Delete(ctx, resourceGroup, relayNamespace, name)
