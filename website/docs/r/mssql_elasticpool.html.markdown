@@ -105,5 +105,5 @@ The following attributes are exported:
 SQL Elastic Pool can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_mssql_elasticpool.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/myelasticpoolname
+terraform import azurerm_mssql_elasticpool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/myelasticpoolname
 ```

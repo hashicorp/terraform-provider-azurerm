@@ -94,5 +94,5 @@ The following attributes are exported:
 Image can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_image.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1
+terraform import azurerm_image.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1
 ```

@@ -105,5 +105,5 @@ The following attributes are exported:
 Dev Test Schedule can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_schedule.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart
+terraform import azurerm_dev_test_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart
 ```

@@ -121,5 +121,5 @@ A `rule` block supports the following:
 Azure Firewall Network Rule Collections can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_firewall_network_rule_collection.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/mycollection
+terraform import azurerm_firewall_network_rule_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/mycollection
 ```

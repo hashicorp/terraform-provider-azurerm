@@ -55,5 +55,5 @@ The following attributes are exported:
 Azure DDoS Protection Plan can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_ddos_protection_plan.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/ddosProtectionPlans/testddospplan
+terraform import azurerm_ddos_protection_plan.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/ddosProtectionPlans/testddospplan
 ```

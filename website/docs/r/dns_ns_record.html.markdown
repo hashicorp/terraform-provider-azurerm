@@ -69,5 +69,5 @@ The following attributes are exported:
 NS records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dns_ns_record.example/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/NS/myrecord1
+terraform import azurerm_dns_ns_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnszones/zone1/NS/myrecord1
 ```

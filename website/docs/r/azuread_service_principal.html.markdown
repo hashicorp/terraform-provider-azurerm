@@ -51,5 +51,5 @@ The following attributes are exported:
 Azure Active Directory Service Principals can be imported using the `object id`, e.g.
 
 ```shell
-terraform import azurerm_azuread_service_principal.example00000000-0000-0000-0000-000000000000
+terraform import azurerm_azuread_service_principal.example 00000000-0000-0000-0000-000000000000
 ```
