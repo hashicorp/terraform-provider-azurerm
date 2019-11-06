@@ -54,7 +54,7 @@ func TestAccAzureRMHybridConnection_requiresImport(t *testing.T) {
 				Config: testAccAzureRMHybridConnection_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMHybridConnectionExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "metric_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
 				),
 			},
 			{
@@ -82,10 +82,10 @@ resource "azurerm_relay_namespace" "test" {
 
 resource "azurerm_relay_hybrid_connection" "test" {
 	name                 = "acctestrnhc-%d"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	relay_namespace_name = "acctestrn-%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
   }
-`, rInt, location, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt)
 }
 
 func testAccAzureRMHybridConnection_requiresImport(rInt int, location string) string {
@@ -94,10 +94,10 @@ func testAccAzureRMHybridConnection_requiresImport(rInt int, location string) st
 
 resource "azurerm_relay_namespace" "import" {
 	name                 = "acctestrnhc-%d"
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	relay_namespace_name = "acctestrn-%d"
+	resource_group_name = "${azurerm_resource_group.test.name}"
+	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
 }
-`, testAccAzureRMHybridConnection_basic(rInt, location), rInt, rInt)
+`, testAccAzureRMHybridConnection_basic(rInt, location), rInt)
 }
 
 func testCheckAzureRMHybridConnectionExists(resourceName string) resource.TestCheckFunc {
@@ -108,9 +108,9 @@ func testCheckAzureRMHybridConnectionExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
+		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		relayNamespace := rs.Primary.Attributes["relay_namespace_name"]
-		name := rs.Primary.Attributes["name"]
 
 		// Ensure resource group exists in API
 		client := testAccProvider.Meta().(*ArmClient).Relay.HybridConnectionsClient
@@ -138,9 +138,9 @@ func testCheckAzureRMHybridConnectionDestroy(s *terraform.State) error {
 			continue
 		}
 
+		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		relayNamespace := rs.Primary.Attributes["relay_namespace_name"]
-		name := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup, relayNamespace, name)
 		if err != nil {
