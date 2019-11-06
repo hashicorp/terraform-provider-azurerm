@@ -135,8 +135,8 @@ func resourceArmAutomationCertificateUpdate(d *schema.ResourceData, meta interfa
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Certificate update.")
 
 	name := d.Get("name").(string)
-	resGroup := d.Get("resource_group_name").(string)
-	accName := d.Get("account_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	accountName := d.Get("account_name").(string)
 
 	description := d.Get("description").(string)
 
@@ -147,7 +147,7 @@ func resourceArmAutomationCertificateUpdate(d *schema.ResourceData, meta interfa
 		Name: &name,
 	}
 
-	read, err := client.Update(ctx, resGroup, accName, name, parameters)
+	read, err := client.Update(ctx, resourceGroup, accountName, name, parameters)
 	if err != nil {
 		return err
 	}
@@ -166,11 +166,11 @@ func resourceArmAutomationCertificateRead(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
+	resourceGroup := id.ResourceGroup
+	accountName := id.Path["automationAccounts"]
 	name := id.Path["certificates"]
 
-	resp, err := client.Get(ctx, resGroup, accName, name)
+	resp, err := client.Get(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			d.SetId("")
@@ -181,8 +181,8 @@ func resourceArmAutomationCertificateRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
-	d.Set("account_name", accName)
+	d.Set("resource_group_name", resourceGroup)
+	d.Set("account_name", accountName)
 
 	if props := resp.CertificateProperties; props != nil {
 		d.Set("is_exportable", props.IsExportable)
@@ -202,11 +202,11 @@ func resourceArmAutomationCertificateDelete(d *schema.ResourceData, meta interfa
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	accName := id.Path["automationAccounts"]
+	resourceGroup := id.ResourceGroup
+	accountName := id.Path["automationAccounts"]
 	name := id.Path["certificates"]
 
-	resp, err := client.Delete(ctx, resGroup, accName, name)
+	resp, err := client.Delete(ctx, resourceGroup, accountName, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp) {
 			return nil
