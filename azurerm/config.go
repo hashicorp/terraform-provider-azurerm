@@ -12,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -217,6 +218,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 
 	client.AnalysisServices = analysisservices.BuildClient(o)
 	client.ApiManagement = apimanagement.BuildClient(o)
+	client.AppConfiguration = appconfiguration.BuildClient(o)
 	client.AppInsights = applicationinsights.BuildClient(o)
 	client.Automation = automation.BuildClient(o)
 	client.Authorization = authorization.BuildClient(o)
