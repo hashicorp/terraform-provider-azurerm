@@ -29,12 +29,12 @@ resource "azurerm_automation_account" "example" {
 }
 
 resource "azurerm_automation_credential" "example" {
-  name                = "credential1"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  account_name        = "${azurerm_automation_account.example.name}"
-  username            = "example_user"
-  password            = "example_pwd"
-  description         = "This is an example credential"
+  name                    = "credential1"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  automation_account_name = "${azurerm_automation_account.example.name}"
+  username                = "example_user"
+  password                = "example_pwd"
+  description             = "This is an example credential"
 }
 ```
 
@@ -46,7 +46,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the Credential is created. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the automation account in which the Credential is created. Changing this forces a new resource to be created.
+* `automation_account_name` - (Required) The name of the automation account in which the Credential is created. Changing this forces a new resource to be created.
 
 * `username` - (Required) The username associated with this Automation Credential.
 
