@@ -103,7 +103,7 @@ func testCheckAzureRMAutomationCredentialDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -135,7 +135,7 @@ func testCheckAzureRMAutomationCredentialExists(resourceName string) resource.Te
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -177,11 +177,11 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_credential" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  username            = "test_user"
-  password            = "test_pwd"
+  name                    = "acctest-%d"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  username                = "test_user"
+  password                = "test_pwd"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -192,11 +192,11 @@ func testAccAzureRMAutomationCredential_requiresImport(rInt int, location string
 %s
 
 resource "azurerm_automation_credential" "import" {
-  name                = "${azurerm_automation_credential.test.name}"
-  resource_group_name = "${azurerm_automation_credential.test.resource_group_name}"
-  account_name        = "${azurerm_automation_credential.test.account_name}"
-  username            = "${azurerm_automation_credential.test.username}"
-  password            = "${azurerm_automation_credential.test.password}"
+  name                    = "${azurerm_automation_credential.test.name}"
+  resource_group_name     = "${azurerm_automation_credential.test.resource_group_name}"
+  automation_account_name = "${azurerm_automation_credential.test.automation_account_name}"
+  username                = "${azurerm_automation_credential.test.username}"
+  password                = "${azurerm_automation_credential.test.password}"
 }
 `, template)
 }
@@ -219,12 +219,12 @@ resource "azurerm_automation_account" "test" {
 }
 
 resource "azurerm_automation_credential" "test" {
-  name                = "acctest-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_automation_account.test.name}"
-  username            = "test_user"
-  password            = "test_pwd"
-  description         = "This is a test credential for terraform acceptance test"
+  name                    = "acctest-%d"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  automation_account_name = "${azurerm_automation_account.test.name}"
+  username                = "test_user"
+  password                = "test_pwd"
+  description             = "This is a test credential for terraform acceptance test"
 }
 `, rInt, location, rInt, rInt)
 }
