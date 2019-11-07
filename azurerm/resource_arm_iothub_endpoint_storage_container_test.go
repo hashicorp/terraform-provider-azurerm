@@ -45,7 +45,6 @@ func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
 	resourceName := "azurerm_iothub_endpoint_storage_container.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
@@ -72,7 +71,7 @@ func TestAccAzureRMIotHubEndpointStorageContainer_requiresImport(t *testing.T) {
 func testAccAzureRMIotHubEndpointStorageContainer_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
 }
 
@@ -152,16 +151,16 @@ func testAccAzureRMIotHubEndpointStorageContainerExists(resourceName string) res
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
+
 		parsedIothubId, err := azure.ParseAzureResourceID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
+
 		iothubName := parsedIothubId.Path["IotHubs"]
 		endpointName := parsedIothubId.Path["Endpoints"]
 		resourceGroup := parsedIothubId.ResourceGroup
-
 		client := testAccProvider.Meta().(*ArmClient).IoTHub.ResourceClient
-
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {
@@ -181,13 +180,14 @@ func testAccAzureRMIotHubEndpointStorageContainerExists(resourceName string) res
 		}
 
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				return nil
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					return nil
+				}
 			}
 		}
 
 		return fmt.Errorf("Bad: No Storage Container endpoint %s defined for IotHub %s", endpointName, iothubName)
-
 	}
 }
 
@@ -203,27 +203,27 @@ func testAccAzureRMIotHubEndpointStorageContainerDestroy(s *terraform.State) err
 		endpointName := rs.Primary.Attributes["name"]
 		iothubName := rs.Primary.Attributes["iothub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {
 				return nil
 			}
-
 			return fmt.Errorf("Bad: Get on iothubResourceClient: %+v", err)
 		}
 		if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.Endpoints == nil {
 			return nil
 		}
-		endpoints := iothub.Properties.Routing.Endpoints.StorageContainers
 
+		endpoints := iothub.Properties.Routing.Endpoints.StorageContainers
 		if endpoints == nil {
 			return nil
 		}
 
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				return fmt.Errorf("Bad: Storage Container endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					return fmt.Errorf("Bad: Storage Container endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+				}
 			}
 		}
 	}

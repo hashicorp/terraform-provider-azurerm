@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +24,13 @@ func resourceArmIotHubEndpointEventHub() *schema.Resource {
 		Delete: resourceArmIotHubEndpointEventHubDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -60,8 +69,8 @@ func resourceArmIotHubEndpointEventHub() *schema.Resource {
 
 func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
-	subscriptionID := meta.(*ArmClient).subscriptionId
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -79,20 +88,16 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	endpointName := d.Get("name").(string)
-
 	resourceId := fmt.Sprintf("%s/Endpoints/%s", *iothub.ID, endpointName)
 
-	connectionStr := d.Get("connection_string").(string)
-
 	eventhubEndpoint := devices.RoutingEventHubProperties{
-		ConnectionString: &connectionStr,
-		Name:             &endpointName,
-		SubscriptionID:   &subscriptionID,
-		ResourceGroup:    &resourceGroup,
+		ConnectionString: utils.String(d.Get("connection_string").(string)),
+		Name:             utils.String(endpointName),
+		SubscriptionID:   utils.String(meta.(*ArmClient).subscriptionId),
+		ResourceGroup:    utils.String(resourceGroup),
 	}
 
 	routing := iothub.Properties.Routing
-
 	if routing == nil {
 		routing = &devices.RoutingProperties{}
 	}
@@ -110,13 +115,14 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 
 	alreadyExists := false
 	for _, existingEndpoint := range *routing.Endpoints.EventHubs {
-		if strings.EqualFold(*existingEndpoint.Name, endpointName) {
-			if d.IsNewResource() && requireResourcesToBeImported {
-				return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", resourceId)
+		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
+			if strings.EqualFold(*existingEndpointName, endpointName) {
+				if d.IsNewResource() && requireResourcesToBeImported {
+					return tf.ImportAsExistsError("azurerm_iothub_endpoint_eventhub", resourceId)
+				}
+				endpoints = append(endpoints, eventhubEndpoint)
+				alreadyExists = true
 			}
-			endpoints = append(endpoints, eventhubEndpoint)
-			alreadyExists = true
-
 		} else {
 			endpoints = append(endpoints, existingEndpoint)
 		}
@@ -127,7 +133,6 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	} else if !alreadyExists {
 		return fmt.Errorf("Unable to find EventHub Endpoint %q defined for IotHub %q (Resource Group %q)", endpointName, iothubName, resourceGroup)
 	}
-
 	routing.Endpoints.EventHubs = &endpoints
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
@@ -140,16 +145,15 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	}
 
 	d.SetId(resourceId)
-
 	return resourceArmIotHubEndpointEventHubRead(d, meta)
 }
 
 func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -173,8 +177,10 @@ func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interfac
 
 	if endpoints := iothub.Properties.Routing.Endpoints.EventHubs; endpoints != nil {
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				d.Set("connection_string", endpoint.ConnectionString)
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					d.Set("connection_string", endpoint.ConnectionString)
+				}
 			}
 		}
 	}
@@ -184,10 +190,10 @@ func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interfac
 
 func resourceArmIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -204,7 +210,6 @@ func resourceArmIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interf
 		if utils.ResponseWasNotFound(iothub.Response) {
 			return fmt.Errorf("IotHub %q (Resource Group %q) was not found", iothubName, resourceGroup)
 		}
-
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
@@ -219,11 +224,12 @@ func resourceArmIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interf
 
 	updatedEndpoints := make([]devices.RoutingEventHubProperties, 0)
 	for _, endpoint := range *endpoints {
-		if !strings.EqualFold(*endpoint.Name, endpointName) {
-			updatedEndpoints = append(updatedEndpoints, endpoint)
+		if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+			if !strings.EqualFold(*existingEndpointName, endpointName) {
+				updatedEndpoints = append(updatedEndpoints, endpoint)
+			}
 		}
 	}
-
 	iothub.Properties.Routing.Endpoints.EventHubs = &updatedEndpoints
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")

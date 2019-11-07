@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +25,13 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 		Delete: resourceArmIotHubEndpointStorageContainerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -82,9 +90,8 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 			},
 
 			"encoding": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(devices.Avro),
 					string(devices.AvroDeflate),
@@ -97,7 +104,8 @@ func resourceArmIotHubEndpointStorageContainer() *schema.Resource {
 
 func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
 	iothubName := d.Get("iothub_name").(string)
@@ -116,7 +124,6 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 	}
 
 	endpointName := d.Get("name").(string)
-
 	resourceId := fmt.Sprintf("%s/Endpoints/%s", *iothub.ID, endpointName)
 
 	connectionStr := d.Get("connection_string").(string)
@@ -157,13 +164,14 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 
 	alreadyExists := false
 	for _, existingEndpoint := range *routing.Endpoints.StorageContainers {
-		if strings.EqualFold(*existingEndpoint.Name, endpointName) {
-			if d.IsNewResource() && requireResourcesToBeImported {
-				return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", resourceId)
+		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
+			if strings.EqualFold(*existingEndpointName, endpointName) {
+				if d.IsNewResource() && requireResourcesToBeImported {
+					return tf.ImportAsExistsError("azurerm_iothub_endpoint_storage_container", resourceId)
+				}
+				endpoints = append(endpoints, storageContainerEndpoint)
+				alreadyExists = true
 			}
-			endpoints = append(endpoints, storageContainerEndpoint)
-			alreadyExists = true
-
 		} else {
 			endpoints = append(endpoints, existingEndpoint)
 		}
@@ -174,7 +182,6 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 	} else if !alreadyExists {
 		return fmt.Errorf("Unable to find Storage Container Endpoint %q defined for IotHub %q (Resource Group %q)", endpointName, iothubName, resourceGroup)
 	}
-
 	routing.Endpoints.StorageContainers = &endpoints
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
@@ -193,10 +200,10 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 
 func resourceArmIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -220,13 +227,15 @@ func resourceArmIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta 
 
 	if endpoints := iothub.Properties.Routing.Endpoints.StorageContainers; endpoints != nil {
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				d.Set("connection_string", endpoint.ConnectionString)
-				d.Set("container_name", endpoint.ContainerName)
-				d.Set("file_name_format", endpoint.FileNameFormat)
-				d.Set("batch_frequency_in_seconds", endpoint.BatchFrequencyInSeconds)
-				d.Set("max_chunk_size_in_bytes", endpoint.MaxChunkSizeInBytes)
-				d.Set("encoding", endpoint.Encoding)
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					d.Set("connection_string", endpoint.ConnectionString)
+					d.Set("container_name", endpoint.ContainerName)
+					d.Set("file_name_format", endpoint.FileNameFormat)
+					d.Set("batch_frequency_in_seconds", endpoint.BatchFrequencyInSeconds)
+					d.Set("max_chunk_size_in_bytes", endpoint.MaxChunkSizeInBytes)
+					d.Set("encoding", endpoint.Encoding)
+				}
 			}
 		}
 	}
@@ -236,10 +245,10 @@ func resourceArmIotHubEndpointStorageContainerRead(d *schema.ResourceData, meta 
 
 func resourceArmIotHubEndpointStorageContainerDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -271,11 +280,12 @@ func resourceArmIotHubEndpointStorageContainerDelete(d *schema.ResourceData, met
 
 	updatedEndpoints := make([]devices.RoutingStorageContainerProperties, 0)
 	for _, endpoint := range *endpoints {
-		if !strings.EqualFold(*endpoint.Name, endpointName) {
-			updatedEndpoints = append(updatedEndpoints, endpoint)
+		if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+			if !strings.EqualFold(*existingEndpointName, endpointName) {
+				updatedEndpoints = append(updatedEndpoints, endpoint)
+			}
 		}
 	}
-
 	iothub.Properties.Routing.Endpoints.StorageContainers = &updatedEndpoints
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")

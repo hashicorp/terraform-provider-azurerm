@@ -1,7 +1,8 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_endpoint_storage_container"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-endpoint-storage-container-x"
+sidebar_current: "docs-azurerm-resource-messaging-iothub-endpoint-storage-container"
 description: |-
   Manages an IotHub Storage Container Endpoint
 ---
@@ -72,7 +73,6 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group under which the IotHub Storage Container Endpoint resource has to be created. Changing this forces a new resource to be created.
 
 * `iothub_name` - (Required) The name of the IoTHub to which this Storage Container Endpoint belongs. Changing this forces a new resource to be created.
-
 
 * `connection_string` - (Required) The connection string for the endpoint.
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,6 +12,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +24,13 @@ func resourceArmIotHubEndpointServiceBusTopic() *schema.Resource {
 		Delete: resourceArmIotHubEndpointServiceBusTopicDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -60,7 +69,8 @@ func resourceArmIotHubEndpointServiceBusTopic() *schema.Resource {
 
 func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	subscriptionID := meta.(*ArmClient).subscriptionId
 
 	iothubName := d.Get("iothub_name").(string)
@@ -79,20 +89,16 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 	}
 
 	endpointName := d.Get("name").(string)
-
 	resourceId := fmt.Sprintf("%s/Endpoints/%s", *iothub.ID, endpointName)
 
-	connectionStr := d.Get("connection_string").(string)
-
 	topicEndpoint := devices.RoutingServiceBusTopicEndpointProperties{
-		ConnectionString: &connectionStr,
-		Name:             &endpointName,
-		SubscriptionID:   &subscriptionID,
-		ResourceGroup:    &resourceGroup,
+		ConnectionString: utils.String(d.Get("connection_string").(string)),
+		Name:             utils.String(endpointName),
+		SubscriptionID:   utils.String(subscriptionID),
+		ResourceGroup:    utils.String(resourceGroup),
 	}
 
 	routing := iothub.Properties.Routing
-
 	if routing == nil {
 		routing = &devices.RoutingProperties{}
 	}
@@ -105,18 +111,18 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 		topics := make([]devices.RoutingServiceBusTopicEndpointProperties, 0)
 		routing.Endpoints.ServiceBusTopics = &topics
 	}
-
 	endpoints := make([]devices.RoutingServiceBusTopicEndpointProperties, 0)
 
 	alreadyExists := false
 	for _, existingEndpoint := range *routing.Endpoints.ServiceBusTopics {
-		if strings.EqualFold(*existingEndpoint.Name, endpointName) {
-			if d.IsNewResource() && requireResourcesToBeImported {
-				return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_topic", resourceId)
+		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
+			if strings.EqualFold(*existingEndpointName, endpointName) {
+				if d.IsNewResource() && requireResourcesToBeImported {
+					return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_topic", resourceId)
+				}
+				endpoints = append(endpoints, topicEndpoint)
+				alreadyExists = true
 			}
-			endpoints = append(endpoints, topicEndpoint)
-			alreadyExists = true
-
 		} else {
 			endpoints = append(endpoints, existingEndpoint)
 		}
@@ -127,7 +133,6 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 	} else if !alreadyExists {
 		return fmt.Errorf("Unable to find ServiceBus Queue Endpoint %q defined for IotHub %q (Resource Group %q)", endpointName, iothubName, resourceGroup)
 	}
-
 	routing.Endpoints.ServiceBusTopics = &endpoints
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
@@ -146,7 +151,8 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 
 func resourceArmIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
 
@@ -173,8 +179,10 @@ func resourceArmIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta i
 
 	if endpoints := iothub.Properties.Routing.Endpoints.ServiceBusTopics; endpoints != nil {
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				d.Set("connection_string", endpoint.ConnectionString)
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					d.Set("connection_string", endpoint.ConnectionString)
+				}
 			}
 		}
 	}
@@ -184,7 +192,8 @@ func resourceArmIotHubEndpointServiceBusTopicRead(d *schema.ResourceData, meta i
 
 func resourceArmIotHubEndpointServiceBusTopicDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
 
@@ -219,11 +228,12 @@ func resourceArmIotHubEndpointServiceBusTopicDelete(d *schema.ResourceData, meta
 
 	updatedEndpoints := make([]devices.RoutingServiceBusTopicEndpointProperties, 0)
 	for _, endpoint := range *endpoints {
-		if !strings.EqualFold(*endpoint.Name, endpointName) {
-			updatedEndpoints = append(updatedEndpoints, endpoint)
+		if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+			if !strings.EqualFold(*existingEndpointName, endpointName) {
+				updatedEndpoints = append(updatedEndpoints, endpoint)
+			}
 		}
 	}
-
 	iothub.Properties.Routing.Endpoints.ServiceBusTopics = &updatedEndpoints
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")

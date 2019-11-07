@@ -68,10 +68,9 @@ func TestAccAzureRMIotHubEndpointServiceBusTopic_requiresImport(t *testing.T) {
 func testAccAzureRMIotHubEndpointServiceBusTopic_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
 }
-
 
 resource "azurerm_servicebus_namespace" "test" {
   name                = "acctest-%[1]d"
@@ -175,13 +174,13 @@ func testAccAzureRMIotHubEndpointServiceBusTopicExists(resourceName string) reso
 		}
 
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				return nil
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					return nil
+				}
 			}
 		}
-
 		return fmt.Errorf("Bad: No ServiceBus Topic endpoint %s defined for IotHub %s", endpointName, iothubName)
-
 	}
 }
 
@@ -197,7 +196,6 @@ func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) erro
 		endpointName := rs.Primary.Attributes["name"]
 		iothubName := rs.Primary.Attributes["iothub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
-
 		iothub, err := client.Get(ctx, resourceGroup, iothubName)
 		if err != nil {
 			if utils.ResponseWasNotFound(iothub.Response) {
@@ -216,8 +214,10 @@ func testAccAzureRMIotHubEndpointServiceBusTopicDestroy(s *terraform.State) erro
 		}
 
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				return fmt.Errorf("Bad: ServiceBus Topic endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					return fmt.Errorf("Bad: ServiceBus Topic endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+				}
 			}
 		}
 	}

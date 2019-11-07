@@ -41,7 +41,6 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_requiresImport(t *testing.T) {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
-
 	resourceName := "azurerm_iothub_endpoint_servicebus_queue.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
@@ -68,7 +67,7 @@ func TestAccAzureRMIotHubEndpointServiceBusQueue_requiresImport(t *testing.T) {
 func testAccAzureRMIotHubEndpointServiceBusQueue_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
 }
 
@@ -183,7 +182,6 @@ func testAccAzureRMIotHubEndpointServiceBusQueueExists(resourceName string) reso
 		}
 
 		return fmt.Errorf("Bad: No ServiceBus Queue endpoint %s defined for IotHub %s", endpointName, iothubName)
-
 	}
 }
 
@@ -195,7 +193,6 @@ func testAccAzureRMIotHubEndpointServiceBusQueueDestroy(s *terraform.State) erro
 		if rs.Type != "azurerm_iothub_endpoint_servicebus_queue" {
 			continue
 		}
-
 		endpointName := rs.Primary.Attributes["name"]
 		iothubName := rs.Primary.Attributes["iothub_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -218,8 +215,10 @@ func testAccAzureRMIotHubEndpointServiceBusQueueDestroy(s *terraform.State) erro
 		}
 
 		for _, endpoint := range *endpoints {
-			if strings.EqualFold(*endpoint.Name, endpointName) {
-				return fmt.Errorf("Bad: ServiceBus Queue endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+			if existingEndpointName := endpoint.Name; existingEndpointName != nil {
+				if strings.EqualFold(*existingEndpointName, endpointName) {
+					return fmt.Errorf("Bad: ServiceBus Queue endpoint %s still exists on IoTHb %s", endpointName, iothubName)
+				}
 			}
 		}
 	}

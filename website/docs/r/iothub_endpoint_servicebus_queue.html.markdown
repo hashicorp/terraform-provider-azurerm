@@ -1,7 +1,8 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_endpoint_servicebus_queue"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-servicebus-queue-x"
+sidebar_current: "docs-azurerm-resource-messaging-iothub-servicebus-queue"
 description: |-
   Manages an IotHub ServiceBus Queue Endpoint
 ---
