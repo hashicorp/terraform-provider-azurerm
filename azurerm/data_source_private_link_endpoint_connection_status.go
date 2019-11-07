@@ -16,8 +16,8 @@ func dataSourceArmPrivateLinkEndpointConnectionStatus() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: aznet.ValidatePrivateLinkEndpointName,
 			},
@@ -120,7 +120,7 @@ func getPrivateIpAddress(networkInterfaceId string, meta interface{}) string {
 			for i, config := range *configs {
 				if propFmt := config.InterfaceIPConfigurationPropertiesFormat; propFmt != nil {
 					if propFmt.PrivateIPAddress != nil && *propFmt.PrivateIPAddress != "" && i == 0 {
-							privateIpAddress = *propFmt.PrivateIPAddress
+						privateIpAddress = *propFmt.PrivateIPAddress
 					}
 					break
 				}
