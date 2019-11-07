@@ -515,12 +515,12 @@ resource "azurerm_iothub" "test" {
 
   file_upload {
     connection_string  = "${azurerm_storage_account.test.primary_blob_connection_string}"
-	container_name     = "${azurerm_storage_container.test.name}"
-	notifications      = true
-	max_delivery_count = 12
-	sas_ttl            = "PT2H"
-	default_ttl        = "PT3H"
-	lock_duration      = "PT5M"
+    container_name     = "${azurerm_storage_container.test.name}"
+    notifications      = true
+    max_delivery_count = 12
+    sas_ttl            = "PT2H"
+    default_ttl        = "PT3H"
+    lock_duration      = "PT5M"
   }
 }
 `, rInt, location, rStr, rInt)

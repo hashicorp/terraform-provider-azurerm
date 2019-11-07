@@ -18,8 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-type cognitiveServicesPropertiesStruct struct{}
-
 func resourceArmCognitiveAccount() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmCognitiveAccountCreate,
@@ -94,7 +92,7 @@ func resourceArmCognitiveAccount() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"F0", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
+								"F0", "F1", "S0", "S1", "S2", "S3", "S4", "S5", "S6", "P0", "P1", "P2",
 							}, false),
 						},
 
@@ -159,11 +157,11 @@ func resourceArmCognitiveAccountCreate(d *schema.ResourceData, meta interface{})
 	t := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
-	properties := cognitiveservices.AccountCreateParameters{
+	properties := cognitiveservices.Account{
 		Kind:       utils.String(kind),
 		Location:   utils.String(location),
 		Sku:        sku,
-		Properties: &cognitiveServicesPropertiesStruct{},
+		Properties: &cognitiveservices.AccountProperties{},
 		Tags:       tags.Expand(t),
 	}
 
@@ -197,7 +195,7 @@ func resourceArmCognitiveAccountUpdate(d *schema.ResourceData, meta interface{})
 	t := d.Get("tags").(map[string]interface{})
 	sku := expandCognitiveAccountSku(d)
 
-	properties := cognitiveservices.AccountUpdateParameters{
+	properties := cognitiveservices.Account{
 		Sku:  sku,
 		Tags: tags.Expand(t),
 	}
@@ -246,7 +244,7 @@ func resourceArmCognitiveAccountRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	if props := resp.AccountProperties; props != nil {
+	if props := resp.Properties; props != nil {
 		d.Set("endpoint", props.Endpoint)
 	}
 

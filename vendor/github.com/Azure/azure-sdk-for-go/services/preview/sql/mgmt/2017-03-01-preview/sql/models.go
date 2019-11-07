@@ -2106,6 +2106,153 @@ func (dbap *DatabaseBlobAuditingPolicy) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// DatabaseBlobAuditingPolicyListResult a list of database auditing settings.
+type DatabaseBlobAuditingPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]DatabaseBlobAuditingPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// DatabaseBlobAuditingPolicyListResultIterator provides access to a complete listing of
+// DatabaseBlobAuditingPolicy values.
+type DatabaseBlobAuditingPolicyListResultIterator struct {
+	i    int
+	page DatabaseBlobAuditingPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *DatabaseBlobAuditingPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabaseBlobAuditingPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *DatabaseBlobAuditingPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter DatabaseBlobAuditingPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter DatabaseBlobAuditingPolicyListResultIterator) Response() DatabaseBlobAuditingPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter DatabaseBlobAuditingPolicyListResultIterator) Value() DatabaseBlobAuditingPolicy {
+	if !iter.page.NotDone() {
+		return DatabaseBlobAuditingPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the DatabaseBlobAuditingPolicyListResultIterator type.
+func NewDatabaseBlobAuditingPolicyListResultIterator(page DatabaseBlobAuditingPolicyListResultPage) DatabaseBlobAuditingPolicyListResultIterator {
+	return DatabaseBlobAuditingPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (dbaplr DatabaseBlobAuditingPolicyListResult) IsEmpty() bool {
+	return dbaplr.Value == nil || len(*dbaplr.Value) == 0
+}
+
+// databaseBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (dbaplr DatabaseBlobAuditingPolicyListResult) databaseBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if dbaplr.NextLink == nil || len(to.String(dbaplr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(dbaplr.NextLink)))
+}
+
+// DatabaseBlobAuditingPolicyListResultPage contains a page of DatabaseBlobAuditingPolicy values.
+type DatabaseBlobAuditingPolicyListResultPage struct {
+	fn     func(context.Context, DatabaseBlobAuditingPolicyListResult) (DatabaseBlobAuditingPolicyListResult, error)
+	dbaplr DatabaseBlobAuditingPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *DatabaseBlobAuditingPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/DatabaseBlobAuditingPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.dbaplr)
+	if err != nil {
+		return err
+	}
+	page.dbaplr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *DatabaseBlobAuditingPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page DatabaseBlobAuditingPolicyListResultPage) NotDone() bool {
+	return !page.dbaplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page DatabaseBlobAuditingPolicyListResultPage) Response() DatabaseBlobAuditingPolicyListResult {
+	return page.dbaplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page DatabaseBlobAuditingPolicyListResultPage) Values() []DatabaseBlobAuditingPolicy {
+	if page.dbaplr.IsEmpty() {
+		return nil
+	}
+	return *page.dbaplr.Value
+}
+
+// Creates a new instance of the DatabaseBlobAuditingPolicyListResultPage type.
+func NewDatabaseBlobAuditingPolicyListResultPage(getNextPage func(context.Context, DatabaseBlobAuditingPolicyListResult) (DatabaseBlobAuditingPolicyListResult, error)) DatabaseBlobAuditingPolicyListResultPage {
+	return DatabaseBlobAuditingPolicyListResultPage{fn: getNextPage}
+}
+
 // DatabaseBlobAuditingPolicyProperties properties of a database blob auditing policy.
 type DatabaseBlobAuditingPolicyProperties struct {
 	// State - Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'BlobAuditingPolicyStateEnabled', 'BlobAuditingPolicyStateDisabled'
@@ -11143,6 +11290,153 @@ func (sbap *ServerBlobAuditingPolicy) UnmarshalJSON(body []byte) error {
 	return nil
 }
 
+// ServerBlobAuditingPolicyListResult a list of server auditing settings.
+type ServerBlobAuditingPolicyListResult struct {
+	autorest.Response `json:"-"`
+	// Value - READ-ONLY; Array of results.
+	Value *[]ServerBlobAuditingPolicy `json:"value,omitempty"`
+	// NextLink - READ-ONLY; Link to retrieve next page of results.
+	NextLink *string `json:"nextLink,omitempty"`
+}
+
+// ServerBlobAuditingPolicyListResultIterator provides access to a complete listing of
+// ServerBlobAuditingPolicy values.
+type ServerBlobAuditingPolicyListResultIterator struct {
+	i    int
+	page ServerBlobAuditingPolicyListResultPage
+}
+
+// NextWithContext advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+func (iter *ServerBlobAuditingPolicyListResultIterator) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerBlobAuditingPolicyListResultIterator.NextWithContext")
+		defer func() {
+			sc := -1
+			if iter.Response().Response.Response != nil {
+				sc = iter.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	iter.i++
+	if iter.i < len(iter.page.Values()) {
+		return nil
+	}
+	err = iter.page.NextWithContext(ctx)
+	if err != nil {
+		iter.i--
+		return err
+	}
+	iter.i = 0
+	return nil
+}
+
+// Next advances to the next value.  If there was an error making
+// the request the iterator does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (iter *ServerBlobAuditingPolicyListResultIterator) Next() error {
+	return iter.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the enumeration should be started or is not yet complete.
+func (iter ServerBlobAuditingPolicyListResultIterator) NotDone() bool {
+	return iter.page.NotDone() && iter.i < len(iter.page.Values())
+}
+
+// Response returns the raw server response from the last page request.
+func (iter ServerBlobAuditingPolicyListResultIterator) Response() ServerBlobAuditingPolicyListResult {
+	return iter.page.Response()
+}
+
+// Value returns the current value or a zero-initialized value if the
+// iterator has advanced beyond the end of the collection.
+func (iter ServerBlobAuditingPolicyListResultIterator) Value() ServerBlobAuditingPolicy {
+	if !iter.page.NotDone() {
+		return ServerBlobAuditingPolicy{}
+	}
+	return iter.page.Values()[iter.i]
+}
+
+// Creates a new instance of the ServerBlobAuditingPolicyListResultIterator type.
+func NewServerBlobAuditingPolicyListResultIterator(page ServerBlobAuditingPolicyListResultPage) ServerBlobAuditingPolicyListResultIterator {
+	return ServerBlobAuditingPolicyListResultIterator{page: page}
+}
+
+// IsEmpty returns true if the ListResult contains no values.
+func (sbaplr ServerBlobAuditingPolicyListResult) IsEmpty() bool {
+	return sbaplr.Value == nil || len(*sbaplr.Value) == 0
+}
+
+// serverBlobAuditingPolicyListResultPreparer prepares a request to retrieve the next set of results.
+// It returns nil if no more results exist.
+func (sbaplr ServerBlobAuditingPolicyListResult) serverBlobAuditingPolicyListResultPreparer(ctx context.Context) (*http.Request, error) {
+	if sbaplr.NextLink == nil || len(to.String(sbaplr.NextLink)) < 1 {
+		return nil, nil
+	}
+	return autorest.Prepare((&http.Request{}).WithContext(ctx),
+		autorest.AsJSON(),
+		autorest.AsGet(),
+		autorest.WithBaseURL(to.String(sbaplr.NextLink)))
+}
+
+// ServerBlobAuditingPolicyListResultPage contains a page of ServerBlobAuditingPolicy values.
+type ServerBlobAuditingPolicyListResultPage struct {
+	fn     func(context.Context, ServerBlobAuditingPolicyListResult) (ServerBlobAuditingPolicyListResult, error)
+	sbaplr ServerBlobAuditingPolicyListResult
+}
+
+// NextWithContext advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+func (page *ServerBlobAuditingPolicyListResultPage) NextWithContext(ctx context.Context) (err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ServerBlobAuditingPolicyListResultPage.NextWithContext")
+		defer func() {
+			sc := -1
+			if page.Response().Response.Response != nil {
+				sc = page.Response().Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	next, err := page.fn(ctx, page.sbaplr)
+	if err != nil {
+		return err
+	}
+	page.sbaplr = next
+	return nil
+}
+
+// Next advances to the next page of values.  If there was an error making
+// the request the page does not advance and the error is returned.
+// Deprecated: Use NextWithContext() instead.
+func (page *ServerBlobAuditingPolicyListResultPage) Next() error {
+	return page.NextWithContext(context.Background())
+}
+
+// NotDone returns true if the page enumeration should be started or is not yet complete.
+func (page ServerBlobAuditingPolicyListResultPage) NotDone() bool {
+	return !page.sbaplr.IsEmpty()
+}
+
+// Response returns the raw server response from the last page request.
+func (page ServerBlobAuditingPolicyListResultPage) Response() ServerBlobAuditingPolicyListResult {
+	return page.sbaplr
+}
+
+// Values returns the slice of values for the current page or nil if there are no values.
+func (page ServerBlobAuditingPolicyListResultPage) Values() []ServerBlobAuditingPolicy {
+	if page.sbaplr.IsEmpty() {
+		return nil
+	}
+	return *page.sbaplr.Value
+}
+
+// Creates a new instance of the ServerBlobAuditingPolicyListResultPage type.
+func NewServerBlobAuditingPolicyListResultPage(getNextPage func(context.Context, ServerBlobAuditingPolicyListResult) (ServerBlobAuditingPolicyListResult, error)) ServerBlobAuditingPolicyListResultPage {
+	return ServerBlobAuditingPolicyListResultPage{fn: getNextPage}
+}
+
 // ServerBlobAuditingPolicyProperties properties of a server blob auditing policy.
 type ServerBlobAuditingPolicyProperties struct {
 	// State - Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'BlobAuditingPolicyStateEnabled', 'BlobAuditingPolicyStateDisabled'
@@ -12822,17 +13116,17 @@ type ServiceTierAdvisorProperties struct {
 	Confidence *float64 `json:"confidence,omitempty"`
 }
 
-// Sku the resource model definition representing SKU
+// Sku an ARM Resource SKU.
 type Sku struct {
-	// Name - The name of the SKU. Ex - P3. It is typically a letter+number code
+	// Name - The name of the SKU, typically, a letter + Number code, e.g. P3.
 	Name *string `json:"name,omitempty"`
-	// Tier - This field is required to be implemented by the Resource Provider if the service has more than one tier, but is not required on a PUT.
+	// Tier - The tier or edition of the particular SKU, e.g. Basic, Premium.
 	Tier *string `json:"tier,omitempty"`
-	// Size - The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code.
+	// Size - Size of the particular SKU
 	Size *string `json:"size,omitempty"`
 	// Family - If the service has different generations of hardware, for the same SKU, then that can be captured here.
 	Family *string `json:"family,omitempty"`
-	// Capacity - If the SKU supports scale out/in then the capacity integer should be included. If scale out/in is not possible for the resource this may be omitted.
+	// Capacity - Capacity of the particular SKU.
 	Capacity *int32 `json:"capacity,omitempty"`
 }
 

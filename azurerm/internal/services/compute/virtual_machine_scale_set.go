@@ -161,7 +161,7 @@ func VirtualMachineScaleSetIdentitySchema() *schema.Schema {
 				},
 
 				"identity_ids": {
-					Type:     schema.TypeList,
+					Type:     schema.TypeSet,
 					Optional: true,
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
@@ -191,7 +191,7 @@ func ExpandVirtualMachineScaleSetIdentity(input []interface{}) (*compute.Virtual
 		Type: compute.ResourceIdentityType(raw["type"].(string)),
 	}
 
-	identityIdsRaw := raw["identity_ids"].([]interface{})
+	identityIdsRaw := raw["identity_ids"].(*schema.Set).List()
 	identityIds := make(map[string]*compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue)
 	for _, v := range identityIdsRaw {
 		identityIds[v.(string)] = &compute.VirtualMachineScaleSetIdentityUserAssignedIdentitiesValue{}

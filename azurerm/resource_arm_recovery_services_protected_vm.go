@@ -206,7 +206,7 @@ func resourceArmRecoveryServicesProtectedVmDelete(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceArmRecoveryServicesProtectedVmWaitForState(client *backup.ProtectedItemsGroupClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) (backup.ProtectedItemResource, error) {
+func resourceArmRecoveryServicesProtectedVmWaitForState(client *backup.ProtectedItemsClient, ctx context.Context, found bool, vaultName, resourceGroup, containerName, protectedItemName string, policyId string, newResource bool) (backup.ProtectedItemResource, error) {
 	state := &resource.StateChangeConf{
 		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,

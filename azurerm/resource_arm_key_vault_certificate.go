@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -281,28 +282,31 @@ func resourceArmKeyVaultCertificate() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"emails": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
+													Set: schema.HashString,
 												},
 												"dns_names": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
+													Set: schema.HashString,
 												},
 												"upns": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													ForceNew: true,
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},
+													Set: schema.HashString,
 												},
 											},
 										},
@@ -362,7 +366,7 @@ func resourceArmKeyVaultCertificateCreate(d *schema.ResourceData, meta interface
 
 		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Certificate %q vault url form id %q: %+v", name, keyVaultId, err)
+			return fmt.Errorf("Error looking up Certificate %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		keyVaultBaseUrl = pKeyVaultBaseUrl
@@ -639,17 +643,17 @@ func expandKeyVaultCertificatePolicy(d *schema.ResourceData) keyvault.Certificat
 				if sans[0] != nil {
 					san := sans[0].(map[string]interface{})
 
-					emails := san["emails"].([]interface{})
+					emails := san["emails"].(*schema.Set).List()
 					if len(emails) > 0 {
 						subjectAlternativeNames.Emails = utils.ExpandStringSlice(emails)
 					}
 
-					dnsNames := san["dns_names"].([]interface{})
+					dnsNames := san["dns_names"].(*schema.Set).List()
 					if len(dnsNames) > 0 {
 						subjectAlternativeNames.DNSNames = utils.ExpandStringSlice(dnsNames)
 					}
 
-					upns := san["upns"].([]interface{})
+					upns := san["upns"].(*schema.Set).List()
 					if len(upns) > 0 {
 						subjectAlternativeNames.Upns = utils.ExpandStringSlice(upns)
 					}
@@ -737,10 +741,15 @@ func flattenKeyVaultCertificatePolicy(input *keyvault.CertificatePolicy) []inter
 		sanOutputs := make([]interface{}, 0)
 		if san := props.SubjectAlternativeNames; san != nil {
 			sanOutput := make(map[string]interface{})
-
-			sanOutput["emails"] = utils.FlattenStringSlice(san.Emails)
-			sanOutput["dns_names"] = utils.FlattenStringSlice(san.DNSNames)
-			sanOutput["upns"] = utils.FlattenStringSlice(san.Upns)
+			if emails := san.Emails; emails != nil {
+				sanOutput["emails"] = set.FromStringSlice(*emails)
+			}
+			if dnsNames := san.DNSNames; dnsNames != nil {
+				sanOutput["dns_names"] = set.FromStringSlice(*dnsNames)
+			}
+			if upns := san.Upns; upns != nil {
+				sanOutput["upns"] = set.FromStringSlice(*upns)
+			}
 
 			sanOutputs = append(sanOutputs, sanOutput)
 		}

@@ -20,7 +20,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   account_name        = "${azurerm_cosmosdb_account.example.name}"
   database_name       = "${azurerm_cosmosdb_sql_database.example.name}"
   partition_key_path  = "/definition/id"
- 
+
   unique_key {
     paths = ["/definition/idlong", "/definition/idshort"]
   }

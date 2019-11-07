@@ -175,7 +175,7 @@ func TestAccAzureRMServiceBusNamespace_premiumCapacity(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      config,
-				ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2 or 4"),
+				ExpectError: regexp.MustCompile("Service Bus SKU \"Premium\" only supports `capacity` of 1, 2, 4 or 8"),
 			},
 		},
 	})

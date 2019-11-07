@@ -103,15 +103,15 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := storage.ExpandMetaData(metaDataRaw)
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s)", containerName, accountName)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
+	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Containers Client: %s", err)
 	}
@@ -121,7 +121,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		existing, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q): %+v", containerName, accountName, *resourceGroup, err)
+				return fmt.Errorf("Error checking for existence of existing Container %q (Account %q / Resource Group %q): %+v", containerName, accountName, account.ResourceGroup, err)
 			}
 		}
 
@@ -136,7 +136,7 @@ func resourceArmStorageContainerCreate(d *schema.ResourceData, meta interface{})
 		MetaData:    metaData,
 	}
 	if _, err := client.Create(ctx, accountName, containerName, input); err != nil {
-		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, *resourceGroup, err)
+		return fmt.Errorf("Error creating Container %q (Account %q / Resource Group %q): %s", containerName, accountName, account.ResourceGroup, err)
 	}
 
 	d.SetId(id)
@@ -153,41 +153,39 @@ func resourceArmStorageContainerUpdate(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
-		d.SetId("")
-		return nil
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	if d.HasChange("container_access_type") {
-		log.Printf("[DEBUG] Updating the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, *resourceGroup)
+		log.Printf("[DEBUG] Updating the Access Control for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 		accessLevelRaw := d.Get("container_access_type").(string)
 		accessLevel := expandStorageContainerAccessLevel(accessLevelRaw)
 
 		if _, err := client.SetAccessControl(ctx, id.AccountName, id.ContainerName, accessLevel); err != nil {
-			return fmt.Errorf("Error updating the Access Control for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, *resourceGroup, err)
+			return fmt.Errorf("Error updating the Access Control for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 		}
-		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, *resourceGroup)
+		log.Printf("[DEBUG] Updated the Access Control for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
 	}
 
 	if d.HasChange("metadata") {
-		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, *resourceGroup)
+		log.Printf("[DEBUG] Updating the MetaData for Container %q (Storage Account %q / Resource Group %q)..", id.ContainerName, id.AccountName, account.ResourceGroup)
 		metaDataRaw := d.Get("metadata").(map[string]interface{})
 		metaData := storage.ExpandMetaData(metaDataRaw)
 
 		if _, err := client.SetMetaData(ctx, id.AccountName, id.ContainerName, metaData); err != nil {
-			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, *resourceGroup, err)
+			return fmt.Errorf("Error updating the MetaData for Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 		}
-		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, *resourceGroup)
+		log.Printf("[DEBUG] Updated the MetaData for Container %q (Storage Account %q / Resource Group %q)", id.ContainerName, id.AccountName, account.ResourceGroup)
 	}
 
 	return resourceArmStorageContainerRead(d, meta)
@@ -203,35 +201,35 @@ func resourceArmStorageContainerRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
+	if account == nil {
+		log.Printf("[DEBUG] Unable to locate Account %q for Storage Container %q - assuming removed & removing from state", id.AccountName, id.ContainerName)
 		d.SetId("")
 		return nil
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	props, err := client.GetProperties(ctx, id.AccountName, id.ContainerName)
 	if err != nil {
 		if utils.ResponseWasNotFound(props.Response) {
-			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, *resourceGroup)
+			log.Printf("[DEBUG] Container %q was not found in Account %q / Resource Group %q - assuming removed & removing from state", id.ContainerName, id.AccountName, account.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error retrieving Container %q (Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	d.Set("name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", account.ResourceGroup)
 
 	d.Set("container_access_type", flattenStorageContainerAccessLevel(props.AccessLevel))
 
@@ -259,23 +257,21 @@ func resourceArmStorageContainerDelete(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", id.ContainerName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Container %q: %s", id.AccountName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", id.ContainerName, id.AccountName)
-		d.SetId("")
-		return nil
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	client, err := storageClient.ContainersClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.ContainersClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error building Containers Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	if _, err := client.Delete(ctx, id.AccountName, id.ContainerName); err != nil {
-		return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error deleting Container %q (Storage Account %q / Resource Group %q): %s", id.ContainerName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil

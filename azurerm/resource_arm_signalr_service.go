@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/signalr/mgmt/2018-03-01-preview/signalr"
+	"github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -72,6 +72,40 @@ func resourceArmSignalRService() *schema.Resource {
 				},
 			},
 
+			"features": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"flag": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"value": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"cors": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allowed_origins": {
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+					},
+				},
+			},
+
 			"hostname": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -132,6 +166,8 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 
 	sku := d.Get("sku").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
+	featureFlags := d.Get("features").([]interface{})
+	cors := d.Get("cors").([]interface{})
 	expandedTags := tags.Expand(t)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
@@ -147,10 +183,16 @@ func resourceArmSignalRServiceCreateUpdate(d *schema.ResourceData, meta interfac
 		}
 	}
 
+	properties := &signalr.CreateOrUpdateProperties{
+		Cors:     expandSignalRCors(cors),
+		Features: expandSignalRFeatures(featureFlags),
+	}
+
 	parameters := &signalr.CreateParameters{
-		Location: utils.String(location),
-		Sku:      expandSignalRServiceSku(sku),
-		Tags:     expandedTags,
+		Location:   utils.String(location),
+		Sku:        expandSignalRServiceSku(sku),
+		Tags:       expandedTags,
+		Properties: properties,
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -202,6 +244,7 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
+
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -215,6 +258,14 @@ func resourceArmSignalRServiceRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("ip_address", properties.ExternalIP)
 		d.Set("public_port", properties.PublicPort)
 		d.Set("server_port", properties.ServerPort)
+
+		if err := d.Set("features", flattenSignalRFeatures(properties.Features)); err != nil {
+			return fmt.Errorf("Error setting `features`: %+v", err)
+		}
+
+		if err := d.Set("cors", flattenSignalRCors(properties.Cors)); err != nil {
+			return fmt.Errorf("Error setting `cors`: %+v", err)
+		}
 	}
 
 	d.Set("primary_access_key", keys.PrimaryKey)
@@ -251,6 +302,84 @@ func resourceArmSignalRServiceDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	return nil
+}
+
+func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
+	features := make([]signalr.Feature, 0)
+	for _, featureValue := range input {
+		value := featureValue.(map[string]interface{})
+
+		feature := signalr.Feature{
+			Flag:  utils.String(value["flag"].(string)),
+			Value: utils.String(value["value"].(string)),
+		}
+
+		features = append(features, feature)
+	}
+
+	return &features
+}
+
+func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
+	result := make([]interface{}, 0)
+	if features != nil {
+		for _, feature := range *features {
+			flag := ""
+			if feature.Flag != nil {
+				flag = *feature.Flag
+			}
+
+			value := ""
+			if feature.Value != nil {
+				value = *feature.Value
+			}
+
+			result = append(result, map[string]interface{}{
+				"flag":  flag,
+				"value": value,
+			})
+		}
+	}
+	return result
+}
+
+func expandSignalRCors(input []interface{}) *signalr.CorsSettings {
+	corsSettings := signalr.CorsSettings{}
+
+	if len(input) == 0 {
+		return &corsSettings
+	}
+
+	setting := input[0].(map[string]interface{})
+	origins := setting["allowed_origins"].(*schema.Set).List()
+
+	allowedOrigins := make([]string, 0)
+	for _, param := range origins {
+		allowedOrigins = append(allowedOrigins, param.(string))
+	}
+
+	corsSettings.AllowedOrigins = &allowedOrigins
+
+	return &corsSettings
+}
+
+func flattenSignalRCors(input *signalr.CorsSettings) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	allowedOrigins := make([]interface{}, 0)
+	if s := input.AllowedOrigins; s != nil {
+		for _, v := range *s {
+			allowedOrigins = append(allowedOrigins, v)
+		}
+	}
+	result["allowed_origins"] = schema.NewSet(schema.HashString, allowedOrigins)
+
+	return append(results, result)
 }
 
 func expandSignalRServiceSku(input []interface{}) *signalr.ResourceSku {

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2015-05-01-preview/sql"
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -74,6 +74,31 @@ func resourceArmSqlServer() *schema.Resource {
 				Computed: true,
 			},
 
+			"identity": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"type": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SystemAssigned",
+							}, false),
+						},
+						"principal_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"tenant_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -113,6 +138,11 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 			Version:            utils.String(version),
 			AdministratorLogin: utils.String(adminUsername),
 		},
+	}
+
+	if _, ok := d.GetOk("identity"); ok {
+		sqlServerIdentity := expandAzureRmSqlServerIdentity(d)
+		parameters.Identity = sqlServerIdentity
 	}
 
 	if d.HasChange("administrator_login_password") {
@@ -173,6 +203,10 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if err := d.Set("identity", flattenAzureRmSqlServerIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `identity`: %+v", err)
+	}
+
 	if serverProperties := resp.ServerProperties; serverProperties != nil {
 		d.Set("version", serverProperties.Version)
 		d.Set("administrator_login", serverProperties.AdministratorLogin)
@@ -201,4 +235,31 @@ func resourceArmSqlServerDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
+}
+
+func expandAzureRmSqlServerIdentity(d *schema.ResourceData) *sql.ResourceIdentity {
+	identities := d.Get("identity").([]interface{})
+	if len(identities) == 0 {
+		return &sql.ResourceIdentity{}
+	}
+	identity := identities[0].(map[string]interface{})
+	identityType := sql.IdentityType(identity["type"].(string))
+	return &sql.ResourceIdentity{
+		Type: identityType,
+	}
+}
+func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface{} {
+	if identity == nil {
+		return []interface{}{}
+	}
+	result := make(map[string]interface{})
+	result["type"] = identity.Type
+	if identity.PrincipalID != nil {
+		result["principal_id"] = identity.PrincipalID.String()
+	}
+	if identity.TenantID != nil {
+		result["tenant_id"] = identity.TenantID.String()
+	}
+
+	return []interface{}{result}
 }

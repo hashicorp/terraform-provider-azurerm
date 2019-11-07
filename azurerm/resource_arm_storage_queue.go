@@ -97,15 +97,15 @@ func resourceArmStorageQueueCreate(d *schema.ResourceData, meta interface{}) err
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := storage.ExpandMetaData(metaDataRaw)
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", queueName, accountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", accountName, queueName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s)", queueName, accountName)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
-	queueClient, err := storageClient.QueuesClient(ctx, *resourceGroup, accountName)
+	queueClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
 	}
@@ -146,15 +146,15 @@ func resourceArmStorageQueueUpdate(d *schema.ResourceData, meta interface{}) err
 	metaDataRaw := d.Get("metadata").(map[string]interface{})
 	metaData := storage.ExpandMetaData(metaDataRaw)
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", id.QueueName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", id.AccountName, id.QueueName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Queue %q (Account %s)", id.QueueName, id.AccountName)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	queuesClient, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
+	queuesClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
 	}
@@ -176,17 +176,17 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Queue Container %q (Account %s): %s", id.QueueName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", id.AccountName, id.QueueName, err)
 	}
-	if resourceGroup == nil {
+	if account == nil {
 		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	queuesClient, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
+	queuesClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
 	}
@@ -204,7 +204,7 @@ func resourceArmStorageQueueRead(d *schema.ResourceData, meta interface{}) error
 
 	d.Set("name", id.QueueName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", account.ResourceGroup)
 
 	if err := d.Set("metadata", storage.FlattenMetaData(metaData.MetaData)); err != nil {
 		return fmt.Errorf("Error setting `metadata`: %s", err)
@@ -223,17 +223,17 @@ func resourceArmStorageQueueDelete(d *schema.ResourceData, meta interface{}) err
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Queue %q (Account %s): %s", id.QueueName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", id.AccountName, id.QueueName, err)
 	}
-	if resourceGroup == nil {
+	if account == nil {
 		log.Printf("[WARN] Unable to determine Resource Group for Storage Queue %q (Account %s) - assuming removed & removing from state", id.QueueName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	queuesClient, err := storageClient.QueuesClient(ctx, *resourceGroup, id.AccountName)
+	queuesClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
 	}
