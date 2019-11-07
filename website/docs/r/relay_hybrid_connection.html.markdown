@@ -62,8 +62,8 @@ The following attributes are exported:
 
 ## Import
 
-Azure Relay Namespace's can be imported using the `resource id`, e.g.
+Azure Relay Hybrid Connection's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_relay_namespace.relay1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1
+terraform import azurerm_relay_hybrid_connection.relay1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Relay/namespaces/relay1/hybridConnections/hconn1
 ```
