@@ -32,10 +32,11 @@ resource "azurerm_relay_namespace" "test" {
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
-  name                 = "acctestrnhc-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
+  name                          = "acctestrnhc-%d"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  relay_namespace_name          = "${azurerm_relay_namespace.test.name}"
   requires_client_authorization = false
+  user_metadata                 = "testmetadata"
 }
 ```
 
@@ -49,7 +50,9 @@ The following arguments are supported:
 
 * `relay_namespace_name` - (Required) The name of the Azure Relay in which to create the Azure Relay Hybrid Connection. Changing this forces a new resource to be created.
 
-* `requires_client_authorization` - (Optional) Specify if client authorization is needed for this hybrid connection. Changing this forces a new resource to be created.
+* `requires_client_authorization` - (Optional) Specify if client authorization is needed for this hybrid connection. True by default. Changing this forces a new resource to be created.
+
+* `user_metadata` - (Optional) The usermetadata is a placeholder to store user-defined string data for the hybrid connection endpoint. For example, it can be used to store descriptive data, such as a list of teams and their contact information. Also, user-defined configuration settings can be stored.
 
 ## Attributes Reference
 
