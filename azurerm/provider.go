@@ -683,7 +683,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
-			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html",
+			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/guides/service_principal_client_secret.html",
 		}
 
 		config, err := builder.Build()

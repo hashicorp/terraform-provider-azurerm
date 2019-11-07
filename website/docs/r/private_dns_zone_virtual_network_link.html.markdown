@@ -1,4 +1,5 @@
 ---
+subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_zone_virtual_network_link"
 sidebar_current: "docs-azurerm-resource-private-dns-zone-virtual-network-link"
