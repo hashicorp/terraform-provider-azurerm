@@ -82,18 +82,6 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 							Optional:     true,
 							ValidateFunc: validate.PrivateLinkEnpointRequestMessage,
 						},
-						"request_response": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_ip_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -202,51 +190,13 @@ func resourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}
 		if subnet := props.Subnet; subnet != nil {
 			d.Set("subnet_id", subnet.ID)
 		}
-
-		privateIpAddress := ""
-
+		if err := d.Set("private_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections)); err != nil {
+			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
+		}
 		if props.NetworkInterfaces != nil {
 			if err := d.Set("network_interface_ids", flattenArmPrivateLinkEndpointInterface(props.NetworkInterfaces)); err != nil {
 				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 			}
-
-			// now we need to get the nic to get the private ip address for the private link endpoint
-			client := meta.(*ArmClient).Network.InterfacesClient
-			ctx := meta.(*ArmClient).StopContext
-
-			nic := d.Get("network_interface_ids").([]interface{})
-
-			nicId, err := azure.ParseAzureResourceID(nic[0].(string))
-			if err != nil {
-				return err
-			}
-			nicName := nicId.Path["networkInterfaces"]
-
-			nicResp, err := client.Get(ctx, resourceGroup, nicName, "")
-			if err != nil {
-				if utils.ResponseWasNotFound(nicResp.Response) {
-					return fmt.Errorf("Azure Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-				}
-				return fmt.Errorf("Error making Read request on Azure Network Interface %q (Resource Group %q): %+v", nicName, resourceGroup, err)
-			}
-
-			if nicProps := nicResp.InterfacePropertiesFormat; nicProps != nil {
-				if configs := nicProps.IPConfigurations; configs != nil {
-					for i, config := range *nicProps.IPConfigurations {
-						if ipProps := config.InterfaceIPConfigurationPropertiesFormat; ipProps != nil {
-							if v := ipProps.PrivateIPAddress; v != nil {
-								if i == 0 {
-									privateIpAddress = *v
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if err := d.Set("private_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
-			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
 	}
 
@@ -311,7 +261,7 @@ func expandArmPrivateLinkEndpointServiceConnection(input []interface{}, parseMan
 	return &results
 }
 
-func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
+func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
@@ -322,7 +272,6 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 			result := make(map[string]interface{})
 
 			result["is_manual_connection"] = false
-			result["private_ip_address"] = privateIpAddress
 
 			if v := item.Name; v != nil {
 				result["name"] = *v
@@ -334,16 +283,7 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 				if v := props.PrivateLinkServiceID; v != nil {
 					result["private_connection_resource_id"] = *v
 				}
-				if v := props.PrivateLinkServiceConnectionState; v != nil {
-					if s := v.Status; s != nil {
-						result["status"] = *s
-					}
-					if d := v.Description; d != nil {
-						result["request_response"] = *d
-					}
-				}
 			}
-
 			results = append(results, result)
 		}
 	}
@@ -353,7 +293,6 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 			result := make(map[string]interface{})
 
 			result["is_manual_connection"] = true
-			result["private_ip_address"] = privateIpAddress
 
 			if v := item.Name; v != nil {
 				result["name"] = *v
@@ -368,16 +307,7 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 				if v := props.RequestMessage; v != nil {
 					result["request_message"] = *v
 				}
-				if v := props.PrivateLinkServiceConnectionState; v != nil {
-					if s := v.Status; s != nil {
-						result["status"] = *s
-					}
-					if d := v.Description; d != nil {
-						result["request_response"] = *d
-					}
-				}
 			}
-
 			results = append(results, result)
 		}
 	}
