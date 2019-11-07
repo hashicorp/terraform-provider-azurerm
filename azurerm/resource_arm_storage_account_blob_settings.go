@@ -134,12 +134,8 @@ func resourceArmStorageAccountBlobSettingsRead(d *schema.ResourceData, meta inte
 
 	if props := resp.BlobServicePropertiesProperties; props != nil {
 		if policy := props.DeleteRetentionPolicy; policy != nil {
-			if policy.Enabled != nil {
-				d.Set("enable_soft_delete", policy.Enabled)
-			}
-			if policy.Days != nil {
-				d.Set("soft_delete_retention_days", policy.Days)
-			}
+			d.Set("enable_soft_delete", policy.Enabled)
+			d.Set("soft_delete_retention_days", policy.Days)
 		}
 	}
 
