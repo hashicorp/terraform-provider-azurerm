@@ -251,8 +251,8 @@ A `oms_agent` block supports the following:
 A `kube_dashboard` block supports the following:
 
 * `enabled` - (Required) Is the Kubernetes Dashboard enabled?
----
 
+---
 
 A `azure_policy` block supports the following:
 
