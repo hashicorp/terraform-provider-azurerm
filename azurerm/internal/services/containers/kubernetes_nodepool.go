@@ -106,17 +106,6 @@ func SchemaDefaultNodePool() *schema.Schema {
 					ValidateFunc: validation.IntAtLeast(1),
 				},
 
-				"os_type": {
-					Type:     schema.TypeString,
-					Optional: true,
-					ForceNew: true,
-					Default:  string(containerservice.Linux),
-					ValidateFunc: validation.StringInSlice([]string{
-						string(containerservice.Linux),
-						string(containerservice.Windows),
-					}, false),
-				},
-
 				"vnet_subnet_id": {
 					Type:         schema.TypeString,
 					Optional:     true,
@@ -143,9 +132,13 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
-		OsType:             containerservice.OSType(raw["os_type"].(string)),
 		Type:               containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
+
+		// at this time the default node pool has to be Linux or the AKS cluster fails to provision with:
+		// Pods not in Running status: coredns-7fc597cc45-v5z7x,coredns-autoscaler-7ccc76bfbd-djl7j,metrics-server-cbd95f966-5rl97,tunnelfront-7d9884977b-wpbvn
+		// Windows agents can be configured via the separate node pool resource
+		OsType: containerservice.Linux,
 
 		//// TODO: support these in time
 		// OrchestratorVersion:    nil,
@@ -292,7 +285,6 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 			"name":                  name,
 			"node_taints":           nodeTaints,
 			"os_disk_size_gb":       osDiskSizeGB,
-			"os_type":               string(agentPool.OsType),
 			"type":                  string(agentPool.Type),
 			"vm_size":               string(agentPool.VMSize),
 			"vnet_subnet_id":        vnetSubnetId,
