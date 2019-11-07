@@ -185,7 +185,7 @@ resource "azurerm_api_management_product_policy" "test" {
   product_id          = "${azurerm_api_management_product.test.product_id}"
   api_management_name = "${azurerm_api_management.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  xml_link            = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
+  xml_link            = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
 }
 `, rInt, location, rInt)
 }
@@ -241,6 +241,7 @@ resource "azurerm_api_management_product_policy" "test" {
   xml_content = <<XML
 <policies>
   <inbound>
+    <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
     <find-and-replace from="xyz" to="abc" />
   </inbound>
 </policies>

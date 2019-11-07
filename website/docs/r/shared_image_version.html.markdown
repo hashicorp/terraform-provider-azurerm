@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_version"
 sidebar_current: "docs-azurerm-resource-compute-shared-image-version"

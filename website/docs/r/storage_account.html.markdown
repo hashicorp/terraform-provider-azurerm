@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account"
 sidebar_current: "docs-azurerm-resource-storage-account"
