@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/blueprint"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
@@ -95,6 +96,7 @@ type ArmClient struct {
 	Automation       *automation.Client
 	Authorization    *authorization.Client
 	Batch            *batch.Client
+	Blueprint        *blueprint.Client
 	Bot              *bot.Client
 	Cdn              *cdn.Client
 	Cognitive        *cognitive.Client
@@ -232,6 +234,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Authorization = authorization.BuildClient(o)
 	client.Batch = batch.BuildClient(o)
 	client.Bot = bot.BuildClient(o)
+	client.Blueprint = blueprint.BuildClient(o)
 	client.Cdn = cdn.BuildClient(o)
 	client.Cognitive = cognitive.BuildClient(o)
 	client.Compute = clients.NewComputeClient(o)
