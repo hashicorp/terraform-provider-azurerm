@@ -60,18 +60,6 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"request_response": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"status": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"private_ip_address": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
 					},
 				},
 			},
