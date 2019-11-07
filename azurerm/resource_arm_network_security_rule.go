@@ -48,7 +48,11 @@ func resourceArmNetworkSecurityRule() *schema.Resource {
 					string(network.SecurityRuleProtocolAsterisk),
 					string(network.SecurityRuleProtocolTCP),
 					string(network.SecurityRuleProtocolUDP),
-					string(network.SecurityRuleProtocolIcmp),
+					// SecurityRuleProtocolIcmp ...
+					// SecurityRuleProtocolIcmp SecurityRuleProtocol = "Icmp"
+					// Note(mike): this constant is not in the version of the azure-sdk-for-go this provider uses
+					// and upgrading the sdk is a big change with many possible downstream effects
+					"Icmp",
 				}, true),
 				DiffSuppressFunc: ignoreCaseDiffSuppressFunc,
 			},
