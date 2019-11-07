@@ -14,7 +14,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, testLocation(), "kubenet")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,11 +22,19 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, location, "kubenet"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "kubenet"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -37,7 +45,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(), "kubenet")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -45,11 +53,19 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, location, "kubenet"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "kubenet"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -60,7 +76,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, testLocation(), "azure")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -68,11 +84,19 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, location, "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -83,7 +107,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, testLocation(), "azure")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -91,11 +115,19 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, location, "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -106,7 +138,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(ri, clientId, clientSecret, testLocation(), "azure", "calico")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -114,12 +146,20 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(ri, clientId, clientSecret, location, "azure", "calico"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_policy", "calico"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -130,7 +170,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(ri, clientId, clientSecret, testLocation(), "azure", "calico")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -138,12 +178,20 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(ri, clientId, clientSecret, location, "azure", "calico"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_policy", "calico"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -154,7 +202,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(ri, clientId, clientSecret, testLocation(), "azure", "azure")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -162,12 +210,20 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(ri, clientId, clientSecret, location, "azure", "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_policy", "azure"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -178,7 +234,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(ri, clientId, clientSecret, testLocation(), "azure", "azure")
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -186,12 +242,20 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(ri, clientId, clientSecret, location, "azure", "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_policy", "azure"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -202,7 +266,7 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -210,11 +274,19 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.enable_node_public_ip", "true"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.enable_node_public_ip", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -225,7 +297,7 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_internalNetwork(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -233,11 +305,19 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_internalNetwork(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.max_pods", "60"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.max_pods", "60"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -248,7 +328,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_standardLoadBalancer(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -256,11 +336,19 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancer(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -271,7 +359,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -279,11 +367,19 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
 			},
 		},
 	})
@@ -299,18 +395,14 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 
   # TODO: remove in 2.0
@@ -321,8 +413,8 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -333,11 +425,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "2"
+    count          = 2
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
@@ -361,8 +453,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "akc-routetable-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name                   = "akc-route-%d"
@@ -375,31 +467,31 @@ resource "azurerm_route_table" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
+
+  # TODO: remove in 2.0
+  lifecycle {
+    ignore_changes = ["route_table_id"]
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  route_table_id = "${azurerm_route_table.test.id}"
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -410,11 +502,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "2"
+    count          = 2
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
@@ -442,25 +534,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -471,11 +559,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "2"
+    count          = 2
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
@@ -500,8 +588,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "akc-routetable-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name                   = "akc-route-%d"
@@ -514,31 +602,27 @@ resource "azurerm_route_table" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
+  route_table_id       = azurerm_route_table.test.id
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  route_table_id = "${azurerm_route_table.test.id}"
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -549,11 +633,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "2"
+    count          = 2
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
@@ -581,14 +665,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  agent_pool_profile {
+  default_node_pool {
     name                  = "default"
-    count                 = "1"
-    type                  = "VirtualMachineScaleSets"
+    count                 = 1
     vm_size               = "Standard_DS2_v2"
     enable_node_public_ip = true
   }
@@ -611,18 +694,14 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["172.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "172.0.2.0/24"
 
   # TODO: remove in 2.0
@@ -633,8 +712,8 @@ resource "azurerm_subnet" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -645,11 +724,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "2"
+    count          = 2
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
     max_pods       = 60
   }
 
@@ -671,28 +750,23 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
-
 
   linux_profile {
     admin_username = "acctestuser%d"
@@ -702,11 +776,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "2"
+    count          = 2
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
@@ -731,8 +805,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_route_table" "test" {
   name                = "akc-routetable-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 
   route {
     name                   = "akc-route-%d"
@@ -745,31 +819,27 @@ resource "azurerm_route_table" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["10.1.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "10.1.0.0/24"
-  route_table_id       = "${azurerm_route_table.test.id}"
+  route_table_id       = azurerm_route_table.test.id
 }
 
 resource "azurerm_subnet_route_table_association" "test" {
-  subnet_id      = "${azurerm_subnet.test.id}"
-  route_table_id = "${azurerm_route_table.test.id}"
+  subnet_id      = azurerm_subnet.test.id
+  route_table_id = azurerm_route_table.test.id
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
@@ -781,11 +851,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "2"
+    count          = 2
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
