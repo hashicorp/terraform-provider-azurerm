@@ -764,6 +764,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			agentProfiles = &agentProfilesLegacy
 		}
 
+		// TODO: switch to updating via the AgentPools client
 		existing.ManagedClusterProperties.AgentPoolProfiles = agentProfiles
 	}
 

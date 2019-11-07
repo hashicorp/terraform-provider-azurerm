@@ -10,12 +10,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
+func TestAccAzureRMKubernetesCluster_basicAvailabilitySet(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,7 +23,7 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_basicAvailabilitySet(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
@@ -37,7 +37,46 @@ func TestAccAzureRMKubernetesCluster_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
-					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
+					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Basic"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMKubernetesCluster_basicVMSS(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_basicVMSS(ri, clientId, clientSecret, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "false"),
+					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
+					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Basic"),
 				),
 			},
@@ -69,7 +108,7 @@ func TestAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_basic(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_basicVMSS(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 				),
@@ -87,7 +126,7 @@ func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_linuxProfile(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -95,7 +134,7 @@ func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_linuxProfile(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
@@ -104,7 +143,6 @@ func TestAccAzureRMKubernetesCluster_linuxProfile(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
-					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
 					resource.TestCheckResourceAttrSet(resourceName, "linux_profile.0.admin_username"),
 				),
 			},
@@ -123,7 +161,7 @@ func TestAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_nodeTaints(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -131,11 +169,17 @@ func TestAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_nodeTaints(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.1.node_taints.0", "key=value:NoSchedule"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_taints.0", "key=value:NoSchedule"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -146,7 +190,7 @@ func TestAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_nodeResourceGroup(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -154,7 +198,7 @@ func TestAccAzureRMKubernetesCluster_nodeResourceGroup(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_nodeResourceGroup(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 				),
@@ -199,53 +243,12 @@ func TestAccAzureRMKubernetesCluster_upgradeConfig(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_virtualMachineScaleSets(t *testing.T) {
-	resourceName := "azurerm_kubernetes_cluster.test"
-	ri := tf.AccRandTimeInt()
-	clientId := os.Getenv("ARM_CLIENT_ID")
-	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_virtualMachineScaleSets(ri, clientId, clientSecret, testLocation())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.enabled", "false"),
-					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.0.azure_active_directory.#", "0"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.cluster_ca_certificate"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
-					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
-					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
-					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.type", "VirtualMachineScaleSets"),
-				),
-			},
-			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
-			},
-		},
-	})
-}
-
 func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_windowsProfile(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -253,7 +256,7 @@ func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_windowsProfile(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
@@ -262,8 +265,7 @@ func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.host"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.username"),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
-					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
-					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.1.max_pods"),
+					resource.TestCheckResourceAttrSet(resourceName, "default_node_pool.0.max_pods"),
 					resource.TestCheckResourceAttrSet(resourceName, "linux_profile.0.admin_username"),
 					resource.TestCheckResourceAttrSet(resourceName, "windows_profile.0.admin_username"),
 				),
@@ -281,7 +283,7 @@ func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 	})
 }
 
-func testAccAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_basicAvailabilitySet(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -290,13 +292,41 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
     count   = "1"
+  	type    = "AvailabilitySet"
+    vm_size = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+}
+`, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_basicVMSS(rInt int, clientId string, clientSecret string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name    = "default"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -309,19 +339,19 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func testAccAzureRMKubernetesCluster_requiresImport(rInt int, clientId, clientSecret, location string) string {
-	template := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
+	template := testAccAzureRMKubernetesCluster_basicVMSS(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_kubernetes_cluster" "import" {
-  name                = "${azurerm_kubernetes_cluster.test.name}"
-  location            = "${azurerm_kubernetes_cluster.test.location}"
-  resource_group_name = "${azurerm_kubernetes_cluster.test.resource_group_name}"
-  dns_prefix          = "${azurerm_kubernetes_cluster.test.dns_prefix}"
+  name                = azurerm_kubernetes_cluster.test.name
+  location            = azurerm_kubernetes_cluster.test.location
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+  dns_prefix          = azurerm_kubernetes_cluster.test.dns_prefix
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -342,8 +372,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -354,9 +384,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -377,21 +407,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
-    type    = "VirtualMachineScaleSets"
-    vm_size = "Standard_DS2_v2"
-  }
-
-  agent_pool_profile {
-    name    = "pool1"
-    count   = "1"
-    type    = "VirtualMachineScaleSets"
+    count   = 1
     vm_size = "Standard_DS2_v2"
     node_taints = [
       "key=value:NoSchedule"
@@ -415,15 +437,14 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   node_resource_group = "acctestRGAKS-%d"
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
-    type    = "VirtualMachineScaleSets"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -444,8 +465,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
@@ -457,9 +478,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  node_pool_profile {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -469,34 +490,6 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, version, rInt, clientId, clientSecret)
-}
-
-func testAccAzureRMKubernetesCluster_virtualMachineScaleSets(rInt int, clientId string, clientSecret string, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_kubernetes_cluster" "test" {
-  name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  dns_prefix          = "acctestaks%d"
-
-  agent_pool_profile {
-    name    = "default"
-    type    = "VirtualMachineScaleSets"
-    count   = "1"
-    vm_size = "Standard_DS2_v2"
-  }
-
-  service_principal {
-    client_id     = "%s"
-    client_secret = "%s"
-  }
-}
-`, rInt, location, rInt, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_windowsProfile(rInt int, clientId string, clientSecret string, location string) string {
@@ -522,27 +515,14 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   windows_profile {
     admin_username = "azureuser"
-    admin_password = "pass_123-worD"
+    admin_password = "P@55W0rd1234!"
   }
 
-  agent_pool_profile {
-    name            = "linux"
-    type            = "VirtualMachineScaleSets"
-    count           = "1"
-    vm_size         = "Standard_DS2_v2"
-    max_pods        = 30
-    os_type         = "Linux"
-    os_disk_size_gb = "30"
-  }
-
-  agent_pool_profile {
-    name            = "win"
-    type            = "VirtualMachineScaleSets"
-    count           = "1"
-    vm_size         = "Standard_DS3_v2"
-    max_pods        = 30
-    os_type         = "Windows"
-    os_disk_size_gb = "30"
+  # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
+  default_node_pool {
+    name    = "np"
+    count   = 3
+    vm_size = "Standard_DS2_v2"
   }
 
   service_principal {
