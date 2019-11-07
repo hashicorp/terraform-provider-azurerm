@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_relay_hybrid_connection"
 sidebar_current: "docs-azurerm-resource-messaging-relay-hybrid-connection"
