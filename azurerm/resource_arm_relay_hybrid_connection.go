@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -54,17 +53,14 @@ func resourceArmHybridConnection() *schema.Resource {
 			"requires_client_authorization": {
 				Type:     schema.TypeBool,
 				Default:  true,
+				ForceNew: true,
+				Optional: true,
+			},
+			"user_metadata": {
+				Type:     schema.TypeString,
 				Optional: true,
 			},
 		},
-
-		CustomizeDiff: customdiff.Sequence(
-			// This is to prevent this error:
-			// All fields are ForceNew or Computed w/out Optional, Update is superfluous.
-			customdiff.ForceNewIfChange("requires_client_authorization", func(old, new, meta interface{}) bool {
-				return true
-			}),
-		),
 	}
 }
 
@@ -79,10 +75,12 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 	resourceGroup := d.Get("resource_group_name").(string)
 	relayNamespace := d.Get("relay_namespace_name").(string)
 	requireClientAuthroization := d.Get("requires_client_authorization").(bool)
+	userMetadata := d.Get("user_metadata").(string)
 
 	parameters := relay.HybridConnection{
 		HybridConnectionProperties: &relay.HybridConnectionProperties{
 			RequiresClientAuthorization: &requireClientAuthroization,
+			UserMetadata:                &userMetadata,
 		},
 	}
 
@@ -133,6 +131,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 
 	if props := resp.HybridConnectionProperties; props != nil {
 		d.Set("requires_client_authorization", props.RequiresClientAuthorization)
+		d.Set("user_metadata", props.UserMetadata)
 	}
 
 	return nil
