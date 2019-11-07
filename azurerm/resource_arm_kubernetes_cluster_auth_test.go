@@ -14,7 +14,7 @@ func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +22,7 @@ func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "role_based_access_control.#", "1"),
@@ -36,7 +36,7 @@ func TestAccAzureRMKubernetesCluster_apiServerAuthorizedIPRanges(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.password"),
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config.#", "0"),
 					resource.TestCheckResourceAttr(resourceName, "kube_admin_config_raw", ""),
-					resource.TestCheckResourceAttrSet(resourceName, "agent_pool_profile.0.max_pods"),
+					resource.TestCheckResourceAttrSet(resourceName, "default_node_pool.0.max_pods"),
 					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "3"),
 				),
 			},
@@ -55,7 +55,7 @@ func TestAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,7 +63,7 @@ func TestAccAzureRMKubernetesCluster_enablePodSecurityPolicy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enable_pod_security_policy", "true"),
@@ -179,13 +179,13 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -212,8 +212,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                       = "acctestaks%d"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
   dns_prefix                 = "acctestaks%d"
   enable_pod_security_policy = true
 
@@ -221,9 +221,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     enabled = true
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -256,9 +256,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -299,9 +299,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -317,7 +317,7 @@ resource "azurerm_kubernetes_cluster" "test" {
       server_app_id     = "%s"
       server_app_secret = "%s"
       client_app_id     = "%s"
-      tenant_id         = "${var.tenant_id}"
+      tenant_id         = var.tenant_id
     }
   }
 }
