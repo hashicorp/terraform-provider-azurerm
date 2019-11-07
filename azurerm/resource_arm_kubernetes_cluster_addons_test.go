@@ -14,7 +14,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T)
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -22,7 +22,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T)
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
@@ -30,6 +30,12 @@ func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinux(t *testing.T)
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.0.subnet_name", fmt.Sprintf("acctestsubnet-aci%d", ri)),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -41,7 +47,6 @@ func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *te
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
-	disablingConfig := testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(ri, clientId, clientSecret, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -49,15 +54,21 @@ func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *te
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: disablingConfig,
+				Config: testAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.0.subnet_name", ""),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -68,7 +79,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -76,12 +87,18 @@ func TestAccAzureRMKubernetesCluster_addonProfileAzurePolicy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_addonProfileAzurePolicy(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.azure_policy.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.azure_policy.0.enabled", "true"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -92,7 +109,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -100,12 +117,18 @@ func TestAccAzureRMKubernetesCluster_addonProfileKubeDashboard(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_addonProfileKubeDashboard(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.kube_dashboard.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.kube_dashboard.0.enabled", "false"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -116,7 +139,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_addonProfileOMS(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -124,7 +147,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_addonProfileOMS(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
@@ -132,6 +155,12 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMS(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -143,9 +172,6 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
 	location := testLocation()
-	enablingConfig := testAccAzureRMKubernetesCluster_addonProfileOMS(ri, clientId, clientSecret, location)
-	disablingConfig := testAccAzureRMKubernetesCluster_addonProfileOMSDisabled(ri, clientId, clientSecret, location)
-	scaleDownConfig := testAccAzureRMKubernetesCluster_addonProfileOMSScaleWithoutBlock(ri, clientId, clientSecret, location)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -153,37 +179,55 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: enablingConfig,
+				Config: testAccAzureRMKubernetesCluster_addonProfileOMS(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
 				),
 			},
 			{
-				Config: disablingConfig,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_addonProfileOMSDisabled(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
 				),
 			},
 			{
-				Config: scaleDownConfig,
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_addonProfileOMSScaleWithoutBlock(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -194,7 +238,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
 	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
-	config := testAccAzureRMKubernetesCluster_addonProfileRouting(ri, clientId, clientSecret, testLocation())
+	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -202,7 +246,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: testAccAzureRMKubernetesCluster_addonProfileRouting(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "1"),
@@ -210,6 +254,12 @@ func TestAccAzureRMKubernetesCluster_addonProfileRouting(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.http_application_routing.0.http_application_routing_zone_name"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "0"),
 				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
 			},
 		},
 	})
@@ -225,25 +275,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["172.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "172.0.2.0/24"
 }
 
 resource "azurerm_subnet" "test-aci" {
   name                 = "acctestsubnet-aci%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "172.0.3.0/24"
 
   delegation {
@@ -258,8 +304,8 @@ resource "azurerm_subnet" "test-aci" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -270,11 +316,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "1"
+    count          = 1
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
@@ -285,7 +331,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   addon_profile {
     aci_connector_linux {
       enabled     = true
-      subnet_name = "${azurerm_subnet.test-aci.name}"
+      subnet_name = azurerm_subnet.test-aci.name
     }
   }
 
@@ -306,25 +352,21 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%d"
   address_space       = ["172.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-
-  tags = {
-    environment = "Testing"
-  }
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%d"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
   address_prefix       = "172.0.2.0/24"
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -335,11 +377,11 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name           = "default"
-    count          = "1"
+    count          = 1
     vm_size        = "Standard_DS2_v2"
-    vnet_subnet_id = "${azurerm_subnet.test.id}"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
@@ -369,8 +411,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -381,9 +423,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -410,8 +452,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -422,9 +464,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -451,17 +493,17 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_log_analytics_workspace" "test" {
   name                = "acctest-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
 }
 
 resource "azurerm_log_analytics_solution" "test" {
   solution_name         = "ContainerInsights"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
-  workspace_name        = "${azurerm_log_analytics_workspace.test.name}"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  workspace_resource_id = azurerm_log_analytics_workspace.test.id
+  workspace_name        = azurerm_log_analytics_workspace.test.name
 
   plan {
     publisher = "Microsoft"
@@ -471,8 +513,8 @@ resource "azurerm_log_analytics_solution" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -483,9 +525,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -497,7 +539,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   addon_profile {
     oms_agent {
       enabled                    = true
-      log_analytics_workspace_id = "${azurerm_log_analytics_workspace.test.id}"
+      log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
     }
   }
 }
@@ -513,8 +555,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -525,9 +567,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -554,8 +596,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -566,9 +608,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "2"
+    count   = 2
     vm_size = "Standard_DS2_v2"
   }
 
@@ -589,8 +631,8 @@ resource "azurerm_resource_group" "test" {
 
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
   linux_profile {
@@ -601,9 +643,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
   }
 
-  agent_pool_profile {
+  default_node_pool {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 

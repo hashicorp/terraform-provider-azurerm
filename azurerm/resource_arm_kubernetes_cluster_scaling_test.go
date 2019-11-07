@@ -145,7 +145,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
 
-  agent_pool_profile {
+  default_node_pool {
     name                = "pool1"
     min_count           = 1
     max_count           = 2
@@ -175,7 +175,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
   kubernetes_version  = "%s"
 
-  agent_pool_profile {
+  default_node_pool {
     name                = "pool1"
     min_count           = 1
     max_count           = 2
