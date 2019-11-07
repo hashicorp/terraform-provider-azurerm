@@ -223,7 +223,7 @@ resource "azurerm_private_link_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id
 }
-`, standardResources, rInt, rInt)
+`, standardResources, rInt)
 }
 
 func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
@@ -242,5 +242,5 @@ resource "azurerm_private_link_endpoint" "test" {
     env = "test"
   }
 }
-`, standardResources, rInt, rInt)
+`, standardResources, rInt)
 }

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_endpoint_connection_status"
 sidebar_current: "docs-azurerm-datasource-private-endpoint-connection-status"
