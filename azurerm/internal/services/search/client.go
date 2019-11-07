@@ -6,18 +6,19 @@ import (
 )
 
 type Client struct {
-	AdminKeysClient search.AdminKeysClient
-	ServicesClient  search.ServicesClient
+	AdminKeysClient *search.AdminKeysClient
+	ServicesClient  *search.ServicesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	AdminKeysClient := search.NewAdminKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&AdminKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	c.AdminKeysClient = search.NewAdminKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.AdminKeysClient.Client, o.ResourceManagerAuthorizer)
+	ServicesClient := search.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ServicesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ServicesClient = search.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ServicesClient.Client, o.ResourceManagerAuthorizer)
-
-	return &c
+	return &Client{
+		AdminKeysClient: &AdminKeysClient,
+		ServicesClient:  &ServicesClient,
+	}
 }

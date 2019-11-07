@@ -6,22 +6,24 @@ import (
 )
 
 type Client struct {
-	CustomDomainsClient cdn.CustomDomainsClient
-	EndpointsClient     cdn.EndpointsClient
-	ProfilesClient      cdn.ProfilesClient
+	CustomDomainsClient *cdn.CustomDomainsClient
+	EndpointsClient     *cdn.EndpointsClient
+	ProfilesClient      *cdn.ProfilesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	CustomDomainsClient := cdn.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&CustomDomainsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.CustomDomainsClient = cdn.NewCustomDomainsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.CustomDomainsClient.Client, o.ResourceManagerAuthorizer)
+	EndpointsClient := cdn.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&EndpointsClient.Client, o.ResourceManagerAuthorizer)
 
-	c.EndpointsClient = cdn.NewEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.EndpointsClient.Client, o.ResourceManagerAuthorizer)
+	ProfilesClient := cdn.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ProfilesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.ProfilesClient = cdn.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.ProfilesClient.Client, o.ResourceManagerAuthorizer)
-
-	return &c
+	return &Client{
+		CustomDomainsClient: &CustomDomainsClient,
+		EndpointsClient:     &EndpointsClient,
+		ProfilesClient:      &ProfilesClient,
+	}
 }

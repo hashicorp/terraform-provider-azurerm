@@ -3,13 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +27,13 @@ func resourceArmEventGridDomain() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -34,7 +45,7 @@ func resourceArmEventGridDomain() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"input_schema": {
 				Type:     schema.TypeString,
@@ -124,13 +135,14 @@ func resourceArmEventGridDomain() *schema.Resource {
 }
 
 func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.DomainsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).EventGrid.DomainsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -144,7 +156,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	domainProperties := &eventgrid.DomainProperties{
 		InputSchemaMapping: expandAzureRmEventgridDomainInputMapping(d),
@@ -154,7 +166,7 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 	domain := eventgrid.Domain{
 		Location:         &location,
 		DomainProperties: domainProperties,
-		Tags:             expandTags(tags),
+		Tags:             tags.Expand(t),
 	}
 
 	log.Printf("[INFO] preparing arguments for AzureRM EventGrid Domain creation with Properties: %+v", domain)
@@ -182,10 +194,11 @@ func resourceArmEventGridDomainCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.DomainsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).EventGrid.DomainsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -231,16 +244,15 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmEventGridDomainDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).eventGrid.DomainsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).EventGrid.DomainsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

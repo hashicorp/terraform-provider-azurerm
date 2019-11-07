@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -40,7 +41,7 @@ func TestAccAzureRMStorageTable_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageTable_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -131,7 +132,6 @@ func TestAccAzureRMStorageTable_acl(t *testing.T) {
 
 func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -140,18 +140,18 @@ func testCheckAzureRMStorageTableExists(resourceName string) resource.TestCheckF
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.TablesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
@@ -179,18 +179,18 @@ func testAccARMStorageTableDisappears(resourceName string) resource.TestCheckFun
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.TablesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
@@ -221,32 +221,28 @@ func testCheckAzureRMStorageTableDestroy(s *terraform.State) error {
 		tableName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", tableName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 		}
-		if resourceGroup == nil {
+		if account == nil {
 			return nil
 		}
 
-		client, err := storageClient.TablesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.TablesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Table Client: %s", err)
 		}
 
 		props, err := client.Exists(ctx, accountName, tableName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props) {
-				return nil
-			}
-
-			return fmt.Errorf("Error retrieving Table %q: %s", tableName, accountName)
+			return nil
 		}
 
-		return fmt.Errorf("Bad: Table %q (storage account: %q) still exists", tableName, accountName)
+		return fmt.Errorf("Table still exists: %+v", props)
 	}
 
 	return nil

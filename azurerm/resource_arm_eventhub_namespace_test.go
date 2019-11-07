@@ -5,9 +5,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMEventHubNamespace_basic(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -65,31 +66,6 @@ func TestAccAzureRMEventHubNamespace_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMEventHubNamespace_KafkaEnabled(t *testing.T) {
-	resourceName := "azurerm_eventhub_namespace.test"
-	ri := tf.AccRandTimeInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMEventHubNamespace_KafkaEnabled(ri, testLocation()),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMEventHubNamespaceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "kafka_enabled", "true"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 	resourceName := "azurerm_eventhub_namespace.test"
 	ri := tf.AccRandTimeInt()
@@ -101,6 +77,54 @@ func TestAccAzureRMEventHubNamespace_standard(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMEventHubNamespace_standard(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventHubNamespace_networkrule_iprule(t *testing.T) {
+	resourceName := "azurerm_eventhub_namespace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubNamespace_networkrule_iprule(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMEventHubNamespaceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMEventHubNamespace_networkrule_vnet(t *testing.T) {
+	resourceName := "azurerm_eventhub_namespace.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMEventHubNamespaceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMEventHubNamespace_networkrule_vnet(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMEventHubNamespaceExists(resourceName),
 				),
@@ -162,7 +186,6 @@ func TestAccAzureRMEventHubNamespace_maximumThroughputUnits(t *testing.T) {
 }
 
 func TestAccAzureRMEventHubNamespace_NonStandardCasing(t *testing.T) {
-
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMEventHubNamespaceNonStandardCasing(ri, testLocation())
 
@@ -347,7 +370,7 @@ func TestAccAzureRMEventHubNamespace_autoInfalteDisabledWithAutoInflateUnits(t *
 }
 
 func testCheckAzureRMEventHubNamespaceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
+	conn := testAccProvider.Meta().(*ArmClient).Eventhub.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -384,7 +407,7 @@ func testCheckAzureRMEventHubNamespaceExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub Namespace: %s", namespaceName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventhub.NamespacesClient
+		conn := testAccProvider.Meta().(*ArmClient).Eventhub.NamespacesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, namespaceName)
@@ -430,23 +453,6 @@ resource "azurerm_eventhub_namespace" "import" {
 `, template)
 }
 
-func testAccAzureRMEventHubNamespace_KafkaEnabled(rInt int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  sku                 = "Standard"
-  kafka_enabled       = true
-}
-`, rInt, location, rInt)
-}
-
 func testAccAzureRMEventHubNamespace_standard(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -462,6 +468,70 @@ resource "azurerm_eventhub_namespace" "test" {
   capacity            = "2"
 }
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMEventHubNamespace_networkrule_iprule(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  capacity            = "2"
+
+  network_rulesets {
+    default_action = "Deny"
+    ip_rule {
+      ip_mask = "10.0.0.0/16"
+    }
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMEventHubNamespace_networkrule_vnet(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctvn-%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctsub-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
+  capacity            = "2"
+
+  network_rulesets {
+    default_action = "Deny"
+    virtual_network_rule {
+      subnet_id = "${azurerm_subnet.test.id}"
+
+      ignore_missing_virtual_network_service_endpoint = true
+    }
+  }
+}
+`, rInt, location)
 }
 
 func testAccAzureRMEventHubNamespaceNonStandardCasing(rInt int, location string) string {

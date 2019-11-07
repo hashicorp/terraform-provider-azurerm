@@ -3,13 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/search/mgmt/2015-08-19/search"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +24,13 @@ func resourceArmSearchService() *schema.Resource {
 		Delete: resourceArmSearchServiceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -71,22 +81,23 @@ func resourceArmSearchService() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).search.ServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Search.ServicesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
 	skuName := d.Get("sku").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, nil)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -105,7 +116,7 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 			Name: search.SkuName(skuName),
 		},
 		ServiceProperties: &search.ServiceProperties{},
-		Tags:              expandTags(tags),
+		Tags:              tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("replica_count"); ok {
@@ -133,10 +144,11 @@ func resourceArmSearchServiceCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).search.ServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Search.ServicesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -174,23 +186,22 @@ func resourceArmSearchServiceRead(d *schema.ResourceData, meta interface{}) erro
 		}
 	}
 
-	adminKeysClient := meta.(*ArmClient).search.AdminKeysClient
+	adminKeysClient := meta.(*ArmClient).Search.AdminKeysClient
 	adminKeysResp, err := adminKeysClient.Get(ctx, resourceGroup, name, nil)
 	if err == nil {
 		d.Set("primary_key", adminKeysResp.PrimaryKey)
 		d.Set("secondary_key", adminKeysResp.SecondaryKey)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmSearchServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).search.ServicesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Search.ServicesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

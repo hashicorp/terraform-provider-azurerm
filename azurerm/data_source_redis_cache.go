@@ -2,15 +2,23 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmRedisCache() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmRedisCacheRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -187,14 +195,15 @@ func dataSourceArmRedisCache() *schema.Resource {
 				Sensitive: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).redis.Client
+	client := meta.(*ArmClient).Redis.Client
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -245,7 +254,7 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 		return fmt.Errorf("Error setting `redis_configuration`: %+v", err)
 	}
 
-	patchSchedulesClient := meta.(*ArmClient).redis.PatchSchedulesClient
+	patchSchedulesClient := meta.(*ArmClient).Redis.PatchSchedulesClient
 
 	schedule, err := patchSchedulesClient.Get(ctx, resourceGroup, name)
 	if err == nil {
@@ -265,8 +274,5 @@ func dataSourceArmRedisCacheRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("primary_access_key", keys.PrimaryKey)
 	d.Set("secondary_access_key", keys.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
-
+	return tags.FlattenAndSet(d, resp.Tags)
 }

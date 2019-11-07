@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	WorkspacesClient databricks.WorkspacesClient
+	WorkspacesClient *databricks.WorkspacesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	WorkspacesClient := databricks.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.WorkspacesClient = databricks.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.WorkspacesClient.Client, o.ResourceManagerAuthorizer)
-
-	return &c
+	return &Client{
+		WorkspacesClient: &WorkspacesClient,
+	}
 }

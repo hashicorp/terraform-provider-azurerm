@@ -136,3 +136,15 @@ A `resource_file` block exports the following:
 A `container_configuration` block exports the following:
 
 * `type` - The type of container configuration.
+
+* `container_registries` - Additional container registries from which container images can be pulled by the pool's VMs.
+
+---
+
+A `container_registries` block exports the following:
+
+* `registry_server` - The container registry URL. The default is "docker.io".
+
+* `user_name` - The user name to log into the registry server.
+
+* `password` - The password to log into the registry server.

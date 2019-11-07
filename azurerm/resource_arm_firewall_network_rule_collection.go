@@ -3,14 +3,18 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +26,13 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 		Delete: resourceArmFirewallNetworkRuleCollectionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -111,15 +122,16 @@ func resourceArmFirewallNetworkRuleCollection() *schema.Resource {
 }
 
 func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	firewallName := d.Get("azure_firewall_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(firewallName, azureFirewallResourceName)
-	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {
@@ -171,7 +183,7 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 
 		ruleCollections[index] = newRuleCollection
 	} else {
-		if requireResourcesToBeImported && d.IsNewResource() {
+		if features.ShouldResourcesBeImported() && d.IsNewResource() {
 			if index != -1 {
 				return tf.ImportAsExistsError("azurerm_firewall_network_rule_collection", id)
 			}
@@ -222,10 +234,11 @@ func resourceArmFirewallNetworkRuleCollectionCreateUpdate(d *schema.ResourceData
 }
 
 func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -294,10 +307,11 @@ func resourceArmFirewallNetworkRuleCollectionRead(d *schema.ResourceData, meta i
 }
 
 func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.AzureFirewallsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.AzureFirewallsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -306,8 +320,8 @@ func resourceArmFirewallNetworkRuleCollectionDelete(d *schema.ResourceData, meta
 	firewallName := id.Path["azureFirewalls"]
 	name := id.Path["networkRuleCollections"]
 
-	azureRMLockByName(firewallName, azureFirewallResourceName)
-	defer azureRMUnlockByName(firewallName, azureFirewallResourceName)
+	locks.ByName(firewallName, azureFirewallResourceName)
+	defer locks.UnlockByName(firewallName, azureFirewallResourceName)
 
 	firewall, err := client.Get(ctx, resourceGroup, firewallName)
 	if err != nil {

@@ -5,10 +5,11 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -42,7 +43,7 @@ func TestAccAzureRMRecoveryServicesProtectedVm_basic(t *testing.T) {
 }
 
 func TestAccAzureRMRecoveryServicesProtectedVm_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -174,7 +175,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectedItemsClient
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
@@ -221,7 +222,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) reso
 		protectedItemName := fmt.Sprintf("VM;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 		containerName := fmt.Sprintf("iaasvmcontainer;iaasvmcontainerv2;%s;%s", parsedVmId.ResourceGroup, vmName)
 
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.ProtectedItemsClient
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectedItemsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, vaultName, resourceGroup, "Azure", containerName, protectedItemName, "")
@@ -507,12 +508,12 @@ func testAccAzureRMRecoveryServicesProtectedVm_withVM(rInt int, location string)
 %[1]s
 
 resource "azurerm_virtual_machine" "test" {
-  name                  = "acctestvm-%[2]d"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  vm_size               = "Standard_A0"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
-  delete_os_disk_on_termination    = true
+  name                          = "acctestvm-%[2]d"
+  location                      = "${azurerm_resource_group.test.location}"
+  resource_group_name           = "${azurerm_resource_group.test.name}"
+  vm_size                       = "Standard_A0"
+  network_interface_ids         = ["${azurerm_network_interface.test.id}"]
+  delete_os_disk_on_termination = true
 
   storage_image_reference {
     publisher = "Canonical"

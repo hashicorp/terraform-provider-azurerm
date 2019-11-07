@@ -46,8 +46,8 @@ func NewAccountsClientWithBaseURI(baseURI string, subscriptionID string) Account
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // accountName - the name of Cognitive Services account.
-// parameters - the parameters to provide for the created account.
-func (client AccountsClient) Create(ctx context.Context, resourceGroupName string, accountName string, parameters AccountCreateParameters) (result Account, err error) {
+// account - the parameters to provide for the created account.
+func (client AccountsClient) Create(ctx context.Context, resourceGroupName string, accountName string, account Account) (result Account, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.Create")
 		defer func() {
@@ -63,16 +63,25 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 			Constraints: []validation.Constraint{{Target: "accountName", Name: validation.MaxLength, Rule: 64, Chain: nil},
 				{Target: "accountName", Name: validation.MinLength, Rule: 2, Chain: nil},
 				{Target: "accountName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9][a-zA-Z0-9_.-]*$`, Chain: nil}}},
-		{TargetValue: parameters,
-			Constraints: []validation.Constraint{{Target: "parameters.Sku", Name: validation.Null, Rule: true,
-				Chain: []validation.Constraint{{Target: "parameters.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}},
-				{Target: "parameters.Kind", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "parameters.Location", Name: validation.Null, Rule: true, Chain: nil},
-				{Target: "parameters.Properties", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		{TargetValue: account,
+			Constraints: []validation.Constraint{{Target: "account.Properties", Name: validation.Null, Rule: false,
+				Chain: []validation.Constraint{{Target: "account.Properties.APIProperties", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.EventHubConnectionString", Name: validation.Null, Rule: false,
+						Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.EventHubConnectionString", Name: validation.MaxLength, Rule: 1000, Chain: nil},
+							{Target: "account.Properties.APIProperties.EventHubConnectionString", Name: validation.Pattern, Rule: `^( *)Endpoint=sb://(.*);( *)SharedAccessKeyName=(.*);( *)SharedAccessKey=(.*)$`, Chain: nil},
+						}},
+						{Target: "account.Properties.APIProperties.StorageAccountConnectionString", Name: validation.Null, Rule: false,
+							Chain: []validation.Constraint{{Target: "account.Properties.APIProperties.StorageAccountConnectionString", Name: validation.MaxLength, Rule: 1000, Chain: nil},
+								{Target: "account.Properties.APIProperties.StorageAccountConnectionString", Name: validation.Pattern, Rule: `^(( *)DefaultEndpointsProtocol=(http|https)( *);( *))?AccountName=(.*)AccountKey=(.*)EndpointSuffix=(.*)$`, Chain: nil},
+							}},
+					}},
+				}},
+				{Target: "account.Sku", Name: validation.Null, Rule: false,
+					Chain: []validation.Constraint{{Target: "account.Sku.Name", Name: validation.Null, Rule: true, Chain: nil}}}}}}); err != nil {
 		return result, validation.NewError("cognitiveservices.AccountsClient", "Create", err.Error())
 	}
 
-	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, parameters)
+	req, err := client.CreatePreparer(ctx, resourceGroupName, accountName, account)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Create", nil, "Failure preparing request")
 		return
@@ -94,7 +103,7 @@ func (client AccountsClient) Create(ctx context.Context, resourceGroupName strin
 }
 
 // CreatePreparer prepares the Create request.
-func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, parameters AccountCreateParameters) (*http.Request, error) {
+func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupName string, accountName string, account Account) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -106,12 +115,16 @@ func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 		"api-version": APIVersion,
 	}
 
+	account.Etag = nil
+	account.ID = nil
+	account.Name = nil
+	account.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPut(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.CognitiveServices/accounts/{accountName}", pathParameters),
-		autorest.WithJSON(parameters),
+		autorest.WithJSON(account),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -119,8 +132,8 @@ func (client AccountsClient) CreatePreparer(ctx context.Context, resourceGroupNa
 // CreateSender sends the Create request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) CreateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // CreateResponder handles the response to the Create request. The method always
@@ -204,8 +217,8 @@ func (client AccountsClient) DeletePreparer(ctx context.Context, resourceGroupNa
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) DeleteSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // DeleteResponder handles the response to the Delete request. The method always
@@ -288,8 +301,8 @@ func (client AccountsClient) GetPropertiesPreparer(ctx context.Context, resource
 // GetPropertiesSender sends the GetProperties request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) GetPropertiesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetPropertiesResponder handles the response to the GetProperties request. The method always
@@ -378,8 +391,8 @@ func (client AccountsClient) GetUsagesPreparer(ctx context.Context, resourceGrou
 // GetUsagesSender sends the GetUsages request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) GetUsagesSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetUsagesResponder handles the response to the GetUsages request. The method always
@@ -451,8 +464,8 @@ func (client AccountsClient) ListPreparer(ctx context.Context) (*http.Request, e
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always
@@ -564,8 +577,8 @@ func (client AccountsClient) ListByResourceGroupPreparer(ctx context.Context, re
 // ListByResourceGroupSender sends the ListByResourceGroup request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) ListByResourceGroupSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByResourceGroupResponder handles the response to the ListByResourceGroup request. The method always
@@ -686,8 +699,8 @@ func (client AccountsClient) ListKeysPreparer(ctx context.Context, resourceGroup
 // ListKeysSender sends the ListKeys request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) ListKeysSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListKeysResponder handles the response to the ListKeys request. The method always
@@ -771,8 +784,8 @@ func (client AccountsClient) ListSkusPreparer(ctx context.Context, resourceGroup
 // ListSkusSender sends the ListSkus request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) ListSkusSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListSkusResponder handles the response to the ListSkus request. The method always
@@ -859,8 +872,8 @@ func (client AccountsClient) RegenerateKeyPreparer(ctx context.Context, resource
 // RegenerateKeySender sends the RegenerateKey request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) RegenerateKeySender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // RegenerateKeyResponder handles the response to the RegenerateKey request. The method always
@@ -880,8 +893,8 @@ func (client AccountsClient) RegenerateKeyResponder(resp *http.Response) (result
 // Parameters:
 // resourceGroupName - the name of the resource group within the user's subscription.
 // accountName - the name of Cognitive Services account.
-// parameters - the parameters to provide for the created account.
-func (client AccountsClient) Update(ctx context.Context, resourceGroupName string, accountName string, parameters AccountUpdateParameters) (result Account, err error) {
+// account - the parameters to provide for the created account.
+func (client AccountsClient) Update(ctx context.Context, resourceGroupName string, accountName string, account Account) (result Account, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AccountsClient.Update")
 		defer func() {
@@ -900,7 +913,7 @@ func (client AccountsClient) Update(ctx context.Context, resourceGroupName strin
 		return result, validation.NewError("cognitiveservices.AccountsClient", "Update", err.Error())
 	}
 
-	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, parameters)
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, accountName, account)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "cognitiveservices.AccountsClient", "Update", nil, "Failure preparing request")
 		return
@@ -922,7 +935,7 @@ func (client AccountsClient) Update(ctx context.Context, resourceGroupName strin
 }
 
 // UpdatePreparer prepares the Update request.
-func (client AccountsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, parameters AccountUpdateParameters) (*http.Request, error) {
+func (client AccountsClient) UpdatePreparer(ctx context.Context, resourceGroupName string, accountName string, account Account) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
 		"accountName":       autorest.Encode("path", accountName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
@@ -934,12 +947,16 @@ func (client AccountsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 		"api-version": APIVersion,
 	}
 
+	account.Etag = nil
+	account.ID = nil
+	account.Name = nil
+	account.Type = nil
 	preparer := autorest.CreatePreparer(
 		autorest.AsContentType("application/json; charset=utf-8"),
 		autorest.AsPatch(),
 		autorest.WithBaseURL(client.BaseURI),
 		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.CognitiveServices/accounts/{accountName}", pathParameters),
-		autorest.WithJSON(parameters),
+		autorest.WithJSON(account),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -947,8 +964,8 @@ func (client AccountsClient) UpdatePreparer(ctx context.Context, resourceGroupNa
 // UpdateSender sends the Update request. The method will close the
 // http.Response Body if it receives an error.
 func (client AccountsClient) UpdateSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // UpdateResponder handles the response to the Update request. The method always

@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_recovery_services_vault
 
-Manage an Recovery Services Vault.
+Manages an Recovery Services Vault.
 
 ## Example Usage
 

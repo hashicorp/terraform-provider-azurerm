@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +27,13 @@ func resourceArmBatchAccount() *schema.Resource {
 		Delete: resourceArmBatchAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -87,14 +97,15 @@ func resourceArmBatchAccount() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.AccountClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account creation.")
 
@@ -103,9 +114,9 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	storageAccountId := d.Get("storage_account_id").(string)
 	poolAllocationMode := d.Get("pool_allocation_mode").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -123,7 +134,7 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 		AccountCreateProperties: &batch.AccountCreateProperties{
 			PoolAllocationMode: batch.PoolAllocationMode(poolAllocationMode),
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	// if pool allocation mode is UserSubscription, a key vault reference needs to be set
@@ -171,10 +182,11 @@ func resourceArmBatchAccountCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.AccountClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,18 +229,17 @@ func resourceArmBatchAccountRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("secondary_access_key", keys.Secondary)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.AccountClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Batch account update.")
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -236,7 +247,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 	resourceGroup := id.ResourceGroup
 
 	storageAccountId := d.Get("storage_account_id").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := batch.AccountUpdateParameters{
 		AccountUpdateProperties: &batch.AccountUpdateProperties{
@@ -244,7 +255,7 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 				StorageAccountID: &storageAccountId,
 			},
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err = client.Update(ctx, resourceGroup, name, parameters); err != nil {
@@ -266,10 +277,11 @@ func resourceArmBatchAccountUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmBatchAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).batch.AccountClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Batch.AccountClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

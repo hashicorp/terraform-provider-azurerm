@@ -117,9 +117,9 @@ func (client AgentPoolsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) CreateOrUpdateSender(req *http.Request) (future AgentPoolsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -206,9 +206,9 @@ func (client AgentPoolsClient) DeletePreparer(ctx context.Context, resourceGroup
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) DeleteSender(req *http.Request) (future AgentPoolsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -300,8 +300,8 @@ func (client AgentPoolsClient) GetPreparer(ctx context.Context, resourceGroupNam
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -321,8 +321,7 @@ func (client AgentPoolsClient) GetResponder(resp *http.Response) (result AgentPo
 // Parameters:
 // resourceGroupName - the name of the resource group.
 // resourceName - the name of the managed cluster resource.
-// agentPoolName - the name of the agent pool.
-func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (result AgentPoolAvailableVersions, err error) {
+func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context, resourceGroupName string, resourceName string) (result AgentPoolAvailableVersions, err error) {
 	if tracing.IsEnabled() {
 		ctx = tracing.StartSpan(ctx, fqdn+"/AgentPoolsClient.GetAvailableAgentPoolVersions")
 		defer func() {
@@ -343,7 +342,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context
 		return result, validation.NewError("containerservice.AgentPoolsClient", "GetAvailableAgentPoolVersions", err.Error())
 	}
 
-	req, err := client.GetAvailableAgentPoolVersionsPreparer(ctx, resourceGroupName, resourceName, agentPoolName)
+	req, err := client.GetAvailableAgentPoolVersionsPreparer(ctx, resourceGroupName, resourceName)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "containerservice.AgentPoolsClient", "GetAvailableAgentPoolVersions", nil, "Failure preparing request")
 		return
@@ -365,9 +364,8 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersions(ctx context.Context
 }
 
 // GetAvailableAgentPoolVersionsPreparer prepares the GetAvailableAgentPoolVersions request.
-func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context.Context, resourceGroupName string, resourceName string, agentPoolName string) (*http.Request, error) {
+func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
 	pathParameters := map[string]interface{}{
-		"agentPoolName":     autorest.Encode("path", agentPoolName),
 		"resourceGroupName": autorest.Encode("path", resourceGroupName),
 		"resourceName":      autorest.Encode("path", resourceName),
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
@@ -381,7 +379,7 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context
 	preparer := autorest.CreatePreparer(
 		autorest.AsGet(),
 		autorest.WithBaseURL(client.BaseURI),
-		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/agentPools/{agentPoolName}/availableAgentPoolVersions", pathParameters),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/availableAgentPoolVersions", pathParameters),
 		autorest.WithQueryParameters(queryParameters))
 	return preparer.Prepare((&http.Request{}).WithContext(ctx))
 }
@@ -389,8 +387,8 @@ func (client AgentPoolsClient) GetAvailableAgentPoolVersionsPreparer(ctx context
 // GetAvailableAgentPoolVersionsSender sends the GetAvailableAgentPoolVersions request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) GetAvailableAgentPoolVersionsSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetAvailableAgentPoolVersionsResponder handles the response to the GetAvailableAgentPoolVersions request. The method always
@@ -479,8 +477,8 @@ func (client AgentPoolsClient) GetUpgradeProfilePreparer(ctx context.Context, re
 // GetUpgradeProfileSender sends the GetUpgradeProfile request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) GetUpgradeProfileSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetUpgradeProfileResponder handles the response to the GetUpgradeProfile request. The method always
@@ -568,8 +566,8 @@ func (client AgentPoolsClient) ListPreparer(ctx context.Context, resourceGroupNa
 // ListSender sends the List request. The method will close the
 // http.Response Body if it receives an error.
 func (client AgentPoolsClient) ListSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListResponder handles the response to the List request. The method always

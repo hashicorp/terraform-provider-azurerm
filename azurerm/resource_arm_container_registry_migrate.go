@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func resourceAzureRMContainerRegistryMigrateState(
@@ -92,13 +92,13 @@ func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{
 
 func findAzureStorageAccountIdFromName(name string, meta interface{}) (string, error) {
 	ctx := meta.(*ArmClient).StopContext
-	client := meta.(*ArmClient).storageServiceClient
+	client := meta.(*ArmClient).Storage.AccountsClient
 	accounts, err := client.List(ctx)
 	if err != nil {
 		return "", err
 	}
 
-	for _, account := range *accounts.Value {
+	for _, account := range accounts.Values() {
 		if strings.EqualFold(*account.Name, name) {
 			return *account.ID, nil
 		}

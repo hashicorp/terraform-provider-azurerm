@@ -5,10 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -79,7 +80,7 @@ func TestAccAzureRMStorageQueue_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageQueue_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -147,7 +148,6 @@ func TestAccAzureRMStorageQueue_metaData(t *testing.T) {
 
 func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -156,10 +156,23 @@ func testCheckAzureRMStorageQueueExists(resourceName string) resource.TestCheckF
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		queueClient := testAccProvider.Meta().(*ArmClient).storage.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 
-		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
+		account, err := storageClient.FindAccount(ctx, accountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", accountName, name, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+		}
+
+		queuesClient, err := storageClient.QueuesClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
+
+		metaData, err := queuesClient.GetMetaData(ctx, accountName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(metaData.Response) {
 				return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) does not exist", name, accountName)
@@ -181,19 +194,29 @@ func testCheckAzureRMStorageQueueDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		queueClient := testAccProvider.Meta().(*ArmClient).storage.QueuesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 
-		metaData, err := queueClient.GetMetaData(ctx, accountName, name)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			if utils.ResponseWasNotFound(metaData.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Unexpected error getting MetaData for Queue %q: %s", name, err)
+			return fmt.Errorf("Error retrieving Account %q for Queue %q: %s", accountName, name, err)
+		}
+		// expected if this has been deleted
+		if account == nil {
+			return nil
 		}
 
-		return fmt.Errorf("Bad: Storage Queue %q (storage account: %q) still exists", name, accountName)
+		queuesClient, err := storageClient.QueuesClient(ctx, *account)
+		if err != nil {
+			return fmt.Errorf("Error building Queues Client: %s", err)
+		}
+
+		props, err := queuesClient.GetMetaData(ctx, accountName, name)
+		if err != nil {
+			return nil
+		}
+
+		return fmt.Errorf("Queue still exists: %+v", props)
 	}
 
 	return nil

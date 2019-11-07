@@ -70,7 +70,7 @@ func buildSharedKeyLiteTable(accountName, storageAccountKey string, r *http.Requ
 // NOTE: this function assumes that the `x-ms-date` field is set
 func computeSharedKeyLiteTable(url string, accountName string, headers http.Header) (*string, error) {
 	dateHeader := headers.Get("x-ms-date")
-	canonicalizedResource, err := buildCanonicalizedResource(url, accountName)
+	canonicalizedResource, err := buildCanonicalizedResource(url, accountName, true)
 	if err != nil {
 		return nil, err
 	}

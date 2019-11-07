@@ -86,7 +86,7 @@ func (client JobDetailsClient) GetPreparer(ctx context.Context, vaultName string
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2017-07-01"
+	const APIVersion = "2019-05-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -102,8 +102,8 @@ func (client JobDetailsClient) GetPreparer(ctx context.Context, vaultName string
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobDetailsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always

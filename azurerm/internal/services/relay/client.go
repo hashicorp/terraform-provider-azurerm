@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	NamespacesClient relay.NamespacesClient
+	NamespacesClient *relay.NamespacesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	NamespacesClient := relay.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
 
-	c.NamespacesClient = relay.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&c.NamespacesClient.Client, o.ResourceManagerAuthorizer)
-
-	return &c
+	return &Client{
+		NamespacesClient: &NamespacesClient,
+	}
 }

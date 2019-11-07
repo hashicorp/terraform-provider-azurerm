@@ -5,9 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -110,7 +111,7 @@ func TestAccAzureRMFirewall_basic(t *testing.T) {
 }
 
 func TestAccAzureRMFirewall_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -175,6 +176,40 @@ func TestAccAzureRMFirewall_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFirewall_withZones(t *testing.T) {
+	resourceName := "azurerm_firewall.test"
+	rInt := tf.AccRandTimeInt()
+	location := testLocation()
+	zones := []string{"1"}
+	zonesUpdate := []string{"1", "3"}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMFirewall_withZones(rInt, location, zones),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFirewallExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "zones.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "zones.0", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMFirewall_withZones(rInt, location, zonesUpdate),
+				Check: resource.ComposeTestCheckFunc(
+
+					testCheckAzureRMFirewallExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "zones.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "zones.0", "1"),
+					resource.TestCheckResourceAttr(resourceName, "zones.1", "3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMFirewall_disappears(t *testing.T) {
 	resourceName := "azurerm_firewall.test"
 	ri := tf.AccRandTimeInt()
@@ -211,7 +246,7 @@ func testCheckAzureRMFirewallExists(resourceName string) resource.TestCheckFunc 
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
@@ -240,7 +275,7 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 			return fmt.Errorf("Bad: no resource group found in state for Azure Firewall: %q", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		future, err := client.Delete(ctx, resourceGroup, name)
 		if err != nil {
@@ -255,7 +290,7 @@ func testCheckAzureRMFirewallDisappears(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMFirewallDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.AzureFirewallsClient
+	client := testAccProvider.Meta().(*ArmClient).Network.AzureFirewallsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -479,4 +514,50 @@ resource "azurerm_firewall" "test" {
   }
 }
 `, rInt, location, rInt, rInt, rInt)
+}
+
+func testAccAzureRMFirewall_withZones(rInt int, location string, zones []string) string {
+	zoneString := strings.Join(zones, ",")
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = "${azurerm_subnet.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.test.id}"
+  }
+
+  zones = [%s]
+}
+`, rInt, location, rInt, rInt, rInt, zoneString)
 }

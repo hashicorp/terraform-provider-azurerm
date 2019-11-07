@@ -3,12 +3,12 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table"
 sidebar_current: "docs-azurerm-resource-storage-table-x"
 description: |-
-  Manage a Table within an Azure Storage Account.
+  Manages a Table within an Azure Storage Account.
 ---
 
 # azurerm_storage_table
 
-Manage a Table within an Azure Storage Account.
+Manages a Table within an Azure Storage Account.
 
 ## Example Usage
 
@@ -76,5 +76,5 @@ The following attributes are exported in addition to the arguments listed above:
 Table's within a Storage Account can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_table.table1 https://example.table.core.windows.net/table1
+terraform import azurerm_storage_table.table1 "https://example.table.core.windows.net/Tables('replace-with-table-name')"
 ```

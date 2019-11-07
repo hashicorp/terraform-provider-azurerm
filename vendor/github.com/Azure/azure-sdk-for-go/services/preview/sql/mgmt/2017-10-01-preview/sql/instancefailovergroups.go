@@ -113,9 +113,9 @@ func (client InstanceFailoverGroupsClient) CreateOrUpdatePreparer(ctx context.Co
 // CreateOrUpdateSender sends the CreateOrUpdate request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) CreateOrUpdateSender(req *http.Request) (future InstanceFailoverGroupsCreateOrUpdateFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -193,9 +193,9 @@ func (client InstanceFailoverGroupsClient) DeletePreparer(ctx context.Context, r
 // DeleteSender sends the Delete request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) DeleteSender(req *http.Request) (future InstanceFailoverGroupsDeleteFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -272,9 +272,9 @@ func (client InstanceFailoverGroupsClient) FailoverPreparer(ctx context.Context,
 // FailoverSender sends the Failover request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) FailoverSender(req *http.Request) (future InstanceFailoverGroupsFailoverFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -353,9 +353,9 @@ func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossPreparer(ct
 // ForceFailoverAllowDataLossSender sends the ForceFailoverAllowDataLoss request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) ForceFailoverAllowDataLossSender(req *http.Request) (future InstanceFailoverGroupsForceFailoverAllowDataLossFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
 	var resp *http.Response
-	resp, err = autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	resp, err = autorest.SendWithSender(client, req, sd...)
 	if err != nil {
 		return
 	}
@@ -439,8 +439,8 @@ func (client InstanceFailoverGroupsClient) GetPreparer(ctx context.Context, reso
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always
@@ -518,8 +518,8 @@ func (client InstanceFailoverGroupsClient) ListByLocationPreparer(ctx context.Co
 // ListByLocationSender sends the ListByLocation request. The method will close the
 // http.Response Body if it receives an error.
 func (client InstanceFailoverGroupsClient) ListByLocationSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // ListByLocationResponder handles the response to the ListByLocation request. The method always

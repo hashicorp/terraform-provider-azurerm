@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -207,7 +207,7 @@ func testCheckAzureRMDataFactoryExists(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactory.FactoriesClient
+		client := testAccProvider.Meta().(*ArmClient).DataFactory.FactoriesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name, "")
@@ -237,7 +237,7 @@ func testCheckAzureRMDataFactoryDisappears(name string) resource.TestCheckFunc {
 			return fmt.Errorf("Bad: no resource group found in state for Data Factory: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).dataFactory.FactoriesClient
+		client := testAccProvider.Meta().(*ArmClient).DataFactory.FactoriesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Delete(ctx, resourceGroup, name)
@@ -252,7 +252,7 @@ func testCheckAzureRMDataFactoryDisappears(name string) resource.TestCheckFunc {
 }
 
 func testCheckAzureRMDataFactoryDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).dataFactory.FactoriesClient
+	client := testAccProvider.Meta().(*ArmClient).DataFactory.FactoriesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

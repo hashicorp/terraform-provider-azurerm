@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -34,7 +35,7 @@ func TestAccAzureRMAutomationSchedule_oneTime_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMAutomationSchedule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -268,7 +269,7 @@ func TestAccAzureRMAutomationSchedule_monthly_advanced_by_week_day(t *testing.T)
 }
 
 func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.ScheduleClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.ScheduleClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -277,7 +278,7 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -302,7 +303,7 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 
 func testCheckAzureRMAutomationScheduleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).automation.ScheduleClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.ScheduleClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -333,7 +334,7 @@ func testCheckAzureRMAutomationScheduleExists(resourceName string) resource.Test
 }
 
 func testAccAzureRMAutomationSchedule_prerequisites(rInt int, location string) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"
@@ -505,7 +506,6 @@ func checkAccAzureRMAutomationSchedule_recurring_advanced_month(resourceName str
 }
 
 func testAccAzureRMAutomationSchedule_recurring_advanced_month_week_day(rInt int, location string, weekDay string, weekDayOccurrence int) string {
-
 	return fmt.Sprintf(`
 %s
 

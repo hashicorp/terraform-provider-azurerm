@@ -51,7 +51,17 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the SQL Server. At this time the only allowed value is `SystemAssigned`.
+
+~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the SQL Server has been created. More details are available below.
 
 ## Attributes Reference
 
@@ -59,6 +69,16 @@ The following attributes are exported:
 
 * `id` - The SQL Server ID.
 * `fully_qualified_domain_name` - The fully qualified domain name of the Azure SQL Server (e.g. myServerName.database.windows.net)
+
+---
+
+`identity` exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this SQL Server.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
+
+-> You can access the Principal ID via `${azurerm_sql_server.test.identity.0.principal_id}` and the Tenant ID via `${azurerm_sql_server.test.identity.0.tenant_id}`
 
 ## Import
 

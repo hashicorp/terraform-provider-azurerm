@@ -5,9 +5,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -86,7 +87,7 @@ func TestAccAzureRMAutomationAccount_basicNotDefined(t *testing.T) {
 }
 
 func TestAccAzureRMAutomationAccount_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -141,7 +142,7 @@ func TestAccAzureRMAutomationAccount_complete(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.AccountClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -169,7 +170,6 @@ func testCheckAzureRMAutomationAccountDestroy(s *terraform.State) error {
 }
 
 func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -183,7 +183,7 @@ func testCheckAzureRMAutomationAccountExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Automation Account: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automation.AccountClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.AccountClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -232,7 +232,7 @@ resource "azurerm_automation_account" "test" {
 
   sku {
     name = "Basic"
-  } 
+  }
 }
 `, rInt, location, rInt)
 }
@@ -281,7 +281,7 @@ resource "azurerm_automation_account" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   sku_name = "Basic"
-  
+
   tags = {
     "hello" = "world"
   }

@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -50,7 +50,7 @@ func resourceArmStorageAccountBlobSettings() *schema.Resource {
 }
 
 func resourceArmStorageAccountBlobSettingsCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).storageBlobServicesClient
+	client := meta.(*ArmClient).Storage.BlobServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Storage Account Blob Settings creation.")
@@ -105,7 +105,7 @@ func resourceArmStorageAccountBlobSettingsCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmStorageAccountBlobSettingsRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).storageBlobServicesClient
+	client := meta.(*ArmClient).Storage.BlobServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	log.Printf("[INFO] Reading Azure ARM Storage Account Blob Settings.")
@@ -147,7 +147,7 @@ func resourceArmStorageAccountBlobSettingsRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStorageAccountBlobSettingsDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).storageBlobServicesClient
+	client := meta.(*ArmClient).Storage.BlobServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := parseAzureResourceID(d.Id())

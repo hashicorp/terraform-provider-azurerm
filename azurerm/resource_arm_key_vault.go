@@ -8,14 +8,19 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/set"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -39,6 +44,13 @@ func resourceArmKeyVault() *schema.Resource {
 
 		MigrateState:  resourceAzureRMKeyVaultMigrateState,
 		SchemaVersion: 1,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -81,7 +93,8 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-				}, false),
+					// TODO: revert this in 2.0
+				}, true),
 			},
 
 			"vault_uri": {
@@ -92,7 +105,7 @@ func resourceArmKeyVault() *schema.Resource {
 			"tenant_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validateUUID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"access_policy": {
@@ -106,17 +119,17 @@ func resourceArmKeyVault() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateUUID,
+							ValidateFunc: validate.UUID,
 						},
 						"object_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateUUID,
+							ValidateFunc: validate.UUID,
 						},
 						"application_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validateUUID,
+							ValidateFunc: validate.UUID,
 						},
 						"certificate_permissions": azure.SchemaKeyVaultCertificatePermissions(),
 						"key_permissions":         azure.SchemaKeyVaultKeyPermissions(),
@@ -179,14 +192,15 @@ func resourceArmKeyVault() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// Remove in 2.0
 	var sku keyvault.Sku
@@ -216,7 +230,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -234,7 +248,7 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	enabledForDeployment := d.Get("enabled_for_deployment").(bool)
 	enabledForDiskEncryption := d.Get("enabled_for_disk_encryption").(bool)
 	enabledForTemplateDeployment := d.Get("enabled_for_template_deployment").(bool)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	networkAclsRaw := d.Get("network_acls").([]interface{})
 	networkAcls, subnetIds := expandKeyVaultNetworkAcls(networkAclsRaw)
@@ -256,18 +270,18 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 			EnabledForTemplateDeployment: &enabledForTemplateDeployment,
 			NetworkAcls:                  networkAcls,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	// Locking this resource so we don't make modifications to it at the same time if there is a
 	// key vault access policy trying to update it as well
-	azureRMLockByName(name, keyVaultResourceName)
-	defer azureRMUnlockByName(name, keyVaultResourceName)
+	locks.ByName(name, keyVaultResourceName)
+	defer locks.UnlockByName(name, keyVaultResourceName)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
 	for _, v := range subnetIds {
-		id, err2 := parseAzureResourceID(v)
+		id, err2 := azure.ParseAzureResourceID(v)
 		if err2 != nil {
 			return err2
 		}
@@ -278,8 +292,8 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, parameters); err != nil {
 		return fmt.Errorf("Error updating Key Vault %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -320,10 +334,11 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -376,23 +391,23 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 	resourceGroup := id.ResourceGroup
 	name := id.Path["vaults"]
 
-	azureRMLockByName(name, keyVaultResourceName)
-	defer azureRMUnlockByName(name, keyVaultResourceName)
+	locks.ByName(name, keyVaultResourceName)
+	defer locks.UnlockByName(name, keyVaultResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -413,7 +428,7 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 						continue
 					}
 
-					id, err2 := parseAzureResourceID(*v.ID)
+					id, err2 := azure.ParseAzureResourceID(*v.ID)
 					if err2 != nil {
 						return err2
 					}
@@ -427,8 +442,8 @@ func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	azureRMLockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
-	defer azureRMUnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	locks.MultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(&virtualNetworkNames, virtualNetworkResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

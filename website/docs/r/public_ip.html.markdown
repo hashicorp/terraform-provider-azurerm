@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_public_ip
 
-Manage a Public IP Address.
+Manages a Public IP Address.
 
 ## Example Usage
 
@@ -46,8 +46,6 @@ The following arguments are supported:
 
 -> **Note** Public IP Standard SKUs require `allocation_method` to be set to `Static`.
 
--> **Note:** The `Standard` SKU is currently in Public Preview on an opt-in basis. [More information, including how you can register for the Preview, and which regions `Standard` SKU's are available in are available here](https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-overview)
-
 * `allocation_method` - (Required)  Defines the allocation method for this IP address. Possible values are `Static` or `Dynamic`.
 
 ~> **Note** `Dynamic` Public IP Addresses aren't allocated until they're assigned to a resource (such as a Virtual Machine or a Load Balancer) by design within Azure - [more information is available below](#ip_address).
@@ -63,8 +61,6 @@ The following arguments are supported:
 * `reverse_fqdn` - (Optional) A fully qualified domain name that resolves to this public IP address. If the reverseFqdn is specified, then a PTR DNS record is created pointing from the IP address in the in-addr.arpa domain to the reverse FQDN.
 
 * `public_ip_prefix_id` - (Optional) If specified then public IP address allocated will be provided from the public IP prefix resource.
-
--> **Please Note**: Public IP Prefix are currently in Public Preview. You can find more information about [Public IP Preifx Preview here](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-address-prefix).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

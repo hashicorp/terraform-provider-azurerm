@@ -87,7 +87,7 @@ func (client JobCancellationsClient) TriggerPreparer(ctx context.Context, vaultN
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2019-05-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -103,8 +103,8 @@ func (client JobCancellationsClient) TriggerPreparer(ctx context.Context, vaultN
 // TriggerSender sends the Trigger request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobCancellationsClient) TriggerSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // TriggerResponder handles the response to the Trigger request. The method always

@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMPrivateDnsCNameRecord_basic(t *testing.T) {
@@ -37,7 +38,7 @@ func TestAccAzureRMPrivateDnsCNameRecord_basic(t *testing.T) {
 }
 
 func TestAccAzureRMPrivateDnsCNameRecord_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -169,7 +170,7 @@ func testCheckAzureRMPrivateDnsCNameRecordExists(resourceName string) resource.T
 			return fmt.Errorf("Bad: no resource group found in state for Private DNS CNAME record: %s", aName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).privateDns.RecordSetsClient
+		conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.CNAME, aName)
 		if err != nil {
@@ -185,7 +186,7 @@ func testCheckAzureRMPrivateDnsCNameRecordExists(resourceName string) resource.T
 }
 
 func testCheckAzureRMPrivateDnsCNameRecordDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).privateDns.RecordSetsClient
+	conn := testAccProvider.Meta().(*ArmClient).PrivateDns.RecordSetsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -197,7 +198,7 @@ func testCheckAzureRMPrivateDnsCNameRecordDestroy(s *terraform.State) error {
 		zoneName := rs.Primary.Attributes["zone_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.A, aName)
+		resp, err := conn.Get(ctx, resourceGroup, zoneName, privatedns.CNAME, aName)
 
 		if err != nil {
 			if resp.StatusCode == http.StatusNotFound {

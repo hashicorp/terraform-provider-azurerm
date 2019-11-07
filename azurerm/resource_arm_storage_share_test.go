@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMStorageShare_basic(t *testing.T) {
@@ -39,7 +39,7 @@ func TestAccAzureRMStorageShare_basic(t *testing.T) {
 }
 
 func TestAccAzureRMStorageShare_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -203,18 +203,18 @@ func testCheckAzureRMStorageShareExists(resourceName string) resource.TestCheckF
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", shareName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileSharesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
@@ -237,18 +237,18 @@ func testCheckAzureRMStorageShareDisappears(resourceName string) resource.TestCh
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Share %q (Account %s) - assuming removed & removing from state", shareName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileSharesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
@@ -270,32 +270,30 @@ func testCheckAzureRMStorageShareDestroy(s *terraform.State) error {
 		shareName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share %q (Account %s): %s", shareName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Share %q: %s", accountName, shareName, err)
 		}
-		if resourceGroup == nil {
+
+		// expected since it's been deleted
+		if account == nil {
 			return nil
 		}
 
-		client, err := storageClient.FileSharesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileSharesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
 
 		props, err := client.GetProperties(ctx, accountName, shareName)
 		if err != nil {
-			if utils.ResponseWasNotFound(props.Response) {
-				return nil
-			}
-
-			return fmt.Errorf("Error retrieving Share %q: %s", shareName, accountName)
+			return nil
 		}
 
-		return fmt.Errorf("Bad: Share %q (storage account: %q) still exists", shareName, accountName)
+		return fmt.Errorf("Share still exists: %+v", props)
 	}
 
 	return nil

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -101,7 +101,7 @@ resource "azurerm_storage_account_blob_settings" "testsabs" {
 }
 
 func testCheckAzureRMStorageAccountBlobSettingsDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).storageBlobServicesClient
+	client := testAccProvider.Meta().(*ArmClient).Storage.BlobServicesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

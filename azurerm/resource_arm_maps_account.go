@@ -3,13 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/maps/mgmt/2018-05-01/maps"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	mapsint "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +25,13 @@ func resourceArmMapsAccount() *schema.Resource {
 		Delete: resourceArmMapsAccountDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -40,10 +51,11 @@ func resourceArmMapsAccount() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"s0",
 					"s1",
-				}, false),
+					// TODO: revert this in 2.0
+				}, true),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"x_ms_client_id": {
 				Type:     schema.TypeString,
@@ -66,17 +78,18 @@ func resourceArmMapsAccount() *schema.Resource {
 }
 
 func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Maps.AccountsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Maps Account creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 	sku := d.Get("sku_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -94,7 +107,7 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 		Sku: &maps.Sku{
 			Name: &sku,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, parameters); err != nil {
@@ -116,10 +129,11 @@ func resourceArmMapsAccountCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Maps.AccountsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -152,16 +166,15 @@ func resourceArmMapsAccountRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("primary_access_key", keysResp.PrimaryKey)
 	d.Set("secondary_access_key", keysResp.SecondaryKey)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMapsAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).maps.AccountsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Maps.AccountsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

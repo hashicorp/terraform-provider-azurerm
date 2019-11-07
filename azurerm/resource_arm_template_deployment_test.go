@@ -6,9 +6,10 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
@@ -29,7 +30,7 @@ func TestAccAzureRMTemplateDeployment_basic(t *testing.T) {
 	})
 }
 func TestAccAzureRMTemplateDeployment_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -129,7 +130,6 @@ func TestAccAzureRMTemplateDeployment_withParamsBody(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func TestAccAzureRMTemplateDeployment_withOutputs(t *testing.T) {
@@ -170,7 +170,7 @@ func TestAccAzureRMTemplateDeployment_withError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccAzureRMTemplateDeployment_withError(ri, testLocation()),
-				ExpectError: regexp.MustCompile("Code=\"DeploymentFailed\""),
+				ExpectError: regexp.MustCompile("Error validating Template for Deployment"),
 			},
 		},
 	})
@@ -190,7 +190,7 @@ func testCheckAzureRMTemplateDeploymentExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).resource.DeploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).Resource.DeploymentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -220,7 +220,7 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for template deployment: %s", deploymentName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).resource.DeploymentsClient
+		client := testAccProvider.Meta().(*ArmClient).Resource.DeploymentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, deploymentName); err != nil {
@@ -232,7 +232,7 @@ func testCheckAzureRMTemplateDeploymentDisappears(resourceName string) resource.
 }
 
 func testCheckAzureRMTemplateDeploymentDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).resource.DeploymentsClient
+	client := testAccProvider.Meta().(*ArmClient).Resource.DeploymentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -478,6 +478,7 @@ resource "azurerm_key_vault" "test-kv" {
     object_id       = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     secret_permissions = [
+      "delete",
       "get",
       "list",
       "set",
@@ -584,11 +585,10 @@ resource "azurerm_template_deployment" "test" {
 DEPLOY
 
   parameters_body = "${local.templated-file}"
-  deployment_mode = "Complete"
+  deployment_mode = "Incremental"
   depends_on      = ["azurerm_key_vault_secret.test-secret"]
 }
 `, rInt, location, location, rInt, rInt, rInt, rInt)
-
 }
 
 func testAccAzureRMTemplateDeployment_withParams(rInt int, location string) string {

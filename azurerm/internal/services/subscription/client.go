@@ -6,14 +6,14 @@ import (
 )
 
 type Client struct {
-	Client subscriptions.Client
+	Client *subscriptions.Client
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	c := Client{}
+	client := subscriptions.NewClientWithBaseURI(o.ResourceManagerEndpoint)
+	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 
-	c.Client = subscriptions.NewClientWithBaseURI(o.ResourceManagerEndpoint)
-	o.ConfigureClient(&c.Client.Client, o.ResourceManagerAuthorizer)
-
-	return &c
+	return &Client{
+		Client: &client,
+	}
 }

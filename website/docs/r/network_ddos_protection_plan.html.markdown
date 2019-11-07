@@ -11,7 +11,7 @@ description: |-
 
 Manages an AzureNetwork DDoS Protection Plan.
 
--> **NOTE** Azure only allow `one` DDoS Protection Plan per region.
+-> **NOTE** Azure only allows `one` DDoS Protection Plan per region.
 
 ## Example Usage
 

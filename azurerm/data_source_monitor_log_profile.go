@@ -2,14 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmMonitorLogProfile() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmLogProfileRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -59,8 +66,9 @@ func dataSourceArmMonitorLogProfile() *schema.Resource {
 }
 
 func dataSourceArmLogProfileRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.LogProfilesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.LogProfilesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resp, err := client.Get(ctx, name)
