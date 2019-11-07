@@ -40,23 +40,30 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 		}
 
 		if d.HasChange("roles.0.worker_node") {
-			log.Printf("[DEBUG] Resizing the HDInsight %q Cluster", clusterKind)
-			rolesRaw := d.Get("roles").([]interface{})
-			roles := rolesRaw[0].(map[string]interface{})
-			workerNodes := roles["worker_node"].([]interface{})
-			workerNode := workerNodes[0].(map[string]interface{})
-			targetInstanceCount := workerNode["target_instance_count"].(int)
-			params := hdinsight.ClusterResizeParameters{
-				TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
-			}
 
-			future, err := client.Resize(ctx, resourceGroup, name, params)
-			if err != nil {
-				return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
-			}
+			oldWorkerNodeCount, newWorkerNodeCount := d.GetChange("roles.0.edge_node.0.target_instance_count")
+			oldWorkerNodeInt := oldWorkerNodeCount.(int)
+			newWorkerNodeInt := newWorkerNodeCount.(int)
 
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+			if oldWorkerNodeInt != newWorkerNodeInt {
+				log.Printf("[DEBUG] Resizing the HDInsight %q Cluster", clusterKind)
+				rolesRaw := d.Get("roles").([]interface{})
+				roles := rolesRaw[0].(map[string]interface{})
+				workerNodes := roles["worker_node"].([]interface{})
+				workerNode := workerNodes[0].(map[string]interface{})
+				targetInstanceCount := workerNode["target_instance_count"].(int)
+				params := hdinsight.ClusterResizeParameters{
+					TargetInstanceCount: utils.Int32(int32(targetInstanceCount)),
+				}
+
+				future, err := client.Resize(ctx, resourceGroup, name, params)
+				if err != nil {
+					return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+				}
+
+				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+					return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+				}
 			}
 		}
 

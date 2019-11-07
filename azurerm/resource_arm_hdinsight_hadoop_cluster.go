@@ -9,11 +9,8 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -29,6 +26,7 @@ var hdInsightHadoopClusterHeadNodeDefinition = azure.HDInsightNodeDefinition{
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(2)),
+	CanSpecifyScriptAction:   true,
 }
 
 var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
@@ -36,6 +34,7 @@ var hdInsightHadoopClusterWorkerNodeDefinition = azure.HDInsightNodeDefinition{
 	MinInstanceCount:        1,
 	MaxInstanceCount:        25,
 	CanSpecifyDisks:         false,
+	CanSpecifyScriptAction:  true,
 }
 
 var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinition{
@@ -45,6 +44,7 @@ var hdInsightHadoopClusterZookeeperNodeDefinition = azure.HDInsightNodeDefinitio
 	CanSpecifyDisks:          false,
 	FixedMinInstanceCount:    utils.Int32(int32(1)),
 	FixedTargetInstanceCount: utils.Int32(int32(3)),
+	CanSpecifyScriptAction:   false,
 }
 
 func resourceArmHDInsightHadoopCluster() *schema.Resource {
@@ -107,47 +107,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 						"zookeeper_node": azure.SchemaHDInsightNodeDefinition("roles.0.zookeeper_node", hdInsightHadoopClusterZookeeperNodeDefinition),
 
-						"edge_node": {
-							Type:     schema.TypeList,
-							Optional: true,
-							MaxItems: 1,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"target_instance_count": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										ValidateFunc: validation.IntBetween(1, 25),
-									},
-
-									"vm_size": {
-										Type:             schema.TypeString,
-										Required:         true,
-										DiffSuppressFunc: suppress.CaseDifference,
-										ValidateFunc:     azure.ValidateSchemaHDInsightNodeDefinitionVMSize(),
-									},
-
-									"install_script_action": {
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"name": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
-												},
-												"uri": {
-													Type:         schema.TypeString,
-													Required:     true,
-													ValidateFunc: validate.NoEmptyStrings,
-												},
-											},
-										},
-									},
-								},
-							},
-						},
+						"edge_node": azure.SchemaHDInsightEdgeNodeDefinition(),
 					},
 				},
 			},
@@ -390,15 +350,17 @@ func flattenHDInsightEdgeNode(roles []interface{}, props *hdinsight.ApplicationP
 		}
 	}
 
-	actions := make(map[string]interface{})
+	actions := make([]interface{}, 0)
 	if installScriptActions := props.InstallScriptActions; installScriptActions != nil {
-		for _, action := range *installScriptActions {
-			actions["name"] = action.Name
-			actions["uri"] = action.URI
+		for _, v := range *installScriptActions {
+			action := make(map[string]interface{})
+			action["name"] = v.Name
+			action["uri"] = v.URI
+			actions = append(actions, action)
 		}
 	}
 
-	edgeNode["install_script_action"] = []interface{}{actions}
+	edgeNode["install_script_action"] = actions
 
 	role["edge_node"] = []interface{}{edgeNode}
 
@@ -436,9 +398,8 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 		uri := val["uri"].(string)
 
 		action := hdinsight.RuntimeScriptAction{
-			Name: utils.String(name),
-			URI:  utils.String(uri),
-			// The only role available for edge nodes is edgenode
+			Name:  utils.String(name),
+			URI:   utils.String(uri),
 			Roles: &[]string{"edgenode"},
 		}
 

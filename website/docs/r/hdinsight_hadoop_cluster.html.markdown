@@ -146,6 +146,8 @@ A `head_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Head Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `install_script_action` - One or more `install_script_action` blocks as defined below. Changing this forces a new resource to be created.
+
 ---
 
 A `roles` block supports the following:
@@ -212,6 +214,8 @@ A `worker_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Worker Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+* `install_script_action` - One or more `install_script_action` blocks as defined below. Changing this forces a new resource to be created.
+
 ---
 
 A `zookeeper_node` block supports the following:
@@ -238,7 +242,7 @@ A `edge_node` block supports the following:
 
 * `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Edge Nodes. Changing this forces a new resource to be created.
 
-* `install_script_action` - A `install_script_action` block as defined below.
+* `install_script_action` - One or more `install_script_action` blocks as defined below.
 
 ---
 

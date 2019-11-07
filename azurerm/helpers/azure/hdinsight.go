@@ -289,6 +289,7 @@ type HDInsightNodeDefinition struct {
 	MaxNumberOfDisksPerNode  *int
 	FixedMinInstanceCount    *int32
 	FixedTargetInstanceCount *int32
+	CanSpecifyScriptAction   bool
 }
 
 func ValidateSchemaHDInsightNodeDefinitionVMSize() schema.SchemaValidateFunc {
@@ -451,12 +452,82 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		}
 	}
 
+	if definition.CanSpecifyScriptAction {
+		result["install_script_action"] = &schema.Schema{
+			Type:     schema.TypeList,
+			Optional: true,
+			MinItems: 1,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"name": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validate.NoEmptyStrings,
+					},
+					"uri": {
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validate.NoEmptyStrings,
+					},
+				},
+				CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
+					d.ForceNew(fmt.Sprintf("%s.0.install_script_action", schemaLocation))
+					return nil
+				},
+			},
+		}
+	}
+
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Required: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: result,
+		},
+	}
+}
+
+func SchemaHDInsightEdgeNodeDefinition() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"target_instance_count": {
+					Type:         schema.TypeInt,
+					Required:     true,
+					ValidateFunc: validation.IntBetween(1, 25),
+				},
+
+				"vm_size": {
+					Type:             schema.TypeString,
+					Required:         true,
+					DiffSuppressFunc: suppress.CaseDifference,
+					ValidateFunc:     ValidateSchemaHDInsightNodeDefinitionVMSize(),
+				},
+
+				"install_script_action": {
+					Type:     schema.TypeList,
+					Required: true,
+					MinItems: 1,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"name": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+							"uri": {
+								Type:         schema.TypeString,
+								Required:     true,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -536,6 +607,28 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 		}
 	}
 
+	if definition.CanSpecifyScriptAction {
+		scriptActions := v["install_script_action"].([]interface{})
+
+		actions := make([]hdinsight.ScriptAction, 0)
+
+		for _, v := range scriptActions {
+			val := v.(map[string]interface{})
+
+			name := val["name"].(string)
+			uri := val["uri"].(string)
+
+			action := hdinsight.ScriptAction{
+				Name: utils.String(name),
+				URI:  utils.String(uri),
+			}
+
+			actions = append(actions, action)
+		}
+
+		role.ScriptActions = &actions
+	}
+
 	return &role, nil
 }
 
@@ -576,6 +669,11 @@ func FlattenHDInsightNodeDefinition(input *hdinsight.Role, existing []interface{
 		// we should be "safe" to try and pull it from the state instead, but clearly this isn't ideal
 		vmSize := existingV["vm_size"].(string)
 		output["vm_size"] = vmSize
+
+		if definition.CanSpecifyScriptAction {
+			// API does not return script actions that the cluster was setup with.
+			output["install_script_action"] = existingV["install_script_action"]
+		}
 	}
 
 	if profile := input.VirtualNetworkProfile; profile != nil {

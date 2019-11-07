@@ -48,6 +48,69 @@ func TestAccAzureRMHDInsightHadoopCluster_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMHDInsightHadoopCluster_scriptActions(t *testing.T) {
+	resourceName := "azurerm_hdinsight_hadoop_cluster.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMHDInsightClusterDestroy("azurerm_hdinsight_hadoop_cluster"),
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_scriptActions(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"roles.0.head_node.0.password",
+					"roles.0.head_node.0.vm_size",
+					"roles.0.worker_node.0.password",
+					"roles.0.worker_node.0.vm_size",
+					"roles.0.zookeeper_node.0.password",
+					"roles.0.zookeeper_node.0.vm_size",
+					"storage_account",
+					"roles.0.head_node.0.install_script_action",
+					"roles.0.worker_node.0.install_script_action",
+				},
+			},
+			{
+				Config: testAccAzureRMHDInsightHadoopCluster_scriptActionsUpdate(ri, rs, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMHDInsightClusterExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "https_endpoint"),
+					resource.TestCheckResourceAttrSet(resourceName, "ssh_endpoint"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"roles.0.head_node.0.password",
+					"roles.0.head_node.0.vm_size",
+					"roles.0.worker_node.0.password",
+					"roles.0.worker_node.0.vm_size",
+					"roles.0.zookeeper_node.0.password",
+					"roles.0.zookeeper_node.0.vm_size",
+					"storage_account",
+					"roles.0.head_node.0.install_script_action",
+					"roles.0.worker_node.0.install_script_action",
+				},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMHDInsightHadoopCluster_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -500,6 +563,167 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 `, template, rInt)
 }
 
+func testAccAzureRMHDInsightHadoopCluster_scriptActions(rInt int, rString string, location string) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test-install-script-head" {
+	name                   = "test-install-script-head"
+	storage_account_name   = azurerm_storage_account.test.name
+	storage_container_name = azurerm_storage_container.test.name
+	type                   = "Block"
+	source_content         = "echo \"hello world, I'm a head node!'\""
+}
+
+resource "azurerm_storage_blob" "test-install-script-worker" {
+	name                   = "test-install-script-worker"
+	storage_account_name   = azurerm_storage_account.test.name
+	storage_container_name = azurerm_storage_container.test.name
+	type                   = "Block"
+	source_content         = "echo \"hello world, I'm a worker node'!\""
+}
+
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  cluster_version     = "3.6"
+  tier                = "Standard"
+
+  component_version {
+    hadoop = "2.7"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = "${azurerm_storage_container.test.id}"
+    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+
+	  install_script_action {
+        name = azurerm_storage_blob.test-install-script-head.name
+        uri  = azurerm_storage_blob.test-install-script-head.url
+      }
+
+	  install_script_action {
+        name = "${azurerm_storage_blob.test-install-script-head.name}-2"
+        uri  = azurerm_storage_blob.test-install-script-head.url
+      }
+    }
+
+    worker_node {
+      vm_size               = "Standard_D4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+
+	  install_script_action {
+        name = azurerm_storage_blob.test-install-script-worker.name
+        uri  = azurerm_storage_blob.test-install-script-worker.url
+      }
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMHDInsightHadoopCluster_scriptActionsUpdate(rInt int, rString string, location string) string {
+	template := testAccAzureRMHDInsightHadoopCluster_template(rInt, rString, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_blob" "test-install-script-head-2" {
+	name                   = "test-install-script-head-2"
+	storage_account_name   = azurerm_storage_account.test.name
+	storage_container_name = azurerm_storage_container.test.name
+	type                   = "Block"
+	source_content         = "echo \"hello world, I'm an updated head node!'\""
+}
+
+resource "azurerm_storage_blob" "test-install-script-worker-2" {
+	name                   = "test-install-script-worker-2"
+	storage_account_name   = azurerm_storage_account.test.name
+	storage_container_name = azurerm_storage_container.test.name
+	type                   = "Block"
+	source_content         = "echo \"hello world, I'm an updated worker node'!\""
+}
+
+resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  name                = "acctesthdi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  cluster_version     = "3.6"
+  tier                = "Standard"
+
+  component_version {
+    hadoop = "2.7"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = "${azurerm_storage_container.test.id}"
+    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+
+	  install_script_action {
+        name = azurerm_storage_blob.test-install-script-head-2.name
+        uri  = azurerm_storage_blob.test-install-script-head-2.url
+      }
+    }
+
+    worker_node {
+      vm_size               = "Standard_D4_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 2
+
+	  install_script_action {
+        name = azurerm_storage_blob.test-install-script-worker-2.name
+        uri  = azurerm_storage_blob.test-install-script-worker-2.url
+      }
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_v2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+    }
+  }
+}
+`, template, rInt)
+}
+
 func testAccAzureRMHDInsightHadoopCluster_requiresImport(rInt int, rString string, location string) string {
 	template := testAccAzureRMHDInsightHadoopCluster_basic(rInt, rString, location)
 	return fmt.Sprintf(`
@@ -832,6 +1056,10 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
       vm_size  = "%s"
       install_script_action {
         name = "script1"
+        uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
+      }
+      install_script_action {
+        name = "script2"
         uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-hdinsight-linux-with-edge-node/scripts/EmptyNodeSetup.sh"
       }
     }
