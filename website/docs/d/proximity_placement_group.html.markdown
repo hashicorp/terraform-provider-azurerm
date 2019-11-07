@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_proximity_placement_group"
 sidebar_current: "docs-azurerm-datasource-proximity-placement-group"

@@ -382,6 +382,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
 		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
+		"azurerm_private_dns_ptr_record":                                                 resourceArmPrivateDnsPtrRecord(),
 		"azurerm_private_dns_zone_virtual_network_link":                                  resourceArmPrivateDnsZoneVirtualNetworkLink(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -685,7 +686,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
-			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html",
+			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/guides/service_principal_client_secret.html",
 		}
 
 		config, err := builder.Build()

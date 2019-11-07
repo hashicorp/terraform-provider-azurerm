@@ -1,4 +1,5 @@
 ---
+subcategory: "Template"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_template_deployment"
 sidebar_current: "docs-azurerm-resource-template-deployment"

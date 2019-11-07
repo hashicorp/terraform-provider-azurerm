@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_route_table"
 sidebar_current: "docs-azurerm-data-source-route-table"

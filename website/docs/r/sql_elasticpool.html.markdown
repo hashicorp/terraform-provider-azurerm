@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_elasticpool"
 sidebar_current: "docs-azurerm-resource-database-sql-elasticpool"
