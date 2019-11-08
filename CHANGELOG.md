@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
 * **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
+* **New Resource:** `azurerm_relay_hybrid_connection` [GH-4832]
 
 IMPROVEMENTS:
 
