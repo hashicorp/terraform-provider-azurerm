@@ -56,6 +56,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 					},
 				},
 
+				// TODO: make this node_count
 				"count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
