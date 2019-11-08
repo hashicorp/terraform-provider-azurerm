@@ -75,6 +75,12 @@ The following arguments are supported:
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
+* `version` - (Optional) The Version number of this API, if this API is versioned.
+
+* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
+
+-> **NOTE:** When `version` is set, `version_set_id` must also be specified
+
 ---
 
 A `import` block supports the following:
