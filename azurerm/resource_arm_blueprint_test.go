@@ -117,7 +117,6 @@ func testCheckAzureRMBlueprintExists(resourceName string) resource.TestCheckFunc
 
 func testCheckAzureRMBlueprintPropertiesStatusSet(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resp, err := testGetAzureRMBlueprint(s, resourceName)
 		if err != nil {
 			return err
@@ -135,7 +134,6 @@ func testCheckAzureRMBlueprintPropertiesStatusSet(resourceName string) resource.
 
 func testCheckAzureRMBlueprintPropertiesResourceGroups(resourceName string, groupCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resp, err := testGetAzureRMBlueprint(s, resourceName)
 		if err != nil {
 			return err
@@ -151,7 +149,6 @@ func testCheckAzureRMBlueprintPropertiesResourceGroups(resourceName string, grou
 
 func testCheckAzureRMBlueprintPropertiesParameters(resourceName string, paramCount int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		resp, err := testGetAzureRMBlueprint(s, resourceName)
 		if err != nil {
 			return err

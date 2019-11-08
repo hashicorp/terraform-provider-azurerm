@@ -3,6 +3,10 @@ package azurerm
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,9 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"log"
-	"net/http"
-	"strings"
 )
 
 func resourceArmBlueprint() *schema.Resource {
@@ -230,7 +231,6 @@ func resourceArmBlueprintDelete(d *schema.ResourceData, meta interface{}) error 
 }
 
 func expandBlueprintProperties(d *schema.ResourceData) *blueprint.Properties {
-
 	ret := blueprint.Properties{}
 
 	v := d.Get("properties").([]interface{})
@@ -273,7 +273,6 @@ func expandBlueprintProperties(d *schema.ResourceData) *blueprint.Properties {
 }
 
 func expandBlueprintPropertiesParameters(d *schema.ResourceData) map[string]*blueprint.ParameterDefinition {
-
 	blueprintParameters := make(map[string]*blueprint.ParameterDefinition)
 
 	propertiesRaw := d.Get("properties").([]interface{})
@@ -344,12 +343,11 @@ func expandBlueprintPropertiesResourceGroups(d *schema.ResourceData) map[string]
 }
 
 func flattenBlueprintProperties(blueprintProperties *blueprint.Properties) *schema.Set {
-
 	properties := &schema.Set{
 		F: resourceArmBlueprintPropertiesHash,
 	}
 
-	props := make(map[string]interface{}, 0)
+	props := make(map[string]interface{})
 
 	props["display_name"] = blueprintProperties.DisplayName
 	props["description"] = blueprintProperties.Description
@@ -384,18 +382,16 @@ func flattenBlueprintPropertiesResourceGroups(input map[string]*blueprint.Resour
 
 	//rgs := make(map[string]interface{}, 0)
 
-	if input != nil {
-		for _, resourceGroupDefinition := range input {
-			rg := make(map[string]interface{})
-			rg["name"] = resourceGroupDefinition.Name
-			rg["location"] = resourceGroupDefinition.Location
-			rg["tags"] = resourceGroupDefinition.Tags
-			rg["display_name"] = resourceGroupDefinition.DisplayName
-			rg["description"] = resourceGroupDefinition.Description
-			rg["depends_on"] = resourceGroupDefinition.DependsOn
+	for _, resourceGroupDefinition := range input {
+		rg := make(map[string]interface{})
+		rg["name"] = resourceGroupDefinition.Name
+		rg["location"] = resourceGroupDefinition.Location
+		rg["tags"] = resourceGroupDefinition.Tags
+		rg["display_name"] = resourceGroupDefinition.DisplayName
+		rg["description"] = resourceGroupDefinition.Description
+		rg["depends_on"] = resourceGroupDefinition.DependsOn
 
-			resourceGroups.Add(rg)
-		}
+		resourceGroups.Add(rg)
 	}
 	return resourceGroups
 }
@@ -418,25 +414,22 @@ func flattenBlueprintPropertiesParameters(input map[string]*blueprint.ParameterD
 		F: resourceBlueprintPropertiesParametersHash,
 	}
 
-	if input != nil {
-		for name, parameter := range input {
-			param := make(map[string]interface{})
-			param["name"] = name
-			param["display_name"] = parameter.DisplayName
-			param["type"] = parameter.Type
-			param["default_value"] = parameter.DefaultValue.(string)
-			param["allowed_values"] = parameter.AllowedValues
-			param["description"] = parameter.Description
+	for name, parameter := range input {
+		param := make(map[string]interface{})
+		param["name"] = name
+		param["display_name"] = parameter.DisplayName
+		param["type"] = parameter.Type
+		param["default_value"] = parameter.DefaultValue.(string)
+		param["allowed_values"] = parameter.AllowedValues
+		param["description"] = parameter.Description
 
-			parameters.Add(param)
-		}
+		parameters.Add(param)
 	}
 
 	return parameters
 }
 
 func templateParameterTypeToString(t blueprint.TemplateParameterType) (param string) {
-
 	return string(t)
 }
 
