@@ -574,7 +574,7 @@ func TestAccDataSourceAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) 
 }
 
 func testAccDataSourceAzureRMKubernetesCluster_basic(rInt int, clientId string, clientSecret string, location string) string {
-	r := testAccAzureRMKubernetesCluster_basic(rInt, clientId, clientSecret, location)
+	r := testAccAzureRMKubernetesCluster_basicVMSS(rInt, clientId, clientSecret, location)
 	return fmt.Sprintf(`
 %s
 
