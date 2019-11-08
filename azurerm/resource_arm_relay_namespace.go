@@ -34,7 +34,7 @@ func resourceArmRelayNamespace() *schema.Resource {
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -278,9 +278,15 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
 		Refresh:    relayNamespaceDeleteRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 60 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Relay Namespace %q (Resource Group %q) to be deleted: %s", name, resourceGroup, err)
 	}

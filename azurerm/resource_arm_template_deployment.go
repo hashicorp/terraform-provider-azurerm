@@ -281,7 +281,7 @@ func resourceArmTemplateDeploymentDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name)
+	return waitForTemplateDeploymentToBeDeleted(ctx, client, resourceGroup, name, d)
 }
 
 // TODO: move this out into the new `helpers` structure
@@ -314,15 +314,21 @@ func normalizeJson(jsonString interface{}) string {
 	return string(b[:])
 }
 
-func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string) error {
+func waitForTemplateDeploymentToBeDeleted(ctx context.Context, client *resources.DeploymentsClient, resourceGroup, name string, d *schema.ResourceData) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for Template Deployment (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: templateDeploymentStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 40 * time.Minute,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 40 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Template Deployment (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}

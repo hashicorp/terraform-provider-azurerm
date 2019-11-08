@@ -194,10 +194,20 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   notificationHubStateRefreshFunc(ctx, client, resourceGroup, namespaceName, name),
-		Timeout:                   10 * time.Minute,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 10 * time.Minute
+	}
+
 	if _, err2 := stateConf.WaitForState(); err2 != nil {
 		return fmt.Errorf("Error waiting for Notification Hub %q to become available: %s", name, err2)
 	}
