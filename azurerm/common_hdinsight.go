@@ -230,7 +230,6 @@ func createHDInsightEdgeNodes(ctx context.Context, client *hdinsight.Application
 					HardwareProfile: &hdinsight.HardwareProfile{
 						VMSize: utils.String(input["vm_size"].(string)),
 					},
-					// The TargetInstanceCount must be one for edge nodes.
 					TargetInstanceCount: utils.Int32(int32(input["target_instance_count"].(int))),
 				}},
 			},
