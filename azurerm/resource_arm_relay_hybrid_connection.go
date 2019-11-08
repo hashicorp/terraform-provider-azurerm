@@ -105,7 +105,7 @@ func resourceArmHybridConnectionCreateUpdate(d *schema.ResourceData, meta interf
 
 func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Relay.HybridConnectionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -140,7 +140,7 @@ func resourceArmHybridConnectionRead(d *schema.ResourceData, meta interface{}) e
 
 func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Relay.HybridConnectionsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -166,7 +166,7 @@ func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{})
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
 		Refresh:    hybridConnectionDeleteRefreshFunc(ctx, client, resourceGroup, relayNamespace, name),
-		Timeout:    30 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutDelete),
 		MinTimeout: 15 * time.Second,
 	}
 
