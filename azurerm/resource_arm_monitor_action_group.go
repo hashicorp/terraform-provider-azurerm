@@ -177,7 +177,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
@@ -273,7 +272,6 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 						"use_common_alert_schema": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
 						},
 					},
 				},
