@@ -3,6 +3,7 @@ package azurerm
 import (
 	"context"
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"log"
 	"regexp"
 	"strconv"
@@ -94,7 +95,7 @@ func resourceArmPolicyDefinition() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ValidateFunc:     validation.ValidateJsonString,
-				DiffSuppressFunc: structure.SuppressJsonDiff,
+				DiffSuppressFunc: suppress.SuppressPolicyDefinitionMetadata,
 			},
 
 			"parameters": {
