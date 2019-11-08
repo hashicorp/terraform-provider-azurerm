@@ -22,7 +22,6 @@ import (
 )
 
 // TODO: more granular update tests
-// TODO: 4046 - splitting agent_pool_profile out into it's own resource
 // TODO: document default_node_pool
 
 func resourceArmKubernetesCluster() *schema.Resource {

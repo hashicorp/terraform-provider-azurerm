@@ -427,7 +427,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 2
+    node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
@@ -504,7 +504,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 2
+    node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
@@ -561,7 +561,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 2
+    node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
@@ -635,7 +635,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 2
+    node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
@@ -671,7 +671,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name                  = "default"
-    count                 = 1
+    node_count            = 1
     vm_size               = "Standard_DS2_v2"
     enable_node_public_ip = true
   }
@@ -726,7 +726,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 2
+    node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
     max_pods       = 60
@@ -778,7 +778,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 2
+    node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
@@ -853,7 +853,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 2
+    node_count     = 2
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }

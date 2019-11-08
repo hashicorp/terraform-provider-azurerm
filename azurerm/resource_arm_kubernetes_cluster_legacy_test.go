@@ -76,7 +76,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   agent_pool_profile {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 
@@ -103,7 +103,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   agent_pool_profile {
     name    = "default"
-    count   = "1"
+    count   = 1
     vm_size = "Standard_DS2_v2"
   }
 

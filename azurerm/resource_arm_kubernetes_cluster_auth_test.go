@@ -184,9 +184,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -222,9 +222,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -257,9 +257,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -300,9 +300,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {

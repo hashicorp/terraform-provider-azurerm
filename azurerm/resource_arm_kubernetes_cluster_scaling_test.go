@@ -25,13 +25,13 @@ func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_addAgent(ri, clientId, clientSecret, location, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "2"),
 				),
 			},
 			{
 				Config: testAccAzureRMKubernetesCluster_addAgent(ri, clientId, clientSecret, location, 2),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "2"),
 				),
 			},
 		},
@@ -119,9 +119,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name    = "default"
-    count   = %d
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = %d
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {

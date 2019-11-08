@@ -56,14 +56,6 @@ func SchemaDefaultNodePool() *schema.Schema {
 					},
 				},
 
-				// TODO: make this node_count
-				"count": {
-					Type:         schema.TypeInt,
-					Optional:     true,
-					Default:      1,
-					ValidateFunc: validation.IntBetween(1, 100),
-				},
-
 				"enable_auto_scaling": {
 					Type:     schema.TypeBool,
 					Optional: true,
@@ -88,6 +80,12 @@ func SchemaDefaultNodePool() *schema.Schema {
 				},
 
 				"min_count": {
+					Type:         schema.TypeInt,
+					Optional:     true,
+					ValidateFunc: validation.IntBetween(1, 100),
+				},
+
+				"node_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
 					ValidateFunc: validation.IntBetween(1, 100),
@@ -170,7 +168,7 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		profile.VnetSubnetID = utils.String(vnetSubnetID)
 	}
 
-	count := raw["count"].(int)
+	count := raw["node_count"].(int)
 	maxCount := raw["max_count"].(int)
 	minCount := raw["min_count"].(int)
 
@@ -277,13 +275,13 @@ func FlattenDefaultNodePool(input *[]containerservice.ManagedClusterAgentPoolPro
 	return &[]interface{}{
 		map[string]interface{}{
 			"availability_zones":    availabilityZones,
-			"count":                 count,
 			"enable_auto_scaling":   enableAutoScaling,
 			"enable_node_public_ip": enableNodePublicIP,
 			"max_count":             maxCount,
 			"max_pods":              maxPods,
 			"min_count":             minCount,
 			"name":                  name,
+			"node_count":            count,
 			"node_taints":           nodeTaints,
 			"os_disk_size_gb":       osDiskSizeGB,
 			"type":                  string(agentPool.Type),

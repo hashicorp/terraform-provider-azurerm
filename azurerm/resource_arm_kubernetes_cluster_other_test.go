@@ -297,10 +297,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name    = "default"
-    count   = "1"
-  	type    = "AvailabilitySet"
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+  	type       = "AvailabilitySet"
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -325,9 +325,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -350,9 +350,9 @@ resource "azurerm_kubernetes_cluster" "import" {
   dns_prefix          = azurerm_kubernetes_cluster.test.dns_prefix
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -385,9 +385,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -412,9 +412,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name        = "default"
+    node_count  = 1
+    vm_size     = "Standard_DS2_v2"
     node_taints = [
       "key=value:NoSchedule"
     ]
@@ -443,9 +443,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   node_resource_group = "acctestRGAKS-%d"
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -479,9 +479,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   node_pool_profile {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -520,9 +520,9 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   # the default node pool /has/ to be Linux agents - Windows agents can be added via the node pools resource
   default_node_pool {
-    name    = "np"
-    count   = 3
-    vm_size = "Standard_DS2_v2"
+    name       = "np"
+    node_count = 3
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {

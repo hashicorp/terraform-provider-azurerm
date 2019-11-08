@@ -58,7 +58,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileAciConnectorLinuxDisabled(t *te
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.aci_connector_linux.0.subnet_name", ""),
@@ -183,7 +183,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "true"),
 					resource.TestCheckResourceAttrSet(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id"),
@@ -200,7 +200,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "1"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
@@ -217,7 +217,7 @@ func TestAccAzureRMKubernetesCluster_addonProfileOMSToggle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.http_application_routing.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "2"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.enabled", "false"),
 					resource.TestCheckResourceAttr(resourceName, "addon_profile.0.oms_agent.0.log_analytics_workspace_id", ""),
@@ -318,7 +318,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 1
+    node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
@@ -379,7 +379,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   default_node_pool {
     name           = "default"
-    count          = 1
+    node_count     = 1
     vm_size        = "Standard_DS2_v2"
     vnet_subnet_id = azurerm_subnet.test.id
   }
@@ -424,9 +424,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -465,9 +465,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -526,9 +526,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -568,9 +568,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -609,9 +609,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 2
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 2
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
@@ -644,9 +644,9 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   default_node_pool {
-    name    = "default"
-    count   = 1
-    vm_size = "Standard_DS2_v2"
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
   }
 
   service_principal {
