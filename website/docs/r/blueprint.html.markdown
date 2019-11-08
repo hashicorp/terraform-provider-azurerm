@@ -1,10 +1,10 @@
 ---
+subcetegory: "Blueprints"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_blueprint"
 sidebar_current: "docs-azurerm-resource-blueprint"
 description: |-
   Manages an Azure Blueprint definition.
-
 ---
 
 # azurerm_blueprint
@@ -41,6 +41,8 @@ The following arguments are supported:
 * `type` - (Required) This is (currently) always `Microsoft.Blueprint/blueprints`
 
 * `properties` - (Required) A `properties` block as defined below
+
+----
 
 `properties` supports the following:
 

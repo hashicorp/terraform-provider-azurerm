@@ -2,13 +2,14 @@ package azurerm
 
 import (
 	"fmt"
+	"net/http"
+	"testing"
+
 	"github.com/Azure/azure-sdk-for-go/services/preview/blueprint/mgmt/2018-11-01-preview/blueprint"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"net/http"
-	"testing"
 )
 
 func TestAccAzureRMBlueprint_basic(t *testing.T) {
@@ -112,7 +113,6 @@ func testCheckAzureRMBlueprintExists(resourceName string) resource.TestCheckFunc
 		}
 		return nil
 	}
-
 }
 
 func testCheckAzureRMBlueprintPropertiesStatusSet(resourceName string) resource.TestCheckFunc {

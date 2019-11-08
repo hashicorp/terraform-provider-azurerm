@@ -337,7 +337,6 @@ func expandBlueprintPropertiesResourceGroups(d *schema.ResourceData) map[string]
 		rg.ParameterDefinitionMetadata = rgMetaData
 
 		blueprintResourceGroups[name] = rg
-
 	}
 	return blueprintResourceGroups
 }
