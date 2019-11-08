@@ -11,7 +11,7 @@ for doc in $docs; do
     "guides")
       # Guides require a page_title
       if ! grep "^page_title: " "$doc" > /dev/null; then
-        echo "Guide is missing a page_title: $doc"
+        echo "Website guide file is missing a 'page_title' line at the top: $doc"
         error=true
       fi
       ;;
@@ -19,7 +19,7 @@ for doc in $docs; do
     "d" | "r")
       # Resources and data sources require a subcategory
       if ! grep "^subcategory: " "$doc" > /dev/null; then
-        echo "Doc is missing a subcategory: $doc"
+        echo "Website documentation file is missing a 'subcategory' line at the top: $doc"
         error=true
       fi
       ;;
