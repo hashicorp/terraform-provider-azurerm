@@ -1,12 +1,10 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -83,7 +81,6 @@ func resourceArmPrivateDnsSrvRecord() *schema.Resource {
 						},
 					},
 				},
-				Set: resourceArmPrivateDnsSrvRecordHash,
 			},
 
 			"ttl": {
@@ -245,17 +242,4 @@ func expandAzureRmPrivateDnsSrvRecords(d *schema.ResourceData) *[]privatedns.Srv
 	}
 
 	return &records
-}
-
-func resourceArmPrivateDnsSrvRecordHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%d-", m["priority"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["weight"].(int)))
-		buf.WriteString(fmt.Sprintf("%d-", m["port"].(int)))
-		buf.WriteString(fmt.Sprintf("%s-", m["target"].(string)))
-	}
-
-	return hashcode.String(buf.String())
 }
