@@ -57,7 +57,7 @@ The following arguments are supported:
 * `versions` - (Optional) JSON object describing the versions of this blueprint
 
 
-## Attribute Reference
+## Attributes Reference
 
 * `id` - The resource ID of the Blueprint
 
