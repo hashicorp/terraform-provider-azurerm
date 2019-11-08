@@ -127,7 +127,7 @@ func resourceArmApiManagementDiagnosticRead(d *schema.ResourceData, meta interfa
 	d.Set("api_management_name", serviceName)
 
 	if props := resp.DiagnosticContractProperties; props != nil {
-		d.Set("enabled", *props.Enabled)
+		d.Set("enabled", props.Enabled)
 	}
 
 	return nil
