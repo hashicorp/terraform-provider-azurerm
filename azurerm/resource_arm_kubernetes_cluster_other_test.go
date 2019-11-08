@@ -256,7 +256,7 @@ func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_windowsProfile(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_windowsProfile(ri, clientId, clientSecret, location, "azureuser"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "kube_config.0.client_key"),
@@ -268,6 +268,21 @@ func TestAccAzureRMKubernetesCluster_windowsProfile(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "default_node_pool.0.max_pods"),
 					resource.TestCheckResourceAttrSet(resourceName, "linux_profile.0.admin_username"),
 					resource.TestCheckResourceAttrSet(resourceName, "windows_profile.0.admin_username"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"windows_profile.0.admin_password",
+					"service_principal.0.client_secret",
+				},
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_windowsProfile(ri, clientId, clientSecret, location, "ricksanchez"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
 				),
 			},
 			{
@@ -492,7 +507,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, version, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_windowsProfile(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_windowsProfile(rInt int, clientId, clientSecret, location, username string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -514,7 +529,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   windows_profile {
-    admin_username = "azureuser"
+    admin_username = "%s"
     admin_password = "P@55W0rd1234!"
   }
 
@@ -538,5 +553,5 @@ resource "azurerm_kubernetes_cluster" "test" {
     service_cidr       = "10.10.0.0/16"
   }
 }
-`, rInt, location, rInt, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, username, clientId, clientSecret)
 }
