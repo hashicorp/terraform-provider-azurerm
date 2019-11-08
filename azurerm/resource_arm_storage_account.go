@@ -11,11 +11,11 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	azautorest "github.com/Azure/go-autorest/autorest"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -265,6 +265,32 @@ func resourceArmStorageAccount() *schema.Resource {
 				ValidateFunc: validateAzureRMStorageAccountTags,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
+				},
+			},
+
+			"blob_properties": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"delete_retention_policy": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"days": {
+										Type:         schema.TypeInt,
+										Optional:     true,
+										Default:      7,
+										ValidateFunc: validation.IntBetween(1, 365),
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 
@@ -751,6 +777,16 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	if val, ok := d.GetOk("blob_properties"); ok {
+		blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+
+		blobProperties := expandBlobProperties(val.([]interface{}))
+
+		if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+		}
+	}
+
 	if val, ok := d.GetOk("queue_properties"); ok {
 		storageClient := meta.(*ArmClient).Storage
 		account, err := storageClient.FindAccount(ctx, storageAccountName)
@@ -952,6 +988,17 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 		}
 
 		d.SetPartial("enable_advanced_threat_protection")
+	}
+
+	if d.HasChange("blob_properties") {
+		blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+		blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+
+		if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+			return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+		}
+
+		d.SetPartial("blob_properties")
 	}
 
 	if d.HasChange("queue_properties") {
@@ -1156,6 +1203,19 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Unable to locate Storage Account %q!", name)
 	}
 
+	blobClient := storageClient.BlobServicesClient
+
+	blobProps, err := blobClient.GetServiceProperties(ctx, resGroup, name)
+	if err != nil {
+		if blobProps.Response.Response != nil && !utils.ResponseWasNotFound(blobProps.Response) {
+			return fmt.Errorf("Error reading blob properties for AzureRM Storage Account %q: %+v", name, err)
+		}
+	}
+
+	if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
+		return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+	}
+
 	queueClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
@@ -1327,6 +1387,30 @@ func expandStorageAccountBypass(networkRule map[string]interface{}) storage.Bypa
 	return storage.Bypass(strings.Join(bypassValues, ", "))
 }
 
+func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
+	properties := storage.BlobServiceProperties{
+		BlobServicePropertiesProperties: &storage.BlobServicePropertiesProperties{
+			DeleteRetentionPolicy: &storage.DeleteRetentionPolicy{
+				Enabled: utils.Bool(false),
+			},
+		},
+	}
+	if len(input) == 0 {
+		return properties
+	}
+
+	blobAttr := input[0].(map[string]interface{})
+	deletePolicy := blobAttr["delete_retention_policy"].([]interface{})
+	if len(deletePolicy) > 0 {
+		policy := deletePolicy[0].(map[string]interface{})
+		days := policy["days"].(int)
+		properties.BlobServicePropertiesProperties.DeleteRetentionPolicy.Enabled = utils.Bool(true)
+		properties.BlobServicePropertiesProperties.DeleteRetentionPolicy.Days = utils.Int32(int32(days))
+	}
+
+	return properties
+}
+
 func expandQueueProperties(input []interface{}) (queues.StorageServiceProperties, error) {
 	var err error
 	properties := queues.StorageServiceProperties{}
@@ -1468,6 +1552,27 @@ func flattenStorageAccountVirtualNetworks(input *[]storage.VirtualNetworkRule) [
 	}
 
 	return virtualNetworks
+}
+
+func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
+	if input.BlobServicePropertiesProperties == nil {
+		return []interface{}{}
+	}
+
+	blobProperties := make(map[string]interface{})
+
+	if deletePolicy := input.BlobServicePropertiesProperties.DeleteRetentionPolicy; deletePolicy != nil {
+		if enabled := deletePolicy.Enabled; enabled != nil && *enabled {
+			deleteRetentionPolicy := make([]interface{}, 0)
+			attr := make(map[string]interface{})
+
+			attr["days"] = int(*deletePolicy.Days)
+
+			blobProperties["delete_retention_policy"] = append(deleteRetentionPolicy, attr)
+		}
+	}
+
+	return []interface{}{blobProperties}
 }
 
 func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
