@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
 sidebar_current: "docs-azurerm-datasource-express-route-circuit"

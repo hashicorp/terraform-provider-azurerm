@@ -34,7 +34,7 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	}
 
 	log.Printf("[DEBUG] Cache Miss - looking up the account key for storage account %q..", ad.name)
-	props, err := client.AccountsClient.ListKeys(ctx, ad.ResourceGroup, ad.name)
+	props, err := client.AccountsClient.ListKeys(ctx, ad.ResourceGroup, ad.name, storage.Kerb)
 	if err != nil {
 		return nil, fmt.Errorf("Error Listing Keys for Storage Account %q (Resource Group %q): %+v", ad.name, ad.ResourceGroup, err)
 	}

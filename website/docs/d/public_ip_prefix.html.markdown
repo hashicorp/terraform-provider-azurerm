@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip_prefix"
 sidebar_current: "docs-azurerm-datasource-public-ip-prefix-x"
