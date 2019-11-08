@@ -619,7 +619,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 }
 
 func testAccAzureRMHDInsightHadoopCluster_gen2storage(rInt int, rString string, location string) string {
-	template := testAccAzureRMHDInsightHadoopCluster_template(rInt, rString, location)
+	template := testAccAzureRMHDInsightHadoopCluster_gen2template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -692,6 +692,16 @@ resource "azurerm_storage_container" "test" {
   container_access_type = "private"
 }
 
+`, rInt, location, rString)
+}
+
+func testAccAzureRMHDInsightHadoopCluster_gen2template(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
 resource "azurerm_storage_account" "gen2test" {
   name                     = "accgen2test%s"
   resource_group_name      = azurerm_resource_group.test.name
@@ -718,27 +728,12 @@ resource "azurerm_user_assigned_identity" "test" {
 
 data "azurerm_subscription" "primary" {}
 
-resource "azurerm_role_definition" "storage-owner" {
-  // https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-owner
-  name = "storage-owner-role"
-  scope = "${data.azurerm_subscription.primary.id}"
-  permissions {
-    actions     = ["*"]
-    data_actions = ["*"]
-    not_actions = []
-  }
-  assignable_scopes = [
-    "${data.azurerm_subscription.primary.id}",
-  ]
-}
 
 resource "azurerm_role_assignment" "test" {
-  name               = "hdinsight-test-storage"
-  scope              = "${data.azurerm_subscription.primary.id}"
-  // https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-owner
-  role_definition_id = "${azurerm_role_definition.storage-owner.id}"
-  principal_id       = "${azurerm_user_assigned_identity.test.principal_id}"
+  scope                = "${data.azurerm_subscription.primary.id}"
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = "${azurerm_user_assigned_identity.test.principal_id}"
 }
 
-`, rInt, location, rString, rString)
+`, rInt, location, rString)
 }
