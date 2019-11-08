@@ -12,8 +12,9 @@ type Client struct {
 
 func BuildClient(o *common.ClientOptions) *Client {
 	NamespacesClient := relay.NewNamespacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	HybridConnectionsClient := relay.NewHybridConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&NamespacesClient.Client, o.ResourceManagerAuthorizer)
+
+	HybridConnectionsClient := relay.NewHybridConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HybridConnectionsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{

@@ -57,8 +57,9 @@ func resourceArmHybridConnection() *schema.Resource {
 				Optional: true,
 			},
 			"user_metadata": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 		},
 	}
@@ -165,7 +166,7 @@ func resourceArmHybridConnectionDelete(d *schema.ResourceData, meta interface{})
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
 		Refresh:    hybridConnectionDeleteRefreshFunc(ctx, client, resourceGroup, relayNamespace, name),
-		Timeout:    60 * time.Minute,
+		Timeout:    30 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
 

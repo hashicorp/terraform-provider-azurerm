@@ -11,19 +11,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMHybridConnection_basic(t *testing.T) {
+func TestAccAzureRMRelayHybridConnection_basic(t *testing.T) {
 	resourceName := "azurerm_relay_hybrid_connection.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMHybridConnectionDestroy,
+		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHybridConnection_basic(ri, testLocation()),
+				Config: testAccAzureRMRelayHybridConnection_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHybridConnectionExists(resourceName),
+					testCheckAzureRMRelayHybridConnectionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
 				),
 			},
@@ -36,19 +36,19 @@ func TestAccAzureRMHybridConnection_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHybridConnection_full(t *testing.T) {
+func TestAccAzureRMRelayHybridConnection_full(t *testing.T) {
 	resourceName := "azurerm_relay_hybrid_connection.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMHybridConnectionDestroy,
+		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHybridConnection_full(ri, testLocation()),
+				Config: testAccAzureRMRelayHybridConnection_full(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHybridConnectionExists(resourceName),
+					testCheckAzureRMRelayHybridConnectionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
 					resource.TestCheckResourceAttr(resourceName, "user_metadata", "metadatatest"),
 				),
@@ -62,24 +62,24 @@ func TestAccAzureRMHybridConnection_full(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHybridConnection_update(t *testing.T) {
+func TestAccAzureRMRelayHybridConnection_update(t *testing.T) {
 	resourceName := "azurerm_relay_hybrid_connection.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMHybridConnectionDestroy,
+		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHybridConnection_basic(rInt, location),
+				Config: testAccAzureRMRelayHybridConnection_basic(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHybridConnectionExists(resourceName),
+					testCheckAzureRMRelayHybridConnectionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
 				),
 			},
 			{
-				Config: testAccAzureRMHybridConnection_update(rInt, location),
+				Config: testAccAzureRMRelayHybridConnection_update(rInt, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "requires_client_authorization", "false"),
 					resource.TestCheckResourceAttr(resourceName, "user_metadata", "metadataupdated"),
@@ -89,7 +89,7 @@ func TestAccAzureRMHybridConnection_update(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMHybridConnection_requiresImport(t *testing.T) {
+func TestAccAzureRMRelayHybridConnection_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -101,24 +101,24 @@ func TestAccAzureRMHybridConnection_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMHybridConnectionDestroy,
+		CheckDestroy: testCheckAzureRMRelayHybridConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMHybridConnection_basic(ri, testLocation()),
+				Config: testAccAzureRMRelayHybridConnection_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMHybridConnectionExists(resourceName),
+					testCheckAzureRMRelayHybridConnectionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "requires_client_authorization"),
 				),
 			},
 			{
-				Config:      testAccAzureRMHybridConnection_requiresImport(ri, testLocation()),
+				Config:      testAccAzureRMRelayHybridConnection_requiresImport(ri, testLocation()),
 				ExpectError: testRequiresImportError("azurerm_relay_hybrid_connection"),
 			},
 		},
 	})
 }
 
-func testAccAzureRMHybridConnection_basic(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -135,13 +135,13 @@ resource "azurerm_relay_namespace" "test" {
 
 resource "azurerm_relay_hybrid_connection" "test" {
 	name                 = "acctestrnhc-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
   }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMHybridConnection_full(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_full(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -158,14 +158,14 @@ resource "azurerm_relay_namespace" "test" {
 
 resource "azurerm_relay_hybrid_connection" "test" {
 	name                 = "acctestrnhc-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
-	user_metadata = "metadatatest"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
+	user_metadata        = "metadatatest"
   }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMHybridConnection_update(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_update(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -181,28 +181,28 @@ resource "azurerm_relay_namespace" "test" {
 }
 
 resource "azurerm_relay_hybrid_connection" "test" {
-	name                 = "acctestrnhc-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
+	name                          = "acctestrnhc-%d"
+	resource_group_name           = "${azurerm_resource_group.test.name}"
+	relay_namespace_name          = "${azurerm_relay_namespace.test.name}"
 	requires_client_authorization = false
-	user_metadata = "metadataupdated"
+	user_metadata                 = "metadataupdated"
   }
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMHybridConnection_requiresImport(rInt int, location string) string {
+func testAccAzureRMRelayHybridConnection_requiresImport(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_relay_namespace" "import" {
 	name                 = "acctestrnhc-%d"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-	relay_namespace_name   = "${azurerm_relay_namespace.test.name}"
+	resource_group_name  = "${azurerm_resource_group.test.name}"
+	relay_namespace_name = "${azurerm_relay_namespace.test.name}"
 }
-`, testAccAzureRMHybridConnection_basic(rInt, location), rInt)
+`, testAccAzureRMRelayHybridConnection_basic(rInt, location), rInt)
 }
 
-func testCheckAzureRMHybridConnectionExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMRelayHybridConnectionExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -231,7 +231,7 @@ func testCheckAzureRMHybridConnectionExists(resourceName string) resource.TestCh
 	}
 }
 
-func testCheckAzureRMHybridConnectionDestroy(s *terraform.State) error {
+func testCheckAzureRMRelayHybridConnectionDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).Relay.HybridConnectionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
