@@ -77,8 +77,9 @@ func resourceArmPrivateDnsSrvRecord() *schema.Resource {
 						},
 
 						"target": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
