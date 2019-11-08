@@ -130,9 +130,7 @@ func resourceArmPrivateDnsSrvRecordCreateUpdate(d *schema.ResourceData, meta int
 		},
 	}
 
-	eTag := ""
-	ifNoneMatch := "" // set to empty to allow updates to records after creation
-	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.SRV, name, parameters, eTag, ifNoneMatch); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, resGroup, zoneName, privatedns.SRV, name, parameters, "", ""); err != nil {
 		return fmt.Errorf("Error creating/updating Private DNS SRV Record %q (Zone %q / Resource Group %q): %s", name, zoneName, resGroup, err)
 	}
 
