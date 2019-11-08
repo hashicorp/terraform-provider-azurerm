@@ -33,7 +33,7 @@ func resourceArmBlueprint() *schema.Resource {
 				ValidateFunc: validateBlueprintScope,
 			},
 			"properties": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
@@ -233,54 +233,54 @@ func expandBlueprintProperties(d *schema.ResourceData) *blueprint.Properties {
 
 	ret := blueprint.Properties{}
 
-	v := d.Get("properties")
-	props := v.(*schema.Set).List()
-	for key := range props {
-		prop := props[key].(map[string]interface{})
-		if displayName, ok := prop["display_name"].(string); ok {
-			ret.DisplayName = &displayName
-		}
+	v := d.Get("properties").([]interface{})
+	props := v[0].(map[string]interface{})
+	if displayName, ok := props["display_name"].(string); ok {
+		ret.DisplayName = &displayName
+	}
 
-		if description, ok := prop["description"].(string); ok {
-			ret.Description = &description
-		}
+	if description, ok := props["description"].(string); ok {
+		ret.Description = &description
+	}
 
-		if layout, ok := prop["layout"].([]interface{}); ok {
-			ret.Layout = layout
-		} else {
-			ret.Layout = map[string]string{}
-		}
+	if layout, ok := props["layout"].([]interface{}); ok {
+		ret.Layout = layout
+	} else {
+		ret.Layout = map[string]string{}
+	}
 
-		if ts, ok := prop["target_scope"].(string); ok {
-			switch ts {
-			case "subscription":
-				ret.TargetScope = blueprint.Subscription
-			case "managementGroup":
-				ret.TargetScope = blueprint.ManagementGroup
-			}
-		}
-		if _, ok := d.GetOk("properties"); ok {
-			ret.Parameters = expandBlueprintPropertiesParameters(d)
-			ret.ResourceGroups = expandBlueprintPropertiesResourceGroups(d)
-		}
-
-		if _, ok := prop["versions"].(map[string]*blueprint.Status); ok {
-			// todo - handle Versions object when I figure out structure
-			ret.Versions = map[string]string{}
-		} else {
-			ret.Versions = map[string]string{}
+	if ts, ok := props["target_scope"].(string); ok {
+		switch ts {
+		case "subscription":
+			ret.TargetScope = blueprint.Subscription
+		case "managementGroup":
+			ret.TargetScope = blueprint.ManagementGroup
 		}
 	}
+	if _, ok := d.GetOk("properties"); ok {
+		ret.Parameters = expandBlueprintPropertiesParameters(d)
+		ret.ResourceGroups = expandBlueprintPropertiesResourceGroups(d)
+	}
+
+	if _, ok := props["versions"].(map[string]*blueprint.Status); ok {
+		// todo - handle Versions object when I figure out structure
+		ret.Versions = map[string]string{}
+	} else {
+		ret.Versions = map[string]string{}
+	}
+
 
 	return &ret
 }
 
 func expandBlueprintPropertiesParameters(d *schema.ResourceData) map[string]*blueprint.ParameterDefinition {
-	properties := d.Get("properties").(*schema.Set).List()
-	parametersRaw := properties[0].(map[string]interface{})
-	parameters := parametersRaw["parameters"].(*schema.Set).List()
 
 	blueprintParameters := make(map[string]*blueprint.ParameterDefinition)
+
+	propertiesRaw := d.Get("properties").([]interface{})
+	properties := propertiesRaw[0].(map[string]interface{})
+	parameters := properties["parameters"].(*schema.Set).List()
+
 	for _, v := range parameters {
 		param := v.(map[string]interface{})
 		name := param["name"].(string)
@@ -311,11 +311,12 @@ func expandBlueprintPropertiesParameters(d *schema.ResourceData) map[string]*blu
 }
 
 func expandBlueprintPropertiesResourceGroups(d *schema.ResourceData) map[string]*blueprint.ResourceGroupDefinition {
-	properties := d.Get("properties").(*schema.Set).List()
-	resourceGroupsRaw := properties[0].(map[string]interface{})
-	resourceGroups := resourceGroupsRaw["resource_groups"].(*schema.Set).List()
-
 	blueprintResourceGroups := make(map[string]*blueprint.ResourceGroupDefinition)
+
+	propertiesRaw := d.Get("properties").([]interface{})
+	properties := propertiesRaw[0].(map[string]interface{})
+	resourceGroups := properties["resource_groups"].(*schema.Set).List()
+
 	for _, v := range resourceGroups {
 		resourceGroup := v.(map[string]interface{})
 		name := resourceGroup["name"].(string)
