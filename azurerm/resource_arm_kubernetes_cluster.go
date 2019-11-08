@@ -271,6 +271,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			// TODO: remove Computed in 2.0
 			"enable_pod_security_policy": {
 				Type:     schema.TypeBool,
 				Optional: true,

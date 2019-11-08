@@ -25,7 +25,7 @@ func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_addAgent(ri, clientId, clientSecret, location, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "2"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "1"),
 				),
 			},
 			{

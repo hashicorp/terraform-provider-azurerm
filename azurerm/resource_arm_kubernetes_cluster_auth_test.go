@@ -177,6 +177,20 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.1.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefix       = "10.1.0.0/24"
+}
+
 resource "azurerm_kubernetes_cluster" "test" {
   name                = "acctestaks%d"
   location            = azurerm_resource_group.test.location
@@ -184,14 +198,20 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
-    vm_size    = "Standard_DS2_v2"
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    vnet_subnet_id = azurerm_subnet.test.id
   }
 
   service_principal {
     client_id     = "%s"
     client_secret = "%s"
+  }
+
+  network_profile {
+    network_plugin    = "azure"
+    load_balancer_sku = "Standard"
   }
 
   api_server_authorized_ip_ranges = [
@@ -200,7 +220,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     "8.8.2.0/24",
   ]
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_enablePodSecurityPolicy(rInt int, clientId string, clientSecret string, location string) string {
