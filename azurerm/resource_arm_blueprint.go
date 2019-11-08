@@ -269,7 +269,6 @@ func expandBlueprintProperties(d *schema.ResourceData) *blueprint.Properties {
 		ret.Versions = map[string]string{}
 	}
 
-
 	return &ret
 }
 
