@@ -208,7 +208,7 @@ func resourceArmBlueprintRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("scope", scope)
 
 	properties := flattenBlueprintProperties(resp.Properties)
-	err = d.Set("properties", properties)
+	d.Set("properties", properties)
 
 	return nil
 }
