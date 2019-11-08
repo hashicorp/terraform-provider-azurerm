@@ -208,6 +208,13 @@ func flattenAzureRmPrivateDnsSrvRecords(records *[]privatedns.SrvRecord) []map[s
 
 	if records != nil {
 		for _, record := range *records {
+			if record.Priority == nil ||
+				record.Weight == nil ||
+				record.Port == nil ||
+				record.Target == nil {
+				continue
+			}
+
 			results = append(results, map[string]interface{}{
 				"priority": *record.Priority,
 				"weight":   *record.Weight,
