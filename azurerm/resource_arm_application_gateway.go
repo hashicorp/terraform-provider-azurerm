@@ -246,21 +246,12 @@ func resourceArmApplicationGateway() *schema.Resource {
 							},
 						},
 
-						"trusted_root_certificate": {
+						"trusted_root_certificate_names": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-
-									"id": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
 							},
 						},
 
@@ -2029,13 +2020,12 @@ func expandApplicationGatewayBackendHTTPSettings(d *schema.ResourceData, gateway
 			setting.ApplicationGatewayBackendHTTPSettingsPropertiesFormat.AuthenticationCertificates = &authCertSubResources
 		}
 
-		if v["trusted_root_certificate"] != nil {
-			trustedRootCerts := v["trusted_root_certificate"].([]interface{})
+		if v["trusted_root_certificate_names"] != nil {
+			trustedRootCertNames := v["trusted_root_certificate_names"].([]interface{})
 			trustedRootCertSubResources := make([]network.SubResource, 0)
 
-			for _, rawTrustedRootCert := range trustedRootCerts {
-				trustedRootCert := rawTrustedRootCert.(map[string]interface{})
-				trustedRootCertName := trustedRootCert["name"].(string)
+			for _, rawTrustedRootCertName := range trustedRootCertNames {
+				trustedRootCertName := rawTrustedRootCertName.(string)
 				trustedRootCertID := fmt.Sprintf("%s/trustedRootCertificates/%s", gatewayID, trustedRootCertName)
 				trustedRootCertSubResource := network.SubResource{
 					ID: utils.String(trustedRootCertID),
@@ -2129,6 +2119,24 @@ func flattenApplicationGatewayBackendHTTPSettings(input *[]network.ApplicationGa
 				}
 			}
 			output["authentication_certificate"] = authenticationCertificates
+
+			trustedRootCertificateNames := make([]interface{}, 0)
+			if certs := props.TrustedRootCertificates; certs != nil {
+				for _, cert := range *certs {
+					if cert.ID == nil {
+						continue
+					}
+
+					certId, err := azure.ParseAzureResourceID(*cert.ID)
+					if err != nil {
+						return nil, err
+					}
+
+					certName := certId.Path["trustedRootCertificates"]
+					trustedRootCertificateNames = append(trustedRootCertificateNames, certName)
+				}
+			}
+			output["trusted_root_certificate_names"] = trustedRootCertificateNames
 
 			if probe := props.Probe; probe != nil {
 				if probe.ID != nil {
