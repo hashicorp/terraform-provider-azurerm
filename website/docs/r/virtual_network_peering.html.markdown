@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_peering"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-peering"

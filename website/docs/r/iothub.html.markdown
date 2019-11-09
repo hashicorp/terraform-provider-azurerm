@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub"
 sidebar_current: "docs-azurerm-resource-messaging-iothub-x"

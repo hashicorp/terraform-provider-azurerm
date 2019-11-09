@@ -142,7 +142,6 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 		Target: []string{
 			string(automation.ModuleProvisioningStateSucceeded),
 		},
-		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
 			resp, err2 := client.Get(ctx, resGroup, accName, name)
@@ -156,6 +155,15 @@ func resourceArmAutomationModuleCreateUpdate(d *schema.ResourceData, meta interf
 
 			return resp, "Unknown", nil
 		},
+	}
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 30 * time.Minute
 	}
 
 	_, err := stateConf.WaitForState()

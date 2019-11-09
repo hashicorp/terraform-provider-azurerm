@@ -1,4 +1,5 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_group"
 sidebar_current: "docs-azurerm-resource-container-group"

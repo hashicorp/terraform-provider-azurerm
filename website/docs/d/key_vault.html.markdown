@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
 sidebar_current: "docs-azurerm-datasource-key-vault-x"

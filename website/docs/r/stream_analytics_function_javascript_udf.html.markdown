@@ -1,4 +1,5 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_function_javascript_udf"
 sidebar_current: "docs-azurerm-resource-stream-analytics-function-javascript-udf"

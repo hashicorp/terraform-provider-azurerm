@@ -1,4 +1,5 @@
 ---
+subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_txt_record"
 sidebar_current: "docs-azurerm-resource-dns-txt-record"

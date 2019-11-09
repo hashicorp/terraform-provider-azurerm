@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
 sidebar_current: "docs-azurerm-resource-network-subnet-x"

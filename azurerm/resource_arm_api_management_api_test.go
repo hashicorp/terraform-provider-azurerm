@@ -94,6 +94,32 @@ func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMApiManagementApi_version(t *testing.T) {
+	resourceName := "azurerm_api_management_api.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_versionSet(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "version", "v1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagementApi_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -493,6 +519,33 @@ resource "azurerm_api_management_api" "test" {
   }
 }
 `, template, rInt)
+}
+
+func testAccAzureRMApiManagementApi_versionSet(rInt int, location string) string {
+	template := testAccAzureRMApiManagementApi_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_version_set" "test" {
+  name                = "acctestAMAVS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "Butter Parser"
+  versioning_scheme   = "Segment"
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  version			  = "v1"
+  version_set_id	  = "${azurerm_api_management_api_version_set.test.id}"
+}
+`, template, rInt, rInt)
 }
 
 func testAccAzureRMApiManagementApi_template(rInt int, location string) string {

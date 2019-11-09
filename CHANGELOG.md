@@ -4,15 +4,18 @@ FEATURES:
 
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
 * **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
+* **New Resource:** `azurerm_relay_hybrid_connection` [GH-4832]
 
 IMPROVEMENTS:
 
+* 2.0 prep: refresh functions now use custom timeouts when custom timeouts are enabled [GH-4838]
 * authentication: requesting a fresh token from the Azure CLI when the existing one expires [GH-4775]
 * dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v35.0.0` [GH-4775]
 * dependencies: updating `github.com/Azure/go-autorest` to `v0.9.2` [GH-4775]
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.10.0` [GH-4775]
 * sql: updating to API version `2017-03-01-preview` [GH-4242]
 * `azurerm_app_service_slot` - support for `auto_swap_slot_name` [GH-4752]
+* `azurerm_api_management_api` - the `version` and `version_set_id` properties can now be set [GH-4592]
 * `azurerm_automation_credential` - deprecate `account_name` in favour of `automation_account_name` [GH-4777]
 * `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
