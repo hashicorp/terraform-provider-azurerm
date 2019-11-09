@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_backend_address_pool"
 sidebar_current: "docs-azurerm-datasource-load-balancer-backend-address-pool"

@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_disaster_recovery_config"
 sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-disaster-recovery-config"

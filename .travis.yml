@@ -39,3 +39,5 @@ matrix:
       script: make website-lint
     - name: "make website-test"
       script: make website-test
+    - name: "make docscheck"
+      script: make docscheck

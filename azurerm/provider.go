@@ -396,6 +396,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_recovery_services_vault":                                                resourceArmRecoveryServicesVault(),
 		"azurerm_redis_cache":                                                            resourceArmRedisCache(),
 		"azurerm_redis_firewall_rule":                                                    resourceArmRedisFirewallRule(),
+		"azurerm_relay_hybrid_connection":                                                resourceArmHybridConnection(),
 		"azurerm_relay_namespace":                                                        resourceArmRelayNamespace(),
 		"azurerm_resource_group":                                                         resourceArmResourceGroup(),
 		"azurerm_role_assignment":                                                        resourceArmRoleAssignment(),
@@ -684,7 +685,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			SupportsAuxiliaryTenants:       len(auxTenants) > 0,
 
 			// Doc Links
-			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/auth/service_principal_client_secret.html",
+			ClientSecretDocsLink: "https://www.terraform.io/docs/providers/azurerm/guides/service_principal_client_secret.html",
 		}
 
 		config, err := builder.Build()
