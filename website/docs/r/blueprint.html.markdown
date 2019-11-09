@@ -1,5 +1,5 @@
 ---
-subcetegory: "Blueprints"
+subcategory: "Blueprints"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_blueprint"
 sidebar_current: "docs-azurerm-resource-blueprint"
