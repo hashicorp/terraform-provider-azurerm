@@ -200,12 +200,6 @@ A `authentication_certificate` block, within the `backend_http_settings` block s
 
 ---
 
-A `trusted_root_certificate` block, within the `backend_http_settings` block supports the following:
-
-* `name` - (Required) The name of the Trusted Root Certificate.
-
----
-
 A `backend_address_pool` block supports the following:
 
 * `name` - (Required) The name of the Backend Address Pool.
@@ -244,7 +238,7 @@ A `backend_http_settings` block supports the following:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks.
 
-* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks.
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
 * `connection_draining` - (Optional) A `connection_draining` block as defined below.
 
