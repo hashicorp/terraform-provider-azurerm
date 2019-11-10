@@ -4,13 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-
-	// "github.com/hashicorp/terraform/helper/resource"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -59,33 +56,6 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 		Delete: hdinsightClusterDelete("Hadoop"),
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
-		},
-
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			// An edge node can be added but can't be update or removed without forcing a new resource to be created
-			oldEdgeNodeCount, newEdgeNodeCount := diff.GetChange("roles.0.edge_node.0.target_instance_count")
-			oldEdgeNodeInt := oldEdgeNodeCount.(int)
-			newEdgeNodeInt := newEdgeNodeCount.(int)
-
-			if oldEdgeNodeInt != newEdgeNodeInt {
-				diff.ForceNew("roles.0.edge_node.target_instance_count")
-			}
-
-			// DiffSuppressFunc comes after this check so we need to check if the strings aren't the same sans casing here.
-			oVMSize, newVMSize := diff.GetChange("roles.0.edge_node.0.vm_size")
-			if !strings.EqualFold(oVMSize.(string), newVMSize.(string)) {
-				diff.ForceNew("roles.0.edge_node.0.vm_size")
-			}
-
-			// ForceNew if attempting to update install scripts
-			oldInstallScriptCount, newInstallScriptCount := diff.GetChange("roles.0.edge_node.0.install_script_action.#")
-			oldInstallScriptInt := oldInstallScriptCount.(int)
-			newInstallScriptInt := newInstallScriptCount.(int)
-			if newInstallScriptInt == oldInstallScriptInt {
-				diff.ForceNew("roles.0.edge_node.0.install_script_action")
-			}
-
-			return nil
 		},
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(60 * time.Minute),

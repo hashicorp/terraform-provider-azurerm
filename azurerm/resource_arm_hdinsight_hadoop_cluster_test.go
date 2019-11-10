@@ -706,7 +706,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
 }
 
 func testAccAzureRMHDInsightHadoopCluster_edgeNodeBasic(rInt int, rString string, location string, numEdgeNodes int, instanceType string) string {
-	template := testAccAzureRMHDInsightHadoopCluster_template(rInt, rString, location, instanceType)
+	template := testAccAzureRMHDInsightHadoopCluster_template(rInt, rString, location)
 	return fmt.Sprintf(`
 %s
 
@@ -763,7 +763,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
   }
 }
-`, template, rInt, rInt, rString)
+`, template, rInt, numEdgeNodes, instanceType)
 }
 
 func testAccAzureRMHDInsightHadoopCluster_template(rInt int, rString string, location string) string {

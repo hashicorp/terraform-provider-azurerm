@@ -69,16 +69,24 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				edgeNodeConfig := edgeNodeRaw[0].(map[string]interface{})
 				applicationsClient := meta.(*ArmClient).HDInsight.ApplicationsClient
 
+				oldEdgeNodeCount, newEdgeNodeCount := d.GetChange("roles.0.edge_node.0.target_instance_count")
+				oldEdgeNodeInt := oldEdgeNodeCount.(int)
+				newEdgeNodeInt := newEdgeNodeCount.(int)
+
 				// Note: API currently doesn't support updating number of edge nodes
 				// if anything in the edge nodes changes, delete edge nodes then recreate them
-				err := deleteHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name)
-				if err != nil {
-					return err
+				if oldEdgeNodeInt != 0 {
+					err := deleteHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name)
+					if err != nil {
+						return err
+					}
 				}
 
-				err = createHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
-				if err != nil {
-					return err
+				if newEdgeNodeInt != 0 {
+					err = createHDInsightEdgeNodes(ctx, applicationsClient, resourceGroup, name, edgeNodeConfig)
+					if err != nil {
+						return err
+					}
 				}
 
 				// we can't rely on the use of the Future here due to the node being successfully completed but now the cluster is applying those changes.
