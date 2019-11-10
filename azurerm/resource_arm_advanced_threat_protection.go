@@ -68,7 +68,6 @@ func parseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionRes
 		Base:             *id,
 		TargetResourceID: parts[0],
 	}, nil
-
 }
 
 func resourceArmAdvancedThreatProtectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
