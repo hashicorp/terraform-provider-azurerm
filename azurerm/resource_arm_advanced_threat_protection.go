@@ -53,10 +53,10 @@ type AdvancedThreatProtectionResourceID struct {
 	TargetResourceID string
 }
 
-func parseVirtualMachineScaleSetResourceID(input string) (*AdvancedThreatProtectionResourceID, error) {
+func parseAdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionResourceID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse Advanced Threat Protection Set ID %q: %+v", input, err)
 	}
 
 	parts := strings.Split(input, "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
@@ -102,7 +102,7 @@ func resourceArmAdvancedThreatProtectionRead(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseVirtualMachineScaleSetResourceID(d.Id())
+	id, err := parseAdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseVirtualMachineScaleSetResourceID(d.Id())
+	id, err := parseAdvancedThreatProtectionID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -144,7 +144,7 @@ func resourceArmAdvancedThreatProtectionDelete(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.Create(ctx, id.TargetResourceID, setting); err != nil {
-		return fmt.Errorf("Error resetting Advanced Threat protection for resource %q: %+v", id.TargetResourceID, err)
+		return fmt.Errorf("Error resetting Advanced Threat protection to false for resource %q: %+v", id.TargetResourceID, err)
 	}
 
 	return nil

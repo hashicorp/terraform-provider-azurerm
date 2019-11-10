@@ -174,10 +174,11 @@ func resourceArmStorageAccount() *schema.Resource {
 				ForceNew: true,
 			},
 
+			// TODO remove this in 2.0 for the dedicated resource
 			"enable_advanced_threat_protection": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false, // TODO remove this in 2.0 so we can use GetOkExists to guard the ATP client use
+				Computed: true,
 			},
 
 			"network_rules": {

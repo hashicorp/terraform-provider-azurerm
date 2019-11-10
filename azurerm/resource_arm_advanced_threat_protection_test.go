@@ -14,6 +14,7 @@ import (
 func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 	rn := "azurerm_advanced_threat_protection.test"
 	ri := tf.AccRandTimeInt()
+	var id AdvancedThreatProtectionResourceID
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -23,6 +24,7 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(ri, testLocation(), true, true),
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionExists(rn, &id),
 					resource.TestCheckResourceAttr(rn, "enabled", "true"),
 				),
 			},
@@ -34,6 +36,7 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(ri, testLocation(), true, false),
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionExists(rn, &id),
 					resource.TestCheckResourceAttr(rn, "enabled", "false"),
 				),
 			},
@@ -45,7 +48,7 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_storageAccount(ri, testLocation(), false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAdvancedThreatProtectionIsFalse(rn),
+					testCheckAzureRMAdvancedThreatProtectionIsFalse(&id),
 				),
 			},
 		},
@@ -55,6 +58,12 @@ func TestAccAzureRMAdvancedThreatProtection_storageAccount(t *testing.T) {
 func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 	rn := "azurerm_advanced_threat_protection.test"
 	ri := tf.AccRandTimeInt()
+	var id AdvancedThreatProtectionResourceID
+
+	// the API errors on deleting the cosmos DB account some of the time so lets skip this test for now
+	// remove once this is fixed: https://github.com/Azure/azure-sdk-for-go/issues/6310
+	// run it multiple times in a row as it only fails 50% of the time
+	t.Skip()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -64,6 +73,7 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(ri, testLocation(), true, true),
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionExists(rn, &id),
 					resource.TestCheckResourceAttr(rn, "enabled", "true"),
 				),
 			},
@@ -75,6 +85,7 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 			{
 				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(ri, testLocation(), true, false),
 				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAdvancedThreatProtectionExists(rn, &id),
 					resource.TestCheckResourceAttr(rn, "enabled", "false"),
 				),
 			},
@@ -83,45 +94,17 @@ func TestAccAzureRMAdvancedThreatProtection_cosmosAccount(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
-			/*{
+			{
 				Config: testAccAzureRMAdvancedThreatProtection_cosmosAccount(ri, testLocation(), false, false),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMAdvancedThreatProtectionIsFalse(rn),
+					testCheckAzureRMAdvancedThreatProtectionIsFalse(&id),
 				),
-			},*/
+			},
 		},
 	})
 }
 
-/*
-func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		// Ensure we have enough information in state to look up in API
-		rs, ok := s.RootModule().Resources[resourceName]
-		if !ok {
-			return fmt.Errorf("Not found: %s", resourceName)
-		}
-
-		AdvancedThreatProtection := rs.Primary.Attributes["name"]
-
-		// Ensure resource group exists in API
-		client := testAccProvider.Meta().(*ArmClient).Resource.GroupsClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-
-		resp, err := client.Get(ctx, AdvancedThreatProtection)
-		if err != nil {
-			return fmt.Errorf("Bad: Get on AdvancedThreatProtectionClient: %+v", err)
-		}
-
-		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: resource group: %q does not exist", AdvancedThreatProtection)
-		}
-
-		return nil
-	}
-}
-*/
-func testCheckAzureRMAdvancedThreatProtectionIsFalse(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMAdvancedThreatProtectionExists(resourceName string, idToReturn *AdvancedThreatProtectionResourceID) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure resource group exists in API
 		client := testAccProvider.Meta().(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
@@ -133,10 +116,30 @@ func testCheckAzureRMAdvancedThreatProtectionIsFalse(resourceName string) resour
 			return fmt.Errorf("Not found: %s", resourceName)
 		}
 
-		id, err := parseVirtualMachineScaleSetResourceID(rs.Primary.ID)
+		id, err := parseAdvancedThreatProtectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
+
+		resp, err := client.Get(ctx, id.TargetResourceID)
+		if err != nil {
+			return fmt.Errorf("Bad: Get on AdvancedThreatProtectionClient: %+v", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			return fmt.Errorf("Advanced Threat Protection for resource %q not found", id.TargetResourceID)
+		}
+
+		*idToReturn = *id
+
+		return nil
+	}
+}
+
+func testCheckAzureRMAdvancedThreatProtectionIsFalse(id *AdvancedThreatProtectionResourceID) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, id.TargetResourceID)
 		if err != nil {
@@ -164,7 +167,7 @@ func testCheckAzureRMAdvancedThreatProtectionDestroy(s *terraform.State) error {
 			continue
 		}
 
-		id, err := parseVirtualMachineScaleSetResourceID(rs.Primary.ID)
+		id, err := parseAdvancedThreatProtectionID(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
