@@ -66,7 +66,9 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-The `record` block supports:
+---
+
+A `record` block supports the following:
 
 * `priority` - (Required) The priority of the SRV record.
 
