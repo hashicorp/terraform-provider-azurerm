@@ -18,31 +18,22 @@ Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Servi
 This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
 
 ```hcl
+<<<<<<< HEAD
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG1"
-  location = "East US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_kubernetes_cluster" "example" {
-  name                = "acctestaks1"
+  name                = "example-aks1"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  dns_prefix          = "acctestagent1"
+  dns_prefix          = "exampleaks1"
 
-  agent_pool_profile {
-    name            = "default"
-    count           = 1
-    vm_size         = "Standard_D1_v2"
-    os_type         = "Linux"
-    os_disk_size_gb = 30
-  }
-
-  agent_pool_profile {
-    name            = "pool2"
-    count           = 1
-    vm_size         = "Standard_D2_v2"
-    os_type         = "Linux"
-    os_disk_size_gb = 30
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2_v2"
   }
 
   service_principal {
@@ -56,11 +47,11 @@ resource "azurerm_kubernetes_cluster" "example" {
 }
 
 output "client_certificate" {
-  value = "${azurerm_kubernetes_cluster.example.kube_config.0.client_certificate}"
+  value = azurerm_kubernetes_cluster.example.kube_config.0.client_certificate
 }
 
 output "kube_config" {
-  value = "${azurerm_kubernetes_cluster.example.kube_config_raw}"
+  value = azurerm_kubernetes_cluster.example.kube_config_raw
 }
 ```
 
