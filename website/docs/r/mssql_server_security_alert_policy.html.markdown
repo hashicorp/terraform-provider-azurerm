@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mssql_server_security_alert_policy"
 sidebar_current: "docs-azurerm-resource-database-mssql-server-security-alert-policy-x"
