@@ -88,6 +88,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"node_count": {
 					Type:         schema.TypeInt,
 					Optional:     true,
+					Computed:     true,
 					ValidateFunc: validation.IntBetween(1, 100),
 				},
 
