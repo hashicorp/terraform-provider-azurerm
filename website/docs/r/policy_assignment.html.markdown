@@ -1,4 +1,5 @@
 ---
+subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_assignment"
 sidebar_current: "docs-azurerm-resource-policy-assignment"

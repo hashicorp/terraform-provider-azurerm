@@ -179,11 +179,13 @@ func resourceArmApiManagementApi() *schema.Resource {
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 
 			"version_set_id": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Optional: true,
 			},
 		},
 	}
@@ -251,6 +253,13 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
 
+	version := d.Get("version").(string)
+	versionSetId := d.Get("version_set_id").(string)
+
+	if version != "" && versionSetId == "" {
+		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
+	}
+
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
 
@@ -274,7 +283,12 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 			Protocols:                     protocols,
 			ServiceURL:                    utils.String(serviceUrl),
 			SubscriptionKeyParameterNames: subscriptionKeyParameterNames,
+			APIVersion:                    utils.String(version),
 		},
+	}
+
+	if versionSetId != "" {
+		params.APICreateOrUpdateProperties.APIVersionSetID = utils.String(versionSetId)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, serviceName, apiId, params, ""); err != nil {

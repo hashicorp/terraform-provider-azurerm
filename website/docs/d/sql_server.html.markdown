@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_server"
 sidebar_current: "docs-azurerm-datasource-sql-server"

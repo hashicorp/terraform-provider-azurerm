@@ -1,4 +1,5 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_linux_virtual_machine"
 sidebar_current: "docs-azurerm-resource-dev-test-linux-virtual-machine"
