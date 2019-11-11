@@ -291,7 +291,6 @@ func expandBlueprintPropertiesParameters(d *schema.ResourceData) map[string]*blu
 		}
 
 		paramTypeRaw := param["type"].(string)
-		//var paramType blueprint.TemplateParameterType
 		paramType := stringToTemplateParameterType(paramTypeRaw)
 
 		defaultValue := param["default_value"].(interface{})
@@ -327,12 +326,16 @@ func expandBlueprintPropertiesResourceGroups(d *schema.ResourceData) map[string]
 			DisplayName: &displayName,
 		}
 
-		//tagsRaw := resourceGroup["tags"].(map[string]interface{})
+		tagsRaw := resourceGroup["tags"].(map[string]interface{})
+		tags := make(map[string]*string)
+		for k, v := range tagsRaw {
+			tags[k] = utils.String(v.(string))
+		}
 
 		rg := &blueprint.ResourceGroupDefinition{
 			Name:     &name,
 			Location: &location,
-			//Tags: tags,
+			Tags:     tags,
 		}
 		rg.ParameterDefinitionMetadata = rgMetaData
 
@@ -378,8 +381,6 @@ func flattenBlueprintPropertiesResourceGroups(input map[string]*blueprint.Resour
 	resourceGroups := &schema.Set{
 		F: resourceArmBlueprintPropertiesResourceGroupHash,
 	}
-
-	//rgs := make(map[string]interface{}, 0)
 
 	for _, resourceGroupDefinition := range input {
 		rg := make(map[string]interface{})
