@@ -74,9 +74,11 @@ func resourceArmBlueprint() *schema.Resource {
 										Optional: true,
 									},
 									"allowed_values": {
-										Type:     schema.TypeSet,
+										Type:     schema.TypeList,
 										Optional: true,
-										Elem:     &schema.Schema{Type: schema.TypeString},
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 									"display_name": {
 										Type:     schema.TypeString,
@@ -294,10 +296,12 @@ func expandBlueprintPropertiesParameters(d *schema.ResourceData) map[string]*blu
 		paramType := stringToTemplateParameterType(paramTypeRaw)
 
 		defaultValue := param["default_value"].(interface{})
+		allowedValues := param["allowed_values"].([]interface{})
 
 		p := &blueprint.ParameterDefinition{
-			Type:         paramType,
-			DefaultValue: defaultValue,
+			Type:          paramType,
+			DefaultValue:  defaultValue,
+			AllowedValues: &allowedValues,
 		}
 		p.ParameterDefinitionMetadata = paramMeta
 
@@ -521,9 +525,8 @@ func resourceBlueprintPropertiesParametersHash(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%s-", templateParameterTypeToString(m["type"].(blueprint.TemplateParameterType))))
 		buf.WriteString(fmt.Sprintf("%s-", m["display_name"]))
 		buf.WriteString(fmt.Sprintf("%s-", m["description"]))
-		// todo deal with allowed and default values objects
-		//buf.WriteString(fmt.Sprintf("%s-", m["allowed_values"].(string)))
-		//buf.WriteString(fmt.Sprintf("%s-", m["default_value"].(string)))
+		buf.WriteString(fmt.Sprintf("%q-", m["default_value"].(interface{})))
+		buf.WriteString(fmt.Sprintf("%q-", m["allowed_values"].(*[]interface{})))
 	}
 	return hashcode.String(buf.String())
 }
