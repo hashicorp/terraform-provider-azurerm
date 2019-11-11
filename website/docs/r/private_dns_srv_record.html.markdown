@@ -60,6 +60,8 @@ The following arguments are supported:
 
 * `zone_name` - (Required) Specifies the Private DNS Zone where the resource exists. Changing this forces a new resource to be created.
 
+* `record` - (Required) One or more `record` blocks as defined below.
+
 * `ttl ` - (Required) The Time To Live (TTL) of the DNS record in seconds.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
