@@ -44,13 +44,13 @@ func resourceArmSubnet() *schema.Resource {
 			},
 
 			"network_security_group_id": {
-				Type:       schema.TypeString,
-				Optional:   true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"route_table_id": {
-				Type:       schema.TypeString,
-				Optional:   true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 
 			"ip_configurations": {
