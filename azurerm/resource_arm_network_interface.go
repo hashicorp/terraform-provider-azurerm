@@ -549,7 +549,7 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 
 		niIPConfig["private_ip_address_allocation"] = strings.ToLower(string(props.PrivateIPAllocationMethod))
 
-		if props.PrivateIPAllocationMethod == network.Static {
+		if props.PrivateIPAddress != nil {
 			niIPConfig["private_ip_address"] = *props.PrivateIPAddress
 		}
 
