@@ -74,13 +74,20 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as defined below.
+* `default_node_pool` - (Optional) A `default_node_pool` block as defined below.
+
+-> **NOTE:** The `default_node_pool` block will become required in 2.0
+
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
 * `service_principal` - (Required) A `service_principal` block as documented below.
+
+* `agent_pool_profile` - (Optional) One or more `agent_pool_profile` blocks as defined below.
+
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
 
 ---
 
@@ -159,6 +166,8 @@ A `addon_profile` block supports the following:
 
 A `agent_pool_profile` block supports the following:
 
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
+
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
 
 * `count` - (Optional) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 100 (inclusive). Defaults to `1`.
@@ -209,6 +218,52 @@ A `azure_active_directory` block supports the following:
 A `azure_policy` block supports the following:
 
 * `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
+
+---
+
+A `default_node_pool` block supports the following:
+
+* `name` - (Required) The name which should be used for the default Kubernetes Node Pool. Changing this forces a new resource to be created.
+
+* `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
+
+* `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread.
+
+-> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
+
+* `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
+
+-> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to the `node_count` field.
+
+-> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
+
+* `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`.
+
+* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
+
+* `node_count` - (Optional) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+
+-> **NOTE:** If `enable_auto_scaling` is set to `true`, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
+
+-> **NOTE:** This is Required when `enable_auto_scaling` is set to `false`.
+
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
+
+* `os_disk_size_gb` - (Optional) The size of the OS Disk which should be used for each agent in the Node Pool. Changing this forces a new resource to be created.
+
+* `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
+
+-> **NOTE:** This default value differs from the default value for the `agent_pool_profile` block and matches a change to the default within AKS.
+
+* `vnet_subnet_id` - (Required) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created.
+
+~> **NOTE:** A Route Table must be configured on this Subnet.
+
+If `enable_auto_scaling` is enabled, then the following fields can also be configured:
+
+* `max_count` - (Optional) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+
+* `min_count` - (Optional) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
 
 ---
 
