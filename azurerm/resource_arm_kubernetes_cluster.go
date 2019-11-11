@@ -21,7 +21,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// TODO: more granular update tests
 // TODO: document default_node_pool
 
 func resourceArmKubernetesCluster() *schema.Resource {
