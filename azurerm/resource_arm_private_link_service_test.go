@@ -630,7 +630,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name                  = azurerm_virtual_network.test.name
   address_prefix                        = "10.5.1.0/24"
 
-  disable_network_policy_enforcement = true
+  disable_private_link_service_network_policy_enforcement = true
 }
 
 resource "azurerm_public_ip" "test" {

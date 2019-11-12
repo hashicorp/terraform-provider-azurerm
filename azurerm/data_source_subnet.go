@@ -64,7 +64,7 @@ func dataSourceArmSubnet() *schema.Resource {
 				},
 			},
 
-			"disable_network_policy_enforcement": {
+			"disable_private_link_service_network_policy_enforcement": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -98,7 +98,7 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("address_prefix", props.AddressPrefix)
 
 		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
-			d.Set("disable_network_policy_enforcement", *p == "Disabled")
+			d.Set("disable_private_link_service_network_policy_enforcement", *p == "Disabled")
 		}
 
 		if props.NetworkSecurityGroup != nil {
