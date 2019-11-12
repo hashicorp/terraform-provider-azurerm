@@ -34,8 +34,8 @@ resource "azurerm_subnet" "example" {
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.1.0/24"
 
-  disable_private_link_service_network_policies = true
-  disable_private_link_endpoint_network_policies     = true
+  disable_private_link_service_network_policy_enforcement  = true
+  disable_private_link_endpoint_network_policy_enforcement = true
 }
 
 resource "azurerm_public_ip" "example" {
