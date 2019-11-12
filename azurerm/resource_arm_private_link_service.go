@@ -75,13 +75,13 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"primary_nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
+				ForceNew: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ForceNew:     true,
 							ValidateFunc: aznet.ValidatePrivateLinkServiceName,
 						},
 						"private_ip_address": {
@@ -108,7 +108,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"secondary_nat_ip_configuration": {
+			"auxillery_nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 7,
@@ -207,7 +207,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
 	//fqdns := d.Get("fqdns").([]interface{})
 	primaryIpConfiguration := d.Get("primary_nat_ip_configuration").([]interface{})
-	secondaryIpConfigurations := d.Get("secondary_nat_ip_configuration").([]interface{})
+	secondaryIpConfigurations := d.Get("auxillery_nat_ip_configuration").([]interface{})
 	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").([]interface{})
 	visibility := d.Get("visibility_subscription_ids").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
@@ -296,8 +296,8 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 			if err := d.Set("primary_nat_ip_configuration", primaryIpConfig); err != nil {
 				return fmt.Errorf("Error setting `primary_nat_ip_configuration`: %+v", err)
 			}
-			if err := d.Set("secondary_nat_ip_configuration", secondaryIpConfig); err != nil {
-				return fmt.Errorf("Error setting `secondary_nat_ip_configuration`: %+v", err)
+			if err := d.Set("auxillery_nat_ip_configuration", secondaryIpConfig); err != nil {
+				return fmt.Errorf("Error setting `auxillery_nat_ip_configuration`: %+v", err)
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {

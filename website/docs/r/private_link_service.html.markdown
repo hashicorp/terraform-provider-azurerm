@@ -69,7 +69,7 @@ resource "azurerm_private_link_service" "example" {
     subnet_id                  = azurerm_subnet.example.id
   }
 
-  secondary_nat_ip_configuration {
+  auxillery_nat_ip_configuration {
     name                       = "secondaryIpConfiguration"
     private_ip_address         = "10.5.1.18"
     private_ip_address_version = "IPv4"
@@ -94,9 +94,9 @@ The following arguments are supported:
 
 * `primary_nat_ip_configuration` - (Required) A `primary_nat_ip_configuration` block as defined below.
 
-* `secondary_nat_ip_configuration` - (Optional) Supports upto seven additional `secondary_nat_ip_configuration` blocks as defined below.
+* `auxillery_nat_ip_configuration` - (Optional) Supports upto seven additional `auxillery_nat_ip_configuration` blocks as defined below.
 
-* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of `Standard` Load Balancer resource ids to direct the service network traffic toward.
+* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 
 * `private_link_endpoint_connection` - (Optional) One or more `private_link_endpoint_connection` blocks as defined below.
 
@@ -119,7 +119,7 @@ The `primary_nat_ip_configuration` block supports the following:
 
 ---
 
-The `secondary_nat_ip_configuration` block supports the following:
+The `auxillery_nat_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of secondary private link service NAT IP configuration. Changing this forces a new resource to be created.
 
@@ -136,7 +136,7 @@ The `secondary_nat_ip_configuration` block supports the following:
 
 The following attributes are exported:
 
-* `alias` - The alias of the private link service.
+* `alias` - The alias is a globally unique name for your private link service which Azure generates for you. Your can use this alias to request a connection to your private link service.
 
 * `network_interfaces` - A list of network interface resource ids that are being used by the service.
 

@@ -15,8 +15,8 @@ Use this data source to access information about an existing Private Link Servic
 
 ```hcl
 data "azurerm_private_link_service" "example" {
-  name                = "acctestpls"
-  resource_group_name = "acctestRG"
+  name                = "myPrivateLinkService"
+  resource_group_name = "PrivateLinkServiceRG"
 }
 
 output "private_link_service_id" {
@@ -40,7 +40,7 @@ The following attributes are exported:
 
 * `location` - Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `alias` - The alias of the private link service.
+* `alias` - The alias is a globally unique name for your private link service which Azure generates for you. Your can use this alias to request a connection to your private link service.
 
 * `auto_approval_subscription_ids` - A list of subscription(s) globally unique identifiers that will be auto approved to use the private link service.
 
@@ -48,9 +48,9 @@ The following attributes are exported:
 
 * `primary_nat_ip_configuration` - A `primary_nat_ip_configuration` block as defined below.
 
-* `secondary_nat_ip_configuration` -  `secondary_nat_ip_configuration` blocks as defined below.
+* `auxillery_nat_ip_configuration` -  `auxillery_nat_ip_configuration` blocks as defined below.
 
-* `load_balancer_frontend_ip_configuration_ids` - A list of `Standard` Load Balancer resource IDs.
+* `load_balancer_frontend_ip_configuration_ids` - A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 
 * `network_interfaces` - A list of network interface resource ids that are being used by the service.
 
@@ -72,7 +72,7 @@ The `primary_nat_ip_configuration` block exports the following:
 
 ---
 
-The `secondary_nat_ip_configuration` block exports the following:
+The `auxillery_nat_ip_configuration` block exports the following:
 
 * `name` - The name of secondary private link service NAT IP configuration.
 

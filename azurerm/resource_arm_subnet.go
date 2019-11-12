@@ -139,7 +139,7 @@ func resourceArmSubnet() *schema.Resource {
 				},
 			},
 
-			"disable_private_link_service_network_policies": {
+			"disable_network_policy_enforcement": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
@@ -181,7 +181,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		AddressPrefix: &addressPrefix,
 	}
 
-	if v, ok := d.GetOk("disable_private_link_service_network_policies"); ok {
+	if v, ok := d.GetOk("disable_network_policy_enforcement"); ok {
 		// This is strange logic, but to get the schema to make sense for the end user
 		// I exposed it with the same name that the Azure CLI does to be consistent
 		// between the tool sets, which means true == Disabled.
@@ -301,7 +301,7 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		// subnet because Network policies like network security groups are not
 		// supported by private endpoints.
 		if privateLinkServiceNetworkPolicies := props.PrivateLinkServiceNetworkPolicies; privateLinkServiceNetworkPolicies != nil {
-			if err := d.Set("disable_private_link_service_network_policies", *privateLinkServiceNetworkPolicies == "Disabled"); err != nil {
+			if err := d.Set("disable_network_policy_enforcement", *privateLinkServiceNetworkPolicies == "Disabled"); err != nil {
 				return err
 			}
 		}

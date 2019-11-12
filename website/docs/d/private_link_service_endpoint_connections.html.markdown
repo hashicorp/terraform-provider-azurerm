@@ -1,42 +1,26 @@
 ---
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_private_link_service_endpoint_connection_status"
-sidebar_current: "docs-azurerm-datasource-private-link-service-endpoint-connection-status"
+page_title: "Azure Resource Manager: azurerm_private_link_service_endpoint_connections"
+sidebar_current: "docs-azurerm-datasource-private-link-service-endpoint-connections"
 description: |-
   Use this data source to access endpoint connection information about an existing Private Link Service.
 ---
 
-# Data Source: azurerm_private_link_service_endpoint_connection_status
+# Data Source: azurerm_private_link_service_endpoint_connections
 
 Use this data source to access endpoint connection information about an existing Private Link Service.
 
 
-## Private Link Service Usage
+## Private Link Service Endpoint Connections Usage
 
 ```hcl
-data "azurerm_private_link_service_endpoint_connection_status" "example" {
+data "azurerm_private_link_service_endpoint_connections" "example" {
   name                = azurerm_private_link_service.example.name
   resource_group_name = azurerm_resource_group.example.name
 }
 
-output "connection_name" {
-  value = data.azurerm_private_link_service_endpoint_connection_status.example.private_endpoint_connections.0.connection_name
-}
-
-output "private_endpoint_endpoint_name" {
-  value = data.azurerm_private_link_service_endpoint_connection_status.example.private_endpoint_connections.0.private_endpoint_name
-}
-
-output "private_endpoint_description" {
-  value = data.azurerm_private_link_service_endpoint_connection_status.example.private_endpoint_connections.0.description
-}
-
 output "private_endpoint_status" {
-  value = data.azurerm_private_link_service_endpoint_connection_status.example.private_endpoint_connections.0.status
-}
-
-output "private_endpoint_action_required" {
-  value = data.azurerm_private_link_service_endpoint_connection_status.example.private_endpoint_connections.0.action_required
+  value = data.azurerm_private_link_service_endpoint_connections.example.private_endpoint_connections.0.status
 }
 ```
 

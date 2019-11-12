@@ -76,7 +76,7 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			"secondary_nat_ip_configuration": {
+			"auxillery_nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -172,8 +172,8 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 			if err := d.Set("primary_nat_ip_configuration", primaryIpConfig); err != nil {
 				return fmt.Errorf("Error setting `primary_nat_ip_configuration`: %+v", err)
 			}
-			if err := d.Set("secondary_nat_ip_configuration", secondaryIpConfig); err != nil {
-				return fmt.Errorf("Error setting `secondary_nat_ip_configuration`: %+v", err)
+			if err := d.Set("auxillery_nat_ip_configuration", secondaryIpConfig); err != nil {
+				return fmt.Errorf("Error setting `auxillery_nat_ip_configuration`: %+v", err)
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {

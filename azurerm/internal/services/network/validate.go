@@ -16,7 +16,7 @@ func ValidatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	primaryIpConfiguration := d.Get("primary_nat_ip_configuration").([]interface{})
-	secondaryIpConfigurations := d.Get("secondary_nat_ip_configuration").([]interface{})
+	secondaryIpConfigurations := d.Get("auxillery_nat_ip_configuration").([]interface{})
 
 	for i, item := range primaryIpConfiguration {
 		v := item.(map[string]interface{})
@@ -33,13 +33,13 @@ func ValidatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
 
 	for i, item := range secondaryIpConfigurations {
 		v := item.(map[string]interface{})
-		p := fmt.Sprintf("secondary_nat_ip_configuration.%d.private_ip_address", i)
+		p := fmt.Sprintf("auxillery_nat_ip_configuration.%d.private_ip_address", i)
 		in := v["name"].(string)
 
 		if d.HasChange(p) {
 			o, n := d.GetChange(p)
 			if o != "" && n == "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) secondary_nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) auxillery_nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
 			}
 		}
 	}
