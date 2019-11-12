@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -14,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +28,13 @@ func resourceArmPrivateLinkService() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -68,50 +77,17 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			// 	},
 			// },
 
+			// TODO: Open bug on this API for this
 			// Required by the API you can't create the resource without at least one ip configuration
 			// I had to split the schema because if you attempt to change the primary attribute it
 			// succeeds but doesn't change the attribute. Once primary is set it is set forever unless
 			// you destroy the resource and recreate it.
-			"primary_nat_ip_configuration": {
+
+			//TODO: Add custom diff to detect changes to primary config and force new on any changes
+			"nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
-				ForceNew: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: aznet.ValidatePrivateLinkServiceName,
-						},
-						"private_ip_address": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.IPv4Address,
-						},
-						// Only IPv4 is supported by the API, but I am exposing this
-						// as they will support IPv6 in a future release.
-						"private_ip_address_version": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(network.IPv4),
-							}, false),
-							Default: string(network.IPv4),
-						},
-						"subnet_id": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-					},
-				},
-			},
-
-			"auxillery_nat_ip_configuration": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 7,
+				MaxItems: 8,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -139,6 +115,11 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: azure.ValidateResourceID,
+						},
+						"primary": {
+							Type:     schema.TypeBool,
+							Required: true,
+							Default:  false,
 						},
 					},
 				},
@@ -206,9 +187,9 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	autoApproval := d.Get("auto_approval_subscription_ids").([]interface{})
 	// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
 	//fqdns := d.Get("fqdns").([]interface{})
-	primaryIpConfiguration := d.Get("primary_nat_ip_configuration").([]interface{})
-	secondaryIpConfigurations := d.Get("auxillery_nat_ip_configuration").([]interface{})
+	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
 	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").([]interface{})
+	primary := d.Ge
 	visibility := d.Get("visibility_subscription_ids").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
@@ -221,7 +202,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 			Visibility: &network.PrivateLinkServicePropertiesVisibility{
 				Subscriptions: utils.ExpandStringSlice(visibility),
 			},
-			IPConfigurations:                     expandArmPrivateLinkServiceIPConfiguration(primaryIpConfiguration, secondaryIpConfigurations),
+			IPConfigurations:                     expandArmPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
 			LoadBalancerFrontendIPConfigurations: expandArmPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
 			//Fqdns:                                utils.ExpandStringSlice(fqdns),
 		},
@@ -293,11 +274,11 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		// }
 		if props.IPConfigurations != nil {
 			primaryIpConfig, secondaryIpConfig := flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)
-			if err := d.Set("primary_nat_ip_configuration", primaryIpConfig); err != nil {
-				return fmt.Errorf("Error setting `primary_nat_ip_configuration`: %+v", err)
+			if err := d.Set("nat_ip_configuration", primaryIpConfig); err != nil {
+				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 			}
-			if err := d.Set("auxillery_nat_ip_configuration", secondaryIpConfig); err != nil {
-				return fmt.Errorf("Error setting `auxillery_nat_ip_configuration`: %+v", err)
+			if err := d.Set("nat_ip_configuration", secondaryIpConfig); err != nil {
+				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {

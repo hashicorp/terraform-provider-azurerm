@@ -43,7 +43,7 @@ resource "azurerm_private_link_service" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  primary_nat_ip_configuration {
+  nat_ip_configuration {
     name                         = azurerm_public_ip.test.name
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"

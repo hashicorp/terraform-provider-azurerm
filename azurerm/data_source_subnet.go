@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -64,7 +65,7 @@ func dataSourceArmSubnet() *schema.Resource {
 				},
 			},
 
-			"disable_private_link_service_network_policy_enforcement": {
+			"enforce_private_link_network_policies": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
@@ -98,7 +99,7 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("address_prefix", props.AddressPrefix)
 
 		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
-			d.Set("disable_private_link_service_network_policy_enforcement", *p == "Disabled")
+			d.Set("enforce_private_link_network_policies", strings.EqualsFold("Disabled", *p))
 		}
 
 		if props.NetworkSecurityGroup != nil {

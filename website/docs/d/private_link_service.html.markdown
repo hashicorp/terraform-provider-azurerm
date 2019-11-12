@@ -47,9 +47,9 @@ The following attributes are exported:
 
 * `visibility_subscription_ids` - A list of subscription(s) globally unique identifiers(GUID) that will be able to see the private link service.
 
-* `primary_nat_ip_configuration` - A `primary_nat_ip_configuration` block as defined below.
+* `nat_ip_configuration` - A `nat_ip_configuration` block as defined below.
 
-* `auxillery_nat_ip_configuration` -  `auxillery_nat_ip_configuration` blocks as defined below.
+* `nat_ip_configuration` -  `nat_ip_configuration` blocks as defined below.
 
 * `load_balancer_frontend_ip_configuration_ids` - A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 
@@ -60,7 +60,7 @@ The following attributes are exported:
 
 ---
 
-The `primary_nat_ip_configuration` block exports the following:
+The `nat_ip_configuration` block exports the following:
 
 * `name` - The name of primary private link service NAT IP configuration.
 
@@ -73,7 +73,7 @@ The `primary_nat_ip_configuration` block exports the following:
 
 ---
 
-The `auxillery_nat_ip_configuration` block exports the following:
+The `nat_ip_configuration` block exports the following:
 
 * `name` - The name of secondary private link service NAT IP configuration.
 

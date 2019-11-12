@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
 
-* `disable_private_link_service_network_policy_enforcement` - (Optional) Enable or Disable network policies on the `private link service` in the subnet. Default is `false`.
+* `enforce_private_link_network_policies` - (Optional) Enable or Disable network policies on the `private link service` in the subnet. Default is `false`.
 
--> **NOTE:** Network policies like network security groups (NSG) are not supported for the private link service. In order to deploy a private link service on a given subnet, an explicit disable setting is required on that subnet(e.g. `disable_private_link_service_network_policy_enforcement` = `true`). This setting is only applicable for the private link service. For other resources in the subnet, access is controlled based on Network Security Groups (NSG) security rules definition.
+-> **NOTE:** Network policies like network security groups (NSG) are not supported for the private link service. In order to deploy a private link service on a given subnet, an explicit disable setting is required on that subnet(e.g. `enforce_private_link_network_policies` = `true`). This setting is only applicable for the private link service. For other resources in the subnet, access is controlled based on Network Security Groups (NSG) security rules definition.
 
 * `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 

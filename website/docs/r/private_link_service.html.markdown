@@ -63,14 +63,14 @@ resource "azurerm_private_link_service" "example" {
   visibility_subscription_ids                 = ["00000000-0000-0000-0000-000000000000"]
   load_balancer_frontend_ip_configuration_ids = [azurerm_lb.example.frontend_ip_configuration.0.id]
 
-  primary_nat_ip_configuration {
+  nat_ip_configuration {
     name                       = "primaryIpConfiguration"
     private_ip_address         = "10.5.1.17"
     private_ip_address_version = "IPv4"
     subnet_id                  = azurerm_subnet.example.id
   }
 
-  auxillery_nat_ip_configuration {
+  nat_ip_configuration {
     name                       = "secondaryIpConfiguration"
     private_ip_address         = "10.5.1.18"
     private_ip_address_version = "IPv4"
@@ -93,9 +93,9 @@ The following arguments are supported:
 
 * `visibility_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
 
-* `primary_nat_ip_configuration` - (Required) A `primary_nat_ip_configuration` block as defined below.
+* `nat_ip_configuration` - (Required) A `nat_ip_configuration` block as defined below.
 
-* `auxillery_nat_ip_configuration` - (Optional) Supports upto seven additional `auxillery_nat_ip_configuration` blocks as defined below.
+* `nat_ip_configuration` - (Optional) Supports upto seven additional `nat_ip_configuration` blocks as defined below.
 
 * `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 
@@ -105,7 +105,7 @@ The following arguments are supported:
 
 ---
 
-The `primary_nat_ip_configuration` block supports the following:
+The `nat_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of primary private link service NAT IP configuration. Changing this forces a new resource to be created.
 
@@ -120,7 +120,7 @@ The `primary_nat_ip_configuration` block supports the following:
 
 ---
 
-The `auxillery_nat_ip_configuration` block supports the following:
+The `nat_ip_configuration` block supports the following:
 
 * `name` - (Required) The name of secondary private link service NAT IP configuration. Changing this forces a new resource to be created.
 
