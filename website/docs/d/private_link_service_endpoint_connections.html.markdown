@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_service_endpoint_connections"
 sidebar_current: "docs-azurerm-datasource-private-link-service-endpoint-connections"
