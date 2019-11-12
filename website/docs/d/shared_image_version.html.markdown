@@ -58,3 +58,5 @@ The `target_region` block exports the following:
 * `name` - The Azure Region in which this Image Version exists.
 
 * `regional_replica_count` - The number of replicas of the Image Version to be created per region.
+
+* `storage_account_type` - The storage account type for the image version.
