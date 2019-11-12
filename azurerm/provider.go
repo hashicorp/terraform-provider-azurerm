@@ -113,7 +113,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_network_watcher":                         dataSourceArmNetworkWatcher(),
 		"azurerm_notification_hub_namespace":              dataSourceNotificationHubNamespace(),
 		"azurerm_notification_hub":                        dataSourceNotificationHub(),
-		"azurerm_private_link_endpoint_connection_status": dataSourceArmPrivateLinkEndpointConnectionStatus(),
+		"azurerm_private_link_endpoint_connections":       dataSourceArmPrivateLinkEndpointConnections(),
 		"azurerm_private_link_endpoint":                   dataSourceArmPrivateLinkEndpoint(),
 		"azurerm_platform_image":                          dataSourceArmPlatformImage(),
 		"azurerm_policy_definition":                       dataSourceArmPolicyDefinition(),

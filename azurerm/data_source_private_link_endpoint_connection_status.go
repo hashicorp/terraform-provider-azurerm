@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateLinkEndpointConnectionStatus() *schema.Resource {
+func dataSourceArmPrivateLinkEndpointConnections() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateLinkEndpointConnectionStatusRead,
+		Read: dataSourceArmPrivateLinkEndpointConnectionsRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -55,7 +55,7 @@ func dataSourceArmPrivateLinkEndpointConnectionStatus() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateLinkEndpointConnectionStatusRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmPrivateLinkEndpointConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.PrivateEndpointClient
 	ctx := meta.(*ArmClient).StopContext
 

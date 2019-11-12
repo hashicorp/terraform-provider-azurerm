@@ -1,13 +1,13 @@
 ---
 subcategory: ""
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_private_link_endpoint_connection_status"
-sidebar_current: "docs-azurerm-datasource-private-endpoint-connection-status"
+page_title: "Azure Resource Manager: azurerm_private_link_endpoint_connections"
+sidebar_current: "docs-azurerm-datasource-private-endpoint-connections"
 description: |-
   Gets connecton status information about an existing Private Link Endpoint
 ---
 
-# Data Source: azurerm_private_link_endpoint_connection_status
+# Data Source: azurerm_private_link_endpoint_connections
 
 Use this data source to access connection status information about an existing Private Link Endpoint.
 
@@ -19,20 +19,8 @@ data "azurerm_private_link_endpoint_connection_statue" "example" {
   resource_group_name = "example-rg"
 }
 
-output "private_link_endpoint_name" {
-  value = data.azurerm_private_link_endpoint_connection_status.example.private_service_connection.0.name
-}
-
-output "private_link_endpoint_private_ip_address" {
-  value = data.azurerm_private_link_endpoint_connection_status.example.private_service_connection.0.private_ip_address
-}
-
-output "private_link_endpoint_request_response" {
-  value = data.azurerm_private_link_endpoint_connection_status.example.private_service_connection.0.request_response
-}
-
 output "private_link_endpoint_status" {
-  value = data.azurerm_private_link_endpoint_connection_status.example.private_service_connection.0.status
+  value = data.azurerm_private_link_endpoint_connections.example.private_service_connection.0.status
 }
 ```
 
