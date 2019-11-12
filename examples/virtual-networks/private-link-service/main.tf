@@ -42,13 +42,11 @@ resource "azurerm_private_link_service" "test" {
   name                = "acctestpls"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  fqdns               = ["testFqdns2"]
 
-  nat_ip_configuration {
+  primary_nat_ip_configuration {
     name                         = azurerm_public_ip.test.name
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
-    private_ip_allocation_method = "Static"
   }
 
   load_balancer_frontend_ip_configuration_ids = [

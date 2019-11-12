@@ -103,7 +103,7 @@ The following attributes are exported:
 * `resource_group_name` - The name of the resource group in which the subnet is created in.
 * `virtual_network_name` - The name of the virtual network in which the subnet is created in
 * `address_prefix` - The address prefix for the subnet
-* `private_link_service_network_policies` - Enable or Disable apply network policies on private link service in the subnet.
+
 
 ## Import
 
