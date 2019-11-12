@@ -64,6 +64,11 @@ func dataSourceArmSharedImageVersion() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
+
+						"storage_account_type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -143,6 +148,8 @@ func flattenSharedImageVersionDataSourceTargetRegions(input *[]compute.TargetReg
 			if v.RegionalReplicaCount != nil {
 				output["regional_replica_count"] = int(*v.RegionalReplicaCount)
 			}
+
+			output["storage_account_type"] = v.StorageAccountType
 
 			results = append(results, output)
 		}
