@@ -19,8 +19,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var appConfigurationResourceName = "azurerm_app_configuration"
-
 func resourceArmAppConfiguration() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAppConfigurationCreate,
