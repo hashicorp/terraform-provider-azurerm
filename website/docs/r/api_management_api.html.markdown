@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api"
 sidebar_current: "docs-azurerm-resource-api-management-api-x"
@@ -73,6 +74,12 @@ The following arguments are supported:
 * `soap_pass_through` - (Optional) Should this API expose a SOAP frontend, rather than a HTTP frontend? Defaults to `false`.
 
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
+
+* `version` - (Optional) The Version number of this API, if this API is versioned.
+
+* `version_set_id` - (Optional) The ID of the Version Set which this API is associated with.
+
+-> **NOTE:** When `version` is set, `version_set_id` must also be specified
 
 ---
 

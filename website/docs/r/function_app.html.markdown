@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_function_app"
 sidebar_current: "docs-azurerm-resource-app-service-function-app"
@@ -145,6 +146,8 @@ The following arguments are supported:
 * `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service should be attached to.
 
 * `linux_fx_version` - (Optional) Linux App Framework and version for the AppService, e.g. `DOCKER|(golang:latest)`.
+
+* `http2_enabled` - (Optional) Specifies whether or not the http2 protocol should be enabled. Defaults to `false`.
 
 * `cors` - (Optional) A `cors` block as defined below.
 

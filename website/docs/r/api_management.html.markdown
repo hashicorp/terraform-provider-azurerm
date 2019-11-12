@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management"
 sidebar_current: "docs-azurerm-resource-api-management-x"
@@ -26,7 +27,7 @@ resource "azurerm_api_management" "test" {
   publisher_email     = "company@terraform.io"
 
   sku_name = "Developer_1"
-   
+
   policy {
     xml_content = <<XML
     <policies>

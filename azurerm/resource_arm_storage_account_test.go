@@ -1579,8 +1579,8 @@ resource "azurerm_storage_account" "testsa" {
       allowed_headers    = ["*"]
       allowed_methods    = ["GET"]
       max_age_in_seconds = "2000000000"
-		}
-		cors_rule {
+    }
+    cors_rule {
       allowed_origins    = ["http://www.test.com"]
       exposed_headers    = ["x-tempo-*"]
       allowed_headers    = ["*"]

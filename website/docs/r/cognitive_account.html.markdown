@@ -1,4 +1,5 @@
 ---
+subcategory: "Cognitive Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cognitive_account"
 sidebar_current: "docs-azurerm-resource-cognitive-account"
@@ -55,7 +56,7 @@ The following arguments are supported:
 
 A `sku` block supports the following:
 
-* `name` - (Required) Specifies the Name of the Sku. Possible values are `F0`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1` and `P2`.
+* `name` - (Required) Specifies the Name of the Sku. Possible values are `F0`, `F1`, `S0`, `S1`, `S2`, `S3`, `S4`, `S5`, `S6`, `P0`, `P1` and `P2`.
 
 * `tier` - (Required) Specifies the Tier of the Sku. Possible values include `Free`, `Standard` and `Premium`.
 

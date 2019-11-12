@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_server"
 sidebar_current: "docs-azurerm-resource-database-postgresql-server"
@@ -27,7 +28,7 @@ resource "azurerm_postgresql_server" "test" {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
-    family   = "Gen4"
+    family   = "Gen5"
   }
 
   storage_profile {

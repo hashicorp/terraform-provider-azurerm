@@ -27,7 +27,7 @@ func TestAccAzureRMMapsAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "s0"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "S0"),
 				),
 			},
 			{
@@ -55,7 +55,7 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "s1"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "S1"),
 				),
 			},
 			{
@@ -168,7 +168,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "s0"
+  sku_name            = "S0"
 }
 `, rInt, location, rInt)
 }
@@ -183,7 +183,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "s1"
+  sku_name            = "S1"
 }
 `, rInt, location, rInt)
 }
@@ -198,7 +198,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "s0"
+  sku_name            = "S0"
 
   tags = {
     environment = "testing"

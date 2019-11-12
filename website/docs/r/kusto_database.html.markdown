@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Explorer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_database"
 sidebar_current: "docs-azurerm-resource-kusto-database"
@@ -22,7 +23,7 @@ resource "azurerm_kusto_cluster" "cluster" {
   name                = "kustocluster"
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
-  
+
   sku {
     name     = "Standard_D13_v2"
     capacity = 2

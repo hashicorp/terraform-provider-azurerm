@@ -355,6 +355,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
   health_probe_id     = azurerm_lb_probe.test.id
   upgrade_mode        = "Automatic"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -374,17 +375,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-	  name      = "internal"
-	  primary   = true
-	  subnet_id = azurerm_subnet.test.id
-	  load_balancer_backend_address_pool_ids = [ azurerm_lb_backend_address_pool.test.id ]
-	  load_balancer_inbound_nat_rules_ids = [ azurerm_lb_nat_pool.test.id ]
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
   }
 
   automatic_os_upgrade_policy {
-	disable_automatic_rollback  = true
-	enable_automatic_os_upgrade = true
+    disable_automatic_rollback  = true
+    enable_automatic_os_upgrade = true
   }
 
   rolling_upgrade_policy {
@@ -449,7 +450,7 @@ resource "azurerm_virtual_machine" "source" {
   name                  = "source"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
-  network_interface_ids = [ azurerm_network_interface.source.id ]
+  network_interface_ids = [azurerm_network_interface.source.id]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -512,7 +513,7 @@ resource "azurerm_image" "second" {
     caching  = "None"
   }
 
-  depends_on = [ "azurerm_image.first" ]
+  depends_on = ["azurerm_image.first"]
 }
 `, template)
 }
@@ -530,6 +531,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "mradministrator"
   admin_password      = "P@ssword1234!"
+ 
   disable_password_authentication = false
   source_image_id     = azurerm_image.%s.id
 
@@ -565,6 +567,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -606,7 +609,8 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
-  disable_password_authentication = false
+
+  disable_password_authentication               = false
   terraform_should_roll_instances_when_required = false
 
   source_image_reference {
@@ -706,6 +710,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   admin_password      = "P@ssword1234!"
   health_probe_id     = azurerm_lb_probe.test.id
   upgrade_mode        = "Rolling"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -725,11 +730,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     primary = true
 
     ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-      load_balancer_backend_address_pool_ids = [ azurerm_lb_backend_address_pool.test.id ]
-      load_balancer_inbound_nat_rules_ids = [ azurerm_lb_nat_pool.test.id ]
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.test.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+      load_balancer_inbound_nat_rules_ids    = [azurerm_lb_nat_pool.test.id]
     }
   }
 
@@ -764,6 +769,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -795,7 +801,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
     publisher = "cloudbees"
   }
 
-  depends_on = [ "azurerm_marketplace_agreement.test" ]
+  depends_on = ["azurerm_marketplace_agreement.test"]
 }
 `, template, rInt)
 }

@@ -174,7 +174,7 @@ resource "azurerm_bot_connection" "test" {
   client_id             = "test"
   client_secret         = "secret"
   scopes                = "testscope"
-  
+
   parameters = {
     loginUri = "www.example.com"
   }
@@ -196,7 +196,7 @@ resource "azurerm_bot_connection" "test" {
   client_id             = "test2"
   client_secret         = "secret2"
   scopes                = "testscope2"
-  
+
   parameters = {
     loginUri = "www.example2.com"
   }

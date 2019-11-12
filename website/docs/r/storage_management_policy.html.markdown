@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_management_policy"
 sidebar_current: "docs-azurerm-resource-storage-management-policy"
@@ -35,8 +36,8 @@ resource "azurerm_storage_management_policy" "testpolicy" {
     name    = "rule1"
     enabled = true
     filters {
-      prefix_match = [ "container1/prefix1" ]
-      blob_types   = [ "blockBlob" ]
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
     }
     actions {
       base_blob {
@@ -53,8 +54,8 @@ resource "azurerm_storage_management_policy" "testpolicy" {
     name    = "rule2"
     enabled = false
     filters {
-      prefix_match = [ "container2/prefix1", "container2/prefix2" ]
-      blob_types  = [ "blockBlob" ]
+      prefix_match = ["container2/prefix1", "container2/prefix2"]
+      blob_types   = ["blockBlob"]
     }
     actions {
       base_blob {

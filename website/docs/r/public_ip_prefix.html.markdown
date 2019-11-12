@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip_prefix"
 sidebar_current: "docs-azurerm-resource-network-public-ip-prefix"
@@ -9,8 +10,6 @@ description: |-
 # azurerm_public_ip_prefix
 
 Manages a Public IP Prefix.
-
--> **NOTE** Public IP Prefix are currently in Public Preview. You can find more information about [Public IP Preifx Preview here](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-address-prefix).
 
 ## Example Usage
 

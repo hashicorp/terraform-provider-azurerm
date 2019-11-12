@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource manager: azurerm_sql_active_directory_administrator"
 sidebar_current: "docs-azurerm-resource-database-sql-administrator"
@@ -34,7 +35,7 @@ resource "azurerm_sql_active_directory_administrator" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   login               = "sqladmin"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
-  object_id           = "${data.azurerm_client_config.current.service_principal_object_id}"
+  object_id           = "${data.azurerm_client_config.current.object_id}"
 }
 ```
 

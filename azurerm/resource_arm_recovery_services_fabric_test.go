@@ -51,10 +51,10 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_recovery_services_fabric" "test" {
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.test.name}"
-  name                         = "acctest-fabric-%d"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  name                = "acctest-fabric-%d"
+  location            = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, rInt, rInt)
 }

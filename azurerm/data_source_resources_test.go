@@ -107,7 +107,7 @@ func testAccDataSourceAzureRMResources_ByName(rInt int, rString string, location
 %s
 
 data "azurerm_resources" "test" {
-  name	= "${azurerm_storage_account.test.name}"
+  name = "${azurerm_storage_account.test.name}"
 }
 `, r)
 }
@@ -129,8 +129,8 @@ func testAccDataSourceAzureRMResources_ByResourceType(rInt int, rString string, 
 %s
 
 data "azurerm_resources" "test" {
-	resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
-  type 								= "Microsoft.Storage/storageAccounts"
+  resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
+  type                = "Microsoft.Storage/storageAccounts"
 }
 `, r)
 }
@@ -142,11 +142,11 @@ func testAccDataSourceAzureRMResources_FilteredByTags(rInt int, rString string, 
 
 data "azurerm_resources" "test" {
   name                = "${azurerm_storage_account.test.name}"
-	resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
-	
-	required_tags = {
-		environment = "production"
-	}
+  resource_group_name = "${azurerm_storage_account.test.resource_group_name}"
+
+  required_tags = {
+    environment = "production"
+  }
 }
 `, r)
 }

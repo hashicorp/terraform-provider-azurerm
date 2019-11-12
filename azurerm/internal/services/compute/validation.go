@@ -10,6 +10,10 @@ func ValidateLinuxName(i interface{}, k string) (warnings []string, errors []err
 	return validateName(64)(i, k)
 }
 
+func ValidateWindowsName(i interface{}, k string) (warnings []string, errors []error) {
+	return validateName(16)(i, k)
+}
+
 func validateName(maxLength int) func(i interface{}, k string) (warnings []string, errors []error) {
 	return func(i interface{}, k string) (warnings []string, errors []error) {
 		v, ok := i.(string)

@@ -74,6 +74,7 @@ func resourceArmNetworkSecurityGroup() *schema.Resource {
 								string(network.SecurityRuleProtocolAsterisk),
 								string(network.SecurityRuleProtocolTCP),
 								string(network.SecurityRuleProtocolUDP),
+								string(network.SecurityRuleProtocolIcmp),
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},

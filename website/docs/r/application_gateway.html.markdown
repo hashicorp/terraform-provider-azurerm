@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_gateway"
 sidebar_current: "docs-azurerm-resource-network-application-gateway"
@@ -550,7 +551,7 @@ A `request_header_configuration` block supports the following:
 
 * `header_name` - (Required) Header name of the header configuration.
 
-* `header_value` - (Required) Header value of the header configuration.
+* `header_value` - (Required) Header value of the header configuration. To delete a request header set this property to an empty string.
 
 ---
 
@@ -558,7 +559,7 @@ A `response_header_configuration` block supports the following:
 
 * `header_name` - (Required) Header name of the header configuration.
 
-* `header_value` - (Required) Header value of the header configuration.
+* `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
 
 ## Attributes Reference
 

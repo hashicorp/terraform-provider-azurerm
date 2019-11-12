@@ -1,4 +1,5 @@
 ---
+subcategory: "Policy"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_definition"
 sidebar_current: "docs-azurerm-resource-policy-definition"
@@ -21,7 +22,7 @@ resource "azurerm_policy_definition" "policy" {
   mode         = "Indexed"
   display_name = "acceptance test policy definition"
 
-  metadata     = <<METADATA
+  metadata = <<METADATA
     {
     "category": "General"
     }

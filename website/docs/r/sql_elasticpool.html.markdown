@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_elasticpool"
 sidebar_current: "docs-azurerm-resource-database-sql-elasticpool"
@@ -21,7 +22,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_sql_server" "test" {
-  name                         = "my-sql-server"                           # NOTE: needs to be globally unique
+  name                         = "my-sql-server" # NOTE: needs to be globally unique
   resource_group_name          = "${azurerm_resource_group.test.name}"
   location                     = "${azurerm_resource_group.test.location}"
   version                      = "12.0"

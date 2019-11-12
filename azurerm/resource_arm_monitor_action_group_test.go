@@ -423,9 +423,9 @@ resource "azurerm_monitor_action_group" "test" {
   short_name          = "acctestag"
 
   webhook_receiver {
-    name        = "callmyapiaswell"
-	service_uri = "http://example.com/alert"
-	use_common_alert_schema = true
+    name                    = "callmyapiaswell"
+    service_uri             = "http://example.com/alert"
+    use_common_alert_schema = true
   }
 }
 `, rInt, location, rInt)
@@ -471,9 +471,9 @@ resource "azurerm_monitor_action_group" "test" {
   }
 
   webhook_receiver {
-    name        = "callmybackupapi"
-	service_uri = "https://backup.example.com/warning"
-	use_common_alert_schema = true
+    name                    = "callmybackupapi"
+    service_uri             = "https://backup.example.com/warning"
+    use_common_alert_schema = true
   }
 }
 `, rInt, location, rInt)

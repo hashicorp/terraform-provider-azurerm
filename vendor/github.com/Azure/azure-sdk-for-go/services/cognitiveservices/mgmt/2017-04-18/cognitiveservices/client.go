@@ -137,3 +137,89 @@ func (client BaseClient) CheckDomainAvailabilityResponder(resp *http.Response) (
 	result.Response = autorest.Response{Response: resp}
 	return
 }
+
+// CheckSkuAvailability check available SKUs.
+// Parameters:
+// location - resource location.
+// parameters - check SKU Availability POST body.
+func (client BaseClient) CheckSkuAvailability(ctx context.Context, location string, parameters CheckSkuAvailabilityParameter) (result CheckSkuAvailabilityResultList, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/BaseClient.CheckSkuAvailability")
+		defer func() {
+			sc := -1
+			if result.Response.Response != nil {
+				sc = result.Response.Response.StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: parameters,
+			Constraints: []validation.Constraint{{Target: "parameters.Skus", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.Kind", Name: validation.Null, Rule: true, Chain: nil},
+				{Target: "parameters.Type", Name: validation.Null, Rule: true, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("cognitiveservices.BaseClient", "CheckSkuAvailability", err.Error())
+	}
+
+	req, err := client.CheckSkuAvailabilityPreparer(ctx, location, parameters)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cognitiveservices.BaseClient", "CheckSkuAvailability", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.CheckSkuAvailabilitySender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "cognitiveservices.BaseClient", "CheckSkuAvailability", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.CheckSkuAvailabilityResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "cognitiveservices.BaseClient", "CheckSkuAvailability", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// CheckSkuAvailabilityPreparer prepares the CheckSkuAvailability request.
+func (client BaseClient) CheckSkuAvailabilityPreparer(ctx context.Context, location string, parameters CheckSkuAvailabilityParameter) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"location":       autorest.Encode("path", location),
+		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2017-04-18"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/providers/Microsoft.CognitiveServices/locations/{location}/checkSkuAvailability", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// CheckSkuAvailabilitySender sends the CheckSkuAvailability request. The method will close the
+// http.Response Body if it receives an error.
+func (client BaseClient) CheckSkuAvailabilitySender(req *http.Request) (*http.Response, error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
+}
+
+// CheckSkuAvailabilityResponder handles the response to the CheckSkuAvailability request. The method always
+// closes the http.Response Body.
+func (client BaseClient) CheckSkuAvailabilityResponder(resp *http.Response) (result CheckSkuAvailabilityResultList, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
+	return
+}

@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Explorer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_eventhub_data_connection"
 sidebar_current: "docs-azurerm-resource-kusto-eventhub-data-connection"
@@ -21,7 +22,7 @@ resource "azurerm_kusto_cluster" "cluster" {
   name                = "kustocluster"
   location            = "${azurerm_resource_group.rg.location}"
   resource_group_name = "${azurerm_resource_group.rg.name}"
-  
+
   sku {
     name     = "Standard_D13_v2"
     capacity = 2
@@ -61,12 +62,12 @@ resource "azurerm_kusto_eventhub_data_connection" "eventhub_connection" {
   cluster_name        = "${azurerm_kusto_cluster.cluster.name}"
   database_name       = "${azurerm_kusto_database.database.name}"
 
-  eventhub_id         = "${azurerm_eventhub.evenhub.id}"
-  consumer_group      = "${azurerm_eventhub_consumer_group.consumer_group.name}"
+  eventhub_id    = "${azurerm_eventhub.evenhub.id}"
+  consumer_group = "${azurerm_eventhub_consumer_group.consumer_group.name}"
 
-  table_name          = "my-table" (Optional)
-  mapping_rule_name   = "my-table-mapping"  (Optional)
-  data_format         = "JSON" (Optional)
+  table_name        = "my-table"         #(Optional)
+  mapping_rule_name = "my-table-mapping" #(Optional)
+  data_format       = "JSON"             #(Optional)
 }
 ```
 

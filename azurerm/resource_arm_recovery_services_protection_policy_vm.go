@@ -334,7 +334,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmCreateUpdate(d *schema.Resourc
 		return fmt.Errorf("Error creating/updating Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
 	}
 
-	resp, err := resourceArmRecoveryServicesProtectionPolicyWaitForState(client, ctx, true, vaultName, resourceGroup, policyName)
+	resp, err := resourceArmRecoveryServicesProtectionPolicyWaitForUpdate(ctx, client, vaultName, resourceGroup, policyName, d)
 	if err != nil {
 		return err
 	}
@@ -445,7 +445,7 @@ func resourceArmRecoveryServicesProtectionPolicyVmDelete(d *schema.ResourceData,
 		}
 	}
 
-	if _, err := resourceArmRecoveryServicesProtectionPolicyWaitForState(client, ctx, false, vaultName, resourceGroup, policyName); err != nil {
+	if _, err := resourceArmRecoveryServicesProtectionPolicyWaitForDeletion(ctx, client, vaultName, resourceGroup, policyName, d); err != nil {
 		return err
 	}
 
@@ -705,37 +705,67 @@ func flattenArmRecoveryServicesProtectionPolicyRetentionWeeklyFormat(retention *
 	return weekdays, weeks
 }
 
-func resourceArmRecoveryServicesProtectionPolicyWaitForState(client *backup.ProtectionPoliciesClient, ctx context.Context, found bool, vaultName, resourceGroup, policyName string) (backup.ProtectionPolicyResource, error) {
+func resourceArmRecoveryServicesProtectionPolicyWaitForUpdate(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
 	state := &resource.StateChangeConf{
-		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Delay:      10 * time.Second,
-		Refresh: func() (interface{}, string, error) {
-			resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
-			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
-					return resp, "NotFound", nil
-				}
-
-				return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
-			}
-
-			return resp, "Found", nil
-		},
+		Pending:    []string{"NotFound"},
+		Target:     []string{"Found"},
+		Refresh:    resourceArmRecoveryServicesProtectionPolicyRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
 	}
 
-	if found {
-		state.Pending = []string{"NotFound"}
-		state.Target = []string{"Found"}
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			state.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			state.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
 	} else {
-		state.Pending = []string{"Found"}
-		state.Target = []string{"NotFound"}
+		state.Timeout = 30 * time.Minute
 	}
 
 	resp, err := state.WaitForState()
 	if err != nil {
-		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be %t (Resource Group %q) to provision: %+v", policyName, found, resourceGroup, err)
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be true (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
 	}
 
 	return resp.(backup.ProtectionPolicyResource), nil
+}
+
+func resourceArmRecoveryServicesProtectionPolicyWaitForDeletion(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string, d *schema.ResourceData) (backup.ProtectionPolicyResource, error) {
+	state := &resource.StateChangeConf{
+		MinTimeout: 30 * time.Second,
+		Delay:      10 * time.Second,
+		Pending:    []string{"Found"},
+		Target:     []string{"NotFound"},
+		Refresh:    resourceArmRecoveryServicesProtectionPolicyRefreshFunc(ctx, client, vaultName, resourceGroup, policyName),
+	}
+
+	if features.SupportsCustomTimeouts() {
+		state.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		state.Timeout = 30 * time.Minute
+	}
+
+	resp, err := state.WaitForState()
+	if err != nil {
+		return resp.(backup.ProtectionPolicyResource), fmt.Errorf("Error waiting for the Recovery Service Protection Policy %q to be false (Resource Group %q) to provision: %+v", policyName, resourceGroup, err)
+	}
+
+	return resp.(backup.ProtectionPolicyResource), nil
+}
+
+func resourceArmRecoveryServicesProtectionPolicyRefreshFunc(ctx context.Context, client *backup.ProtectionPoliciesClient, vaultName, resourceGroup, policyName string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, vaultName, resourceGroup, policyName)
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return resp, "NotFound", nil
+			}
+
+			return resp, "Error", fmt.Errorf("Error making Read request on Recovery Service Protection Policy %q (Resource Group %q): %+v", policyName, resourceGroup, err)
+		}
+
+		return resp, "Found", nil
+	}
 }
