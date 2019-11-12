@@ -345,6 +345,8 @@ func testAccAzureRMHDInsightInteractiveQueryCluster_gen2basic(rInt int, rString 
 %s
 
 resource "azurerm_hdinsight_interactive_query_cluster" "test" {
+  depends_on = [azurerm_role_assignment.test]
+
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"

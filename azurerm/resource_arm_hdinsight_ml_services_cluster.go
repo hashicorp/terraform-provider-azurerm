@@ -89,8 +89,6 @@ func resourceArmHDInsightMLServicesCluster() *schema.Resource {
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
-			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
-
 			"roles": {
 				Type:     schema.TypeList,
 				Required: true,

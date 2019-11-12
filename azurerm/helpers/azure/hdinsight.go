@@ -183,6 +183,8 @@ func SchemaHDInsightsGen2StorageAccounts() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		// HDInsight doesn't seem to allow adding more than one gen2 cluster right now.
+		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"storage_resource_id": {

@@ -703,6 +703,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "gen2test" {
+  depends_on = [azurerm_role_assignment.test]
+
   name                     = "accgen2test%s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location

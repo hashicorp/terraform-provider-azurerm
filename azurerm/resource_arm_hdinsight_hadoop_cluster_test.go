@@ -808,6 +808,8 @@ func testAccAzureRMHDInsightHadoopCluster_gen2storage(rInt int, rString string, 
 	return fmt.Sprintf(`
 %s
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
+  depends_on = [azurerm_role_assignment.test]
+  
   name                = "acctesthdi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
