@@ -285,21 +285,20 @@ func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{})
 	resourceGroup := id.ResourceGroup
 	name := id.Path["configurationStores"]
 
-	read, err := client.Get(ctx, resourceGroup, name)
+	fut, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
+		if response.WasNotFound(fut.Response()) {
 			return nil
 		}
-
-		return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	fut, err := client.Delete(ctx, resourceGroup, name)
 	resp, err := fut.Result(*client)
 	if err != nil {
 		if !response.WasNotFound(resp.Response) {
-			return fmt.Errorf("Error retrieving App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return nil
 		}
+		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	return nil
