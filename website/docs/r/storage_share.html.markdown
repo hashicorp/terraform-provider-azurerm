@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `acl` - (Optional) One or more `acl` blocks as defined below.
 
-* `quota` - (Optional) The maximum size of the share, in gigabytes. For Standard storage accounts, this must be greater than 0 and less than 5 TB (5120 GB). For Premium FileStorage storage accounts, this must be greater than 100 GB, and less than 100 TB (102400 GB). Default is 5120.
+* `quota` - (Optional) The maximum size of the share, in gigabytes. For Standard storage accounts, this must be greater than 0 and less than 5 TB (5120 GB). For Premium FileStorage storage accounts, this must be greater than 100 GB and less than 100 TB (102400 GB). Default is 5120.
 
 * `metadata` - (Optional) A mapping of MetaData for this File Share.
 
