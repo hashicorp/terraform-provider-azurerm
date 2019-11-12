@@ -21,8 +21,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// TODO: document default_node_pool
-
 func resourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmKubernetesClusterCreate,

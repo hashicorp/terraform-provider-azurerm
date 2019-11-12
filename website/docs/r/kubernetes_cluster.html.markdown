@@ -224,19 +224,14 @@ A `default_node_pool` block supports the following:
 
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
--> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to the `node_count` field.
-
 -> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
 
 * `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
 
-* `node_count` - (Optional) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+-> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to the `node_count` field.
 
--> **NOTE:** If `enable_auto_scaling` is set to `true`, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
-
--> **NOTE:** This is Required when `enable_auto_scaling` is set to `false`.
 
 * `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
 
@@ -250,11 +245,19 @@ A `default_node_pool` block supports the following:
 
 ~> **NOTE:** A Route Table must be configured on this Subnet.
 
-If `enable_auto_scaling` is enabled, then the following fields can also be configured:
+If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
 
-* `max_count` - (Optional) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
 
-* `min_count` - (Optional) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+
+* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100` and between `min_count` and `max_count`.
+
+-> **NOTE:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
+
+If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
+
+* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
 
 ---
 
@@ -393,8 +396,6 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
-
----
 
 ## Import
 

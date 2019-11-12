@@ -274,7 +274,40 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location),
+				// Enabled
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location, true),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.enable_node_public_ip", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
+			},
+			{
+				// Disabled
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location, false),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.enable_node_public_ip", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"service_principal.0.client_secret",
+				},
+			},
+			{
+				// Enabled
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.enable_node_public_ip", "true"),
@@ -656,7 +689,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin, networkPolicy)
 }
 
-func testAccAzureRMKubernetesCluster_enableNodePublicIP(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_enableNodePublicIP(rInt int, clientId, clientSecret, location string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -673,7 +706,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     name                  = "default"
     node_count            = 1
     vm_size               = "Standard_DS2_v2"
-    enable_node_public_ip = true
+    enable_node_public_ip = %t
   }
 
   service_principal {
@@ -681,7 +714,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 }
-`, rInt, location, rInt, rInt, clientId, clientSecret)
+`, rInt, location, rInt, rInt, enabled, clientId, clientSecret)
 }
 
 func testAccAzureRMKubernetesCluster_internalNetwork(rInt int, clientId string, clientSecret string, location string) string {
