@@ -249,25 +249,23 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 
 	values := resultPage.Values()
 	for _, value := range values {
-		var index string
-		var permission string
+		accessKey := makeAccessKeyMap(value)
 
 		if strings.HasPrefix(*value.Name, "Primary") {
-			index = "primary"
+			if *value.ReadOnly {
+				d.Set("primary_read_key", accessKey)
+			} else {
+				d.Set("primary_write_key", accessKey)
+			}
+		} else if strings.HasPrefix(*value.Name, "Secondary") {
+			if *value.ReadOnly {
+				d.Set("secondary_read_key", accessKey)
+			} else {
+				d.Set("secondary_write_key", accessKey)
+			}
 		} else {
-			index = "secondary"
+			log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", value.Name)
 		}
-
-		if *value.ReadOnly {
-			permission = "read"
-		} else {
-			permission = "write"
-		}
-
-		d.Set(
-			fmt.Sprintf("%s_%s_key", index, permission),
-			makeAccessKeyMap(value),
-		)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
