@@ -37,6 +37,16 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "managed_image_id"),
 					resource.TestCheckResourceAttr(dataSourceName, "target_region.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "target_region.0.storage_account_type", "Standard_LRS"),
+				),
+			},
+			{
+				Config: testAccDataSourceSharedImageVersion_zrs(rInt, location, username, password, hostname),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "managed_image_id"),
+					resource.TestCheckResourceAttr(dataSourceName, "target_region.#", "1"),
+					resource.TestCheckResourceAttr(dataSourceName, "target_region.0.storage_account_type", "Standard_ZRS"),
 				),
 			},
 		},
@@ -45,6 +55,20 @@ func TestAccDataSourceAzureRMSharedImageVersion_basic(t *testing.T) {
 
 func testAccDataSourceSharedImageVersion_basic(rInt int, location, username, password, hostname string) string {
 	template := testAccAzureRMSharedImageVersion_imageVersion(rInt, location, username, password, hostname)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_shared_image_version" "test" {
+  name                = "${azurerm_shared_image_version.test.name}"
+  gallery_name        = "${azurerm_shared_image_version.test.gallery_name}"
+  image_name          = "${azurerm_shared_image_version.test.image_name}"
+  resource_group_name = "${azurerm_shared_image_version.test.resource_group_name}"
+}
+`, template)
+}
+
+func testAccDataSourceSharedImageVersion_zrs(rInt int, location, username, password, hostname string) string {
+	template := testAccAzureRMSharedImageVersion_imageVersionZrs(rInt, location, username, password, hostname)
 	return fmt.Sprintf(`
 %s
 
