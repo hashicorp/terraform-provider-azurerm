@@ -242,6 +242,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_data_factory_linked_service_postgresql":             resourceArmDataFactoryLinkedServicePostgreSQL(),
 		"azurerm_data_factory_linked_service_sql_server":             resourceArmDataFactoryLinkedServiceSQLServer(),
 		"azurerm_data_factory_pipeline":                              resourceArmDataFactoryPipeline(),
+		"azurerm_data_factory_trigger_schedule":                      resourceArmDataFactoryTriggerSchedule(),
 		"azurerm_data_lake_analytics_account":                        resourceArmDataLakeAnalyticsAccount(),
 		"azurerm_data_lake_analytics_firewall_rule":                  resourceArmDataLakeAnalyticsFirewallRule(),
 		"azurerm_data_lake_store_file":                               resourceArmDataLakeStoreFile(),
