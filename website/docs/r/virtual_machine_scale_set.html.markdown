@@ -358,7 +358,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type = "systemAssigned"
+    type = "SystemAssigned"
   }
 
   extension {
