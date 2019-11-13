@@ -217,6 +217,27 @@ resource "azurerm_shared_image_version" "test" {
 }
 `, template)
 }
+func testAccAzureRMSharedImageVersion_imageVersionZrs(rInt int, location, username, password, hostname string) string {
+	template := testAccAzureRMSharedImageVersion_provision(rInt, location, username, password, hostname)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
+  image_name          = "${azurerm_shared_image.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  managed_image_id    = "${azurerm_image.test.id}"
+
+  target_region {
+    name                   = "${azurerm_resource_group.test.location}"
+	regional_replica_count = 1
+	storage_account_type   = "Standard_ZRS"
+  }
+}
+`, template)
+}
 func testAccAzureRMSharedImageVersion_requiresImport(rInt int, location, username, password, hostname string) string {
 	return fmt.Sprintf(`
 %s
