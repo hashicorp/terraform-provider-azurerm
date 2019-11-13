@@ -109,7 +109,7 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 func resourceArmAppConfigurationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).AppConfiguration.AppConfigurationsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM App Configuration creation.")
