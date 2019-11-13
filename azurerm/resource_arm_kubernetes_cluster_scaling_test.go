@@ -177,10 +177,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   default_node_pool {
-    name       = "default"
-    min_count  = 2
-    max_count  = 4
-    vm_size    = "Standard_DS2_v2"
+    name                = "default"
+    enable_auto_scaling = true
+    min_count           = 2
+    max_count           = 4
+    vm_size             = "Standard_DS2_v2"
   }
 
   service_principal {
