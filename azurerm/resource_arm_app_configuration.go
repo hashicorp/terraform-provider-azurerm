@@ -262,7 +262,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 				d.Set("secondary_write_key", accessKey)
 			}
 		} else {
-			log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", value.Name)
+			log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", *value.Name)
 		}
 	}
 
