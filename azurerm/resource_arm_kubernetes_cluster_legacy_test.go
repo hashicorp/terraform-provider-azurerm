@@ -52,7 +52,7 @@ func TestAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_legacyAgentPoolProfileVMSS(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.type", "VirtualMachineScaleSet"),
+					resource.TestCheckResourceAttr(resourceName, "agent_pool_profile.0.type", "VirtualMachineScaleSets"),
 				),
 				// since users are prompted to move to `default_node_pool`
 				ExpectNonEmptyPlan: true,
