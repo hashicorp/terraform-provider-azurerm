@@ -247,6 +247,10 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 
 	values := resultPage.Values()
 	for _, value := range values {
+		if &value == nil {
+			continue
+		}
+
 		accessKey := makeAccessKeyMap(value)
 
 		if strings.HasPrefix(*value.Name, "Primary") {
