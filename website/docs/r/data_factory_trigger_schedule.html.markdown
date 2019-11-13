@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_trigger_schedule"
 sidebar_current: "docs-azurerm-resource-data-factory-trigger-schedule"
