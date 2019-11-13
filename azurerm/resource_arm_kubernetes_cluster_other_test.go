@@ -535,7 +535,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 
-  tags {
+  tags = {
     dimension = "C-137"
   }
 }
@@ -566,7 +566,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     client_secret = "%s"
   }
 
-  tags {
+  tags = {
     dimension = "D-99"
   }
 }
