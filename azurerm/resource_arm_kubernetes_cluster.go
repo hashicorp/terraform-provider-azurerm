@@ -685,7 +685,8 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.KubernetesClustersClient
+	nodePoolsClient := meta.(*ArmClient).Containers.AgentPoolsClient
+	clusterClient := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 	tenantId := meta.(*ArmClient).tenantId
@@ -714,19 +715,19 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			ClientID: utils.String(clientId),
 			Secret:   utils.String(clientSecret),
 		}
-		future, err := client.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
+		future, err := clusterClient.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
 		if err != nil {
 			return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
 			return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
 	}
 
 	// we need to conditionally update the cluster
-	existing, err := client.Get(ctx, resourceGroup, name)
+	existing, err := clusterClient.Get(ctx, resourceGroup, name)
 	if err != nil {
 		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
@@ -742,28 +743,6 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
 		addonProfiles := containers.ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
 		existing.ManagedClusterProperties.AddonProfiles = addonProfiles
-	}
-
-	if d.HasChange("default_node_pool") || d.HasChange("agent_pool_profile") {
-		updateCluster = true
-		agentProfiles, err := containers.ExpandDefaultNodePool(d)
-		if err != nil {
-			return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
-		}
-
-		// TODO: remove me in 2.0
-		if agentProfiles == nil {
-			agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
-			agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, false)
-			if err != nil {
-				return err
-			}
-
-			agentProfiles = &agentProfilesLegacy
-		}
-
-		// TODO: switch to updating via the AgentPools client
-		existing.ManagedClusterProperties.AgentPoolProfiles = agentProfiles
 	}
 
 	if d.HasChange("api_server_authorized_ip_ranges") {
@@ -815,20 +794,52 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 
 	if updateCluster {
 		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing)
+		future, err := clusterClient.CreateOrUpdate(ctx, resourceGroup, name, existing)
 		if err != nil {
 			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
 			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
 	}
 
+	// update the node pool using the separate API
+	if d.HasChange("default_node_pool") || d.HasChange("agent_pool_profile") {
+		log.Printf("[DEBUG] Updating of Default Node Pool..")
+
+		agentProfiles, err := containers.ExpandDefaultNodePool(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
+		}
+
+		// TODO: remove me in 2.0
+		if agentProfiles == nil {
+			agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
+			agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, false)
+			if err != nil {
+				return err
+			}
+
+			agentProfiles = &agentProfilesLegacy
+		}
+
+		agentProfile := containers.ConvertDefaultNodePoolToAgentPool(agentProfiles)
+		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, resourceGroup, name, *agentProfile.Name, agentProfile)
+		if err != nil {
+			return fmt.Errorf("Error updating Default Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Default Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated Default Node Pool.")
+	}
+
 	// then roll the version of Kubernetes if necessary
 	if d.HasChange("kubernetes_version") {
-		existing, err = client.Get(ctx, resourceGroup, name)
+		existing, err = clusterClient.Get(ctx, resourceGroup, name)
 		if err != nil {
 			return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
@@ -840,12 +851,12 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
 		existing.ManagedClusterProperties.KubernetesVersion = utils.String(kubernetesVersion)
 
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, existing)
+		future, err := clusterClient.CreateOrUpdate(ctx, resourceGroup, name, existing)
 		if err != nil {
 			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
 			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 

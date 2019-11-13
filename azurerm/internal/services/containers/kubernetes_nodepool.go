@@ -118,6 +118,31 @@ func SchemaDefaultNodePool() *schema.Schema {
 	}
 }
 
+func ConvertDefaultNodePoolToAgentPool(input *[]containerservice.ManagedClusterAgentPoolProfile) containerservice.AgentPool {
+	defaultCluster := (*input)[0]
+	return containerservice.AgentPool{
+		Name: defaultCluster.Name,
+		ManagedClusterAgentPoolProfileProperties: &containerservice.ManagedClusterAgentPoolProfileProperties{
+			Count:                  defaultCluster.Count,
+			VMSize:                 defaultCluster.VMSize,
+			OsDiskSizeGB:           defaultCluster.OsDiskSizeGB,
+			VnetSubnetID:           defaultCluster.VnetSubnetID,
+			MaxPods:                defaultCluster.MaxPods,
+			OsType:                 defaultCluster.OsType,
+			MaxCount:               defaultCluster.MaxCount,
+			MinCount:               defaultCluster.MinCount,
+			EnableAutoScaling:      defaultCluster.EnableAutoScaling,
+			Type:                   defaultCluster.Type,
+			OrchestratorVersion:    defaultCluster.OrchestratorVersion,
+			AvailabilityZones:      defaultCluster.AvailabilityZones,
+			EnableNodePublicIP:     defaultCluster.EnableNodePublicIP,
+			ScaleSetPriority:       defaultCluster.ScaleSetPriority,
+			ScaleSetEvictionPolicy: defaultCluster.ScaleSetEvictionPolicy,
+			NodeTaints:             defaultCluster.NodeTaints,
+		},
+	}
+}
+
 func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedClusterAgentPoolProfile, error) {
 	input := d.Get("default_node_pool").([]interface{})
 	// TODO: in 2.0 make this Required
