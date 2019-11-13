@@ -267,7 +267,7 @@ func expandSharedImageVersionTargetRegions(d *schema.ResourceData) *[]compute.Ta
 		output := compute.TargetRegion{
 			Name:                 utils.String(name),
 			RegionalReplicaCount: utils.Int32(int32(regionalReplicaCount)),
-			StorageAccountType:   compute.StorageAccountType(string(storageAccountType)),
+			StorageAccountType:   compute.StorageAccountType(storageAccountType),
 		}
 		results = append(results, output)
 	}
