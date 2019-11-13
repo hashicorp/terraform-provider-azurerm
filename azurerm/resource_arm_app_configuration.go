@@ -289,9 +289,8 @@ func resourceArmAppConfigurationDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	resp, err := fut.Result(*client)
-	if err != nil {
-		if !response.WasNotFound(resp.Response) {
+	if err = fut.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if response.WasNotFound(fut.Response()) {
 			return nil
 		}
 		return fmt.Errorf("Error deleting App Configuration %q (Resource Group %q): %+v", name, resourceGroup, err)
