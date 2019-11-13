@@ -64,6 +64,7 @@ func SchemaDefaultNodePool() *schema.Schema {
 				"enable_node_public_ip": {
 					Type:     schema.TypeBool,
 					Optional: true,
+					ForceNew: true,
 				},
 
 				"max_count": {

@@ -171,7 +171,7 @@ A `agent_pool_profile` block supports the following:
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
-* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address?
+* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
 
 * `min_count` - (Optional) Minimum number of nodes for auto-scaling.
 

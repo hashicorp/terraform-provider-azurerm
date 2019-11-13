@@ -459,6 +459,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"admin_username": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 						},
 						"admin_password": {
 							Type:         schema.TypeString,
