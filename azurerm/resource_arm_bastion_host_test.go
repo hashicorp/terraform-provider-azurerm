@@ -127,7 +127,7 @@ resource "azurerm_bastion_host" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "ip-configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
@@ -170,7 +170,7 @@ resource "azurerm_bastion_host" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "ip-configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
@@ -192,7 +192,7 @@ resource "azurerm_bastion_host" "import" {
   location            = "${azurerm_bastion_host.test.location}"
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "ip-configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }

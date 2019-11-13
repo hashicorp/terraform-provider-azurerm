@@ -1,4 +1,5 @@
 ---
+subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_hbase_cluster"
 sidebar_current: "docs-azurerm-resource-hdinsight-hbase-cluster"

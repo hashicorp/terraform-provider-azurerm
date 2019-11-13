@@ -1,4 +1,5 @@
 ---
+subcategory: "Redis"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_firewall_rule"
 sidebar_current: "docs-azurerm-redis-firewall-rule"
