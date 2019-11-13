@@ -1,4 +1,5 @@
 ---
+subcategory: "Portal"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dashboard"
 sidebar_current: "docs-azurerm-resource-portal-dashboards"

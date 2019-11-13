@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-gateway-x"
@@ -139,6 +140,9 @@ The following arguments are supported:
     and depend on the `type` and `vpn_type` arguments.
     A `PolicyBased` gateway only supports the `Basic` sku. Further, the `UltraPerformance`
     sku is only supported by an `ExpressRoute` gateway.
+
+~> **NOTE:** To build a UltraPerformance ExpressRoute Virtual Network gateway, the associated Public IP needs to be sku "Basic" not "Standard"
+
 
 * `ip_configuration` (Required) One or two `ip_configuration` blocks documented below.
     An active-standby gateway requires exactly one `ip_configuration` block whereas

@@ -67,7 +67,7 @@ func resourceAutomationVariableCommonSchema(attType schema.ValueType, validateFu
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: azure.ValidateAutomationRunbookName(),
 		},
 
 		"description": {
@@ -102,7 +102,7 @@ func datasourceAutomationVariableCommonSchema(attType schema.ValueType) map[stri
 		"automation_account_name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ValidateFunc: validate.NoEmptyStrings,
+			ValidateFunc: azure.ValidateAutomationRunbookName(),
 		},
 
 		"description": {

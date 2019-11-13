@@ -2,21 +2,40 @@
 
 FEATURES:
 
-* **New Datasource:** `azurerm_automation_account` [GH-4740]
+* **New Data Source:** `azurerm_automation_account` [GH-4740]
+* **New Resource:** `azurerm_private_dns_aaaa_record` [GH-4841]
+* **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
+* **New Resource:** `azurerm_relay_hybrid_connection` [GH-4832]
 
 IMPROVEMENTS:
 
-* `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
-* `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
+* 2.0 prep: refresh functions now use custom timeouts when custom timeouts are enabled [GH-4838]
+* authentication: requesting a fresh token from the Azure CLI when the existing one expires [GH-4775]
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v35.0.0` [GH-4775]
+* dependencies: updating `github.com/Azure/go-autorest` to `v0.9.2` [GH-4775]
+* dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.10.0` [GH-4775]
 * sql: updating to API version `2017-03-01-preview` [GH-4242]
-
+* `azurerm_app_service_slot` - support for `auto_swap_slot_name` [GH-4752]
+* `azurerm_api_management_api` - the `version` and `version_set_id` properties can now be set [GH-4592]
+* `azurerm_automation_credential` - deprecate `account_name` in favour of `automation_account_name` [GH-4777]
+* `azurerm_hdinsight_hadoop_cluster` - Added edge node support [GH-4550]
+* `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
+* `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
+* `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
+* `azurerm_sql_server` - support for the `identity` block [GH-4754]
+* `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
 
 BUG FIXES:
 
+* `azurerm_api_management_api_policy` - sending `policy` as Raw XML [GH-4140]
+* `azurerm_bastion_host` - matching the validation for `name` used by Azure [GH-4766]
+* `azurerm_bastion_host` - support for hyphens in the `name` field within the `ip_configuration` block [GH-4814]
 * `azurerm_eventhub_namespace` - deprecating the `kafka_enabled` sproperty as it is now managed by Azure [GH-4743]
 * `azurerm_lb_probe` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_lb_rule` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
+* `azurerm_private_dns_cname_record` - fixing a bug where calling `Delete` didn't delete the CName record [GH-4804]
 * `azurerm_storage_account` - fixing an error where Advanced Threat Protection is unavailable in Azure Germany [GH-4746]
+* `azurerm_virtual_network_gateway_connection` - Configure `routing_weight` with weight `0` [GH-4849]
 
 ## 1.36.1 (October 29, 2019)
 
