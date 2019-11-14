@@ -68,7 +68,7 @@ data "azurerm_shared_image_version" "test" {
 }
 
 func testAccDataSourceSharedImageVersion_zrs(rInt int, location, username, password, hostname string) string {
-	template := testAccAzureRMSharedImageVersion_imageVersionZrs(rInt, location, username, password, hostname)
+	template := testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(rInt, location, username, password, hostname, "Standard_ZRS")
 	return fmt.Sprintf(`
 %s
 

@@ -87,7 +87,7 @@ func TestAccAzureRMSharedImageVersion_storageAccountType(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionLrs(ri, testLocation(), userName, password, hostName),
+				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(ri, testLocation(), userName, password, hostName, "Standard_LRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
@@ -96,7 +96,7 @@ func TestAccAzureRMSharedImageVersion_storageAccountType(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionZrs(ri, testLocation(), userName, password, hostName),
+				Config: testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(ri, testLocation(), userName, password, hostName, "Standard_ZRS"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
@@ -270,7 +270,7 @@ resource "azurerm_shared_image_version" "test" {
 `, template)
 }
 
-func testAccAzureRMSharedImageVersion_imageVersionLrs(rInt int, location, username, password, hostname string) string {
+func testAccAzureRMSharedImageVersion_imageVersionStorageAccountType(rInt int, location, username, password, hostname string, storageAccountType string) string {
 	template := testAccAzureRMSharedImageVersion_provision(rInt, location, username, password, hostname)
 	return fmt.Sprintf(`
 %s
@@ -286,32 +286,12 @@ resource "azurerm_shared_image_version" "test" {
   target_region {
     name                   = "${azurerm_resource_group.test.location}"
 	regional_replica_count = 1
-	storage_account_type   = "Standard_LRS"
+	storage_account_type   = "%s"
   }
 }
 `, template)
 }
-func testAccAzureRMSharedImageVersion_imageVersionZrs(rInt int, location, username, password, hostname string) string {
-	template := testAccAzureRMSharedImageVersion_provision(rInt, location, username, password, hostname)
-	return fmt.Sprintf(`
-%s
 
-resource "azurerm_shared_image_version" "test" {
-  name                = "0.0.1"
-  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
-  image_name          = "${azurerm_shared_image.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  managed_image_id    = "${azurerm_image.test.id}"
-
-  target_region {
-    name                   = "${azurerm_resource_group.test.location}"
-	regional_replica_count = 1
-	storage_account_type   = "Standard_ZRS"
-  }
-}
-`, template)
-}
 func testAccAzureRMSharedImageVersion_requiresImport(rInt int, location, username, password, hostname string) string {
 	return fmt.Sprintf(`
 %s
