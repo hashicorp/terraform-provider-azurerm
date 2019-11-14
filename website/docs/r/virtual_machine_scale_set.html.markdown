@@ -341,7 +341,7 @@ The following arguments are supported:
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VMSS. Required if `type` is `UserAssigned`.
 
@@ -358,7 +358,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type = "systemAssigned"
+    type = "SystemAssigned"
   }
 
   extension {
