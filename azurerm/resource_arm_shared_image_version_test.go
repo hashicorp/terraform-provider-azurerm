@@ -45,15 +45,6 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMSharedImageVersion_imageVersionZrs(ri, testLocation(), userName, password, hostName),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSharedImageVersionExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
-					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "target_region.0.storage_account_type", "Standard_ZRS"),
-				),
-			},
-			{
 				Config: testAccAzureRMSharedImageVersion_imageVersionUpdated(ri, testLocation(), testAltLocation(), userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
@@ -70,6 +61,58 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccAzureRMSharedImageVersion_storageAccountType(t *testing.T) {
+	resourceName := "azurerm_shared_image_version.test"
+
+	ri := tf.AccRandTimeInt()
+	resourceGroup := fmt.Sprintf("acctestRG-%d", ri)
+	userName := "testadmin"
+	password := "Password1234!"
+	hostName := fmt.Sprintf("tftestcustomimagesrc%d", ri)
+	sshPort := "22"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSharedImageVersionDestroy,
+		Steps: []resource.TestStep{
+			{
+				// need to create a vm and then reference it in the image creation
+				Config:  testAccAzureRMSharedImageVersion_setup(ri, testLocation(), userName, password, hostName),
+				Destroy: false,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureVMExists("azurerm_virtual_machine.testsource", true),
+					testGeneralizeVMImage(resourceGroup, "testsource", userName, password, hostName, sshPort, testLocation()),
+				),
+			},
+			{
+				Config: testAccAzureRMSharedImageVersion_imageVersionLrs(ri, testLocation(), userName, password, hostName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageVersionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.0.storage_account_type", "Standard_LRS"),
+				),
+			},
+			{
+				Config: testAccAzureRMSharedImageVersion_imageVersionZrs(ri, testLocation(), userName, password, hostName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageVersionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.0.storage_account_type", "Standard_ZRS"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMSharedImageVersion_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -222,6 +265,28 @@ resource "azurerm_shared_image_version" "test" {
   target_region {
     name                   = "${azurerm_resource_group.test.location}"
     regional_replica_count = 1
+  }
+}
+`, template)
+}
+
+func testAccAzureRMSharedImageVersion_imageVersionLrs(rInt int, location, username, password, hostname string) string {
+	template := testAccAzureRMSharedImageVersion_provision(rInt, location, username, password, hostname)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_shared_image_version" "test" {
+  name                = "0.0.1"
+  gallery_name        = "${azurerm_shared_image_gallery.test.name}"
+  image_name          = "${azurerm_shared_image.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  managed_image_id    = "${azurerm_image.test.id}"
+
+  target_region {
+    name                   = "${azurerm_resource_group.test.location}"
+	regional_replica_count = 1
+	storage_account_type   = "Standard_LRS"
   }
 }
 `, template)
