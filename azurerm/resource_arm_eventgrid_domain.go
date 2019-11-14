@@ -130,6 +130,18 @@ func resourceArmEventGridDomain() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -243,6 +255,13 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
+
+	keys, err := client.ListSharedAccessKeys(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Domain %q: %+v", name, err)
+	}
+	d.Set("primary_access_key", keys.Key1)
+	d.Set("secondary_access_key", keys.Key2)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
