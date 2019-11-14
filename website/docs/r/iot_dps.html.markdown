@@ -1,13 +1,13 @@
 ---
 subcategory: "Messaging"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_iot_dps"
+page_title: "Azure Resource Manager: azurerm_iothub_dps"
 sidebar_current: "docs-azurerm-resource-messaging-iot-dps-x"
 description: |-
   Manages an IoT Device Provisioning Service.
 ---
 
-# azurerm_iot_dps
+# azurerm_iothub_dps
 
 Manages an IoT Device Provisioning Service.
 
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_iot_dps" "example" {
+resource "azurerm_iothub_dps" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
@@ -87,5 +87,5 @@ The following attributes are exported:
 IoT Device Provisioning Service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iot_dps.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example
+terraform import azurerm_iothub_dps.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example
 ```

@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_iot_dps" "example" {
+resource "azurerm_iothub_dps" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
@@ -34,7 +34,7 @@ resource "azurerm_iot_dps" "example" {
 resource "azurerm_iot_dps_certificate" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  iot_dps_name        = "${azurerm_iot_dps.example.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.example.name}"
 
   certificate_content = "${filebase64("example.cer")}"
 }

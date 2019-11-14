@@ -297,7 +297,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_hdinsight_storm_cluster":                            resourceArmHDInsightStormCluster(),
 		"azurerm_healthcare_service":                                 resourceArmHealthcareService(),
 		"azurerm_image":                                              resourceArmImage(),
-		"azurerm_iot_dps":                                            resourceArmIotDPS(),
+		"azurerm_iothub_dps":                                         resourceArmIotHubDPS(),
 		"azurerm_iot_dps_certificate":                                resourceArmIotDPSCertificate(),
 		"azurerm_iothub_consumer_group":                              resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                             resourceArmIotHub(),
