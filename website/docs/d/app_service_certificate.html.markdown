@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_certificate"
 sidebar_current: "docs-azurerm-datasource-app-service-certificate"

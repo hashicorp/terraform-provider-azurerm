@@ -51,7 +51,7 @@ func resourceArmAutomationDscConfiguration() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"content_embedded": {

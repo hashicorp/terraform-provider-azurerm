@@ -1,4 +1,5 @@
 ---
+subcategory: "Security Center"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_security_center_subscription_pricing"
 sidebar_current: "docs-azurerm-security-center-subscription-pricing"

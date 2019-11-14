@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit_peering"
 sidebar_current: "docs-azurerm-resource-network-express-route-circuit-peering"

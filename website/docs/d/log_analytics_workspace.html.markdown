@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace"
 sidebar_current: "docs-azurerm-datasource-oms-log-analytics-workspace"

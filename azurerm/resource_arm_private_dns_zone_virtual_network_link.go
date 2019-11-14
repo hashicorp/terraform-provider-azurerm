@@ -215,10 +215,15 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, m
 			log.Printf("[DEBUG] Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) still exists", name, dnsZoneName, resGroup)
 			return "Available", "Available", nil
 		},
-		Timeout:                   30 * time.Minute,
 		Delay:                     30 * time.Second,
 		PollInterval:              10 * time.Second,
 		ContinuousTargetOccurence: 10,
+	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 30 * time.Minute
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {

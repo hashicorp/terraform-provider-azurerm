@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_slot"
 sidebar_current: "docs-azurerm-resource-app-service-slot"
@@ -229,6 +230,8 @@ The following arguments are supported:
 * `virtual_network_name` - (Optional) The name of the Virtual Network which this App Service Slot should be attached to.
 
 * `websockets_enabled` - (Optional) Should WebSockets be enabled?
+
+* `auto_swap_slot_name` - (Optional) The name of the swap to automatically swap to during deployment
 
 ---
 

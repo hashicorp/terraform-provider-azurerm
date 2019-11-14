@@ -1,4 +1,5 @@
 ---
+subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_lock"
 sidebar_current: "docs-azurerm-resource-management-lock"

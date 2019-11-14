@@ -90,6 +90,21 @@ func (a azureCliTokenAuth) getAuthorizationToken(sender autorest.Sender, oauth *
 		return nil, err
 	}
 
+	var refreshFunc adal.TokenRefresh = func(ctx context.Context, resource string) (*adal.Token, error) {
+		token, err := obtainAuthorizationToken(resource, a.profile.subscriptionId)
+		if err != nil {
+			return nil, err
+		}
+
+		adalToken, err := token.ToADALToken()
+		if err != nil {
+			return nil, err
+		}
+
+		return &adalToken, nil
+	}
+	spt.SetCustomRefreshFunc(refreshFunc)
+
 	auth := autorest.NewBearerAuthorizer(spt)
 	return auth, nil
 }
