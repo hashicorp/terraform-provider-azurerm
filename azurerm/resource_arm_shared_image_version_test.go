@@ -45,6 +45,23 @@ func TestAccAzureRMSharedImageVersion_basic(t *testing.T) {
 				),
 			},
 			{
+				Config: testAccAzureRMSharedImageVersion_imageVersion(ri, testLocation(), userName, password, hostName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageVersionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
+				),
+			},
+			{
+				Config: testAccAzureRMSharedImageVersion_imageVersionZrs(ri, testLocation(), userName, password, hostName),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSharedImageVersionExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "managed_image_id"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "target_region.0.storage_account_type", "Standard_ZRS"),
+				),
+			},
+			{
 				Config: testAccAzureRMSharedImageVersion_imageVersionUpdated(ri, testLocation(), testAltLocation(), userName, password, hostName),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSharedImageVersionExists(resourceName),
