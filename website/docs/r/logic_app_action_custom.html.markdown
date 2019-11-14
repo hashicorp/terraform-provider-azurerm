@@ -1,4 +1,5 @@
 ---
+subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_action_custom"
 sidebar_current: "docs-azurerm-resource-logic-app-action-custom"

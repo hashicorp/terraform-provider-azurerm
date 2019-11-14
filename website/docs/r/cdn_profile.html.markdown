@@ -1,4 +1,5 @@
 ---
+subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_profile"
 sidebar_current: "docs-azurerm-resource-cdn-profile"

@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Explorer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kusto_eventhub_data_connection"
 sidebar_current: "docs-azurerm-resource-kusto-eventhub-data-connection"

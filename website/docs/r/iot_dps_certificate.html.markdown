@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iot_dps_certificate"
 sidebar_current: "docs-azurerm-resource-messaging-iot-dps_certificate"

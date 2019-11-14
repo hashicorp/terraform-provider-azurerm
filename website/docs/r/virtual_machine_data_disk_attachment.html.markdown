@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_data_disk_attachment"
 sidebar_current: "docs-azurerm-resource-compute-virtual-machine-data-disk-attachment"

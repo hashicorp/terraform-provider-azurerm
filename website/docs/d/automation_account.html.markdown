@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_registration_info"
 sidebar_current: "docs-azurerm-datasource-automation-registration-info"

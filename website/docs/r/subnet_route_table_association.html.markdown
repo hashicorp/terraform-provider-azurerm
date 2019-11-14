@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet_route_table_association"
 sidebar_current: "docs-azurerm-resource-network-subnet-route-table-association"

@@ -1,4 +1,5 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_action_group"
 sidebar_current: "docs-azurerm-resource-monitor-action-group"

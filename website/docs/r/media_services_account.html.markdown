@@ -1,4 +1,5 @@
 ---
+subcategory: "Media"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_media_services_account"
 sidebar_current: "docs-azurerm-resource-media-media-services-account"

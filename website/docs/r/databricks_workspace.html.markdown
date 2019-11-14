@@ -1,4 +1,5 @@
 ---
+subcategory: "Databricks"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_databricks_workspace"
 sidebar_current: "docs-azurerm-resource-databricks-workspace"

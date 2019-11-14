@@ -1,4 +1,5 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_virtual_network"
 sidebar_current: "docs-azurerm-resource-dev-test-virtual-network"

@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_firewall_rule"
 sidebar_current: "docs-azurerm-resource-database-sql-firewall-rule"

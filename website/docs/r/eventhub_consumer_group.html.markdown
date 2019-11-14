@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_consumer_group"
 sidebar_current: "docs-azurerm-resource-messaging-eventhub-consumer-group"

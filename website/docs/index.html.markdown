@@ -17,10 +17,10 @@ Interested in the provider's latest features, or want to make sure you're up to 
 
 Terraform supports a number of different methods for authenticating to Azure:
 
-* [Authenticating to Azure using the Azure CLI](auth/azure_cli.html)
-* [Authenticating to Azure using Managed Service Identity](auth/managed_service_identity.html)
-* [Authenticating to Azure using a Service Principal and a Client Certificate](auth/service_principal_client_certificate.html)
-* [Authenticating to Azure using a Service Principal and a Client Secret](auth/service_principal_client_secret.html)
+* [Authenticating to Azure using the Azure CLI](guides/azure_cli.html)
+* [Authenticating to Azure using Managed Service Identity](guides/managed_service_identity.html)
+* [Authenticating to Azure using a Service Principal and a Client Certificate](guides/service_principal_client_certificate.html)
+* [Authenticating to Azure using a Service Principal and a Client Secret](guides/service_principal_client_secret.html)
 
 ---
 
@@ -102,7 +102,7 @@ When authenticating as a Service Principal using a Client Certificate, the follo
 
 * `client_certificate_path` - (Optional) The path to the Client Certificate associated with the Service Principal which should be used. This can also be sourced from the `ARM_CLIENT_CERTIFICATE_PATH` Environment Variable.
 
-More information on [how to configure a Service Principal using a Client Certificate can be found in this guide](auth/service_principal_client_certificate.html).
+More information on [how to configure a Service Principal using a Client Certificate can be found in this guide](guides/service_principal_client_certificate.html).
 
 ---
 
@@ -110,7 +110,7 @@ When authenticating as a Service Principal using a Client Secret, the following 
 
 * `client_secret` - (Optional) The Client Secret which should be used. This can also be sourced from the `ARM_CLIENT_SECRET` Environment Variable.
 
-More information on [how to configure a Service Principal using a Client Secret can be found in this guide](auth/service_principal_client_secret.html).
+More information on [how to configure a Service Principal using a Client Secret can be found in this guide](guides/service_principal_client_secret.html).
 
 ---
 
@@ -120,7 +120,7 @@ When authenticating using Managed Service Identity, the following fields can be 
 
 * `use_msi` - (Optional) Should Managed Service Identity be used for Authentication? This can also be sourced from the `ARM_USE_MSI` Environment Variable. Defaults to `false`.
 
-More information on [how to configure a Service Principal using Managed Service Identity can be found in this guide](auth/managed_service_identity.html).
+More information on [how to configure a Service Principal using Managed Service Identity can be found in this guide](guides/managed_service_identity.html).
 
 ---
 

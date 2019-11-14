@@ -1,4 +1,5 @@
 ---
+subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights_analytics_item"
 sidebar_current: "docs-azurerm-resource-application-insights-x"

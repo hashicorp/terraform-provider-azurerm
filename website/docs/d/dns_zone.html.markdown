@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_zone"
 sidebar_current: "docs-azurerm-datasource-dns-zone"

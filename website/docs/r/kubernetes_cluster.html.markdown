@@ -1,4 +1,5 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
@@ -251,8 +252,8 @@ A `oms_agent` block supports the following:
 A `kube_dashboard` block supports the following:
 
 * `enabled` - (Required) Is the Kubernetes Dashboard enabled?
----
 
+---
 
 A `azure_policy` block supports the following:
 

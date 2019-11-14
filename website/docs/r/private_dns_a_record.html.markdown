@@ -1,4 +1,5 @@
 ---
+subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_a_record"
 sidebar_current: "docs-azurerm-resource-private-dns-a-record"

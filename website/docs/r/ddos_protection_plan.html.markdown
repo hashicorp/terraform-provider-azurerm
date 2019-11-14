@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ddos_protection_plan"
 sidebar_current: "docs-azurerm-resource-ddos-protection-plan-x"

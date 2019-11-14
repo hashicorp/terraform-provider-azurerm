@@ -1,4 +1,5 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_metric_alert"
 sidebar_current: "docs-azurerm-resource-monitor-metric-alert-x"

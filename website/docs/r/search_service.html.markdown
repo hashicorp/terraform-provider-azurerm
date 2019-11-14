@@ -1,4 +1,5 @@
 ---
+subcategory: "Search"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_search_service"
 sidebar_current: "docs-azurerm-resource-search-service"

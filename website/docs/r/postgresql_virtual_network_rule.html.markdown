@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_virtual_network_rule"
 sidebar_current: "docs-azurerm-resource-database-postgresql-virtual-network-rule"
