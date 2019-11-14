@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -15,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,13 +26,6 @@ func resourceArmPrivateLinkService() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
-		},
-
-		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(30 * time.Minute),
-			Read:   schema.DefaultTimeout(5 * time.Minute),
-			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -77,10 +68,8 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			// 	},
 			// },
 
-			// TODO: Open bug on this API for this
-			// Required by the API you can't create the resource without at least one ip configuration
-			// I had to split the schema because if you attempt to change the primary attribute it
-			// succeeds but doesn't change the attribute. Once primary is set it is set forever unless
+			// Required by the API you can't create the resource without at least
+			// one ip configuration once primary is set it is set forever unless
 			// you destroy the resource and recreate it.
 
 			//TODO: Add custom diff to detect changes to primary config and force new on any changes
@@ -119,14 +108,14 @@ func resourceArmPrivateLinkService() *schema.Resource {
 						"primary": {
 							Type:     schema.TypeBool,
 							Required: true,
-							Default:  false,
+							ForceNew: true,
 						},
 					},
 				},
 			},
 
-			// private_endpoint_connections have been removed but maybe useful for the end user to
-			// understand the state of endpoints connected to this service, create a datasource?
+			// private_endpoint_connections have been removed and placed inside the
+			// azurerm_private_link_service_endpoint_connections datasource.
 
 			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
@@ -189,7 +178,6 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	//fqdns := d.Get("fqdns").([]interface{})
 	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
 	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").([]interface{})
-	primary := d.Ge
 	visibility := d.Get("visibility_subscription_ids").([]interface{})
 	t := d.Get("tags").(map[string]interface{})
 
@@ -273,11 +261,7 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		// 	}
 		// }
 		if props.IPConfigurations != nil {
-			primaryIpConfig, secondaryIpConfig := flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)
-			if err := d.Set("nat_ip_configuration", primaryIpConfig); err != nil {
-				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
-			}
-			if err := d.Set("nat_ip_configuration", secondaryIpConfig); err != nil {
+			if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 			}
 		}
@@ -324,19 +308,20 @@ func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{
 	return nil
 }
 
-func expandArmPrivateLinkServiceIPConfiguration(primaryInput []interface{}, secondaryInput []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
-	if len(primaryInput) == 0 {
+func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.PrivateLinkServiceIPConfiguration {
+	if len(input) == 0 {
 		return nil
 	}
 
 	results := make([]network.PrivateLinkServiceIPConfiguration, 0)
 
-	for _, item := range primaryInput {
+	for _, item := range input {
 		v := item.(map[string]interface{})
 		privateIpAddress := v["private_ip_address"].(string)
 		subnetId := v["subnet_id"].(string)
 		privateIpAddressVersion := v["private_ip_address_version"].(string)
 		name := v["name"].(string)
+		primary := v["primary"].(bool)
 
 		result := network.PrivateLinkServiceIPConfiguration{
 			Name: utils.String(name),
@@ -346,7 +331,7 @@ func expandArmPrivateLinkServiceIPConfiguration(primaryInput []interface{}, seco
 				Subnet: &network.Subnet{
 					ID: utils.String(subnetId),
 				},
-				Primary: utils.Bool(true),
+				Primary: utils.Bool(primary),
 			},
 		}
 
@@ -357,36 +342,6 @@ func expandArmPrivateLinkServiceIPConfiguration(primaryInput []interface{}, seco
 		}
 
 		results = append(results, result)
-	}
-
-	if len(secondaryInput) != 0 {
-		for _, item := range secondaryInput {
-			v := item.(map[string]interface{})
-			privateIpAddress := v["private_ip_address"].(string)
-			subnetId := v["subnet_id"].(string)
-			privateIpAddressVersion := v["private_ip_address_version"].(string)
-			name := v["name"].(string)
-
-			result := network.PrivateLinkServiceIPConfiguration{
-				Name: utils.String(name),
-				PrivateLinkServiceIPConfigurationProperties: &network.PrivateLinkServiceIPConfigurationProperties{
-					PrivateIPAddress:        utils.String(privateIpAddress),
-					PrivateIPAddressVersion: network.IPVersion(privateIpAddressVersion),
-					Subnet: &network.Subnet{
-						ID: utils.String(subnetId),
-					},
-					Primary: utils.Bool(false),
-				},
-			}
-
-			if privateIpAddress != "" {
-				result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethod("Static")
-			} else {
-				result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethod("Dynamic")
-			}
-
-			results = append(results, result)
-		}
 	}
 
 	return &results
@@ -410,43 +365,37 @@ func expandArmPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]
 	return &results
 }
 
-func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) ([]interface{}, []interface{}) {
-	primaryResults := make([]interface{}, 0)
-	secondaryResults := make([]interface{}, 0)
-	primary := false
+func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkServiceIPConfiguration) []interface{} {
+	results := make([]interface{}, 0)
 	if input == nil {
-		return primaryResults, secondaryResults
+		return results
 	}
 
 	for _, item := range *input {
-		b := make(map[string]interface{})
+		c := make(map[string]interface{})
 
 		if name := item.Name; name != nil {
-			b["name"] = *name
+			c["name"] = *name
 		}
 		if props := item.PrivateLinkServiceIPConfigurationProperties; props != nil {
 			if v := props.PrivateIPAddress; v != nil {
-				b["private_ip_address"] = *v
+				c["private_ip_address"] = *v
 			}
-			b["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
+			c["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
 			if v := props.Subnet; v != nil {
 				if i := v.ID; i != nil {
-					b["subnet_id"] = *i
+					c["subnet_id"] = *i
 				}
 			}
 			if v := props.Primary; v != nil {
-				primary = *v
+				c["primary"] = *v
 			}
 		}
 
-		if primary {
-			primaryResults = append(primaryResults, b)
-		} else {
-			secondaryResults = append(secondaryResults, b)
-		}
+		results = append(results, c)
 	}
 
-	return primaryResults, secondaryResults
+	return results
 }
 
 func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {

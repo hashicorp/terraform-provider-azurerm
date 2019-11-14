@@ -133,7 +133,6 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "4"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.20"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.1.19"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.1.21"),
@@ -143,9 +142,8 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				Config: testAccAzureRMPrivateLinkService_moveChangeThree(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "4"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "3"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.20"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.1.19"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.1.18"),
@@ -258,6 +256,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
+    primary                      = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -281,6 +280,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -306,6 +306,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   nat_ip_configuration {
@@ -313,6 +314,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.18"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -320,6 +322,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.19"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -327,6 +330,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.20"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -356,6 +360,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -385,6 +390,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   nat_ip_configuration {
@@ -392,6 +398,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.18"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -399,6 +406,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.19"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -406,6 +414,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.20"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -435,6 +444,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   nat_ip_configuration {
@@ -442,6 +452,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.18"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -449,6 +460,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.19"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -456,6 +468,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.21"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -485,6 +498,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   nat_ip_configuration {
@@ -492,6 +506,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.20"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -499,6 +514,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.19"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -506,6 +522,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.21"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -535,6 +552,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   nat_ip_configuration {
@@ -542,6 +560,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.20"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -549,6 +568,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.19"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   nat_ip_configuration {
@@ -556,6 +576,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.18"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -585,6 +606,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.17"
     private_ip_address_version   = "IPv4"
+    primary                      = true
   }
 
   nat_ip_configuration {
@@ -592,6 +614,7 @@ resource "azurerm_private_link_service" "test" {
     subnet_id                    = azurerm_subnet.test.id
     private_ip_address           = "10.5.1.18"
     private_ip_address_version   = "IPv4"
+    primary                      = false
   }
 
   load_balancer_frontend_ip_configuration_ids = [
@@ -627,7 +650,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name                  = azurerm_virtual_network.test.name
   address_prefix                        = "10.5.1.0/24"
 
-  enforce_private_link_network_policies = true
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_public_ip" "test" {

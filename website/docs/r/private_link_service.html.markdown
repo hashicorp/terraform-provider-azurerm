@@ -28,10 +28,11 @@ resource "azurerm_virtual_network" "example" {
 }
 
 resource "azurerm_subnet" "example" {
-  name                 = "example-snet"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefix       = "10.5.1.0/24"
+  name                                          = "example-snet"
+  resource_group_name                           = azurerm_resource_group.example.name
+  virtual_network_name                          = azurerm_virtual_network.example.name
+  address_prefix                                = "10.5.1.0/24"
+  enforce_private_link_service_network_policies = true
 }
 
 resource "azurerm_public_ip" "example" {
@@ -68,6 +69,7 @@ resource "azurerm_private_link_service" "example" {
     private_ip_address         = "10.5.1.17"
     private_ip_address_version = "IPv4"
     subnet_id                  = azurerm_subnet.example.id
+    primary                    = true
   }
 
   nat_ip_configuration {
@@ -75,6 +77,7 @@ resource "azurerm_private_link_service" "example" {
     private_ip_address         = "10.5.1.18"
     private_ip_address_version = "IPv4"
     subnet_id                  = azurerm_subnet.example.id
+    primary                    = false
   }
 }
 ```
@@ -95,11 +98,7 @@ The following arguments are supported:
 
 * `nat_ip_configuration` - (Required) A `nat_ip_configuration` block as defined below.
 
-* `nat_ip_configuration` - (Optional) Supports upto seven additional `nat_ip_configuration` blocks as defined below.
-
 * `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
-
-* `private_link_endpoint_connection` - (Optional) One or more `private_link_endpoint_connection` blocks as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
@@ -117,21 +116,7 @@ The `nat_ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) The resource ID of the subnet to be used by the service.
 
-
----
-
-The `nat_ip_configuration` block supports the following:
-
-* `name` - (Required) The name of secondary private link service NAT IP configuration. Changing this forces a new resource to be created.
-
-* `private_ip_address` - (Optional) The private IP address of the NAT IP configuration.
-
-* `private_ip_address_version` - (Optional) The ip address version of the `ip_configuration`, the supported value is `IPv4`. Defaults to `IPv4`.
-
--> **NOTE:** Private Link Service Supports `IPv4` traffic only.
-
-* `subnet_id` - (Required) The resource ID of the subnet to be used by the service.
-
+* `primary` - (Required) Specifies if the `nat_ip_configuration` block is the primary ip configuration for the service or not. Valid values are `true` or `false`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

@@ -49,8 +49,6 @@ The following attributes are exported:
 
 * `nat_ip_configuration` - A `nat_ip_configuration` block as defined below.
 
-* `nat_ip_configuration` -  `nat_ip_configuration` blocks as defined below.
-
 * `load_balancer_frontend_ip_configuration_ids` - A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 
 * `network_interfaces` - A list of network interface resource ids that are being used by the service.
@@ -62,7 +60,7 @@ The following attributes are exported:
 
 The `nat_ip_configuration` block exports the following:
 
-* `name` - The name of primary private link service NAT IP configuration.
+* `name` - The name of private link service NAT IP configuration.
 
 * `private_ip_address` - The private IP address of the NAT IP configuration.
 
@@ -70,15 +68,5 @@ The `nat_ip_configuration` block exports the following:
 
 * `subnet_id` - The resource ID of the subnet to be used by the service.
 
+* `primary` - Value that indicates if the IP configuration is the primary configuration or not.
 
----
-
-The `nat_ip_configuration` block exports the following:
-
-* `name` - The name of secondary private link service NAT IP configuration.
-
-* `private_ip_address` - The private IP address of the NAT IP configuration.
-
-* `private_ip_address_version` - The ip address version of the `ip_configuration`.
-
-* `subnet_id` - The resource ID of the subnet to be used by the service.
