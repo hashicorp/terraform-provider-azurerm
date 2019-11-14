@@ -24,12 +24,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotDPS() *schema.Resource {
+func resourceArmIotHubDPS() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotDPSCreateUpdate,
-		Read:   resourceArmIotDPSRead,
-		Update: resourceArmIotDPSCreateUpdate,
-		Delete: resourceArmIotDPSDelete,
+		Create: resourceArmIotHubDPSCreateUpdate,
+		Read:   resourceArmIotHubDPSRead,
+		Update: resourceArmIotHubDPSCreateUpdate,
+		Delete: resourceArmIotHubDPSDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -164,7 +164,7 @@ func resourceArmIotDPS() *schema.Resource {
 	}
 }
 
-func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -215,10 +215,10 @@ func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotDPSRead(d, meta)
+	return resourceArmIotHubDPSRead(d, meta)
 }
 
-func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -264,7 +264,7 @@ func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
-func resourceArmIotDPSDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSResourceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
