@@ -139,6 +139,26 @@ func resourceArmIotDPS() *schema.Resource {
 				},
 			},
 
+			"service_operations_host_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"device_provisioning_host_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"id_scope": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"allocation_policy": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -234,6 +254,11 @@ func resourceArmIotDPSRead(d *schema.ResourceData, meta interface{}) error {
 		if err := d.Set("linked_hub", flattenIoTDPSLinkedHub(props.IotHubs)); err != nil {
 			return fmt.Errorf("Error setting `linked_hub`: %+v", err)
 		}
+
+		d.Set("service_operations_host_name", props.ServiceOperationsHostName)
+		d.Set("device_provisioning_host_name", props.DeviceProvisioningHostName)
+		d.Set("id_scope", props.IDScope)
+		d.Set("allocation_policy", props.AllocationPolicy)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
