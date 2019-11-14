@@ -171,7 +171,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -186,7 +186,7 @@ resource "azurerm_iot_dps" "test" {
 resource "azurerm_iot_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
@@ -201,7 +201,7 @@ func testAccAzureRMIotDPSCertificate_requiresImport(rInt int, location string) s
 resource "azurerm_iot_dps_certificate" "test" {
   name                = "${azurerm_iot_dps_certificate.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
@@ -215,7 +215,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -234,7 +234,7 @@ resource "azurerm_iot_dps" "test" {
 resource "azurerm_iot_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iot_dps.test.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/application_gateway_test.cer")}"
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAzureRMIotDPS_basic(t *testing.T) {
-	resourceName := "azurerm_iot_dps.test"
+	resourceName := "azurerm_iothub_dps.test"
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -41,7 +41,7 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iot_dps.test"
+	resourceName := "azurerm_iothub_dps.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -65,7 +65,7 @@ func TestAccAzureRMIotDPS_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMIotDPS_update(t *testing.T) {
-	resourceName := "azurerm_iot_dps.test"
+	resourceName := "azurerm_iothub_dps.test"
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -100,7 +100,7 @@ func TestAccAzureRMIotDPS_update(t *testing.T) {
 }
 
 func TestAccAzureRMIotDPS_linkedHubs(t *testing.T) {
-	resourceName := "azurerm_iot_dps.test"
+	resourceName := "azurerm_iothub_dps.test"
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -194,7 +194,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -213,10 +213,10 @@ func testAccAzureRMIotDPS_requiresImport(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iot_dps" "import" {
-  name                = "${azurerm_iot_dps.test.name}"
-  resource_group_name = "${azurerm_iot_dps.test.name}"
-  location            = "${azurerm_iot_dps.test.location}"
+resource "azurerm_iothub_dps" "import" {
+  name                = "${azurerm_iothub_dps.test.name}"
+  resource_group_name = "${azurerm_iothub_dps.test.name}"
+  location            = "${azurerm_iothub_dps.test.location}"
 
   sku {
     name     = "S1"
@@ -234,7 +234,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -259,7 +259,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -292,7 +292,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iot_dps" "test" {
+resource "azurerm_iothub_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
