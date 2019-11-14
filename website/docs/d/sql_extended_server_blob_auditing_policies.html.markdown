@@ -1,4 +1,5 @@
 ---
+subcategory:""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_extended_server_blob_auditing_policies"
 sidebar_current: "docs-azurerm-datasource-sql-extended-server-blob-auditing-policies"
