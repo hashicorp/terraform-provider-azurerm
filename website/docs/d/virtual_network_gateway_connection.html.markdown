@@ -14,13 +14,13 @@ Use this data source to access information about an existing Virtual Network Gat
 ## Example Usage
 
 ```hcl
-data "azurerm_virtual_network_gateway_connection" "test" {
+data "azurerm_virtual_network_gateway_connection" "example" {
   name                = "production"
   resource_group_name = "networking"
 }
 
 output "virtual_network_gateway_connection_id" {
-  value = "${data.azurerm_virtual_network_gateway_connection.test.id}"
+  value = "${data.azurerm_virtual_network_gateway_connection.example.id}"
 }
 ```
 

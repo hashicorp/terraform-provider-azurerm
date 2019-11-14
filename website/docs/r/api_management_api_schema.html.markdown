@@ -58,5 +58,5 @@ In addition to all arguments above, the following attributes are exported:
 API Management API Schema's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api_schema.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/schemas/schema1
+terraform import azurerm_api_management_api_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/schemas/schema1
 ```

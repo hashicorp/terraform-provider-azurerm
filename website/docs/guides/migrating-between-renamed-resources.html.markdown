@@ -27,19 +27,19 @@ In this guide we'll assume we're migrating from the `azurerm_autoscale_setting` 
 Assuming we have the following Terraform Configuration:
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   # ...
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_autoscale_setting" "test" {
+resource "azurerm_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
 
   # ...
 }
@@ -48,19 +48,19 @@ resource "azurerm_autoscale_setting" "test" {
 We can update the Terraform Configuration to use the new resource by updating the name from `azurerm_autoscale_setting` to `azurerm_monitor_autoscale_setting`:
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   # ...
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   # ...
 }
 
-resource "azurerm_monitor_autoscale_setting" "test" {
+resource "azurerm_monitor_autoscale_setting" "example" {
   name                = "myAutoscaleSetting"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  target_resource_id  = "${azurerm_virtual_machine_scale_set.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  target_resource_id  = "${azurerm_virtual_machine_scale_set.example.id}"
 
   # ...
 }
@@ -70,16 +70,16 @@ As the Terraform Configuration has been updated - we now need to update the Stat
 
 ```bash
 $ terraform state list
-azurerm_autoscale_setting.test
-azurerm_resource_group.test
-azurerm_virtual_machine.test
+azurerm_autoscale_setting.example
+azurerm_resource_group.example
+azurerm_virtual_machine.example
 ```
 
 We can move each of the resources which has been renamed in the state using the `terraform state mv` command - for example:
 
 ```shell
-$ terraform state mv azurerm_autoscale_setting.test azurerm_monitor_autoscale_setting.test
-Moved azurerm_autoscale_setting.test to azurerm_monitor_autoscale_setting.test
+$ terraform state mv azurerm_autoscale_setting.exampleazurerm_monitor_autoscale_setting.example
+Moved azurerm_autoscale_setting.example to azurerm_monitor_autoscale_setting.example
 ```
 
 Once this has been done, running `terraform plan` should show no changes:
