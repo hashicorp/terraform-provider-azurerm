@@ -34,7 +34,7 @@ resource "azurerm_iothub_dps" "example" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are supported:s
 
 * `name` - (Required) Specifies the name of the Iot Device Provisioning Service resource. Changing this forces a new resource to be created.
 
