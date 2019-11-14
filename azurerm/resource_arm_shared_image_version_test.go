@@ -289,7 +289,7 @@ resource "azurerm_shared_image_version" "test" {
 	storage_account_type   = "%s"
   }
 }
-`, template)
+`, template, storageAccountType)
 }
 
 func testAccAzureRMSharedImageVersion_requiresImport(rInt int, location, username, password, hostname string) string {
