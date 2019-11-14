@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
+	"github.com/Azure/go-autorest/autorest/date"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -72,6 +73,18 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				Optional: true,
 			},
 
+			"not_before_date": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RFC3339Time,
+			},
+
+			"expiration_date": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RFC3339Time,
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -131,9 +144,28 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
-		Value:       utils.String(value),
-		ContentType: utils.String(contentType),
-		Tags:        tags.Expand(t),
+		Value:            utils.String(value),
+		ContentType:      utils.String(contentType),
+		Tags:             tags.Expand(t),
+		SecretAttributes: &keyvault.SecretAttributes{},
+	}
+
+	if v, ok := d.GetOk("not_before_date"); ok {
+		notBeforeDate, err := time.Parse(time.RFC3339, v.(string))
+		if err != nil {
+			return fmt.Errorf("error parsing `not_before_date` time: %s", err)
+		}
+		notBeforeUnixTime := date.UnixTime(notBeforeDate)
+		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
+	}
+
+	if v, ok := d.GetOk("expiration_date"); ok {
+		expirationDate, err := time.Parse(time.RFC3339, v.(string))
+		if err != nil {
+			return fmt.Errorf("error parsing `expiration_date` time: %s", err)
+		}
+		expirationUnixTime := date.UnixTime(expirationDate)
+		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
 
 	if _, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
@@ -188,12 +220,33 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	secretAttributes := &keyvault.SecretAttributes{}
+
+	if v, ok := d.GetOk("not_before_date"); ok {
+		notBeforeDate, err := time.Parse(time.RFC3339, v.(string))
+		if err != nil {
+			return fmt.Errorf("error parsing `not_before_date` time: %s", err)
+		}
+		notBeforeUnixTime := date.UnixTime(notBeforeDate)
+		secretAttributes.NotBefore = &notBeforeUnixTime
+	}
+
+	if v, ok := d.GetOk("expiration_date"); ok {
+		expirationDate, err := time.Parse(time.RFC3339, v.(string))
+		if err != nil {
+			return fmt.Errorf("error parsing `expiration_date` time: %s", err)
+		}
+		expirationUnixTime := date.UnixTime(expirationDate)
+		secretAttributes.Expires = &expirationUnixTime
+	}
+
 	if d.HasChange("value") {
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
-			Value:       utils.String(value),
-			ContentType: utils.String(contentType),
-			Tags:        tags.Expand(t),
+			Value:            utils.String(value),
+			ContentType:      utils.String(contentType),
+			Tags:             tags.Expand(t),
+			SecretAttributes: secretAttributes,
 		}
 
 		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
@@ -214,8 +267,9 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetId(*read.ID)
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
-			ContentType: utils.String(contentType),
-			Tags:        tags.Expand(t),
+			ContentType:      utils.String(contentType),
+			Tags:             tags.Expand(t),
+			SecretAttributes: secretAttributes,
 		}
 
 		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
@@ -279,6 +333,14 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("value", resp.Value)
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
+
+	if v := resp.Attributes.NotBefore; v != nil {
+		d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+	}
+
+	if v := resp.Attributes.Expires; v != nil {
+		d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

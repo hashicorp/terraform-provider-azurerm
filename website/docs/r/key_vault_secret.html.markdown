@@ -81,13 +81,17 @@ The following arguments are supported:
 
 * `value` - (Required) Specifies the value of the Key Vault Secret.
 
-~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively. 
+~> **Note:** Key Vault strips newlines. To preserve newlines in multi-line secrets try replacing them with `\n` or by base 64 encoding them with `replace(file("my_secret_file"), "/\n/", "\n")` or `base64encode(file("my_secret_file"))`, respectively.
 
 * `key_vault_id` - (Required) The ID of the Key Vault where the Secret should be created.
 
 * `content_type` - (Optional) Specifies the content type for the Key Vault Secret.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
+
+* `expiration_date` - (Optional) Expiration UTC datetime (Y-m-d'T'H:M:S'Z').
 
 ## Attributes Reference
 
