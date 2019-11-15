@@ -1,8 +1,8 @@
 ---
-subcategory: "Messaging"
+subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub"
-sidebar_current: "docs-azurerm-resource-messaging-iothub-x"
+sidebar_current: "docs-azurerm-iothub-x"
 description: |-
   Manages an IotHub
 ---

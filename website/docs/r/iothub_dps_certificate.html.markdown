@@ -1,15 +1,15 @@
 ---
-subcategory: "Messaging"
+subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_dps_certificate"
-sidebar_current: "docs-azurerm-resource-messaging-iot-dps_certificate"
+sidebar_current: "docs-azurerm-resource-iothub-dps_certificate"
 description: |-
   Manages an IoT Device Provisioning Service Certificate.
 ---
 
 # azurerm_iothub_dps_certificate
 
-Manages an IoT Device Provisioning Service Certificate.
+Manages an IotHub Device Provisioning Service Certificate.
 
 ## Example Usage
 

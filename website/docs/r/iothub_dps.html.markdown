@@ -1,15 +1,15 @@
 ---
-subcategory: "Messaging"
+subcategory: "IoT Hub"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_dps"
-sidebar_current: "docs-azurerm-resource-messaging-iot-dps-x"
+sidebar_current: "docs-azurerm-resource-iothub-dps-x"
 description: |-
   Manages an IoT Device Provisioning Service.
 ---
 
 # azurerm_iothub_dps
 
-Manages an IoT Device Provisioning Service.
+Manages an IotHub Device Provisioning Service.
 
 ## Example Usage
 
