@@ -15,7 +15,7 @@ Use this data source to access information about an existing Shared Image Galler
 ## Example Usage
 
 ```hcl
-data "azurerm_shared_image_gallery" "test" {
+data "azurerm_shared_image_gallery" "example" {
   name                = "my-image-gallery"
   resource_group_name = "example-resources"
 }

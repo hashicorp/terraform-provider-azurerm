@@ -3,6 +3,9 @@
 FEATURES:
 
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
+* **New Data Source:** `azurerm_netapp_account` [GH-4416]
+* **New Resource:** `azurerm_data_factory_trigger_schedule` [GH-4793]
+* **New Resource:** `azurerm_netapp_account` [GH-4416]
 * **New Resource:** `azurerm_private_dns_aaaa_record` [GH-4841]
 * **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
 * **New Resource:** `azurerm_relay_hybrid_connection` [GH-4832]
@@ -18,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_app_service_slot` - support for `auto_swap_slot_name` [GH-4752]
 * `azurerm_api_management_api` - the `version` and `version_set_id` properties can now be set [GH-4592]
 * `azurerm_automation_credential` - deprecate `account_name` in favour of `automation_account_name` [GH-4777]
+* `azurerm_firewall` - allow multiple `ip_configuration` blocks [GH-4639]
 * `azurerm_hdinsight_hadoop_cluster` - Added edge node support [GH-4550]
 * `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]

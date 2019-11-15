@@ -15,13 +15,13 @@ Use this data source to access information about an existing Load Balancer
 ## Example Usage
 
 ```hcl
-data "azurerm_lb" "test" {
+data "azurerm_lb" "example" {
   name                = "example-lb"
   resource_group_name = "example-resources"
 }
 
 output "loadbalancer_id" {
-  value = "${data.azurerm_lb.test.id}"
+  value = "${data.azurerm_lb.example.id}"
 }
 ```
 

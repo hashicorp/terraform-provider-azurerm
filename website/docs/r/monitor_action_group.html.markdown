@@ -15,14 +15,14 @@ Manages an Action Group within Azure Monitor.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "monitoring-resources"
   location = "West US"
 }
 
-resource "azurerm_monitor_action_group" "test" {
+resource "azurerm_monitor_action_group" "example" {
   name                = "CriticalAlertsAction"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   short_name          = "p0action"
 
   email_receiver {
@@ -96,5 +96,5 @@ The following attributes are exported:
 Action Groups can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_action_group.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/actionGroups/myagname
+terraform import azurerm_monitor_action_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/actionGroups/myagname
 ```
