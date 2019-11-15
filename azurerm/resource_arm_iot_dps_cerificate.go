@@ -14,12 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotDPSCertificate() *schema.Resource {
+func resourceArmIotHubDPSCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotDPSCertificateCreateUpdate,
-		Read:   resourceArmIotDPSCertificateRead,
-		Update: resourceArmIotDPSCertificateCreateUpdate,
-		Delete: resourceArmIotDPSCertificateDelete,
+		Create: resourceArmIotHubDPSCertificateCreateUpdate,
+		Read:   resourceArmIotHubDPSCertificateRead,
+		Update: resourceArmIotHubDPSCertificateCreateUpdate,
+		Delete: resourceArmIotHubDPSCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -59,7 +59,7 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 	}
 }
 
-func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -77,7 +77,7 @@ func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta inter
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iot_dps_certificate", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_iothub_dps_certificate", *existing.ID)
 		}
 	}
 
@@ -100,10 +100,10 @@ func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotDPSCertificateRead(d, meta)
+	return resourceArmIotHubDPSCertificateRead(d, meta)
 }
 
-func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -133,7 +133,7 @@ func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmIotDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
