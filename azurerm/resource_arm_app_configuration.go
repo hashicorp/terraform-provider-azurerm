@@ -67,38 +67,102 @@ func resourceArmAppConfiguration() *schema.Resource {
 			},
 
 			"primary_read_key": {
-				Type:      schema.TypeMap,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secret": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"connection_string": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
 				},
 			},
 
 			"secondary_read_key": {
-				Type:      schema.TypeMap,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secret": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"connection_string": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
 				},
 			},
 
 			"primary_write_key": {
-				Type:      schema.TypeMap,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secret": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"connection_string": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
 				},
 			},
 
 			"secondary_write_key": {
-				Type:      schema.TypeMap,
-				Computed:  true,
-				Sensitive: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"secret": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+						"connection_string": {
+							Type:      schema.TypeString,
+							Computed:  true,
+							Sensitive: true,
+						},
+					},
 				},
 			},
 
@@ -251,7 +315,11 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 			continue
 		}
 
-		accessKey := makeAccessKeyMap(value)
+		accessKey := []interface{}{map[string]string{
+			"id":                *value.ID,
+			"secret":            *value.Value,
+			"connection_string": *value.ConnectionString,
+		}}
 
 		if strings.HasPrefix(*value.Name, "Primary") {
 			if *value.ReadOnly {
@@ -310,14 +378,4 @@ func validateAppConfigurationName(v interface{}, k string) (warnings []string, e
 	}
 
 	return warnings, errors
-}
-
-func makeAccessKeyMap(value appconf.APIKey) map[string]string {
-	m := make(map[string]string)
-
-	m["id"] = *value.ID
-	m["secret"] = *value.Value
-	m["connectionString"] = *value.ConnectionString
-
-	return m
 }
