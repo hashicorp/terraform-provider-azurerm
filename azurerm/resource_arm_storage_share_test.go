@@ -423,7 +423,7 @@ resource "azurerm_storage_share" "test" {
   name                 = "testshare%s"
   resource_group_name  = "${azurerm_resource_group.test.name}"
   storage_account_name = "${azurerm_storage_account.test.name}"
-  quota                = 100
+  quota                = 5
 }
 `, template, rString)
 }
