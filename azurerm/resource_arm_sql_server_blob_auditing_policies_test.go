@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -15,8 +17,9 @@ func TestAccAzureRMSqlServerBlobAuditingPolicies_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerBlobAuditingPoliciesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServerBlobAuditingPolicies_basic(ri, testLocation()),
@@ -40,8 +43,9 @@ func TestAccAzureRMSqlServerBlobAuditingPolicies_complete(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerBlobAuditingPoliciesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMSqlServerBlobAuditingPolicies_complete(ri, testLocation()),
@@ -63,6 +67,35 @@ func TestAccAzureRMSqlServerBlobAuditingPolicies_complete(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testCheckAzureRMSqlServerBlobAuditingPoliciesDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
+	ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "azurerm_sql_server_blob_auditing_policies" {
+			continue
+		}
+
+		sqlServerName := rs.Primary.Attributes["servers"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
+
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
+
+		if err != nil {
+			if utils.ResponseWasNotFound(resp.Response) {
+				return nil
+			}
+
+			return fmt.Errorf("Bad: Delete Server Blob Auditing Policies Error: %+v", err)
+		}
+		if resp.State != sql.BlobAuditingPolicyStateDisabled {
+			return fmt.Errorf("SQL Server Blob Auditing Polices%s still exists", sqlServerName)
+		}
+	}
+
+	return nil
 }
 
 func testCheckAzureRMSqlServerBlobAuditingPoliciesExists(resourceName string) resource.TestCheckFunc {

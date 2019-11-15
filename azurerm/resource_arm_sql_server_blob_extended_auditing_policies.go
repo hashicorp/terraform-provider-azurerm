@@ -12,18 +12,16 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
+func resourceArmSqlServerBlobExtendedAuditingPolicies() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate,
-		Read:   resourceArmSqlExtendedServerBlobAuditingPoliciesRead,
-		Update: resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate,
-		Delete: resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate,
+		Create: resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
+		Read:   resourceArmSqlServerBlobExtendedAuditingPoliciesRead,
+		Update: resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
+		Delete: resourceArmSqlServerBlobExtendedAuditingPoliciesDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -99,7 +97,7 @@ func resourceArmSqlExtendedServerBlobAuditingPolicies() *schema.Resource {
 	}
 }
 
-func resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -108,19 +106,6 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate(d *schema.Reso
 
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, serverName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing blob auditing policies of SQL Server %q Extended Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_server_blob_auditing_policies", *existing.ID)
-		}
-	}
 
 	state := sql.BlobAuditingPolicyState(d.Get("state").(string))
 	storageEndpoint := d.Get("storage_endpoint").(string)
@@ -190,7 +175,7 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesCreateUpdate(d *schema.Reso
 	return resourceArmSqlServerBlobAuditingPoliciesRead(d, meta)
 }
 
-func resourceArmSqlExtendedServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSqlServerBlobExtendedAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -226,4 +211,30 @@ func resourceArmSqlExtendedServerBlobAuditingPoliciesRead(d *schema.ResourceData
 	}
 
 	return nil
+}
+
+func resourceArmSqlServerBlobExtendedAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+
+	parameters := sql.ExtendedServerBlobAuditingPolicy{
+		ExtendedServerBlobAuditingPolicyProperties: &sql.ExtendedServerBlobAuditingPolicyProperties{
+			State: sql.BlobAuditingPolicyStateDisabled,
+		},
+	}
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
+	if err != nil {
+		return fmt.Errorf("Error deleting SQL Server Blob Extended Auditing Policies%s: %+v", serverName, err)
+	}
+
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

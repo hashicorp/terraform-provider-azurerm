@@ -12,8 +12,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -23,7 +21,7 @@ func resourceArmSqlServerBlobAuditingPolicies() *schema.Resource {
 		Create: resourceArmSqlServerBlobAuditingPoliciesCreateUpdate,
 		Read:   resourceArmSqlServerBlobAuditingPoliciesRead,
 		Update: resourceArmSqlServerBlobAuditingPoliciesCreateUpdate,
-		Delete: resourceArmSqlServerBlobAuditingPoliciesCreateUpdate,
+		Delete: resourceArmSqlServerBlobAuditingPoliciesDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -104,19 +102,6 @@ func resourceArmSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData
 
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
-
-	if features.ShouldResourcesBeImported() && d.IsNewResource() {
-		existing, err := client.Get(ctx, resGroup, serverName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing blob auditing policies of SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_sql_server_blob_auditing_policies", *existing.ID)
-		}
-	}
 
 	state := sql.BlobAuditingPolicyState(d.Get("state").(string))
 	storageEndpoint := d.Get("storage_endpoint").(string)
@@ -216,4 +201,30 @@ func resourceArmSqlServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta i
 	}
 
 	return nil
+}
+
+func resourceArmSqlServerBlobAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseAzureResourceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resGroup := id.ResourceGroup
+	serverName := id.Path["servers"]
+
+	parameters := sql.ServerBlobAuditingPolicy{
+		ServerBlobAuditingPolicyProperties: &sql.ServerBlobAuditingPolicyProperties{
+			State: sql.BlobAuditingPolicyStateDisabled,
+		},
+	}
+	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
+	if err != nil {
+		return fmt.Errorf("Error deleting SQL Server Blob Auditing Policies%s: %+v", serverName, err)
+	}
+
+	return future.WaitForCompletionRef(ctx, client.Client)
 }

@@ -1,16 +1,16 @@
 ---
 subcategory: "MS SQL"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sql_extended_server_blob_auditing_policies"
-sidebar_current: "docs-azurerm-resource-database-sql-extended-server_blob_auditing_policies"
+page_title: "Azure Resource Manager: azurerm_sql_server_blob_extended_auditing_policies"
+sidebar_current: "docs-azurerm-resource-azurerm-sql_server_blob_extended_auditing_policies"
 description: |-
-  Manages a SQL Azure Extended Server Blob Auditing Policies.
+  Manages a SQL Azure Server Blob Extended Auditing Policies.
 
 ---
 
-# azurerm_sql_extended_server_blob_auditing_policies
+# azurerm_sql_server_blob_extended_auditing_policies
 
-Manages a SQL Azure Extended Server Blob Auditing Policies.
+Manages a SQL Azure Server Blob Extended Auditing Policies.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
@@ -40,7 +40,7 @@ resource "azurerm_storage_account" "test" {
  account_replication_type = "GRS"
 }
 
-resource "azurerm_sql_server_blob_auditing_policies" "test"{
+resource "azurerm_sql_server_blob_extended_auditing_policies" "test"{
 resource_group_name               = "${azurerm_resource_group.test.name}"
 server_name                       = "${azurerm_sql_server.test.name}"
 state                             = "Enabled"

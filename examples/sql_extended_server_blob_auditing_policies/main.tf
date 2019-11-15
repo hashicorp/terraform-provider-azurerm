@@ -21,7 +21,7 @@ resource "azurerm_storage_account" "example" {
 
 }
 
-resource "azurerm_sql_extended_server_blob_auditing_policies" "example"{
+resource "azurerm_sql_server_extended_blob_auditing_policies" "example"{
   resource_group_name               = "${azurerm_resource_group.example.name}"
   server_name                       = "${azurerm_sql_server.example.name}"
   state                             = "Enabled"

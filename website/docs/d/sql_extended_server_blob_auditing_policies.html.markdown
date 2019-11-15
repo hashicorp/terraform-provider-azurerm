@@ -1,20 +1,20 @@
 ---
 subcategory: "MS SQL"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_sql_extended_server_blob_auditing_policies"
-sidebar_current: "docs-azurerm-datasource-sql-extended-server-blob-auditing-policies"
+page_title: "Azure Resource Manager: azurerm_sql_server_blob_extended_auditing_policies"
+sidebar_current: "docs-azurerm-datasource-sql-server-blob-extended-auditing-policies"
 description: |-
-  Gets information about an existing SQL Azure Extended Server Blob Auditing Policies.
+  Gets information about an existing SQL Azure Server Blob Extended Auditing Policies.
 ---
 
-# Data Source: azurerm_sql_extended_server_blob_auditing_policies
+# Data Source: azurerm_sql_server_blob_extended_auditing_policies
 
 Use this data source to access information about an existing SQL Azure Extended Server Blob Auditing Policies.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_sql_server_blob_auditing_policies" "test"{
+data "azurerm_sql_server_blob_extended_auditing_policies" "test"{
 server_name                              = "example-server-name"
 resource_group_name                      = "example-resources"
 state                                    = "Enabled"
