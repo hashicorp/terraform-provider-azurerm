@@ -38,7 +38,7 @@ func dataSourceArmRoleDefinition() *schema.Resource {
 
 			"scope": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Optional: false,
 			},
 
 			// Computed
