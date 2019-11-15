@@ -1,25 +1,19 @@
 package azurerm
 
 import (
-	"context"
 	"fmt"
-	"log"
-	"strconv"
-	"time"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
-
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
+	"log"
 )
 
 var natGatewayResourceName = "azurerm_nat_gateway"
@@ -51,7 +45,7 @@ func resourceArmNatGateway() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      4,
-				ValidateFunc: validate.IntBetweenAndDivisibleBy(4, 120, 1),
+				ValidateFunc: validation.IntBetween(4, 120),
 			},
 
 			"public_ip_address_ids": {
@@ -91,12 +85,13 @@ func resourceArmNatGateway() *schema.Resource {
 			"zones": azure.SchemaZones(),
 
 			"subnet_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
+				Set: schema.HashString,
 			},
 
 			"tags": tags.Schema(),
@@ -242,32 +237,7 @@ func resourceArmNatGatewayDelete(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	log.Printf("[DEBUG] Waiting for Nat gateway %q (Resource Group %q) to be deleted", name, resourceGroup)
-	stateConf := &resource.StateChangeConf{
-		Pending: []string{"200", "202"},
-		Target:  []string{"404"},
-		Refresh: natGatewayDeleteStateRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 20 * time.Minute,
-	}
-	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-	}
 	return nil
-}
-
-func natGatewayDeleteStateRefreshFunc(ctx context.Context, client *network.NatGatewaysClient, resourceGroup, name string) resource.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, resourceGroup, name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Error retrieving NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-		}
-		if _, err := client.Delete(ctx, resourceGroup, name); err != nil {
-			log.Printf("Error reissuing NAT Gateway %q (Resource Group %q) delete request: %+v", name, resourceGroup, err)
-		}
-		return res, strconv.Itoa(res.StatusCode), nil
-	}
 }
 
 func expandArmNatGatewaySubResourceID(input []interface{}) *[]network.SubResource {
