@@ -1255,6 +1255,89 @@ func TestAccAzureRMAppService_windowsDotNetUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMAppService_windowsJava7Java(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.7", "JAVA", "9.3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.7"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JAVA"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMAppService_windowsJava8Java(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "1.8", "JAVA", "9.3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "1.8"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JAVA"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+func TestAccAzureRMAppService_windowsJava11Java(t *testing.T) {
+	resourceName := "azurerm_app_service.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMAppService_windowsJava(ri, testLocation(), "11", "JAVA", "9.3")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMAppServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMAppServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_version", "11"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container", "JAVA"),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.java_container_version", "9.3"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMAppService_windowsJava7Jetty(t *testing.T) {
 	resourceName := "azurerm_app_service.test"
 	ri := tf.AccRandTimeInt()
