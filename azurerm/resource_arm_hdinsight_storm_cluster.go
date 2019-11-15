@@ -88,8 +88,6 @@ func resourceArmHDInsightStormCluster() *schema.Resource {
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
 
-			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
-
 			"roles": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -139,8 +137,7 @@ func resourceArmHDInsightStormClusterCreate(d *schema.ResourceData, meta interfa
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
-	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
+	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, nil)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}

@@ -191,7 +191,7 @@ func SchemaHDInsightsGen2StorageAccounts() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: ValidateResourceID,
 				},
 				"filesystem_id": {
 					Type:         schema.TypeString,
@@ -203,7 +203,7 @@ func SchemaHDInsightsGen2StorageAccounts() *schema.Schema {
 					Type:         schema.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: ValidateResourceID,
 				},
 				"is_default": {
 					Type:     schema.TypeBool,
