@@ -10,7 +10,8 @@ import (
 
 func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	// It is hard-coded because this resource currently only available in west-us.
+	location := "westus"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -23,40 +24,17 @@ func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccDataSourceAzureRMNatGateway_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	// It is hard-coded because this resource currently only available in west-us.
+	location := "westus"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNatGateway_complete(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(dataSourceName, "public_ip_address_ids.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "public_ip_prefix_ids.#", "1"),
-					resource.TestCheckResourceAttr(dataSourceName, "sku_name", "Standard"),
-					resource.TestCheckResourceAttr(dataSourceName, "idle_timeout_in_minutes", "10"),
-				),
-			},
-		},
-	})
-}
-func TestAccDataSourceAzureRMNatGateway_update(t *testing.T) {
-	dataSourceName := "data.azurerm_nat_gateway.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceNatGateway_basic(ri, location),
-				Check:  resource.ComposeTestCheckFunc(),
-			},
 			{
 				Config: testAccDataSourceNatGateway_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
