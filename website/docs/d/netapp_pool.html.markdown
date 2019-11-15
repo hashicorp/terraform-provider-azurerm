@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_pool"
 sidebar_current: "docs-azurerm-datasource-netapp-pool"
