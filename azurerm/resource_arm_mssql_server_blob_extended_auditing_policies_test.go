@@ -12,19 +12,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMSqlServerBlobExtendedAuditingPolicies_basic(t *testing.T) {
-	resourceName := "azurerm_sql_server_blob_extended_auditing_policies.test"
+func TestAccAzureRMMSSqlServerBlobExtendedAuditingPolicies_basic(t *testing.T) {
+	resourceName := "azurerm_mssql_server_blob_extended_auditing_policies.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesDestroy,
+		CheckDestroy: testCheckAzureRMMSSqlServerBlobExtendedAuditingPoliciesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServerBlobExtendedAuditingPolicies_basic(ri, testLocation()),
+				Config: testAccAzureRMMSSqlServerBlobExtendedAuditingPolicies_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesExists(resourceName),
+					testCheckAzureRMMSSqlServerBlobExtendedAuditingPoliciesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
 				),
 			},
@@ -38,19 +38,19 @@ func TestAccAzureRMSqlServerBlobExtendedAuditingPolicies_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMSqlServerBlobExtendedAuditingPolicies_complete(t *testing.T) {
-	resourceName := "azurerm_sql_server_blob_extended_auditing_policies.test"
+func TestAccAzureRMMSSqlServerBlobExtendedAuditingPolicies_complete(t *testing.T) {
+	resourceName := "azurerm_mssql_server_blob_extended_auditing_policies.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesDestroy,
+		CheckDestroy: testCheckAzureRMMSSqlServerBlobExtendedAuditingPoliciesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMSqlServerBlobExtendedAuditingPolicies_complete(ri, testLocation()),
+				Config: testAccAzureRMMSSqlServerBlobExtendedAuditingPolicies_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesExists(resourceName),
+					testCheckAzureRMMSSqlServerBlobExtendedAuditingPoliciesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "retention_days", "6"),
 					resource.TestCheckResourceAttr(resourceName, "is_storage_secondary_key_in_use", "true"),
@@ -70,12 +70,12 @@ func TestAccAzureRMSqlServerBlobExtendedAuditingPolicies_complete(t *testing.T) 
 	})
 }
 
-func testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesDestroy(s *terraform.State) error {
+func testCheckAzureRMMSSqlServerBlobExtendedAuditingPoliciesDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_sql_server_blob_auditing_policies" {
+		if rs.Type != "azurerm_mssql_server_blob_auditing_policies" {
 			continue
 		}
 
@@ -99,7 +99,7 @@ func testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesDestroy(s *terraform.S
 	return nil
 }
 
-func testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMSSqlServerBlobExtendedAuditingPoliciesExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -126,7 +126,7 @@ func testCheckAzureRMSqlServerBlobExtendedAuditingPoliciesExists(resourceName st
 	}
 }
 
-func testAccAzureRMSqlServerBlobExtendedAuditingPolicies_basic(rInt int, location string) string {
+func testAccAzureRMMSSqlServerBlobExtendedAuditingPolicies_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name     = "acctestRG-%d"
@@ -150,7 +150,7 @@ resource "azurerm_storage_account" "test" {
  account_replication_type = "GRS"
 }
 
-resource "azurerm_sql_server_blob_extended_auditing_policies" "test"{
+resource "azurerm_mssql_server_blob_extended_auditing_policies" "test"{
 resource_group_name           = "${azurerm_resource_group.test.name}"
 server_name                   = "${azurerm_sql_server.test.name}"
 state                         = "Enabled"
@@ -161,7 +161,7 @@ storage_account_access_key    = "${azurerm_storage_account.test.primary_access_k
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMSqlServerBlobExtendedAuditingPolicies_complete(rInt int, location string) string {
+func testAccAzureRMMSSqlServerBlobExtendedAuditingPolicies_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name     = "acctestRG-%d"
@@ -185,7 +185,7 @@ resource "azurerm_storage_account" "test" {
  account_replication_type = "GRS"
 }
 
-resource "azurerm_sql_server_blob_extended_auditing_policies" "test"{
+resource "azurerm_mssql_server_blob_extended_auditing_policies" "test"{
 resource_group_name               = "${azurerm_resource_group.test.name}"
 server_name                       = "${azurerm_sql_server.test.name}"
 state                             = "Enabled"

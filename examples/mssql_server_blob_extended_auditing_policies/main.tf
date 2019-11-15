@@ -21,7 +21,7 @@ resource "azurerm_storage_account" "example" {
 
 }
 
-resource "azurerm_sql_server_blob_auditing_policies" "example"{
+resource "azurerm_mssql_server_blob_extended_auditing_policies" "example"{
   resource_group_name               = "${azurerm_resource_group.example.name}"
   server_name                       = "${azurerm_sql_server.example.name}"
   state                             = "Enabled"
@@ -31,5 +31,6 @@ resource "azurerm_sql_server_blob_auditing_policies" "example"{
   is_storage_secondary_key_in_use   = true
   audit_actions_and_groups          = "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP,FAILED_DATABASE_AUTHENTICATION_GROUP"
   is_azure_monitor_target_enabled   = true
+  predicate_expression              ="object_name = 'SensitiveData'"
 
 }

@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmSqlServerBlobExtendedAuditingPolicies() *schema.Resource {
+func resourceArmMSSqlServerBlobAuditingPolicies() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
-		Read:   resourceArmSqlServerBlobExtendedAuditingPoliciesRead,
-		Update: resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
-		Delete: resourceArmSqlServerBlobExtendedAuditingPoliciesDelete,
+		Create: resourceArmMSSqlServerBlobAuditingPoliciesCreateUpdate,
+		Read:   resourceArmMSSqlServerBlobAuditingPoliciesRead,
+		Update: resourceArmMSSqlServerBlobAuditingPoliciesCreateUpdate,
+		Delete: resourceArmMSSqlServerBlobAuditingPoliciesDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -89,20 +89,16 @@ func resourceArmSqlServerBlobExtendedAuditingPolicies() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"predicate_expression": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
 		},
 	}
 }
 
-func resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
+func resourceArmMSSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for AzureRM SQL Server Extended Blob Auditing Policies creation.")
+	log.Printf("[INFO] preparing arguments for AzureRM SQL Server Blob Auditing Policies creation.")
 
 	serverName := d.Get("server_name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -111,7 +107,7 @@ func resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.Reso
 	storageEndpoint := d.Get("storage_endpoint").(string)
 	storageAccountAccessKey := d.Get("storage_account_access_key").(string)
 
-	ExtendedServerBlobAuditingPolicyProperties := sql.ExtendedServerBlobAuditingPolicyProperties{
+	ServerBlobAuditingPolicyProperties := sql.ServerBlobAuditingPolicyProperties{
 		State:                   state,
 		StorageEndpoint:         &storageEndpoint,
 		StorageAccountAccessKey: &storageAccountAccessKey,
@@ -119,40 +115,35 @@ func resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.Reso
 	//retention_days
 	if retentionDays, ok := d.GetOk("retention_days"); ok {
 		retentionDays := int32(retentionDays.(int))
-		ExtendedServerBlobAuditingPolicyProperties.RetentionDays = &retentionDays
+		ServerBlobAuditingPolicyProperties.RetentionDays = &retentionDays
 	}
 	//audit_actions_and_groups
 	if auditActionsAndGroups, ok := d.GetOk("audit_actions_and_groups"); ok {
 		auditActionsAndGroups := strings.Split(auditActionsAndGroups.(string), ",")
-		ExtendedServerBlobAuditingPolicyProperties.AuditActionsAndGroups = &auditActionsAndGroups
+		ServerBlobAuditingPolicyProperties.AuditActionsAndGroups = &auditActionsAndGroups
 	}
 	//storage_account_subscription_id
 	if storageAccountSubscriptionID, ok := d.GetOk("storage_account_subscription_id"); ok {
 		storageAccountSubscriptionID, _ := uuid.FromString(storageAccountSubscriptionID.(string))
-		ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &storageAccountSubscriptionID
+		ServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &storageAccountSubscriptionID
 	}
 	//is_storage_secondary_key_in_use
 	if isStorageSecondaryKeyInUse, ok := d.GetOk("is_storage_secondary_key_in_use"); ok {
 		isStorageSecondaryKeyInUse := isStorageSecondaryKeyInUse.(bool)
-		ExtendedServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = &isStorageSecondaryKeyInUse
+		ServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = &isStorageSecondaryKeyInUse
 	}
 	//is_azure_monitor_target_enabled
 	if isAzureMonitorTargetEnabled, ok := d.GetOk("is_azure_monitor_target_enabled"); ok {
 		isAzureMonitorTargetEnabled := isAzureMonitorTargetEnabled.(bool)
-		ExtendedServerBlobAuditingPolicyProperties.IsAzureMonitorTargetEnabled = &isAzureMonitorTargetEnabled
-	}
-	//predicate_expression
-	if predictExpression, ok := d.GetOk("predicate_expression"); ok {
-		predictExpression := predictExpression.(string)
-		ExtendedServerBlobAuditingPolicyProperties.PredicateExpression = &predictExpression
+		ServerBlobAuditingPolicyProperties.IsAzureMonitorTargetEnabled = &isAzureMonitorTargetEnabled
 	}
 
-	parameters := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: &ExtendedServerBlobAuditingPolicyProperties,
+	parameters := sql.ServerBlobAuditingPolicy{
+		ServerBlobAuditingPolicyProperties: &ServerBlobAuditingPolicyProperties,
 	}
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q Extended Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", serverName, resGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
@@ -160,23 +151,23 @@ func resourceArmSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.Reso
 			return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", serverName)
 		}
 
-		return fmt.Errorf("Error waiting on create/update future for SQL Server %q Extended Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
+		return fmt.Errorf("Error waiting on create/update future for SQL Server %q Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
 	}
 
 	read, err := future.Result(*client)
 	if err != nil {
-		return fmt.Errorf("Error issuing get request for SQL Server %q Extended Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
+		return fmt.Errorf("Error issuing get request for SQL Server %q Blob Auditing Policies (Resource Group %q): %+v", serverName, resGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read SQL Server '%s' Extended Blob Auditing Policies (resource group %s) ID", serverName, resGroup)
+		return fmt.Errorf("Cannot read SQL Server '%s' Blob Auditing Policies (resource group %s) ID", serverName, resGroup)
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmSqlServerBlobAuditingPoliciesRead(d, meta)
+	return resourceArmMSSqlServerBlobAuditingPoliciesRead(d, meta)
 }
 
-func resourceArmSqlServerBlobExtendedAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
+func resourceArmMSSqlServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -189,17 +180,17 @@ func resourceArmSqlServerBlobExtendedAuditingPoliciesRead(d *schema.ResourceData
 	resp, err := client.Get(ctx, resGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] Error reading SQL Extended Server %q  Blob Auditing Policies - removing from state", d.Id())
+			log.Printf("[INFO] Error reading SQL Server %q Blob Auditing Policies - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL Extended Server %s: %v  Blob Auditing Policies", name, err)
+		return fmt.Errorf("Error reading SQL Server %s: %v Blob Auditing Policies", name, err)
 	}
 
 	d.Set("server_name", name)
 	d.Set("resource_group_name", resGroup)
-	if serverProperties := resp.ExtendedServerBlobAuditingPolicyProperties; serverProperties != nil {
+	if serverProperties := resp.ServerBlobAuditingPolicyProperties; serverProperties != nil {
 		d.Set("state", serverProperties.State)
 		d.Set("audit_actions_and_groups", strings.Join(*serverProperties.AuditActionsAndGroups, ","))
 		d.Set("is_azure_monitor_target_enabled", serverProperties.IsAzureMonitorTargetEnabled)
@@ -207,14 +198,13 @@ func resourceArmSqlServerBlobExtendedAuditingPoliciesRead(d *schema.ResourceData
 		d.Set("retention_days", serverProperties.RetentionDays)
 		d.Set("storage_account_subscription_id", serverProperties.StorageAccountSubscriptionID.String())
 		d.Set("storage_endpoint", serverProperties.StorageEndpoint)
-		d.Set("predicate_expression", serverProperties.PredicateExpression)
 	}
 
 	return nil
 }
 
-func resourceArmSqlServerBlobExtendedAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
+func resourceArmMSSqlServerBlobAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -226,14 +216,14 @@ func resourceArmSqlServerBlobExtendedAuditingPoliciesDelete(d *schema.ResourceDa
 	resGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 
-	parameters := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: &sql.ExtendedServerBlobAuditingPolicyProperties{
+	parameters := sql.ServerBlobAuditingPolicy{
+		ServerBlobAuditingPolicyProperties: &sql.ServerBlobAuditingPolicyProperties{
 			State: sql.BlobAuditingPolicyStateDisabled,
 		},
 	}
 	future, err := client.CreateOrUpdate(ctx, resGroup, serverName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Server Blob Extended Auditing Policies%s: %+v", serverName, err)
+		return fmt.Errorf("Error deleting SQL Server Blob Auditing Policies%s: %+v", serverName, err)
 	}
 
 	return future.WaitForCompletionRef(ctx, client.Client)
