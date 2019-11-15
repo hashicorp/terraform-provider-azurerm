@@ -1,4 +1,5 @@
 ---
+subcategory: "NetApp"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_netapp_account"
 sidebar_current: "docs-azurerm-resource-netapp-account"
