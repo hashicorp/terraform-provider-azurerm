@@ -69,7 +69,7 @@ func resourceArmStorageShare() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Default:      5120,
-				ValidateFunc: validation.IntBetween(100, 102400),
+				ValidateFunc: validation.IntBetween(1, 102400),
 			},
 
 			"metadata": storage.MetaDataSchema(),
