@@ -39,12 +39,14 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* Data Source: `azurerm_network_interface` - exporting the IP Address for Dynamic Network Interfaces [GH-4852]
 * `azurerm_api_management_api_policy` - sending `policy` as Raw XML [GH-4140]
 * `azurerm_bastion_host` - matching the validation for `name` used by Azure [GH-4766]
 * `azurerm_bastion_host` - support for hyphens in the `name` field within the `ip_configuration` block [GH-4814]
 * `azurerm_eventhub_namespace` - deprecating the `kafka_enabled` sproperty as it is now managed by Azure [GH-4743]
 * `azurerm_lb_probe` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_lb_rule` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
+* `azurerm_network_interface` - exporting the IP Address for Dynamic Network Interfaces [GH-4852]
 * `azurerm_private_dns_cname_record` - fixing a bug where calling `Delete` didn't delete the CName record [GH-4804]
 * `azurerm_storage_account` - fixing an error where Advanced Threat Protection is unavailable in Azure Germany [GH-4746]
 * `azurerm_virtual_network_gateway_connection` - Configure `routing_weight` with weight `0` [GH-4849]
