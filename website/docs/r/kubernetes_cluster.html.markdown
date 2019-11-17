@@ -2,7 +2,7 @@
 subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
-sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
+sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster-x"
 description: |-
   Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 ---
@@ -166,7 +166,7 @@ A `agent_pool_profile` block supports the following:
 
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
-* `availability_zones` - (Optional)  Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
+* `availability_zones` - (Optional) Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
