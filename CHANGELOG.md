@@ -8,6 +8,7 @@ FEATURES:
 * **New Resource:** `azurerm_netapp_account` [GH-4416]
 * **New Resource:** `azurerm_private_dns_aaaa_record` [GH-4841]
 * **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
+* **New Resource:** `azurerm_private_dns_srv_record` [GH-4783]
 * **New Resource:** `azurerm_relay_hybrid_connection` [GH-4832]
 
 IMPROVEMENTS:
