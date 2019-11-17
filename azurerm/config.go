@@ -90,18 +90,6 @@ type ArmClient struct {
 
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	AnalysisServices *analysisservices.Client
-	ApiManagement    *apimanagement.Client
-	AppInsights      *applicationinsights.Client
-	Automation       *automation.Client
-	Authorization    *authorization.Client
-	Batch            *batch.Client
-	Bot              *bot.Client
-	Cdn              *cdn.Client
-	Cognitive        *cognitive.Client
-	Compute          *clients.ComputeClient
-	Containers       *containers.Client
-	Cosmos           *cosmos.Client
 	DataBricks       *databricks.Client
 	DataFactory      *datafactory.Client
 	Datalake         *datalake.Client
