@@ -22,6 +22,7 @@ IMPROVEMENTS:
 * `azurerm_app_service_slot` - support for `auto_swap_slot_name` [GH-4752]
 * `azurerm_app_service` - Add support for `JAVA` container  [GH-4897]
 * `azurerm_automation_credential` - deprecate `account_name` in favour of `automation_account_name` [GH-4777]
+* `azurerm_cognitive_service` - support for the kind `LUIS.Authoring` [GH-4888]
 * `azurerm_eventgrid_domain` - Export `primary_access_key` and `secondary_access_key` [GH-4876]
 * `azurerm_firewall` - allow multiple `ip_configuration` blocks [GH-4639]
 * `azurerm_hdinsight_hadoop_cluster` - Added edge node support [GH-4550]
