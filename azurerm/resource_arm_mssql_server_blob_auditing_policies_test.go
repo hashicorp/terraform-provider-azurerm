@@ -12,19 +12,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func TestAccAzureRMMSSqlServerBlobAuditingPolicies_basic(t *testing.T) {
+func TestAccAzureRMMsSqlServerBlobAuditingPolicies_basic(t *testing.T) {
 	resourceName := "azurerm_mssql_server_blob_auditing_policies.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMSSqlServerBlobAuditingPoliciesDestroy,
+		CheckDestroy: testCheckAzureRMMsSqlServerBlobAuditingPoliciesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMSSqlServerBlobAuditingPolicies_basic(ri, testLocation()),
+				Config: testAccAzureRMMsSqlServerBlobAuditingPolicies_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMSSqlServerBlobAuditingPoliciesExists(resourceName),
+					testCheckAzureRMMsSqlServerBlobAuditingPoliciesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
 				),
 			},
@@ -38,19 +38,19 @@ func TestAccAzureRMMSSqlServerBlobAuditingPolicies_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMMSSqlServerBlobAuditingPolicies_complete(t *testing.T) {
+func TestAccAzureRMMsSqlServerBlobAuditingPolicies_complete(t *testing.T) {
 	resourceName := "azurerm_mssql_server_blob_auditing_policies.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMSSqlServerBlobAuditingPoliciesDestroy,
+		CheckDestroy: testCheckAzureRMMsSqlServerBlobAuditingPoliciesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMSSqlServerBlobAuditingPolicies_complete(ri, testLocation()),
+				Config: testAccAzureRMMsSqlServerBlobAuditingPolicies_complete(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMSSqlServerBlobAuditingPoliciesExists(resourceName),
+					testCheckAzureRMMsSqlServerBlobAuditingPoliciesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
 					resource.TestCheckResourceAttr(resourceName, "retention_days", "6"),
 					resource.TestCheckResourceAttr(resourceName, "is_storage_secondary_key_in_use", "true"),
@@ -69,7 +69,7 @@ func TestAccAzureRMMSSqlServerBlobAuditingPolicies_complete(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMMSSqlServerBlobAuditingPoliciesDestroy(s *terraform.State) error {
+func testCheckAzureRMMsSqlServerBlobAuditingPoliciesDestroy(s *terraform.State) error {
 	conn := testAccProvider.Meta().(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -98,7 +98,7 @@ func testCheckAzureRMMSSqlServerBlobAuditingPoliciesDestroy(s *terraform.State) 
 	return nil
 }
 
-func testCheckAzureRMMSSqlServerBlobAuditingPoliciesExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMsSqlServerBlobAuditingPoliciesExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -125,7 +125,7 @@ func testCheckAzureRMMSSqlServerBlobAuditingPoliciesExists(resourceName string) 
 	}
 }
 
-func testAccAzureRMMSSqlServerBlobAuditingPolicies_basic(rInt int, location string) string {
+func testAccAzureRMMsSqlServerBlobAuditingPolicies_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name     = "acctestRG-%d"
@@ -160,7 +160,7 @@ storage_account_access_key    = "${azurerm_storage_account.test.primary_access_k
 `, rInt, location, rInt, rInt)
 }
 
-func testAccAzureRMMSSqlServerBlobAuditingPolicies_complete(rInt int, location string) string {
+func testAccAzureRMMsSqlServerBlobAuditingPolicies_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
  name     = "acctestRG-%d"

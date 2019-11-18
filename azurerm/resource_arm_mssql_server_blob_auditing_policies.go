@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMSSqlServerBlobAuditingPolicies() *schema.Resource {
+func resourceArmMsSqlServerBlobAuditingPolicies() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMSSqlServerBlobAuditingPoliciesCreateUpdate,
-		Read:   resourceArmMSSqlServerBlobAuditingPoliciesRead,
-		Update: resourceArmMSSqlServerBlobAuditingPoliciesCreateUpdate,
-		Delete: resourceArmMSSqlServerBlobAuditingPoliciesDelete,
+		Create: resourceArmMsSqlServerBlobAuditingPoliciesCreateUpdate,
+		Read:   resourceArmMsSqlServerBlobAuditingPoliciesRead,
+		Update: resourceArmMsSqlServerBlobAuditingPoliciesCreateUpdate,
+		Delete: resourceArmMsSqlServerBlobAuditingPoliciesDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -93,7 +93,7 @@ func resourceArmMSSqlServerBlobAuditingPolicies() *schema.Resource {
 	}
 }
 
-func resourceArmMSSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -163,10 +163,10 @@ func resourceArmMSSqlServerBlobAuditingPoliciesCreateUpdate(d *schema.ResourceDa
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMSSqlServerBlobAuditingPoliciesRead(d, meta)
+	return resourceArmMsSqlServerBlobAuditingPoliciesRead(d, meta)
 }
 
-func resourceArmMSSqlServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -203,7 +203,7 @@ func resourceArmMSSqlServerBlobAuditingPoliciesRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceArmMSSqlServerBlobAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlServerBlobAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()

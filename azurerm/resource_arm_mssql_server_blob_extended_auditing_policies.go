@@ -16,12 +16,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmMSSqlServerBlobExtendedAuditingPolicies() *schema.Resource {
+func resourceArmMsSqlServerBlobExtendedAuditingPolicies() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmMSSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
-		Read:   resourceArmMSSqlServerBlobExtendedAuditingPoliciesRead,
-		Update: resourceArmMSSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
-		Delete: resourceArmMSSqlServerBlobExtendedAuditingPoliciesDelete,
+		Create: resourceArmMsSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
+		Read:   resourceArmMsSqlServerBlobExtendedAuditingPoliciesRead,
+		Update: resourceArmMsSqlServerBlobExtendedAuditingPoliciesCreateUpdate,
+		Delete: resourceArmMsSqlServerBlobExtendedAuditingPoliciesDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -97,7 +97,7 @@ func resourceArmMSSqlServerBlobExtendedAuditingPolicies() *schema.Resource {
 	}
 }
 
-func resourceArmMSSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -172,10 +172,10 @@ func resourceArmMSSqlServerBlobExtendedAuditingPoliciesCreateUpdate(d *schema.Re
 	}
 	d.SetId(*read.ID)
 
-	return resourceArmMSSqlServerBlobExtendedAuditingPoliciesRead(d, meta)
+	return resourceArmMsSqlServerBlobExtendedAuditingPoliciesRead(d, meta)
 }
 
-func resourceArmMSSqlServerBlobExtendedAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlServerBlobExtendedAuditingPoliciesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -213,7 +213,7 @@ func resourceArmMSSqlServerBlobExtendedAuditingPoliciesRead(d *schema.ResourceDa
 	return nil
 }
 
-func resourceArmMSSqlServerBlobExtendedAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmMsSqlServerBlobExtendedAuditingPoliciesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Sql.ExtendedServerBlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
