@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
 	"time"
 
@@ -13,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -32,13 +31,10 @@ func resourceArmNetAppPool() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[\da-zA-Z_-]{4,64}$`),
-					`The name must be between 4 and 64 characters in length and contain only letters, numbers, underscore or hyphens.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: aznetapp.ValidateNetAppPoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -46,12 +42,9 @@ func resourceArmNetAppPool() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`(^[\da-zA-Z])([-\da-zA-Z]{1,62})([\da-zA-Z]$)`),
-					`The name must be between 3 and 64 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: aznetapp.ValidateNetAppAccountName,
 			},
 
 			"service_level": {
@@ -61,14 +54,13 @@ func resourceArmNetAppPool() *schema.Resource {
 					string(netapp.Premium),
 					string(netapp.Standard),
 					string(netapp.Ultra),
-				}, false),
-				DiffSuppressFunc: suppress.CaseDifference,
+				}, true),
 			},
 
-			"size": {
+			"size_in_4_tb": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(4398046511104, 549755813888000),
+				ValidateFunc: validation.IntBetween(1, 125),
 			},
 		},
 	}
@@ -96,7 +88,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	serviceLevel := d.Get("service_level").(string)
-	size := int64(d.Get("size").(int))
+	size := int64(d.Get("size_in_4_tb").(int) * 4398046511104)
 
 	capacityPoolParameters := netapp.CapacityPool{
 		Location: utils.String(location),
@@ -155,13 +147,8 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
-		if err := d.Set("service_level", poolProperties.ServiceLevel); err != nil {
-			return fmt.Errorf("Error setting `service_level`: %+v", err)
-		}
-
-		if err := d.Set("size", poolProperties.Size); err != nil {
-			return fmt.Errorf("Error setting `size`: %+v", err)
-		}
+		d.Set("service_level", poolProperties.ServiceLevel)
+		d.Set("size_in_4_tb", *poolProperties.Size/4398046511104)
 	}
 
 	return nil
@@ -211,6 +198,11 @@ func netappPoolDeleteStateRefreshFunc(ctx context.Context, client *netapp.PoolsC
 			}
 		}
 
+		// The resource NetApp Pool depends on the resource NetApp Account.
+		// Although the delete API returns 404 which means the NetApp Pool resource has been deleted.
+		// Then it tries to immediately delete NetApp Account but it still throws error `Can not delete resource before nested resources are deleted.`
+		// In this case we're going to try triggering the Deletion again, in-case it didn't work prior to this attempt.
+		// For more details, see related Bug: https://github.com/Azure/azure-sdk-for-go/issues/6374
 		if _, err := client.Delete(ctx, resourceGroupName, accountName, name); err != nil {
 			log.Printf("Error reissuing NetApp Pool %q delete request (Resource Group %q): %+v", name, resourceGroupName, err)
 		}

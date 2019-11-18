@@ -79,7 +79,7 @@ func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "size", "4398046511104"),
+					resource.TestCheckResourceAttr(resourceName, "size_in_4_tb", "2"),
 				),
 			},
 			{
@@ -106,13 +106,20 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Premium"),
+					resource.TestCheckResourceAttr(resourceName, "size_in_4_tb", "1"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMNetAppPool_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Standard"),
+					resource.TestCheckResourceAttr(resourceName, "size_in_4_tb", "2"),
 				),
 			},
 			{
@@ -193,7 +200,7 @@ resource "azurerm_netapp_pool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   service_level       = "Premium"
-  size                = "4398046511104"
+  size_in_4_tb        = "1"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -229,7 +236,7 @@ resource "azurerm_netapp_pool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   service_level       = "Standard"
-  size                = "4398046511104"
+  size_in_4_tb        = "2"
 }
 `, rInt, location, rInt, rInt)
 }

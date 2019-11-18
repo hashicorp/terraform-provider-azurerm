@@ -2,11 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +15,9 @@ func dataSourceArmNetAppPool() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[\da-zA-Z_-]{4,64}$`),
-					`The name must be between 4 and 64 characters in length and contain only letters, numbers, underscore or hyphens.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: aznetapp.ValidateNetAppPoolName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -29,12 +25,9 @@ func dataSourceArmNetAppPool() *schema.Resource {
 			"location": azure.SchemaLocationForDataSource(),
 
 			"account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`(^[\da-zA-Z])([-\da-zA-Z]{1,62})([\da-zA-Z]$)`),
-					`The name must be between 3 and 64 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: aznetapp.ValidateNetAppAccountName,
 			},
 
 			"service_level": {
@@ -42,7 +35,7 @@ func dataSourceArmNetAppPool() *schema.Resource {
 				Computed: true,
 			},
 
-			"size": {
+			"size_in_4_tb": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -75,13 +68,8 @@ func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
-		if err := d.Set("service_level", poolProperties.ServiceLevel); err != nil {
-			return fmt.Errorf("Error setting `service_level`: %+v", err)
-		}
-
-		if err := d.Set("size", poolProperties.Size); err != nil {
-			return fmt.Errorf("Error setting `size`: %+v", err)
-		}
+		d.Set("service_level", poolProperties.ServiceLevel)
+		d.Set("size_in_4_tb", *poolProperties.Size/4398046511104)
 	}
 
 	return nil

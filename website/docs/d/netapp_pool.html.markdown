@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the NetApp Pool.
 
-* `account_name` - (Required) The name of the NetApp account.
+* `account_name` - (Required) The name of the NetApp account where the NetApp pool exists.
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the NetApp Pool exists.
 
@@ -46,6 +46,6 @@ The following attributes are exported:
 
 * `service_level` - The service level of the file system.
 
-* `size` - Provisioned size of the pool (in bytes). Allowed values are in 4TiB chunks (value must be multiply of 4398046511104).
+* `size_in_4_tb` - Provisioned size of the pool (in bytes). Values are in 4TiB chunks.
 
 ---
