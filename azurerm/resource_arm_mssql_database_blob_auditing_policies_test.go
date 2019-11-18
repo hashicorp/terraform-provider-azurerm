@@ -83,7 +83,7 @@ func testCheckAzureRMMsSqlDatabaseBlobAuditingPoliciesDestroy(s *terraform.State
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		databaseName := rs.Primary.Attributes["databases"]
 
-		resp, err := conn.Get(ctx, resourceGroup, sqlServerName,databaseName)
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName, databaseName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
@@ -93,7 +93,7 @@ func testCheckAzureRMMsSqlDatabaseBlobAuditingPoliciesDestroy(s *terraform.State
 			return fmt.Errorf("Bad: Delete Server Blob Auditing Policies Error: %+v", err)
 		}
 		if resp.State != sql.BlobAuditingPolicyStateDisabled {
-			return fmt.Errorf("SQL Server %s Database %s Blob Auditing Polices still exists", sqlServerName,databaseName)
+			return fmt.Errorf("SQL Server %s Database %s Blob Auditing Polices still exists", sqlServerName, databaseName)
 		}
 	}
 
@@ -117,12 +117,12 @@ func testCheckAzureRMMsSqlDatabaseBlobAuditingPoliciesExists(resourceName string
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		conn := testAccProvider.Meta().(*ArmClient).Sql.DatabaseBlobAuditingPoliciesClient
-		resp, err := conn.Get(ctx, resourceGroup, sqlServerName,databaseName)
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName, databaseName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: SQL Server %s Database %s Blob Auditing Policies(resource group: %s) does not exist", sqlServerName, databaseName,resourceGroup)
+				return fmt.Errorf("Bad: SQL Server %s Database %s Blob Auditing Policies(resource group: %s) does not exist", sqlServerName, databaseName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get SQL Server %s Database %s Blob Auditing Policies: %v ",sqlServerName,databaseName,err)
+			return fmt.Errorf("Bad: Get SQL Server %s Database %s Blob Auditing Policies: %v ", sqlServerName, databaseName, err)
 		}
 		return nil
 	}
@@ -167,7 +167,7 @@ state                         = "Enabled"
 storage_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
 storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
 }
-`, rInt, location, rInt, rInt,rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMMsSqlDatabaseBlobAuditingPolicies_complete(rInt int, location string) string {
@@ -215,6 +215,7 @@ is_azure_monitor_target_enabled   = true
 storage_account_subscription_id   = "00000000-0000-0000-3333-000000000000"
 
 }
-`, rInt, location, rInt, rInt,rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
+
 //queue_delay_ms                    = 4000

@@ -13,7 +13,7 @@ import (
 )
 
 func TestAccAzureRMMsSqlDatabaseBlobExtendedAuditingPolicies_basic(t *testing.T) {
-	resourceName := "azurerm_mssql_database_blob_auditing_policies.test"
+	resourceName := "azurerm_mssql_database_blob_extended_auditing_policies.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -39,7 +39,7 @@ func TestAccAzureRMMsSqlDatabaseBlobExtendedAuditingPolicies_basic(t *testing.T)
 }
 
 func TestAccAzureRMMsSqlDatabaseBlobExtendedAuditingPolicies_complete(t *testing.T) {
-	resourceName := "azurerm_mssql_database_blob_auditing_policies.test"
+	resourceName := "azurerm_mssql_database_blob_extended_auditing_policies.test"
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -75,7 +75,7 @@ func testCheckAzureRMMsSqlDatabaseBlobExtendedAuditingPoliciesDestroy(s *terrafo
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_mssql_server_blob_auditing_policies" {
+		if rs.Type != "azurerm_mssql_server_blob_extended_auditing_policies" {
 			continue
 		}
 
@@ -83,17 +83,17 @@ func testCheckAzureRMMsSqlDatabaseBlobExtendedAuditingPoliciesDestroy(s *terrafo
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		databaseName := rs.Primary.Attributes["databases"]
 
-		resp, err := conn.Get(ctx, resourceGroup, sqlServerName,databaseName)
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName, databaseName)
 
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return nil
 			}
 
-			return fmt.Errorf("Bad: Delete Server Blob Auditing Policies Error: %+v", err)
+			return fmt.Errorf("Bad: Delete Server Blob Extended Auditing Policies Error: %+v", err)
 		}
 		if resp.State != sql.BlobAuditingPolicyStateDisabled {
-			return fmt.Errorf("SQL Server %s Database %s Blob Auditing Polices still exists", sqlServerName,databaseName)
+			return fmt.Errorf("SQL Server %s Database %s Blob Extended Auditing Polices still exists", sqlServerName, databaseName)
 		}
 	}
 
@@ -112,17 +112,17 @@ func testCheckAzureRMMsSqlDatabaseBlobExtendedAuditingPoliciesExists(resourceNam
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		databaseName := rs.Primary.Attributes["database_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s Blob Auditing Policies", sqlServerName)
+			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s Blob Extended Auditing Policies", sqlServerName)
 		}
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		conn := testAccProvider.Meta().(*ArmClient).Sql.ExtendedDatabaseBlobAuditingPoliciesClient
-		resp, err := conn.Get(ctx, resourceGroup, sqlServerName,databaseName)
+		resp, err := conn.Get(ctx, resourceGroup, sqlServerName, databaseName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: SQL Server %s Database %s Blob Auditing Policies(resource group: %s) does not exist", sqlServerName, databaseName,resourceGroup)
+				return fmt.Errorf("Bad: SQL Server %s Database %s Blob Extended Auditing Policies(resource group: %s) does not exist", sqlServerName, databaseName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get SQL Server %s Database %s Blob Auditing Policies: %v ",sqlServerName,databaseName,err)
+			return fmt.Errorf("Bad: Get SQL Server %s Database %s Blob Extended Auditing Policies: %v ", sqlServerName, databaseName, err)
 		}
 		return nil
 	}
@@ -159,7 +159,7 @@ resource "azurerm_storage_account" "test" {
  account_tier             = "Standard"
  account_replication_type = "GRS"
 }
-resource "azurerm_mssql_database_blob_auditing_policies" "test"{
+resource "azurerm_mssql_database_blob_extended_auditing_policies" "test"{
 resource_group_name           = "${azurerm_resource_group.test.name}"
 server_name                   = "${azurerm_sql_server.test.name}"
 database_name                 = "${azurerm_sql_database.test.name}"
@@ -167,7 +167,7 @@ state                         = "Enabled"
 storage_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
 storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
 }
-`, rInt, location, rInt, rInt,rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
 
 func testAccAzureRMMsSqlDatabaseBlobExtendedAuditingPolicies_complete(rInt int, location string) string {
@@ -201,7 +201,7 @@ resource "azurerm_storage_account" "test" {
  account_tier             = "Standard"
  account_replication_type = "GRS"
 }
-resource "azurerm_mssql_database_blob_auditing_policies" "test"{
+resource "azurerm_mssql_database_blob_extended_auditing_policies" "test"{
 resource_group_name               = "${azurerm_resource_group.test.name}"
 server_name                       = "${azurerm_sql_server.test.name}"
 database_name                     = "${azurerm_sql_database.test.name}"
@@ -215,6 +215,7 @@ is_azure_monitor_target_enabled   = true
 storage_account_subscription_id   = "00000000-0000-0000-3333-000000000000"
 
 }
-`, rInt, location, rInt, rInt,rInt)
+`, rInt, location, rInt, rInt, rInt)
 }
+
 //queue_delay_ms                    = 4000

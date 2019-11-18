@@ -6,16 +6,16 @@ import (
 )
 
 type Client struct {
-	DatabasesClient                       *sql.DatabasesClient
-	DatabaseThreatDetectionPoliciesClient *sql.DatabaseThreatDetectionPoliciesClient
-	ElasticPoolsClient                    *sql.ElasticPoolsClient
-	FirewallRulesClient                   *sql.FirewallRulesClient
-	FailoverGroupsClient                  *sql.FailoverGroupsClient
-	ServersClient                         *sql.ServersClient
-	ServerAzureADAdministratorsClient     *sql.ServerAzureADAdministratorsClient
-	VirtualNetworkRulesClient             *sql.VirtualNetworkRulesClient
-	DatabaseBlobAuditingPoliciesClient      *sql.DatabaseBlobAuditingPoliciesClient
-	ExtendedDatabaseBlobAuditingPoliciesClient      *sql.ExtendedDatabaseBlobAuditingPoliciesClient
+	DatabasesClient                            *sql.DatabasesClient
+	DatabaseThreatDetectionPoliciesClient      *sql.DatabaseThreatDetectionPoliciesClient
+	ElasticPoolsClient                         *sql.ElasticPoolsClient
+	FirewallRulesClient                        *sql.FirewallRulesClient
+	FailoverGroupsClient                       *sql.FailoverGroupsClient
+	ServersClient                              *sql.ServersClient
+	ServerAzureADAdministratorsClient          *sql.ServerAzureADAdministratorsClient
+	VirtualNetworkRulesClient                  *sql.VirtualNetworkRulesClient
+	DatabaseBlobAuditingPoliciesClient         *sql.DatabaseBlobAuditingPoliciesClient
+	ExtendedDatabaseBlobAuditingPoliciesClient *sql.ExtendedDatabaseBlobAuditingPoliciesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -51,15 +51,15 @@ func BuildClient(o *common.ClientOptions) *Client {
 	o.ConfigureClient(&ExtendedDatabaseBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		DatabasesClient:                       &DatabasesClient,
-		DatabaseThreatDetectionPoliciesClient: &DatabaseThreatDetectionPoliciesClient,
-		ElasticPoolsClient:                    &ElasticPoolsClient,
-		FailoverGroupsClient:                  &FailoverGroupsClient,
-		FirewallRulesClient:                   &FirewallRulesClient,
-		ServersClient:                         &ServersClient,
-		ServerAzureADAdministratorsClient:     &ServerAzureADAdministratorsClient,
-		VirtualNetworkRulesClient:             &VirtualNetworkRulesClient,
-		DatabaseBlobAuditingPoliciesClient:    &DatabaseBlobAuditingPoliciesClient,
-		ExtendedDatabaseBlobAuditingPoliciesClient:    &ExtendedDatabaseBlobAuditingPoliciesClient,
+		DatabasesClient:                            &DatabasesClient,
+		DatabaseThreatDetectionPoliciesClient:      &DatabaseThreatDetectionPoliciesClient,
+		ElasticPoolsClient:                         &ElasticPoolsClient,
+		FailoverGroupsClient:                       &FailoverGroupsClient,
+		FirewallRulesClient:                        &FirewallRulesClient,
+		ServersClient:                              &ServersClient,
+		ServerAzureADAdministratorsClient:          &ServerAzureADAdministratorsClient,
+		VirtualNetworkRulesClient:                  &VirtualNetworkRulesClient,
+		DatabaseBlobAuditingPoliciesClient:         &DatabaseBlobAuditingPoliciesClient,
+		ExtendedDatabaseBlobAuditingPoliciesClient: &ExtendedDatabaseBlobAuditingPoliciesClient,
 	}
 }

@@ -151,14 +151,13 @@ func resourceArmMSSqlDataBaseBlobAuditingPoliciesCreateUpdate(d *schema.Resource
 	parameters := sql.DatabaseBlobAuditingPolicy{
 		DatabaseBlobAuditingPolicyProperties: &DatabaseBlobAuditingPolicyProperties,
 	}
-	resp, err := client.CreateOrUpdate(ctx, resGroup, serverName, databaseName,parameters)
+	resp, err := client.CreateOrUpdate(ctx, resGroup, serverName, databaseName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error issuing create/update request for SQL Server %q Database %q Blob Auditing Policies(Resource Group %q): %+v", serverName, databaseName,resGroup, err)
+		return fmt.Errorf("Error issuing create/update request for SQL Server %q Database %q Blob Auditing Policies(Resource Group %q): %+v", serverName, databaseName, resGroup, err)
 	}
 
-
 	if resp.ID == nil {
-		return fmt.Errorf("Cannot read SQL Server '%s' Database %q Blob Auditing Policies (resource group %s) ID", serverName, databaseName,resGroup)
+		return fmt.Errorf("Cannot read SQL Server '%s' Database %q Blob Auditing Policies (resource group %s) ID", serverName, databaseName, resGroup)
 	}
 	d.SetId(*resp.ID)
 
@@ -177,7 +176,7 @@ func resourceArmMSSqlDataBaseBlobAuditingPoliciesRead(d *schema.ResourceData, me
 	resGroup := id.ResourceGroup
 	serverName := id.Path["servers"]
 	databaseName := id.Path["databases"]
-	resp, err := client.Get(ctx, resGroup, serverName,databaseName)
+	resp, err := client.Get(ctx, resGroup, serverName, databaseName)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
 			log.Printf("[INFO] Error reading SQL Server %q Database %q Blob Auditing Policies - removing from state", serverName, databaseName)
@@ -185,11 +184,11 @@ func resourceArmMSSqlDataBaseBlobAuditingPoliciesRead(d *schema.ResourceData, me
 			return nil
 		}
 
-		return fmt.Errorf("Error reading SQL Server %s Database %s: %v Blob Auditing Policies", serverName,databaseName, err)
+		return fmt.Errorf("Error reading SQL Server %s Database %s: %v Blob Auditing Policies", serverName, databaseName, err)
 	}
 
 	d.Set("server_name", serverName)
-	d.Set("database_name",databaseName)
+	d.Set("database_name", databaseName)
 	d.Set("resource_group_name", resGroup)
 	if databaseBlobAuditingPolicyProperties := resp.DatabaseBlobAuditingPolicyProperties; databaseBlobAuditingPolicyProperties != nil {
 		d.Set("state", databaseBlobAuditingPolicyProperties.State)
@@ -224,9 +223,9 @@ func resourceArmMSSqlDataBaseBlobAuditingPoliciesDelete(d *schema.ResourceData, 
 			State: sql.BlobAuditingPolicyStateDisabled,
 		},
 	}
-	_, err = client.CreateOrUpdate(ctx, resGroup, serverName,databaseName, parameters)
+	_, err = client.CreateOrUpdate(ctx, resGroup, serverName, databaseName, parameters)
 	if err != nil {
-		return fmt.Errorf("Error deleting SQL Server %s Databse %s Blob Auditing Policies: %+v", serverName,databaseName, err)
+		return fmt.Errorf("Error deleting SQL Server %s Databse %s Blob Auditing Policies: %+v", serverName, databaseName, err)
 	}
 
 	return nil
