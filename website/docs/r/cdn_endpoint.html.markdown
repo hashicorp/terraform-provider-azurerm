@@ -1,4 +1,5 @@
 ---
+subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_endpoint"
 sidebar_current: "docs-azurerm-resource-cdn-endpoint"
@@ -22,23 +23,23 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_cdn_profile" "test" {
+resource "azurerm_cdn_profile" "example" {
   name                = "exampleCdnProfile"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard_Verizon"
 }
 
-resource "azurerm_cdn_endpoint" "test" {
+resource "azurerm_cdn_endpoint" "example" {
   name                = "${random_id.server.hex}"
-  profile_name        = "${azurerm_cdn_profile.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  profile_name        = "${azurerm_cdn_profile.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   origin {
     name      = "exampleCdnOrigin"
@@ -112,5 +113,5 @@ The following attributes are exported:
 CDN Endpoints can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_cdn_endpoint.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1/endpoints/myendpoint1
+terraform import azurerm_cdn_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1/endpoints/myendpoint1
 ```

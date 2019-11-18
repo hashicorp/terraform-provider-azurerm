@@ -1,4 +1,5 @@
 ---
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
@@ -17,15 +18,15 @@ Manages a Managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Servi
 This example provisions a basic Managed Kubernetes Cluster. Other examples of the `azurerm_kubernetes_cluster` resource can be found in [the `./examples/kubernetes` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG1"
   location = "East US"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "example" {
   name                = "acctestaks1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
   dns_prefix          = "acctestagent1"
 
   agent_pool_profile {
@@ -55,11 +56,11 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 output "client_certificate" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config.0.client_certificate}"
+  value = "${azurerm_kubernetes_cluster.example.kube_config.0.client_certificate}"
 }
 
 output "kube_config" {
-  value = "${azurerm_kubernetes_cluster.test.kube_config_raw}"
+  value = "${azurerm_kubernetes_cluster.example.kube_config_raw}"
 }
 ```
 
@@ -251,8 +252,8 @@ A `oms_agent` block supports the following:
 A `kube_dashboard` block supports the following:
 
 * `enabled` - (Required) Is the Kubernetes Dashboard enabled?
----
 
+---
 
 A `azure_policy` block supports the following:
 

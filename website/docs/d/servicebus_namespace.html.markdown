@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
 sidebar_current: "docs-azurerm-datasource-servicebus-namespace"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing ServiceBus Namespac
 ## Example Usage
 
 ```hcl
-data "azurerm_servicebus_namespace" "test" {
+data "azurerm_servicebus_namespace" "example" {
   name                = "examplenamespace"
   resource_group_name = "example-resources"
 }
 
 output "location" {
-  value = "${data.azurerm_servicebus_namespace.test.location}"
+  value = "${data.azurerm_servicebus_namespace.example.location}"
 }
 ```
 

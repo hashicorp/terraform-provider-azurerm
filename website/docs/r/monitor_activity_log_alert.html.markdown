@@ -1,4 +1,5 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_activity_log_alert"
 sidebar_current: "docs-azurerm-resource-monitor-activity-log-alert"
@@ -105,5 +106,5 @@ The following attributes are exported:
 Activity log alerts can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_monitor_activity_log_alert.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/activityLogAlerts/myalertname
+terraform import azurerm_monitor_activity_log_alert.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/microsoft.insights/activityLogAlerts/myalertname
 ```

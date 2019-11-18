@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_container_registry"
 sidebar_current: "docs-azurerm-datasource-container-registry"
@@ -14,13 +15,13 @@ Use this data source to access information about an existing Container Registry.
 ## Example Usage
 
 ```hcl
-data "azurerm_container_registry" "test" {
+data "azurerm_container_registry" "example" {
   name                = "testacr"
   resource_group_name = "test"
 }
 
 output "login_server" {
-  value = "${data.azurerm_container_registry.test.login_server}"
+  value = "${data.azurerm_container_registry.example.login_server}"
 }
 ```
 

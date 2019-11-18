@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_disk"
 sidebar_current: "docs-azurerm-datasource-managed-disk"
@@ -18,37 +19,37 @@ data "azurerm_managed_disk" "datasourcemd" {
   resource_group_name = "acctestRG"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
   location            = "West US 2"
   resource_group_name = "acctestRG"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "acctsub"
   resource_group_name  = "acctestRG"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "test" {
+resource "azurerm_network_interface" "example" {
   name                = "acctni"
   location            = "West US 2"
   resource_group_name = "acctestRG"
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = "${azurerm_subnet.example.id}"
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
+resource "azurerm_virtual_machine" "example" {
   name                  = "acctvm"
   location              = "West US 2"
   resource_group_name   = "acctestRG"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_DS1_v2"
 
   storage_image_reference {

@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_consumer_group"
 sidebar_current: "docs-azurerm-resource-messaging-iothub-consumer-group"
@@ -13,15 +14,15 @@ Manages a Consumer Group within an IotHub
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_iothub" "test" {
+resource "azurerm_iothub" "example" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "S1"
@@ -34,9 +35,9 @@ resource "azurerm_iothub" "test" {
   }
 }
 
-resource "azurerm_iothub_consumer_group" "test" {
+resource "azurerm_iothub_consumer_group" "example" {
   name                   = "terraform"
-  iothub_name            = "${azurerm_iothub.test.name}"
+  iothub_name            = "${azurerm_iothub.example.name}"
   eventhub_endpoint_name = "events"
   resource_group_name    = "${azurerm_resource_group.foo.name}"
 }

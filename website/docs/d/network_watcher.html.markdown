@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher"
 sidebar_current: "docs-azurerm-datasource-network-watcher"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing Network Watcher.
 ## Example Usage
 
 ```hcl
-data "azurerm_network_watcher" "test" {
-  name                = "${azurerm_network_watcher.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+data "azurerm_network_watcher" "example" {
+  name                = "${azurerm_network_watcher.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
 output "network_watcher_id" {
-  value = "${data.azurerm_network_watcher.test.id}"
+  value = "${data.azurerm_network_watcher.example.id}"
 }
 ```
 

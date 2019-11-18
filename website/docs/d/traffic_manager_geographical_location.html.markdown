@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_geographical_location"
 sidebar_current: "docs-azurerm-datasource-traffic-manager-geographical-location"
@@ -14,12 +15,12 @@ Use this data source to access the ID of a specified Traffic Manager Geographica
 ## Example Usage (World)
 
 ```hcl
-data "azurerm_traffic_manager_geographical_location" "test" {
+data "azurerm_traffic_manager_geographical_location" "example" {
   name = "World"
 }
 
 output "location_code" {
-  value = "${data.azurerm_traffic_manager_geographical_location.test.id}"
+  value = "${data.azurerm_traffic_manager_geographical_location.example.id}"
 }
 ```
 

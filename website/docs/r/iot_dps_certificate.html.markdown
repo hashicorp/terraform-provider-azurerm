@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iot_dps_certificate"
 sidebar_current: "docs-azurerm-resource-messaging-iot-dps_certificate"
@@ -20,8 +21,8 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_iot_dps" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "S1"

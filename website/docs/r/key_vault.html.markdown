@@ -1,4 +1,5 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault"
 sidebar_current: "docs-azurerm-resource-key-vault-x"
@@ -15,15 +16,15 @@ Manages a Key Vault.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                        = "testvault"
-  location                    = "${azurerm_resource_group.test.location}"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
+  location                    = "${azurerm_resource_group.example.location}"
+  resource_group_name         = "${azurerm_resource_group.example.name}"
   enabled_for_disk_encryption = true
   tenant_id                   = "d6e396d0-5584-41dc-9fc0-268df99bc610"
 
@@ -136,5 +137,5 @@ The following attributes are exported:
 Key Vault's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/vault1
+terraform import azurerm_key_vault.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/vault1
 ```

@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
 sidebar_current: "docs-azurerm-resource-app-service-plan"
@@ -13,15 +14,15 @@ Manages an App Service Plan component.
 ## Example Usage (Dedicated)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     tier = "Standard"
@@ -33,15 +34,15 @@ resource "azurerm_app_service_plan" "test" {
 ## Example Usage (Shared / Consumption Plan)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   kind                = "FunctionApp"
 
   sku {
@@ -54,15 +55,15 @@ resource "azurerm_app_service_plan" "test" {
 ## Example Usage (Linux)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   kind                = "Linux"
   reserved            = true
 
@@ -76,15 +77,15 @@ resource "azurerm_app_service_plan" "test" {
 ## Example Usage (Windows Container)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "api-appserviceplan-pro"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   kind                = "xenon"
   is_xenon            = true
 

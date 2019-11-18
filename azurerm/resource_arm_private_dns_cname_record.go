@@ -35,10 +35,11 @@ func resourceArmPrivateDnsCNameRecord() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/6641
+				ValidateFunc: validate.LowerCasedString,
 			},
 
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
@@ -176,7 +177,7 @@ func resourceArmPrivateDnsCNameRecordDelete(d *schema.ResourceData, meta interfa
 	name := id.Path["CNAME"]
 	zoneName := id.Path["privateDnsZones"]
 
-	_, err = dnsClient.Get(ctx, resGroup, zoneName, privatedns.CNAME, name)
+	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.CNAME, name, "")
 	if err != nil {
 		return fmt.Errorf("Error deleting Private DNS CNAME Record %s: %+v", name, err)
 	}

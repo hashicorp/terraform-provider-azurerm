@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub"
 sidebar_current: "docs-azurerm-resource-messaging-iothub-x"
@@ -13,30 +14,30 @@ Manages an IotHub
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "teststa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "test" {
+resource "azurerm_storage_container" "example" {
   name                  = "test"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  storage_account_name  = "${azurerm_storage_account.example.name}"
   container_access_type = "private"
 }
 
-resource "azurerm_iothub" "test" {
+resource "azurerm_iothub" "example" {
   name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "S1"
@@ -46,7 +47,7 @@ resource "azurerm_iothub" "test" {
 
   endpoint {
     type                       = "AzureIotHub.StorageContainer"
-    connection_string          = "${azurerm_storage_account.test.primary_blob_connection_string}"
+    connection_string          = "${azurerm_storage_account.example.primary_blob_connection_string}"
     name                       = "export"
     batch_frequency_in_seconds = 60
     max_chunk_size_in_bytes    = 10485760
@@ -68,8 +69,8 @@ resource "azurerm_iothub" "test" {
   }
 
   file_upload {
-    connection_string  = "${azurerm_storage_account.test.primary_blob_connection_string}"
-    container_name     = "${azurerm_storage_container.test.name}"
+    connection_string  = "${azurerm_storage_account.example.primary_blob_connection_string}"
+    container_name     = "${azurerm_storage_container.example.name}"
     sas_ttl            = "PT1H"
     notifications      = true
     lock_duration      = "PT1M"

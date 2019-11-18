@@ -46,6 +46,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
@@ -89,18 +90,6 @@ type ArmClient struct {
 
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	AnalysisServices *analysisservices.Client
-	ApiManagement    *apimanagement.Client
-	AppInsights      *applicationinsights.Client
-	Automation       *automation.Client
-	Authorization    *authorization.Client
-	Batch            *batch.Client
-	Bot              *bot.Client
-	Cdn              *cdn.Client
-	Cognitive        *cognitive.Client
-	Compute          *clients.ComputeClient
-	Containers       *containers.Client
-	Cosmos           *cosmos.Client
 	DataBricks       *databricks.Client
 	DataFactory      *datafactory.Client
 	Datalake         *datalake.Client
@@ -126,6 +115,7 @@ type ArmClient struct {
 	Msi              *msi.Client
 	Mssql            *mssql.Client
 	Mysql            *mysql.Client
+	Netapp           *netapp.Client
 	Network          *network.Client
 	NotificationHubs *notificationhub.Client
 	Policy           *policy.Client
@@ -262,6 +252,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Msi = msi.BuildClient(o)
 	client.Mysql = mysql.BuildClient(o)
 	client.ManagementGroups = managementgroup.BuildClient(o)
+	client.Netapp = netapp.BuildClient(o)
 	client.Network = network.BuildClient(o)
 	client.NotificationHubs = notificationhub.BuildClient(o)
 	client.Policy = policy.BuildClient(o)

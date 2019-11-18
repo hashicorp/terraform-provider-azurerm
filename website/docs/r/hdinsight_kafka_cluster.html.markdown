@@ -1,4 +1,5 @@
 ---
+subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_kafka_cluster"
 sidebar_current: "docs-azurerm-resource-hdinsight-kafka-cluster"
@@ -37,11 +38,11 @@ resource "azurerm_hdinsight_kafka_cluster" "example" {
   name                = "example-hdicluster"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    kafka = "2.3"
+    kafka = "2.1"
   }
 
   gateway {
@@ -229,5 +230,5 @@ The following attributes are exported:
 HDInsight Kafka Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_kafka_cluster.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_kafka_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
 ```

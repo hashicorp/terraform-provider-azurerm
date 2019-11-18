@@ -1,4 +1,5 @@
 ---
+subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_user_assigned_identity"
 sidebar_current: "docs-azurerm-resource-authorization-user-assigned-identity"
@@ -13,14 +14,14 @@ Manages a user assigned identity.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "eastus"
 }
 
-resource "azurerm_user_assigned_identity" "testIdentity" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+resource "azurerm_user_assigned_identity" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   name = "search-api"
 }
@@ -56,5 +57,5 @@ The following attributes are exported:
 User Assigned Identities can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_user_assigned_identity.testIdentity /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/acceptanceTestResourceGroup1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/testIdentity
+terraform import azurerm_user_assigned_identity.exampleIdentity /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/acceptanceTestResourceGroup1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/testIdentity
 ```

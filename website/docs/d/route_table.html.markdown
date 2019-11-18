@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_route_table"
 sidebar_current: "docs-azurerm-data-source-route-table"
@@ -14,7 +15,7 @@ Use this data source to access information about an existing Route Table.
 ## Example Usage
 
 ```hcl
-data "azurerm_route_table" "test" {
+data "azurerm_route_table" "example" {
   name                = "myroutetable"
   resource_group_name = "some-resource-group"
 }

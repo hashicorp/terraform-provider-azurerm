@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub"
 sidebar_current: "docs-azurerm-datasource-notification-hub-x"
@@ -13,14 +14,14 @@ Use this data source to access information about an existing Notification Hub wi
 ## Example Usage
 
 ```hcl
-data "azurerm_notification_hub" "test" {
+data "azurerm_notification_hub" "example" {
   name                = "notification-hub"
   namespace_name      = "namespace-name"
   resource_group_name = "resource-group-name"
 }
 
 output "id" {
-  value = "${data.azurerm_notification_hub.test.id}"
+  value = "${data.azurerm_notification_hub.example.id}"
 }
 ```
 

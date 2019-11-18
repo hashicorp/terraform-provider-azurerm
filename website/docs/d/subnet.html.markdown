@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet"
 sidebar_current: "docs-azurerm-datasource-subnet"
@@ -13,14 +14,14 @@ Use this data source to access information about an existing Subnet within a Vir
 ## Example Usage
 
 ```hcl
-data "azurerm_subnet" "test" {
+data "azurerm_subnet" "example" {
   name                 = "backend"
   virtual_network_name = "production"
   resource_group_name  = "networking"
 }
 
 output "subnet_id" {
-  value = "${data.azurerm_subnet.test.id}"
+  value = "${data.azurerm_subnet.example.id}"
 }
 ```
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_slot"
 sidebar_current: "docs-azurerm-resource-app-service-slot"
@@ -25,15 +26,15 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "some-resource-group"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     tier = "Standard"
@@ -41,11 +42,11 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_app_service" "test" {
+resource "azurerm_app_service" "example" {
   name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
 
   site_config {
     dotnet_framework_version = "v4.0"
@@ -62,12 +63,12 @@ resource "azurerm_app_service" "test" {
   }
 }
 
-resource "azurerm_app_service_slot" "test" {
+resource "azurerm_app_service_slot" "example" {
   name                = "${random_id.server.hex}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
 
   site_config {
     dotnet_framework_version = "v4.0"
@@ -96,15 +97,15 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "some-resource-group"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     tier = "Standard"
@@ -112,11 +113,11 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_app_service" "test" {
+resource "azurerm_app_service" "example" {
   name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
 
   site_config {
     java_version           = "1.8"
@@ -125,12 +126,12 @@ resource "azurerm_app_service" "test" {
   }
 }
 
-resource "azurerm_app_service_slot" "test" {
+resource "azurerm_app_service_slot" "example" {
   name                = "${random_id.server.hex}"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  app_service_name    = "${azurerm_app_service.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
 
   site_config {
     java_version           = "1.8"
@@ -202,7 +203,7 @@ The following arguments are supported:
 
 * `java_container_version` - (Optional) The version of the Java Container to use. If specified `java_version` and `java_container` must also be specified.
 
-* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11`.
+* `java_version` - (Optional) The version of Java to use. If specified `java_container` and `java_container_version` must also be specified. Possible values are `1.7`, `1.8` and `11` and their specific versions - except for Java 11 (e.g. `1.7.0_80`, `1.8.0_181`, `11`)
 
 * `local_mysql_enabled` - (Optional) Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 

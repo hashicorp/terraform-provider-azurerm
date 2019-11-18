@@ -85,7 +85,7 @@ Prior to version 2.0 the Azure Provider has a default value set for resource tim
 This is useful for resources which can take a long time to delete - for example deleting the `azurerm_resource_group` resource will delete any resources within it, which can take time. Within Terraform your Terraform Configuration this could be represented like so:
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resource-group"
   location = "West Europe"
 
@@ -201,6 +201,10 @@ The fields in the `properties` block (`app_service_environment_id`, `reserved` a
 The deprecated `fqdn_list` field in the `backend_address_pool` block will be removed in favour of the `fqdns` field, which is available from v1.22 of the AzureRM Provider.
 
 The deprecated `ip_address_list` field in the `backend_address_pool` block will be removed in favour of the `ip_addresses` field, which is available from v1.22 of the AzureRM Provider.
+
+### Resource: `azurerm_automation_credential`
+
+The deprecated `account_name` field will be removed. This has been deprecated in favour of the `automation_account_name` field.
 
 ### Resource: `azurerm_automation_schedule`
 

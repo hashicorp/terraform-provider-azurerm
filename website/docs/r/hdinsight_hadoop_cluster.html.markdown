@@ -1,4 +1,5 @@
 ---
+subcategory: "HDInsight"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_hdinsight_hadoop_cluster"
 sidebar_current: "docs-azurerm-resource-hdinsight-hadoop-cluster"
@@ -153,6 +154,8 @@ A `roles` block supports the following:
 
 * `zookeeper_node` - (Required) A `zookeeper_node` block as defined below.
 
+* `edge_node` - (Optional) A `edge_node` block as defined below.
+
 ---
 
 A `storage_account` block supports the following:
@@ -211,6 +214,22 @@ A `zookeeper_node` block supports the following:
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
+---
+
+A `edge_node` block supports the following:
+
+* `vm_size` - (Required) The Size of the Virtual Machine which should be used as the Edge Nodes. Changing this forces a new resource to be created.
+
+* `install_script_action` - A `install_script_action` block as defined below.
+
+---
+
+A `install_script_action` block supports the following:
+
+* `name` - (Required) The name of the install script action. Changing this forces a new resource to be created.
+
+* `uri` - (Required) The URI pointing to the script to run during the installation of the edge node. Changing this forces a new resource to be created.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -226,5 +245,5 @@ The following attributes are exported:
 HDInsight Hadoop Clusters can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_hdinsight_hadoop_cluster.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
+terraform import azurerm_hdinsight_hadoop_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.HDInsight/clusters/cluster1}
 ```

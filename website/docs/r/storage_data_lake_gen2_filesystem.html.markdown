@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_data_lake_gen2_filesystem"
 sidebar_current: "docs-azurerm-resource-storage-data-lake-gen2-filesystem"
@@ -15,24 +16,24 @@ Manages a Data Lake Gen2 File System within an Azure Storage Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "examplestorageacc"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
   is_hns_enabled           = "true"
 }
 
-resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
   name               = "example"
-  storage_account_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.example.id
 
   properties = {
     hello = "aGVsbG8="
