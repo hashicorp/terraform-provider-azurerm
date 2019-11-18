@@ -47,6 +47,7 @@ BUG FIXES:
 * `azurerm_lb_probe` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_lb_rule` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_network_interface` - exporting the IP Address for Dynamic Network Interfaces [GH-4852]
+* `azurerm_postgresql_database` - allowing dashes in the name [GH-4866]
 * `azurerm_private_dns_cname_record` - fixing a bug where calling `Delete` didn't delete the CName record [GH-4804]
 * `azurerm_storage_account` - fixing an error where Advanced Threat Protection is unavailable in Azure Germany [GH-4746]
 * `azurerm_virtual_network_gateway_connection` - Configure `routing_weight` with weight `0` [GH-4849]
