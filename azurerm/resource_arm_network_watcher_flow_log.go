@@ -173,6 +173,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	statusParameters := network.FlowLogStatusParameters{
 		TargetResourceID: &networkSecurityGroupID,
 	}
+
 	future, err := client.GetFlowLogStatus(ctx, resourceGroupName, networkWatcherName, statusParameters)
 	if err != nil {
 		if !response.WasNotFound(future.Response()) {

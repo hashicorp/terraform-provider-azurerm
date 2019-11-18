@@ -35,6 +35,11 @@ func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
 		},
 	})
 }
@@ -63,6 +68,11 @@ func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -94,6 +104,11 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
@@ -106,6 +121,11 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "0"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -137,6 +157,11 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
@@ -149,6 +174,11 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -181,6 +211,11 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, rsNew, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
@@ -193,6 +228,11 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
@@ -224,6 +264,11 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(ri, rs, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
@@ -235,11 +280,6 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
-					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "traffic_analytics.0.enabled", "false"),
-					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_id"),
-					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_region"),
-					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_resource_id"),
 				),
 			},
 			{
@@ -260,6 +300,11 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_region"),
 					resource.TestCheckResourceAttrSet(resourceName, "traffic_analytics.0.workspace_resource_id"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})
