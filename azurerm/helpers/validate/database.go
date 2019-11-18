@@ -12,10 +12,10 @@ func DatabaseCollation(i interface{}, k string) (warnings []string, errors []err
 		return
 	}
 
-	matched, _ := regexp.MatchString(`^[A-Za-z0-9_. ]+$`, v)
+	matched, _ := regexp.MatchString(`^[-A-Za-z0-9_. ]+$`, v)
 
 	if !matched {
-		errors = append(errors, fmt.Errorf("%s contains invalid characters, only underscores are supported, got %s", k, v))
+		errors = append(errors, fmt.Errorf("%s contains invalid characters, only alphanumeric, underscore, space or hyphen characters are supported, got %s", k, v))
 		return
 	}
 
