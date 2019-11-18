@@ -155,7 +155,6 @@ func TestAccAzureRMKeyVaultSecret_complete(t *testing.T) {
 					testCheckAzureRMKeyVaultSecretExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "not_before_date", "2019-01-01T01:02:03Z"),
 					resource.TestCheckResourceAttr(resourceName, "expiration_date", "2020-01-01T01:02:03Z"),
-					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.hello", "world"),
 				),

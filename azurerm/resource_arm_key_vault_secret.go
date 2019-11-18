@@ -334,12 +334,14 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 
-	if v := resp.Attributes.NotBefore; v != nil {
-		d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
-	}
+	if attributes := resp.Attributes; attributes != nil {
+		if v := attributes.NotBefore; v != nil {
+			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+		}
 
-	if v := resp.Attributes.Expires; v != nil {
-		d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+		if v := attributes.Expires; v != nil {
+			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
