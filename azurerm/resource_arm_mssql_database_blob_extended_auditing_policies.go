@@ -94,10 +94,6 @@ func resourceArmMSSqlDatabaseBlobExtendedAuditingPolicies() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"queue_delay_ms": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
 			"predicate_expression": {
 				Type:     schema.TypeString,
 				Optional: true,

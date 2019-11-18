@@ -94,10 +94,6 @@ func resourceArmMSSqlDatabaseBlobAuditingPolicies() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
-			"queue_delay_ms": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
 		},
 	}
 }
@@ -198,7 +194,6 @@ func resourceArmMSSqlDataBaseBlobAuditingPoliciesRead(d *schema.ResourceData, me
 		d.Set("retention_days", databaseBlobAuditingPolicyProperties.RetentionDays)
 		d.Set("storage_account_subscription_id", databaseBlobAuditingPolicyProperties.StorageAccountSubscriptionID.String())
 		d.Set("storage_endpoint", databaseBlobAuditingPolicyProperties.StorageEndpoint)
-		//d.Set("storage_endpoint", databaseBlobAuditingPolicyProperties.QueueDelayMs)
 	}
 
 	return nil

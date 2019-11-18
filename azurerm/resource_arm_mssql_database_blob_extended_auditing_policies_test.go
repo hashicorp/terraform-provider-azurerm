@@ -57,7 +57,6 @@ func TestAccAzureRMMsSqlDatabaseBlobExtendedAuditingPolicies_complete(t *testing
 					resource.TestCheckResourceAttr(resourceName, "audit_actions_and_groups", "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP,FAILED_DATABASE_AUTHENTICATION_GROUP"),
 					resource.TestCheckResourceAttr(resourceName, "is_azure_monitor_target_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "storage_account_subscription_id", "00000000-0000-0000-3333-000000000000"),
-					//resource.TestCheckResourceAttr(resourceName, "queue_delay_ms", "4000"),
 				),
 			},
 			{
@@ -218,4 +217,3 @@ storage_account_subscription_id   = "00000000-0000-0000-3333-000000000000"
 `, rInt, location, rInt, rInt, rInt)
 }
 
-//queue_delay_ms                    = 4000
