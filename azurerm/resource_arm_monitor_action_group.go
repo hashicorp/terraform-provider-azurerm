@@ -312,7 +312,7 @@ func resourceArmMonitorActionGroup() *schema.Resource {
 
 			"arm_role_receiver": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
