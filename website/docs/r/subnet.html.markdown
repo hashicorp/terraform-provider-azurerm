@@ -104,7 +104,6 @@ The following attributes are exported:
 * `virtual_network_name` - The name of the virtual network in which the subnet is created in
 * `address_prefix` - The address prefix for the subnet
 
-
 ## Import
 
 Subnets can be imported using the `resource id`, e.g.
