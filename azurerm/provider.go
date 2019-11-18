@@ -745,7 +745,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
+					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If not other possible consider using the skip_provider_registration option https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration: %s", err)
 				}
 			}
 		}
