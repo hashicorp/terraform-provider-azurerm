@@ -8,6 +8,10 @@ func TestDatabaseCollation(t *testing.T) {
 		Errors int
 	}{
 		{
+			Value:  "en@US",
+			Errors: 1,
+		},
+		{
 			Value:  "en-US",
 			Errors: 0,
 		},
