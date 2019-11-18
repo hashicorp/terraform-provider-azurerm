@@ -349,6 +349,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_monitor_metric_alert":                               resourceArmMonitorMetricAlert(),
 		"azurerm_monitor_metric_alertrule":                           resourceArmMonitorMetricAlertRule(),
 		"azurerm_mssql_elasticpool":                                  resourceArmMsSqlElasticPool(),
+		"azurerm_mssql_database_blob_auditing_policies":              resourceArmMSSqlDatabaseBlobAuditingPolicies(),
+		//"azurerm_mssql_database_blob_extended_auditing_policies":     resourceArmMSSqlDatabaseBlobExtendedAuditingPolicies(),
 		"azurerm_mysql_configuration":                                resourceArmMySQLConfiguration(),
 		"azurerm_mysql_database":                                     resourceArmMySqlDatabase(),
 		"azurerm_mysql_firewall_rule":                                resourceArmMySqlFirewallRule(),

@@ -57,6 +57,7 @@ func TestAccAzureRMMSSqlDatabaseBlobAuditingPolicies_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "audit_actions_and_groups", "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP,FAILED_DATABASE_AUTHENTICATION_GROUP"),
 					resource.TestCheckResourceAttr(resourceName, "is_azure_monitor_target_enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "storage_account_subscription_id", "00000000-0000-0000-3333-000000000000"),
+					//resource.TestCheckResourceAttr(resourceName, "queue_delay_ms", "4000"),
 				),
 			},
 			{
@@ -109,7 +110,7 @@ func testCheckAzureRMMSSqlDatabaseBlobAuditingPoliciesExists(resourceName string
 
 		sqlServerName := rs.Primary.Attributes["server_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
-		databaseName := rs.Primary.Attributes["databases"]
+		databaseName := rs.Primary.Attributes["database_name"]
 		if !hasResourceGroup {
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s Blob Auditing Policies", sqlServerName)
 		}
@@ -121,7 +122,7 @@ func testCheckAzureRMMSSqlDatabaseBlobAuditingPoliciesExists(resourceName string
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: SQL Server %s Database %s Blob Auditing Policies(resource group: %s) does not exist", sqlServerName, databaseName,resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get SQL ServerDatabase %s Blob Auditing Policies: %v ",databaseName,err)
+			return fmt.Errorf("Bad: Get SQL Server %s Database %s Blob Auditing Policies: %v ",sqlServerName,databaseName,err)
 		}
 		return nil
 	}
@@ -142,12 +143,14 @@ resource "azurerm_sql_server" "test" {
  administrator_login_password = "thisIsDog11"
 }
 resource "azurerm_sql_database" "test" {
- name                         = "acctestsqlserver%d"
- resource_group_name          = "${azurerm_resource_group.test.name}"
- location                     = "${azurerm_resource_group.test.location}"
- version                      = "12.0"
- administrator_login          = "mradministrator"
- administrator_login_password = "thisIsDog11"
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
 }
 resource "azurerm_storage_account" "test" {
  name                     = "accstr%d"
@@ -156,14 +159,15 @@ resource "azurerm_storage_account" "test" {
  account_tier             = "Standard"
  account_replication_type = "GRS"
 }
-resource "azurerm_mssql_server_blob_auditing_policies" "test"{
+resource "azurerm_mssql_database_blob_auditing_policies" "test"{
 resource_group_name           = "${azurerm_resource_group.test.name}"
 server_name                   = "${azurerm_sql_server.test.name}"
+database_name                 = "${azurerm_sql_database.test.name}"
 state                         = "Enabled"
 storage_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
 storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt,rInt)
 }
 
 func testAccAzureRMMSSqlDatabaseBlobAuditingPolicies_complete(rInt int, location string) string {
@@ -180,6 +184,16 @@ resource "azurerm_sql_server" "test" {
  administrator_login          = "mradministrator"
  administrator_login_password = "thisIsDog11"
 }
+resource "azurerm_sql_database" "test" {
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
+}
 resource "azurerm_storage_account" "test" {
  name                     = "accstr%d"
  resource_group_name      = "${azurerm_resource_group.test.name}"
@@ -187,9 +201,10 @@ resource "azurerm_storage_account" "test" {
  account_tier             = "Standard"
  account_replication_type = "GRS"
 }
-resource "azurerm_mssql_server_blob_auditing_policies" "test"{
+resource "azurerm_mssql_database_blob_auditing_policies" "test"{
 resource_group_name               = "${azurerm_resource_group.test.name}"
 server_name                       = "${azurerm_sql_server.test.name}"
+database_name                     = "${azurerm_sql_database.test.name}"
 state                             = "Enabled"
 storage_endpoint                  = "${azurerm_storage_account.test.primary_blob_endpoint}"
 storage_account_access_key        = "${azurerm_storage_account.test.primary_access_key}"
@@ -198,6 +213,8 @@ is_storage_secondary_key_in_use   = true
 audit_actions_and_groups          = "SUCCESSFUL_DATABASE_AUTHENTICATION_GROUP,FAILED_DATABASE_AUTHENTICATION_GROUP"
 is_azure_monitor_target_enabled   = true
 storage_account_subscription_id   = "00000000-0000-0000-3333-000000000000"
+
 }
-`, rInt, location, rInt, rInt)
+`, rInt, location, rInt, rInt,rInt)
 }
+//queue_delay_ms                    = 4000
