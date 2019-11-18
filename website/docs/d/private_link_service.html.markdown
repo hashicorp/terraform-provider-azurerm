@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the private link service.
 
-* `resource_group_name` - (Required) The name of the resource group in which the private link service resides. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) The name of the resource group in which the private link service resides.
 
 
 ## Attributes Reference
