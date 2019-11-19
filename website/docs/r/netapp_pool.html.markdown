@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
-* `size_in_4_tb` - (Required) Provisioned size of the pool (in bytes). Allowed values are in 4TiB chunks (value must be multiply of `4398046511104`).
+* `size_in_4_tb` - (Required) Provisioned size of the pool (in bytes). Values are in 4TiB chunks.
 
 ---
 
