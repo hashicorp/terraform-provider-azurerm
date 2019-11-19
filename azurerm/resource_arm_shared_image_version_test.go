@@ -136,7 +136,7 @@ func TestAccAzureRMSharedImageVersion_storageAccountTypeZrs(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "target_region.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "target_region.0.storage_account_type", "Standard_ZRS"),
 				),
-			},			
+			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
