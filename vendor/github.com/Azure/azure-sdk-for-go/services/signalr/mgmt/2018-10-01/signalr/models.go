@@ -30,6 +30,21 @@ import (
 // The package's fully qualified name.
 const fqdn = "github.com/Azure/azure-sdk-for-go/services/signalr/mgmt/2018-10-01/signalr"
 
+// FeatureFlags enumerates the values for feature flags.
+type FeatureFlags string
+
+const (
+	// EnableConnectivityLogs ...
+	EnableConnectivityLogs FeatureFlags = "EnableConnectivityLogs"
+	// ServiceMode ...
+	ServiceMode FeatureFlags = "ServiceMode"
+)
+
+// PossibleFeatureFlagsValues returns an array of possible values for the FeatureFlags const type.
+func PossibleFeatureFlagsValues() []FeatureFlags {
+	return []FeatureFlags{EnableConnectivityLogs, ServiceMode}
+}
+
 // KeyType enumerates the values for key type.
 type KeyType string
 
@@ -211,10 +226,31 @@ type Dimension struct {
 	ToBeExportedForShoebox *bool `json:"toBeExportedForShoebox,omitempty"`
 }
 
+// ErrorResponse contains information about an API error.
+type ErrorResponse struct {
+	// Error - Describes a particular API error with an error code and a message.
+	Error *ErrorResponseBody `json:"error,omitempty"`
+}
+
+// ErrorResponseBody describes a particular API error with an error code and a message.
+type ErrorResponseBody struct {
+	// Code - An error code that describes the error condition more precisely than an HTTP status code.
+	// Can be used to programmatically handle specific error cases.
+	Code *string `json:"code,omitempty"`
+	// Message - A message that describes the error in detail and provides debugging information.
+	Message *string `json:"message,omitempty"`
+	// Target - The target of the particular error (for example, the name of the property in error).
+	Target *string `json:"target,omitempty"`
+	// Details - Contains nested errors that are related to this error.
+	Details *[]ErrorResponseBody `json:"details,omitempty"`
+}
+
 // Feature feature of a SignalR resource, which controls the SignalR runtime behavior.
 type Feature struct {
-	// Flag - Kind of feature. Required.
-	Flag *string `json:"flag,omitempty"`
+	// Flag - FeatureFlags is the supported features of Azure SignalR service.
+	// - ServiceMode: Flag for backend server for SignalR service. Values allowed: "Default": have your own backend server; "Serverless": your application doesn't have a backend server; "Classic": for backward compatibility. Support both Default and Serverless mode but not recommended; "PredefinedOnly": for future use.
+	// - EnableConnectivityLogs: "true"/"false", to enable/disable the connectivity log category respectively. Possible values include: 'ServiceMode', 'EnableConnectivityLogs'
+	Flag FeatureFlags `json:"flag,omitempty"`
 	// Value - Value of the feature flag. See Azure SignalR service document https://docs.microsoft.com/en-us/azure/azure-signalr/ for allowed values.
 	Value *string `json:"value,omitempty"`
 	// Properties - Optional properties related to this feature.
@@ -224,7 +260,7 @@ type Feature struct {
 // MarshalJSON is the custom marshaler for Feature.
 func (f Feature) MarshalJSON() ([]byte, error) {
 	objectMap := make(map[string]interface{})
-	if f.Flag != nil {
+	if f.Flag != "" {
 		objectMap["flag"] = f.Flag
 	}
 	if f.Value != nil {
@@ -247,6 +283,14 @@ type Keys struct {
 	PrimaryConnectionString *string `json:"primaryConnectionString,omitempty"`
 	// SecondaryConnectionString - SignalR connection string constructed via the secondaryKey
 	SecondaryConnectionString *string `json:"secondaryConnectionString,omitempty"`
+}
+
+// LogSpecification specifications of the Logs for Azure Monitoring.
+type LogSpecification struct {
+	// Name - Name of the log.
+	Name *string `json:"name,omitempty"`
+	// DisplayName - Localized friendly display name of the log.
+	DisplayName *string `json:"displayName,omitempty"`
 }
 
 // MetricSpecification specifications of the Metrics for Azure Monitoring.
@@ -852,6 +896,8 @@ func (future *RestartFuture) Result(client Client) (ar autorest.Response, err er
 type ServiceSpecification struct {
 	// MetricSpecifications - Specifications of the Metrics for Azure Monitoring.
 	MetricSpecifications *[]MetricSpecification `json:"metricSpecifications,omitempty"`
+	// LogSpecifications - Specifications of the Logs for Azure Monitoring.
+	LogSpecifications *[]LogSpecification `json:"logSpecifications,omitempty"`
 }
 
 // TrackedResource the resource model definition for a ARM tracked top level resource.
