@@ -151,19 +151,13 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
-		notBeforeDate, err := time.Parse(time.RFC3339, v.(string))
-		if err != nil {
-			return fmt.Errorf("error parsing `not_before_date` time: %s", err)
-		}
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
 		notBeforeUnixTime := date.UnixTime(notBeforeDate)
 		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
-		expirationDate, err := time.Parse(time.RFC3339, v.(string))
-		if err != nil {
-			return fmt.Errorf("error parsing `expiration_date` time: %s", err)
-		}
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
 		expirationUnixTime := date.UnixTime(expirationDate)
 		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
@@ -223,19 +217,13 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 	secretAttributes := &keyvault.SecretAttributes{}
 
 	if v, ok := d.GetOk("not_before_date"); ok {
-		notBeforeDate, err := time.Parse(time.RFC3339, v.(string))
-		if err != nil {
-			return fmt.Errorf("error parsing `not_before_date` time: %s", err)
-		}
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
 		notBeforeUnixTime := date.UnixTime(notBeforeDate)
 		secretAttributes.NotBefore = &notBeforeUnixTime
 	}
 
 	if v, ok := d.GetOk("expiration_date"); ok {
-		expirationDate, err := time.Parse(time.RFC3339, v.(string))
-		if err != nil {
-			return fmt.Errorf("error parsing `expiration_date` time: %s", err)
-		}
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
 		expirationUnixTime := date.UnixTime(expirationDate)
 		secretAttributes.Expires = &expirationUnixTime
 	}
