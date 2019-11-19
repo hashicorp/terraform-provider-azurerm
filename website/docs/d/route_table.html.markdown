@@ -15,7 +15,7 @@ Use this data source to access information about an existing Route Table.
 ## Example Usage
 
 ```hcl
-data "azurerm_route_table" "test" {
+data "azurerm_route_table" "example" {
   name                = "myroutetable"
   resource_group_name = "some-resource-group"
 }

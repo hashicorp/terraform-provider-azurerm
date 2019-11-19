@@ -14,7 +14,7 @@ Use this data source to access information about an existing Snapshot.
 ## Example Usage
 
 ```hcl
-data "azurerm_snapshot" "test" {
+data "azurerm_snapshot" "example" {
   name                = "my-snapshot"
   resource_group_name = "my-resource-group"
 }

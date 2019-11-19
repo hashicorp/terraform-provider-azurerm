@@ -89,5 +89,5 @@ The following attributes are exported:
 Healthcare Service can be imported using the resource`id`, e.g.
 
 ```shell
-terraform import azurerm_healthcare_service.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group/providers/Microsoft.HealthcareApis/services/service_name
+terraform import azurerm_healthcare_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource_group/providers/Microsoft.HealthcareApis/services/service_name
 ```

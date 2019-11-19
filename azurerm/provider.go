@@ -107,6 +107,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_monitor_diagnostic_categories":           dataSourceArmMonitorDiagnosticCategories(),
 		"azurerm_monitor_log_profile":                     dataSourceArmMonitorLogProfile(),
 		"azurerm_mssql_elasticpool":                       dataSourceArmMsSqlElasticpool(),
+		"azurerm_netapp_account":                          dataSourceArmNetAppAccount(),
+		"azurerm_netapp_pool":                             dataSourceArmNetAppPool(),
 		"azurerm_network_ddos_protection_plan":            dataSourceNetworkDDoSProtectionPlan(),
 		"azurerm_network_interface":                       dataSourceArmNetworkInterface(),
 		"azurerm_network_security_group":                  dataSourceArmNetworkSecurityGroup(),
@@ -300,6 +302,10 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iot_dps_certificate":                                resourceArmIotDPSCertificate(),
 		"azurerm_iothub_consumer_group":                              resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                             resourceArmIotHub(),
+		"azurerm_iothub_endpoint_eventhub":                           resourceArmIotHubEndpointEventHub(),
+		"azurerm_iothub_endpoint_servicebus_queue":                   resourceArmIotHubEndpointServiceBusQueue(),
+		"azurerm_iothub_endpoint_servicebus_topic":                   resourceArmIotHubEndpointServiceBusTopic(),
+		"azurerm_iothub_endpoint_storage_container":                  resourceArmIotHubEndpointStorageContainer(),
 		"azurerm_iothub_shared_access_policy":                        resourceArmIotHubSharedAccessPolicy(),
 		"azurerm_key_vault_access_policy":                            resourceArmKeyVaultAccessPolicy(),
 		"azurerm_key_vault_certificate":                              resourceArmKeyVaultCertificate(),
@@ -365,6 +371,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),
 		"azurerm_network_security_rule":                                                  resourceArmNetworkSecurityRule(),
 		"azurerm_network_watcher":                                                        resourceArmNetworkWatcher(),
+		"azurerm_netapp_account":                                                         resourceArmNetAppAccount(),
+		"azurerm_netapp_pool":                                                            resourceArmNetAppPool(),
 		"azurerm_notification_hub_authorization_rule":                                    resourceArmNotificationHubAuthorizationRule(),
 		"azurerm_notification_hub_namespace":                                             resourceArmNotificationHubNamespace(),
 		"azurerm_notification_hub":                                                       resourceArmNotificationHub(),
@@ -382,6 +390,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_aaaa_record":                                                resourceArmPrivateDnsAaaaRecord(),
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
 		"azurerm_private_dns_ptr_record":                                                 resourceArmPrivateDnsPtrRecord(),
+		"azurerm_private_dns_srv_record":                                                 resourceArmPrivateDnsSrvRecord(),
 		"azurerm_private_dns_zone_virtual_network_link":                                  resourceArmPrivateDnsZoneVirtualNetworkLink(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -742,7 +751,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
+					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If you do not have permissions to register resource providers you may want to use the skip_provider_registration flag, however this may cause additional errors if unregistered APIs are called that look something like `API version 2017-07-07 was not found for Microsoft.Foo`. Please see https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration for more details: %s", err)
 				}
 			}
 		}

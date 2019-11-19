@@ -15,13 +15,13 @@ Use this data source to access information about an existing Data Lake Store.
 ## Example Usage
 
 ```hcl
-data "azurerm_data_lake_store" "test" {
+data "azurerm_data_lake_store" "example" {
   name                = "testdatalake"
   resource_group_name = "testdatalake"
 }
 
 output "data_lake_store_id" {
-  value = "${data.azurerm_data_lake_store.test.id}"
+  value = "${data.azurerm_data_lake_store.example.id}"
 }
 ```
 

@@ -15,7 +15,7 @@ Use this data source to access information about an existing Version of a Shared
 ## Example Usage
 
 ```hcl
-data "azurerm_shared_image_version" "test" {
+data "azurerm_shared_image_version" "example" {
   name                = "1.0.0"
   image_name          = "my-image"
   gallery_name        = "my-image-gallery"
