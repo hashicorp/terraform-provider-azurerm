@@ -39,7 +39,7 @@ func TestAccDataSourceArmStorageAccountSas_basic(t *testing.T) {
 func testAccDataSourceAzureRMStorageAccountSas_basic(rInt int, rString string, location string, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestsa-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
