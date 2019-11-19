@@ -745,7 +745,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If the access method does not have permissions to register resource providers you may want to use the skip_provider_registration flag. Please see https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration for more details: %s", err)
+					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If you do not have permissions to register resource providers you may want to use the skip_provider_registration flag, however this may cause addtional errors if unregistered APIs are called that look something like `API version 2017-07-07 was not found for Microsoft.Foo`. Please see https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration for more details: %s", err)
 				}
 			}
 		}
