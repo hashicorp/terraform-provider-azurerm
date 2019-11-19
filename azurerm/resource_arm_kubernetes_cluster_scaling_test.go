@@ -38,6 +38,35 @@ func TestAccAzureRMKubernetesCluster_addAgent(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMKubernetesCluster_removeAgent(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_addAgent(ri, clientId, clientSecret, location, 2),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "2"),
+				),
+			},
+			{
+				Config: testAccAzureRMKubernetesCluster_addAgent(ri, clientId, clientSecret, location, 1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_count", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMKubernetesCluster_autoScalingNodeCountUnset(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
