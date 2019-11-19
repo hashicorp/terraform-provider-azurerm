@@ -36,6 +36,7 @@ IMPROVEMENTS:
 * `azurerm_firewall` - allow multiple `ip_configuration` blocks [GH-4639]
 * `azurerm_firewall_application_rule_collection` - support for the protocol type `Mssql` [GH-4596]
 * `azurerm_hdinsight_hadoop_cluster` - Added edge node support [GH-4550]
+* `azurerm_key_vault_secret` - support for `not_before_date` and `expiration_date` [GH-4873]
 * `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
 * `azurerm_monitor_action_group` - support for `arm_role_receiver`, `automation_runbook_receiver`, `azure_app_push_receiver`, `azure_function_receiver`, `itsm_receiver`, `logic_app_receiver` and `voice_receiver` [GH-4638]
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
