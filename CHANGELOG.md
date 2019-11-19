@@ -19,7 +19,7 @@ IMPROVEMENTS:
 
 * 2.0 prep: refresh functions now use custom timeouts when custom timeouts are enabled [GH-4838]
 * authentication: requesting a fresh token from the Azure CLI when the existing one expires [GH-4775]
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v35.0.0` [GH-4775]
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v36.3.0` [GH-4913]
 * dependencies: updating `github.com/Azure/go-autorest` to `v0.9.2` [GH-4775]
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.10.0` [GH-4775]
 * networking: updating to API version `2019-07-01` [GH-4596]
