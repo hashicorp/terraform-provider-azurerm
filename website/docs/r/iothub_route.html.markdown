@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_iothub_route"
 sidebar_current: "docs-azurerm-resource-messaging-iothub-route-x"
@@ -51,7 +52,7 @@ resource "azurerm_iothub" "example" {
   }
 }
 
-resource "azurerm_iothub_route" "example" {
+resource "azurerm_iothub_endpoint_storage_container" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
   name                = "example"
@@ -87,13 +88,13 @@ The following arguments are supported:
 
 * `iothub_name` - (Required) The name of the IoTHub to which this Route belongs. Changing this forces a new resource to be created.
 
-* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
+* `source` - (Required) The source that the routing rule is to be applied to. Possible values include: `DeviceJobLifecycleEvents`, `DeviceLifecycleEvents`, `DeviceMessages`, `Invalid`, `TwinChangeEvents`.
 
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
 
-* `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed.
+* `endpoint_names` - (Required) The list of endpoints to which messages that satisfy the condition are routed. Currently only one endpoint is allowed.
 
-* `enabled` - (Required) Used to specify whether a route is enabled.
+* `enabled` - (Required) Specifies whether a route is enabled.
 
 ## Attributes Reference
 

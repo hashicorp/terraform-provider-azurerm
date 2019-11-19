@@ -6,11 +6,12 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -47,11 +48,11 @@ func resourceArmIotHubRoute() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"DeviceJobLifecycleEvents",
-					"DeviceLifecycleEvents",
-					"DeviceMessages",
-					"Invalid",
-					"TwinChangeEvents",
+					string(devices.RoutingSourceDeviceJobLifecycleEvents),
+					string(devices.RoutingSourceDeviceLifecycleEvents),
+					string(devices.RoutingSourceDeviceMessages),
+					string(devices.RoutingSourceInvalid),
+					string(devices.RoutingSourceTwinChangeEvents),
 				}, false),
 			},
 			"condition": {
@@ -63,8 +64,11 @@ func resourceArmIotHubRoute() *schema.Resource {
 			},
 			"endpoint_names": {
 				Type: schema.TypeList,
+				// Currently only one endpoint is allowed. With that comment from Microsoft, we'll leave this open to enhancement when they add multiple endpoint support.
+				MaxItems: 1,
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 				Required: true,
 			},
@@ -77,14 +81,14 @@ func resourceArmIotHubRoute() *schema.Resource {
 }
 
 func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -127,15 +131,16 @@ func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}
 
 	alreadyExists := false
 	for _, existingRoute := range *routing.Routes {
-		if strings.EqualFold(*existingRoute.Name, routeName) {
-			if d.IsNewResource() && requireResourcesToBeImported {
-				return tf.ImportAsExistsError("azurerm_iothub_route", resourceId)
+		if existingRoute.Name != nil {
+			if strings.EqualFold(*existingRoute.Name, routeName) {
+				if d.IsNewResource() && requireResourcesToBeImported {
+					return tf.ImportAsExistsError("azurerm_iothub_route", resourceId)
+				}
+				routes = append(routes, route)
+				alreadyExists = true
+			} else {
+				routes = append(routes, existingRoute)
 			}
-			routes = append(routes, route)
-			alreadyExists = true
-
-		} else {
-			routes = append(routes, existingRoute)
 		}
 	}
 
@@ -162,7 +167,7 @@ func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
@@ -190,12 +195,13 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 
 	if routes := iothub.Properties.Routing.Routes; routes != nil {
 		for _, route := range *routes {
-			if strings.EqualFold(*route.Name, routeName) {
-
-				d.Set("source", route.Source)
-				d.Set("condition", route.Condition)
-				d.Set("enabled", route.IsEnabled)
-				d.Set("endpoint_names", route.EndpointNames)
+			if route.Name != nil {
+				if strings.EqualFold(*route.Name, routeName) {
+					d.Set("source", route.Source)
+					d.Set("condition", route.Condition)
+					d.Set("enabled", route.IsEnabled)
+					d.Set("endpoint_names", route.EndpointNames)
+				}
 			}
 		}
 	}
@@ -204,7 +210,7 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
+	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx := meta.(*ArmClient).StopContext
 
 	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
@@ -217,8 +223,8 @@ func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) erro
 	iothubName := parsedIothubRouteId.Path["IotHubs"]
 	routeName := parsedIothubRouteId.Path["Routes"]
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -240,8 +246,10 @@ func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) erro
 
 	updatedRoutes := make([]devices.RouteProperties, 0)
 	for _, route := range *routes {
-		if !strings.EqualFold(*route.Name, routeName) {
-			updatedRoutes = append(updatedRoutes, route)
+		if route.Name != nil {
+			if !strings.EqualFold(*route.Name, routeName) {
+				updatedRoutes = append(updatedRoutes, route)
+			}
 		}
 	}
 
