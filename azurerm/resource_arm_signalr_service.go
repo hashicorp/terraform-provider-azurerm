@@ -81,6 +81,10 @@ func resourceArmSignalRService() *schema.Resource {
 						"flag": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(signalr.EnableConnectivityLogs),
+								string(signalr.ServiceMode),
+							}, false),
 						},
 
 						"value": {
@@ -310,7 +314,7 @@ func expandSignalRFeatures(input []interface{}) *[]signalr.Feature {
 		value := featureValue.(map[string]interface{})
 
 		feature := signalr.Feature{
-			Flag:  utils.String(value["flag"].(string)),
+			Flag:  signalr.FeatureFlags(value["flag"].(string)),
 			Value: utils.String(value["value"].(string)),
 		}
 
@@ -324,18 +328,13 @@ func flattenSignalRFeatures(features *[]signalr.Feature) []interface{} {
 	result := make([]interface{}, 0)
 	if features != nil {
 		for _, feature := range *features {
-			flag := ""
-			if feature.Flag != nil {
-				flag = *feature.Flag
-			}
-
 			value := ""
 			if feature.Value != nil {
 				value = *feature.Value
 			}
 
 			result = append(result, map[string]interface{}{
-				"flag":  flag,
+				"flag":  string(feature.Flag),
 				"value": value,
 			})
 		}

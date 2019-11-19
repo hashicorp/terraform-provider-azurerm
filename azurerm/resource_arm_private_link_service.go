@@ -41,21 +41,17 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_approval_subscription_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.GUID,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			"visibility_subscription_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.GUID,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
@@ -119,12 +115,10 @@ func resourceArmPrivateLinkService() *schema.Resource {
 
 			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			"alias": {
@@ -133,11 +127,10 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			"tags": tags.Schema(),

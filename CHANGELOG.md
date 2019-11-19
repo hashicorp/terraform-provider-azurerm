@@ -1,11 +1,16 @@
 ## 1.37.0 (Unreleased)
 
 FEATURES:
-
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
 * **New Data Source:** `azurerm_netapp_account` [GH-4416]
+* **New Data Source:** `azurerm_netapp_pool` [GH-4889]
 * **New Resource:** `azurerm_data_factory_trigger_schedule` [GH-4793]
+* **New Resource:** `iothub_endpoint_eventhub` [GH-4823]
+* **New Resource:** `iothub_endpoint_servicebus_queue` [GH-4823]
+* **New Resource:** `iothub_endpoint_servicebus_topic` [GH-4823]
+* **New Resource:** `iothub_endpoint_storage_container` [GH-4823]
 * **New Resource:** `azurerm_netapp_account` [GH-4416]
+* **New Resource:** `azurerm_netapp_pool` [GH-4889]
 * **New Resource:** `azurerm_private_dns_aaaa_record` [GH-4841]
 * **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
 * **New Resource:** `azurerm_private_dns_srv_record` [GH-4783]
@@ -15,7 +20,7 @@ IMPROVEMENTS:
 
 * 2.0 prep: refresh functions now use custom timeouts when custom timeouts are enabled [GH-4838]
 * authentication: requesting a fresh token from the Azure CLI when the existing one expires [GH-4775]
-* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v35.0.0` [GH-4775]
+* dependencies: updating `github.com/Azure/azure-sdk-for-go` to `v36.3.0` [GH-4913]
 * dependencies: updating `github.com/Azure/go-autorest` to `v0.9.2` [GH-4775]
 * dependencies: updating `github.com/hashicorp/go-azure-helpers` to `v0.10.0` [GH-4775]
 * networking: updating to API version `2019-07-01` [GH-4596]
@@ -32,6 +37,7 @@ IMPROVEMENTS:
 * `azurerm_firewall` - allow multiple `ip_configuration` blocks [GH-4639]
 * `azurerm_firewall_application_rule_collection` - support for the protocol type `Mssql` [GH-4596]
 * `azurerm_hdinsight_hadoop_cluster` - Added edge node support [GH-4550]
+* `azurerm_key_vault_secret` - support for `not_before_date` and `expiration_date` [GH-4873]
 * `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
 * `azurerm_monitor_action_group` - support for `arm_role_receiver`, `automation_runbook_receiver`, `azure_app_push_receiver`, `azure_function_receiver`, `itsm_receiver`, `logic_app_receiver` and `voice_receiver` [GH-4638]
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
