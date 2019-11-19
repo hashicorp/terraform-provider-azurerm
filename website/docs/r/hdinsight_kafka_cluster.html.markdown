@@ -38,11 +38,11 @@ resource "azurerm_hdinsight_kafka_cluster" "example" {
   name                = "example-hdicluster"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
-  cluster_version     = "3.6"
+  cluster_version     = "4.0"
   tier                = "Standard"
 
   component_version {
-    kafka = "2.3"
+    kafka = "2.1"
   }
 
   gateway {

@@ -83,9 +83,13 @@ The following attributes are exported:
 
 * `endpoint` - The Endpoint associated with the EventGrid Domain.
 
+* `primary_access_key` - The Primary Shared Access Key associated with the EventGrid Domain.
+
+* `secondary_access_key` - The Secondary Shared Access Key associated with the EventGrid Domain.
+
 ## Import
 
-EventGrid Domain's can be imported using the `resource id`, e.g.
+EventGrid Domains can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_eventgrid_domain.domain1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventGrid/domains/domain1

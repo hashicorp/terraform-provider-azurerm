@@ -1,15 +1,15 @@
 ---
 subcategory: "API Management"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_api_management_version_set"
+page_title: "Azure Resource Manager: azurerm_api_management_api_version_set"
 sidebar_current: "docs-azurerm-resource-api-management-api-version-set"
 description: |-
-  Manages an API Version Set within a API Management Service.
+  Manages an API Version Set within an API Management Service.
 ---
 
-# azurerm_api_management_version_set
+# azurerm_api_management_api_version_set
 
-Manages an API Version Set within a API Management Service.
+Manages an API Version Set within an API Management Service.
 
 ## Example Usage
 
@@ -26,13 +26,10 @@ resource "azurerm_api_management" "example" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
-resource "azurerm_api_management_version_set" "example" {
+resource "azurerm_api_management_api_version_set" "example" {
   name                = "example-apimapi-1.0.0"
   resource_group_name = "${azurerm_resource_group.example.name}"
   api_management_name = "${azurerm_api_management.example.name}"
@@ -79,5 +76,5 @@ In addition to all arguments above, the following attributes are exported:
 API Version Set can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_version_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/api-version-sets/example-apimp
+terraform import azurerm_api_management_api_version_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/api-version-sets/example-apimp
 ```

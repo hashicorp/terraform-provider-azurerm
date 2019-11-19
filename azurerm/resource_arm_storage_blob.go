@@ -57,7 +57,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageContainerName,
+				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"type": {

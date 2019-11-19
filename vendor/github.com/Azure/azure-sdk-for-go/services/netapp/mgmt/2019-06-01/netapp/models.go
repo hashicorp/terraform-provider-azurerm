@@ -596,7 +596,7 @@ type ExportPolicyRule struct {
 	Cifs *bool `json:"cifs,omitempty"`
 	// Nfsv3 - Allows NFSv3 protocol
 	Nfsv3 *bool `json:"nfsv3,omitempty"`
-	// Nfsv4 - Allows NFSv4 protocol
+	// Nfsv4 - Deprecated: Will use the NFSv4.1 protocol, please use swagger version 2019-07-01 or later
 	Nfsv4 *bool `json:"nfsv4,omitempty"`
 	// AllowedClients - Client ingress specification as comma separated string with IPv4 CIDRs, IPv4 host addresses and host names
 	AllowedClients *string `json:"allowedClients,omitempty"`
