@@ -5,6 +5,7 @@ import (
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
@@ -22,6 +23,7 @@ type Client struct {
 
 	AnalysisServices *analysisservices.Client
 	ApiManagement    *apimanagement.Client
+	AppConfiguration *appconfiguration.Client
 	AppInsights      *applicationinsights.Client
 	Automation       *automation.Client
 	Authorization    *authorization.Client
