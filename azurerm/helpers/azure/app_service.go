@@ -371,11 +371,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"5.5",
 						"5.6",
 						"7.0",
 						"7.1",
 						"7.2",
+						"7.3",
 					}, false),
 				},
 
