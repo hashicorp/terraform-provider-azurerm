@@ -291,7 +291,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
     "Acceptance" = "Test"
   }
 }
-`, template, rInt)
+`, template, rInt%1000000)
 }
 
 func testAccAzureRMDevTestWindowsVirtualMachine_storage(rInt int, location, storageType string) string {
@@ -318,7 +318,7 @@ resource "azurerm_dev_test_windows_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, template, rInt, storageType)
+`, template, rInt%1000000, storageType)
 }
 
 func testAccAzureRMDevTestWindowsVirtualMachine_template(rInt int, location string) string {
