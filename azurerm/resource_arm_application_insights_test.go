@@ -279,6 +279,35 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 	}
 }
 
+func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
+	resourceName := "azurerm_application_insights.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApplicationInsights_complete(ri, testLocation(), "web")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "web"),
+					resource.TestCheckResourceAttr(resourceName, "sampling_percentage", "50"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccAzureRMApplicationInsights_basic(rInt int, location string, applicationType string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -307,4 +336,25 @@ resource "azurerm_application_insights" "import" {
   application_type    = "${azurerm_application_insights.test.application_type}"
 }
 `, template)
+}
+
+func testAccAzureRMApplicationInsights_complete(rInt int, location string, applicationType string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type    = "%s"
+  sampling_percentage = 50
+
+  tags = {
+    Hello = "World"
+  }
+}
+`, rInt, location, rInt, applicationType)
 }

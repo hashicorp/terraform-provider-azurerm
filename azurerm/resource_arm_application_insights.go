@@ -63,6 +63,11 @@ func resourceArmApplicationInsights() *schema.Resource {
 				}, true),
 			},
 
+			"sampling_percentage": {
+				Type:     schema.TypeFloat,
+				Optional: true,
+			},
+
 			"tags": tags.Schema(),
 
 			"app_id": {
@@ -109,6 +114,10 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
 		ApplicationID:   &name,
 		ApplicationType: insights.ApplicationType(applicationType),
+	}
+
+	if v, ok := d.GetOk("sampling_percentage"); ok {
+		applicationInsightsComponentProperties.SamplingPercentage = utils.Float(v.(float64))
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
@@ -176,6 +185,10 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("application_type", string(props.ApplicationType))
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
+
+		if v := props.SamplingPercentage; v != nil {
+			d.Set("sampling_percentage", v)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
