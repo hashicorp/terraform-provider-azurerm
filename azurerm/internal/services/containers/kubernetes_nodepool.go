@@ -153,11 +153,18 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 
 	raw := input[0].(map[string]interface{})
 
+	availabilityZonesRaw := raw["availability_zones"].([]interface{})
+	availabilityZones := utils.ExpandStringSlice(availabilityZonesRaw)
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
+	nodeTaintsRaw := raw["node_taints"].([]interface{})
+	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
+
 	profile := containerservice.ManagedClusterAgentPoolProfile{
+		AvailabilityZones:  availabilityZones,
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
+		NodeTaints:         nodeTaints,
 		Type:               containerservice.AgentPoolType(raw["type"].(string)),
 		VMSize:             containerservice.VMSizeTypes(raw["vm_size"].(string)),
 
@@ -172,19 +179,8 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// ScaleSetPriority:       "",
 	}
 
-	availabilityZonesRaw := raw["availability_zones"].([]interface{})
-	// TODO: can we remove the `if > 0` here?
-	if availabilityZones := utils.ExpandStringSlice(availabilityZonesRaw); len(*availabilityZones) > 0 {
-		profile.AvailabilityZones = availabilityZones
-	}
 	if maxPods := int32(raw["max_pods"].(int)); maxPods > 0 {
 		profile.MaxPods = utils.Int32(maxPods)
-	}
-
-	nodeTaintsRaw := raw["node_taints"].([]interface{})
-	// TODO: can we remove the `if > 0` here?
-	if nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw); len(*nodeTaints) > 0 {
-		profile.NodeTaints = nodeTaints
 	}
 
 	if osDiskSizeGB := int32(raw["os_disk_size_gb"].(int)); osDiskSizeGB > 0 {
