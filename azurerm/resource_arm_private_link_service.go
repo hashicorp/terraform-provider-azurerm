@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -67,8 +67,6 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			// Required by the API you can't create the resource without at least
 			// one ip configuration once primary is set it is set forever unless
 			// you destroy the resource and recreate it.
-
-			//TODO: Add custom diff to detect changes to primary config and force new on any changes
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -166,22 +164,22 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	autoApproval := d.Get("auto_approval_subscription_ids").([]interface{})
+	autoApproval := d.Get("auto_approval_subscription_ids").(*schema.Set)
 	// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
 	//fqdns := d.Get("fqdns").([]interface{})
 	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
-	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").([]interface{})
-	visibility := d.Get("visibility_subscription_ids").([]interface{})
+	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").(*schema.Set)
+	visibility := d.Get("visibility_subscription_ids").(*schema.Set)
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.PrivateLinkService{
 		Location: utils.String(location),
 		PrivateLinkServiceProperties: &network.PrivateLinkServiceProperties{
 			AutoApproval: &network.PrivateLinkServicePropertiesAutoApproval{
-				Subscriptions: utils.ExpandStringSlice(autoApproval),
+				Subscriptions: utils.ExpandStringSlice(autoApproval.List()),
 			},
 			Visibility: &network.PrivateLinkServicePropertiesVisibility{
-				Subscriptions: utils.ExpandStringSlice(visibility),
+				Subscriptions: utils.ExpandStringSlice(visibility.List()),
 			},
 			IPConfigurations:                     expandArmPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
 			LoadBalancerFrontendIPConfigurations: expandArmPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
@@ -237,12 +235,12 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
-		if props.AutoApproval.Subscriptions != nil {
+		if props.AutoApproval != nil {
 			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 			}
 		}
-		if props.Visibility.Subscriptions != nil {
+		if props.Visibility != nil {
 			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
 				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 			}
@@ -253,20 +251,14 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
 		// 	}
 		// }
-		if props.IPConfigurations != nil {
-			if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
-				return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
-			}
+		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
-		if props.LoadBalancerFrontendIPConfigurations != nil {
-			if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
-				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
-			}
+		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 		}
-		if props.NetworkInterfaces != nil {
-			if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
-				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
-			}
+		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
+			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
 	}
 
@@ -340,14 +332,15 @@ func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.
 	return &results
 }
 
-func expandArmPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]network.FrontendIPConfiguration {
-	if len(input) == 0 {
+func expandArmPrivateLinkServiceFrontendIPConfiguration(input *schema.Set) *[]network.FrontendIPConfiguration {
+	ids := input.List()
+	if len(ids) == 0 {
 		return nil
 	}
 
 	results := make([]network.FrontendIPConfiguration, 0)
 
-	for _, item := range input {
+	for _, item := range ids {
 		result := network.FrontendIPConfiguration{
 			ID: utils.String(item.(string)),
 		}
@@ -391,30 +384,30 @@ func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkSer
 	return results
 }
 
-func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
-	results := make([]string, 0)
+func flattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) *schema.Set {
+	results := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
 		if id := item.ID; id != nil {
-			results = append(results, *id)
+			results.Add(*id)
 		}
 	}
 
 	return results
 }
 
-func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) []string {
-	results := make([]string, 0)
+func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) *schema.Set {
+	results := &schema.Set{F: schema.HashString}
 	if input == nil {
 		return results
 	}
 
 	for _, item := range *input {
 		if id := item.ID; id != nil {
-			results = append(results, *id)
+			results.Add(*id)
 		}
 	}
 

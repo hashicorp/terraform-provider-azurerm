@@ -24,9 +24,9 @@ func TestAccAzureRMPrivateLinkService_basic(t *testing.T) {
 				Config: testAccAzureRMPrivateLinkService_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctestPLS-%d", ri)),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},
 			{
@@ -54,7 +54,6 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},
 			{
@@ -64,10 +63,14 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "4"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.primary", "true"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMPrivateLinkService_basicIp(ri, location),
@@ -75,7 +78,6 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},
 			{
@@ -117,6 +119,11 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMPrivateLinkService_moveChangeOne(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
@@ -128,6 +135,11 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMPrivateLinkService_moveChangeTwo(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
@@ -137,6 +149,11 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.2.private_ip_address", "10.5.1.19"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.3.private_ip_address", "10.5.1.21"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMPrivateLinkService_moveChangeThree(ri, location),
@@ -173,16 +190,13 @@ func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "auto_approval_subscription_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "auto_approval_subscription_ids.0"),
 					resource.TestCheckResourceAttr(resourceName, "visibility_subscription_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "visibility_subscription_ids.0"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.18"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(resourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
@@ -249,7 +263,7 @@ func testAccAzureRMPrivateLinkService_basic(rInt int, location string) string {
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
 
@@ -271,7 +285,7 @@ func testAccAzureRMPrivateLinkService_basicIp(rInt int, location string) string 
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
 
@@ -295,7 +309,7 @@ func testAccAzureRMPrivateLinkService_update(rInt int, location string) string {
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
@@ -349,7 +363,7 @@ func testAccAzureRMPrivateLinkService_moveSetup(rInt int, location string) strin
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
@@ -379,7 +393,7 @@ func testAccAzureRMPrivateLinkService_moveAdd(rInt int, location string) string 
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
@@ -433,7 +447,7 @@ func testAccAzureRMPrivateLinkService_moveChangeOne(rInt int, location string) s
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
@@ -487,7 +501,7 @@ func testAccAzureRMPrivateLinkService_moveChangeTwo(rInt int, location string) s
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
@@ -541,7 +555,7 @@ func testAccAzureRMPrivateLinkService_moveChangeThree(rInt int, location string)
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
@@ -595,7 +609,7 @@ func testAccAzureRMPrivateLinkService_complete(rInt int, location string) string
 %s
 
 resource "azurerm_private_link_service" "test" {
-  name                           = "acctestpls-%d"
+  name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
   auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
@@ -633,7 +647,7 @@ func testAccAzureRMPrivateLinkServiceTemplate(rInt int, location string) string 
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-privatelinkservice-%d"
   location = "%s"
 }
 

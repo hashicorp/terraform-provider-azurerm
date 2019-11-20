@@ -183,10 +183,6 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if v, ok := d.GetOk("enforce_private_link_service_network_policies"); ok {
-		// This is strange logic, but to get the schema to make sense for the end user
-		// I exposed it with the same name that the Azure CLI does to be consistent
-		// between the tool sets, which means true == Disabled.
-		//
 		// To enable private endpoints you must disable the network policies for the
 		// subnet because Network policies like network security groups are not
 		// supported by private endpoints.
@@ -292,14 +288,11 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
-		// This is strange logic, but to get the schema to make sense for the end user
-		// I exposed it with the same name that the Azure CLI does to be consistent
-		// between the tool sets, which means true == Disabled.
-		//
+		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
 		// To enable private endpoints you must disable the network policies for the
 		// subnet because Network policies like network security groups are not
 		// supported by private endpoints.
-		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
+
 			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *p))
 		}
 

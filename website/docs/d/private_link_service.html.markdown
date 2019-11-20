@@ -39,21 +39,21 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `location` - Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+* `location` - The supported Azure location where the resource exists.
 
 * `alias` - The alias is a globally unique name for your private link service which Azure generates for you. Your can use this alias to request a connection to your private link service.
 
-* `auto_approval_subscription_ids` - A list of subscription(s) globally unique identifiers that will be auto approved to use the private link service.
+* `auto_approval_subscription_ids` - The list of subscription(s) globally unique identifiers that will be auto approved to use the private link service.
 
-* `visibility_subscription_ids` - A list of subscription(s) globally unique identifiers(GUID) that will be able to see the private link service.
+* `visibility_subscription_ids` - The list of subscription(s) globally unique identifiers(GUID) that will be able to see the private link service.
 
-* `nat_ip_configuration` - A `nat_ip_configuration` block as defined below.
+* `nat_ip_configuration` - The `nat_ip_configuration` block as defined below.
 
-* `load_balancer_frontend_ip_configuration_ids` - A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
+* `load_balancer_frontend_ip_configuration_ids` - The list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 
-* `network_interfaces` - A list of network interface resource ids that are being used by the service.
+* `network_interfaces` - The list of network interface resource ids that are being used by the service.
 
-* `tags` - A mapping of tags to assign to the resource. Changing this forces a new resource to be created
+* `tags` - A mapping of tags to assign to the resource.
 
 
 ---

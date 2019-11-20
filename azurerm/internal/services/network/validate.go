@@ -8,19 +8,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-// ValidatePrivateLinkNatIpConfiguration -  This rule makes sure that you can only go from a
-// dynamic private ip address to a static private ip address. Once you have assigned a private
-// ip address to a primary or secondary nat ip configuration block it is set in stone and can
-// not become a dynamic private ip address again unless the resource is destroyed and recreated.
 func ValidatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
-	secondaryIpConfigurations := d.Get("nat_ip_configuration").([]interface{})
+	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
 
-	for i, item := range primaryIpConfiguration {
+	for i, item := range ipConfigurations {
 		v := item.(map[string]interface{})
 		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
+		s := fmt.Sprintf("nat_ip_configuration.%d.subnet_id", i)
+		isPrimary := v["primary"].(bool)
 		in := v["name"].(string)
 
 		if d.HasChange(p) {
@@ -29,17 +26,11 @@ func ValidatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
 				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
 			}
 		}
-	}
 
-	for i, item := range secondaryIpConfigurations {
-		v := item.(map[string]interface{})
-		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
-		in := v["name"].(string)
-
-		if d.HasChange(p) {
-			o, n := d.GetChange(p)
-			if o != "" && n == "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+		if isPrimary && d.HasChange(s) {
+			o, _ := d.GetChange(s)
+			if o != "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
 			}
 		}
 	}

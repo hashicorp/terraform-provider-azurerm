@@ -116,6 +116,8 @@ The `nat_ip_configuration` block supports the following:
 
 * `subnet_id` - (Required) The resource ID of the subnet to be used by the service.
 
+-> **NOTE:** Verify that the subnets `enforce_private_link_service_network_policies` attribute is set to `true`.
+
 * `primary` - (Required) Specifies if the `nat_ip_configuration` block is the primary ip configuration for the service or not. Valid values are `true` or `false`. Changing this forces a new resource to be created.
 
 ## Attributes Reference

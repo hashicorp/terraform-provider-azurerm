@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -128,7 +128,7 @@ func flattenArmPrivateLinkServicePrivateEndpointConnections(input *[]network.Pri
 				}
 			}
 			if s := props.PrivateLinkServiceConnectionState; s != nil {
-				if a := s.ActionRequired; a != nil {
+				if a := s.ActionsRequired; a != nil {
 					v["action_required"] = *a
 				} else {
 					v["action_required"] = "none"
