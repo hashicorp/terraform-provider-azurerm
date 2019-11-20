@@ -288,7 +288,7 @@ func testCheckAzureRMStorageAccountManagementPolicyExistsInternal(storageAccount
 func testAccAzureRMStorageManagementPolicy_basic(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
@@ -330,7 +330,7 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 func testAccAzureRMStorageManagementPolicy_multipleRule(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
@@ -390,7 +390,7 @@ resource "azurerm_storage_management_policy" "testpolicy" {
 func testAccAzureRMStorageManagementPolicy_multipleRuleUpdated(rInt int, rString string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "testrg" {
-  name     = "acctestAzureRMSA-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 
