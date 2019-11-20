@@ -7,7 +7,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -39,12 +38,10 @@ func SchemaDefaultNodePool() *schema.Schema {
 				},
 
 				"vm_size": {
-					Type:     schema.TypeString,
-					Required: true,
-					ForceNew: true,
-					// TODO: can we remove this?
-					DiffSuppressFunc: suppress.CaseDifference,
-					ValidateFunc:     validate.NoEmptyStrings,
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 
 				// Optional
