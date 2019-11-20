@@ -24,6 +24,10 @@ func TestAccAzureRMIotDPS_basic(t *testing.T) {
 				Config: testAccAzureRMIotDPS_basic(rInt, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMIotDPSExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "allocation_policy"),
+					resource.TestCheckResourceAttrSet(resourceName, "device_provisioning_host_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "id_scope"),
+					resource.TestCheckResourceAttrSet(resourceName, "service_operations_host_name"),
 				),
 			},
 			{
