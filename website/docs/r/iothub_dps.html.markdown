@@ -78,13 +78,13 @@ The following attributes are exported:
 
 * `id` - The ID of the IoT Device Provisioning Service.
 
-* `service_operations_host_name` - The service endpoint of the IoT Device Provisioning Service.
+* `allocation_policy` - The allocation policy of the IoT Device Provisioning Service.
 
 * `device_provisioning_host_name` - The device endpoint of the IoT Device Provisioning Service.
 
 * `id_scope` - The unique identifier of the IoT Device Provisioning Service.
 
-* `allocation_policy` - The allocation policy of the IoT Device Provisioning Service.
+* `service_operations_host_name` - The service endpoint of the IoT Device Provisioning Service.
 
 ## Import
 

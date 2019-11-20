@@ -139,7 +139,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 				},
 			},
 
-			"service_operations_host_name": {
+			"allocation_policy": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -154,7 +154,7 @@ func resourceArmIotHubDPS() *schema.Resource {
 				Computed: true,
 			},
 
-			"allocation_policy": {
+			"service_operations_host_name": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
