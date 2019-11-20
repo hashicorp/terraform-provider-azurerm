@@ -8,6 +8,7 @@ FEATURES:
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
 * **New Data Source:** `azurerm_netapp_account` [GH-4416]
 * **New Data Source:** `azurerm_netapp_pool` [GH-4889]
+* **New Data Source:** `azurerm_virtual_hub` [GH-4919]
 * **New Resource:** `azurerm_data_factory_trigger_schedule` [GH-4793]
 * **New Resource:** `iothub_endpoint_eventhub` [GH-4823]
 * **New Resource:** `iothub_endpoint_servicebus_queue` [GH-4823]
@@ -19,6 +20,7 @@ FEATURES:
 * **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
 * **New Resource:** `azurerm_private_dns_srv_record` [GH-4783]
 * **New Resource:** `azurerm_relay_hybrid_connection` [GH-4832]
+* **New Resource:** `azurerm_virtual_hub` [GH-4919]
 
 IMPROVEMENTS:
 
