@@ -222,11 +222,11 @@ resource "azurerm_virtual_hub" "test" {
 func testAccAzureRMVirtualHub_requiresImport(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_virtual_hub" "import" {
   name                = "${azurerm_virtual_hub.test.name}"
   location            = "${azurerm_virtual_hub.test.location}"
   resource_group_name = "${azurerm_virtual_hub.test.name}"
-}
 }
 `, testAccAzureRMVirtualHub_basic(rInt, location))
 }
