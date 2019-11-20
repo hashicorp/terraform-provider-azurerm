@@ -14,22 +14,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmIotDPSCertificate() *schema.Resource {
+func resourceArmIotHubDPSCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmIotDPSCertificateCreateUpdate,
-		Read:   resourceArmIotDPSCertificateRead,
-		Update: resourceArmIotDPSCertificateCreateUpdate,
-		Delete: resourceArmIotDPSCertificateDelete,
+		Create: resourceArmIotHubDPSCertificateCreateUpdate,
+		Read:   resourceArmIotHubDPSCertificateRead,
+		Update: resourceArmIotHubDPSCertificateCreateUpdate,
+		Delete: resourceArmIotHubDPSCertificateDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
-		DeprecationMessage: `The 'azurerm_iot_dps_certificate' resource is deprecated in favour of the renamed version 'azurerm_iothub_dps_certificate'.
-
-Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
-
-As such the existing 'azurerm_iot_dps_certificate' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
-`,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
@@ -65,7 +59,7 @@ As such the existing 'azurerm_iot_dps_certificate' resource is deprecated and wi
 	}
 }
 
-func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSCertificateCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -106,10 +100,10 @@ func resourceArmIotDPSCertificateCreateUpdate(d *schema.ResourceData, meta inter
 
 	d.SetId(*resp.ID)
 
-	return resourceArmIotDPSCertificateRead(d, meta)
+	return resourceArmIotHubDPSCertificateRead(d, meta)
 }
 
-func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -139,7 +133,7 @@ func resourceArmIotDPSCertificateRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceArmIotDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmIotHubDPSCertificateDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.DPSCertificateClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
