@@ -274,7 +274,7 @@ resource "azurerm_virtual_hub" "test" {
   virtual_wan_id  = "${azurerm_virtual_wan.test.id}"
 
   virtual_network_connection {
-	name                                       = "testConnection"	
+    name                                       = "testConnection"
     remote_virtual_network_id                  = "${azurerm_virtual_network.test.id}"
     allow_hub_to_remote_vnet_transit           = "false"
     allow_remote_vnet_to_use_hub_vnet_gateways = "false"
@@ -283,7 +283,7 @@ resource "azurerm_virtual_hub" "test" {
 
   route {
     address_prefixes    = ["10.0.3.0/24"]
-	next_hop_ip_address = "10.0.5.6"
+    next_hop_ip_address = "10.0.5.6"
   }
 
   tags = {

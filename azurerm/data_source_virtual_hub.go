@@ -2,11 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	aznetwork "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -17,12 +16,9 @@ func dataSourceArmVirtualHub() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^.{1,256}$`),
-					`The name must be between 1 and 256 characters in length.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: aznetwork.ValidateVirtualHubName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

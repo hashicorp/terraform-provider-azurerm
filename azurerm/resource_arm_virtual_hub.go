@@ -13,6 +13,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	aznetwork "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -30,13 +31,10 @@ func resourceArmVirtualHub() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^.{1,256}$`),
-					`The name must be between 1 and 256 characters in length.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: aznetwork.ValidateVirtualHubName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -306,27 +304,30 @@ func expandArmVirtualHubVirtualNetworkConnection(input []interface{}) *[]network
 	results := make([]network.HubVirtualNetworkConnection, 0)
 
 	for _, item := range input {
-		v := item.(map[string]interface{})
-		name := v["name"].(string)
-		remoteVirtualNetworkId := v["remote_virtual_network_id"].(string)
-		allowHubToRemoteVnetTransit := v["allow_hub_to_remote_vnet_transit"].(bool)
-		allowRemoteVnetToUseHubVnetGateways := v["allow_remote_vnet_to_use_hub_vnet_gateways"].(bool)
-		enableInternetSecurity := v["enable_internet_security"].(bool)
+		if item != nil {
+			v := item.(map[string]interface{})
+			name := v["name"].(string)
+			remoteVirtualNetworkId := v["remote_virtual_network_id"].(string)
+			allowHubToRemoteVnetTransit := v["allow_hub_to_remote_vnet_transit"].(bool)
+			allowRemoteVnetToUseHubVnetGateways := v["allow_remote_vnet_to_use_hub_vnet_gateways"].(bool)
+			enableInternetSecurity := v["enable_internet_security"].(bool)
 
-		result := network.HubVirtualNetworkConnection{
-			Name: utils.String(name),
-			HubVirtualNetworkConnectionProperties: &network.HubVirtualNetworkConnectionProperties{
-				RemoteVirtualNetwork: &network.SubResource{
-					ID: utils.String(remoteVirtualNetworkId),
+			result := network.HubVirtualNetworkConnection{
+				Name: utils.String(name),
+				HubVirtualNetworkConnectionProperties: &network.HubVirtualNetworkConnectionProperties{
+					RemoteVirtualNetwork: &network.SubResource{
+						ID: utils.String(remoteVirtualNetworkId),
+					},
+					AllowHubToRemoteVnetTransit:         utils.Bool(allowHubToRemoteVnetTransit),
+					AllowRemoteVnetToUseHubVnetGateways: utils.Bool(allowRemoteVnetToUseHubVnetGateways),
+					EnableInternetSecurity:              utils.Bool(enableInternetSecurity),
 				},
-				AllowHubToRemoteVnetTransit:         utils.Bool(allowHubToRemoteVnetTransit),
-				AllowRemoteVnetToUseHubVnetGateways: utils.Bool(allowRemoteVnetToUseHubVnetGateways),
-				EnableInternetSecurity:              utils.Bool(enableInternetSecurity),
-			},
-		}
+			}
 
-		results = append(results, result)
+			results = append(results, result)
+		}
 	}
+
 	return &results
 }
 
@@ -337,16 +338,18 @@ func expandArmVirtualHubRoute(input []interface{}) *network.VirtualHubRouteTable
 
 	results := make([]network.VirtualHubRoute, 0)
 	for _, item := range input {
-		v := item.(map[string]interface{})
-		addressPrefixes := v["address_prefixes"].([]interface{})
-		nextHopIpAddress := v["next_hop_ip_address"].(string)
+		if item != nil {
+			v := item.(map[string]interface{})
+			addressPrefixes := v["address_prefixes"].([]interface{})
+			nextHopIpAddress := v["next_hop_ip_address"].(string)
 
-		result := network.VirtualHubRoute{
-			AddressPrefixes:  utils.ExpandStringSlice(addressPrefixes),
-			NextHopIPAddress: utils.String(nextHopIpAddress),
+			result := network.VirtualHubRoute{
+				AddressPrefixes:  utils.ExpandStringSlice(addressPrefixes),
+				NextHopIPAddress: utils.String(nextHopIpAddress),
+			}
+
+			results = append(results, result)
 		}
-
-		results = append(results, result)
 	}
 
 	result := network.VirtualHubRouteTable{
