@@ -158,7 +158,7 @@ The deprecated field `zone_type` will be removed. Private DNS Zones are now a se
 
 ### Data Source: `azurerm_kubernetes_cluster`
 
-The deprecated field `dns_prefix` within the `agent_pool_profile` block will be removed.
+The deprecated block `agent_pool_profile` will be removed. This has been replaced by the `default_node_pool` block.
 
 ### Data Source: `azurerm_network_interface`
 
