@@ -1,5 +1,9 @@
 ## 1.37.0 (Unreleased)
 
+NOTES
+
+The `azurerm_kubernetes_cluster` resource has undergone substantial changes in this release to work around breaking behavioural changes in the Azure API. As such the `agent_pool_profile` block has been superseded by the `default_node_pool` block. Multiple Node Pools can instead be configured using the (upcoming) `azurerm_kubernetes_cluster_node_pool` resource.
+
 FEATURES:
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
 * **New Data Source:** `azurerm_netapp_account` [GH-4416]
@@ -43,6 +47,8 @@ IMPROVEMENTS:
 * `azurerm_hdinsight_query_cluster` - support for gen `storage_account_gen2` property [GH-4634]
 * `azurerm_hdinsight_spark_cluster` - support for the `storage_account_gen2` property [GH-4634]
 * `azurerm_key_vault_secret` - support for `not_before_date` and `expiration_date` [GH-4873]
+* `azurerm_kubernetes_cluster` - introducing a new `default_node_pool` block which defaults to VM Scale Sets [GH-4898]
+* `azurerm_kubernetes_cluster` - deprecating the `agent_pool_profiles` block in favour of the `default_node_pool` block [GH-4898]
 * `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
 * `azurerm_monitor_action_group` - support for `arm_role_receiver`, `automation_runbook_receiver`, `azure_app_push_receiver`, `azure_function_receiver`, `itsm_receiver`, `logic_app_receiver` and `voice_receiver` [GH-4638]
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
@@ -57,6 +63,7 @@ BUG FIXES:
 * `azurerm_bastion_host` - matching the validation for `name` used by Azure [GH-4766]
 * `azurerm_bastion_host` - support for hyphens in the `name` field within the `ip_configuration` block [GH-4814]
 * `azurerm_eventhub_namespace` - deprecating the `kafka_enabled` sproperty as it is now managed by Azure [GH-4743]
+* `azurerm_kubernetes_cluster` - support for conditional updates / `ignore_changes` on the `node_count` field [GH-4898]
 * `azurerm_lb_probe` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_lb_rule` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_network_interface` - exporting the IP Address for Dynamic Network Interfaces [GH-4852]
