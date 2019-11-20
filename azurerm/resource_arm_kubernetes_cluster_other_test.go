@@ -172,7 +172,7 @@ func TestAccAzureRMKubernetesCluster_nodeTaints(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_nodeTaints(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_taints.0", "key=value:NoSchedule"),
+					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.node_taints.0", "key=value:PreferNoSchedule"),
 				),
 			},
 			{
@@ -456,7 +456,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count  = 1
     vm_size     = "Standard_DS2_v2"
     node_taints = [
-      "key=value:NoSchedule"
+      "key=value:PreferNoSchedule"
     ]
   }
 
