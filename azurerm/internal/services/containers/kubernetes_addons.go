@@ -136,7 +136,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
 
 	httpApplicationRouting := profile["http_application_routing"].([]interface{})
-	if len(httpApplicationRouting) > 0 {
+	if len(httpApplicationRouting) > 0 && httpApplicationRouting[0] != nil {
 		value := httpApplicationRouting[0].(map[string]interface{})
 		enabled := value["enabled"].(bool)
 		addonProfiles["httpApplicationRouting"] = &containerservice.ManagedClusterAddonProfile{
@@ -145,7 +145,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 	}
 
 	omsAgent := profile["oms_agent"].([]interface{})
-	if len(omsAgent) > 0 {
+	if len(omsAgent) > 0 && omsAgent[0] != nil {
 		value := omsAgent[0].(map[string]interface{})
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
@@ -161,7 +161,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 	}
 
 	aciConnector := profile["aci_connector_linux"].([]interface{})
-	if len(aciConnector) > 0 {
+	if len(aciConnector) > 0 && aciConnector[0] != nil {
 		value := aciConnector[0].(map[string]interface{})
 		config := make(map[string]*string)
 		enabled := value["enabled"].(bool)
@@ -177,7 +177,7 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 	}
 
 	kubeDashboard := profile["kube_dashboard"].([]interface{})
-	if len(kubeDashboard) > 0 {
+	if len(kubeDashboard) > 0 && kubeDashboard[0] != nil {
 		value := kubeDashboard[0].(map[string]interface{})
 		enabled := value["enabled"].(bool)
 
