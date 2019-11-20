@@ -39,6 +39,8 @@ The following arguments are supported:
 
 * `sku` - (Optional) The SKU name of the the App Configuration. Possible values are `free` and `standard`.
 
+~> **NOTE:** Azure does not allow a downgrade from `standard` to `free`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
