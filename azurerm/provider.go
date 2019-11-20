@@ -148,6 +148,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_subscriptions":                           dataSourceArmSubscriptions(),
 		"azurerm_traffic_manager_geographical_location":   dataSourceArmTrafficManagerGeographicalLocation(),
 		"azurerm_user_assigned_identity":                  dataSourceArmUserAssignedIdentity(),
+		"azurerm_virtual_hub":                             dataSourceArmVirtualHub(),
 		"azurerm_virtual_machine":                         dataSourceArmVirtualMachine(),
 		"azurerm_virtual_network_gateway":                 dataSourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":      dataSourceArmVirtualNetworkGatewayConnection(),
@@ -476,6 +477,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
+		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
