@@ -1036,9 +1036,8 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 func expandKubernetesClusterAgentPoolProfiles(input []interface{}, isNewResource bool) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
 	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0)
 
-	// TODO: fix this
-	for config_id := range input {
-		config := input[config_id].(map[string]interface{})
+	for _, v := range input {
+		config := v.(map[string]interface{})
 
 		name := config["name"].(string)
 		poolType := config["type"].(string)
