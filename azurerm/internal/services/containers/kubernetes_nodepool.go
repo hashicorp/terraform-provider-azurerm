@@ -149,15 +149,11 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 	}
 
 	raw := input[0].(map[string]interface{})
-
-	availabilityZonesRaw := raw["availability_zones"].([]interface{})
-	availabilityZones := utils.ExpandStringSlice(availabilityZonesRaw)
 	enableAutoScaling := raw["enable_auto_scaling"].(bool)
 	nodeTaintsRaw := raw["node_taints"].([]interface{})
 	nodeTaints := utils.ExpandStringSlice(nodeTaintsRaw)
 
 	profile := containerservice.ManagedClusterAgentPoolProfile{
-		AvailabilityZones:  availabilityZones,
 		EnableAutoScaling:  utils.Bool(enableAutoScaling),
 		EnableNodePublicIP: utils.Bool(raw["enable_node_public_ip"].(bool)),
 		Name:               utils.String(raw["name"].(string)),
@@ -174,6 +170,14 @@ func ExpandDefaultNodePool(d *schema.ResourceData) (*[]containerservice.ManagedC
 		// OrchestratorVersion:    nil,
 		// ScaleSetEvictionPolicy: "",
 		// ScaleSetPriority:       "",
+	}
+
+	availabilityZonesRaw := raw["availability_zones"].([]interface{})
+	availabilityZones := utils.ExpandStringSlice(availabilityZonesRaw)
+
+	// otherwise: Standard Load Balancer is required for availability zone.
+	if len(*availabilityZones) > 0 {
+		profile.AvailabilityZones = availabilityZones
 	}
 
 	if maxPods := int32(raw["max_pods"].(int)); maxPods > 0 {
