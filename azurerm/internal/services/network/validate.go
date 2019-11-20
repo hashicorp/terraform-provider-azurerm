@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+  "regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -97,4 +98,14 @@ func ValidatePrivateLinkServiceSubsciptionFqdn(i interface{}, k string) (_ []str
 	}
 
 	return nil, errors
+}
+
+func ValidateVirtualHubName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^.{1,256}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 256 characters in length.", k))
+	}
+
+	return warnings, errors
 }
