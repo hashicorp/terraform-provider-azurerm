@@ -15,13 +15,13 @@ Use this data source to access information about an existing Public IP Prefix.
 ## Example Usage (reference an existing)
 
 ```hcl
-data "azurerm_public_ip_prefix" "test" {
+data "azurerm_public_ip_prefix" "example" {
   name                = "name_of_public_ip"
   resource_group_name = "name_of_resource_group"
 }
 
 output "public_ip_prefix" {
-  value = "${data.azurerm_public_ip_prefix.test.ip_prefix}"
+  value = "${data.azurerm_public_ip_prefix.example.ip_prefix}"
 }
 ```
 

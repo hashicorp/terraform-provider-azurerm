@@ -14,13 +14,13 @@ Use this data source to access information about an existing Dev Test Lab.
 ## Example Usage
 
 ```hcl
-data "azurerm_dev_test_lab" "test" {
+data "azurerm_dev_test_lab" "example" {
   name                = "example-lab"
   resource_group_name = "example-resources"
 }
 
 output "unique_identifier" {
-  value = "${data.azurerm_dev_test_lab.test.unique_identifier}"
+  value = "${data.azurerm_dev_test_lab.example.unique_identifier}"
 }
 ```
 

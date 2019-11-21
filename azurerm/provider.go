@@ -107,6 +107,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_monitor_diagnostic_categories":           dataSourceArmMonitorDiagnosticCategories(),
 		"azurerm_monitor_log_profile":                     dataSourceArmMonitorLogProfile(),
 		"azurerm_mssql_elasticpool":                       dataSourceArmMsSqlElasticpool(),
+		"azurerm_netapp_account":                          dataSourceArmNetAppAccount(),
+		"azurerm_netapp_pool":                             dataSourceArmNetAppPool(),
 		"azurerm_network_ddos_protection_plan":            dataSourceNetworkDDoSProtectionPlan(),
 		"azurerm_network_interface":                       dataSourceArmNetworkInterface(),
 		"azurerm_network_security_group":                  dataSourceArmNetworkSecurityGroup(),
@@ -148,6 +150,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_subscriptions":                           dataSourceArmSubscriptions(),
 		"azurerm_traffic_manager_geographical_location":   dataSourceArmTrafficManagerGeographicalLocation(),
 		"azurerm_user_assigned_identity":                  dataSourceArmUserAssignedIdentity(),
+		"azurerm_virtual_hub":                             dataSourceArmVirtualHub(),
 		"azurerm_virtual_machine":                         dataSourceArmVirtualMachine(),
 		"azurerm_virtual_network_gateway":                 dataSourceArmVirtualNetworkGateway(),
 		"azurerm_virtual_network_gateway_connection":      dataSourceArmVirtualNetworkGatewayConnection(),
@@ -244,6 +247,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_data_factory_linked_service_postgresql":             resourceArmDataFactoryLinkedServicePostgreSQL(),
 		"azurerm_data_factory_linked_service_sql_server":             resourceArmDataFactoryLinkedServiceSQLServer(),
 		"azurerm_data_factory_pipeline":                              resourceArmDataFactoryPipeline(),
+		"azurerm_data_factory_trigger_schedule":                      resourceArmDataFactoryTriggerSchedule(),
 		"azurerm_data_lake_analytics_account":                        resourceArmDataLakeAnalyticsAccount(),
 		"azurerm_data_lake_analytics_firewall_rule":                  resourceArmDataLakeAnalyticsFirewallRule(),
 		"azurerm_data_lake_store_file":                               resourceArmDataLakeStoreFile(),
@@ -301,6 +305,10 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iot_dps_certificate":                                resourceArmIotDPSCertificate(),
 		"azurerm_iothub_consumer_group":                              resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                             resourceArmIotHub(),
+		"azurerm_iothub_endpoint_eventhub":                           resourceArmIotHubEndpointEventHub(),
+		"azurerm_iothub_endpoint_servicebus_queue":                   resourceArmIotHubEndpointServiceBusQueue(),
+		"azurerm_iothub_endpoint_servicebus_topic":                   resourceArmIotHubEndpointServiceBusTopic(),
+		"azurerm_iothub_endpoint_storage_container":                  resourceArmIotHubEndpointStorageContainer(),
 		"azurerm_iothub_shared_access_policy":                        resourceArmIotHubSharedAccessPolicy(),
 		"azurerm_key_vault_access_policy":                            resourceArmKeyVaultAccessPolicy(),
 		"azurerm_key_vault_certificate":                              resourceArmKeyVaultCertificate(),
@@ -308,6 +316,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_key_vault_secret":                                   resourceArmKeyVaultSecret(),
 		"azurerm_key_vault":                                          resourceArmKeyVault(),
 		"azurerm_kubernetes_cluster":                                 resourceArmKubernetesCluster(),
+		"azurerm_kubernetes_cluster_node_pool":                       resourceArmKubernetesClusterNodePool(),
 		"azurerm_kusto_cluster":                                      resourceArmKustoCluster(),
 		"azurerm_kusto_database":                                     resourceArmKustoDatabase(),
 		"azurerm_kusto_eventhub_data_connection":                     resourceArmKustoEventHubDataConnection(),
@@ -366,6 +375,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_network_security_group":                                                 resourceArmNetworkSecurityGroup(),
 		"azurerm_network_security_rule":                                                  resourceArmNetworkSecurityRule(),
 		"azurerm_network_watcher":                                                        resourceArmNetworkWatcher(),
+		"azurerm_netapp_account":                                                         resourceArmNetAppAccount(),
+		"azurerm_netapp_pool":                                                            resourceArmNetAppPool(),
 		"azurerm_notification_hub_authorization_rule":                                    resourceArmNotificationHubAuthorizationRule(),
 		"azurerm_notification_hub_namespace":                                             resourceArmNotificationHubNamespace(),
 		"azurerm_notification_hub":                                                       resourceArmNotificationHub(),
@@ -380,9 +391,11 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_postgresql_virtual_network_rule":                                        resourceArmPostgreSQLVirtualNetworkRule(),
 		"azurerm_private_dns_zone":                                                       resourceArmPrivateDnsZone(),
 		"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
+		"azurerm_private_dns_aaaa_record":                                                resourceArmPrivateDnsAaaaRecord(),
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
 		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
 		"azurerm_private_dns_ptr_record":                                                 resourceArmPrivateDnsPtrRecord(),
+		"azurerm_private_dns_srv_record":                                                 resourceArmPrivateDnsSrvRecord(),
 		"azurerm_private_dns_zone_virtual_network_link":                                  resourceArmPrivateDnsZoneVirtualNetworkLink(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -398,6 +411,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_recovery_services_vault":                                                resourceArmRecoveryServicesVault(),
 		"azurerm_redis_cache":                                                            resourceArmRedisCache(),
 		"azurerm_redis_firewall_rule":                                                    resourceArmRedisFirewallRule(),
+		"azurerm_relay_hybrid_connection":                                                resourceArmHybridConnection(),
 		"azurerm_relay_namespace":                                                        resourceArmRelayNamespace(),
 		"azurerm_resource_group":                                                         resourceArmResourceGroup(),
 		"azurerm_role_assignment":                                                        resourceArmRoleAssignment(),
@@ -467,6 +481,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
+		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
@@ -742,7 +757,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf("Error ensuring Resource Providers are registered: %s", err)
+					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If you do not have permissions to register resource providers you may want to use the skip_provider_registration flag, however this may cause additional errors if unregistered APIs are called that look something like `API version 2017-07-07 was not found for Microsoft.Foo`. Please see https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration for more details: %s", err)
 				}
 			}
 		}

@@ -386,7 +386,7 @@ func testAccAzureRMRecoveryServicesProtectedVm_basePolicyTest(rInt int, location
 	rstr := strconv.Itoa(rInt)
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-recovery1-%[1]d"
   location = "%[2]s"
 }
 
@@ -602,7 +602,7 @@ func testAccAzureRMRecoveryServicesProtectedVm_additionalVault(rInt int, locatio
 %[1]s
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[2]d"
+  name     = "acctestRG-recovery2-%[2]d"
   location = "%[3]s"
 }
 

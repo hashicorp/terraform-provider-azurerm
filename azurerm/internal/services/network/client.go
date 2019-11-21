@@ -1,7 +1,7 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -33,6 +33,7 @@ type Client struct {
 	VnetClient                           *network.VirtualNetworksClient
 	VnetPeeringsClient                   *network.VirtualNetworkPeeringsClient
 	VirtualWanClient                     *network.VirtualWansClient
+	VirtualHubClient                     *network.VirtualHubsClient
 	WatcherClient                        *network.WatchersClient
 	WebApplicationFirewallPoliciesClient *network.WebApplicationFirewallPoliciesClient
 }
@@ -119,6 +120,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
 
+	VirtualHubClient := network.NewVirtualHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualHubClient.Client, o.ResourceManagerAuthorizer)
+
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
@@ -153,6 +157,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		VnetClient:                           &VnetClient,
 		VnetPeeringsClient:                   &VnetPeeringsClient,
 		VirtualWanClient:                     &VirtualWanClient,
+		VirtualHubClient:                     &VirtualHubClient,
 		WatcherClient:                        &WatcherClient,
 		WebApplicationFirewallPoliciesClient: &WebApplicationFirewallPoliciesClient,
 	}

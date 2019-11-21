@@ -2,6 +2,7 @@ package network
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -48,4 +49,14 @@ func ValidatePrivateLinkEndpointName(i interface{}, k string) (_ []string, error
 	}
 
 	return nil, errors
+}
+
+func ValidateVirtualHubName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^.{1,256}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q must be between 1 and 256 characters in length.", k))
+	}
+
+	return warnings, errors
 }

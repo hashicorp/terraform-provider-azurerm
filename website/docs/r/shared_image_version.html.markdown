@@ -26,7 +26,7 @@ data "azurerm_shared_image" "existing" {
   resource_group_name = "existing-resources"
 }
 
-resource "azurerm_shared_image_version" "test" {
+resource "azurerm_shared_image_version" "example" {
   name                = "0.0.1"
   gallery_name        = "${data.azurerm_shared_image.existing.gallery_name}"
   image_name          = "${data.azurerm_shared_image.existing.name}"
