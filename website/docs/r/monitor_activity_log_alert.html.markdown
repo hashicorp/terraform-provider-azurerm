@@ -84,7 +84,7 @@ An `action` block supports the following:
 
 A `criteria` block supports the following:
 
-* `category` - (Required) The category of the operation. Possible values are `Administrative`, `Autoscale`, `Policy`, `Recommendation`, `Security` and `ServiceHealth`.
+* `category` - (Required) The category of the operation. Possible values are `Administrative`, `Autoscale`, `Policy`, `Recommendation`, `ResourceHealth`, `Security` and `ServiceHealth`.
 * `operation_name` - (Optional) The Resource Manager Role-Based Access Control operation name. Supported operation should be of the form: `<resourceProvider>/<resourceType>/<operation>`.
 * `resource_provider` - (Optional) The name of the resource provider monitored by the activity log alert.
 * `resource_type` - (Optional) The resource type monitored by the activity log alert.
