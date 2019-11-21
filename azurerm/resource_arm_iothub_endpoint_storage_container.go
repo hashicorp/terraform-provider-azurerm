@@ -171,9 +171,9 @@ func resourceArmIotHubEndpointStorageContainerCreateUpdate(d *schema.ResourceDat
 				}
 				endpoints = append(endpoints, storageContainerEndpoint)
 				alreadyExists = true
+			} else {
+				endpoints = append(endpoints, existingEndpoint)
 			}
-		} else {
-			endpoints = append(endpoints, existingEndpoint)
 		}
 	}
 
