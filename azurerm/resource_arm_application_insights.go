@@ -66,6 +66,7 @@ func resourceArmApplicationInsights() *schema.Resource {
 			"sampling_percentage": {
 				Type:     schema.TypeFloat,
 				Optional: true,
+				Default:  100,
 			},
 
 			"tags": tags.Schema(),
@@ -108,16 +109,14 @@ func resourceArmApplicationInsightsCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	applicationType := d.Get("application_type").(string)
+	samplingPercentage := utils.Float(d.Get("sampling_percentage").(float64))
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	t := d.Get("tags").(map[string]interface{})
 
 	applicationInsightsComponentProperties := insights.ApplicationInsightsComponentProperties{
-		ApplicationID:   &name,
-		ApplicationType: insights.ApplicationType(applicationType),
-	}
-
-	if v, ok := d.GetOk("sampling_percentage"); ok {
-		applicationInsightsComponentProperties.SamplingPercentage = utils.Float(v.(float64))
+		ApplicationID:      &name,
+		ApplicationType:    insights.ApplicationType(applicationType),
+		SamplingPercentage: samplingPercentage,
 	}
 
 	insightProperties := insights.ApplicationInsightsComponent{
