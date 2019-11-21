@@ -35,7 +35,7 @@ func dataSourceArmNetAppPool() *schema.Resource {
 				Computed: true,
 			},
 
-			"size_in_4_tb": {
+			"size_in_tb": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -70,7 +70,7 @@ func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
 		d.Set("service_level", poolProperties.ServiceLevel)
 		if poolProperties.Size != nil {
-			d.Set("size_in_4_tb", *poolProperties.Size/4398046511104)
+			d.Set("size_in_tb", *poolProperties.Size/1099511627776)
 		}
 	}
 
