@@ -515,31 +515,6 @@ func TestAccAzureRMContainerGroup_windowsComplete(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMContainerGroup_emptyCommand(t *testing.T) {
-	resourceName := "azurerm_container_group.test"
-	ri := tf.AccRandTimeInt()
-	config := testAccAzureRMContainerGroup_emptyCommand(ri, testLocation())
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMContainerGroupDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMContainerGroupExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func testAccAzureRMContainerGroup_SystemAssignedIdentity(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1232,46 +1207,6 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, ri, location, ri, ri, ri, ri, ri)
-}
-
-func testAccAzureRMContainerGroup_emptyCommand(ri int, location string) string {
-	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_container_group" "test" {
-  name                = "acctestcontainergroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  ip_address_type     = "public"
-  os_type             = "windows"
-
-  container {
-    name   = "windowsservercore"
-    image  = "microsoft/iis:windowsservercore"
-    cpu    = "2.0"
-    memory = "3.5"
-
-    ports {
-      port     = 80
-      protocol = "TCP"
-    }
-
-    ports {
-      port     = 443
-      protocol = "TCP"
-    }
-
-    commands = ["", "ls"]
-  }
-
-  tags = {
-    environment = "Testing"
-  }
-}
-`, ri, location, ri)
 }
 
 func testCheckAzureRMContainerGroupExists(resourceName string) resource.TestCheckFunc {
