@@ -2,7 +2,7 @@
 
 NOTES
 
-The `azurerm_kubernetes_cluster` resource has undergone substantial changes in this release to work around breaking behavioural changes in the Azure API. As such the `agent_pool_profile` block has been superseded by the `default_node_pool` block. Multiple Node Pools can instead be configured using the (upcoming) `azurerm_kubernetes_cluster_node_pool` resource.
+The `azurerm_kubernetes_cluster` resource has undergone substantial changes in this release to work around breaking behavioural changes in the Azure API. As such the `agent_pool_profile` block has been superseded by the `default_node_pool` block. Multiple Node Pools can instead be configured using the `azurerm_kubernetes_cluster_node_pool` resource.
 
 FEATURES:
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
@@ -10,10 +10,11 @@ FEATURES:
 * **New Data Source:** `azurerm_netapp_pool` [GH-4889]
 * **New Data Source:** `azurerm_virtual_hub` [GH-4919]
 * **New Resource:** `azurerm_data_factory_trigger_schedule` [GH-4793]
-* **New Resource:** `iothub_endpoint_eventhub` [GH-4823]
-* **New Resource:** `iothub_endpoint_servicebus_queue` [GH-4823]
-* **New Resource:** `iothub_endpoint_servicebus_topic` [GH-4823]
-* **New Resource:** `iothub_endpoint_storage_container` [GH-4823]
+* **New Resource:** `azurerm_iothub_endpoint_eventhub` [GH-4823]
+* **New Resource:** `azurerm_iothub_endpoint_servicebus_queue` [GH-4823]
+* **New Resource:** `azurerm_iothub_endpoint_servicebus_topic` [GH-4823]
+* **New Resource:** `azurerm_iothub_endpoint_storage_container` [GH-4823]
+* **New Resource:** `azurerm_kubernetes_cluster_node_pool` [GH-4899]
 * **New Resource:** `azurerm_netapp_account` [GH-4416]
 * **New Resource:** `azurerm_netapp_pool` [GH-4889]
 * **New Resource:** `azurerm_private_dns_aaaa_record` [GH-4841]
