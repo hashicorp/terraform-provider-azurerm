@@ -314,6 +314,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_key_vault_secret":                                   resourceArmKeyVaultSecret(),
 		"azurerm_key_vault":                                          resourceArmKeyVault(),
 		"azurerm_kubernetes_cluster":                                 resourceArmKubernetesCluster(),
+		"azurerm_kubernetes_cluster_node_pool":                       resourceArmKubernetesClusterNodePool(),
 		"azurerm_kusto_cluster":                                      resourceArmKustoCluster(),
 		"azurerm_kusto_database":                                     resourceArmKustoDatabase(),
 		"azurerm_kusto_eventhub_data_connection":                     resourceArmKustoEventHubDataConnection(),
