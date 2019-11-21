@@ -12,7 +12,7 @@ import (
 )
 
 func TestAccAzureRMIotDPSCertificate_basic(t *testing.T) {
-	resourceName := "azurerm_iothub_dps_certificate.test"
+	resourceName := "azurerm_iot_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -44,7 +44,7 @@ func TestAccAzureRMIotDPSCertificate_requiresImport(t *testing.T) {
 		return
 	}
 
-	resourceName := "azurerm_iothub_dps_certificate.test"
+	resourceName := "azurerm_iot_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
 	location := testLocation()
 
@@ -68,7 +68,7 @@ func TestAccAzureRMIotDPSCertificate_requiresImport(t *testing.T) {
 }
 
 func TestAccAzureRMIotDPSCertificate_update(t *testing.T) {
-	resourceName := "azurerm_iothub_dps_certificate.test"
+	resourceName := "azurerm_iot_dps_certificate.test"
 	rInt := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -113,7 +113,7 @@ func testCheckAzureRMIotDPSCertificateDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_iothub_dps_certificate" {
+		if rs.Type != "azurerm_iot_dps_certificate" {
 			continue
 		}
 
@@ -171,7 +171,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iothub_dps" "test" {
+resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -183,10 +183,10 @@ resource "azurerm_iothub_dps" "test" {
   }
 }
 
-resource "azurerm_iothub_dps_certificate" "test" {
+resource "azurerm_iot_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
+  iot_dps_name        = "${azurerm_iot_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
@@ -198,10 +198,10 @@ func testAccAzureRMIotDPSCertificate_requiresImport(rInt int, location string) s
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_iothub_dps_certificate" "test" {
-  name                = "${azurerm_iothub_dps_certificate.test.name}"
+resource "azurerm_iot_dps_certificate" "test" {
+  name                = "${azurerm_iot_dps_certificate.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
+  iot_dps_name        = "${azurerm_iot_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/batch_certificate.cer")}"
 }
@@ -215,7 +215,7 @@ resource "azurerm_resource_group" "test" {
   location = "%s"
 }
 
-resource "azurerm_iothub_dps" "test" {
+resource "azurerm_iot_dps" "test" {
   name                = "acctestIoTDPS-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
@@ -231,10 +231,10 @@ resource "azurerm_iothub_dps" "test" {
   }
 }
 
-resource "azurerm_iothub_dps_certificate" "test" {
+resource "azurerm_iot_dps_certificate" "test" {
   name                = "acctestIoTDPSCertificate-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  iot_dps_name        = "${azurerm_iothub_dps.test.name}"
+  iot_dps_name        = "${azurerm_iot_dps.test.name}"
 
   certificate_content = "${filebase64("testdata/application_gateway_test.cer")}"
 }

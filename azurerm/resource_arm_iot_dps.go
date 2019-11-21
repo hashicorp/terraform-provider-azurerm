@@ -167,7 +167,7 @@ func resourceArmIotDPSCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_iothub_dps", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_iot_dps", *existing.ID)
 		}
 	}
 
