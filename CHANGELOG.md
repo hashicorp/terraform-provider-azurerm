@@ -38,6 +38,7 @@ IMPROVEMENTS:
 * `azurerm_app_service` - support for configuring the minor version of Java [GH-4779]
 * `azurerm_app_service_slot` - support for `auto_swap_slot_name` [GH-4752]
 * `azurerm_app_service_slot` - support for configuring the minor version of Java [GH-4779]
+* `azurerm_application_insights` - support for the `sampling_percentage` property [GH-4925]
 * `azurerm_automation_credential` - deprecate `account_name` in favour of `automation_account_name` [GH-4777]
 * `azurerm_cognitive_service` - support for the kind `LUIS.Authoring` [GH-4888]
 * `azurerm_eventgrid_domain` - Export `primary_access_key` and `secondary_access_key` [GH-4876]
