@@ -1377,7 +1377,7 @@ func resourceArmApplicationGatewayCreateUpdate(d *schema.ResourceData, meta inte
 
 	// Gateway ID is needed to link sub-resources together in expand functions
 	gatewayIDFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/applicationGateways/%s"
-	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.subscriptionId, resGroup, name)
+	gatewayID := fmt.Sprintf(gatewayIDFmt, armClient.Account.SubscriptionId, resGroup, name)
 
 	trustedRootCertificates, err := expandApplicationGatewayTrustedRootCertificates(d.Get("trusted_root_certificate").([]interface{}))
 	if err != nil {

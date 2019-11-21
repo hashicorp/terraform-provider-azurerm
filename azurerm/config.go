@@ -76,10 +76,6 @@ type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
 	clients.Client
 
-	subscriptionId string
-
-	skipProviderRegistration bool
-
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
 	ManagementGroups *managementgroup.Client
@@ -134,9 +130,6 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		Client: clients.Client{
 			Account: account,
 		},
-
-		subscriptionId:           authConfig.SubscriptionID,
-		skipProviderRegistration: skipProviderRegistration,
 	}
 
 	oauthConfig, err := authConfig.BuildOAuthConfig(env.ActiveDirectoryEndpoint)

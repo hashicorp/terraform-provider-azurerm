@@ -93,7 +93,7 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 	eventhubEndpoint := devices.RoutingEventHubProperties{
 		ConnectionString: utils.String(d.Get("connection_string").(string)),
 		Name:             utils.String(endpointName),
-		SubscriptionID:   utils.String(meta.(*ArmClient).subscriptionId),
+		SubscriptionID:   utils.String(meta.(*ArmClient).Account.SubscriptionId),
 		ResourceGroup:    utils.String(resourceGroup),
 	}
 

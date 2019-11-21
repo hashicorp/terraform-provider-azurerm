@@ -431,7 +431,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	subscriptionID := meta.(*ArmClient).subscriptionId
+	subscriptionID := meta.(*ArmClient).Account.SubscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
