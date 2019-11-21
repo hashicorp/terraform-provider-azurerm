@@ -281,7 +281,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 
 	config := testAccAzureRMContainerGroup_linuxBasic(ri, testLocation())
-	updatedConfig := testaccazurermcontainergroupLinuxbasicupdated(ri, testLocation())
+	updatedConfig := testAccAzureRMContainerGroup_linuxBasicUpdated(ri, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -823,7 +823,7 @@ resource "azurerm_container_group" "test" {
 `, ri, location, ri, ri)
 }
 
-func testaccazurermcontainergroupLinuxbasicupdated(ri int, location string) string {
+func testAccAzureRMContainerGroup_linuxBasicUpdated(ri int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
