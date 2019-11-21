@@ -70,7 +70,7 @@ func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
 		d.Set("service_level", poolProperties.ServiceLevel)
 		if poolProperties.Size != nil {
-			d.Set("size", *poolProperties.Size/4398046511104)
+			d.Set("size", *poolProperties.Size/1099511627776)
 		}
 	}
 
