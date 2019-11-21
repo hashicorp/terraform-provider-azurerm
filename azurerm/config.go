@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
@@ -78,7 +77,6 @@ type ArmClient struct {
 	clients.Client
 
 	subscriptionId string
-	environment    azure.Environment
 
 	skipProviderRegistration bool
 
@@ -138,7 +136,6 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		},
 
 		subscriptionId:           authConfig.SubscriptionID,
-		environment:              *env,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
