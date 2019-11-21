@@ -78,11 +78,7 @@ type ArmClient struct {
 	clients.Client
 
 	subscriptionId string
-	partnerId      string
 	environment    azure.Environment
-
-	getAuthenticatedObjectID func(context.Context) (string, error)
-	usingServicePrincipal    bool
 
 	skipProviderRegistration bool
 
@@ -141,12 +137,8 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 			Account: account,
 		},
 
-		subscriptionId:        authConfig.SubscriptionID,
-		usingServicePrincipal: authConfig.AuthenticatedAsAServicePrincipal,
-		environment:           *env,
-
-		partnerId:                partnerId,
-		getAuthenticatedObjectID: authConfig.GetAuthenticatedObjectID,
+		subscriptionId:           authConfig.SubscriptionID,
+		environment:              *env,
 		skipProviderRegistration: skipProviderRegistration,
 	}
 
