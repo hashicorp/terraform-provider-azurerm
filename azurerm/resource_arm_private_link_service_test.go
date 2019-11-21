@@ -57,6 +57,11 @@ func TestAccAzureRMPrivateLinkService_update(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMPrivateLinkService_update(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateLinkServiceExists(resourceName),
@@ -106,6 +111,11 @@ func TestAccAzureRMPrivateLinkService_move(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMPrivateLinkService_moveAdd(ri, location),

@@ -1,10 +1,13 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -215,6 +218,20 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("API returns a nil/empty id on Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
+
+	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
+	log.Printf("[DEBUG] Waiting for Private Link Service to %q (Resource Group %q) to finish applying", name, resourceGroup)
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"Pending", "Updating", "Creating"},
+		Target:     []string{"Succeeded"},
+		Refresh:    privateLinkServiceWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
+		Timeout:    60 * time.Minute,
+		MinTimeout: 15 * time.Second,
+	}
+	if _, err := stateConf.WaitForState(); err != nil {
+		return fmt.Errorf("Error waiting for Private Link Service %q (Resource Group %q) to complete: %s", name, resourceGroup, err)
+	}
+
 	d.SetId(*resp.ID)
 
 	return resourceArmPrivateLinkServiceRead(d, meta)
@@ -420,4 +437,20 @@ func flattenArmPrivateLinkServiceInterface(input *[]network.Interface) *schema.S
 	}
 
 	return results
+}
+
+func privateLinkServiceWaitForReadyRefreshFunc(ctx context.Context, client *network.PrivateLinkServicesClient, resourceGroupName string, name string) resource.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, resourceGroupName, name, "")
+		if err != nil {
+			return nil, "Error", fmt.Errorf("Error issuing read request in privateLinkServiceWaitForReadyRefreshFunc %q (Resource Group %q): %s", name, resourceGroupName, err)
+		}
+		if props := res.PrivateLinkServiceProperties; props != nil {
+			if state := props.ProvisioningState; state != "" {
+				return res, string(state), nil
+			}
+		}
+
+		return res, "Pending", nil
+	}
 }
