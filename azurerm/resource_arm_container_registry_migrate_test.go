@@ -23,7 +23,7 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 
 	builder := armClientBuilder{
 		authConfig:                  config,
-		tfVersion:                   "0.0.0",
+		terraformVersion:            "0.0.0",
 		partnerId:                   "",
 		disableCorrelationRequestID: true,
 		disableTerraformPartnerID:   false,

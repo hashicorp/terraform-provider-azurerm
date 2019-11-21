@@ -114,7 +114,7 @@ type ArmClient struct {
 type armClientBuilder struct {
 	authConfig                  *authentication.Config
 	skipProviderRegistration    bool
-	tfVersion                   string
+	terraformVersion            string
 	partnerId                   string
 	disableCorrelationRequestID bool
 	disableTerraformPartnerID   bool
@@ -179,7 +179,7 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 		SubscriptionId:              builder.authConfig.SubscriptionID,
 		TenantID:                    builder.authConfig.TenantID,
 		PartnerId:                   builder.partnerId,
-		TerraformVersion:            builder.tfVersion,
+		TerraformVersion:            builder.terraformVersion,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,

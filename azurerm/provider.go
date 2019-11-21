@@ -716,7 +716,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		clientBuilder := armClientBuilder{
 			authConfig:                  config,
 			skipProviderRegistration:    skipProviderRegistration,
-			tfVersion:                   terraformVersion,
+			terraformVersion:            terraformVersion,
 			partnerId:                   d.Get("partner_id").(string),
 			disableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
 			disableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
