@@ -49,6 +49,8 @@ IMPROVEMENTS:
 * `azurerm_hdinsight_kafka_cluster` - support for gen `storage_account_gen2` property [GH-4634]
 * `azurerm_hdinsight_query_cluster` - support for gen `storage_account_gen2` property [GH-4634]
 * `azurerm_hdinsight_spark_cluster` - support for the `storage_account_gen2` property [GH-4634]
+* `azurerm_iot_dps` - has been deprecated and renamed to `azurerm_iothub_dps` [GH-4896]
+* `azurerm_iot_dps_certificate` - has been deprecated and renamed to `azurerm_iothub_dps_certificate` [GH-4896]
 * `azurerm_key_vault_secret` - support for `not_before_date` and `expiration_date` [GH-4873]
 * `azurerm_kubernetes_cluster` - introducing a new `default_node_pool` block which defaults to VM Scale Sets [GH-4898]
 * `azurerm_kubernetes_cluster` - deprecating the `agent_pool_profiles` block in favour of the `default_node_pool` block [GH-4898]
