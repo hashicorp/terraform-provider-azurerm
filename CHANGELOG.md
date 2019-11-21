@@ -57,6 +57,7 @@ IMPROVEMENTS:
 * `azurerm_kubernetes_cluster` - deprecating the `agent_pool_profiles` block in favour of the `default_node_pool` block [GH-4898]
 * `azurerm_kubernetes_cluster` - support for `enable_node_public_ip` in `agent_pool_profile` [GH-4613]
 * `azurerm_monitor_action_group` - support for `arm_role_receiver`, `automation_runbook_receiver`, `azure_app_push_receiver`, `azure_function_receiver`, `itsm_receiver`, `logic_app_receiver` and `voice_receiver` [GH-4638]
+* `azurerm_monitor_activity_log_alert` - the `criteria` property now supports `ResourceHealth` [GH-4944]
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
 * `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
 * `azurerm_sql_server` - support for the `identity` block [GH-4754]
