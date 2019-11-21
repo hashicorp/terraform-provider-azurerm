@@ -22,7 +22,6 @@ func MariaDatabaseCollation(i interface{}, k string) (warnings []string, errors 
 	return warnings, errors
 }
 
-
 func PostgresDatabaseCollation(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
