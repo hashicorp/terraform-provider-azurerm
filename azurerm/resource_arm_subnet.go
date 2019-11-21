@@ -289,9 +289,9 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("address_prefix", props.AddressPrefix)
 
 		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
-		// To enable private endpoints you must disable the network policies for the
-		// subnet because Network policies like network security groups are not
-		// supported by private endpoints.
+			// To enable private endpoints you must disable the network policies for the
+			// subnet because Network policies like network security groups are not
+			// supported by private endpoints.
 
 			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *p))
 		}

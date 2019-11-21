@@ -2,7 +2,7 @@ package network
 
 import (
 	"fmt"
-  "regexp"
+	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"

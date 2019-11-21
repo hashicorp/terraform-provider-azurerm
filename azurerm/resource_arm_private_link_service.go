@@ -43,15 +43,21 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"auto_approval_subscription_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.GUID,
+				},
+				Set: schema.HashString,
 			},
 
 			"visibility_subscription_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.GUID,
+				},
+				Set: schema.HashString,
 			},
 
 			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
@@ -115,8 +121,11 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     schema.TypeSet,
 				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+				Set: schema.HashString,
 			},
 
 			"alias": {
@@ -127,8 +136,11 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			"network_interface_ids": {
 				Type:     schema.TypeSet,
 				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+				Set: schema.HashString,
 			},
 
 			"tags": tags.Schema(),
@@ -235,15 +247,11 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
-		if props.AutoApproval != nil {
-			if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
-			}
+		if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
+			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 		}
-		if props.Visibility != nil {
-			if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
-				return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
-			}
+		if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
+			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 		}
 		// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
 		// if props.Fqdns != nil {
