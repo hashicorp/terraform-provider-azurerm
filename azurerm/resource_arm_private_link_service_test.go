@@ -202,9 +202,9 @@ func TestAccAzureRMPrivateLinkService_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auto_approval_subscription_ids.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "visibility_subscription_ids.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.40"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
-					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.18"),
+					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.41"),
 					resource.TestCheckResourceAttr(resourceName, "nat_ip_configuration.1.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(resourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
@@ -302,7 +302,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.1.30"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -328,7 +328,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.1.30"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -336,7 +336,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "secondaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.18"
+    private_ip_address           = "10.5.1.22"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -344,7 +344,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "thirdaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.19"
+    private_ip_address           = "10.5.1.23"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -352,7 +352,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "fourtharyIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.20"
+    private_ip_address           = "10.5.1.24"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
@@ -628,7 +628,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.17"
+    private_ip_address           = "10.5.1.40"
     private_ip_address_version   = "IPv4"
     primary                      = true
   }
@@ -636,7 +636,7 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "secondaryIpConfiguration-%d"
     subnet_id                    = azurerm_subnet.test.id
-    private_ip_address           = "10.5.1.18"
+    private_ip_address           = "10.5.1.41"
     private_ip_address_version   = "IPv4"
     primary                      = false
   }
