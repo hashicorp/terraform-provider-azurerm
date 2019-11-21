@@ -14,6 +14,7 @@ FEATURES:
 * **New Resource:** `azurerm_iothub_endpoint_servicebus_queue` [GH-4823]
 * **New Resource:** `azurerm_iothub_endpoint_servicebus_topic` [GH-4823]
 * **New Resource:** `azurerm_iothub_endpoint_storage_container` [GH-4823]
+* **New Resource:** `azurerm_iothub_route` [GH-4923]
 * **New Resource:** `azurerm_kubernetes_cluster_node_pool` [GH-4899]
 * **New Resource:** `azurerm_netapp_account` [GH-4416]
 * **New Resource:** `azurerm_netapp_pool` [GH-4889]
