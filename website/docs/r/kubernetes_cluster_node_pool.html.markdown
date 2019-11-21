@@ -11,7 +11,7 @@ description: |-
 
 Manages a Node Pool within a Kubernetes Cluster
 
-~> **NOTE:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets. 
+~> **NOTE:** Multiple Node Pools are only supported when the Kubernetes Cluster is using Virtual Machine Scale Sets.
 
 ## Example Usage
 
@@ -57,7 +57,7 @@ The following arguments are supported:
 
 * `kubernetes_cluster_id` - (Required) The ID of the Kubernetes Cluster where this Node Pool should exist. Changing this forces a new resource to be created.
 
-* `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this forces a new resource to be created. 
+* `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this forces a new resource to be created.
 
 ---
 
@@ -77,7 +77,9 @@ The following arguments are supported:
 
 * `os_type` - (Optional) The Operating System which should be used for this Node Pool. Changing this forces a new resource to be created. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
 
-* `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist. Possible values are `Linux` and `Windows`. Defaults to `Linux`.
+* `vnet_subnet_id` - (Optional) The ID of the Subnet where this Node Pool should exist.
+
+-> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
 
 ~> **NOTE:** A route table must be configured on this Subnet.
 
