@@ -1,15 +1,15 @@
 ---
-subcategory: "Messaging"
+subcategory: "IoT Hub"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_iot_dps_certificate"
-sidebar_current: "docs-azurerm-resource-messaging-iot-dps_certificate"
+page_title: "Azure Resource Manager: azurerm_iothub_dps_certificate"
+sidebar_current: "docs-azurerm-resource-iothub-dps_certificate"
 description: |-
   Manages an IoT Device Provisioning Service Certificate.
 ---
 
-# azurerm_iot_dps_certificate
+# azurerm_iothub_dps_certificate
 
-Manages an IoT Device Provisioning Service Certificate.
+Manages an IotHub Device Provisioning Service Certificate.
 
 ## Example Usage
 
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_iot_dps" "example" {
+resource "azurerm_iothub_dps" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
@@ -31,10 +31,10 @@ resource "azurerm_iot_dps" "example" {
   }
 }
 
-resource "azurerm_iot_dps_certificate" "example" {
+resource "azurerm_iothub_dps_certificate" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
-  iot_dps_name        = "${azurerm_iot_dps.example.name}"
+  iot_dps_name        = "${azurerm_iothub_dps.example.name}"
 
   certificate_content = "${filebase64("example.cer")}"
 }
@@ -63,5 +63,5 @@ The following attributes are exported:
 IoT Device Provisioning Service Certificate can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iot_dps_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example/certificates/example
+terraform import azurerm_iothub_dps_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example/certificates/example
 ```
