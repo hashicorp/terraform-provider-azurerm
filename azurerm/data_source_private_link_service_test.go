@@ -21,9 +21,9 @@ func TestAccDataSourceAzureRMPrivateLinkService_complete(t *testing.T) {
 				Config: testAccDataSourcePrivateLinkService_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.#", "2"),
-					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.17"),
+					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.0.private_ip_address", "10.5.1.40"),
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.0.private_ip_address_version", "IPv4"),
-					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.18"),
+					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.1.private_ip_address", "10.5.1.41"),
 					resource.TestCheckResourceAttr(dataSourceName, "nat_ip_configuration.1.private_ip_address_version", "IPv4"),
 					resource.TestCheckResourceAttr(dataSourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
 				),
