@@ -65,11 +65,10 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -109,10 +108,8 @@ func dataSourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface
 		if err := d.Set("private_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections)); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
-		if props.NetworkInterfaces != nil {
-			if err := d.Set("network_interface_ids", flattenArmPrivateLinkEndpointInterface(props.NetworkInterfaces)); err != nil {
-				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
-			}
+		if err := d.Set("network_interface_ids", flattenArmPrivateLinkEndpointInterface(props.NetworkInterfaces)); err != nil {
+			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
 	}
 

@@ -84,9 +84,9 @@ func dataSourceArmPrivateLinkEndpointConnectionsRead(d *schema.ResourceData, met
 	if props := resp.PrivateEndpointProperties; props != nil {
 		privateIpAddress := ""
 
-		if props.NetworkInterfaces != nil && len(*props.NetworkInterfaces) > 0 {
-			v := *props.NetworkInterfaces
-			if v[0].ID != nil && *(v[0].ID) != "" {
+		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
+			nic := *props.NetworkInterfaces[0]
+			if nic.ID != nil && *(nic.ID) != "" {
 				privateIpAddress = getPrivateIpAddress(*(v[0].ID), meta)
 			}
 		}

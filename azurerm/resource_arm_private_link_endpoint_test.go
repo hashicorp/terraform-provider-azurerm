@@ -82,12 +82,22 @@ func TestAccAzureRMPrivateEndpoint_update(t *testing.T) {
 				),
 			},
 			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
 				Config: testAccAzureRMPrivateEndpoint_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMPrivateEndpointExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
 				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMPrivateEndpoint_basic(ri, location),
@@ -156,7 +166,7 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 func testAccAzureRMPrivateEndpointTemplate_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-privateEndpoint-%d"
   location = "%s"
 }
 
@@ -174,7 +184,7 @@ resource "azurerm_subnet" "test" {
   address_prefix         = "10.5.1.0/24"
 
   disable_private_link_service_network_policy_enforcement  = true
-  disable_private_link_endpoint_network_policy_enforcement = true
+  enforce_private_link_endpoint_network_policies = true
 }
 
 resource "azurerm_public_ip" "test" {

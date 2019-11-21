@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -80,18 +81,17 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 						"request_message": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							ValidateFunc: validate.PrivateLinkEnpointRequestMessage,
+							ValidateFunc: validation.StringLenBetween(1, 140),
 						},
 					},
 				},
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 			},
 
 			"tags": tags.Schema(),
@@ -315,16 +315,15 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 	return results
 }
 
-func flattenArmPrivateLinkEndpointInterface(input *[]network.Interface) []string {
+func flattenArmPrivateLinkEndpointInterface(input *[]network.Interface) *schema.Set {
+	results := &schema.Set{F: schema.HashString}
 	if input == nil {
-		return make([]string, 0)
+		return results
 	}
-
-	results := make([]string, 0)
 
 	for _, item := range *input {
 		if id := item.ID; id != nil {
-			results = append(results, *id)
+			results.Add(*id)
 		}
 	}
 
