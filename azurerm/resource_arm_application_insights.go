@@ -184,9 +184,6 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 		d.Set("application_type", string(props.ApplicationType))
 		d.Set("app_id", props.AppID)
 		d.Set("instrumentation_key", props.InstrumentationKey)
-
-		if v := props.SamplingPercentage; v != nil {
-			d.Set("sampling_percentage", v)
 		d.Set("sampling_percentage", props.SamplingPercentage)
 	}
 
