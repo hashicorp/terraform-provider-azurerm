@@ -66,6 +66,7 @@ BUG FIXES:
 * `azurerm_bastion_host` - support for hyphens in the `name` field within the `ip_configuration` block [GH-4814]
 * `azurerm_eventhub_namespace` - deprecating the `kafka_enabled` sproperty as it is now managed by Azure [GH-4743]
 * `azurerm_kubernetes_cluster` - support for conditional updates / `ignore_changes` on the `node_count` field [GH-4898]
+* `azurerm_kubernetes_cluster` - working around a case sensitivity bug when upgrading clusters via the Azure Portal [GH-4929]
 * `azurerm_lb_probe` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_lb_rule` - fixing a bug where `protocol` was force lower-cased which caused a diff in the plan [GH-4631]
 * `azurerm_network_interface` - exporting the IP Address for Dynamic Network Interfaces [GH-4852]
