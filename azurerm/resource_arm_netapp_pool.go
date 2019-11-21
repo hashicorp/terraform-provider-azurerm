@@ -44,6 +44,7 @@ func resourceArmNetAppPool() *schema.Resource {
 			"account_name": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: aznetapp.ValidateNetAppAccountName,
 			},
 

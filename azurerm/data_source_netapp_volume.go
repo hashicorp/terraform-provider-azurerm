@@ -66,8 +66,11 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 							Computed: true,
 						},
 						"allowed_clients": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeList,
 							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 						"cifs": {
 							Type:     schema.TypeBool,
@@ -131,7 +134,7 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 			d.Set("usage_threshold", *props.UsageThreshold/1073741824)
 		}
 		if props.ExportPolicy != nil {
-			if err := d.Set("export_policy_rule", flattenArmExportPolicyRule(props.ExportPolicy.Rules)); err != nil {
+			if err := d.Set("export_policy_rule", flattenArmNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 				return fmt.Errorf("Error setting `export_policy_rule`: %+v", err)
 			}
 		}
