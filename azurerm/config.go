@@ -77,15 +77,14 @@ type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
 	clients.Client
 
-	clientId       string
 	tenantId       string
 	subscriptionId string
 	partnerId      string
+	environment    azure.Environment
 
 	getAuthenticatedObjectID func(context.Context) (string, error)
 	usingServicePrincipal    bool
 
-	environment              azure.Environment
 	skipProviderRegistration bool
 
 	// Services
@@ -132,15 +131,23 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	}
 
 	// client declarations:
-	client := ArmClient{
-		Client: clients.Client{},
+	ctx := context.TODO() // TODO: thread me through
+	account, err := clients.NewResourceManagerAccount(ctx, *authConfig, *env)
+	if err != nil {
+		return nil, fmt.Errorf("Error building account: %+v", err)
+	}
 
-		clientId:                 authConfig.ClientID,
-		tenantId:                 authConfig.TenantID,
-		subscriptionId:           authConfig.SubscriptionID,
+	client := ArmClient{
+		Client: clients.Client{
+			Account: account,
+		},
+
+		tenantId:              authConfig.TenantID,
+		subscriptionId:        authConfig.SubscriptionID,
+		usingServicePrincipal: authConfig.AuthenticatedAsAServicePrincipal,
+		environment:           *env,
+
 		partnerId:                partnerId,
-		environment:              *env,
-		usingServicePrincipal:    authConfig.AuthenticatedAsAServicePrincipal,
 		getAuthenticatedObjectID: authConfig.GetAuthenticatedObjectID,
 		skipProviderRegistration: skipProviderRegistration,
 	}
