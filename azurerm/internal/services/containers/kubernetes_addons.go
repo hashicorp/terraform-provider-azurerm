@@ -1,6 +1,8 @@
 package containers
 
 import (
+	"strings"
+
 	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -202,8 +204,20 @@ func ExpandKubernetesAddOnProfiles(input []interface{}) map[string]*containerser
 }
 
 func FlattenKubernetesAddOnProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
+	// when the Kubernetes Cluster is updated in the Portal - Azure updates the casing on the keys
+	// meaning what's submitted could be different to what's returned..
+	var locateInProfile = func(key string) *containerservice.ManagedClusterAddonProfile {
+		for k, v := range profile {
+			if strings.EqualFold(k, key) {
+				return v
+			}
+		}
+
+		return nil
+	}
+
 	aciConnectors := make([]interface{}, 0)
-	if aciConnector := profile[aciConnectorKey]; aciConnector != nil {
+	if aciConnector := locateInProfile(aciConnectorKey); aciConnector != nil {
 		enabled := false
 		if enabledVal := aciConnector.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -221,7 +235,7 @@ func FlattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	azurePolicies := make([]interface{}, 0)
-	if azurePolicy := profile[azurePolicyKey]; azurePolicy != nil {
+	if azurePolicy := locateInProfile(azurePolicyKey); azurePolicy != nil {
 		enabled := false
 		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -233,7 +247,7 @@ func FlattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	httpApplicationRoutes := make([]interface{}, 0)
-	if httpApplicationRouting := profile[httpApplicationRoutingKey]; httpApplicationRouting != nil {
+	if httpApplicationRouting := locateInProfile(httpApplicationRoutingKey); httpApplicationRouting != nil {
 		enabled := false
 		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -251,7 +265,7 @@ func FlattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := profile[kubernetesDashboardKey]; kubeDashboard != nil {
+	if kubeDashboard := locateInProfile(kubernetesDashboardKey); kubeDashboard != nil {
 		enabled := false
 		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
 			enabled = *enabledVal
@@ -263,7 +277,7 @@ func FlattenKubernetesAddOnProfiles(profile map[string]*containerservice.Managed
 	}
 
 	omsAgents := make([]interface{}, 0)
-	if omsAgent := profile[omsAgentKey]; omsAgent != nil {
+	if omsAgent := locateInProfile(omsAgentKey); omsAgent != nil {
 		enabled := false
 		if enabledVal := omsAgent.Enabled; enabledVal != nil {
 			enabled = *enabledVal
