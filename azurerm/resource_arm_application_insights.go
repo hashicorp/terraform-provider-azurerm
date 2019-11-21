@@ -188,7 +188,7 @@ func resourceArmApplicationInsightsRead(d *schema.ResourceData, meta interface{}
 
 		if v := props.SamplingPercentage; v != nil {
 			d.Set("sampling_percentage", v)
-		}
+		d.Set("sampling_percentage", props.SamplingPercentage)
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
