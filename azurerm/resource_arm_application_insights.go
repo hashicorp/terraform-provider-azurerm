@@ -64,9 +64,10 @@ func resourceArmApplicationInsights() *schema.Resource {
 			},
 
 			"sampling_percentage": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				Default:  100,
+				Type:         schema.TypeFloat,
+				Optional:     true,
+				Default:      100,
+				ValidateFunc: validation.FloatBetween(0, 100),
 			},
 
 			"tags": tags.Schema(),
