@@ -57,10 +57,10 @@ func resourceArmNetAppPool() *schema.Resource {
 				}, true),
 			},
 
-			"size_in_4_tb": {
+			"size": {
 				Type:         schema.TypeInt,
 				Required:     true,
-				ValidateFunc: validation.IntBetween(1, 125),
+				ValidateFunc: validation.IntBetween(4, 500),
 			},
 		},
 	}
@@ -88,7 +88,7 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	serviceLevel := d.Get("service_level").(string)
-	size := int64(d.Get("size_in_4_tb").(int) * 4398046511104)
+	size := int64(d.Get("size").(int) * 1099511627776)
 
 	capacityPoolParameters := netapp.CapacityPool{
 		Location: utils.String(location),
@@ -149,7 +149,7 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
 		d.Set("service_level", poolProperties.ServiceLevel)
 		if poolProperties.Size != nil {
-			d.Set("size_in_4_tb", *poolProperties.Size/4398046511104)
+			d.Set("size", *poolProperties.Size/1099511627776)
 		}
 	}
 

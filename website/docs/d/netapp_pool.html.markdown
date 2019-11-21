@@ -46,6 +46,6 @@ The following attributes are exported:
 
 * `service_level` - The service level of the file system.
 
-* `size_in_4_tb` - Provisioned size of the pool (in bytes). Values are in 4TiB chunks.
+* `size` - Provisioned size of the pool (in TB).
 
 ---
