@@ -21,6 +21,14 @@ type AppServiceEnvironmentFrontendPool struct {
 	Count  int32
 }
 
+type AppServiceEnvironmentFrontEndSKU string
+
+const (
+	SmallSKU  AppServiceEnvironmentFrontEndSKU = "Standard_D1_V2"
+	MediumSKU AppServiceEnvironmentFrontEndSKU = "Standard_D2_V2"
+	LargeSKU                                   = "Standard_D3_V2"
+)
+
 func resourceArmAppServiceEnvironment() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmAppServiceEnvironmentCreate,
@@ -98,9 +106,9 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(web.WorkerSizeOptionsSmall),
 								string(web.WorkerSizeOptionsMedium),
 								string(web.WorkerSizeOptionsLarge),
-								"ExtraLarge", // current SDKs do not reflect actual allowed values
 							}, true),
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
@@ -251,7 +259,6 @@ func resourceArmAppServiceEnvironmentRead(d *schema.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-
 		return fmt.Errorf("Error retrieving App Service Environmment %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -378,7 +385,7 @@ func flattenAppServiceEnvironmentFrontendPool(input *web.AppServiceEnvironment) 
 	output := make(map[string]interface{}, 0)
 
 	if size := input.MultiSize; size != nil {
-		output["vm_size"] = *size
+		output["vm_size"] = translateSKUToSimpleSize(AppServiceEnvironmentFrontEndSKU(*size))
 	}
 
 	if count := input.MultiRoleCount; count != nil {
@@ -431,4 +438,17 @@ func flattenAppServiceEnvironmentWorkerPools(input *[]web.WorkerPool) []interfac
 	}
 
 	return outputs
+}
+
+// this is required as the API returns the actual SKUs for MultiSize instead of the simple (Small,Medium,Large) values
+func translateSKUToSimpleSize(sku AppServiceEnvironmentFrontEndSKU) string {
+	switch sku {
+	case SmallSKU:
+		return string(web.WorkerSizeOptionsSmall)
+	case MediumSKU:
+		return string(web.WorkerSizeOptionsMedium)
+	case LargeSKU:
+		return string(web.WorkerSizeOptionsLarge)
+	}
+	return string(web.WorkerSizeOptionsSmall)
 }

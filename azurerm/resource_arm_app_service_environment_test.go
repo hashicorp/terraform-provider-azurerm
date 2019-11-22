@@ -2,13 +2,13 @@ package azurerm
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-	"testing"
 )
-
 
 func TestAccAzureRMAppServiceEnvironment_basicWindows(t *testing.T) {
 	resourceName := "azurerm_app_service_environment.test"
@@ -23,7 +23,6 @@ func TestAccAzureRMAppServiceEnvironment_basicWindows(t *testing.T) {
 				Config: testAccAzureRMAppServiceEnvironment_basicWindows(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "number_of_ip_addresses", "1"),
-					//resource.TestCheckResourceAttr(resourceName, "reserved", "false"),
 				),
 			},
 			{
@@ -37,12 +36,12 @@ func TestAccAzureRMAppServiceEnvironment_basicWindows(t *testing.T) {
 func testAccAzureRMAppServiceEnvironment_basicWindows(rInt int, location string) string {
 	return fmt.Sprintf(`
 	resource "azurerm_resource_group" "test_rg" {
-		name     = "aseTest-191104100822625505"
+		name     = "aseTest-%d"
 		location = "%s"
 	  }
 	  
 	  resource "azurerm_virtual_network" "test_vnet" {
-		name                = "asevnettest-191104100822625505"
+		name                = "asevnettest-%d"
 		location            = "${azurerm_resource_group.test_rg.location}"
 		resource_group_name = "${azurerm_resource_group.test_rg.name}"
 		address_space       = ["10.0.0.0/16"]
@@ -60,7 +59,7 @@ func testAccAzureRMAppServiceEnvironment_basicWindows(rInt int, location string)
 	  }
 	  
 	  resource "azurerm_app_service_environment" "test" {
-		name                = "asetest-191104100822625505"
+		name                = "asetest-%d"
 		location            = "${azurerm_resource_group.test_rg.location}"
 		resource_group_name = "${azurerm_resource_group.test_rg.name}"
 		number_of_ip_addresses = 1
@@ -71,7 +70,7 @@ func testAccAzureRMAppServiceEnvironment_basicWindows(rInt int, location string)
 			}
 	  
 		frontend_pool {
-				vm_size = "Medium"
+				vm_size = "Small"
 				number_of_workers = 2
 			}
 		
@@ -83,7 +82,7 @@ func testAccAzureRMAppServiceEnvironment_basicWindows(rInt int, location string)
 			}
 	  
 	  }
-`, location)
+`, rInt, location, rInt, rInt)
 }
 
 func testCheckAzureRMAppServiceEnvironmentDestroy(s *terraform.State) error {
