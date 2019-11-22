@@ -34,6 +34,7 @@ func testAccDataSourceNetAppVolume_basic(rInt int, location string) string {
 	config := testAccAzureRMNetAppVolume_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_netapp_volume" "test" {
   resource_group_name = "${azurerm_netapp_volume.test.resource_group_name}"
   account_name        = "${azurerm_netapp_volume.test.account_name}"

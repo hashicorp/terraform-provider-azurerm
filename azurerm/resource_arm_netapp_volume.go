@@ -87,7 +87,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 			},
 
 			"export_policy_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 5,
 				Elem: &schema.Resource{
@@ -158,7 +158,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	serviceLevel := d.Get("service_level").(string)
 	subnetId := d.Get("subnet_id").(string)
 	usageThreshold := int64(d.Get("usage_threshold").(int) * 1073741824)
-	exportPolicyRule := d.Get("export_policy_rule").([]interface{})
+	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
@@ -250,8 +250,7 @@ func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) err
 	poolName := id.Path["capacityPools"]
 	name := id.Path["volumes"]
 
-	_, err = client.Delete(ctx, resourceGroup, accountName, poolName, name)
-	if err != nil {
+	if _, err = client.Delete(ctx, resourceGroup, accountName, poolName, name); err != nil {
 		return fmt.Errorf("Error deleting NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 

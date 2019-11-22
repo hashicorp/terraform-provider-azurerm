@@ -62,12 +62,12 @@ An `export_policy_rule` block supports the following:
 
 * `allowed_clients` - Client ingress specification as list with IPv4 CIDRs, IPv4 host addresses.
 
-* `cifs` - Allows CIFS protocol.
+* `cifs` - Is the CIFS protocol allowed.
 
-* `nfsv3` - Allows NFSv3 protocol.
+* `nfsv3` - Is the NFSv3 protocol allowed.
 
-* `nfsv4` - Allows NFSv4 protocol.
+* `nfsv4` - Is the NFSv4 protocol allowed.
 
-* `unix_read_only` - Read only file system type on unix.
+* `unix_read_only` - Is the file system on unix read only.
 
-* `unix_read_write` - Read and write file system type on unix.
+* `unix_read_write` - Is the file system on unix read and write.

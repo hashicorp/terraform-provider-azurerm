@@ -98,19 +98,19 @@ The following arguments are supported:
 
 An `export_policy_rule` block supports the following:
 
-* `rule_index` - (Required) The index number for the rule.
+* `rule_index` - (Required) The index number of the rule.
 
 * `allowed_clients` - (Required) Client ingress specification as list with IPv4 CIDRs, IPv4 host addresses.
 
-* `cifs` - (Required) Allows CIFS protocol.
+* `cifs` - (Required) Is the CIFS protocol allowed?
 
-* `nfsv3` - (Required) Allows NFSv3 protocol.
+* `nfsv3` - (Required) Is the NFSv3 protocol allowed?
 
-* `nfsv4` - (Required) Allows NFSv4 protocol.
+* `nfsv4` - (Required) Is the NFSv4 protocol allowed?
 
-* `unix_read_only` - (Required) Read only file system type on unix.
+* `unix_read_only` - (Required) Is the file system on unix read only?
 
-* `unix_read_write` - (Required) Read and write file system type on unix.
+* `unix_read_write` - (Required) Is the file system on unix read and write?
 
 ---
 

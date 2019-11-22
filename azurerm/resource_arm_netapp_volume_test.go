@@ -81,7 +81,7 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 					testCheckAzureRMNetAppVolumeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Premium"),
 					resource.TestCheckResourceAttr(resourceName, "usage_threshold", "101"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "2"),
 				),
 			},
 			{
@@ -121,7 +121,20 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "usage_threshold", "101"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "2"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMNetAppVolume_basic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetAppVolumeExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "usage_threshold", "100"),
+					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "0"),
 				),
 			},
 			{
@@ -195,15 +208,7 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.rule_index", "1"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.allowed_clients.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.allowed_clients.0", "1.2.3.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.cifs", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.nfsv3", "true"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.nfsv4", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.unix_read_only", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.unix_read_write", "true"),
+					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "2"),
 				),
 			},
 			{
@@ -216,15 +221,6 @@ func TestAccAzureRMNetAppVolume_updateExportPolicyRule(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.rule_index", "2"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.allowed_clients.#", "2"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.allowed_clients.0", "1.2.4.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.allowed_clients.1", "1.3.4.0"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.cifs", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.nfsv3", "false"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.nfsv4", "true"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.unix_read_only", "true"),
-					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.0.unix_read_write", "false"),
 				),
 			},
 			{
@@ -334,6 +330,7 @@ resource "azurerm_netapp_volume" "test" {
   creation_token      = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
   usage_threshold     = 101
+
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.3.0/24"]
@@ -342,6 +339,16 @@ resource "azurerm_netapp_volume" "test" {
     nfsv4           = false
     unix_read_only  = false
     unix_read_write = true
+  }
+
+  export_policy_rule {
+    rule_index      = 2
+    allowed_clients = ["1.2.5.0"]
+    cifs            = false
+    nfsv3           = true
+    nfsv4           = false
+    unix_read_only  = true
+    unix_read_write = false
   }
 }
 `, template, rInt, rInt)
@@ -404,14 +411,15 @@ resource "azurerm_netapp_volume" "test" {
   creation_token      = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
   usage_threshold     = 101
+
   export_policy_rule {
-    rule_index      = 2
+    rule_index      = 1
     allowed_clients = ["1.2.4.0/24", "1.3.4.0"]
     cifs            = false
-    nfsv3           = false
-    nfsv4           = true
-    unix_read_only  = true
-    unix_read_write = false
+    nfsv3           = true
+    nfsv4           = false
+    unix_read_only  = false
+    unix_read_write = true
   }
 }
 `, template, rInt, rInt)
