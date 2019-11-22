@@ -24,6 +24,12 @@ func resourceArmIotDPSCertificate() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+		DeprecationMessage: `The 'azurerm_iot_dps_certificate' resource is deprecated in favour of the renamed version 'azurerm_iothub_dps_certificate'.
+
+Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
+
+As such the existing 'azurerm_iot_dps_certificate' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
+`,
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),

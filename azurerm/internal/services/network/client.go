@@ -32,8 +32,10 @@ type Client struct {
 	VnetClient                           *network.VirtualNetworksClient
 	VnetPeeringsClient                   *network.VirtualNetworkPeeringsClient
 	VirtualWanClient                     *network.VirtualWansClient
+	VirtualHubClient                     *network.VirtualHubsClient
 	WatcherClient                        *network.WatchersClient
 	WebApplicationFirewallPoliciesClient *network.WebApplicationFirewallPoliciesClient
+	PrivateLinkServiceClient             *network.PrivateLinkServicesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -91,6 +93,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	PublicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PublicIPPrefixesClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateLinkServiceClient := network.NewPrivateLinkServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateLinkServiceClient.Client, o.ResourceManagerAuthorizer)
+
 	RoutesClient := network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RoutesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -114,6 +119,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
+
+	VirtualHubClient := network.NewVirtualHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualHubClient.Client, o.ResourceManagerAuthorizer)
 
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
@@ -148,7 +156,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 		VnetClient:                           &VnetClient,
 		VnetPeeringsClient:                   &VnetPeeringsClient,
 		VirtualWanClient:                     &VirtualWanClient,
+		VirtualHubClient:                     &VirtualHubClient,
 		WatcherClient:                        &WatcherClient,
 		WebApplicationFirewallPoliciesClient: &WebApplicationFirewallPoliciesClient,
+		PrivateLinkServiceClient:             &PrivateLinkServiceClient,
 	}
 }

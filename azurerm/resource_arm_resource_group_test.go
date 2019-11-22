@@ -191,7 +191,7 @@ func testCheckAzureRMResourceGroupDestroy(s *terraform.State) error {
 			continue
 		}
 
-		resourceGroup := rs.Primary.ID
+		resourceGroup := rs.Primary.Attributes["name"]
 
 		resp, err := client.Get(ctx, resourceGroup)
 		if err != nil {

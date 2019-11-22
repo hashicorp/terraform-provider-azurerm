@@ -54,7 +54,7 @@ resource "azurerm_netapp_pool" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   account_name        = "${azurerm_netapp_account.example.name}"
   service_level       = "Premium"
-  size_in_4_tb        = 1
+  size_in_tb          = 4
 }
 
 resource "azurerm_netapp_volume" "example" {

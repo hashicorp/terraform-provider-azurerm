@@ -32,7 +32,7 @@ resource "azurerm_netapp_pool" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
   service_level       = "Premium"
-  size_in_4_tb        = 1
+  size_in_tb          = 4
 }
 ```
 
@@ -44,13 +44,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group where the NetApp Pool should be created. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created. Changing this forces a new resource to be created.
+* `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
-* `size_in_4_tb` - (Required) Provisioned size of the pool (in bytes). Values are in 4TiB chunks.
+* `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `4` and `500`.
 
 ---
 

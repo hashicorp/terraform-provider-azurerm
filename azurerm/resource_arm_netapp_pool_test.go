@@ -79,7 +79,7 @@ func TestAccAzureRMNetAppPool_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "size_in_4_tb", "2"),
+					resource.TestCheckResourceAttr(resourceName, "size_in_tb", "15"),
 				),
 			},
 			{
@@ -106,7 +106,7 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Premium"),
-					resource.TestCheckResourceAttr(resourceName, "size_in_4_tb", "1"),
+					resource.TestCheckResourceAttr(resourceName, "size_in_tb", "4"),
 				),
 			},
 			{
@@ -119,7 +119,7 @@ func TestAccAzureRMNetAppPool_update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppPoolExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Standard"),
-					resource.TestCheckResourceAttr(resourceName, "size_in_4_tb", "2"),
+					resource.TestCheckResourceAttr(resourceName, "size_in_tb", "15"),
 				),
 			},
 			{
@@ -200,7 +200,7 @@ resource "azurerm_netapp_pool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   service_level       = "Premium"
-  size_in_4_tb        = 1
+  size_in_tb          = 4
 }
 `, rInt, location, rInt, rInt)
 }
@@ -212,6 +212,7 @@ resource "azurerm_netapp_pool" "import" {
   name                = "${azurerm_netapp_pool.test.name}"
   location            = "${azurerm_netapp_pool.test.location}"
   resource_group_name = "${azurerm_netapp_pool.test.name}"
+}
 }
 `, testAccAzureRMNetAppPool_basic(rInt, location))
 }
@@ -235,7 +236,7 @@ resource "azurerm_netapp_pool" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   service_level       = "Standard"
-  size_in_4_tb        = 2
+  size_in_tb          = 15
 }
 `, rInt, location, rInt, rInt)
 }
