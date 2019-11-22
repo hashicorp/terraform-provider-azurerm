@@ -47,12 +47,6 @@ The following arguments are supported:
 
 * `virtual_wan_id` - (Required) The resource id of virtual wan. Changing this forces a new resource to be created.
 
-* `s2s_vpn_gateway_id` - (Optional) The resource id of s2s vpn gateway.
-
-* `p2s_vpn_gateway_id` - (Optional) The resource id of p2s vpn gateway.
-
-* `express_route_gateway_id` - (Optional) The resource id of express route gateway.
-
 * `virtual_network_connection` - (Optional) One or more `virtual_network_connection` block defined below.
 
 * `route` - (Optional) One `route` block defined below.
@@ -88,6 +82,12 @@ The `virtual_network_connection` block supports the following:
 The following attributes are exported:
 
 * `id` - The ID of the Virtual Hub.
+
+* `s2s_vpn_gateway_id` - The ID of the S2S VPN Gateway which is associated with Virtual Hub.
+
+* `p2s_vpn_gateway_id` - The ID of the P2S VPN Gateway which is associated with Virtual Hub.
+
+* `express_route_gateway_id` - The ID of the Express Route Gateway which is associated with Virtual Hub.
 
 ## Import
 

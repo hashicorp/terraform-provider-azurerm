@@ -54,24 +54,6 @@ func resourceArmVirtualHub() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"s2s_vpn_gateway_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"p2s_vpn_gateway_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
-			"express_route_gateway_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-
 			"virtual_network_connection": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -128,6 +110,21 @@ func resourceArmVirtualHub() *schema.Resource {
 				},
 			},
 
+			"s2s_vpn_gateway_id": {
+				Type:         schema.TypeString,
+				Computed:     true,
+			},
+
+			"p2s_vpn_gateway_id": {
+				Type:         schema.TypeString,
+				Computed:     true,
+			},
+
+			"express_route_gateway_id": {
+				Type:         schema.TypeString,
+				Computed:     true,
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -170,25 +167,6 @@ func resourceArmVirtualHubCreateUpdate(d *schema.ResourceData, meta interface{})
 			RouteTable:                expandArmVirtualHubRoute(route),
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if v, ok := d.GetOk("s2s_vpn_gateway_id"); ok {
-		s2sVpnGatewayId := v.(string)
-		parameters.VirtualHubProperties.VpnGateway = &network.SubResource{
-			ID: &s2sVpnGatewayId,
-		}
-	}
-	if v, ok := d.GetOk("p2s_vpn_gateway_id"); ok {
-		p2sVpnGatewayId := v.(string)
-		parameters.VirtualHubProperties.P2SVpnGateway = &network.SubResource{
-			ID: &p2sVpnGatewayId,
-		}
-	}
-	if v, ok := d.GetOk("express_route_gateway_id"); ok {
-		expressRouteGatewayId := v.(string)
-		parameters.VirtualHubProperties.ExpressRouteGateway = &network.SubResource{
-			ID: &expressRouteGatewayId,
-		}
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)

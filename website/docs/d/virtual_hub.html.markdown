@@ -44,11 +44,11 @@ The following attributes are exported:
 
 * `virtual_wan_id` - The resource id of virtual wan.
 
-* `s2s_vpn_gateway_id` - The resource id of s2s vpn gateway.
+* `s2s_vpn_gateway_id` - The ID of the S2S VPN Gateway which is associated with Virtual Hub.
 
-* `p2s_vpn_gateway_id` - The resource id of p2s vpn gateway.
+* `p2s_vpn_gateway_id` - The ID of the P2S VPN Gateway which is associated with Virtual Hub.
 
-* `express_route_gateway_id` - The resource id of express route gateway.
+* `express_route_gateway_id` - The ID of the Express Route Gateway which is associated with Virtual Hub.
 
 * `route` - One `route` block defined below.
 
