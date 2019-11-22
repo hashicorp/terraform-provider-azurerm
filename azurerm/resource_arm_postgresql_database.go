@@ -59,7 +59,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseCollation,
+				ValidateFunc: validate.PostgresDatabaseCollation,
 			},
 		},
 	}
