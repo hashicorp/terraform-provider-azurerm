@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -68,6 +69,11 @@ func dataSourceArmSubnet() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+
+			"enforce_private_link_service_network_policies": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -97,28 +103,25 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
 
-		if privateEndpointNetworkPolicies := props.PrivateEndpointNetworkPolicies; privateEndpointNetworkPolicies != nil {
-			if err := d.Set("enforce_private_link_endpoint_network_policies", *privateEndpointNetworkPolicies == "Disabled"); err != nil {
-				return err
-			}
+		if pe := props.PrivateEndpointNetworkPolicies; pe != nil {
+			d.Set("enforce_private_link_endpoint_network_policies", strings.EqualFold("Disabled", *pe))
 		}
-
+		if ps := props.PrivateLinkServiceNetworkPolicies; ps != nil {
+			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *ps))
+		}
 		if props.NetworkSecurityGroup != nil {
 			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
 		} else {
 			d.Set("network_security_group_id", "")
 		}
-
 		if props.RouteTable != nil {
 			d.Set("route_table_id", props.RouteTable.ID)
 		} else {
 			d.Set("route_table_id", "")
 		}
-
 		if err := d.Set("ip_configurations", flattenSubnetIPConfigurations(props.IPConfigurations)); err != nil {
 			return err
 		}
-
 		if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
 			return err
 		}

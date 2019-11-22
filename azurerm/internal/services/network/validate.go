@@ -20,6 +20,7 @@ func ValidatePrivateLinkEndpointSettings(d *schema.ResourceData) error {
 		if !privateServiceConnection["is_manual_connection"].(bool) && privateServiceConnection["request_message"].(string) != "" {
 			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute cannot be set if the "is_manual_connection" attribute is "false"`, name)
 		}
+
 		// If this is a manual connection and the message isn't set return an error.
 		if privateServiceConnection["is_manual_connection"].(bool) && strings.TrimSpace(privateServiceConnection["request_message"].(string)) == "" {
 			return fmt.Errorf(`"private_service_connection":%q is invalid, the "request_message" attribute must not be empty`, name)
@@ -29,15 +30,50 @@ func ValidatePrivateLinkEndpointSettings(d *schema.ResourceData) error {
 	return nil
 }
 
-func ValidatePrivateLinkEndpointName(i interface{}, k string) (_ []string, errors []error) {
+func ValidatePrivateLinkNatIpConfiguration(d *schema.ResourceDiff) error {
+	name := d.Get("name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+	ipConfigurations := d.Get("nat_ip_configuration").([]interface{})
+
+	for i, item := range ipConfigurations {
+		v := item.(map[string]interface{})
+		p := fmt.Sprintf("nat_ip_configuration.%d.private_ip_address", i)
+		s := fmt.Sprintf("nat_ip_configuration.%d.subnet_id", i)
+		isPrimary := v["primary"].(bool)
+		in := v["name"].(string)
+
+		if d.HasChange(p) {
+			o, n := d.GetChange(p)
+			if o != "" && n == "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+			}
+		}
+
+		if isPrimary && d.HasChange(s) {
+			o, _ := d.GetChange(s)
+			if o != "" {
+				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+			}
+		}
+	}
+
+	return nil
+}
+
+func ValidatePrivateLinkName(i interface{}, k string) (_ []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))
 	}
 
-	// Message="Resource name foo^* is invalid. The name can be up to 80 characters long. It must begin with a
-	// word character, and it must end with a word character or with '_'. The name may contain word characters
-	// or '.', '-', '_'."
+	// The name attribute rules per the Nat Gateway service team are (Friday, October 18, 2019 4:20 PM):
+	// 1. Must not be empty.
+	// 2. Must be between 1 and 80 characters.
+	// 3. The attribute must:
+	//    a) begin with a letter or number
+	//    b) end with a letter, number or underscore
+	//    c) may contain only letters, numbers, underscores, periods, or hyphens.
+
 	if len(v) == 1 {
 		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z\d])`); !m {
 			errors = append(errors, fmt.Errorf("%s must begin with a letter or number", k))

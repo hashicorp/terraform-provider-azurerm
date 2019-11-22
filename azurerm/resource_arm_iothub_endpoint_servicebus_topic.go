@@ -122,9 +122,9 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 				}
 				endpoints = append(endpoints, topicEndpoint)
 				alreadyExists = true
+			} else {
+				endpoints = append(endpoints, existingEndpoint)
 			}
-		} else {
-			endpoints = append(endpoints, existingEndpoint)
 		}
 	}
 

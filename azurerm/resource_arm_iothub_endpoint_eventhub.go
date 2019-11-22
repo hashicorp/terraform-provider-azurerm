@@ -122,9 +122,9 @@ func resourceArmIotHubEndpointEventHubCreateUpdate(d *schema.ResourceData, meta 
 				}
 				endpoints = append(endpoints, eventhubEndpoint)
 				alreadyExists = true
+			} else {
+				endpoints = append(endpoints, existingEndpoint)
 			}
-		} else {
-			endpoints = append(endpoints, existingEndpoint)
 		}
 	}
 

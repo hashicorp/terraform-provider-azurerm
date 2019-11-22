@@ -188,6 +188,8 @@ A `agent_pool_profile` block supports the following:
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
+-> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
+
 ~> **NOTE:** A route table must be configured on this Subnet.
 
 ---
