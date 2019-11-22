@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `address_prefix` - (Required) Address-prefix for this Virtual Hub.
 
-* `virtual_wan_id` - (Required) The resource id of virtual wan.
+* `virtual_wan_id` - (Required) The resource id of virtual wan. Changing this forces a new resource to be created.
 
 * `s2s_vpn_gateway_id` - (Optional) The resource id of s2s vpn gateway.
 

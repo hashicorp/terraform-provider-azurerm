@@ -50,6 +50,7 @@ func resourceArmVirtualHub() *schema.Resource {
 			"virtual_wan_id": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
