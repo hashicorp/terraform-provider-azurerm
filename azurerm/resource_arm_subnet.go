@@ -83,12 +83,6 @@ func resourceArmSubnet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"enforce_private_link_endpoint_network_policies": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"delegation": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -144,6 +138,12 @@ func resourceArmSubnet() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"enforce_private_link_endpoint_network_policies": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"enforce_private_link_service_network_policies": {
