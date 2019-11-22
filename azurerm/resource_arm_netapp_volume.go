@@ -328,32 +328,44 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 	}
 
 	for _, item := range *input.Rules {
-		c := make(map[string]interface{})
-
+		ruleIndex := int32(0)
 		if v := item.RuleIndex; v != nil {
-			c["rule_index"] = *v
+			ruleIndex = *v
 		}
+		allowedClients := []string{}
 		if v := item.AllowedClients; v != nil {
-			origins := strings.Split(*v, ",")
-			c["allowed_clients"] = utils.FlattenStringSlice(&origins)
+			allowedClients = strings.Split(*v, ",")
 		}
+		cifs := false
 		if v := item.Cifs; v != nil {
-			c["cifs"] = *v
+			cifs = *v
 		}
+		nfsv3 := false
 		if v := item.Nfsv3; v != nil {
-			c["nfsv3"] = *v
+			nfsv3 = *v
 		}
+		nfsv4 := false
 		if v := item.Nfsv4; v != nil {
-			c["nfsv4"] = *v
+			nfsv4 = *v
 		}
+		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
-			c["unix_read_only"] = *v
+			unixReadOnly = *v
 		}
+		unixReadWrite := false
 		if v := item.UnixReadWrite; v != nil {
-			c["unix_read_write"] = *v
+			unixReadWrite = *v
 		}
 
-		results = append(results, c)
+		results = append(results, map[string]interface{}{
+			"rule_index":      ruleIndex,
+			"allowed_clients": utils.FlattenStringSlice(&allowedClients),
+			"cifs":            cifs,
+			"nfsv3":           nfsv3,
+			"nfsv4":           nfsv4,
+			"unix_read_only":  unixReadOnly,
+			"unix_read_write": unixReadWrite,
+		})
 	}
 
 	return results
