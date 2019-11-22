@@ -8,6 +8,8 @@ FEATURES:
 * **New Data Source:** `azurerm_automation_account` [GH-4740]
 * **New Data Source:** `azurerm_netapp_account` [GH-4416]
 * **New Data Source:** `azurerm_netapp_pool` [GH-4889]
+* **New Data Source:** `azurerm_private_link_service` [GH-4426]
+* **New Data Source:** `azurerm_private_link_service_endpoint_connections` [GH-4426]
 * **New Data Source:** `azurerm_virtual_hub` [GH-4919]
 * **New Resource:** `azurerm_data_factory_trigger_schedule` [GH-4793]
 * **New Resource:** `azurerm_iothub_endpoint_eventhub` [GH-4823]
@@ -21,6 +23,7 @@ FEATURES:
 * **New Resource:** `azurerm_private_dns_aaaa_record` [GH-4841]
 * **New Resource:** `azurerm_private_dns_ptr_record` [GH-4703]
 * **New Resource:** `azurerm_private_dns_srv_record` [GH-4783]
+* **New Resource:** `azurerm_private_link_service` [GH-4426]
 * **New Resource:** `azurerm_relay_hybrid_connection` [GH-4832]
 * **New Resource:** `azurerm_virtual_hub` [GH-4919]
 
@@ -62,6 +65,7 @@ IMPROVEMENTS:
 * `azurerm_servicebus_subscription` - support for the `forward_dead_lettered_messages_to` property [GH-4789]
 * `azurerm_signalr_service` - support for the `cors` and `features` blocks [GH-4716]
 * `azurerm_sql_server` - support for the `identity` block [GH-4754]
+* `azurerm_subnet` - support for the `enforce_private_link_service_network_policies` property [GH-4426]
 * `azurerm_template_deployment` - validating the ARM Template prior to deploying it, which provides more granular errors [GH-4715]
 
 BUG FIXES:
