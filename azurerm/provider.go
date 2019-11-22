@@ -754,7 +754,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If you do not have permissions to register resource providers you may want to use the skip_provider_registration flag, however this may cause additional errors if unregistered APIs are called that look something like `API version 2017-07-07 was not found for Microsoft.Foo`. Please see https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration for more details: %s", err)
+					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 				}
 			}
 		}
@@ -762,3 +762,25 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		return client, nil
 	}
 }
+
+const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
+
+Terraform automatically attempts to register the Resource Providers it supports to
+ensure it's able to provision resources.
+
+If you don't have permission to register Resource Providers you may wish to use the
+"skip_provider_registration" flag in the Provider block to disable this functionality.
+
+Please note that if you opt out of Resource Provider Registration and Terraform tries
+to provision a resource from a Resource Provider which is unregistered, then the errors
+may appear misleading - for example:
+
+> API version 2019-XX-XX was not found for Microsoft.Foo
+
+Could indicate either that the Resource Provider "Microsoft.Foo" requires registration,
+but this could also indicate that this Azure Region doesn't support this API version.
+
+More information on the "skip_provider_registration" flag can be found here:
+https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration
+
+Original Error: %s`
