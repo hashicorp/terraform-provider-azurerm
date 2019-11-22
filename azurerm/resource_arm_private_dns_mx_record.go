@@ -219,6 +219,9 @@ func expandAzureRmPrivateDnsMxRecords(d *schema.ResourceData) *[]privatedns.MxRe
 	records := make([]privatedns.MxRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
+		if v == nil {
+			continue
+		}
 		record := v.(map[string]interface{})
 		preference := int32(record["preference"].(int))
 		exchange := record["exchange"].(string)
