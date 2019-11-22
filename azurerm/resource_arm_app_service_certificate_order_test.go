@@ -267,11 +267,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_certificate_order" "test" {
-  name = "acctestASCO-%d"
-  location = "global"
+  name                = "acctestASCO-%d"
+  location            = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  distinguished_name = "CN=example.com"
-  product_type = "Standard"
+  distinguished_name  = "CN=example.com"
+  product_type        = "Standard"
 }
 `, rInt, location, rInt)
 }
@@ -284,11 +284,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_certificate_order" "test" {
-  name = "acctestASCO-%d"
-  location = "global"
+  name                = "acctestASCO-%d"
+  location            = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  distinguished_name = "CN=*.example.com"
-  product_type = "WildCard"
+  distinguished_name  = "CN=*.example.com"
+  product_type        = "WildCard"
 }
 `, rInt, location, rInt)
 }
@@ -302,8 +302,8 @@ resource "azurerm_app_service_certificate_order" "import" {
   name                = "${azurerm_app_service_certificate_order.test.name}"
   location            = "${azurerm_app_service_certificate_order.test.location}"
   resource_group_name = "${azurerm_app_service_certificate_order.test.resource_group_name}"
-  distinguished_name = "${azurerm_app_service_certificate_order.test.distinguished_name}"
-  product_type = "${azurerm_app_service_certificate_order.test.product_type}"
+  distinguished_name  = "${azurerm_app_service_certificate_order.test.distinguished_name}"
+  product_type        = "${azurerm_app_service_certificate_order.test.product_type}"
 }
 `, template)
 }
@@ -316,14 +316,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_app_service_certificate_order" "test" {
-  name = "acctestASCO-%d"
-  location = "global"
+  name                = "acctestASCO-%d"
+  location            = "global"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  distinguished_name = "CN=example.com"
-  product_type = "Standard"
-  auto_renew = false
-  validity_in_years = 1
-  key_size = %d
+  distinguished_name  = "CN=example.com"
+  product_type        = "Standard"
+  auto_renew          = false
+  validity_in_years   = 1
+  key_size            = %d
 }
 `, rInt, location, rInt, keySize)
 }

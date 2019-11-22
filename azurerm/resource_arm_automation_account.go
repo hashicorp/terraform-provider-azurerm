@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"regexp"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
@@ -37,14 +36,10 @@ func resourceArmAutomationAccount() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					//todo this will not allow single character names, even thou they are valid
-					regexp.MustCompile(`^[0-9a-zA-Z]([-0-9a-zA-Z]{0,48}[0-9a-zA-Z])?$`),
-					`The account name must not be empty, and must not exceed 50 characters in length.  The account name must start with a letter or number.  The account name can contain letters, numbers, and dashes. The final character must be a letter or a number.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"location": azure.SchemaLocation(),

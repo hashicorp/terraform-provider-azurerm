@@ -1,4 +1,5 @@
 ---
+subcategory: "DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_zone"
 sidebar_current: "docs-azurerm-resource-dns-zone"
@@ -13,20 +14,20 @@ Enables you to manage DNS zones within Azure DNS. These zones are hosted on Azur
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_dns_zone" "test" {
+resource "azurerm_dns_zone" "example-public" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   zone_type           = "Public"
 }
 
-resource "azurerm_dns_zone" "test_private" {
+resource "azurerm_dns_zone" "example-private" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   zone_type           = "Private"
 }
 ```

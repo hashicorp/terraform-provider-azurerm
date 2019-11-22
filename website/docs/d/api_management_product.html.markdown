@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_product"
 sidebar_current: "docs-azurerm-datasource-api-management-product"
@@ -13,14 +14,14 @@ Use this data source to access information about an existing API Management Prod
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_product" "test" {
+data "azurerm_api_management_product" "example" {
   product_id          = "my-product"
   api_management_name = "example-apim"
   resource_group_name = "search-service"
 }
 
 output "product_terms" {
-  value = "${data.azurerm_api_management_product.test.terms}"
+  value = "${data.azurerm_api_management_product.example.terms}"
 }
 ```
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_management_policy"
 sidebar_current: "docs-azurerm-resource-storage-management-policy"
@@ -13,30 +14,30 @@ Manages an Azure Storage Account Management Policy.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "testrg" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
   location = "westus"
 }
 
-resource "azurerm_storage_account" "testsa" {
+resource "azurerm_storage_account" "example" {
   name                = "storageaccountname"
-  resource_group_name = "${azurerm_resource_group.testrg.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
-  location                 = "${azurerm_resource_group.testrg.location}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "BlobStorage"
 }
 
-resource "azurerm_storage_management_policy" "testpolicy" {
-  storage_account_id = "${azurerm_storage_account.testsa.id}"
+resource "azurerm_storage_management_policy" "example" {
+  storage_account_id = "${azurerm_storage_account.example.id}"
 
   rule {
     name    = "rule1"
     enabled = true
     filters {
-      prefix_match = [ "container1/prefix1" ]
-      blob_types   = [ "blockBlob" ]
+      prefix_match = ["container1/prefix1"]
+      blob_types   = ["blockBlob"]
     }
     actions {
       base_blob {
@@ -53,8 +54,8 @@ resource "azurerm_storage_management_policy" "testpolicy" {
     name    = "rule2"
     enabled = false
     filters {
-      prefix_match = [ "container2/prefix1", "container2/prefix2" ]
-      blob_types  = [ "blockBlob" ]
+      prefix_match = ["container2/prefix1", "container2/prefix2"]
+      blob_types   = ["blockBlob"]
     }
     actions {
       base_blob {
@@ -126,5 +127,5 @@ The following attributes are exported:
 Storage Account Management Policies can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_storage_management_policy.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myaccountname/managementPoliices/default
+terraform import azurerm_storage_management_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Storage/storageAccounts/myaccountname/managementPoliices/default
 ```

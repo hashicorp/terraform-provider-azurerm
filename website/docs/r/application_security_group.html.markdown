@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_security_group"
 sidebar_current: "docs-azurerm-resource-network-application-security-group"
@@ -13,15 +14,15 @@ Manages an Application Security Group.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
 }
 
-resource "azurerm_application_security_group" "test" {
+resource "azurerm_application_security_group" "example" {
   name                = "tf-appsecuritygroup"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   tags = {
     Hello = "World"

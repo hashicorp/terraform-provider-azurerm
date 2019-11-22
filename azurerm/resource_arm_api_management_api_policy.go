@@ -2,15 +2,16 @@ package azurerm
 
 import (
 	"fmt"
+	"html"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	apimanagementSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -44,7 +45,7 @@ func resourceArmApiManagementApiPolicy() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
-				DiffSuppressFunc: suppress.XmlDiff,
+				DiffSuppressFunc: apimanagementSvc.XmlWithDotNetInterpolationsDiffSuppress,
 			},
 
 			"xml_link": {
@@ -83,17 +84,22 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 	xmlContent := d.Get("xml_content").(string)
 	xmlLink := d.Get("xml_link").(string)
 
-	if xmlContent != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.XML,
-			PolicyContent: utils.String(xmlContent),
-		}
-	}
-
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.XMLLink,
+			ContentFormat: apimanagement.RawxmlLink,
 			PolicyContent: utils.String(xmlLink),
+		}
+	} else if xmlContent != "" {
+		// this is intentionally an else-if since `xml_content` is computed
+
+		// clear out any existing value for xml_link
+		if !d.IsNewResource() {
+			d.Set("xml_link", "")
+		}
+
+		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
+			ContentFormat: apimanagement.Rawxml,
+			PolicyContent: utils.String(xmlContent),
 		}
 	}
 
@@ -146,9 +152,14 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 	d.Set("api_name", apiName)
 
 	if properties := resp.PolicyContractProperties; properties != nil {
+		policyContent := ""
+		if pc := properties.PolicyContent; pc != nil {
+			policyContent = html.UnescapeString(*pc)
+		}
+
 		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", properties.PolicyContent)
+		d.Set("xml_content", policyContent)
 	}
 
 	return nil

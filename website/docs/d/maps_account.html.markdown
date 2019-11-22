@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_maps_account"
 sidebar_current: "docs-azurerm-datasource-maps-account"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing Azure Maps Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_maps_account" "test" {
+data "azurerm_maps_account" "example" {
   name                = "production"
   resource_group_name = "maps"
 }
 
 output "maps_account_id" {
-  value = "${data.azurerm_maps_account.test.id}"
+  value = "${data.azurerm_maps_account.example.id}"
 }
 ```
 

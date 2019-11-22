@@ -250,7 +250,7 @@ resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku 				  = "B1"
+  sku                 = "B1"
 }
 `, rInt, location, rInt)
 }
@@ -266,10 +266,10 @@ resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku 				  = "B1"
+  sku                 = "B1"
 
   tags = {
-	label = "test"
+    label = "test"
   }
 }
 `, rInt, location, rInt)
@@ -286,11 +286,11 @@ resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku 				  = "B1"
+  sku                 = "B1"
 
   tags = {
-	label = "test1"
-	ENV   = "prod"
+    label = "test1"
+    ENV   = "prod"
   }
 }
 `, rInt, location, rInt)
@@ -304,10 +304,10 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestass%d"
-  location            		= "${azurerm_resource_group.test.location}"
-  resource_group_name 		= "${azurerm_resource_group.test.name}"
-  sku 				  		= "B1"
+  name                      = "acctestass%d"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  sku                       = "B1"
   querypool_connection_mode = "%s"
 }
 `, rInt, location, rInt, connectionMode)
@@ -321,11 +321,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestass%d"
-  location            		= "${azurerm_resource_group.test.location}"
-  resource_group_name 		= "${azurerm_resource_group.test.name}"
-  sku 				  		= "B1"
-  enable_power_bi_service   = %t
+  name                    = "acctestass%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  sku                     = "B1"
+  enable_power_bi_service = %t
 }
 `, rInt, location, rInt, enablePowerBIService)
 }
@@ -338,12 +338,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestass%d"
-  location            		= "${azurerm_resource_group.test.location}"
-  resource_group_name 		= "${azurerm_resource_group.test.name}"
-  sku 				  		= "B1"
-  enable_power_bi_service   = %t
-  
+  name                    = "acctestass%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  sku                     = "B1"
+  enable_power_bi_service = %t
+
   ipv4_firewall_rule {
     name        = "test1"
     range_start = "92.123.234.11"
@@ -361,12 +361,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_analysis_services_server" "test" {
-  name                		= "acctestass%d"
-  location            		= "${azurerm_resource_group.test.location}"
-  resource_group_name 		= "${azurerm_resource_group.test.name}"
-  sku 				  		= "B1"
-  enable_power_bi_service   = %t
-  
+  name                    = "acctestass%d"
+  location                = "${azurerm_resource_group.test.location}"
+  resource_group_name     = "${azurerm_resource_group.test.name}"
+  sku                     = "B1"
+  enable_power_bi_service = %t
+
   ipv4_firewall_rule {
     name        = "test1"
     range_start = "92.123.234.11"
@@ -385,16 +385,16 @@ resource "azurerm_analysis_services_server" "test" {
 func testAccAzureRMAnalysisServicesServer_adminUsers(rInt int, location string, adminUsers []string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
- name     = "acctestRG-%d"
- location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_analysis_services_server" "test" {
- name                		= "acctestass%d"
- location            		= "${azurerm_resource_group.test.location}"
- resource_group_name 		= "${azurerm_resource_group.test.name}"
- sku 				  		= "B1"
- admin_users 				= ["%s"]
+  name                = "acctestass%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "B1"
+  admin_users         = ["%s"]
 }
 `, rInt, location, rInt, strings.Join(adminUsers, "\", \""))
 }
@@ -410,7 +410,7 @@ resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku 				  = "B1"
+  sku                 = "B1"
 }
 `, rInt, location, rInt)
 }
@@ -426,7 +426,7 @@ resource "azurerm_storage_account" "test" {
   name                     = "acctestass%s"
   resource_group_name      = "${azurerm_resource_group.test.name}"
   location                 = "${azurerm_resource_group.test.location}"
-  account_kind			   = "BlobStorage"
+  account_kind             = "BlobStorage"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
@@ -459,7 +459,7 @@ resource "azurerm_analysis_services_server" "test" {
   name                = "acctestass%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  sku 				  = "B1"
+  sku                 = "B1"
 
   backup_blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}${data.azurerm_storage_account_blob_container_sas.test.sas}"
 }

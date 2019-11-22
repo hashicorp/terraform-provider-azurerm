@@ -32,6 +32,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -45,6 +46,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
@@ -88,34 +90,6 @@ type ArmClient struct {
 
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	AnalysisServices *analysisservices.Client
-	ApiManagement    *apimanagement.Client
-	AppInsights      *applicationinsights.Client
-	Automation       *automation.Client
-	Authorization    *authorization.Client
-	Batch            *batch.Client
-	Bot              *bot.Client
-	Cdn              *cdn.Client
-	Cognitive        *cognitive.Client
-	Compute          *clients.ComputeClient
-	Containers       *containers.Client
-	Cosmos           *cosmos.Client
-	DataBricks       *databricks.Client
-	DataFactory      *datafactory.Client
-	Datalake         *datalake.Client
-	DevSpace         *devspace.Client
-	DevTestLabs      *devtestlabs.Client
-	Dns              *dns.Client
-	EventGrid        *eventgrid.Client
-	Eventhub         *eventhub.Client
-	Frontdoor        *frontdoor.Client
-	Graph            *graph.Client
-	HDInsight        *hdinsight.Client
-	IoTHub           *iothub.Client
-	KeyVault         *keyvault.Client
-	Kusto            *kusto.Client
-	LogAnalytics     *loganalytics.Client
-	Logic            *logic.Client
 	ManagementGroups *managementgroup.Client
 	Maps             *maps.Client
 	MariaDB          *mariadb.Client
@@ -124,6 +98,7 @@ type ArmClient struct {
 	Msi              *msi.Client
 	Mssql            *mssql.Client
 	Mysql            *mysql.Client
+	Netapp           *netapp.Client
 	Network          *network.Client
 	NotificationHubs *notificationhub.Client
 	Policy           *policy.Client
@@ -150,7 +125,7 @@ type ArmClient struct {
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
+func getArmClient(authConfig *authentication.Config, skipProviderRegistration bool, tfVersion, partnerId string, disableCorrelationRequestID, disableTerraformPartnerID bool) (*ArmClient, error) {
 	env, err := authentication.DetermineEnvironment(authConfig.Environment)
 	if err != nil {
 		return nil, err
@@ -219,6 +194,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 		PollingDuration:             180 * time.Minute,
 		SkipProviderReg:             skipProviderRegistration,
 		DisableCorrelationRequestID: disableCorrelationRequestID,
+		DisableTerraformPartnerID:   disableTerraformPartnerID,
 		Environment:                 *env,
 	}
 
@@ -245,6 +221,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Frontdoor = frontdoor.BuildClient(o)
 	client.Graph = graph.BuildClient(o)
 	client.HDInsight = hdinsight.BuildClient(o)
+	client.Healthcare = healthcare.BuildClient(o)
 	client.IoTHub = iothub.BuildClient(o)
 	client.KeyVault = keyvault.BuildClient(o)
 	client.Kusto = kusto.BuildClient(o)
@@ -258,6 +235,7 @@ func getArmClient(authConfig *authentication.Config, skipProviderRegistration bo
 	client.Msi = msi.BuildClient(o)
 	client.Mysql = mysql.BuildClient(o)
 	client.ManagementGroups = managementgroup.BuildClient(o)
+	client.Netapp = netapp.BuildClient(o)
 	client.Network = network.BuildClient(o)
 	client.NotificationHubs = notificationhub.BuildClient(o)
 	client.Policy = policy.BuildClient(o)

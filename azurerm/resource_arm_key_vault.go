@@ -93,7 +93,8 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-				}, false),
+					// TODO: revert this in 2.0
+				}, true),
 			},
 
 			"vault_uri": {
@@ -316,10 +317,15 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
 					Refresh:                   keyVaultRefreshFunc(*vault),
-					Timeout:                   30 * time.Minute,
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
+				}
+
+				if features.SupportsCustomTimeouts() {
+					stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+				} else {
+					stateConf.Timeout = 30 * time.Minute
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {

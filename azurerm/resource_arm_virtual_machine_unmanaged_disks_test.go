@@ -3019,14 +3019,21 @@ func testCheckAzureRMVirtualMachineVHDExistence(blobName string, shouldExist boo
 				continue
 			}
 
-			resourceGroup := rs.Primary.Attributes["resource_group_name"]
 			accountName := rs.Primary.Attributes["storage_account_name"]
 			containerName := rs.Primary.Attributes["name"]
 
 			storageClient := testAccProvider.Meta().(*ArmClient).Storage
 			ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-			client, err := storageClient.BlobsClient(ctx, resourceGroup, accountName)
+			account, err := storageClient.FindAccount(ctx, accountName)
+			if err != nil {
+				return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
+			}
+			if account == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+			}
+
+			client, err := storageClient.BlobsClient(ctx, *account)
 			if err != nil {
 				return fmt.Errorf("Error building Blobs Client: %s", err)
 			}

@@ -127,7 +127,7 @@ resource "azurerm_bastion_host" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "ip-configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
@@ -170,7 +170,7 @@ resource "azurerm_bastion_host" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "ip-configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }
@@ -187,12 +187,12 @@ func testAccAzureRMBastionHost_requiresImport(rInt int, rString string, location
 	return fmt.Sprintf(`
 %s
 resource "azurerm_bastion_host" "import" {
-  name                 = "${azurerm_bastion_host.test.name}"
-  resource_group_name  = "${azurerm_bastion_host.test.resource_group_name}"
-  location             = "${azurerm_bastion_host.test.location}"
+  name                = "${azurerm_bastion_host.test.name}"
+  resource_group_name = "${azurerm_bastion_host.test.resource_group_name}"
+  location            = "${azurerm_bastion_host.test.location}"
 
   ip_configuration {
-    name                 = "configuration"
+    name                 = "ip-configuration"
     subnet_id            = "${azurerm_subnet.test.id}"
     public_ip_address_id = "${azurerm_public_ip.test.id}"
   }

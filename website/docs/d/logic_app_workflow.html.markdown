@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_workflow"
 sidebar_current: "docs-azurerm-data-source-logic-app-workflow"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing Logic App Workflow.
 ## Example Usage
 
 ```hcl
-data "azurerm_logic_app_workflow" "test" {
+data "azurerm_logic_app_workflow" "example" {
   name                = "workflow1"
   resource_group_name = "my-resource-group"
 }
 
 output "access_endpoint" {
-  value = "${data.azurerm_logic_app_workflow.test.access_endpoint}"
+  value = "${data.azurerm_logic_app_workflow.example.access_endpoint}"
 }
 ```
 

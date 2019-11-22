@@ -1,4 +1,5 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_stream_input_eventhub"
 sidebar_current: "docs-azurerm-resource-stream-analytics-stream-input-eventhub"
@@ -39,14 +40,14 @@ resource "azurerm_eventhub" "example" {
   message_retention   = 1
 }
 
-resource "azurerm_eventhub_consumer_group" "test" {
+resource "azurerm_eventhub_consumer_group" "example" {
   name                = "example-consumergroup"
-  namespace_name      = "${azurerm_eventhub_namespace.test.name}"
-  eventhub_name       = "${azurerm_eventhub.test.name}"
-  resource_group_name = "${data.azurerm_resource_group.test.name}"
+  namespace_name      = "${azurerm_eventhub_namespace.example.name}"
+  eventhub_name       = "${azurerm_eventhub.example.name}"
+  resource_group_name = "${data.azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_stream_analytics_stream_input_eventhub" "test" {
+resource "azurerm_stream_analytics_stream_input_eventhub" "example" {
   name                         = "eventhub-stream-input"
   stream_analytics_job_name    = "${data.azurerm_stream_analytics_job.example.name}"
   resource_group_name          = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
@@ -110,5 +111,5 @@ The following attributes are exported in addition to the arguments listed above:
 Stream Analytics Stream Input EventHub's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_stream_input_eventhub.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
+terraform import azurerm_stream_analytics_stream_input_eventhub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
 ```

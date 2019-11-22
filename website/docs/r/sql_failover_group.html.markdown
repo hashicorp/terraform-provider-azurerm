@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_failover_group"
 sidebar_current: "docs-azurerm-resource-database-sql-fail_over_group"
@@ -14,27 +15,27 @@ Create a failover group of databases on a collection of Azure SQL servers.
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-    name     = "example"
-    location = "uksouth"
+  name     = "example"
+  location = "uksouth"
 }
 
 resource "azurerm_sql_server" "primary" {
-    name                         = "sql-primary"
-    resource_group_name          = "${azurerm_resource_group.example.name}"
-    location                     = "${azurerm_resource_group.example.location}"
-    version                      = "12.0"
-    administrator_login          = "sqladmin"
-    administrator_login_password = "pa$$$$w0rd"
+  name                         = "sql-primary"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = "${azurerm_resource_group.example.location}"
+  version                      = "12.0"
+  administrator_login          = "sqladmin"
+  administrator_login_password = "pa$$$$w0rd"
 
 }
 
 resource "azurerm_sql_server" "secondary" {
-    name                         = "sql-secondary"
-    resource_group_name          = "${azurerm_resource_group.example.name}"
-    location                     = "northeurope"
-    version                      = "12.0"
-    administrator_login          = "sqladmin"
-    administrator_login_password = "pa$$$$w0rd"
+  name                         = "sql-secondary"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
+  location                     = "northeurope"
+  version                      = "12.0"
+  administrator_login          = "sqladmin"
+  administrator_login_password = "pa$$$$w0rd"
 
 }
 
@@ -51,11 +52,11 @@ resource "azurerm_sql_failover_group" "example" {
   server_name         = "${azurerm_sql_server.primary.name}"
   databases           = ["${azurerm_sql_database.db1.id}"]
   partner_servers {
-      id = "${azurerm_sql_server.secondary.id}"
+    id = "${azurerm_sql_server.secondary.id}"
   }
 
   read_write_endpoint_failover_policy {
-    mode = "Automatic"
+    mode          = "Automatic"
     grace_minutes = 60
   }
 }

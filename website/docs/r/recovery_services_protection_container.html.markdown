@@ -1,4 +1,5 @@
 ---
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_container"
 sidebar_current: "docs-azurerm-recovery-services-protection-container"
@@ -31,17 +32,17 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 
 resource "azurerm_recovery_services_fabric" "fabric" {
-  name                         = "primary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.primary.location}"
+  name                = "primary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.primary.location}"
 }
 
 resource "azurerm_recovery_services_protection_container" "protection-container" {
-  name                          = "protection-container"
-  resource_group_name           = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.vault.name}"
-  recovery_fabric_name          = "${azurerm_recovery_services_fabric.fabric.name}"
+  name                 = "protection-container"
+  resource_group_name  = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.vault.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.fabric.name}"
 }
 ```
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_container_mapping"
 sidebar_current: "docs-azurerm-recovery-services-protection-container-mapping"
@@ -31,31 +32,31 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 
 resource "azurerm_recovery_services_fabric" "primary" {
-  name                         = "primary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.primary.location}"
+  name                = "primary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.primary.location}"
 }
 
 resource "azurerm_recovery_services_fabric" "secondary" {
-  name                         = "secondary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.secondary.location}"
+  name                = "secondary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.secondary.location}"
 }
 
 resource "azurerm_recovery_services_protection_container" "primary" {
-  name                          = "primary-protection-container"
-  resource_group_name           = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.vault.name}"
-  recovery_fabric_name          = "${azurerm_recovery_services_fabric.primary.name}"
+  name                 = "primary-protection-container"
+  resource_group_name  = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.vault.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.primary.name}"
 }
 
 resource "azurerm_recovery_services_protection_container" "secondary" {
-  name                          = "secondary-protection-container"
-  resource_group_name           = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.vault.name}"
-  recovery_fabric_name          = "${azurerm_recovery_services_fabric.secondary.name}"
+  name                 = "secondary-protection-container"
+  resource_group_name  = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.vault.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.secondary.name}"
 }
 
 resource "azurerm_recovery_services_replication_policy" "policy" {

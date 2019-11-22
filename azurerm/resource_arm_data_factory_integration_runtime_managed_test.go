@@ -257,7 +257,7 @@ resource "azurerm_storage_account" "test" {
   account_kind              = "BlobStorage"
   account_tier              = "Standard"
   account_replication_type  = "LRS"
-  access_tier			    = "Hot"
+  access_tier               = "Hot"
   enable_https_traffic_only = true
 }
 
@@ -294,7 +294,7 @@ resource "azurerm_data_factory_integration_runtime_managed" "test" {
   node_size = "Standard_D8_v3"
 
   custom_setup_script {
-	blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}/${azurerm_storage_container.test.name}"
+    blob_container_uri = "${azurerm_storage_account.test.primary_blob_endpoint}/${azurerm_storage_container.test.name}"
     sas_token          = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
   }
 }

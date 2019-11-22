@@ -1,4 +1,5 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_dsc_nodeconfiguration"
 sidebar_current: "docs-azurerm-resource-automation-dsc-nodeconfiguration"

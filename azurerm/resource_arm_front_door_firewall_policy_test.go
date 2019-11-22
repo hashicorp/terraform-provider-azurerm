@@ -217,8 +217,8 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_frontdoor_firewall_policy" "test" {
-  name                              = "testAccFrontDoorWAF%[1]d"
-  resource_group_name               = azurerm_resource_group.test.name
+  name                = "testAccFrontDoorWAF%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
 }
 `, rInt, location)
 }
@@ -237,31 +237,31 @@ resource "azurerm_frontdoor_firewall_policy" "import" {
 
 func testAccAzureRMFrontDoorFirewallPolicy_updateTemplate() string {
 	return fmt.Sprintf(`
-  custom_rule {
-    name                           = "Rule2"
-    enabled                        = true
-    priority                       = 2
-    rate_limit_duration_in_minutes = 1
-    rate_limit_threshold           = 10
-    type                           = "MatchRule"
-    action                         = "Block"
+custom_rule {
+  name                           = "Rule2"
+  enabled                        = true
+  priority                       = 2
+  rate_limit_duration_in_minutes = 1
+  rate_limit_threshold           = 10
+  type                           = "MatchRule"
+  action                         = "Block"
 
-    match_condition {
-      match_variable     = "RemoteAddr"
-      operator           = "IPMatch"
-      negation_condition = false
-      match_values       = ["192.168.1.0/24"]
-    }
-
-    match_condition {
-      match_variable     = "RequestHeader"
-      selector           = "UserAgent"
-      operator           = "Contains"
-      negation_condition = false
-      match_values       = ["windows"]
-      transforms         = ["Lowercase", "Trim"]
-    }
+  match_condition {
+    match_variable     = "RemoteAddr"
+    operator           = "IPMatch"
+    negation_condition = false
+    match_values       = ["192.168.1.0/24"]
   }
+
+  match_condition {
+    match_variable     = "RequestHeader"
+    selector           = "UserAgent"
+    operator           = "Contains"
+    negation_condition = false
+    match_values       = ["windows"]
+    transforms         = ["Lowercase", "Trim"]
+  }
+}
 `)
 }
 
@@ -316,8 +316,8 @@ resource "azurerm_frontdoor_firewall_policy" "test" {
   }
 
   managed_rule {
-    type      = "BotProtection"
-    version   = "preview-0.1"
+    type    = "BotProtection"
+    version = "preview-0.1"
   }
 }
 `, rInt, sTemplate, location)

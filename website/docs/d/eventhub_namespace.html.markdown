@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace"
 sidebar_current: "docs-azurerm-datasource-eventhub-namespace"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing EventHub Namespace.
 ## Example Usage
 
 ```hcl
-data "azurerm_eventhub_namespace" "test" {
+data "azurerm_eventhub_namespace" "example" {
   name                = "search-eventhubns"
   resource_group_name = "search-service"
 }
 
 output "eventhub_namespace_id" {
-  value = "${data.azurerm_eventhub_namespace.test.id}"
+  value = "${data.azurerm_eventhub_namespace.example.id}"
 }
 ```
 

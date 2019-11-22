@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_firewall"
 sidebar_current: "docs-azurerm-datasource-firewall"
@@ -14,13 +15,13 @@ Use this data source to access information about an existing Azure Firewall.
 ## Example Usage
 
 ```hcl
-data "azurerm_firewall" "test" {
+data "azurerm_firewall" "example" {
   name                = "firewall1"
   resource_group_name = "firewall-RG"
 }
 
 output "firewall_private_ip" {
-  value = "${data.azurerm_firewall.test.ip_configuration.0.private_ip_address}"
+  value = "${data.azurerm_firewall.example.ip_configuration.0.private_ip_address}"
 }
 ```
 

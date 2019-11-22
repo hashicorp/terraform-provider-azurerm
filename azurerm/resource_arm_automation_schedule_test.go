@@ -278,7 +278,7 @@ func testCheckAzureRMAutomationScheduleDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		accName := rs.Primary.Attributes["account_name"]
+		accName := rs.Primary.Attributes["automation_account_name"]
 
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
@@ -334,7 +334,7 @@ func testCheckAzureRMAutomationScheduleExists(resourceName string) resource.Test
 }
 
 func testAccAzureRMAutomationSchedule_prerequisites(rInt int, location string) string {
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
   location = "%s"

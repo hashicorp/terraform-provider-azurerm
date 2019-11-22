@@ -272,9 +272,19 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    containerServiceStateRefreshFunc(client, resGroup, name),
-		Timeout:    30 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 30 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Container Service (%s) to become available: %s", d.Get("name"), err)
 	}
