@@ -111,18 +111,18 @@ func resourceArmVirtualHub() *schema.Resource {
 			},
 
 			"s2s_vpn_gateway_id": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"p2s_vpn_gateway_id": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"express_route_gateway_id": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
