@@ -226,7 +226,6 @@ func SchemaAppServiceIdentity() *schema.Schema {
 					ValidateFunc: validation.StringInSlice([]string{
 						string(web.ManagedServiceIdentityTypeNone),
 						string(web.ManagedServiceIdentityTypeSystemAssigned),
-						string(web.ManagedServiceIdentityTypeSystemAssignedUserAssigned),
 						string(web.ManagedServiceIdentityTypeUserAssigned),
 					}, true),
 					DiffSuppressFunc: suppress.CaseDifference,
@@ -1337,7 +1336,7 @@ func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentit
 		Type: identityType,
 	}
 
-	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned || managedServiceIdentity.Type == web.ManagedServiceIdentityTypeSystemAssignedUserAssigned {
+	if managedServiceIdentity.Type == web.ManagedServiceIdentityTypeUserAssigned {
 		managedServiceIdentity.UserAssignedIdentities = identityIds
 	}
 
