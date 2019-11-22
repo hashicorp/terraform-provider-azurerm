@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `disable_private_link_endpoint_network_policy_enforcement` - (Optional) Enable or Disable network policies on private end point in the subnet. Default valule is `false`.
 
--> **NOTE:** Network policies, like network security groups (NSG), are not supported for `Private Link Endpoints`. In order to deploy a `Private Link Endpoint` on a given subnet, you must set the `disable_private_link_endpoint_network_policy_enforcement` attribute to `true`. This setting is only applicable for the `Private Link Endpoint`, for all other resources in the subnet access is controlled based on the `network_security_group_id`.
+-> **NOTE:** Network policies, like network security groups (NSG), are not supported for Private Link Endpoints. In order to deploy a Private Link Endpoint on a given subnet, you must set the `disable_private_link_endpoint_network_policy_enforcement` attribute to `true`. This setting is only applicable for the Private Link Endpoint, for all other resources in the subnet access is controlled based on the `network_security_group_id`.
 
 ---
 

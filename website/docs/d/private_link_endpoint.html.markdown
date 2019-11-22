@@ -28,8 +28,8 @@ output "subnet_id" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the Name of the `Private Link Endpoint`.
-* `resource_group_name` - (Required) Specifies the Name of the Resource Group within which the `Private Link Endpoint` exists.
+* `name` - (Required) The name of the private link endpoint.
+* `resource_group_name` - (Required) The name of the resource group in which the private link endpoint resides.
 
 ## Attributes Reference
 
@@ -37,6 +37,6 @@ The following attributes are exported:
 
 * `id` - The ID of the Prviate Link Endpoint.
 * `location` - The supported Azure location where the resource exists.
-* `network_interface_ids` - A list of network interfaces IDs.
-* `subnet_id` - The subnet ID.
+* `network_interface_ids` - A list of network interface resource IDs that are being used by the endpoint.
+* `subnet_id` - The resource ID of the subnet to be used by the endpoint.
 * `tags` - A mapping of tags assigned to the resource.

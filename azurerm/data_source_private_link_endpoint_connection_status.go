@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -87,7 +87,7 @@ func dataSourceArmPrivateLinkEndpointConnectionsRead(d *schema.ResourceData, met
 		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
 			nic := *props.NetworkInterfaces[0]
 			if nic.ID != nil && *(nic.ID) != "" {
-				privateIpAddress = getPrivateIpAddress(*(v[0].ID), meta)
+				privateIpAddress = getPrivateIpAddress(*(nic.ID), meta)
 			}
 		}
 

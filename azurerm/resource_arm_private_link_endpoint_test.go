@@ -166,7 +166,7 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 func testAccAzureRMPrivateEndpointTemplate_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privateEndpoint-%d"
+  name     = "acctestRG-privateendpoint-%d"
   location = "%s"
 }
 
@@ -183,7 +183,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name   = azurerm_virtual_network.test.name
   address_prefix         = "10.5.1.0/24"
 
-  disable_private_link_service_network_policy_enforcement  = true
+  enforce_private_link_service_network_policies  = true
   enforce_private_link_endpoint_network_policies = true
 }
 
