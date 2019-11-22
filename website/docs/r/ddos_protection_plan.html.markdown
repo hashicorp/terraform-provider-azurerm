@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_ddos_protection_plan"
 sidebar_current: "docs-azurerm-resource-ddos-protection-plan-x"
@@ -18,15 +19,15 @@ Manages an Azure DDoS Protection Plan.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_ddos_protection_plan" "test" {
+resource "azurerm_ddos_protection_plan" "example" {
   name                = "example-protection-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 ```
 
@@ -55,5 +56,5 @@ The following attributes are exported:
 Azure DDoS Protection Plan can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_ddos_protection_plan.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/ddosProtectionPlans/testddospplan
+terraform import azurerm_ddos_protection_plan.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/ddosProtectionPlans/testddospplan
 ```

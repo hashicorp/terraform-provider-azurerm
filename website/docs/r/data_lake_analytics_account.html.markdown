@@ -1,4 +1,5 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_analytics_account"
 sidebar_current: "docs-azurerm-resource-data-lake-analytics-account"
@@ -60,5 +61,5 @@ The following attributes are exported:
 Date Lake Analytics Account can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_lake_analytics_account.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataLakeAnalytics/accounts/mydatalakeaccount
+terraform import azurerm_data_lake_analytics_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DataLakeAnalytics/accounts/mydatalakeaccount
 ```

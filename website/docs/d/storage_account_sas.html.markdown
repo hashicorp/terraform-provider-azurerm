@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_sas"
 sidebar_current: "docs-azurerm-datasource-storage-account-sas"
@@ -19,14 +20,14 @@ and *not* a [Service SAS](https://docs.microsoft.com/en-us/rest/api/storageservi
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "testrg" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroupName"
   location = "westus"
 }
 
-resource "azurerm_storage_account" "testsa" {
+resource "azurerm_storage_account" "example" {
   name                     = "storageaccountname"
-  resource_group_name      = "${azurerm_resource_group.testrg.name}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
   location                 = "westus"
   account_tier             = "Standard"
   account_replication_type = "GRS"
@@ -36,8 +37,8 @@ resource "azurerm_storage_account" "testsa" {
   }
 }
 
-data "azurerm_storage_account_sas" "test" {
-  connection_string = "${azurerm_storage_account.testsa.primary_connection_string}"
+data "azurerm_storage_account_sas" "example" {
+  connection_string = "${azurerm_storage_account.example.primary_connection_string}"
   https_only        = true
 
   resource_types {
@@ -69,7 +70,7 @@ data "azurerm_storage_account_sas" "test" {
 }
 
 output "sas_url_query_string" {
-  value = "${data.azurerm_storage_account_sas.test.sas}"
+  value = "${data.azurerm_storage_account_sas.example.sas}"
 }
 ```
 

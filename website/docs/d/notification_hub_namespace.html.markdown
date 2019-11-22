@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub_namespace"
 sidebar_current: "docs-azurerm-datasource-notification-hub-namespace"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing Notification Hub Na
 ## Example Usage
 
 ```hcl
-data "azurerm_notification_hub_namespace" "test" {
+data "azurerm_notification_hub_namespace" "example" {
   name                = "my-namespace"
   resource_group_name = "my-resource-group"
 }
 
 output "servicebus_endpoint" {
-  value = "${data.azurerm_notification_hub_namespace.test.servicebus_endpoint}"
+  value = "${data.azurerm_notification_hub_namespace.example.servicebus_endpoint}"
 }
 ```
 

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
 sidebar_current: "docs-azurerm-datasource-resource-group"
@@ -13,14 +14,14 @@ Use this data source to access information about an existing Resource Group.
 ## Example Usage
 
 ```hcl
-data "azurerm_resource_group" "test" {
+data "azurerm_resource_group" "example" {
   name = "dsrg_test"
 }
 
-resource "azurerm_managed_disk" "test" {
+resource "azurerm_managed_disk" "example" {
   name                 = "managed_disk_name"
-  location             = "${data.azurerm_resource_group.test.location}"
-  resource_group_name  = "${data.azurerm_resource_group.test.name}"
+  location             = "${data.azurerm_resource_group.example.location}"
+  resource_group_name  = "${data.azurerm_resource_group.example.name}"
   storage_account_type = "Standard_LRS"
   create_option        = "Empty"
   disk_size_gb         = "1"

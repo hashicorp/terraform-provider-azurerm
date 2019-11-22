@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_gateway"
 sidebar_current: "docs-azurerm-datasource-virtual-network-gateway"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing Virtual Network Gat
 ## Example Usage
 
 ```hcl
-data "azurerm_virtual_network_gateway" "test" {
+data "azurerm_virtual_network_gateway" "example" {
   name                = "production"
   resource_group_name = "networking"
 }
 
 output "virtual_network_gateway_id" {
-  value = "${data.azurerm_virtual_network_gateway.test.id}"
+  value = "${data.azurerm_virtual_network_gateway.example.id}"
 }
 ```
 

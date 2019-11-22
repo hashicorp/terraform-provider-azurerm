@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_certificate_order"
 sidebar_current: "docs-azurerm-resource-app-service-certificate-order"
@@ -23,8 +24,8 @@ resource "azurerm_app_service_certificate_order" "example" {
   name                = "example-cert-order"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "global"
-  distinguished_name = "CN=example.com"
-  product_type = "standard"
+  distinguished_name  = "CN=example.com"
+  product_type        = "standard"
 }
 ```
 
@@ -95,5 +96,5 @@ The following attributes are exported:
 App Service certificate order can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_app_certificate_order.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1
+terraform import azurerm_app_certificate_order.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.CertificateRegistration/certificateOrders/certificateorder1
 ```

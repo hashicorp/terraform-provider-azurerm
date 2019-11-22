@@ -1,4 +1,5 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_policy"
 sidebar_current: "docs-azurerm-resource-dev-test-policy"
@@ -13,26 +14,26 @@ Manages a Policy within a Dev Test Policy Set.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_dev_test_lab" "test" {
+resource "azurerm_dev_test_lab" "example" {
   name                = "example-devtestlab"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   tags = {
     "Sydney" = "Australia"
   }
 }
 
-resource "azurerm_dev_test_policy" "test" {
+resource "azurerm_dev_test_policy" "example" {
   name                = "LabVmCount"
   policy_set_name     = "default"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   fact_data           = ""
   threshold           = "999"
   evaluator_type      = "MaxValuePolicy"

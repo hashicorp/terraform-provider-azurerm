@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_table_entity"
 sidebar_current: "docs-azurerm-resource-storage-table-entity"
@@ -35,7 +36,7 @@ resource "azurerm_storage_table" "example" {
 resource "azurerm_storage_table_entity" "example" {
   storage_account_name = "${azurerm_storage_account.example.name}"
   table_name           = "${azurerm_storage_table.example.name}"
-  
+
   partition_key = "examplepartition"
   row_key       = "exmamplerow"
 

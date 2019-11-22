@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2019-08-01/web"
@@ -328,17 +329,16 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"java_version": {
 					Type:     schema.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"1.7",
-						"1.8",
-						"11",
-					}, false),
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(1\.7|1\.8|11)`),
+						`Invalid Java version provided`),
 				},
 
 				"java_container": {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						"JAVA",
 						"JETTY",
 						"TOMCAT",
 					}, true),
@@ -376,6 +376,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						"7.0",
 						"7.1",
 						"7.2",
+						"7.3",
 					}, false),
 				},
 
@@ -483,6 +484,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				},
 
 				"cors": SchemaWebCorsSettings(),
+
+				"auto_swap_slot_name": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -1520,6 +1526,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		siteConfig.Cors = &expand
 	}
 
+	if v, ok := config["auto_swap_slot_name"]; ok {
+		siteConfig.AutoSwapSlotName = utils.String(v.(string))
+	}
+
 	return siteConfig, nil
 }
 
@@ -1639,6 +1649,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
+
+	if input.AutoSwapSlotName != nil {
+		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
 
 	return append(results, result)
 }

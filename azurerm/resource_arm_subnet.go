@@ -3,9 +3,10 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -106,12 +107,14 @@ func resourceArmSubnet() *schema.Resource {
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
 											"Microsoft.Databricks/workspaces",
+											"Microsoft.DBforPostgreSQL/serversv2",
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
+											"Microsoft.StreamAnalytics/streamingJobs",
 											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
 										}, false),
@@ -122,9 +125,11 @@ func resourceArmSubnet() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
+												"Microsoft.Network/networkinterfaces/*",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",
 												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+												"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
 											}, false),
 										},
 									},
@@ -133,6 +138,12 @@ func resourceArmSubnet() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"enforce_private_link_service_network_policies": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 		},
 	}
@@ -169,6 +180,15 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
+	}
+
+	if v, ok := d.GetOk("enforce_private_link_service_network_policies"); ok {
+		// To enable private endpoints you must disable the network policies for the
+		// subnet because Network policies like network security groups are not
+		// supported by private endpoints.
+		if v.(bool) {
+			properties.PrivateLinkServiceNetworkPolicies = utils.String("Disabled")
+		}
 	}
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
@@ -267,6 +287,14 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
+
+		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
+			// To enable private endpoints you must disable the network policies for the
+			// subnet because Network policies like network security groups are not
+			// supported by private endpoints.
+
+			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *p))
+		}
 
 		var securityGroupId *string
 		if props.NetworkSecurityGroup != nil {

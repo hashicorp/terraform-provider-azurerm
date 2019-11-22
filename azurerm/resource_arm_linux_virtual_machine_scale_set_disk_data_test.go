@@ -469,6 +469,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -517,6 +518,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -565,6 +567,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -613,6 +616,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -668,6 +672,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -716,6 +721,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -768,6 +774,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -783,10 +790,10 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   data_disk {
-    storage_account_type = "Premium_LRS"
-    caching              = "None"
-    disk_size_gb         = 10
-    lun                  = 10
+    storage_account_type      = "Premium_LRS"
+    caching                   = "None"
+    disk_size_gb              = 10
+    lun                       = 10
     write_accelerator_enabled = true
   }
 

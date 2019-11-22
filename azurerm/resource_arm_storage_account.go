@@ -735,6 +735,7 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	log.Printf("[INFO] storage account %q ID: %q", storageAccountName, *account.ID)
 	d.SetId(*account.ID)
 
+	// TODO: deprecate & split this out into it's own resource in 2.0
 	// as this is not available in all regions, and presumably off by default
 	// lets only try to set this value when true
 	// TODO in 2.0 switch to guarding this with d.GetOkExists() ?
@@ -751,7 +752,16 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("queue_properties"); ok {
-		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		storageClient := meta.(*ArmClient).Storage
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
@@ -945,7 +955,16 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("queue_properties") {
-		queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resourceGroupName, storageAccountName)
+		storageClient := meta.(*ArmClient).Storage
+		account, err := storageClient.FindAccount(ctx, storageAccountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q: %s", storageAccountName, err)
+		}
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", storageAccountName)
+		}
+
+		queueClient, err := storageClient.QueuesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Queues Client: %s", err)
 		}
@@ -997,7 +1016,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("primary_access_key", "")
 	d.Set("secondary_access_key", "")
 
-	keys, err := client.ListKeys(ctx, resGroup, name)
+	keys, err := client.ListKeys(ctx, resGroup, name, storage.Kerb)
 	if err != nil {
 		// the API returns a 200 with an inner error of a 409..
 		var hasWriteLock bool
@@ -1115,7 +1134,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 	atp, err := advancedThreatProtectionClient.Get(ctx, d.Id())
 	if err != nil {
 		msg := err.Error()
-		if msg != "The resource namespace 'Microsoft.Security' is invalid." {
+		if !strings.Contains(msg, "The resource namespace 'Microsoft.Security' is invalid.") {
 			if !strings.Contains(msg, "No registered resource provider found for location '") {
 				if !strings.Contains(msg, "' and API version '2017-08-01-preview' for type ") {
 					return fmt.Errorf("Error reading the advanced threat protection settings of AzureRM Storage Account %q: %+v", name, err)
@@ -1128,7 +1147,16 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 		}
 	}
 
-	queueClient, err := meta.(*ArmClient).Storage.QueuesClient(ctx, resGroup, name)
+	storageClient := meta.(*ArmClient).Storage
+	account, err := storageClient.FindAccount(ctx, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Account %q: %s", name, err)
+	}
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", name)
+	}
+
+	queueClient, err := storageClient.QueuesClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Queues Client: %s", err)
 	}
@@ -1202,7 +1230,7 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	}
 
 	// remove this from the cache
-	storageClient.ClearFromCache(resourceGroup, name)
+	storageClient.RemoveAccountFromCache(name)
 
 	return nil
 }

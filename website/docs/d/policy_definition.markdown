@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_policy_definition"
 sidebar_current: "docs-azurerm-datasource-policy-definition"
@@ -13,12 +14,12 @@ Use this data source to access information about a Policy Definition, both custo
 ## Example Usage
 
 ```hcl
-data "azurerm_policy_definition" "test" {
+data "azurerm_policy_definition" "example" {
   display_name = "Allowed resource types"
 }
 
 output "id" {
-  value = "${data.azurerm_policy_definition.test.id}"
+  value = "${data.azurerm_policy_definition.example.id}"
 }
 ```
 

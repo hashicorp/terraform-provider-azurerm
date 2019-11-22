@@ -39,6 +39,7 @@ func requiredResourceProviders() map[string]struct{} {
 		"Microsoft.EventGrid":            {},
 		"Microsoft.EventHub":             {},
 		"Microsoft.HDInsight":            {},
+		"Microsoft.Healthcare":           {},
 		"Microsoft.KeyVault":             {},
 		"Microsoft.Kusto":                {},
 		"microsoft.insights":             {},

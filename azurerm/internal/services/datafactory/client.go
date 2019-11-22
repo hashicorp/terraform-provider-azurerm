@@ -11,6 +11,7 @@ type Client struct {
 	IntegrationRuntimesClient *datafactory.IntegrationRuntimesClient
 	LinkedServiceClient       *datafactory.LinkedServicesClient
 	PipelinesClient           *datafactory.PipelinesClient
+	TriggersClient            *datafactory.TriggersClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -29,11 +30,15 @@ func BuildClient(o *common.ClientOptions) *Client {
 	PipelinesClient := datafactory.NewPipelinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PipelinesClient.Client, o.ResourceManagerAuthorizer)
 
+	TriggersClient := datafactory.NewTriggersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&TriggersClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		DatasetClient:             &DatasetClient,
 		FactoriesClient:           &FactoriesClient,
 		IntegrationRuntimesClient: &IntegrationRuntimesClient,
 		LinkedServiceClient:       &LinkedServiceClient,
 		PipelinesClient:           &PipelinesClient,
+		TriggersClient:            &TriggersClient,
 	}
 }

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dns_zone"
 sidebar_current: "docs-azurerm-datasource-dns-zone"
@@ -14,13 +15,13 @@ Use this data source to access information about an existing DNS Zone.
 ## Example Usage
 
 ```hcl
-data "azurerm_dns_zone" "test" {
+data "azurerm_dns_zone" "example" {
   name                = "search-eventhubns"
   resource_group_name = "search-service"
 }
 
 output "dns_zone_id" {
-  value = "${data.azurerm_dns_zone.test.id}"
+  value = "${data.azurerm_dns_zone.example.id}"
 }
 ```
 

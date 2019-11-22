@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_marketplace_agreement"
 sidebar_current: "docs-azurerm-resource-compute-marketplace-agreement"

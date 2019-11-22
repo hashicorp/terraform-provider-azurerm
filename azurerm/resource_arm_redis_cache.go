@@ -368,9 +368,15 @@ func resourceArmRedisCacheCreate(d *schema.ResourceData, meta interface{}) error
 		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
-		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+	} else {
+		stateConf.Timeout = 60 * time.Minute
+	}
+
 	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Redis Cache (%s) to become available: %s", d.Get("name"), err)
 	}
@@ -451,9 +457,15 @@ func resourceArmRedisCacheUpdate(d *schema.ResourceData, meta interface{}) error
 		Pending:    []string{"Scaling", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, resGroup, name),
-		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+	} else {
+		stateConf.Timeout = 60 * time.Minute
+	}
+
 	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Redis Instance (%s) to become available: %s", d.Get("name"), err)
 	}

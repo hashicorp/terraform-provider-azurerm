@@ -217,6 +217,11 @@ func resourceArmFunctionApp() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"http2_enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -713,6 +718,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.VnetName = utils.String(v.(string))
 	}
 
+	if v, ok := config["http2_enabled"]; ok {
+		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+	}
+
 	return siteConfig
 }
 
@@ -743,6 +752,10 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 
 	if input.VnetName != nil {
 		result["virtual_network_name"] = *input.VnetName
+	}
+
+	if input.HTTP20Enabled != nil {
+		result["http2_enabled"] = *input.HTTP20Enabled
 	}
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)

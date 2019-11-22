@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -247,15 +248,15 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", containerName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.ContainersClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
@@ -263,7 +264,7 @@ func testCheckAzureRMStorageContainerExists(resourceName string) resource.TestCh
 		resp, err := client.GetProperties(ctx, accountName, containerName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, *resourceGroup)
+				return fmt.Errorf("Bad: Container %q (Account %q / Resource Group %q) does not exist", containerName, accountName, account.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on ContainersClient: %+v", err)
@@ -286,15 +287,15 @@ func testAccARMStorageContainerDisappears(resourceName string) resource.TestChec
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Container %q (Account %s) - assuming removed & removing from state", containerName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.ContainersClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
@@ -319,16 +320,15 @@ func testCheckAzureRMStorageContainerDestroy(s *terraform.State) error {
 		containerName := rs.Primary.Attributes["name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Container %q (Account %s): %s", containerName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Container %q: %s", accountName, containerName, err)
 		}
-
-		if resourceGroup == nil {
+		if account == nil {
 			return nil
 		}
 
-		client, err := storageClient.ContainersClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.ContainersClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Containers Client: %s", err)
 		}
@@ -497,7 +497,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		"$web",
 	}
 	for _, v := range validNames {
-		_, errors := validateArmStorageContainerName(v, "name")
+		_, errors := validate.StorageContainerName(v, "name")
 		if len(errors) != 0 {
 			t.Fatalf("%q should be a valid Storage Container Name: %q", v, errors)
 		}
@@ -514,7 +514,7 @@ func TestValidateArmStorageContainerName(t *testing.T) {
 		strings.Repeat("w", 65),
 	}
 	for _, v := range invalidNames {
-		_, errors := validateArmStorageContainerName(v, "name")
+		_, errors := validate.StorageContainerName(v, "name")
 		if len(errors) == 0 {
 			t.Fatalf("%q should be an invalid Storage Container Name", v)
 		}

@@ -1,12 +1,13 @@
 ---
+subcategory: "Front Door"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_front_door"
+page_title: "Azure Resource Manager: azurerm_frontdoor"
 sidebar_current: "docs-azurerm-resource-front-door"
 description: |-
   Manages an Azure Front Door instance.
 ---
 
-# azurerm_front_door
+# azurerm_frontdoor
 
 Manages an Azure Front Door instance.
 
@@ -20,21 +21,21 @@ Below are some of the key scenarios that Azure Front Door Service addresses:
 ## Example Usage
 
 ```hcl
-resource "azurerm_front_door" "example" {
+resource "azurerm_frontdoor" "example" {
   name                                         = "example-FrontDoor"
   location                                     = "${azurerm_resource_group.example.location}"
   resource_group_name                          = "${azurerm_resource_group.example.name}"
   enforce_backend_pools_certificate_name_check = false
 
   routing_rule {
-      name                    = "exampleRoutingRule1"
-      accepted_protocols      = ["Http", "Https"]
-      patterns_to_match       = ["/*"]
-      frontend_endpoints      = ["exampleFrontendEndpoint1"]
-      forwarding_configuration {
-        forwarding_protocol   = "MatchRequest"
-        backend_pool_name     = "exampleBackendBing"
-      }
+    name               = "exampleRoutingRule1"
+    accepted_protocols = ["Http", "Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = ["exampleFrontendEndpoint1"]
+    forwarding_configuration {
+      forwarding_protocol = "MatchRequest"
+      backend_pool_name   = "exampleBackendBing"
+    }
   }
 
   backend_pool_load_balancing {
@@ -46,16 +47,16 @@ resource "azurerm_front_door" "example" {
   }
 
   backend_pool {
-      name            = "exampleBackendBing"
-      backend {
-          host_header = "www.bing.com"
-          address     = "www.bing.com"
-          http_port   = 80
-          https_port  = 443
-      }
+    name = "exampleBackendBing"
+    backend {
+      host_header = "www.bing.com"
+      address     = "www.bing.com"
+      http_port   = 80
+      https_port  = 443
+    }
 
-      load_balancing_name = "exampleLoadBalancingSettings1"
-      health_probe_name   = "exampleHealthProbeSetting1"
+    load_balancing_name = "exampleLoadBalancingSettings1"
+    health_probe_name   = "exampleHealthProbeSetting1"
   }
 
   frontend_endpoint {
@@ -277,5 +278,5 @@ The following attributes are exported:
 Front Doors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
+terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
 ```

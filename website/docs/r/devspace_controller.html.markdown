@@ -1,4 +1,5 @@
 ---
+subcategory: "DevSpace"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_devspace_controller"
 sidebar_current: "docs-azurerm-resource-devspace-controller"
@@ -18,7 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_kubernetes_cluster" "test" {
+resource "azurerm_kubernetes_cluster" "example" {
   name                = "acctestaks1"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -36,10 +37,10 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 
-resource "azurerm_devspace_controller" "test" {
+resource "azurerm_devspace_controller" "example" {
   name                = "acctestdsc1"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
 
   sku {
     name = "S1"
@@ -47,8 +48,8 @@ resource "azurerm_devspace_controller" "test" {
   }
 
   host_suffix                              = "suffix"
-  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.test.id}"
-  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.test.kube_config_raw)}"
+  target_container_host_resource_id        = "${azurerm_kubernetes_cluster.example.id}"
+  target_container_host_credentials_base64 = "${base64encode(azurerm_kubernetes_cluster.example.kube_config_raw)}"
 
   tags = {
     Environment = "Testing"
