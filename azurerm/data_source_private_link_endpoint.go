@@ -19,7 +19,7 @@ func dataSourceArmPrivateLinkEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznet.ValidatePrivateLinkEndpointName,
+				ValidateFunc: aznet.ValidatePrivateLinkName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),

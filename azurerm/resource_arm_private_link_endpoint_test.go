@@ -165,6 +165,8 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 
 func testAccAzureRMPrivateEndpointTemplate_template(rInt int, location string) string {
 	return fmt.Sprintf(`
+data "azurerm_subscription" "current" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-privateendpoint-%d"
   location = "%s"
@@ -210,10 +212,15 @@ resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
   resource_group_name            = azurerm_resource_group.test.name
+  auto_approval_subscription_ids = [data.azurerm_subscription.current.subscription_id]
+  visibility_subscription_ids    = [data.azurerm_subscription.current.subscription_id]
+
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
+    primary                      = true
     subnet_id                    = azurerm_subnet.test.id
   }
+
   load_balancer_frontend_ip_configuration_ids = [
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
@@ -232,8 +239,14 @@ resource "azurerm_private_link_endpoint" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "acctest-PSC-%d"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
 }
-`, standardResources, rInt)
+`, standardResources, rInt, rInt)
 }
 
 func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
@@ -248,9 +261,15 @@ resource "azurerm_private_link_endpoint" "test" {
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id
 
+  private_service_connection {
+    name                           = "acctest-PSC-%d"
+    is_manual_connection           = false
+    private_connection_resource_id = azurerm_private_link_service.test.id
+  }
+
   tags = {
     env = "test"
   }
 }
-`, standardResources, rInt)
+`, standardResources, rInt, rInt)
 }

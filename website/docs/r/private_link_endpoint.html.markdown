@@ -9,9 +9,9 @@ description: |-
 
 # azurerm_private_link_endpoint
 
-Manages a Azure `Private Link Endpoint` instance.
+Manages a Azure Private Link Endpoint instance.
 
-Azure `Private Link Endpoint` is a network interface that connects you privately and securely to a service powered by `Azure Private Link`. `Private Link Endpoint` uses a private IP address from your VNet, effectively bringing the service into your VNet. The service could be an Azure service such as Azure Storage, SQL, etc. or your own `Private Link Service`.
+Azure Private Link Endpoint is a network interface that connects you privately and securely to a service powered by Azure Private Link. Private Link Endpoint uses a private IP address from your VNet, effectively bringing the service into your VNet. The service could be an Azure service such as Azure Storage, SQL, etc. or your own Private Link Service.
 
 ## Example Usage
 
@@ -65,6 +65,7 @@ resource "azurerm_private_link_service" "example" {
 
   nat_ip_configuration {
     name      = azurerm_public_ip.example.name
+    primary   = true
     subnet_id = azurerm_subnet.example.id
   }
 
@@ -96,7 +97,7 @@ The following arguments are supported:
 
 * `subnet_id` - (Required) Specifies the resource ID of the subnet from which the private IP addresses will be allocated for the private link endpoint.
 
-* `private_service_connection` - (Optional) A `private_service_connection` block as defined below. Once defined it becomes a required argument.
+* `private_service_connection` - (Required) A `private_service_connection` block as defined below. Once defined it becomes a required argument.
 
 * `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 
@@ -110,7 +111,7 @@ A `private_service_connection` contains:
 
 * `private_connection_resource_id` - (Required) The Azure resource ID of the private link enabled remote resource to connect the private link endpoint to. Changing this forces a new resource to be created.
 
-* `subresource_names` - (Required) The subresource name(s) that the Private Link Endpoint is allowed to connect to, see `Subresource Names` below. Changing this forces a new resource to be created.
+* `subresource_names` - (Optional) The subresource name(s) that the Private Link Endpoint is allowed to connect to, see `Subresource Names` below. Changing this forces a new resource to be created.
 
 * `request_message` - (Optional) A message passed to the owner of the remote resource when the private link endpoint attempts to establish the connection to the remote resource. The request message can be a maximum of `140` characters in length. Only valid if `is_manual_connection` is set to `true`.
 

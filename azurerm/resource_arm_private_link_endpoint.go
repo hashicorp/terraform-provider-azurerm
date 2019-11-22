@@ -33,7 +33,7 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznet.ValidatePrivateLinkEndpointName,
+				ValidateFunc: aznet.ValidatePrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -48,7 +48,7 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 
 			"private_service_connection": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -56,7 +56,7 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: aznet.ValidatePrivateLinkEndpointName,
+							ValidateFunc: aznet.ValidatePrivateLinkName,
 						},
 						"is_manual_connection": {
 							Type:     schema.TypeBool,
@@ -71,7 +71,7 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 						},
 						"subresource_names": {
 							Type:     schema.TypeList,
-							Required: true,
+							Optional: true,
 							ForceNew: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,

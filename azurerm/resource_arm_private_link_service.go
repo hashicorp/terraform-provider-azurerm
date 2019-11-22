@@ -36,7 +36,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznet.ValidatePrivateLinkServiceName,
+				ValidateFunc: aznet.ValidatePrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -86,7 +86,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: aznet.ValidatePrivateLinkServiceName,
+							ValidateFunc: aznet.ValidatePrivateLinkName,
 						},
 						"private_ip_address": {
 							Type:         schema.TypeString,

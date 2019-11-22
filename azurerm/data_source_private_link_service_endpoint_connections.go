@@ -18,7 +18,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: aznet.ValidatePrivateLinkServiceName,
+				ValidateFunc: aznet.ValidatePrivateLinkName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),

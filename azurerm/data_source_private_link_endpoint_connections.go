@@ -19,7 +19,7 @@ func dataSourceArmPrivateLinkEndpointConnections() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznet.ValidatePrivateLinkEndpointName,
+				ValidateFunc: aznet.ValidatePrivateLinkName,
 			},
 
 			"location": azure.SchemaLocationForDataSource(),
@@ -85,13 +85,13 @@ func dataSourceArmPrivateLinkEndpointConnectionsRead(d *schema.ResourceData, met
 		privateIpAddress := ""
 
 		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
-			nic := *props.NetworkInterfaces[0]
+			nic := (*nics)[0]
 			if nic.ID != nil && *(nic.ID) != "" {
 				privateIpAddress = getPrivateIpAddress(*(nic.ID), meta)
 			}
 		}
 
-		if err := d.Set("private_service_connection", flattenArmPrivateLinkEndpointServiceConnectionStatus(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
+		if err := d.Set("private_service_connection", flattenArmPrivateLinkEndpointServiceConnections(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
 	}
@@ -131,7 +131,7 @@ func getPrivateIpAddress(networkInterfaceId string, meta interface{}) string {
 	return privateIpAddress
 }
 
-func flattenArmPrivateLinkEndpointServiceConnectionStatus(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
+func flattenArmPrivateLinkEndpointServiceConnections(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
