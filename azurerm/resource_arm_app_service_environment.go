@@ -78,7 +78,6 @@ func resourceArmAppServiceEnvironment() *schema.Resource {
 			"virtual_network": {
 				Type:     schema.TypeList,
 				Required: true,
-				Optional: false,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -354,7 +353,7 @@ func expandAppServiceEnvironmentVirtualNetwork(d *schema.ResourceData) (*web.Vir
 }
 
 func flattenAppServiceEnvironmentVirtualNetwork(input *web.VirtualNetworkProfile) []interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if id := input.ID; id != nil {
 		output["virtual_network_id"] = *id
@@ -382,7 +381,7 @@ func expandAppServiceEnvironmentFrontendPool(d *schema.ResourceData) (*AppServic
 }
 
 func flattenAppServiceEnvironmentFrontendPool(input *web.AppServiceEnvironment) []interface{} {
-	output := make(map[string]interface{}, 0)
+	output := make(map[string]interface{})
 
 	if size := input.MultiSize; size != nil {
 		output["vm_size"] = translateSKUToSimpleSize(AppServiceEnvironmentFrontEndSKU(*size))
@@ -422,7 +421,7 @@ func flattenAppServiceEnvironmentWorkerPools(input *[]web.WorkerPool) []interfac
 	outputs := make([]interface{}, 0)
 
 	for _, pool := range *input {
-		output := make(map[string]interface{}, 0)
+		output := make(map[string]interface{})
 
 		if sizeId := pool.WorkerSizeID; sizeId != nil {
 			output["worker_size_id"] = int(*sizeId)
