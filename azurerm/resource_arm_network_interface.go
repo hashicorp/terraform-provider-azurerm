@@ -35,7 +35,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": locationSchemaOptional(),
 
 			"resource_group_name": resourceGroupNameSchema(),
 
