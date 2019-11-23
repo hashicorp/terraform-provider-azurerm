@@ -1406,13 +1406,15 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
-	if len(*input.IPRules) == 0 && len(*input.VirtualNetworkRules) == 0 {
-		return []interface{}{}
-	}
+
 	networkRules := make(map[string]interface{})
 
-	networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
-	networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
+	if len(*input.IPRules) > 0 {
+		networkRules["ip_rules"] = schema.NewSet(schema.HashString, flattenStorageAccountIPRules(input.IPRules))
+	}
+	if len(*input.VirtualNetworkRules) > 0 {
+		networkRules["virtual_network_subnet_ids"] = schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(input.VirtualNetworkRules))
+	}
 	networkRules["bypass"] = schema.NewSet(schema.HashString, flattenStorageAccountBypass(input.Bypass))
 	networkRules["default_action"] = string(input.DefaultAction)
 
