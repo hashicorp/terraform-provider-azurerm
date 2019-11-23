@@ -2,10 +2,11 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -32,18 +33,6 @@ func resourceArmIotHubFallbackRoute() *schema.Resource {
 				ValidateFunc: validate.IoTHubName,
 			},
 
-			"source": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "DeviceMessages",
-				ValidateFunc: validation.StringInSlice([]string{
-					"DeviceJobLifecycleEvents",
-					"DeviceLifecycleEvents",
-					"DeviceMessages",
-					"Invalid",
-					"TwinChangeEvents",
-				}, false),
-			},
 			"condition": {
 				// The condition is a string value representing device-to-cloud message routes query expression
 				// https://docs.microsoft.com/en-us/azure/iot-hub/iot-hub-devguide-query-language#device-to-cloud-message-routes-query-expressions
@@ -51,33 +40,36 @@ func resourceArmIotHubFallbackRoute() *schema.Resource {
 				Optional: true,
 				Default:  "true",
 			},
+
 			"endpoint_names": {
 				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
+				Required: true,
+				// Currently only one endpoint is allowed. With that comment from Microsoft, we'll leave this open to enhancement when they add multiple endpoint support.
+				MaxItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validation.StringLenBetween(0, 64),
+					ValidateFunc: validate.NoEmptyStrings,
 				},
 			},
+
 			"enabled": {
 				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				Required: true,
 			},
 		},
 	}
 }
 
 func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -95,24 +87,16 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	resourceId := fmt.Sprintf("%s/FallbackRoute/defined", *iothub.ID)
-
 	if d.IsNewResource() && routing.FallbackRoute != nil && requireResourcesToBeImported {
 		return tf.ImportAsExistsError("azurerm_iothub_fallback_route", resourceId)
 	}
 
-	source := d.Get("source").(string)
-	condition := d.Get("condition").(string)
-	endpointNamesRaw := d.Get("endpoint_names").([]interface{})
-	isEnabled := d.Get("enabled").(bool)
-
-	fallbackRoute := devices.FallbackRouteProperties{
-		Source:        &source,
-		Condition:     &condition,
-		EndpointNames: utils.ExpandStringSlice(endpointNamesRaw),
-		IsEnabled:     &isEnabled,
+	routing.FallbackRoute = &devices.FallbackRouteProperties{
+		Source:        utils.String(string(devices.RoutingSourceDeviceMessages)),
+		Condition:     utils.String(d.Get("condition").(string)),
+		EndpointNames: utils.ExpandStringSlice(d.Get("endpoint_names").([]interface{})),
+		IsEnabled:     utils.Bool(d.Get("enabled").(bool)),
 	}
-
-	routing.FallbackRoute = &fallbackRoute
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
 	if err != nil {
@@ -129,11 +113,11 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -149,23 +133,23 @@ func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}
 	d.Set("iothub_name", iothubName)
 	d.Set("resource_group_name", resourceGroup)
 
-	if iothub.Properties == nil || iothub.Properties.Routing == nil {
-		return nil
+	if props := iothub.Properties; props != nil {
+		if routing := props.Routing; routing != nil {
+			if fallbackRoute := routing.FallbackRoute; fallbackRoute != nil {
+				d.Set("condition", fallbackRoute.Condition)
+				d.Set("enabled", fallbackRoute.IsEnabled)
+				d.Set("endpoint_names", fallbackRoute.EndpointNames)
+			}
+		}
 	}
-
-	route := iothub.Properties.Routing.FallbackRoute
-
-	d.Set("source", route.Source)
-	d.Set("condition", route.Condition)
-	d.Set("enabled", route.IsEnabled)
-	d.Set("endpoint_names", route.EndpointNames)
 
 	return nil
 }
 
 func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).iothub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).IoTHub.ResourceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
 
@@ -176,8 +160,8 @@ func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface
 	resourceGroup := parsedIothubRouteId.ResourceGroup
 	iothubName := parsedIothubRouteId.Path["IotHubs"]
 
-	azureRMLockByName(iothubName, iothubResourceName)
-	defer azureRMUnlockByName(iothubName, iothubResourceName)
+	locks.ByName(iothubName, iothubResourceName)
+	defer locks.UnlockByName(iothubName, iothubResourceName)
 
 	iothub, err := client.Get(ctx, resourceGroup, iothubName)
 	if err != nil {
@@ -188,12 +172,11 @@ func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error loading IotHub %q (Resource Group %q): %+v", iothubName, resourceGroup, err)
 	}
 
-	if iothub.Properties == nil || iothub.Properties.Routing == nil {
+	if iothub.Properties == nil || iothub.Properties.Routing == nil || iothub.Properties.Routing.FallbackRoute == nil {
 		return nil
 	}
 
 	iothub.Properties.Routing.FallbackRoute = nil
-
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, iothubName, iothub, "")
 	if err != nil {
 		return fmt.Errorf("Error updating IotHub %q (Resource Group %q) with Fallback Route: %+v", iothubName, resourceGroup, err)

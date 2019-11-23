@@ -68,7 +68,6 @@ resource "azurerm_iothub_fallback_route" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   iothub_name         = "${azurerm_iothub.example.name}"
 
-  source         = "DeviceMessages"
   condition      = "true"
   endpoint_names = ["${azurerm_iothub_endpoint_storage_container.example.name}"]
   enabled        = true
@@ -84,13 +83,11 @@ The following arguments are supported:
 
 * `iothub_name` - (Required) The name of the IoTHub to which this Fallback Route belongs. Changing this forces a new resource to be created.
 
-* `source` - (Required) The source that the routing rule is to be applied to, such as `DeviceMessages`. Possible values include: `RoutingSourceInvalid`, `RoutingSourceDeviceMessages`, `RoutingSourceTwinChangeEvents`, `RoutingSourceDeviceLifecycleEvents`, `RoutingSourceDeviceJobLifecycleEvents`.
-
-* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to true by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
+* `enabled` - (Required) Used to specify whether the fallback route is enabled.
 
 * `endpoint_names` - (Required) The endpoints to which messages that satisfy the condition are routed. Currently only 1 endpoint is allowed.
 
-* `enabled` - (Required) Used to specify whether the fallback route is enabled.
+* `condition` - (Optional) The condition that is evaluated to apply the routing rule. If no condition is provided, it evaluates to `true` by default. For grammar, see: https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-query-language.
 
 ## Attributes Reference
 

@@ -353,11 +353,10 @@ func resourceArmIotHub() *schema.Resource {
 			},
 
 			"fallback_route": {
-				Type:       schema.TypeList,
-				MaxItems:   1,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "Use the `azurerm_iothub_fallback_route` resource instead.",
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"source": {
@@ -475,11 +474,11 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	routingProperties := devices.RoutingProperties{}
 
 	if _, ok := d.GetOk("route"); ok {
-		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
+		routingProperties.Routes = expandIoTHubRoutes(d)
 	}
 
 	if _, ok := d.GetOk("fallback_route"); ok {
-		routingProperties.Routes = expandIoTHubRoutes(d)
+		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
 	}
 
 	if _, ok := d.GetOk("endpoint"); ok {

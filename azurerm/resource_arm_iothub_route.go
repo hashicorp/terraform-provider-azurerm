@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"regexp"
 	"strings"
 
@@ -82,7 +83,8 @@ func resourceArmIotHubRoute() *schema.Resource {
 
 func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	iothubName := d.Get("iothub_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -168,10 +170,10 @@ func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}
 
 func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
@@ -211,10 +213,10 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 
 func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).IoTHub.ResourceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
-
 	if err != nil {
 		return err
 	}
