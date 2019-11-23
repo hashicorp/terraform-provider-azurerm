@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
@@ -463,16 +464,14 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 						Type:         schema.TypeString,
 						Required:     true,
 						ValidateFunc: validate.NoEmptyStrings,
+						ForceNew:     true,
 					},
 					"uri": {
 						Type:         schema.TypeString,
 						Required:     true,
 						ValidateFunc: validate.NoEmptyStrings,
+						ForceNew:     true,
 					},
-				},
-				CustomizeDiff: func(d *schema.ResourceDiff, meta interface{}) error {
-					d.ForceNew(fmt.Sprintf("%s.0.install_script_action", schemaLocation))
-					return nil
 				},
 			},
 		}
@@ -484,6 +483,9 @@ func SchemaHDInsightNodeDefinition(schemaLocation string, definition HDInsightNo
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: result,
+			CustomizeDiff: customdiff.ForceNewIfChange("install_script_action", func(old, new, meta interface{}) bool {
+				return true
+			}),
 		},
 	}
 }
