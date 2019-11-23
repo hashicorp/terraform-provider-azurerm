@@ -1406,7 +1406,6 @@ func expandQueuePropertiesCors(input []interface{}) *queues.Cors {
 }
 
 func flattenStorageAccountNetworkRules(input *storage.NetworkRuleSet) []interface{} {
-
 	networkRules := make(map[string]interface{})
 
 	if len(*input.IPRules) > 0 {
