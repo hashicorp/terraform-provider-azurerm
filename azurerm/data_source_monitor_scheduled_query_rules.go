@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,37 +15,33 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"enabled": {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-			"type": {
+			"description": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"source": {
-				Type:     schema.TypeSet,
+			"frequency_in_minutes": {
+				Type:     schema.TypeInt,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"dataSourceId": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"query": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"queryType": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-					},
-				},
+			},
+			"time_window_in_minutes": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"query": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"data_source_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"query_type": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"action": {
 				Type:     schema.TypeSet,
@@ -56,17 +52,17 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},
-						"aznsAction": {
+						"azns_action": {
 							Type:     schema.TypeSet,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"actionGroup": {
+									"action_group": {
 										Type:     schema.TypeList,
 										Computed: true,
 										Elem:     schema.TypeString,
 									},
-									"emailSubject": {
+									"email_subject": {
 										Type:     schema.TypeString,
 										Computed: true,
 									},
@@ -76,33 +72,17 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 					},
 				},
 			},
-			"schedule": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"frequencyInMinutes": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"timeWindowInMinutes": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-					},
-				},
-			},
 			"trigger": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"thresholdOperator": {
+						"operator": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
 						"threshold": {
-							Type:     schema.TypeInt,
+							Type:     schema.TypeFloat,
 							Computed: true,
 						},
 					},
@@ -113,7 +93,7 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 }
 
 func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.ScheduledQueryRulesClient
+	client := meta.(*ArmClient).Monitor.ScheduledQueryRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -129,20 +109,25 @@ func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta in
 
 	d.SetId(*resp.ID)
 	// set required props for creation
-	if props := resp.LogSearchRuleResource; props != nil {
-		d.Set("source", props.Source)
-		d.Set("schedule", props.Schedule)
-		d.Set("action", props.Action)
-		d.Set("trigger", props.Trigger)
+	d.Set("description", resp.Description)
+	d.Set("enabled", resp.Enabled)
 
-		//optional props
-		if err := d.Set("description", flattenAzureRmLogProfileLocations(props.Description)); err != nil {
-			return fmt.Errorf("Error setting `description`: %+v", err)
-		}
+	// read-only props
+	d.Set("type", *resp.Type)
+	d.Set("last_updated_time", resp.LastUpdatedTime)
+	d.Set("provisioning_state", resp.ProvisioningState)
 
-		if err := d.Set("enabled", flattenAzureRmLogProfileRetentionPolicy(props.RetentionPolicy)); err != nil {
-			return fmt.Errorf("Error setting `enabled`: %+v", err)
-		}
+	//optional props
+	if err := d.Set("action", flattenAzureRmScheduledQueryRulesAction(resp.Action)); err != nil {
+		return fmt.Errorf("Error setting `action`: %+v", err)
+	}
+
+	if err := d.Set("schedule", flattenAzureRmScheduledQueryRulesSchedule(resp.Schedule)); err != nil {
+		return fmt.Errorf("Error setting `schedule`: %+v", err)
+	}
+
+	if err := d.Set("source", flattenAzureRmScheduledQueryRulesSource(resp.Source)); err != nil {
+		return fmt.Errorf("Error setting `source`: %+v", err)
 	}
 
 	return nil

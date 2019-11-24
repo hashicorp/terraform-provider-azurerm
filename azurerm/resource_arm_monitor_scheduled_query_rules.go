@@ -1,15 +1,12 @@
 package azurerm
 
 import (
-	"bytes"
 	"fmt"
 	"log"
-	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -40,150 +37,122 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"source": {
-				Type:     schema.TypeSet,
+			"query": {
+				Type:     schema.TypeString,
 				Required: true,
-				MinItems: 1,
+			},
+			"data_source_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
+			"authorized_resources": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+			},
+			"queryType": {
+				Type:     schema.TypeString,
+				Required: true,
+				Default:  "ResultCount",
+				ValidateFunc: validation.StringInSlice([]string{
+					"ResultCount",
+				}, false),
+			},
+
+			"frequency_in_minutes": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"time_window_in_minutes": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
+			"odata.type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction",
+					"Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.LogToMetricAction",
+				}, false),
+			},
+			"severity": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"0",
+					"1",
+					"2",
+					"3",
+					"4",
+				}, false),
+			},
+			"throttling": {
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"azns_action": {
+				Type:     schema.TypeSet,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"query": {
-							Type:         schema.TypeString,
+						"actionGroup": {
+							Type:         schema.TypeSet,
 							Required:     true,
-						},
-						"dataSourceId": {
-							Type:     schema.TypeString,
-							Required: true,
 							ValidateFunc: azure.ValidateResourceID,
 						},
-						"authorizedResources": {
-							Type:			schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-								ValidateFunc: azure.ValidateResourceID,
-							},
+						"customWebhookPayload": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validate.URLIsHTTPOrHTTPS,
 						},
-						"queryType": {
+						"emailSubject": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default: "ResultCount",
-							ValidateFunc: validation.StringInSlice([]string{
-								"ResultCount",
-							}, false),
 						},
 					},
 				},
-				Set: schema.HashString,
 			},
-
-			"schedule": {
+			"criteria": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"frequencyInMinutes": {
-							Type:     schema.TypeInt,
-							Required: true,
+						"dimensions": {
+							Type:         schema.TypeSet,
+							Required:     true,
+							ValidateFunc: azure.ValidateResourceID,
 						},
-						"timeWindowInMinutes": {
-							Type:     schema.TypeInt,
+						"metricName": {
+							Type:     schema.TypeString,
 							Required: true,
 						},
 					},
 				},
 			},
-
-			"action": {
+			"trigger": {
 				Type:     schema.TypeSet,
-				Required: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"odata.type": {
-							Type:         schema.TypeString,
-							Required:     true,
+						"thresholdOperator": {
+							Type:     schema.TypeString,
+							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction",
-								"Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.LogToMetricAction",
+								"GreaterThan",
+								"LessThan",
+								"Equal",
 							}, false),
 						},
-						"severity": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"0",
-								"1",
-								"2",
-								"3",
-								"4",
-							}, false),
-						},
-						"throttlingInMin": {
+						"threshold": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
-						"aznsAction": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"actionGroup": {
-										Type:         schema.TypeSet,
-										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-									"customWebhookPayload": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.URLIsHTTPOrHTTPS,
-									},
-									"emailSubject": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-								},
-							},
-						},
-						"criteria": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"dimensions": {
-										Type:         schema.TypeSet,
-										Required:     true,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-									"metricName": {
-										Type:         schema.TypeString,
-										Required:     true,
-									},
-								},
-							},
-						},
-						"trigger": {
-							Type:     schema.TypeSet,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"thresholdOperator": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"GreaterThan",
-											"LessThan",
-											"Equal",
-										}, false),
-									},
-									"threshold": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-								},
-							},
-						},
 					},
 				},
-				Set: resourceArmMonitorScheduledQueryRulesActionHash,
 			},
 
 			"description": {
@@ -198,19 +167,14 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 			},
 
 			"lastUpdatedTime": {
-				Type:			schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
 			},
 
 			"provisioningState": {
-				Type:			schema.TypeString,
+				Type:     schema.TypeString,
 				Computed: true,
-			}
-
-			"displayName": {
-				Type:			schema.TypeString,
-				Computed: true,
-			}
+			},
 
 			"tags": tags.Schema(),
 		},
@@ -248,7 +212,7 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 	expandedTags := tags.Expand(t)
 
 	parameters := insights.LogSearchRuleResource{
-		Location: azure.NormalizeLocation(d.Get("location").(string)),
+		Location: &azure.NormalizeLocation(d.Get("location").(string)),
 		LogSearchRule: &insights.LogSearchRule{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
@@ -303,7 +267,7 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 		d.Set("enabled", rule.Enabled)
 		d.Set("description", rule.Description)
 		d.Set("displayName", rule.DisplayName)
-		if err := d.Set("source", flattenMonitorScheduledQueryRulesSource(rule.Source); err != nil {
+		if err := d.Set("source", flattenMonitorScheduledQueryRulesSource(rule.Source)); err != nil {
 			return fmt.Errorf("Error setting `source`: %+v", err)
 		}
 		if err := d.Set("schedule", flattenMonitorScheduledQueryRulesSchedule(rule.Schedule)); err != nil {
@@ -336,7 +300,7 @@ func resourceArmMonitorScheduledQueryRulesDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func expandMonitorScheduledQueryRulesSource(input []interface{}) (*insights.Source,  error) {
+func expandMonitorScheduledQueryRulesSource(input []interface{}) (*insights.Source, error) {
 	conditions := make([]insights.ScheduledQueryRulesLeafCondition, 0)
 	v := input[0].(map[string]interface{})
 
@@ -429,86 +393,122 @@ func expandMonitorScheduledQueryRulesSchedule(input []interface{}) (*insights.Sc
 	}
 }
 
-func expandMonitorScheduledQueryRulesAction(input []interface{}) (*insights.BasicAction, error) {
-	actions := make([]insights.ScheduledQueryRulesActionGroup, 0)
-	for _, item := range input {
-		v := item.(map[string]interface{})
-		if agID := v["action_group_id"].(string); agID != "" {
-			props := make(map[string]*string)
-			if pVal, ok := v["webhook_properties"]; ok {
-				for pk, pv := range pVal.(map[string]interface{}) {
-					props[pk] = utils.String(pv.(string))
-				}
-			}
-
-			actions = append(actions, insights.ScheduledQueryRulesActionGroup{
-				ActionGroupID:     utils.String(agID),
-				WebhookProperties: props,
-			})
-		}
-	}
-	return &insights.ScheduledQueryRulesActionList{
-		ActionGroups: &actions,
-	}
-}
-
-func flattenMonitorScheduledQueryRulesCriteria(input *insights.ScheduledQueryRulesAllOfCondition) []interface{} {
+func flattenAzureRmScheduledQueryRulesAction(input insights.BasicAction) []interface{} {
 	result := make(map[string]interface{})
-	if input == nil || input.AllOf == nil {
+
+	if input == nil {
 		return []interface{}{result}
 	}
-	for _, condition := range *input.AllOf {
-		if condition.Field != nil && condition.Equals != nil {
-			switch strings.ToLower(*condition.Field) {
-			case "operationname":
-				result["operation_name"] = *condition.Equals
-			case "resourceprovider":
-				result["resource_provider"] = *condition.Equals
-			case "resourcetype":
-				result["resource_type"] = *condition.Equals
-			case "resourcegroup":
-				result["resource_group"] = *condition.Equals
-			case "resourceid":
-				result["resource_id"] = *condition.Equals
-			case "substatus":
-				result["sub_status"] = *condition.Equals
-			case "caller", "category", "level", "status":
-				result[*condition.Field] = *condition.Equals
-			}
-		}
+
+	alertingAction, ok := input.(*insights.AlertingAction)
+	if ok {
+		result["action"] = flattenAzureRmScheduledQueryRulesAlertingAction(alertingAction)
 	}
+
+	logToMetricAction, ok := input.(*insights.LogToMetricAction)
+	if ok {
+		result["action"] = flattenAzureRmScheduledQueryRulesLogToMetricAction(logToMetricAction)
+	}
+
 	return []interface{}{result}
 }
 
-func flattenMonitorScheduledQueryRulesAction(input *insights.ScheduledQueryRulesActionList) (result []interface{}) {
-	result = make([]interface{}, 0)
-	if input == nil || input.ActionGroups == nil {
-		return
+func flattenAzureRmScheduledQueryRulesAlertingAction(action *insights.AlertingAction) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	result["severity"] = action.Severity
+
+	// https://github.com/Azure/azure-sdk-for-go/blob/7a9d2769e4a581b0b1bc609c71b59af043e05c98/services/preview/monitor/mgmt/2019-06-01/insights/models.go#L1771-L1779
+	if action.AznsAction != nil {
+		result["azns_action"] = *action.AznsAction
 	}
-	for _, action := range *input.ActionGroups {
-		v := make(map[string]interface{})
 
-		if action.ActionGroupID != nil {
-			v["action_group_id"] = *action.ActionGroupID
-		}
-
-		props := make(map[string]string)
-		for pk, pv := range action.WebhookProperties {
-			if pv != nil {
-				props[pk] = *pv
-			}
-		}
-		v["webhook_properties"] = props
-
-		result = append(result, v)
+	if action.ThrottlingInMin != nil {
+		result["throttling"] = *action.ThrottlingInMin
 	}
+
+	// https://github.com/Azure/azure-sdk-for-go/blob/7a9d2769e4a581b0b1bc609c71b59af043e05c98/services/preview/monitor/mgmt/2019-06-01/insights/models.go#L5608-L5616
+	if action.Trigger != nil {
+		result["trigger"] = *action.Trigger
+	}
+
 	return result
 }
 
-func resourceArmMonitorScheduledQueryRulesActionHash(input interface{}) int {
-	var buf bytes.Buffer
-	if v, ok := input.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%s-", v["action_group_id"].(string)))
+func flattenAzureRmScheduledQueryRulesLogToMetricAction(action *insights.LogToMetricAction) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	// https://github.com/Azure/azure-sdk-for-go/blob/7a9d2769e4a581b0b1bc609c71b59af043e05c98/services/preview/monitor/mgmt/2019-06-01/insights/models.go#L1929-L1935
+	if action.Criteria != nil {
+		result["criteria"] = *action.Criteria
 	}
-	return hashcode.String(buf.String())
+
+	return result
 }
+
+func flattenAzureRmScheduledQueryRulesSchedule(input *insights.Schedule) []interface{} {
+	result := make(map[string]interface{})
+
+	if input == nil {
+		return []interface{}{}
+	}
+
+	if input.FrequencyInMinutes != nil {
+		result["frequency_in_minutes"] = *input.FrequencyInMinutes
+	}
+
+	if input.TimeWindowInMinutes != nil {
+		result["time_window_in_minutes"] = *input.TimeWindowInMinutes
+	}
+
+	return []interface{}{result}
+}
+
+func flattenAzureRmScheduledQueryRulesSource(input *insights.Source) []interface{} {
+	result := make(map[string]interface{})
+
+	if input == nil {
+		return []interface{}{}
+	}
+
+	if input.Query != nil {
+		result["query"] = *input.Query
+	}
+
+	if input.DataSourceID != nil {
+		result["data_source_id"] = *input.DataSourceID
+	}
+
+	if input.QueryType != "" {
+		result["query_type"] = input.QueryType
+	}
+
+	if input.AuthorizedResources != nil {
+		v := make(map[string][]string)
+		resources := []string{}
+		for _, authorized := range *input.AuthorizedResources {
+			if authorized != "" {
+				resources = append(resources, authorized)
+			}
+		}
+		result["authorized_resources"] = resources
+	}
+
+	return []interface{}{result}
+}
+
+/*
+// LogSearchRule log Search Rule Definition
+type LogSearchRule struct {
+	// Description - The description of the Log Search rule.
+	Description *string `json:"description,omitempty"`
+	// Enabled - The flag which indicates whether the Log Search rule is enabled. Value should be true or false. Possible values include: 'True', 'False'
+	Enabled Enabled `json:"enabled,omitempty"`
+	// Source - Data Source against which rule will Query Data
+	Source *Source `json:"source,omitempty"`
+	// Schedule - Schedule (Frequency, Time Window) for rule. Required for action type - AlertingAction
+	Schedule *Schedule `json:"schedule,omitempty"`
+	// Action - Action needs to be taken on rule execution.
+	Action BasicAction `json:"action,omitempty"`
+}
+*/

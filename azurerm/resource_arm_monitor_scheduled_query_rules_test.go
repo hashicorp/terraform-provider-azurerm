@@ -3,30 +3,30 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
-	"strings"
+//	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
+//	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+//	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+//	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
-func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
+func TestAccAzureRMMonitorScheduledQueryRules_basic(t *testing.T) {
+	/*resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(ri, location),
+				Config: testAccAzureRMMonitorScheduledQueryRules_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
@@ -40,11 +40,12 @@ func TestAccAzureRMMonitorActivityLogAlert_basic(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	})*/
+	return
 }
 
-func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
-	if !features.ShouldResourcesBeImported() {
+func TestAccAzureRMMonitorScheduledQueryRules_requiresImport(t *testing.T) {
+/*	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -56,37 +57,38 @@ func TestAccAzureRMMonitorActivityLogAlert_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMMonitorActivityLogAlert_basic(ri, location),
+				Config: testAccAzureRMMonitorScheduledQueryRules_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName),
 				),
 			},
 			{
-				Config:      testAccAzureRMMonitorActivityLogAlert_requiresImport(ri, location),
+				Config:      testAccAzureRMMonitorScheduledQueryRules_requiresImport(ri, location),
 				ExpectError: testRequiresImportError("azurerm_monitor_activity_log_alert"),
 			},
 		},
-	})
+	})*/
+	return
 }
 
-func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
+func TestAccAzureRMMonitorScheduledQueryRules_singleResource(t *testing.T) {
+	/*resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorActivityLogAlert_singleResource(ri, rs, testLocation())
+	config := testAccAzureRMMonitorScheduledQueryRules_singleResource(ri, rs, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "criteria.#", "1"),
@@ -102,24 +104,25 @@ func TestAccAzureRMMonitorActivityLogAlert_singleResource(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	})*/
+	return
 }
 
-func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
+func TestAccAzureRMMonitorScheduledQueryRules_complete(t *testing.T) {
+	/*resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
-	config := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, testLocation())
+	config := testAccAzureRMMonitorScheduledQueryRules_complete(ri, rs, testLocation())
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMMonitorActivityLogAlertDestroy,
+		CheckDestroy: testCheckAzureRMMonitorScheduledQueryRulesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "description", "This is just a test resource."),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
@@ -142,16 +145,17 @@ func TestAccAzureRMMonitorActivityLogAlert_complete(t *testing.T) {
 				ImportStateVerify: true,
 			},
 		},
-	})
+	})*/
+	return
 }
 
-func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
-	resourceName := "azurerm_monitor_activity_log_alert.test"
+func TestAccAzureRMMonitorScheduledQueryRules_basicAndCompleteUpdate(t *testing.T) {
+/*	resourceName := "azurerm_monitor_activity_log_alert.test"
 	ri := tf.AccRandTimeInt()
 	rs := strings.ToLower(acctest.RandString(11))
 	location := testLocation()
-	basicConfig := testAccAzureRMMonitorActivityLogAlert_basic(ri, location)
-	completeConfig := testAccAzureRMMonitorActivityLogAlert_complete(ri, rs, location)
+	basicConfig := testAccAzureRMMonitorScheduledQueryRules_basic(ri, location)
+	completeConfig := testAccAzureRMMonitorScheduledQueryRules_complete(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -161,7 +165,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 			{
 				Config: basicConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
@@ -177,7 +181,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 			{
 				Config: completeConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "description", "This is just a test resource."),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "2"),
@@ -197,7 +201,7 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 			{
 				Config: basicConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMMonitorActivityLogAlertExists(resourceName),
+					testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "description", ""),
 					resource.TestCheckResourceAttr(resourceName, "scopes.#", "1"),
@@ -211,10 +215,11 @@ func TestAccAzureRMMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) 
 				),
 			},
 		},
-	})
+	})*/
+	return
 }
 
-func testAccAzureRMMonitorActivityLogAlert_basic(rInt int, location string) string {
+func testAccAzureRMMonitorScheduledQueryRules_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -222,7 +227,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_monitor_activity_log_alert" "test" {
-  name                = "acctestActivityLogAlert-%d"
+  name                = "acctestScheduledQueryRules-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   scopes              = ["${azurerm_resource_group.test.id}"]
 
@@ -233,8 +238,8 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, rInt, location, rInt)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_requiresImport(rInt int, location string) string {
-	template := testAccAzureRMMonitorActivityLogAlert_basic(rInt, location)
+func testAccAzureRMMonitorScheduledQueryRules_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMMonitorScheduledQueryRules_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -250,7 +255,7 @@ resource "azurerm_monitor_activity_log_alert" "import" {
 `, template)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_singleResource(rInt int, rString, location string) string {
+func testAccAzureRMMonitorScheduledQueryRules_singleResource(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -272,7 +277,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_monitor_activity_log_alert" "test" {
-  name                = "acctestActivityLogAlert-%d"
+  name                = "acctestScheduledQueryRules-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   scopes              = ["${azurerm_resource_group.test.id}"]
 
@@ -289,7 +294,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, rInt, location, rInt, rString, rInt)
 }
 
-func testAccAzureRMMonitorActivityLogAlert_complete(rInt int, rString, location string) string {
+func testAccAzureRMMonitorScheduledQueryRules_complete(rInt int, rString, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -317,7 +322,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_monitor_activity_log_alert" "test" {
-  name                = "acctestActivityLogAlert-%d"
+  name                = "acctestScheduledQueryRules-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   enabled             = true
   description         = "This is just a test resource."
@@ -355,8 +360,8 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, rInt, location, rInt, rInt, rString, rInt)
 }
 
-func testCheckAzureRMMonitorActivityLogAlertDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).monitor.ActivityLogAlertsClient
+func testCheckAzureRMMonitorScheduledQueryRulesDestroy(s *terraform.State) error {
+	conn := testAccProvider.Meta().(*ArmClient).Monitor.ScheduledQueryRulesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -381,7 +386,7 @@ func testCheckAzureRMMonitorActivityLogAlertDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testCheckAzureRMMonitorActivityLogAlertExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMMonitorScheduledQueryRulesExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -395,12 +400,12 @@ func testCheckAzureRMMonitorActivityLogAlertExists(resourceName string) resource
 			return fmt.Errorf("Bad: no resource group found in state for Activity Log Alert Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).monitor.ActivityLogAlertsClient
+		conn := testAccProvider.Meta().(*ArmClient).Monitor.ScheduledQueryRulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
 		if err != nil {
-			return fmt.Errorf("Bad: Get on monitorActivityLogAlertsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on monitorScheduledQueryRulessClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
