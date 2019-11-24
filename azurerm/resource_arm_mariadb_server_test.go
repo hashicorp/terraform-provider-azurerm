@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -306,7 +306,7 @@ func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheck
 			return fmt.Errorf("Bad: no resource group found in state for MariaDB Server: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).mariadb.ServersClient
+		client := testAccProvider.Meta().(*ArmClient).MariaDB.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -323,7 +323,7 @@ func testCheckAzureRMMariaDbServerExists(resourceName string) resource.TestCheck
 }
 
 func testCheckAzureRMMariaDbServerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).mariadb.ServersClient
+	client := testAccProvider.Meta().(*ArmClient).MariaDB.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -634,7 +634,7 @@ resource "azurerm_mariadb_server" "test" {
     storage_mb            = 51200
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
-	auto_grow      		  = "Disabled"
+    auto_grow             = "Disabled"
   }
 
   administrator_login          = "acctestun"

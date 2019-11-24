@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
@@ -3019,14 +3019,21 @@ func testCheckAzureRMVirtualMachineVHDExistence(blobName string, shouldExist boo
 				continue
 			}
 
-			resourceGroup := rs.Primary.Attributes["resource_group_name"]
 			accountName := rs.Primary.Attributes["storage_account_name"]
 			containerName := rs.Primary.Attributes["name"]
 
 			storageClient := testAccProvider.Meta().(*ArmClient).Storage
 			ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-			client, err := storageClient.BlobsClient(ctx, resourceGroup, accountName)
+			account, err := storageClient.FindAccount(ctx, accountName)
+			if err != nil {
+				return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, blobName, containerName, err)
+			}
+			if account == nil {
+				return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
+			}
+
+			client, err := storageClient.BlobsClient(ctx, *account)
 			if err != nil {
 				return fmt.Errorf("Error building Blobs Client: %s", err)
 			}
@@ -3068,7 +3075,7 @@ func testCheckAzureRMVirtualMachineDisappears(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for virtual machine: %s", vmName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.VMClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.VMClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, vmName)

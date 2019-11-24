@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_gateway"
 sidebar_current: "docs-azurerm-resource-network-application-gateway"
@@ -13,54 +14,54 @@ Manages an Application Gateway.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "example-network"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   address_space       = ["10.254.0.0/16"]
 }
 
 resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.254.0.0/24"
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.254.2.0/24"
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                = "example-pip"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   allocation_method   = "Dynamic"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-rdrcfg"
+  backend_address_pool_name      = "${azurerm_virtual_network.example.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.example.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.example.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.example.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.example.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.example.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.example.name}-rdrcfg"
 }
 
 resource "azurerm_application_gateway" "network" {
   name                = "example-appgateway"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "Standard_Small"
@@ -80,7 +81,7 @@ resource "azurerm_application_gateway" "network" {
 
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
   }
 
   backend_address_pool {
@@ -550,7 +551,7 @@ A `request_header_configuration` block supports the following:
 
 * `header_name` - (Required) Header name of the header configuration.
 
-* `header_value` - (Required) Header value of the header configuration.
+* `header_value` - (Required) Header value of the header configuration. To delete a request header set this property to an empty string.
 
 ---
 
@@ -558,7 +559,7 @@ A `response_header_configuration` block supports the following:
 
 * `header_name` - (Required) Header name of the header configuration.
 
-* `header_value` - (Required) Header value of the header configuration.
+* `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
 
 ## Attributes Reference
 
@@ -733,5 +734,5 @@ A `rewrite_rule_set` block exports the following:
 Application Gateway's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_gateway.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
+terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
 ```

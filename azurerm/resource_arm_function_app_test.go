@@ -9,9 +9,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -694,8 +694,35 @@ func TestAccAzureRMFunctionApp_vnetName(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMFunctionApp_enableHttp2(t *testing.T) {
+	resourceName := "azurerm_function_app.test"
+	ri := tf.AccRandTimeInt()
+	rs := strings.ToLower(acctest.RandString(11))
+	config := testAccAzureRMFunctionApp_enableHttp2(ri, rs, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMFunctionAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMFunctionAppExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "site_config.0.http2_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMFunctionAppDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+	client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_function_app" {
@@ -734,7 +761,7 @@ func testCheckAzureRMFunctionAppExists(resourceName string) resource.TestCheckFu
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, functionAppName)
 		if err != nil {
@@ -763,7 +790,7 @@ func testCheckAzureRMFunctionAppHasContentShare(resourceName string) resource.Te
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, functionAppName)
@@ -795,7 +822,7 @@ func testCheckAzureRMFunctionAppHasNoContentShare(resourceName string) resource.
 			return fmt.Errorf("Bad: no resource group found in state for Function App: %s", functionAppName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		appSettingsResp, err := client.ListApplicationSettings(ctx, resourceGroup, functionAppName)
@@ -1673,4 +1700,44 @@ resource "azurerm_function_app" "test" {
   }
 }
 `, rInt, location, storage, vnetName)
+}
+
+func testAccAzureRMFunctionApp_enableHttp2(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_app_service_plan" "test" {
+  name                = "acctestASP-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+resource "azurerm_function_app" "test" {
+  name                      = "acctest-%d-func"
+  location                  = "${azurerm_resource_group.test.location}"
+  resource_group_name       = "${azurerm_resource_group.test.name}"
+  app_service_plan_id       = "${azurerm_app_service_plan.test.id}"
+  storage_connection_string = "${azurerm_storage_account.test.primary_connection_string}"
+
+  site_config {
+    http2_enabled = true
+  }
+}
+`, rInt, location, rString, rInt, rInt)
 }

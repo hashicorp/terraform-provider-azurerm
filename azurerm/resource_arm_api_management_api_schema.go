@@ -3,13 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +23,13 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 		Delete: resourceArmApiManagementApiSchemaDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,8 +57,9 @@ func resourceArmApiManagementApiSchema() *schema.Resource {
 }
 
 func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	schemaID := d.Get("schema_id").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -97,8 +107,9 @@ func resourceArmApiManagementApiSchemaCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -136,8 +147,9 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmApiManagementApiSchemaDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagement.ApiSchemasClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiSchemasClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

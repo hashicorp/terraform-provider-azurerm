@@ -1,4 +1,5 @@
 ---
+subcategory: "Batch"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_pool"
 sidebar_current: "docs-azurerm-resource-batch-pool"
@@ -14,44 +15,44 @@ Manages an Azure Batch pool.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "testaccbatch"
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "testaccsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_batch_account" "test" {
+resource "azurerm_batch_account" "example" {
   name                 = "testaccbatch"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  location             = "${azurerm_resource_group.example.location}"
   pool_allocation_mode = "BatchService"
-  storage_account_id   = "${azurerm_storage_account.test.id}"
+  storage_account_id   = "${azurerm_storage_account.example.id}"
 
   tags = {
     env = "test"
   }
 }
 
-resource "azurerm_batch_certificate" "testcer" {
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  account_name         = "${azurerm_batch_account.test.name}"
+resource "azurerm_batch_certificate" "example" {
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  account_name         = "${azurerm_batch_account.example.name}"
   certificate          = "${filebase64("certificate.cer")}"
   format               = "Cer"
   thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34"
   thumbprint_algorithm = "SHA1"
 }
 
-resource "azurerm_batch_pool" "test" {
+resource "azurerm_batch_pool" "example" {
   name                = "testaccpool"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  account_name        = "${azurerm_batch_account.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  account_name        = "${azurerm_batch_account.example.name}"
   display_name        = "Test Acc Pool Auto"
   vm_size             = "Standard_A1"
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
@@ -104,7 +105,7 @@ EOF
   }
 
   certificate {
-    id         = "${azurerm_batch_certificate.testcer.id}"
+    id         = "${azurerm_batch_certificate.example.id}"
     visibility = ["StartTask"]
   }
 }

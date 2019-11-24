@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -48,31 +48,31 @@ func TestAccDataSourceArmDevTestVirtualNetwork_basic(t *testing.T) {
 func testAccDataSourceArmDevTestVirtualNetwork_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-	name     = "acctestRG-%d"
-	location = "%s"
+  name     = "acctestRG-%d"
+  location = "%s"
 }
 
 resource "azurerm_dev_test_lab" "test" {
-	name                = "acctestdtl%d"
-	location            = "${azurerm_resource_group.test.location}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "acctestdtl%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_dev_test_virtual_network" "test" {
-	name                = "acctestdtvn%d"
-	lab_name            = "${azurerm_dev_test_lab.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
-  
-	subnet {
-	  use_public_ip_address           = "Allow"
-	  use_in_virtual_machine_creation = "Allow"
-	}
+  name                = "acctestdtvn%d"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  subnet {
+    use_public_ip_address           = "Allow"
+    use_in_virtual_machine_creation = "Allow"
+  }
 }
 
 data "azurerm_dev_test_virtual_network" "test" {
-	name                = "${azurerm_dev_test_virtual_network.test.name}"
-	lab_name            = "${azurerm_dev_test_lab.test.name}"
-	resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "${azurerm_dev_test_virtual_network.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 

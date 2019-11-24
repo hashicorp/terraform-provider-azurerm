@@ -3,13 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -48,6 +50,13 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": azure.SchemaHDInsightName(),
 
@@ -77,6 +86,8 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 			"gateway": azure.SchemaHDInsightsGateway(),
 
 			"storage_account": azure.SchemaHDInsightsStorageAccounts(),
+
+			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
 
 			"roles": {
 				Type:     schema.TypeList,
@@ -109,8 +120,9 @@ func resourceArmHDInsightInteractiveQueryCluster() *schema.Resource {
 }
 
 func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).hdinsight.ClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).HDInsight.ClustersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -126,7 +138,8 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 	gateway := azure.ExpandHDInsightsConfigurations(gatewayRaw)
 
 	storageAccountsRaw := d.Get("storage_account").([]interface{})
-	storageAccounts, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw)
+	storageAccountsGen2Raw := d.Get("storage_account_gen2").([]interface{})
+	storageAccounts, identity, err := azure.ExpandHDInsightsStorageAccounts(storageAccountsRaw, storageAccountsGen2Raw)
 	if err != nil {
 		return fmt.Errorf("Error expanding `storage_account`: %s", err)
 	}
@@ -173,7 +186,8 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 				Roles: roles,
 			},
 		},
-		Tags: tags.Expand(t),
+		Tags:     tags.Expand(t),
+		Identity: identity,
 	}
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
@@ -199,9 +213,10 @@ func resourceArmHDInsightInteractiveQueryClusterCreate(d *schema.ResourceData, m
 }
 
 func resourceArmHDInsightInteractiveQueryClusterRead(d *schema.ResourceData, meta interface{}) error {
-	clustersClient := meta.(*ArmClient).hdinsight.ClustersClient
-	configurationsClient := meta.(*ArmClient).hdinsight.ConfigurationsClient
-	ctx := meta.(*ArmClient).StopContext
+	clustersClient := meta.(*ArmClient).HDInsight.ClustersClient
+	configurationsClient := meta.(*ArmClient).HDInsight.ConfigurationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

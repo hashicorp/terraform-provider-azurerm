@@ -1,4 +1,5 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_account"
 sidebar_current: "docs-azurerm-resource-automation-account"
@@ -24,7 +25,7 @@ resource "azurerm_automation_account" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku_name = "Basic"
-  
+
   tags = {
     environment = "development"
   }

@@ -2,18 +2,24 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmLoadBalancer() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmLoadBalancerRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -63,6 +69,11 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"zones": azure.SchemaZonesComputed(),
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -89,8 +100,9 @@ func dataSourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) err
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	client := meta.(*ArmClient).network.LoadBalancersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, resourceGroup, name, "")
 	if err != nil {
@@ -149,6 +161,10 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 		ipConfig := make(map[string]interface{})
 		if config.Name != nil {
 			ipConfig["name"] = *config.Name
+		}
+
+		if config.ID != nil {
+			ipConfig["id"] = *config.ID
 		}
 
 		zones := make([]string, 0)

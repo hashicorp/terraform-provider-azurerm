@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -51,10 +51,10 @@ resource "azurerm_recovery_services_vault" "test" {
 }
 
 resource "azurerm_recovery_services_fabric" "test" {
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.test.name}"
-  name                         = "acctest-fabric-%d"
-  location                     = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  name                = "acctest-fabric-%d"
+  location            = "${azurerm_resource_group.test.location}"
 }
 `, rInt, location, rInt, rInt)
 }
@@ -80,7 +80,7 @@ func testCheckAzureRMRecoveryFabricExists(resourceGroupStateName, vaultStateName
 		fabricName := fabricState.Primary.Attributes["name"]
 
 		// Ensure fabric exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.FabricClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.FabricClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName)

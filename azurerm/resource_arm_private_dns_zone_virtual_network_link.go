@@ -6,12 +6,15 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +26,13 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 		Delete: resourceArmPrivateDnsZoneVirtualNetworkLinkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -55,14 +65,15 @@ func resourceArmPrivateDnsZoneVirtualNetworkLink() *schema.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	dnsZoneName := d.Get("private_dns_zone_name").(string)
@@ -70,7 +81,7 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 	registrationEnabled := d.Get("registration_enabled").(bool)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, dnsZoneName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -84,11 +95,11 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 	}
 
 	location := "global"
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := privatedns.VirtualNetworkLink{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		VirtualNetworkLinkProperties: &privatedns.VirtualNetworkLinkProperties{
 			VirtualNetwork: &privatedns.SubResource{
 				ID: &vNetID,
@@ -124,8 +135,9 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkCreateUpdate(d *schema.ResourceD
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -157,14 +169,13 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkRead(d *schema.ResourceData, met
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.VirtualNetworkLinksClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).PrivateDns.VirtualNetworkLinksClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -204,10 +215,15 @@ func resourceArmPrivateDnsZoneVirtualNetworkLinkDelete(d *schema.ResourceData, m
 			log.Printf("[DEBUG] Virtual Network Link %q (Private DNS Zone %q / Resource Group %q) still exists", name, dnsZoneName, resGroup)
 			return "Available", "Available", nil
 		},
-		Timeout:                   30 * time.Minute,
 		Delay:                     30 * time.Second,
 		PollInterval:              10 * time.Second,
 		ContinuousTargetOccurence: 10,
+	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 30 * time.Minute
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {

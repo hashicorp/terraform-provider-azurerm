@@ -1,4 +1,5 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_blob"
 sidebar_current: "docs-azurerm-resource-stream-analytics-output-blob"
@@ -109,5 +110,5 @@ The following attributes are exported in addition to the arguments listed above:
 Stream Analytics Outputs to Blob Storage can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_blob.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_blob.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
 ```

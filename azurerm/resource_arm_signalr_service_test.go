@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -44,6 +44,7 @@ func TestAccAzureRMSignalRService_basic(t *testing.T) {
 		},
 	})
 }
+
 func TestAccAzureRMSignalRService_requiresImport(t *testing.T) {
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
@@ -341,6 +342,75 @@ func TestAccAzureRMSignalRService_skuAndCapacityUpdate(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSignalRService_serviceMode(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSignalRService_withServiceMode(ri, testLocation(), "Serverless"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "features.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "features.0.flag", "ServiceMode"),
+					resource.TestCheckResourceAttr(resourceName, "features.0.value", "Serverless"),
+					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
+					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSignalRService_cors(t *testing.T) {
+	resourceName := "azurerm_signalr_service.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSignalRServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSignalRService_withCors(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSignalRServiceExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cors.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "cors.0.allowed_origins.#", "2"),
+					resource.TestCheckResourceAttrSet(resourceName, "hostname"),
+					resource.TestCheckResourceAttrSet(resourceName, "ip_address"),
+					resource.TestCheckResourceAttrSet(resourceName, "public_port"),
+					resource.TestCheckResourceAttrSet(resourceName, "server_port"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "primary_connection_string"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
+					resource.TestCheckResourceAttrSet(resourceName, "secondary_connection_string"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testAccAzureRMSignalRService_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -396,6 +466,58 @@ resource "azurerm_signalr_service" "test" {
   }
 }
 `, rInt, location, rInt, capacity)
+}
+
+func testAccAzureRMSignalRService_withCors(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  cors {
+	allowed_origins = [
+	  "https://example.com",
+	  "https://contoso.com",
+	]
+  }
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMSignalRService_withServiceMode(rInt int, location string, serviceMode string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_signalr_service" "test" {
+  name                = "acctestSignalR-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "Free_F1"
+    capacity = 1
+  }
+
+  features {
+    flag  = "ServiceMode"
+    value = "%s"
+  }
+}
+`, rInt, location, rInt, serviceMode)
 }
 
 func testCheckAzureRMSignalRServiceDestroy(s *terraform.State) error {

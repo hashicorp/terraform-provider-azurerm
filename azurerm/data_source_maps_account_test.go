@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -25,7 +25,7 @@ func TestAccDataSourceAzureRMMapsAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "resource_group_name"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "1"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.environment", "testing"),
-					resource.TestCheckResourceAttr(dataSourceName, "sku_name", "s0"),
+					resource.TestCheckResourceAttr(dataSourceName, "sku_name", "S0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "secondary_access_key"),

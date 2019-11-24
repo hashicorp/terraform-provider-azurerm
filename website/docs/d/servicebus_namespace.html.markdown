@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_namespace"
 sidebar_current: "docs-azurerm-datasource-servicebus-namespace"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing ServiceBus Namespac
 ## Example Usage
 
 ```hcl
-data "azurerm_servicebus_namespace" "test" {
+data "azurerm_servicebus_namespace" "example" {
   name                = "examplenamespace"
   resource_group_name = "example-resources"
 }
 
 output "location" {
-  value = "${data.azurerm_servicebus_namespace.test.location}"
+  value = "${data.azurerm_servicebus_namespace.example.location}"
 }
 ```
 
@@ -36,6 +37,8 @@ output "location" {
 * `sku` - The Tier used for the ServiceBus Namespace.
 
 * `capacity` - The capacity of the ServiceBus Namespace.
+
+* `zone_redundant` - Whether or not this ServiceBus Namespace is zone redundant.
 
 * `tags` - A mapping of tags assigned to the resource.
 

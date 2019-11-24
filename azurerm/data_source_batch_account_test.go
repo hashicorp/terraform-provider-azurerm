@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
@@ -145,54 +145,54 @@ data "azurerm_batch_account" "test" {
 func testAccDataSourceAzureBatchAccount_userSubscription(rInt int, rString string, location string, tenantID string, subscriptionID string) string {
 	return fmt.Sprintf(`
 data "azurerm_azuread_service_principal" "test" {
-	display_name = "Microsoft Azure Batch"
+  display_name = "Microsoft Azure Batch"
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "testaccRG-%d-batchaccount"
-	location = "%s"
+  name     = "testaccRG-%d-batchaccount"
+  location = "%s"
 }
 
 resource "azurerm_key_vault" "test" {
-	name                            = "batchkv%s"
-	location                        = "${azurerm_resource_group.test.location}"
-	resource_group_name             = "${azurerm_resource_group.test.name}"
-	enabled_for_disk_encryption     = true
-	enabled_for_deployment          = true
-	enabled_for_template_deployment = true
-	tenant_id                       = "%s"
+  name                            = "batchkv%s"
+  location                        = "${azurerm_resource_group.test.location}"
+  resource_group_name             = "${azurerm_resource_group.test.name}"
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  tenant_id                       = "%s"
 
-	sku {
-		name = "standard"
-	}
+  sku {
+    name = "standard"
+  }
 
-	access_policy {
-		tenant_id = "%s"
-		object_id = "${data.azurerm_azuread_service_principal.test.object_id}"
-		
-		secret_permissions = [
-			"get",
-			"list",
-			"set",
-			"delete"
-		]
-		
-	}
+  access_policy {
+    tenant_id = "%s"
+    object_id = "${data.azurerm_azuread_service_principal.test.object_id}"
+
+    secret_permissions = [
+      "get",
+      "list",
+      "set",
+      "delete"
+    ]
+
+  }
 }
 
 resource "azurerm_role_assignment" "contribrole" {
-	scope                = "/subscriptions/%s"
-	role_definition_name = "Contributor"
-	principal_id         = "${data.azurerm_azuread_service_principal.test.object_id}"
+  scope                = "/subscriptions/%s"
+  role_definition_name = "Contributor"
+  principal_id         = "${data.azurerm_azuread_service_principal.test.object_id}"
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
-  
+  name                = "testaccbatch%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
   pool_allocation_mode = "UserSubscription"
-  
+
   key_vault_reference {
     id  = "${azurerm_key_vault.test.id}"
     url = "${azurerm_key_vault.test.vault_uri}"

@@ -8,9 +8,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -156,6 +156,7 @@ POLICY_DEFINITIONS
 
 func testAzureRMPolicySetDefinition_requiresImport(ri int) string {
 	return fmt.Sprintf(`
+
 %s 
 
 resource "azurerm_policy_set_definition" "import" {
@@ -288,7 +289,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 		policySetName := rs.Primary.Attributes["name"]
 		managementGroupId := rs.Primary.Attributes["management_group_id"]
 
-		client := testAccProvider.Meta().(*ArmClient).policy.SetDefinitionsClient
+		client := testAccProvider.Meta().(*ArmClient).Policy.SetDefinitionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		var err error
@@ -312,7 +313,7 @@ func testCheckAzureRMPolicySetDefinitionExists(resourceName string) resource.Tes
 }
 
 func testCheckAzureRMPolicySetDefinitionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).policy.SetDefinitionsClient
+	client := testAccProvider.Meta().(*ArmClient).Policy.SetDefinitionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

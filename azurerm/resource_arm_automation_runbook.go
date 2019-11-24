@@ -5,15 +5,17 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,17 +30,26 @@ func resourceArmAutomationRunbook() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateAutomationRunbookName(),
 			},
 
 			"account_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: azure.ValidateAutomationAccountName(),
 			},
 
 			"location": azure.SchemaLocation(),
@@ -124,8 +135,9 @@ func resourceArmAutomationRunbook() *schema.Resource {
 }
 
 func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.RunbookClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.RunbookClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Automation Runbook creation.")
 
@@ -176,7 +188,7 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 	if v, ok := d.GetOk("content"); ok {
 		content := v.(string)
 		reader := ioutil.NopCloser(bytes.NewBufferString(content))
-		draftClient := meta.(*ArmClient).automation.RunbookDraftClient
+		draftClient := meta.(*ArmClient).Automation.RunbookDraftClient
 
 		if _, err := draftClient.ReplaceContent(ctx, resGroup, accName, name, reader); err != nil {
 			return fmt.Errorf("Error setting the draft Automation Runbook %q (Account %q / Resource Group %q): %+v", name, accName, resGroup, err)
@@ -202,8 +214,9 @@ func resourceArmAutomationRunbookCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.RunbookClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.RunbookClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -261,8 +274,9 @@ func resourceArmAutomationRunbookRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmAutomationRunbookDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).automation.RunbookClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Automation.RunbookClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

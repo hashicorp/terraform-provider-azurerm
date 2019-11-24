@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -1062,7 +1062,7 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Application Gateway: %q", gatewayName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).network.ApplicationGatewaysClient
+		client := testAccProvider.Meta().(*ArmClient).Network.ApplicationGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, gatewayName)
@@ -1079,7 +1079,7 @@ func testCheckAzureRMApplicationGatewayExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMApplicationGatewayDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).network.ApplicationGatewaysClient
+	client := testAccProvider.Meta().(*ArmClient).Network.ApplicationGatewaysClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -1376,13 +1376,13 @@ resource "azurerm_application_gateway" "test" {
   location            = "${azurerm_resource_group.test.location}"
 
   sku {
-    name     = "Standard_v2"
-    tier     = "Standard_v2"
+    name = "Standard_v2"
+    tier = "Standard_v2"
   }
 
   autoscale_configuration {
     min_capacity = %d
-	max_capacity = %d
+    max_capacity = %d
   }
 
   gateway_ip_configuration {
@@ -1832,7 +1832,7 @@ resource "azurerm_public_ip" "testStd" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
-  sku                 = "Standard" 
+  sku                 = "Standard"
 }
 
 resource "azurerm_key_vault" "test" {
@@ -1844,7 +1844,7 @@ resource "azurerm_key_vault" "test" {
 
   access_policy {
     tenant_id               = "${data.azurerm_client_config.test.tenant_id}"
-    object_id               = "${data.azurerm_client_config.test.service_principal_object_id }"
+    object_id               = "${data.azurerm_client_config.test.service_principal_object_id}"
     secret_permissions      = ["delete", "get", "set"]
     certificate_permissions = ["create", "delete", "get", "import"]
   }
@@ -1970,7 +1970,7 @@ resource "azurerm_public_ip" "teststd" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
-  sku                 = "Standard" 
+  sku                 = "Standard"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -2136,7 +2136,7 @@ resource "azurerm_public_ip" "teststd" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   allocation_method   = "Static"
-  sku                 = "Standard" 
+  sku                 = "Standard"
 }
 
 
@@ -2842,12 +2842,12 @@ resource "azurerm_application_gateway" "test" {
   }
 
   backend_http_settings {
-    name                  = "${local.http_setting_name}"
-    cookie_based_affinity = "Disabled"
-    host_name             = "%s"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 1
+    name                                = "${local.http_setting_name}"
+    cookie_based_affinity               = "Disabled"
+    host_name                           = "%s"
+    port                                = 80
+    protocol                            = "Http"
+    request_timeout                     = 1
     pick_host_name_from_backend_address = %t
   }
 

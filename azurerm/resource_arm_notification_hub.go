@@ -8,12 +8,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/notificationhubs/mgmt/2017-04-01/notificationhubs"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -33,6 +34,14 @@ func resourceArmNotificationHub() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			// NOTE: the ForceNew is to workaround a bug in the Azure SDK where nil-values aren't sent to the API.
 			// Bug: https://github.com/Azure/azure-sdk-for-go/issues/2246
@@ -133,8 +142,9 @@ func resourceArmNotificationHub() *schema.Resource {
 }
 
 func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	namespaceName := d.Get("namespace_name").(string)
@@ -184,10 +194,20 @@ func resourceArmNotificationHubCreateUpdate(d *schema.ResourceData, meta interfa
 		Pending:                   []string{"404"},
 		Target:                    []string{"200"},
 		Refresh:                   notificationHubStateRefreshFunc(ctx, client, resourceGroup, namespaceName, name),
-		Timeout:                   10 * time.Minute,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 10,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 10 * time.Minute
+	}
+
 	if _, err2 := stateConf.WaitForState(); err2 != nil {
 		return fmt.Errorf("Error waiting for Notification Hub %q to become available: %s", name, err2)
 	}
@@ -222,8 +242,9 @@ func notificationHubStateRefreshFunc(ctx context.Context, client *notificationhu
 }
 
 func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -272,8 +293,9 @@ func resourceArmNotificationHubRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmNotificationHubDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).notificationHubs.HubsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NotificationHubs.HubsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

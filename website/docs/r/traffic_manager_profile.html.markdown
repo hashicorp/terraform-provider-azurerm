@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_profile"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-profile"
@@ -23,14 +24,14 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "trafficmanagerProfile"
   location = "West US"
 }
 
-resource "azurerm_traffic_manager_profile" "test" {
+resource "azurerm_traffic_manager_profile" "example" {
   name                   = "${random_id.server.hex}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -122,5 +123,5 @@ The Traffic Manager is created with the location `global`.
 Traffic Manager Profiles can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_traffic_manager_profile.testProfile /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1
+terraform import azurerm_traffic_manager_profile.exampleProfile /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1
 ```

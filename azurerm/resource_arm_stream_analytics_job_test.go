@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -183,21 +183,22 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_stream_analytics_job" "test" {
-  name                                     = "acctestjob-%d"
-  resource_group_name                      = "${azurerm_resource_group.test.name}"
-  location                                 = "${azurerm_resource_group.test.location}"
-  streaming_units                          = 3
+  name                = "acctestjob-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  streaming_units     = 3
 
   tags = {
     environment = "Test"
-  }  
-  
+  }
+
   transformation_query = <<QUERY
     SELECT *
     INTO [YourOutputAlias]
     FROM [YourInputAlias]
 QUERY
-}`, rInt, location, rInt)
+}
+`, rInt, location, rInt)
 }
 
 func testAccAzureRMStreamAnalyticsJob_complete(rInt int, location string) string {
@@ -211,7 +212,7 @@ resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
   location                                 = "${azurerm_resource_group.test.location}"
-  data_locale							   = "en-GB"
+  data_locale                              = "en-GB"
   compatibility_level                      = "1.0"
   events_late_arrival_max_delay_in_seconds = 60
   events_out_of_order_max_delay_in_seconds = 50
@@ -249,7 +250,7 @@ resource "azurerm_stream_analytics_job" "import" {
   output_error_policy                      = "${azurerm_stream_analytics_job.test.output_error_policy}"
   streaming_units                          = "${azurerm_stream_analytics_job.test.streaming_units}"
   transformation_query                     = "${azurerm_stream_analytics_job.test.transformation_query}"
-  tags				                       = "${azurerm_stream_analytics_job.test.tags}"
+  tags                                     = "${azurerm_stream_analytics_job.test.tags}"
 }
 `, template)
 }
@@ -265,7 +266,7 @@ resource "azurerm_stream_analytics_job" "test" {
   name                                     = "acctestjob-%d"
   resource_group_name                      = "${azurerm_resource_group.test.name}"
   location                                 = "${azurerm_resource_group.test.location}"
-  data_locale							   = "en-GB"
+  data_locale                              = "en-GB"
   compatibility_level                      = "1.1"
   events_late_arrival_max_delay_in_seconds = 10
   events_out_of_order_max_delay_in_seconds = 20

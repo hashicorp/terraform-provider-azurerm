@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_image"
 sidebar_current: "docs-azurerm-resource-compute-image"
@@ -13,15 +14,15 @@ Manages a custom virtual machine image that can be used to create virtual machin
 ## Example Usage Creating from VHD
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctest"
   location = "West US"
 }
 
-resource "azurerm_image" "test" {
+resource "azurerm_image" "example" {
   name                = "acctest"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   os_disk {
     os_type  = "Linux"
@@ -35,15 +36,15 @@ resource "azurerm_image" "test" {
 ## Example Usage Creating from Virtual Machine (VM must be generalized beforehand)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctest"
   location = "West US"
 }
 
-resource "azurerm_image" "test" {
+resource "azurerm_image" "example" {
   name                      = "acctest"
   location                  = "West US"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
   source_virtual_machine_id = "{vm_id}"
 }
 ```
@@ -94,5 +95,5 @@ The following attributes are exported:
 Image can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_image.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1
+terraform import azurerm_image.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.compute/images/image1
 ```

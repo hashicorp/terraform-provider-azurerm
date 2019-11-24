@@ -3,11 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
 )
@@ -20,6 +22,13 @@ func resourceArmStorageTableEntity() *schema.Resource {
 		Delete: resourceArmStorageTableEntityDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -59,7 +68,8 @@ func resourceArmStorageTableEntity() *schema.Resource {
 }
 
 func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	storageClient := meta.(*ArmClient).Storage
 
 	accountName := d.Get("storage_account_name").(string)
@@ -68,26 +78,26 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 	rowKey := d.Get("row_key").(string)
 	entity := d.Get("entity").(map[string]interface{})
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Stable %q (Account %s): %s", tableName, accountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", accountName, tableName, err)
 	}
-	if resourceGroup == nil {
+	if account == nil {
 		if d.IsNewResource() {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Table %q (Account %s)", tableName, accountName)
+			return fmt.Errorf("Unable to locate Account %q for Storage Table %q", accountName, tableName)
 		} else {
-			log.Printf("[DEBUG] Unable to locate Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", tableName, accountName)
+			log.Printf("[DEBUG] Unable to locate Account %q for Storage Table %q - assuming removed & removing from state", accountName, tableName)
 			d.SetId("")
 			return nil
 		}
 	}
 
-	client, err := storageClient.TableEntityClient(ctx, *resourceGroup, accountName)
+	client, err := storageClient.TableEntityClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Entity Client: %s", err)
 	}
 
-	if features.ShouldResourcesBeImported() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		input := entities.GetEntityInput{
 			PartitionKey:  partitionKey,
 			RowKey:        rowKey,
@@ -96,7 +106,7 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 		existing, err := client.Get(ctx, accountName, tableName, input)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, accountName, *resourceGroup, err)
+				return fmt.Errorf("Error checking for presence of existing Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
 			}
 		}
 
@@ -113,7 +123,7 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := client.InsertOrMerge(ctx, accountName, tableName, input); err != nil {
-		return fmt.Errorf("Error creating Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %+v", partitionKey, rowKey, tableName, accountName, *resourceGroup, err)
+		return fmt.Errorf("Error creating Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %+v", partitionKey, rowKey, tableName, accountName, account.ResourceGroup, err)
 	}
 
 	resourceID := client.GetResourceID(accountName, tableName, partitionKey, rowKey)
@@ -123,7 +133,8 @@ func resourceArmStorageTableEntityCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	storageClient := meta.(*ArmClient).Storage
 
 	id, err := entities.ParseResourceID(d.Id())
@@ -131,19 +142,19 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
 	}
-	if resourceGroup == nil {
+	if account == nil {
 		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed & removing from state", id.TableName, id.AccountName)
 		d.SetId("")
 		return nil
 	}
 
-	client, err := storageClient.TableEntityClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.TableEntityClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Table Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error building Table Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	input := entities.GetEntityInput{
@@ -154,7 +165,7 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 
 	result, err := client.Get(ctx, id.AccountName, id.TableName, input)
 	if err != nil {
-		return fmt.Errorf("Error retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error retrieving Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	d.Set("storage_account_name", id.AccountName)
@@ -162,14 +173,15 @@ func resourceArmStorageTableEntityRead(d *schema.ResourceData, meta interface{})
 	d.Set("partition_key", id.PartitionKey)
 	d.Set("row_key", id.RowKey)
 	if err := d.Set("entity", flattenEntity(result.Entity)); err != nil {
-		return fmt.Errorf("Error setting `entity` for Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error setting `entity` for Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil
 }
 
 func resourceArmStorageTableEntityDelete(d *schema.ResourceData, meta interface{}) error {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	storageClient := meta.(*ArmClient).Storage
 
 	id, err := entities.ParseResourceID(d.Id())
@@ -177,18 +189,17 @@ func resourceArmStorageTableEntityDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Table %q (Account %s): %s", id.TableName, id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Table %q: %s", id.AccountName, id.TableName, err)
 	}
-	if resourceGroup == nil {
-		log.Printf("[WARN] Unable to determine Resource Group for Storage Table %q (Account %s) - assuming removed already", id.TableName, id.AccountName)
-		return nil
+	if account == nil {
+		return fmt.Errorf("Storage Account %q was not found!", id.AccountName)
 	}
 
-	client, err := storageClient.TableEntityClient(ctx, *resourceGroup, id.AccountName)
+	client, err := storageClient.TableEntityClient(ctx, *account)
 	if err != nil {
-		return fmt.Errorf("Error building Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error building Entity Client for Storage Account %q (Resource Group %q): %s", id.AccountName, account.ResourceGroup, err)
 	}
 
 	input := entities.DeleteEntityInput{
@@ -197,7 +208,7 @@ func resourceArmStorageTableEntityDelete(d *schema.ResourceData, meta interface{
 	}
 
 	if _, err := client.Delete(ctx, id.AccountName, id.TableName, input); err != nil {
-		return fmt.Errorf("Error deleting Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, *resourceGroup, err)
+		return fmt.Errorf("Error deleting Entity (Partition Key %q / Row Key %q) (Table %q / Storage Account %q / Resource Group %q): %s", id.PartitionKey, id.RowKey, id.TableName, id.AccountName, account.ResourceGroup, err)
 	}
 
 	return nil

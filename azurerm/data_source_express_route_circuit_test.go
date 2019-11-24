@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -37,11 +37,11 @@ func testAccDataSourceAzureRMExpressRoute_basic(rInt int, location string) strin
 	config := testAccAzureRMExpressRouteCircuit_basicMeteredConfig(rInt, location)
 
 	return fmt.Sprintf(`
-	%s
+%s
 
-	data "azurerm_express_route_circuit" test {
-		resource_group_name = "${azurerm_resource_group.test.name}"
-  		name                = "${azurerm_express_route_circuit.test.name}"
-	}
+data "azurerm_express_route_circuit" test {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  name                = "${azurerm_express_route_circuit.test.name}"
+}
 `, config)
 }

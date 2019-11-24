@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2018-10-01/compute"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +26,13 @@ func resourceArmSnapshot() *schema.Resource {
 		Delete: resourceArmSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -80,8 +89,9 @@ func resourceArmSnapshot() *schema.Resource {
 }
 
 func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.SnapshotsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -132,7 +142,7 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 	if v, ok := d.GetOk("encryption_settings"); ok {
 		encryptionSettings := v.([]interface{})
 		settings := encryptionSettings[0].(map[string]interface{})
-		properties.EncryptionSettings = expandManagedDiskEncryptionSettings(settings)
+		properties.EncryptionSettingsCollection = expandManagedDiskEncryptionSettings(settings)
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties)
@@ -155,8 +165,9 @@ func resourceArmSnapshotCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.SnapshotsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -184,7 +195,6 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	if props := resp.SnapshotProperties; props != nil {
-
 		if data := props.CreationData; data != nil {
 			d.Set("create_option", string(data.CreateOption))
 
@@ -197,8 +207,8 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 			d.Set("disk_size_gb", int(*props.DiskSizeGB))
 		}
 
-		if props.EncryptionSettings != nil {
-			d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettings))
+		if err := d.Set("encryption_settings", flattenManagedDiskEncryptionSettings(props.EncryptionSettingsCollection)); err != nil {
+			return fmt.Errorf("Error setting `encryption_settings`: %+v", err)
 		}
 	}
 
@@ -206,8 +216,9 @@ func resourceArmSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).compute.SnapshotsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.SnapshotsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

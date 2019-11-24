@@ -4,20 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
-	"time"
-
-	"github.com/Azure/azure-sdk-for-go/services/relay/mgmt/2017-04-01/relay"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -29,6 +28,13 @@ func resourceArmRelayNamespace() *schema.Resource {
 		Delete: resourceArmRelayNamespaceDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -109,8 +115,9 @@ func resourceArmRelayNamespace() *schema.Resource {
 }
 
 func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relay.NamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Relay.NamespacesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// Remove in 2.0
 	var sku relay.Sku
@@ -187,8 +194,9 @@ func resourceArmRelayNamespaceCreateUpdate(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relay.NamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Relay.NamespacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -244,8 +252,9 @@ func resourceArmRelayNamespaceRead(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).relay.NamespacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Relay.NamespacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -269,9 +278,15 @@ func resourceArmRelayNamespaceDelete(d *schema.ResourceData, meta interface{}) e
 		Pending:    []string{"Pending"},
 		Target:     []string{"Deleted"},
 		Refresh:    relayNamespaceDeleteRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 60 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Relay Namespace %q (Resource Group %q) to be deleted: %s", name, resourceGroup, err)
 	}

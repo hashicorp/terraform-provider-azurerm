@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -331,7 +331,6 @@ func TestAccAzureRMSqlDatabase_readScale(t *testing.T) {
 
 func testCheckAzureRMSqlDatabaseExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -845,7 +844,7 @@ resource "azurerm_sql_database" "test" {
   edition             = "Premium"
   collation           = "SQL_Latin1_General_CP1_CI_AS"
   max_size_bytes      = "1073741824"
-  read_scale		  = %t
+  read_scale          = %t
 }
 `, rInt, location, rInt, rInt, readScale)
 }

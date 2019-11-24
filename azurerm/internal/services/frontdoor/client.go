@@ -1,13 +1,14 @@
 package frontdoor
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/preview/frontdoor/mgmt/2019-04-01/frontdoor"
+	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
 type Client struct {
 	FrontDoorsClient         *frontdoor.FrontDoorsClient
 	FrontDoorsFrontendClient *frontdoor.FrontendEndpointsClient
+	FrontDoorsPolicyClient   *frontdoor.PoliciesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
@@ -17,8 +18,12 @@ func BuildClient(o *common.ClientOptions) *Client {
 	frontDoorsFrontendClient := frontdoor.NewFrontendEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorsFrontendClient.Client, o.ResourceManagerAuthorizer)
 
+	frontDoorsPolicyClient := frontdoor.NewPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&frontDoorsPolicyClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		FrontDoorsClient:         &frontDoorsClient,
 		FrontDoorsFrontendClient: &frontDoorsFrontendClient,
+		FrontDoorsPolicyClient:   &frontDoorsPolicyClient,
 	}
 }

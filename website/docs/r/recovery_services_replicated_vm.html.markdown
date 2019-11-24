@@ -1,4 +1,5 @@
 ---
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_replicated_vm"
 sidebar_current: "docs-azurerm-recovery-replicated-vm"
@@ -50,9 +51,9 @@ resource "azurerm_virtual_machine" "vm" {
     admin_password = "test-pwd-123"
     computer_name  = "vm"
   }
-  
+
   os_profile_linux_config {
-      disable_password_authentication = false
+    disable_password_authentication = false
   }
 }
 
@@ -64,31 +65,31 @@ resource "azurerm_recovery_services_vault" "vault" {
 }
 
 resource "azurerm_recovery_services_fabric" "primary" {
-  name                         = "primary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.primary.location}"
+  name                = "primary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.primary.location}"
 }
 
 resource "azurerm_recovery_services_fabric" "secondary" {
-  name                         = "secondary-fabric"
-  resource_group_name          = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name          = "${azurerm_recovery_services_vault.vault.name}"
-  location                     = "${azurerm_resource_group.secondary.location}"
+  name                = "secondary-fabric"
+  resource_group_name = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.vault.name}"
+  location            = "${azurerm_resource_group.secondary.location}"
 }
 
 resource "azurerm_recovery_services_protection_container" "primary" {
-  name                          = "primary-protection-container"
-  resource_group_name           = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.vault.name}"
-  recovery_fabric_name          = "${azurerm_recovery_services_fabric.primary.name}"
+  name                 = "primary-protection-container"
+  resource_group_name  = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.vault.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.primary.name}"
 }
 
 resource "azurerm_recovery_services_protection_container" "secondary" {
-  name                          = "secondary-protection-container"
-  resource_group_name           = "${azurerm_resource_group.secondary.name}"
-  recovery_vault_name           = "${azurerm_recovery_services_vault.vault.name}"
-  recovery_fabric_name          = "${azurerm_recovery_services_fabric.secondary.name}"
+  name                 = "secondary-protection-container"
+  resource_group_name  = "${azurerm_resource_group.secondary.name}"
+  recovery_vault_name  = "${azurerm_recovery_services_vault.vault.name}"
+  recovery_fabric_name = "${azurerm_recovery_services_fabric.secondary.name}"
 }
 
 resource "azurerm_recovery_services_replication_policy" "policy" {
@@ -120,7 +121,7 @@ resource "azurerm_storage_account" "primary" {
 resource "azurerm_virtual_network" "primary" {
   name                = "network1"
   resource_group_name = "${azurerm_resource_group.primary.name}"
-  address_space       = [ "192.168.1.0/24" ]
+  address_space       = ["192.168.1.0/24"]
   location            = "${azurerm_resource_group.primary.location}"
 }
 
@@ -152,9 +153,9 @@ resource "azurerm_recovery_replicated_vm" "vm-replication" {
   recovery_replication_policy_id            = "${azurerm_recovery_services_replication_policy.policy.id}"
   source_recovery_protection_container_name = "${azurerm_recovery_services_protection_container.primary.name}"
 
-  target_resource_group_id                  = "${azurerm_resource_group.secondary.id}"
-  target_recovery_fabric_id                 = "${azurerm_recovery_services_fabric.secondary.id}"
-  target_recovery_protection_container_id   = "${azurerm_recovery_services_protection_container.secondary.id}"
+  target_resource_group_id                = "${azurerm_resource_group.secondary.id}"
+  target_recovery_fabric_id               = "${azurerm_recovery_services_fabric.secondary.id}"
+  target_recovery_protection_container_id = "${azurerm_recovery_services_protection_container.secondary.id}"
 
   managed_disk {
     disk_id                    = "${azurerm_virtual_machine.vm.storage_os_disk.0.managed_disk_id}"

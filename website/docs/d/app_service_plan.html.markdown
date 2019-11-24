@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_plan"
 sidebar_current: "docs-azurerm-datasource-app-service-plan"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing App Service Plan (f
 ## Example Usage
 
 ```hcl
-data "azurerm_app_service_plan" "test" {
+data "azurerm_app_service_plan" "example" {
   name                = "search-app-service-plan"
   resource_group_name = "search-service"
 }
 
 output "app_service_plan_id" {
-  value = "${data.azurerm_app_service_plan.test.id}"
+  value = "${data.azurerm_app_service_plan.example.id}"
 }
 ```
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_server"
 sidebar_current: "docs-azurerm-resource-database-postgresql-server"
@@ -13,21 +14,21 @@ Manages a PostgreSQL Server.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_postgresql_server" "test" {
+resource "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
-    family   = "Gen4"
+    family   = "Gen5"
   }
 
   storage_profile {

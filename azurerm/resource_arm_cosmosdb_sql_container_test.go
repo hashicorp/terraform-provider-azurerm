@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -94,7 +94,7 @@ func TestAccAzureRMCosmosDbSqlContainer_update(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+	client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -124,7 +124,7 @@ func testCheckAzureRMCosmosDbSqlContainerDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDbSqlContainerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+		client := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -177,7 +177,7 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = "${azurerm_cosmosdb_sql_database.test.name}"
   partition_key_path  = "/definition/id"
   unique_key {
-	paths = ["/definition/id1", "/definition/id2"]
+    paths = ["/definition/id1", "/definition/id2"]
   }
 }
 

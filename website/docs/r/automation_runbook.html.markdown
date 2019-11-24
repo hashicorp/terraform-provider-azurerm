@@ -1,4 +1,5 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_runbook"
 sidebar_current: "docs-azurerm-resource-automation-runbook"
@@ -39,7 +40,7 @@ resource "azurerm_automation_runbook" "example" {
   runbook_type        = "PowerShellWorkflow"
 
   publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 }
 ```
@@ -77,7 +78,7 @@ resource "azurerm_automation_runbook" "example" {
   runbook_type        = "PowerShell"
 
   publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 
   content = "${data.local_file.example.content}"

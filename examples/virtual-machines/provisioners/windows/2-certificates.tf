@@ -30,8 +30,8 @@ resource "azurerm_key_vault" "example" {
 }
 
 resource "azurerm_key_vault_certificate" "example" {
-  name      = "${local.virtual_machine_name}-cert"
-  vault_uri = "${azurerm_key_vault.example.vault_uri}"
+  name         = "${local.virtual_machine_name}-cert"
+  key_vault_id = "${azurerm_key_vault.example.id}"
 
   certificate_policy {
     issuer_parameters {

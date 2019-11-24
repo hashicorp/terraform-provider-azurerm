@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -39,6 +39,35 @@ func TestAccAzureRMApiManagementApi_basic(t *testing.T) {
 	})
 }
 
+// Remove in 2.0
+func TestAccAzureRMApiManagementApi_basicClassic(t *testing.T) {
+	resourceName := "azurerm_api_management_api.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_basicClassic(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "soap_pass_through", "false"),
+					resource.TestCheckResourceAttr(resourceName, "is_current", "true"),
+					resource.TestCheckResourceAttr(resourceName, "is_online", "false"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 	resourceName := "azurerm_api_management_api.test"
 	ri := tf.AccRandTimeInt()
@@ -54,6 +83,32 @@ func TestAccAzureRMApiManagementApi_wordRevision(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApiManagementApiExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "revision", "one-point-oh"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMApiManagementApi_version(t *testing.T) {
+	resourceName := "azurerm_api_management_api.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApiManagementApiDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMApiManagementApi_versionSet(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApiManagementApiExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "version", "v1"),
 				),
 			},
 			{
@@ -247,7 +302,7 @@ func TestAccAzureRMApiManagementApi_complete(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_api" {
@@ -289,7 +344,7 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		revision := rs.Primary.Attributes["revision"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		apiId := fmt.Sprintf("%s;rev=%s", name, revision)
@@ -308,6 +363,24 @@ func testCheckAzureRMApiManagementApiExists(name string) resource.TestCheckFunc 
 
 func testAccAzureRMApiManagementApi_basic(rInt int, location string) string {
 	template := testAccAzureRMApiManagementApi_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+}
+`, template, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMApiManagementApi_basicClassic(rInt int, location string) string {
+	template := testAccAzureRMApiManagementApi_templateClassic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -448,10 +521,57 @@ resource "azurerm_api_management_api" "test" {
 `, template, rInt)
 }
 
+func testAccAzureRMApiManagementApi_versionSet(rInt int, location string) string {
+	template := testAccAzureRMApiManagementApi_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_version_set" "test" {
+  name                = "acctestAMAVS-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "Butter Parser"
+  versioning_scheme   = "Segment"
+}
+
+resource "azurerm_api_management_api" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  display_name        = "api1"
+  path                = "api1"
+  protocols           = ["https"]
+  revision            = "1"
+  version			  = "v1"
+  version_set_id	  = "${azurerm_api_management_api_version_set.test.id}"
+}
+`, template, rInt, rInt)
+}
+
 func testAccAzureRMApiManagementApi_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_api_management" "test" {
+  name                = "acctestAM-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  publisher_name      = "pub1"
+  publisher_email     = "pub1@email.com"
+
+  sku_name = "Developer_1"
+}
+`, rInt, location, rInt)
+}
+
+// Remove in 2.0
+func testAccAzureRMApiManagementApi_templateClassic(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
   location = "%s"
 }
 

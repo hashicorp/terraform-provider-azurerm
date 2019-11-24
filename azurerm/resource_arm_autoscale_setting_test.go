@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -333,7 +333,7 @@ func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCh
 			return fmt.Errorf("Bad: no resource group found in state for AutoScale Setting: %s", autoscaleSettingName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).monitor.AutoscaleSettingsClient
+		conn := testAccProvider.Meta().(*ArmClient).Monitor.AutoscaleSettingsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, autoscaleSettingName)
@@ -350,7 +350,7 @@ func testCheckAzureRMAutoScaleSettingExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMAutoScaleSettingDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).monitor.AutoscaleSettingsClient
+	conn := testAccProvider.Meta().(*ArmClient).Monitor.AutoscaleSettingsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

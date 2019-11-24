@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +26,13 @@ func resourceArmManagementGroup() *schema.Resource {
 		Delete: resourceArmManagementGroupDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -57,9 +66,10 @@ func resourceArmManagementGroup() *schema.Resource {
 }
 
 func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	armTenantID := meta.(*ArmClient).tenantId
 
 	groupId := d.Get("group_id").(string)
@@ -149,7 +159,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupId)
 		_, err = subscriptionsClient.Create(ctx, groupId, subscriptionId, managementGroupCacheControl)
 		if err != nil {
-			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q", subscriptionId, groupId)
+			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q: %+v", subscriptionId, groupId, err)
 		}
 	}
 
@@ -157,8 +167,9 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseManagementGroupId(d.Id())
 	if err != nil {
@@ -197,16 +208,16 @@ func resourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) er
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil
 }
 
 func resourceArmManagementGroupDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroups.GroupsClient
-	subscriptionsClient := meta.(*ArmClient).managementGroups.SubscriptionClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseManagementGroupId(d.Id())
 	if err != nil {

@@ -1,4 +1,5 @@
 ---
+subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_mongo_database"
 sidebar_current: "docs-azurerm-resource-cosmosdb-mongo-database"

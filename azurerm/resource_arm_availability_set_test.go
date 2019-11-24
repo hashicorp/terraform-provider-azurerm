@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -228,7 +228,7 @@ func testCheckAzureRMAvailabilitySetExists(resourceName string) resource.TestChe
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.AvailabilitySetsClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.AvailabilitySetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		vmss, err := client.Get(ctx, resourceGroup, name)
@@ -258,7 +258,7 @@ func testCheckAzureRMAvailabilitySetDisappears(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for availability set: %s", availSetName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).compute.AvailabilitySetsClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.AvailabilitySetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Delete(ctx, resourceGroup, availSetName)
 		if err != nil {
@@ -280,7 +280,7 @@ func testCheckAzureRMAvailabilitySetDestroy(s *terraform.State) error {
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).compute.AvailabilitySetsClient
+		client := testAccProvider.Meta().(*ArmClient).Compute.AvailabilitySetsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, name)
 
@@ -382,7 +382,7 @@ resource "azurerm_availability_set" "test" {
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
-	proximity_placement_group_id = "${azurerm_proximity_placement_group.test.id}"
+  proximity_placement_group_id = "${azurerm_proximity_placement_group.test.id}"
 }
 `, rInt, location, rInt, rInt)
 }

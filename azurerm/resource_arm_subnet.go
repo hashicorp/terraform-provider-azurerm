@@ -3,14 +3,18 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	networksvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +28,13 @@ func resourceArmSubnet() *schema.Resource {
 		Delete: resourceArmSubnetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -96,12 +107,14 @@ func resourceArmSubnet() *schema.Resource {
 											"Microsoft.Batch/batchAccounts",
 											"Microsoft.ContainerInstance/containerGroups",
 											"Microsoft.Databricks/workspaces",
+											"Microsoft.DBforPostgreSQL/serversv2",
 											"Microsoft.HardwareSecurityModules/dedicatedHSMs",
 											"Microsoft.Logic/integrationServiceEnvironments",
 											"Microsoft.Netapp/volumes",
 											"Microsoft.ServiceFabricMesh/networks",
 											"Microsoft.Sql/managedInstances",
 											"Microsoft.Sql/servers",
+											"Microsoft.StreamAnalytics/streamingJobs",
 											"Microsoft.Web/hostingEnvironments",
 											"Microsoft.Web/serverFarms",
 										}, false),
@@ -112,9 +125,11 @@ func resourceArmSubnet() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 											ValidateFunc: validation.StringInSlice([]string{
+												"Microsoft.Network/networkinterfaces/*",
 												"Microsoft.Network/virtualNetworks/subnets/action",
 												"Microsoft.Network/virtualNetworks/subnets/join/action",
 												"Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+												"Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
 											}, false),
 										},
 									},
@@ -124,13 +139,20 @@ func resourceArmSubnet() *schema.Resource {
 					},
 				},
 			},
+
+			"enforce_private_link_service_network_policies": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
 
 func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Subnet creation.")
 
@@ -153,11 +175,20 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 
 	addressPrefix := d.Get("address_prefix").(string)
 
-	locks.ByName(name, subnetResourceName)
-	defer locks.UnlockByName(name, subnetResourceName)
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
 	properties := network.SubnetPropertiesFormat{
 		AddressPrefix: &addressPrefix,
+	}
+
+	if v, ok := d.GetOk("enforce_private_link_service_network_policies"); ok {
+		// To enable private endpoints you must disable the network policies for the
+		// subnet because Network policies like network security groups are not
+		// supported by private endpoints.
+		if v.(bool) {
+			properties.PrivateLinkServiceNetworkPolicies = utils.String("Disabled")
+		}
 	}
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
@@ -165,6 +196,14 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.NetworkSecurityGroup = &network.SecurityGroup{
 			ID: &nsgId,
 		}
+
+		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupResourceID(nsgId)
+		if err != nil {
+			return err
+		}
+
+		locks.ByName(parsedNsgId.Name, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(parsedNsgId.Name, networkSecurityGroupResourceName)
 	} else {
 		properties.NetworkSecurityGroup = nil
 	}
@@ -174,6 +213,14 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		properties.RouteTable = &network.RouteTable{
 			ID: &rtId,
 		}
+
+		parsedRouteTableId, err := networksvc.ParseRouteTableResourceID(rtId)
+		if err != nil {
+			return err
+		}
+
+		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
 	} else {
 		properties.RouteTable = nil
 	}
@@ -212,8 +259,9 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -239,6 +287,14 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 
 	if props := resp.SubnetPropertiesFormat; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
+
+		if p := props.PrivateLinkServiceNetworkPolicies; p != nil {
+			// To enable private endpoints you must disable the network policies for the
+			// subnet because Network policies like network security groups are not
+			// supported by private endpoints.
+
+			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *p))
+		}
 
 		var securityGroupId *string
 		if props.NetworkSecurityGroup != nil {
@@ -272,8 +328,9 @@ func resourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.SubnetsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.SubnetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -282,6 +339,31 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 	resGroup := id.ResourceGroup
 	name := id.Path["subnets"]
 	vnetName := id.Path["virtualNetworks"]
+
+	if v, ok := d.GetOk("network_security_group_id"); ok {
+		networkSecurityGroupId := v.(string)
+		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+		if err2 != nil {
+			return err2
+		}
+
+		locks.ByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+		defer locks.UnlockByName(parsedNetworkSecurityGroupId.Name, networkSecurityGroupResourceName)
+	}
+
+	if v, ok := d.GetOk("route_table_id"); ok {
+		rtId := v.(string)
+		parsedRouteTableId, err2 := networksvc.ParseRouteTableResourceID(rtId)
+		if err2 != nil {
+			return err2
+		}
+
+		locks.ByName(parsedRouteTableId.Name, routeTableResourceName)
+		defer locks.UnlockByName(parsedRouteTableId.Name, routeTableResourceName)
+	}
+
+	locks.ByName(vnetName, virtualNetworkResourceName)
+	defer locks.UnlockByName(vnetName, virtualNetworkResourceName)
 
 	locks.ByName(name, subnetResourceName)
 	defer locks.UnlockByName(name, subnetResourceName)

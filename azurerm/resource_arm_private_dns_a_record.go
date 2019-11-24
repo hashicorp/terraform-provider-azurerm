@@ -3,13 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,11 +26,20 @@ func resourceArmPrivateDnsARecord() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				// lower-cased due to the broken API https://github.com/Azure/azure-rest-api-specs/issues/6641
+				ValidateFunc: validate.LowerCasedString,
 			},
 
 			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/6641
@@ -56,8 +68,9 @@ func resourceArmPrivateDnsARecord() *schema.Resource {
 }
 
 func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).privateDns.RecordSetsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).PrivateDns.RecordSetsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -109,8 +122,9 @@ func resourceArmPrivateDnsARecordCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmPrivateDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
-	ctx := meta.(*ArmClient).StopContext
+	dnsClient := meta.(*ArmClient).PrivateDns.RecordSetsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -142,8 +156,9 @@ func resourceArmPrivateDnsARecordRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmPrivateDnsARecordDelete(d *schema.ResourceData, meta interface{}) error {
-	dnsClient := meta.(*ArmClient).privateDns.RecordSetsClient
-	ctx := meta.(*ArmClient).StopContext
+	dnsClient := meta.(*ArmClient).PrivateDns.RecordSetsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

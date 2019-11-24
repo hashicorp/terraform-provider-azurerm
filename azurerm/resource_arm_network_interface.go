@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -16,6 +17,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,6 +32,13 @@ func resourceArmNetworkInterface() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -84,6 +93,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"private_ip_address": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"private_ip_address_version": {
@@ -247,8 +257,9 @@ func resourceArmNetworkInterface() *schema.Resource {
 }
 
 func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.InterfacesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Network Interface creation.")
 
@@ -366,8 +377,9 @@ func resourceArmNetworkInterfaceCreateUpdate(d *schema.ResourceData, meta interf
 }
 
 func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.InterfacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -392,7 +404,6 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if props := resp.InterfacePropertiesFormat; props != nil {
-
 		d.Set("mac_address", props.MacAddress)
 		addresses := make([]interface{}, 0)
 		if configs := props.IPConfigurations; configs != nil {
@@ -454,8 +465,9 @@ func resourceArmNetworkInterfaceRead(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmNetworkInterfaceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).network.InterfacesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.InterfacesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -538,7 +550,7 @@ func flattenNetworkInterfaceIPConfigurations(ipConfigs *[]network.InterfaceIPCon
 
 		niIPConfig["private_ip_address_allocation"] = strings.ToLower(string(props.PrivateIPAllocationMethod))
 
-		if props.PrivateIPAllocationMethod == network.Static {
+		if props.PrivateIPAddress != nil {
 			niIPConfig["private_ip_address"] = *props.PrivateIPAddress
 		}
 

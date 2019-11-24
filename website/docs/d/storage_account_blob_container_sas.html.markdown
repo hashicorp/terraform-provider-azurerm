@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_blob_container_sas"
 sidebar_current: "docs-azurerm-datasource-storage-account-blob-container-sas"
@@ -36,7 +37,7 @@ resource "azurerm_storage_container" "container" {
   container_access_type = "private"
 }
 
-data "azurerm_storage_account_blob_container_sas" "test" {
+data "azurerm_storage_account_blob_container_sas" "example" {
   connection_string = "${azurerm_storage_account.storage.primary_connection_string}"
   container_name    = "${azurerm_storage_container.container.name}"
   https_only        = true
@@ -63,7 +64,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
 }
 
 output "sas_url_query_string" {
-  value = "${data.azurerm_storage_account_blob_container_sas.test.sas}"
+  value = "${data.azurerm_storage_account_blob_container_sas.example.sas}"
 }
 ```
 

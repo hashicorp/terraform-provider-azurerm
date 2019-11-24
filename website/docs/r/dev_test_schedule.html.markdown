@@ -1,4 +1,5 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_schedule"
 sidebar_current: "docs-azurerm-dev-test-schedule"
@@ -21,24 +22,24 @@ resource "azurerm_resource_group" "sample" {
 
 resource "azurerm_dev_test_lab" "sample" {
   name                = "YourDevTestLab"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
 }
 
 resource "azurerm_dev_test_schedule" "sample" {
-  name = "LabVmAutoStart"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  
+  name                = "LabVmAutoStart"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  lab_name            = "${azurerm_dev_test_lab.example.name}"
+
   weekly_recurrence {
     time      = "1100"
     week_days = ["Monday", "Tuesday"]
   }
 
   time_zone_id = "Pacific Standard Time"
-  task_type = "LabVmsStartupTask"
+  task_type    = "LabVmsStartupTask"
 
   notification_settings {
   }
@@ -105,5 +106,5 @@ The following attributes are exported:
 Dev Test Schedule can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_dev_test_schedule.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart
+terraform import azurerm_dev_test_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.DevTestLab/labs/myDevTestLab/schedules/labvmautostart
 ```

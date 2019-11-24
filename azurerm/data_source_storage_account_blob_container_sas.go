@@ -3,15 +3,20 @@ package azurerm
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/storage"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
 func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmStorageContainerSasRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"connection_string": {
@@ -122,11 +127,9 @@ func dataSourceArmStorageAccountBlobContainerSharedAccessSignature() *schema.Res
 			},
 		},
 	}
-
 }
 
 func dataSourceArmStorageContainerSasRead(d *schema.ResourceData, _ interface{}) error {
-
 	connString := d.Get("connection_string").(string)
 	containerName := d.Get("container_name").(string)
 	httpsOnly := d.Get("https_only").(bool)

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -224,7 +224,7 @@ func TestAccAzureRMApplicationInsights_basiciOS(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
+	conn := testAccProvider.Meta().(*ArmClient).AppInsights.ComponentsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -263,7 +263,7 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 			return fmt.Errorf("Bad: no resource group found in state for App Insights: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).appInsights.ComponentsClient
+		conn := testAccProvider.Meta().(*ArmClient).AppInsights.ComponentsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)
@@ -277,6 +277,35 @@ func testCheckAzureRMApplicationInsightsExists(resourceName string) resource.Tes
 
 		return nil
 	}
+}
+
+func TestAccAzureRMApplicationInsights_complete(t *testing.T) {
+	resourceName := "azurerm_application_insights.test"
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMApplicationInsights_complete(ri, testLocation(), "web")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMApplicationInsightsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMApplicationInsightsExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "application_type", "web"),
+					resource.TestCheckResourceAttr(resourceName, "sampling_percentage", "50"),
+					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+					resource.TestCheckResourceAttr(resourceName, "tags.Hello", "World"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
 }
 
 func testAccAzureRMApplicationInsights_basic(rInt int, location string, applicationType string) string {
@@ -307,4 +336,25 @@ resource "azurerm_application_insights" "import" {
   application_type    = "${azurerm_application_insights.test.application_type}"
 }
 `, template)
+}
+
+func testAccAzureRMApplicationInsights_complete(rInt int, location string, applicationType string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_application_insights" "test" {
+  name                = "acctestappinsights-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  application_type    = "%s"
+  sampling_percentage = 50
+
+  tags = {
+    Hello = "World"
+  }
+}
+`, rInt, location, rInt, applicationType)
 }

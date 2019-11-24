@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2015-04-08/documentdb"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -669,7 +669,7 @@ func TestAccAzureRMCosmosDBAccount_multiMaster(t *testing.T) {
 }
 
 func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+	conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -695,7 +695,7 @@ func testCheckAzureRMCosmosDBAccountDestroy(s *terraform.State) error {
 
 func testCheckAzureRMCosmosDBAccountExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		conn := testAccProvider.Meta().(*ArmClient).cosmos.DatabaseClient
+		conn := testAccProvider.Meta().(*ArmClient).Cosmos.DatabaseClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		// Ensure we have enough information in state to look up in API
@@ -861,7 +861,7 @@ func testAccAzureRMCosmosDBAccount_geoReplicated(rInt int, location string, altL
             failover_priority = 1
         }
 
-    `, altLocation))
+  `, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLocation string) string {
@@ -878,7 +878,7 @@ func testAccAzureRMCosmosDBAccount_multiMaster(rInt int, location string, altLoc
             failover_priority = 1
         }
 
-    `, altLocation))
+  `, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location string, altLocation string) string {
@@ -894,11 +894,10 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customId(rInt int, location str
             failover_priority = 1
         }
 
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(rInt int, location string, altLocation string, cLevel documentdb.DefaultConsistencyLevel) string {
-
 	return testAccAzureRMCosmosDBAccount_basic(rInt, location, string(cLevel), "", fmt.Sprintf(`
         geo_location {
             prefix            = "acctest-%d-custom-id"
@@ -906,7 +905,7 @@ func testAccAzureRMCosmosDBAccount_geoReplicated_customConsistencyLevel(rInt int
             failover_priority = 1
         }
 
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocation string) string {
@@ -923,7 +922,7 @@ func testAccAzureRMCosmosDBAccount_complete(rInt int, location string, altLocati
             location          = "%s"
             failover_priority = 1
         }
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_emptyIpFilter(rInt int, location string, altLocation string) string {
@@ -941,7 +940,7 @@ func testAccAzureRMCosmosDBAccount_emptyIpFilter(rInt int, location string, altL
             location          = "%s"
             failover_priority = 1
         }
-    `, rInt, altLocation))
+  `, rInt, altLocation))
 }
 
 func testAccAzureRMCosmosDBAccount_virtualNetworkFilter(rInt int, location string) string {

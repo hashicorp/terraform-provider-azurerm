@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -220,7 +220,7 @@ resource "azurerm_sql_server" "test_secondary" {
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
 }
-  
+
 resource "azurerm_sql_database" "test" {
   name                             = "acctestdb%[1]d"
   resource_group_name              = "${azurerm_resource_group.test.name}"
@@ -237,7 +237,7 @@ resource "azurerm_sql_failover_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   server_name         = "${azurerm_sql_server.test_primary.name}"
   databases           = ["${azurerm_sql_database.test.id}"]
-  
+
   partner_servers {
     id = "${azurerm_sql_server.test_secondary.id}"
   }
@@ -255,20 +255,20 @@ func testAccAzureRMSqlFailoverGroup_requiresImport(rInt int, location, altlocati
 %s
 
 resource "azurerm_sql_failover_group" "import" {
-	name                                = "${azurerm_sql_failover_group.test.name}"
-	resource_group_name                 = "${azurerm_sql_failover_group.test.resource_group_name}"
-	server_name                         = "${azurerm_sql_failover_group.test.server_name}"
-	databases                           = "${azurerm_sql_failover_group.test.databases}"
+  name                = "${azurerm_sql_failover_group.test.name}"
+  resource_group_name = "${azurerm_sql_failover_group.test.resource_group_name}"
+  server_name         = "${azurerm_sql_failover_group.test.server_name}"
+  databases           = "${azurerm_sql_failover_group.test.databases}"
 
-    partner_servers {
-        id = "${azurerm_sql_failover_group.test.partner_servers.0.id}"
-    }
-
-    read_write_endpoint_failover_policy {
-        mode          = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.mode}"
-        grace_minutes = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.grace_minutes}"
-    }
+  partner_servers {
+    id = "${azurerm_sql_failover_group.test.partner_servers.0.id}"
   }
+
+  read_write_endpoint_failover_policy {
+    mode          = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.mode}"
+    grace_minutes = "${azurerm_sql_failover_group.test.read_write_endpoint_failover_policy.0.grace_minutes}"
+  }
+}
 `, testAccAzureRMSqlFailoverGroup_basic(rInt, location, altlocation))
 }
 

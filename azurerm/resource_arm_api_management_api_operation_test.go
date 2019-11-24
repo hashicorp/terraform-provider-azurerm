@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -190,7 +190,7 @@ func TestAccAzureRMApiManagementApiOperation_representations(t *testing.T) {
 }
 
 func testCheckAzureRMApiManagementApiOperationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationsClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -231,7 +231,7 @@ func testCheckAzureRMApiManagementApiOperationExists(name string) resource.TestC
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagement.ApiOperationsClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ApiOperationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, apiName, operationId)

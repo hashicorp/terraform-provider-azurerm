@@ -1,7 +1,7 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-06-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -9,6 +9,7 @@ type Client struct {
 	ApplicationGatewaysClient            *network.ApplicationGatewaysClient
 	ApplicationSecurityGroupsClient      *network.ApplicationSecurityGroupsClient
 	AzureFirewallsClient                 *network.AzureFirewallsClient
+	BastionHostsClient                   *network.BastionHostsClient
 	ConnectionMonitorsClient             *network.ConnectionMonitorsClient
 	DDOSProtectionPlansClient            *network.DdosProtectionPlansClient
 	ExpressRouteAuthsClient              *network.ExpressRouteCircuitAuthorizationsClient
@@ -31,12 +32,13 @@ type Client struct {
 	VnetClient                           *network.VirtualNetworksClient
 	VnetPeeringsClient                   *network.VirtualNetworkPeeringsClient
 	VirtualWanClient                     *network.VirtualWansClient
+	VirtualHubClient                     *network.VirtualHubsClient
 	WatcherClient                        *network.WatchersClient
 	WebApplicationFirewallPoliciesClient *network.WebApplicationFirewallPoliciesClient
+	PrivateLinkServiceClient             *network.PrivateLinkServicesClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
@@ -45,6 +47,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	AzureFirewallsClient := network.NewAzureFirewallsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AzureFirewallsClient.Client, o.ResourceManagerAuthorizer)
+
+	BastionHostsClient := network.NewBastionHostsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&BastionHostsClient.Client, o.ResourceManagerAuthorizer)
 
 	ConnectionMonitorsClient := network.NewConnectionMonitorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ConnectionMonitorsClient.Client, o.ResourceManagerAuthorizer)
@@ -88,6 +93,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	PublicIPPrefixesClient := network.NewPublicIPPrefixesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PublicIPPrefixesClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateLinkServiceClient := network.NewPrivateLinkServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateLinkServiceClient.Client, o.ResourceManagerAuthorizer)
+
 	RoutesClient := network.NewRoutesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RoutesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -112,6 +120,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VirtualWanClient := network.NewVirtualWansClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualWanClient.Client, o.ResourceManagerAuthorizer)
 
+	VirtualHubClient := network.NewVirtualHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&VirtualHubClient.Client, o.ResourceManagerAuthorizer)
+
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
@@ -122,6 +133,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		ApplicationGatewaysClient:            &ApplicationGatewaysClient,
 		ApplicationSecurityGroupsClient:      &ApplicationSecurityGroupsClient,
 		AzureFirewallsClient:                 &AzureFirewallsClient,
+		BastionHostsClient:                   &BastionHostsClient,
 		ConnectionMonitorsClient:             &ConnectionMonitorsClient,
 		DDOSProtectionPlansClient:            &DDOSProtectionPlansClient,
 		ExpressRouteAuthsClient:              &ExpressRouteAuthsClient,
@@ -144,7 +156,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 		VnetClient:                           &VnetClient,
 		VnetPeeringsClient:                   &VnetPeeringsClient,
 		VirtualWanClient:                     &VirtualWanClient,
+		VirtualHubClient:                     &VirtualHubClient,
 		WatcherClient:                        &WatcherClient,
 		WebApplicationFirewallPoliciesClient: &WebApplicationFirewallPoliciesClient,
+		PrivateLinkServiceClient:             &PrivateLinkServiceClient,
 	}
 }

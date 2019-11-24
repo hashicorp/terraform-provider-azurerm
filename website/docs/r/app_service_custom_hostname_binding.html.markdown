@@ -1,4 +1,5 @@
 ---
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service_custom_hostname_binding"
 sidebar_current: "docs-azurerm-resource-app-service-custom-hostname-binding"
@@ -22,15 +23,15 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "some-resource-group"
   location = "West Europe"
 }
 
-resource "azurerm_app_service_plan" "test" {
+resource "azurerm_app_service_plan" "example" {
   name                = "some-app-service-plan"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     tier = "Standard"
@@ -38,17 +39,17 @@ resource "azurerm_app_service_plan" "test" {
   }
 }
 
-resource "azurerm_app_service" "test" {
+resource "azurerm_app_service" "example" {
   name                = "${random_id.server.hex}"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  app_service_plan_id = "${azurerm_app_service_plan.test.id}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  app_service_plan_id = "${azurerm_app_service_plan.example.id}"
 }
 
-resource "azurerm_app_service_custom_hostname_binding" "test" {
+resource "azurerm_app_service_custom_hostname_binding" "example" {
   hostname            = "www.mywebsite.com"
-  app_service_name    = "${azurerm_app_service.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  app_service_name    = "${azurerm_app_service.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 ```
 
@@ -64,11 +65,19 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which the App Service exists. Changing this forces a new resource to be created.
 
+* `ssl_state` - (Optional) The SSL type. Possible values are `IpBasedEnabled` and `SniEnabled`. Changing this forces a new resource to be created.
+
+* `thumbprint` - (Optional) The SSL certificate thumbprint. Changing this forces a new resource to be created.
+
+-> **NOTE:** `thumbprint` must be specified when `ssl_state` is set.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The ID of the App Service Custom Hostname Binding
+
+* `virtual_ip` - The virtual IP address assigned to the hostname if IP based SSL is enabled.
 
 ## Import
 

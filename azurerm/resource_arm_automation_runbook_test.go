@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -120,7 +120,7 @@ func TestAccAzureRMAutomationRunbook_PSWithContent(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.RunbookClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.RunbookClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -153,7 +153,6 @@ func testCheckAzureRMAutomationRunbookDestroy(s *terraform.State) error {
 }
 
 func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -169,7 +168,7 @@ func testCheckAzureRMAutomationRunbookExists(resourceName string) resource.TestC
 			return fmt.Errorf("Bad: no resource group found in state for Automation Runbook: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automation.RunbookClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.RunbookClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)
@@ -215,7 +214,7 @@ resource "azurerm_automation_runbook" "test" {
   runbook_type = "PowerShellWorkflow"
 
   publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 }
 `, rInt, location, rInt)
@@ -238,7 +237,7 @@ resource "azurerm_automation_runbook" "import" {
   runbook_type = "PowerShellWorkflow"
 
   publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 }
 `, template)
@@ -273,7 +272,7 @@ resource "azurerm_automation_runbook" "test" {
   runbook_type = "PowerShellWorkflow"
 
   publish_content_link {
-    uri     = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri     = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
     version = "1.0.0.0"
 
     hash {
@@ -314,7 +313,7 @@ resource "azurerm_automation_runbook" "test" {
   runbook_type = "PowerShell"
 
   publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
   }
 
   content = <<CONTENT

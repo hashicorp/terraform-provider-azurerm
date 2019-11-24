@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
 sidebar_current: "docs-azurerm-data-source-kubernetes-cluster"
@@ -16,7 +17,7 @@ Use this data source to access information about an existing Managed Kubernetes 
 ## Example Usage
 
 ```hcl
-data "azurerm_kubernetes_cluster" "test" {
+data "azurerm_kubernetes_cluster" "example" {
   name                = "myakscluster"
   resource_group_name = "my-example-resource-group"
 }
@@ -80,6 +81,8 @@ A `addon_profile` block exports the following:
 
 * `kube_dashboard` - A `kube_dashboard` block.
 
+* `azure_policy` - A `azure_policy` block.
+
 ---
 
 A `agent_pool_profile` block exports the following:
@@ -90,11 +93,11 @@ A `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `availability_zones` - The availability zones used for the nodes. 
+* `availability_zones` - The availability zones used for the nodes.
 
-* `enable_auto_scaling` - If the auto-scaler is enabled. 
+* `enable_auto_scaling` - If the auto-scaler is enabled.
 
-* `min_count` - Minimum number of nodes for auto-scaling 
+* `min_count` - Minimum number of nodes for auto-scaling
 
 * `max_count` - Maximum number of nodes for auto-scaling
 
@@ -199,7 +202,13 @@ A `oms_agent` block exports the following:
 
 A `kube_dashboard` block supports the following:
 
-* `enabled` - (Required) Is the Kubernetes Dashboard enabled? 
+* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
+
+---
+
+A `azure_policy` block supports the following:
+
+* `enabled` - (Required) Is Azure Policy for Kubernetes enabled?
 
 ---
 

@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -617,7 +617,6 @@ func TestAccAzureRMStorageBlob_update(t *testing.T) {
 
 func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -630,15 +629,15 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 		containerName := rs.Primary.Attributes["storage_container_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Blob %q (Container %q / Account %q) - assuming removed & removing from state", name, containerName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.BlobsClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Blobs Client: %s", err)
 		}
@@ -647,7 +646,7 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 		resp, err := client.GetProperties(ctx, accountName, containerName, name, input)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Blob %q (Container %q / Account %q / Resource Group %q) does not exist", name, containerName, accountName, *resourceGroup)
+				return fmt.Errorf("Bad: Blob %q (Container %q / Account %q / Resource Group %q) does not exist", name, containerName, accountName, account.ResourceGroup)
 			}
 
 			return fmt.Errorf("Bad: Get on BlobsClient: %+v", err)
@@ -659,7 +658,6 @@ func testCheckAzureRMStorageBlobExists(resourceName string) resource.TestCheckFu
 
 func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
 			return fmt.Errorf("Not found: %s", resourceName)
@@ -672,15 +670,15 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 		containerName := rs.Primary.Attributes["storage_container_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Blob %q (Container %q / Account %q) - assuming removed & removing from state", name, containerName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.BlobsClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Blobs Client: %s", err)
 		}
@@ -689,7 +687,7 @@ func testCheckAzureRMStorageBlobDisappears(resourceName string) resource.TestChe
 			DeleteSnapshots: false,
 		}
 		if _, err := client.Delete(ctx, accountName, containerName, name, input); err != nil {
-			return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, *resourceGroup, err)
+			return fmt.Errorf("Error deleting Blob %q (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, account.ResourceGroup, err)
 		}
 
 		return nil
@@ -710,15 +708,15 @@ func testCheckAzureRMStorageBlobMatchesFile(resourceName string, kind blobs.Blob
 		containerName := rs.Primary.Attributes["storage_container_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Blob %q (Container %q / Account %q) - assuming removed & removing from state", name, containerName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.BlobsClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Blobs Client: %s", err)
 		}
@@ -770,15 +768,15 @@ func testCheckAzureRMStorageBlobDestroy(s *terraform.State) error {
 		containerName := rs.Primary.Attributes["storage_container_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Blob %q (Container %q / Account %q): %s", name, containerName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 		}
-		if resourceGroup == nil {
+		if account == nil {
 			return nil
 		}
 
-		client, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.BlobsClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building Blobs Client: %s", err)
 		}
@@ -1202,7 +1200,7 @@ resource "azurerm_storage_blob" "test" {
   type                   = "block"
   size                   = 5120
   content_type           = "vnd/panda+pops"
-  metadata               = {
+  metadata = {
     hello = "world"
   }
 }
@@ -1222,7 +1220,7 @@ resource "azurerm_storage_blob" "test" {
   type                   = "block"
   size                   = 5120
   content_type           = "vnd/mountain-mover-3000"
-  metadata               = {
+  metadata = {
     hello = "world"
     panda = "pops"
   }
