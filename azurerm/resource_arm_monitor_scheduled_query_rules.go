@@ -47,14 +47,14 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 			"authorized_resources": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
 			},
-			"queryType": {
+			"query_type": {
 				Type:     schema.TypeString,
 				Required: true,
 				Default:  "ResultCount",
@@ -71,64 +71,107 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-			"odata.type": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.AlertingAction",
-					"Microsoft.WindowsAzure.Management.Monitoring.Alerts.Models.Microsoft.AppInsights.Nexus.DataContracts.Resources.ScheduledQueryRules.LogToMetricAction",
-				}, false),
-			},
-			"severity": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"0",
-					"1",
-					"2",
-					"3",
-					"4",
-				}, false),
-			},
-			"throttling": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"azns_action": {
+			"criteria": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"actionGroup": {
-							Type:         schema.TypeSet,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-						"customWebhookPayload": {
+
+						"metric_name": {
 							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validate.URLIsHTTPOrHTTPS,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
-						"emailSubject": {
+						"operator": {
 							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"Equals",
+								"NotEquals",
+								"GreaterThan",
+								"GreaterThanOrEqual",
+								"LessThan",
+								"LessThanOrEqual",
+							}, false),
+						},
+						"threshold": {
+							Type:     schema.TypeFloat,
+							Required: true,
+						},
+						"dimension": {
+							Type:     schema.TypeList,
 							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validate.NoEmptyStrings,
+									},
+									"operator": {
+										Type:     schema.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											"Include",
+											"Exclude",
+										}, false),
+									},
+									"values": {
+										Type:     schema.TypeList,
+										Required: true,
+										MinItems: 1,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
+									},
+								},
+							},
 						},
 					},
 				},
 			},
-			"criteria": {
+			"action": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"dimensions": {
-							Type:         schema.TypeSet,
-							Required:     true,
-							ValidateFunc: azure.ValidateResourceID,
-						},
-						"metricName": {
+						"severity": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"0",
+								"1",
+								"2",
+								"3",
+								"4",
+							}, false),
+						},
+						"throttling": {
+							Type:     schema.TypeInt,
+							Required: true,
+						},
+						"azns_action": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"action_groups": {
+										Type:         schema.TypeSet,
+										Required:     true,
+										ValidateFunc: azure.ValidateResourceID,
+									},
+									"custom_webhook_payload": {
+										Type:         schema.TypeString,
+										Optional:     true,
+										ValidateFunc: validate.URLIsHTTPOrHTTPS,
+									},
+									"email_subject": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+								},
+							},
 						},
 					},
 				},
@@ -182,7 +225,7 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 }
 
 func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.ScheduledQueryRulesClient
+	client := meta.(*ArmClient).Monitor.ScheduledQueryRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
@@ -201,22 +244,21 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 		}
 	}
 
-	enabled := d.Get("enabled").(bool)
+	enabled := d.Get("enabled").(insights.Enabled)
 	description := d.Get("description").(string)
-	displayName := d.Get("displayName").(string)
 	sourceRaw := d.Get("source").(*schema.Set).List()
 	scheduleRaw := d.Get("schedule").(*schema.Set).List()
 	actionRaw := d.Get("action").(*schema.Set).List()
+	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
 	parameters := insights.LogSearchRuleResource{
-		Location: &azure.NormalizeLocation(d.Get("location").(string)),
+		Location: utils.String(location),
 		LogSearchRule: &insights.LogSearchRule{
-			Enabled:     utils.Bool(enabled),
+			Enabled:     enabled,
 			Description: utils.String(description),
-			DisplayName: utils.String(displayName),
 			Source:      expandMonitorScheduledQueryRulesSource(sourceRaw),
 			Schedule:    expandMonitorScheduledQueryRulesSchedule(scheduleRaw),
 			Action:      expandMonitorScheduledQueryRulesAction(actionRaw),
@@ -300,73 +342,56 @@ func resourceArmMonitorScheduledQueryRulesDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func expandMonitorScheduledQueryRulesSource(input []interface{}) (*insights.Source, error) {
-	conditions := make([]insights.ScheduledQueryRulesLeafCondition, 0)
-	v := input[0].(map[string]interface{})
+func expandMonitorScheduledQueryRulesAction(input []interface{}) *[]insights.AlertingAction {
+	actions := make([]insights.AlertingAction, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		if agID := v["action_group_id"].(string); agID != "" {
+			props := make(map[string]*string)
+			if pVal, ok := v["azns_action"]; ok {
+				for pk, pv := range pVal.(map[string]interface{}) {
+					props[pk] = utils.String(pv.(string))
+				}
+			}
 
-	if category := v["category"].(string); category != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("category"),
-			Equals: utils.String(category),
-		})
+			actions = append(actions, insights.AlertingAction{
+				ActionGroupID:   utils.String(agID),
+				AznsAction:      props,
+				Severity:        props,
+				ThrottlingInMin: props,
+				Trigger:         props,
+			})
+		}
 	}
-	if op := v["operation_name"].(string); op != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("operationName"),
-			Equals: utils.String(op),
-		})
-	}
-	if caller := v["caller"].(string); caller != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("caller"),
-			Equals: utils.String(caller),
-		})
-	}
-	if level := v["level"].(string); level != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("level"),
-			Equals: utils.String(level),
-		})
-	}
-	if resourceProvider := v["resource_provider"].(string); resourceProvider != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("resourceProvider"),
-			Equals: utils.String(resourceProvider),
-		})
-	}
-	if resourceType := v["resource_type"].(string); resourceType != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("resourceType"),
-			Equals: utils.String(resourceType),
-		})
-	}
-	if resourceGroup := v["resource_group"].(string); resourceGroup != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("resourceGroup"),
-			Equals: utils.String(resourceGroup),
-		})
-	}
-	if id := v["resource_id"].(string); id != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("resourceId"),
-			Equals: utils.String(id),
-		})
-	}
-	if status := v["status"].(string); status != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("status"),
-			Equals: utils.String(status),
-		})
-	}
-	if subStatus := v["sub_status"].(string); subStatus != "" {
-		conditions = append(conditions, insights.ScheduledQueryRulesLeafCondition{
-			Field:  utils.String("subStatus"),
-			Equals: utils.String(subStatus),
-		})
-	}
+	return &actions
+}
 
-	return &insights.ScheduledQueryRulesAllOfCondition{
-		AllOf: &conditions,
+func expandMonitorScheduledQueryRulesCriteria(input []interface{}) *insights.Criteria {
+	criteria := make([]insights.Criteria, 0)
+	for i, item := range input {
+		v := item.(map[string]interface{})
+
+		dimensions := make([]insights.Dimension, 0)
+		for _, dimension := range v["dimension"].([]interface{}) {
+			dVal := dimension.(map[string]interface{})
+			dimensions = append(dimensions, insights.Dimension{
+				Name:     utils.String(dVal["name"].(string)),
+				Operator: utils.String(dVal["operator"].(string)),
+				Values:   utils.ExpandStringSlice(dVal["values"].([]interface{})),
+			})
+		}
+
+		criteria = append(criteria, insights.Criteria{
+			Name:       utils.String(fmt.Sprintf("Metric%d", i+1)),
+			MetricName: utils.String(v["metric_name"].(string)),
+			Operator:   v["operator"].(string),
+			Threshold:  utils.Float(v["threshold"].(float64)),
+			Dimensions: &dimensions,
+		})
+	}
+	return &insights.MetricAlertSingleResourceMultipleMetricCriteria{
+		AllOf:     &criteria,
+		OdataType: insights.OdataTypeMicrosoftAzureMonitorSingleResourceMultipleMetricCriteria,
 	}
 }
 
