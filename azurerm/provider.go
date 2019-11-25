@@ -484,7 +484,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
-		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
@@ -492,6 +491,11 @@ func Provider() terraform.ResourceProvider {
 	if features.SupportsTwoPointZeroResources() {
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
 		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
+	}
+
+	// NOTE: these resources have been pulled since they require rework
+	if false {
+		resources["azurerm_virtual_hub"] = resourceArmVirtualHub()
 	}
 
 	// avoids this showing up in test output

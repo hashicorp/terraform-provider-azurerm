@@ -128,33 +128,37 @@ func dataSourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error
 	}
 	if props := resp.VirtualHubProperties; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
-		if props.VirtualWan != nil {
-			if err := d.Set("virtual_wan_id", props.VirtualWan.ID); err != nil {
-				return fmt.Errorf("Error setting `virtual_wan_id`: %+v", err)
-			}
-		}
-		if props.VpnGateway != nil {
-			if err := d.Set("s2s_vpn_gateway_id", props.VpnGateway.ID); err != nil {
-				return fmt.Errorf("Error setting `s2s_vpn_gateway_id`: %+v", err)
-			}
-		}
-		if props.P2SVpnGateway != nil {
-			if err := d.Set("p2s_vpn_gateway_id", props.P2SVpnGateway.ID); err != nil {
-				return fmt.Errorf("Error setting `p2s_vpn_gateway_id`: %+v", err)
-			}
-		}
+
+		var expressRouteGatewayId *string
 		if props.ExpressRouteGateway != nil {
-			if err := d.Set("express_route_gateway_id", props.ExpressRouteGateway.ID); err != nil {
-				return fmt.Errorf("Error setting `express_route_gateway_id`: %+v", err)
-			}
+			expressRouteGatewayId = props.ExpressRouteGateway.ID
 		}
+		d.Set("express_route_gateway_id", expressRouteGatewayId)
+
+		var p2sVpnGatewayId *string
+		if props.P2SVpnGateway != nil {
+			p2sVpnGatewayId = props.P2SVpnGateway.ID
+		}
+		d.Set("p2s_vpn_gateway_id", p2sVpnGatewayId)
+
+		if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable)); err != nil {
+			return fmt.Errorf("Error setting `route`: %+v", err)
+		}
+
+		var vpnGatewayId *string
+		if props.VpnGateway != nil {
+			vpnGatewayId = props.VpnGateway.ID
+		}
+		d.Set("s2s_vpn_gateway_id", vpnGatewayId)
+
+		var virtualWanId *string
+		if props.VirtualWan != nil {
+			virtualWanId = props.VirtualWan.ID
+		}
+		d.Set("virtual_wan_id", virtualWanId)
+
 		if err := d.Set("virtual_network_connection", flattenArmVirtualHubVirtualNetworkConnection(props.VirtualNetworkConnections)); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_connection`: %+v", err)
-		}
-		if props.RouteTable != nil {
-			if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable.Routes)); err != nil {
-				return fmt.Errorf("Error setting `route`: %+v", err)
-			}
 		}
 	}
 

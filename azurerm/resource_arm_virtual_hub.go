@@ -71,6 +71,7 @@ func resourceArmVirtualHub() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			// TODO: these need to be managed via a separate resource
 			"virtual_network_connection": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -106,6 +107,7 @@ func resourceArmVirtualHub() *schema.Resource {
 			},
 
 			"route": {
+				// TODO: confirm this wants to be a TypeSet
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -238,33 +240,37 @@ func resourceArmVirtualHubRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	if props := resp.VirtualHubProperties; props != nil {
 		d.Set("address_prefix", props.AddressPrefix)
-		if props.VirtualWan != nil {
-			if err := d.Set("virtual_wan_id", props.VirtualWan.ID); err != nil {
-				return fmt.Errorf("Error setting `virtual_wan_id`: %+v", err)
-			}
-		}
-		if props.VpnGateway != nil {
-			if err := d.Set("s2s_vpn_gateway_id", props.VpnGateway.ID); err != nil {
-				return fmt.Errorf("Error setting `s2s_vpn_gateway_id`: %+v", err)
-			}
-		}
-		if props.P2SVpnGateway != nil {
-			if err := d.Set("p2s_vpn_gateway_id", props.P2SVpnGateway.ID); err != nil {
-				return fmt.Errorf("Error setting `p2s_vpn_gateway_id`: %+v", err)
-			}
-		}
+
+		var expressRouteGatewayId *string
 		if props.ExpressRouteGateway != nil {
-			if err := d.Set("express_route_gateway_id", props.ExpressRouteGateway.ID); err != nil {
-				return fmt.Errorf("Error setting `express_route_gateway_id`: %+v", err)
-			}
+			expressRouteGatewayId = props.ExpressRouteGateway.ID
 		}
+		d.Set("express_route_gateway_id", expressRouteGatewayId)
+
+		var p2sVpnGatewayId *string
+		if props.P2SVpnGateway != nil {
+			p2sVpnGatewayId = props.P2SVpnGateway.ID
+		}
+		d.Set("p2s_vpn_gateway_id", p2sVpnGatewayId)
+
+		if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable)); err != nil {
+			return fmt.Errorf("Error setting `route`: %+v", err)
+		}
+
+		var vpnGatewayId *string
+		if props.VpnGateway != nil {
+			vpnGatewayId = props.VpnGateway.ID
+		}
+		d.Set("s2s_vpn_gateway_id", vpnGatewayId)
+
+		var virtualWanId *string
+		if props.VirtualWan != nil {
+			virtualWanId = props.VirtualWan.ID
+		}
+		d.Set("virtual_wan_id", virtualWanId)
+
 		if err := d.Set("virtual_network_connection", flattenArmVirtualHubVirtualNetworkConnection(props.VirtualNetworkConnections)); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_connection`: %+v", err)
-		}
-		if props.RouteTable != nil {
-			if err := d.Set("route", flattenArmVirtualHubRoute(props.RouteTable.Routes)); err != nil {
-				return fmt.Errorf("Error setting `route`: %+v", err)
-			}
 		}
 	}
 
@@ -304,59 +310,31 @@ func expandArmVirtualHubVirtualNetworkConnection(input []interface{}) *[]network
 	results := make([]network.HubVirtualNetworkConnection, 0)
 
 	for _, item := range input {
-		if item != nil {
-			v := item.(map[string]interface{})
-			name := v["name"].(string)
-			remoteVirtualNetworkId := v["remote_virtual_network_id"].(string)
-			allowHubToRemoteVnetTransit := v["allow_hub_to_remote_vnet_transit"].(bool)
-			allowRemoteVnetToUseHubVnetGateways := v["allow_remote_vnet_to_use_hub_vnet_gateways"].(bool)
-			enableInternetSecurity := v["enable_internet_security"].(bool)
-
-			result := network.HubVirtualNetworkConnection{
-				Name: utils.String(name),
-				HubVirtualNetworkConnectionProperties: &network.HubVirtualNetworkConnectionProperties{
-					RemoteVirtualNetwork: &network.SubResource{
-						ID: utils.String(remoteVirtualNetworkId),
-					},
-					AllowHubToRemoteVnetTransit:         utils.Bool(allowHubToRemoteVnetTransit),
-					AllowRemoteVnetToUseHubVnetGateways: utils.Bool(allowRemoteVnetToUseHubVnetGateways),
-					EnableInternetSecurity:              utils.Bool(enableInternetSecurity),
-				},
-			}
-
-			results = append(results, result)
+		if item == nil {
+			continue
 		}
+
+		v := item.(map[string]interface{})
+		name := v["name"].(string)
+		remoteVirtualNetworkId := v["remote_virtual_network_id"].(string)
+		allowHubToRemoteVnetTransit := v["allow_hub_to_remote_vnet_transit"].(bool)
+		allowRemoteVnetToUseHubVnetGateways := v["allow_remote_vnet_to_use_hub_vnet_gateways"].(bool)
+		enableInternetSecurity := v["enable_internet_security"].(bool)
+
+		results = append(results, network.HubVirtualNetworkConnection{
+			Name: utils.String(name),
+			HubVirtualNetworkConnectionProperties: &network.HubVirtualNetworkConnectionProperties{
+				RemoteVirtualNetwork: &network.SubResource{
+					ID: utils.String(remoteVirtualNetworkId),
+				},
+				AllowHubToRemoteVnetTransit:         utils.Bool(allowHubToRemoteVnetTransit),
+				AllowRemoteVnetToUseHubVnetGateways: utils.Bool(allowRemoteVnetToUseHubVnetGateways),
+				EnableInternetSecurity:              utils.Bool(enableInternetSecurity),
+			},
+		})
 	}
 
 	return &results
-}
-
-func expandArmVirtualHubRoute(input []interface{}) *network.VirtualHubRouteTable {
-	if len(input) == 0 {
-		return nil
-	}
-
-	results := make([]network.VirtualHubRoute, 0)
-	for _, item := range input {
-		if item != nil {
-			v := item.(map[string]interface{})
-			addressPrefixes := v["address_prefixes"].([]interface{})
-			nextHopIpAddress := v["next_hop_ip_address"].(string)
-
-			result := network.VirtualHubRoute{
-				AddressPrefixes:  utils.ExpandStringSlice(addressPrefixes),
-				NextHopIPAddress: utils.String(nextHopIpAddress),
-			}
-
-			results = append(results, result)
-		}
-	}
-
-	result := network.VirtualHubRouteTable{
-		Routes: &results,
-	}
-
-	return &result
 }
 
 func flattenArmVirtualHubVirtualNetworkConnection(input *[]network.HubVirtualNetworkConnection) []interface{} {
@@ -366,47 +344,92 @@ func flattenArmVirtualHubVirtualNetworkConnection(input *[]network.HubVirtualNet
 	}
 
 	for _, item := range *input {
-		c := make(map[string]interface{})
-
-		if name := item.Name; name != nil {
-			c["name"] = *name
+		name := ""
+		if item.Name != nil {
+			name = *item.Name
 		}
+
+		allowHubToRemoteVNetTraffic := false
+		allowRemoteVnetToUseHubVnetGateways := false
+		enableInternetSecurity := false
+		remoteVirtualNetworkId := ""
+
 		if props := item.HubVirtualNetworkConnectionProperties; props != nil {
-			if v := props.RemoteVirtualNetwork; v != nil {
-				c["remote_virtual_network_id"] = *v.ID
+			if props.AllowHubToRemoteVnetTransit != nil {
+				allowHubToRemoteVNetTraffic = *props.AllowHubToRemoteVnetTransit
 			}
-			if v := props.AllowHubToRemoteVnetTransit; v != nil {
-				c["allow_hub_to_remote_vnet_transit"] = *v
+
+			if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {
+				remoteVirtualNetworkId = *props.RemoteVirtualNetwork.ID
 			}
+
 			if v := props.AllowRemoteVnetToUseHubVnetGateways; v != nil {
-				c["allow_remote_vnet_to_use_hub_vnet_gateways"] = *v
+				allowRemoteVnetToUseHubVnetGateways = *props.AllowRemoteVnetToUseHubVnetGateways
 			}
-			if v := props.EnableInternetSecurity; v != nil {
-				c["enable_internet_security"] = *v
+
+			if props.EnableInternetSecurity != nil {
+				enableInternetSecurity = *props.EnableInternetSecurity
 			}
 		}
 
-		results = append(results, c)
+		results = append(results, map[string]interface{}{
+			"allow_hub_to_remote_vnet_transit":           allowHubToRemoteVNetTraffic,
+			"allow_remote_vnet_to_use_hub_vnet_gateways": allowRemoteVnetToUseHubVnetGateways,
+			"enable_internet_security":                   enableInternetSecurity,
+			"name":                                       name,
+			"remote_virtual_network_id":                  remoteVirtualNetworkId,
+		})
 	}
 
 	return results
 }
 
-func flattenArmVirtualHubRoute(input *[]network.VirtualHubRoute) []interface{} {
+func expandArmVirtualHubRoute(input []interface{}) *network.VirtualHubRouteTable {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]network.VirtualHubRoute, 0)
+	for _, item := range input {
+		if item == nil {
+			continue
+		}
+
+		v := item.(map[string]interface{})
+		addressPrefixes := v["address_prefixes"].([]interface{})
+		nextHopIpAddress := v["next_hop_ip_address"].(string)
+
+		results = append(results, network.VirtualHubRoute{
+			AddressPrefixes:  utils.ExpandStringSlice(addressPrefixes),
+			NextHopIPAddress: utils.String(nextHopIpAddress),
+		})
+	}
+
+	result := network.VirtualHubRouteTable{
+		Routes: &results,
+	}
+
+	return &result
+}
+
+func flattenArmVirtualHubRoute(input *network.VirtualHubRouteTable) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil {
+	if input == nil || input.Routes == nil {
 		return results
 	}
 
-	for _, item := range *input {
-		c := make(map[string]interface{})
+	for _, item := range *input.Routes {
+		addressPrefixes := utils.FlattenStringSlice(item.AddressPrefixes)
+		nextHopIpAddress := ""
 
-		c["address_prefixes"] = utils.FlattenStringSlice(item.AddressPrefixes)
-		if v := item.NextHopIPAddress; v != nil {
-			c["next_hop_ip_address"] = *v
+		if item.NextHopIPAddress != nil {
+			nextHopIpAddress = *item.NextHopIPAddress
 		}
 
-		results = append(results, c)
+		results = append(results, map[string]interface{}{
+			"address_prefixes":    addressPrefixes,
+			"next_hop_ip_address": nextHopIpAddress,
+		})
 	}
 
 	return results
