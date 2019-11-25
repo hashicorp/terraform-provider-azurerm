@@ -1,8 +1,8 @@
 ---
 subcategory: ""
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_monitor_action_group"
-sidebar_current: "docs-azurerm-datasource-monitor-action-group"
+page_title: "Azure Resource Manager: azurerm_monitor_scheduled_query_rules"
+sidebar_current: "docs-azurerm-datasource-monitor-scheduled-query-rules"
 description: |-
   Get information about the specified Scheduled Query Rule.
 ---
@@ -45,7 +45,5 @@ output "query_rule_id" {
 * `severity` - Severity of the alert. Possible values include: 'Zero', 'One', 'Two', 'Three', 'Four'.
 * `throttling` - Time (in minutes) for which Alerts should be throttled or suppressed.
 * `time_window_in_minutes` - Time window for which data needs to be fetched for query (should be greater than or equal to frequency_in_minutes).
-* `trigger` - The trigger condition that results in the alert rule being run.
-* `last_updated_time` - READ-ONLY; Last time the rule was updated in IS08601 format.
-* `provisioning_state` - READ-ONLY; Provisioning state of the scheduled query rule. Possible values include: 'Succeeded', 'Deploying', 'Canceled', 'Failed'
-# https://docs.microsoft.com/en-us/rest/api/monitor/scheduledqueryrules/createorupdate#triggercondition<Paste>
+* `trigger` - The trigger condition that results in the alert rule being run
+# FIXME: https://docs.microsoft.com/en-us/rest/api/monitor/scheduledqueryrules/createorupdate#triggercondition<Paste>

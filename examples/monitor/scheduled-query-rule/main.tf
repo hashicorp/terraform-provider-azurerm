@@ -23,7 +23,7 @@ resource "azurerm_scheduled_query_rule" "example" {
   data_source_id         = azurerm_application_insights.example.id
   authorized_resources   = [azurerm_application_insights.example.id]
   query_type             = "ResultCount"
-  action                 = ""
+  action                 = {}
 }
 
 # Maybe add result count trigger to example
