@@ -70,7 +70,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	armTenantID := meta.(*ArmClient).tenantId
+	armTenantID := meta.(*ArmClient).Account.TenantId
 
 	groupId := d.Get("group_id").(string)
 	if groupId == "" {
