@@ -217,6 +217,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_batch_certificate":                                  resourceArmBatchCertificate(),
 		"azurerm_bot_channel_email":                                  resourceArmBotChannelEmail(),
 		"azurerm_bot_channel_slack":                                  resourceArmBotChannelSlack(),
+		"azurerm_bot_channel_msteams":                                resourceArmBotChannelMsTeams(),
 		"azurerm_bot_channels_registration":                          resourceArmBotChannelsRegistration(),
 		"azurerm_bot_connection":                                     resourceArmBotConnection(),
 		"azurerm_bot_web_app":                                        resourceArmBotWebApp(),
