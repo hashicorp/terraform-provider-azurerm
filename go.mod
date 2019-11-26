@@ -23,6 +23,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.2
 )
 
-replace github.com/Azure/azure-sdk-for-go => github.com/hashicorp/azure-sdk-for-go v36.2.1-hashi+incompatible
+replace github.com/Azure/azure-sdk-for-go => github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible
 
 go 1.13
