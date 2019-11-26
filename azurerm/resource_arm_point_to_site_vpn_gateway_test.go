@@ -182,7 +182,7 @@ func testAccAzureRMAzureRMPointToSiteVPNGateway_basic(rInt int, location string)
 resource "azurerm_point_to_site_vpn_gateway" "test" {
   name                        = "acctestp2svpng-%d"
   location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.resource_group_name
+  resource_group_name         = azurerm_resource_group.test.name
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 1
@@ -198,7 +198,7 @@ func testAccAzureRMAzureRMPointToSiteVPNGateway_updated(rInt int, location strin
 resource "azurerm_point_to_site_vpn_gateway" "test" {
   name                        = "acctestp2svpng-%d"
   location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.resource_group_name
+  resource_group_name         = azurerm_resource_group.test.name
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 2
@@ -230,7 +230,7 @@ func testAccAzureRMAzureRMPointToSiteVPNGateway_tags(rInt int, location string) 
 resource "azurerm_point_to_site_vpn_gateway" "import" {
   name                        = "acctestp2svpng-%d"
   location                    = azurerm_resource_group.test.location
-  resource_group_name         = azurerm_resource_group.test.resource_group_name
+  resource_group_name         = azurerm_resource_group.test.name
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 1
