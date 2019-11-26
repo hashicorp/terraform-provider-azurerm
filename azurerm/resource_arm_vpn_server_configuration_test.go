@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -72,6 +73,11 @@ func TestAccAzureRMVPNServerConfiguration_certificate(t *testing.T) {
 }
 
 func TestAccAzureRMVPNServerConfiguration_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_vpn_server_configuration.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
