@@ -2,14 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmStreamAnalyticsJob() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmStreamAnalyticsJobRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -18,9 +25,9 @@ func dataSourceArmStreamAnalyticsJob() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"compatibility_level": {
 				Type:     schema.TypeString,
@@ -71,9 +78,10 @@ func dataSourceArmStreamAnalyticsJob() *schema.Resource {
 }
 
 func dataSourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamAnalyticsJobsClient
-	transformationsClient := meta.(*ArmClient).streamAnalyticsTransformationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).StreamAnalytics.JobsClient
+	transformationsClient := meta.(*ArmClient).StreamAnalytics.TransformationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -102,7 +110,7 @@ func dataSourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{
 	d.Set("resource_group_name", resourceGroup)
 
 	if resp.Location != nil {
-		d.Set("location", azureRMNormalizeLocation(*resp.Location))
+		d.Set("location", azure.NormalizeLocation(*resp.Location))
 	}
 
 	if props := resp.StreamingJobProperties; props != nil {

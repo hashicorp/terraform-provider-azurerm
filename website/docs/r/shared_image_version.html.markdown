@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_version"
 sidebar_current: "docs-azurerm-resource-compute-shared-image-version"
@@ -10,8 +11,6 @@ description: |-
 # azurerm_shared_image_version
 
 Manages a Version of a Shared Image within a Shared Image Gallery.
-
--> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
 
 ## Example Usage
 
@@ -27,7 +26,7 @@ data "azurerm_shared_image" "existing" {
   resource_group_name = "existing-resources"
 }
 
-resource "azurerm_shared_image_version" "test" {
+resource "azurerm_shared_image_version" "example" {
   name                = "0.0.1"
   gallery_name        = "${data.azurerm_shared_image.existing.gallery_name}"
   image_name          = "${data.azurerm_shared_image.existing.name}"
@@ -85,5 +84,5 @@ The following attributes are exported:
 Shared Image Versions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_shared_image_version.version1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1/versions/1.2.3
+terraform import azurerm_shared_image_version.version /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/galleries/gallery1/images/image1/versions/1.2.3
 ```

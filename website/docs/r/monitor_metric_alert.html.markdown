@@ -1,4 +1,5 @@
 ---
+subcategory: "Monitor"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_metric_alert"
 sidebar_current: "docs-azurerm-resource-monitor-metric-alert-x"
@@ -37,7 +38,7 @@ resource "azurerm_monitor_action_group" "main" {
   }
 }
 
-resource "azurerm_monitor_metric_alert" "test" {
+resource "azurerm_monitor_metric_alert" "example" {
   name                = "example-metricalert"
   resource_group_name = "${azurerm_resource_group.main.name}"
   scopes              = ["${azurerm_storage_account.to_monitor.id}"]
@@ -69,7 +70,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Metric Alert. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the Metric Alert instance.
-* `scopes` - (Required) The resource ID at which the metric criteria should be applied.
+* `scopes` - (Required) A set of strings of resource IDs at which the metric criteria should be applied.
 * `criteria` - (Required) One or more `criteria` blocks as defined below.
 * `action` - (Optional) One or more `action` blocks as defined below.
 * `enabled` - (Optional) Should this Metric Alert be enabled? Defaults to `true`.

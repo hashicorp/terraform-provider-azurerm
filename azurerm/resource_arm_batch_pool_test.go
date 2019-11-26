@@ -8,10 +8,11 @@ import (
 	"testing"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -46,7 +47,7 @@ func TestAccAzureRMBatchPool_basic(t *testing.T) {
 }
 
 func TestAccAzureRMBatchPool_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -296,6 +297,31 @@ func TestAccAzureRMBatchPool_validateResourceFileWithoutSource(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMBatchPool_container(t *testing.T) {
+	resourceName := "azurerm_batch_pool.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testaccAzureRMBatchPoolContainerConfiguration(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchPoolExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.type", "DockerCompatible"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.registry_server", "myContainerRegistry.azurecr.io"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.user_name", "myUserName"),
+					resource.TestCheckResourceAttr(resourceName, "container_configuration.0.container_registries.0.password", "myPassword"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMBatchPool_validateResourceFileWithMultipleSources(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(4)
@@ -347,6 +373,36 @@ func TestAccAzureRMBatchPool_validateResourceFileHttpURLWithoutFilePath(t *testi
 	})
 }
 
+func TestAccAzureRMBatchPool_customImage(t *testing.T) {
+	resourceName := "azurerm_batch_pool.test"
+	ri := tf.AccRandTimeInt()
+	rs := acctest.RandString(4)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMBatchPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testaccAzureRMBatchPoolCustomImageConfiguration(ri, rs, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMBatchPoolExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "vm_size", "STANDARD_A1"),
+					resource.TestCheckResourceAttr(resourceName, "max_tasks_per_node", "2"),
+					resource.TestCheckResourceAttr(resourceName, "node_agent_sku_id", "batch.node.ubuntu 16.04"),
+					resource.TestCheckResourceAttr(resourceName, "account_name", fmt.Sprintf("testaccbatch%s", rs)),
+					resource.TestCheckResourceAttr(resourceName, "auto_scale.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.target_dedicated_nodes", "2"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.resize_timeout", "PT15M"),
+					resource.TestCheckResourceAttr(resourceName, "fixed_scale.0.target_low_priority_nodes", "0"),
+					resource.TestCheckResourceAttr(resourceName, "start_task.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -360,7 +416,7 @@ func testCheckAzureRMBatchPoolExists(name string) resource.TestCheckFunc {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchPoolClient
+		conn := testAccProvider.Meta().(*ArmClient).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -386,7 +442,7 @@ func testCheckAzureRMBatchPoolDestroy(s *terraform.State) error {
 		accountName := rs.Primary.Attributes["account_name"]
 
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batchPoolClient
+		conn := testAccProvider.Meta().(*ArmClient).Batch.PoolClient
 
 		resp, err := conn.Get(ctx, resourceGroup, accountName, poolName)
 		if err != nil {
@@ -436,11 +492,11 @@ resource "azurerm_batch_pool" "test" {
   vm_size             = "Standard_A1"
   max_tasks_per_node  = 2
   node_agent_sku_id   = "batch.node.ubuntu 16.04"
-  
+
   fixed_scale {
     target_dedicated_nodes = 2
   }
-  
+
   storage_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
@@ -489,7 +545,8 @@ resource "azurerm_batch_pool" "test" {
 
   auto_scale {
     evaluation_interval = "PT15M"
-    formula             = <<EOF
+
+    formula = <<EOF
       startingNumberOfVMs = 1;
       maxNumberofVMs = 25;
       pendingTaskSamplePercent = $PendingTasks.GetSamplePercent(180 * TimeInterval_Second);
@@ -604,7 +661,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -661,7 +718,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -719,7 +776,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -732,8 +789,8 @@ resource "azurerm_batch_pool" "test" {
 
     resource_file {
       auto_storage_container_name = "test"
-      http_url  = "test"
-      file_path = "README.md"
+      http_url                    = "test"
+      file_path                   = "README.md"
     }
   }
 }
@@ -777,7 +834,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -835,7 +892,7 @@ resource "azurerm_batch_pool" "test" {
     wait_for_success     = true
 
     environment = {
-      env = "TEST",
+      env = "TEST"
       bu  = "Research&Dev"
     }
 
@@ -869,23 +926,24 @@ resource "azurerm_batch_account" "test" {
 }
 
 resource "azurerm_batch_certificate" "testcer" {
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${filebase64("testdata/batch_certificate.cer")}"
-	format               = "Cer"
-	thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34" # deliberately using lowercase here as verification
-	thumbprint_algorithm = "SHA1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${filebase64("testdata/batch_certificate.cer")}"
+  format               = "Cer"
+  thumbprint           = "312d31a79fa0cef49c00f769afc2b73e9f4edf34" # deliberately using lowercase here as verification
+  thumbprint_algorithm = "SHA1"
 }
+
 resource "azurerm_batch_certificate" "testpfx" {
-	resource_group_name  = "${azurerm_resource_group.test.name}"
-	account_name         = "${azurerm_batch_account.test.name}"
-	certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
-	format               = "Pfx"
-	password             = "terraform"
-	thumbprint           = "42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
-	thumbprint_algorithm = "SHA1"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  account_name         = "${azurerm_batch_account.test.name}"
+  certificate          = "${filebase64("testdata/batch_certificate.pfx")}"
+  format               = "Pfx"
+  password             = "terraform"
+  thumbprint           = "42c107874fd0e4a9583292a2f1098e8fe4b2edda"
+  thumbprint_algorithm = "SHA1"
 }
-	
+
 resource "azurerm_batch_pool" "test" {
   name                = "testaccpool%s"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -907,15 +965,215 @@ resource "azurerm_batch_pool" "test" {
   certificate {
     id             = "${azurerm_batch_certificate.testcer.id}"
     store_location = "CurrentUser"
-    visibility     = [ "StartTask" ]
+    visibility     = ["StartTask"]
   }
 
   certificate {
     id             = "${azurerm_batch_certificate.testpfx.id}"
     store_location = "CurrentUser"
-    visibility     = [ "StartTask", "RemoteUser" ]
+    visibility     = ["StartTask", "RemoteUser"]
+  }
+}
+`, rInt, location, rString, rString)
+}
+
+func testaccAzureRMBatchPoolContainerConfiguration(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccbatch%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "testregistry%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+  sku                 = "Basic"
+}
+
+resource "azurerm_batch_account" "test" {
+  name                = "testaccbatch%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+  vm_size             = "Standard_A1"
+
+  fixed_scale {
+    target_dedicated_nodes = 1
+  }
+
+  storage_image_reference {
+    publisher = "microsoft-azure-batch"
+    offer     = "ubuntu-server-container"
+    sku       = "16-04-lts"
+    version   = "latest"
+  }
+
+  container_configuration {
+    type = "DockerCompatible"
+    container_registries = [
+      {
+        registry_server = "myContainerRegistry.azurecr.io"
+        user_name       = "myUserName"
+        password        = "myPassword"
+      },
+    ]
+  }
+}
+`, rInt, location, rString, rString, rString)
+}
+
+func testaccAzureRMBatchPoolCustomImageConfiguration(rInt int, rString string, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "testaccRG-%d-batchpool"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "internal"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.2.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+  domain_name_label   = "acctestpip%d"
+}
+
+resource "azurerm_network_interface" "testsource" {
+  name                = "acctestnic-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  ip_configuration {
+    name                          = "testconfigurationsource"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
   }
 }
 
-`, rInt, location, rString, rString)
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = "${azurerm_resource_group.test.name}"
+  location                 = "${azurerm_resource_group.test.location}"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "Dev"
+  }
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  storage_account_name  = "${azurerm_storage_account.test.name}"
+  container_access_type = "blob"
+}
+
+resource "azurerm_virtual_machine" "testsource" {
+  name                  = "acctestvm-%d"
+  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  network_interface_ids = ["${azurerm_network_interface.testsource.id}"]
+  vm_size               = "Standard_D1_v2"
+
+  storage_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "16.04-LTS"
+    version   = "latest"
+  }
+
+  storage_os_disk {
+    name          = "myosdisk1"
+    vhd_uri       = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    caching       = "ReadWrite"
+    create_option = "FromImage"
+    disk_size_gb  = "30"
+  }
+
+  os_profile {
+    computer_name  = "acctest-%d"
+    admin_username = "tfuser"
+    admin_password = "P@ssW0RD7890"
+  }
+
+  os_profile_linux_config {
+    disable_password_authentication = false
+  }
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+
+resource "azurerm_image" "test" {
+  name                = "acctest-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  os_disk {
+    os_type  = "Linux"
+    os_state = "Generalized"
+    blob_uri = "${azurerm_virtual_machine.testsource.storage_os_disk.0.vhd_uri}"
+    size_gb  = 30
+    caching  = "None"
+  }
+
+  tags = {
+    environment = "Dev"
+    cost-center = "Ops"
+  }
+}
+
+resource "azurerm_batch_account" "test" {
+  name                 = "testaccbatch%s"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  location             = "${azurerm_resource_group.test.location}"
+  pool_allocation_mode = "BatchService"
+
+  tags = {
+    env = "test"
+  }
+}
+
+resource "azurerm_batch_pool" "test" {
+  name                = "testaccpool%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  account_name        = "${azurerm_batch_account.test.name}"
+  display_name        = "Test Acc Pool"
+  vm_size             = "Standard_A1"
+  max_tasks_per_node  = 2
+  node_agent_sku_id   = "batch.node.ubuntu 16.04"
+
+  fixed_scale {
+    target_dedicated_nodes = 2
+  }
+
+  storage_image_reference {
+    id = "${azurerm_image.test.id}"
+  }
+}
+`, rInt, location, rInt, rInt, rInt, rInt, rString, rInt, rInt, rInt, rString, rString)
 }

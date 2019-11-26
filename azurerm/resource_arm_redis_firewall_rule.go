@@ -3,13 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,6 +24,13 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 		Delete: resourceArmRedisFirewallRuleDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -37,7 +47,7 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"start_ip": {
 				Type:     schema.TypeString,
@@ -53,8 +63,9 @@ func resourceArmRedisFirewallRule() *schema.Resource {
 }
 
 func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisFirewallClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Redis.FirewallRulesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Redis Firewall Rule creation.")
 
 	name := d.Get("name").(string)
@@ -63,7 +74,7 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 	startIP := d.Get("start_ip").(string)
 	endIP := d.Get("end_ip").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, cacheName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -83,28 +94,31 @@ func resourceArmRedisFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, resourceGroup, cacheName, name, parameters); err != nil {
-		return err
-	}
+	return resource.Retry(d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		if _, err := client.CreateOrUpdate(ctx, resourceGroup, cacheName, name, parameters); err != nil {
+			return resource.NonRetryableError(fmt.Errorf("Error creating the rule: %s", err))
+		}
 
-	read, err := client.Get(ctx, resourceGroup, cacheName, name)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Redis Firewall Rule %q (cache %q / resource group %q) ID", name, cacheName, resourceGroup)
-	}
+		read, err := client.Get(ctx, resourceGroup, cacheName, name)
+		if err != nil {
+			return resource.RetryableError(fmt.Errorf("Expected instance to be created but was in non existent state, retrying"))
+		}
+		if read.ID == nil {
+			return resource.NonRetryableError(fmt.Errorf("Cannot read Redis Firewall Rule %q (cache %q / resource group %q) ID", name, cacheName, resourceGroup))
+		}
 
-	d.SetId(*read.ID)
+		d.SetId(*read.ID)
 
-	return resourceArmRedisFirewallRuleRead(d, meta)
+		return resource.NonRetryableError(resourceArmRedisFirewallRuleRead(d, meta))
+	})
 }
 
 func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisFirewallClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Redis.FirewallRulesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -136,10 +150,11 @@ func resourceArmRedisFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmRedisFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).redisFirewallClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Redis.FirewallRulesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_batch_certificate"
 sidebar_current: "docs-azurerm-datasource-batch-certificate"
@@ -14,7 +15,6 @@ Use this data source to access information about an existing certificate in a Ba
 ## Example Usage
 
 ```hcl
-
 data "azurerm_batch_certificate" "example" {
   name                = "SHA1-42C107874FD0E4A9583292A2F1098E8FE4B2EDDA"
   account_name        = "examplebatchaccount"

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_role_definition"
 sidebar_current: "docs-azurerm-datasource-role-definition"
@@ -25,7 +26,7 @@ resource "azurerm_role_definition" "custom" {
 
 data "azurerm_role_definition" "custom" {
   role_definition_id = "${azurerm_role_definition.custom.role_definition_id}"
-  scope              = "${data.azurerm_subscription.primary.id}" # /subscriptions/00000000-0000-0000-0000-000000000000
+  scope              = "${data.azurerm_subscription.primary.id}"              # /subscriptions/00000000-0000-0000-0000-000000000000
 }
 
 data "azurerm_role_definition" "custom-byname" {
@@ -40,6 +41,7 @@ data "azurerm_builtin_role_definition" "builtin" {
 output "custom_role_definition_id" {
   value = "${data.azurerm_role_definition.custom.id}"
 }
+
 output "contributor_role_definition_id" {
   value = "${data.azurerm_role_definition.builtin.id}"
 }

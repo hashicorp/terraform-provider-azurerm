@@ -1,4 +1,5 @@
 ---
+subcategory: "Redis"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_redis_cache"
 sidebar_current: "docs-azurerm-redis-cache"
@@ -56,7 +57,7 @@ The following arguments are supported:
 
 ---
 
-* `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6789) - disabled by default.
+* `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
 * `minimum_tls_version` - (Optional) The minimum TLS version.  Defaults to `1.0`.
 
@@ -68,7 +69,7 @@ The following arguments are supported:
 
 * `shard_count` - (Optional) *Only available when using the Premium SKU* The number of Shards to create on the Redis Cluster.
 
-* `subnet_id` - (Optional) The ID of the Subnet within which the Redis Cache should be deployed. Changing this forces a new resource to be created.
+* `subnet_id` - (Optional) *Only available when using the Premium SKU* The ID of the Subnet within which the Redis Cache should be deployed. This Subnet must only contain Azure Cache for Redis instances without any other type of resources. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -80,6 +81,10 @@ The following arguments are supported:
 
 A `redis_configuration` block supports the following:
 
+* `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
+
+-> **NOTE:** `enable_authentication` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `enable_authentication` set to `true`.
+
 * `maxmemory_reserved` - (Optional) Value in megabytes reserved for non-cache usage e.g. failover. Defaults are shown below.
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults are shown below.
@@ -89,12 +94,12 @@ A `redis_configuration` block supports the following:
 * `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKU's.
 * `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKU's. Possible values are: `15`, `30`, `60`, `360`, `720` and `1440`.
 * `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKU's.
-* `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKU's. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.test.primary_blob_endpoint};AccountName=${azurerm_storage_account.test.name};AccountKey=${azurerm_storage_account.test.primary_access_key}`.
+* `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKU's. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.example.primary_blob_endpoint};AccountName=${azurerm_storage_account.example.name};AccountKey=${azurerm_storage_account.example.primary_access_key}`.
 
 ~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) e.g.:
 
 ```
-resource "azurerm_redis_cache" "test" {
+resource "azurerm_redis_cache" "example" {
   # ...
   ignore_changes = ["redis_configuration.0.rdb_storage_connection_string"]
 }
@@ -114,6 +119,7 @@ redis_configuration {
 
 | Redis Value                     | Basic        | Standard     | Premium      |
 | ------------------------------- | ------------ | ------------ | ------------ |
+| enable_authentication           | true         | true         | true         |
 | maxmemory_reserved              | 2            | 50           | 200          |
 | maxfragmentationmemory_reserved | 2            | 50           | 200          |
 | maxmemory_delta                 | 2            | 50           | 200          |

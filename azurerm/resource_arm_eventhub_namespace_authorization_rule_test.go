@@ -5,9 +5,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -60,7 +61,7 @@ func testAccAzureRMEventHubNamespaceAuthorizationRule(t *testing.T, listen, send
 }
 
 func TestAccAzureRMEventHubNamespaceAuthorizationRule_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -131,7 +132,7 @@ func TestAccAzureRMEventHubNamespaceAuthorizationRule_rightsUpdate(t *testing.T)
 }
 
 func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
+	client := testAccProvider.Meta().(*ArmClient).Eventhub.NamespacesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -143,7 +144,7 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.Stat
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
 				return err
@@ -156,6 +157,9 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleDestroy(s *terraform.Stat
 
 func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).Eventhub.NamespacesClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
 		if !ok {
@@ -169,9 +173,7 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName strin
 			return fmt.Errorf("Bad: no resource group found in state for Event Hub: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).eventHubNamespacesClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		resp, err := conn.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
+		resp, err := client.GetAuthorizationRule(ctx, resourceGroup, namespaceName, name)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
 				return fmt.Errorf("Bad: Event Hub Namespace Authorization Rule %q (namespace %q / resource group: %q) does not exist", name, namespaceName, resourceGroup)

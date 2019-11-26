@@ -3,14 +3,19 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/state"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,6 +30,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -32,9 +44,9 @@ func resourceArmLoadBalancer() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeString,
@@ -81,6 +93,13 @@ func resourceArmLoadBalancer() *schema.Resource {
 							ValidateFunc: azure.ValidateResourceIDOrEmpty,
 						},
 
+						"public_ip_prefix_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: azure.ValidateResourceIDOrEmpty,
+						},
+
 						"private_ip_address_allocation": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -89,7 +108,7 @@ func resourceArmLoadBalancer() *schema.Resource {
 								string(network.Dynamic),
 								string(network.Static),
 							}, true),
-							StateFunc:        ignoreCaseStateFunc,
+							StateFunc:        state.IgnoreCase,
 							DiffSuppressFunc: suppress.CaseDifference,
 						},
 
@@ -123,7 +142,12 @@ func resourceArmLoadBalancer() *schema.Resource {
 							Set: schema.HashString,
 						},
 
-						"zones": singleZonesSchema(),
+						"zones": azure.SchemaSingleZone(),
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -140,21 +164,22 @@ func resourceArmLoadBalancer() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Load Balancer creation.")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -167,12 +192,12 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	sku := network.LoadBalancerSku{
 		Name: network.LoadBalancerSkuName(d.Get("sku").(string)),
 	}
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
+	expandedTags := tags.Expand(t)
 
 	properties := network.LoadBalancerPropertiesFormat{}
 
@@ -211,12 +236,12 @@ func resourceArmLoadBalancerCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	loadBalancer, exists, err := retrieveLoadBalancerById(d.Id(), meta)
+	loadBalancer, exists, err := retrieveLoadBalancerById(d, d.Id(), meta)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Load Balancer by ID %q: %+v", d.Id(), err)
 	}
@@ -229,7 +254,7 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("name", loadBalancer.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
 	if location := loadBalancer.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if sku := loadBalancer.Sku; sku != nil {
@@ -261,16 +286,15 @@ func resourceArmLoadBalancerRead(d *schema.ResourceData, meta interface{}) error
 		}
 	}
 
-	flattenAndSetTags(d, loadBalancer.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, loadBalancer.Tags)
 }
 
 func resourceArmLoadBalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).loadBalancerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error Parsing Azure Resource ID: %+v", err)
 	}
@@ -311,6 +335,12 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 			}
 		}
 
+		if v := data["public_ip_prefix_id"].(string); v != "" {
+			properties.PublicIPPrefix = &network.SubResource{
+				ID: &v,
+			}
+		}
+
 		if v := data["subnet_id"].(string); v != "" {
 			properties.Subnet = &network.Subnet{
 				ID: &v,
@@ -318,7 +348,7 @@ func expandAzureRmLoadBalancerFrontendIpConfigurations(d *schema.ResourceData) *
 		}
 
 		name := data["name"].(string)
-		zones := expandZones(data["zones"].([]interface{}))
+		zones := azure.ExpandZones(data["zones"].([]interface{}))
 		frontEndConfig := network.FrontendIPConfiguration{
 			Name:                                    &name,
 			FrontendIPConfigurationPropertiesFormat: &properties,
@@ -344,6 +374,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 			ipConfig["name"] = *config.Name
 		}
 
+		if config.ID != nil {
+			ipConfig["id"] = *config.ID
+		}
+
 		zones := make([]string, 0)
 		if zs := config.Zones; zs != nil {
 			zones = *zs
@@ -365,6 +399,10 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 				ipConfig["public_ip_address_id"] = *pip.ID
 			}
 
+			if pip := props.PublicIPPrefix; pip != nil {
+				ipConfig["public_ip_prefix_id"] = *pip.ID
+			}
+
 			loadBalancingRules := make([]interface{}, 0)
 			if rules := props.LoadBalancingRules; rules != nil {
 				for _, rule := range *rules {
@@ -378,7 +416,6 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 				for _, rule := range *rules {
 					inboundNatRules = append(inboundNatRules, *rule.ID)
 				}
-
 			}
 			ipConfig["inbound_nat_rules"] = schema.NewSet(schema.HashString, inboundNatRules)
 
@@ -387,7 +424,6 @@ func flattenLoadBalancerFrontendIpConfiguration(ipConfigs *[]network.FrontendIPC
 				for _, rule := range *rules {
 					outboundRules = append(outboundRules, *rule.ID)
 				}
-
 			}
 			ipConfig["outbound_rules"] = schema.NewSet(schema.HashString, outboundRules)
 		}

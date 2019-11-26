@@ -6,12 +6,16 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
+// TODO: refactor this
+
 func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error) {
-	id, err := parseAzureResourceID(loadBalancerId)
+	id, err := azure.ParseAzureResourceID(loadBalancerId)
 	if err != nil {
 		return "", "", err
 	}
@@ -21,9 +25,10 @@ func resourceGroupAndLBNameFromId(loadBalancerId string) (string, string, error)
 	return resGroup, name, nil
 }
 
-func retrieveLoadBalancerById(loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
-	client := meta.(*ArmClient).loadBalancerClient
-	ctx := meta.(*ArmClient).StopContext
+func retrieveLoadBalancerById(d *schema.ResourceData, loadBalancerId string, meta interface{}) (*network.LoadBalancer, bool, error) {
+	client := meta.(*ArmClient).Network.LoadBalancersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup, name, err := resourceGroupAndLBNameFromId(loadBalancerId)
 	if err != nil {
@@ -155,7 +160,7 @@ func loadBalancerSubResourceStateImporter(d *schema.ResourceData, _ interface{})
 	}
 
 	lbID := strings.TrimSuffix(r.FindString(d.Id()), "/")
-	parsed, err := parseAzureResourceID(lbID)
+	parsed, err := azure.ParseAzureResourceID(lbID)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse loadbalancer id from %s", d.Id())
 	}

@@ -2,8 +2,12 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -11,17 +15,22 @@ func dataSourceArmResourceGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmResourceGroupRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
-			"name":     resourceGroupNameForDataSourceSchema(),
-			"location": locationForDataSourceSchema(),
-			"tags":     tagsForDataSourceSchema(),
+			"name":     azure.SchemaResourceGroupNameForDataSource(),
+			"location": azure.SchemaLocationForDataSource(),
+			"tags":     tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmResourceGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).resourceGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Resource.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resp, err := client.Get(ctx, name)

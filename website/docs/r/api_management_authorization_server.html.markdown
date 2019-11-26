@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_authorization_server"
 sidebar_current: "docs-azurerm-resource-api-management-authorization-server"
@@ -29,8 +30,9 @@ resource "azurerm_api_management_authorization_server" "example" {
   authorization_endpoint       = "https://example.mydomain.com/client/authorize"
   client_id                    = "42424242-4242-4242-4242-424242424242"
   client_registration_endpoint = "https://example.mydomain.com/client/register"
+
   grant_types = [
-     "authorizationCode",
+    "authorizationCode",
   ]
 }
 ```

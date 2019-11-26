@@ -2,15 +2,17 @@ package azurerm
 
 import (
 	"fmt"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +25,13 @@ func resourceArmPacketCapture() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -30,7 +39,7 @@ func resourceArmPacketCapture() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_watcher_name": {
 				Type:     schema.TypeString,
@@ -133,8 +142,9 @@ func resourceArmPacketCapture() *schema.Resource {
 }
 
 func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.PacketCapturesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	watcherName := d.Get("network_watcher_name").(string)
@@ -145,7 +155,7 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 	totalBytesPerSession := d.Get("maximum_bytes_per_session").(int)
 	timeLimitInSeconds := d.Get("maximum_capture_duration").(int)
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.Get(ctx, resourceGroup, watcherName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -199,10 +209,11 @@ func resourceArmPacketCaptureCreate(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.PacketCapturesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -247,10 +258,11 @@ func resourceArmPacketCaptureRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmPacketCaptureDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).packetCapturesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.PacketCapturesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

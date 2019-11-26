@@ -2,13 +2,17 @@ package azurerm
 
 import (
 	"fmt"
+	"html"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	apimanagementSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,8 +26,15 @@ func resourceArmApiManagementApiPolicy() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"api_management_name": azure.SchemaApiManagementName(),
 
@@ -34,7 +45,7 @@ func resourceArmApiManagementApiPolicy() *schema.Resource {
 				Optional:         true,
 				Computed:         true,
 				ConflictsWith:    []string{"xml_link"},
-				DiffSuppressFunc: suppress.XmlDiff,
+				DiffSuppressFunc: apimanagementSvc.XmlWithDotNetInterpolationsDiffSuppress,
 			},
 
 			"xml_link": {
@@ -47,14 +58,15 @@ func resourceArmApiManagementApiPolicy() *schema.Resource {
 }
 
 func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiPoliciesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	serviceName := d.Get("api_management_name").(string)
 	apiName := d.Get("api_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiName)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -72,17 +84,22 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 	xmlContent := d.Get("xml_content").(string)
 	xmlLink := d.Get("xml_link").(string)
 
-	if xmlContent != "" {
-		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.XML,
-			PolicyContent: utils.String(xmlContent),
-		}
-	}
-
 	if xmlLink != "" {
 		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
-			ContentFormat: apimanagement.XMLLink,
+			ContentFormat: apimanagement.RawxmlLink,
 			PolicyContent: utils.String(xmlLink),
+		}
+	} else if xmlContent != "" {
+		// this is intentionally an else-if since `xml_content` is computed
+
+		// clear out any existing value for xml_link
+		if !d.IsNewResource() {
+			d.Set("xml_link", "")
+		}
+
+		parameters.PolicyContractProperties = &apimanagement.PolicyContractProperties{
+			ContentFormat: apimanagement.Rawxml,
+			PolicyContent: utils.String(xmlContent),
 		}
 	}
 
@@ -107,10 +124,11 @@ func resourceArmApiManagementAPIPolicyCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiPoliciesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -134,19 +152,25 @@ func resourceArmApiManagementAPIPolicyRead(d *schema.ResourceData, meta interfac
 	d.Set("api_name", apiName)
 
 	if properties := resp.PolicyContractProperties; properties != nil {
+		policyContent := ""
+		if pc := properties.PolicyContent; pc != nil {
+			policyContent = html.UnescapeString(*pc)
+		}
+
 		// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 		// as such there is no way to set `xml_link` and we'll let Terraform handle it
-		d.Set("xml_content", properties.PolicyContent)
+		d.Set("xml_content", policyContent)
 	}
 
 	return nil
 }
 
 func resourceArmApiManagementAPIPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).apiManagementApiPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ApiManagement.ApiPoliciesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

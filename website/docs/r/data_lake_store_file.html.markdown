@@ -1,14 +1,15 @@
 ---
+subcategory: "Data Lake"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_lake_store_file"
 sidebar_current: "docs-azurerm-resource-data-lake-store-file"
 description: |-
-  Manage a Azure Data Lake Store File.
+  Manages a Azure Data Lake Store File.
 ---
 
 # azurerm_data_lake_store_file
 
-Manage a Azure Data Lake Store File.
+Manages a Azure Data Lake Store File.
 
 ~> **Note:** If you want to change the data in the remote file without changing the `local_file_path`, then 
 taint the resource so the `azurerm_data_lake_store_file` gets recreated with the new data.
@@ -49,5 +50,5 @@ The following arguments are supported:
 Date Lake Store File's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_data_lake_store_file.test example.azuredatalakestore.net/test/example.txt
+terraform import azurerm_data_lake_store_file.exampleexample.azuredatalakestore.net/test/example.txt
 ```

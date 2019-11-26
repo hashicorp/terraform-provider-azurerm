@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
 sidebar_current: "docs-azurerm-resource-compute-availability-set"
@@ -14,15 +15,15 @@ Manages an availability set for virtual machines.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_availability_set" "test" {
+resource "azurerm_availability_set" "example" {
   name                = "acceptanceTestAvailabilitySet1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   tags = {
     environment = "Production"
@@ -47,6 +48,8 @@ The following arguments are supported:
 * `platform_fault_domain_count` - (Optional) Specifies the number of fault domains that are used. Defaults to 3.
 
 ~> **NOTE:** The number of Fault Domains varies depending on which Azure Region you're using - [a list can be found here](https://github.com/MicrosoftDocs/azure-docs/blob/master/includes/managed-disks-common-fault-domain-region-list.md).
+
+* `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group to which this Virtual Machine should be assigned. Changing this forces a new resource to be created
 
 * `managed` - (Optional) Specifies whether the availability set is managed or not. Possible values are `true` (to specify aligned) or `false` (to specify classic). Default is `false`.
 

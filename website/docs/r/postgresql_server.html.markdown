@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_server"
 sidebar_current: "docs-azurerm-resource-database-postgresql-server"
@@ -8,32 +9,33 @@ description: |-
 
 # azurerm_postgresql_server
 
-Manage a PostgreSQL Server.
+Manages a PostgreSQL Server.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_postgresql_server" "test" {
+resource "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
     capacity = 2
     tier     = "Basic"
-    family   = "Gen4"
+    family   = "Gen5"
   }
 
   storage_profile {
     storage_mb            = 5120
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    auto_grow             = "Enabled"
   }
 
   administrator_login          = "psqladminun"
@@ -61,7 +63,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the PostgreSQL Server.
 
-* `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `9.5`, `9.6`, `10`, `10.0`, and `10.2`. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of PostgreSQL to use. Valid values are `9.5`, `9.6`, `10`, `10.0`, and `11`. Changing this forces a new resource to be created.
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
@@ -87,7 +89,9 @@ The following arguments are supported:
 
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
-* `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.
+* `geo_redundant_backup` - (Optional) Enable/Disable Geo-redundant for server backup. Valid values for this property are `Enabled` or `Disabled`, not supported for the `basic` tier.  This allows you to choose between locally redundant or geo-redundant backup storage in the General Purpose and Memory Optimized tiers. When the backups are stored in geo-redundant backup storage, they are not only stored within the region in which your server is hosted, but are also replicated to a paired data center. This provides better protection and ability to restore your server in a different region in the event of a disaster. The Basic tier only offers locally redundant backup storage.
+
+* `auto_grow` - (Optional) Enable/Disable auto-growing of the storage. Valid values for this property are `Enabled` or `Disabled`. Storage auto-grow prevents your server from running out of storage and becoming read-only. If storage auto grow is enabled, the storage automatically grows without impacting the workload. The default value if not explicitly specified is `Enabled`.  
 
 ## Attributes Reference
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_packet_capture"
 sidebar_current: "docs-azurerm-resource-packet-capture"
@@ -16,48 +17,48 @@ Configures Packet Capturing against a Virtual Machine using a Network Watcher.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "packet-capture-rg"
   location = "West Europe"
 }
 
-resource "azurerm_network_watcher" "test" {
+resource "azurerm_network_watcher" "example" {
   name                = "network-watcher"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "production-network"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "internal"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_network_interface" "test" {
+resource "azurerm_network_interface" "example" {
   name                = "pctest-nic"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   ip_configuration {
     name                          = "testconfiguration1"
-    subnet_id                     = "${azurerm_subnet.test.id}"
+    subnet_id                     = "${azurerm_subnet.example.id}"
     private_ip_address_allocation = "Dynamic"
   }
 }
 
-resource "azurerm_virtual_machine" "test" {
+resource "azurerm_virtual_machine" "example" {
   name                  = "pctest-vm"
-  location              = "${azurerm_resource_group.test.location}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  network_interface_ids = ["${azurerm_network_interface.test.id}"]
+  location              = "${azurerm_resource_group.example.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  network_interface_ids = ["${azurerm_network_interface.example.id}"]
   vm_size               = "Standard_F2"
 
   storage_image_reference {
@@ -85,36 +86,36 @@ resource "azurerm_virtual_machine" "test" {
   }
 }
 
-resource "azurerm_virtual_machine_extension" "test" {
+resource "azurerm_virtual_machine_extension" "example" {
   name                       = "network-watcher"
-  location                   = "${azurerm_resource_group.test.location}"
-  resource_group_name        = "${azurerm_resource_group.test.name}"
-  virtual_machine_name       = "${azurerm_virtual_machine.test.name}"
+  location                   = "${azurerm_resource_group.example.location}"
+  resource_group_name        = "${azurerm_resource_group.example.name}"
+  virtual_machine_name       = "${azurerm_virtual_machine.example.name}"
   publisher                  = "Microsoft.Azure.NetworkWatcher"
   type                       = "NetworkWatcherAgentLinux"
   type_handler_version       = "1.4"
   auto_upgrade_minor_version = true
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "pctestsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_packet_capture" "test" {
+resource "azurerm_packet_capture" "example" {
   name                 = "pctestcapture"
-  network_watcher_name = "${azurerm_network_watcher.test.name}"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  target_resource_id   = "${azurerm_virtual_machine.test.id}"
+  network_watcher_name = "${azurerm_network_watcher.example.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  target_resource_id   = "${azurerm_virtual_machine.example.id}"
 
   storage_location {
-    storage_account_id = "${azurerm_storage_account.test.id}"
+    storage_account_id = "${azurerm_storage_account.example.id}"
   }
 
-  depends_on = ["azurerm_virtual_machine_extension.test"]
+  depends_on = ["azurerm_virtual_machine_extension.example"]
 }
 ```
 

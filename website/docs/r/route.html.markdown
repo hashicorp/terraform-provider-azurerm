@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_route"
 sidebar_current: "docs-azurerm-resource-network-route-x"
@@ -10,24 +11,28 @@ description: |-
 
 Manages a Route within a Route Table.
 
+~> **NOTE on Route Tables and Routes:** Terraform currently
+provides both a standalone [Route resource](route.html), and allows for Routes to be defined in-line within the [Route Table resource](route_table.html).
+At this time you cannot use a Route Table with in-line Routes in conjunction with any Route resources. Doing so will cause a conflict of Route configurations and will overwrite Routes.
+
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_route_table" "test" {
+resource "azurerm_route_table" "example" {
   name                = "acceptanceTestRouteTable1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_route" "test" {
+resource "azurerm_route" "example" {
   name                = "acceptanceTestRoute1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  route_table_name    = "${azurerm_route_table.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  route_table_name    = "${azurerm_route_table.example.name}"
   address_prefix      = "10.1.0.0/16"
   next_hop_type       = "vnetlocal"
 }
@@ -60,5 +65,5 @@ The following attributes are exported:
 Routes can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_route.testRoute /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/routeTables/mytable1/routes/myroute1
+terraform import azurerm_route.exampleRoute /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/routeTables/mytable1/routes/myroute1
 ```

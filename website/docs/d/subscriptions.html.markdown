@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subscriptions"
 sidebar_current: "docs-azurerm-datasource-subscriptions"
@@ -35,7 +36,9 @@ output "first_available_subscription_display_name" {
 
 The `subscription` block contains:
 
+* `subscription_id` - The subscription GUID.
 * `display_name` - The subscription display name.
+* `tenant_id` - The subscription tenant ID.
 * `state` - The subscription state. Possible values are Enabled, Warned, PastDue, Disabled, and Deleted.
 * `location_placement_id` - The subscription location placement ID.
 * `quota_id` - The subscription quota ID.

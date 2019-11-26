@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_account"
 sidebar_current: "docs-azurerm-datasource-cosmosdb-account"
@@ -13,7 +14,7 @@ Use this data source to access information about an existing CosmosDB (formally 
 ## Example Usage
 
 ```hcl
-data "azurerm_cosmosdb_account" "test" {
+data "azurerm_cosmosdb_account" "example" {
   name                = "tfex-cosmosdb-account"
   resource_group_name = "tfex-cosmosdb-account-rg"
 }

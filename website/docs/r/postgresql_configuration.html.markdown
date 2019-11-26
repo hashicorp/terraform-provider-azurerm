@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_configuration"
 sidebar_current: "docs-azurerm-resource-database-postgresql-configuration"
@@ -13,15 +14,15 @@ Sets a PostgreSQL Configuration value on a PostgreSQL Server.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_postgresql_server" "test" {
+resource "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
@@ -42,10 +43,10 @@ resource "azurerm_postgresql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 
-resource "azurerm_postgresql_configuration" "test" {
+resource "azurerm_postgresql_configuration" "example" {
   name                = "backslash_quote"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_postgresql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_postgresql_server.example.name}"
   value               = "on"
 }
 ```

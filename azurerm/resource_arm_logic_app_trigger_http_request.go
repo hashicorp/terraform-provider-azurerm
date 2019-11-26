@@ -6,10 +6,11 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/structure"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/structure"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
@@ -23,8 +24,14 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			relativePath := diff.Get("relative_path").(string)
 			if relativePath != "" {
 				method := diff.Get("method").(string)
@@ -61,11 +68,11 @@ func resourceArmLogicAppTriggerHttpRequest() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(http.MethodDelete),
-					string(http.MethodGet),
-					string(http.MethodPatch),
-					string(http.MethodPost),
-					string(http.MethodPut),
+					http.MethodDelete,
+					http.MethodGet,
+					http.MethodPatch,
+					http.MethodPost,
+					http.MethodPut,
 				}, false),
 			},
 
@@ -113,7 +120,7 @@ func resourceArmLogicAppTriggerHttpRequestCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -122,7 +129,7 @@ func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta inte
 	logicAppName := id.Path["workflows"]
 	name := id.Path["triggers"]
 
-	t, app, err := retrieveLogicAppTrigger(meta, resourceGroup, logicAppName, name)
+	t, app, err := retrieveLogicAppTrigger(d, meta, resourceGroup, logicAppName, name)
 	if err != nil {
 		return err
 	}
@@ -169,7 +176,7 @@ func resourceArmLogicAppTriggerHttpRequestRead(d *schema.ResourceData, meta inte
 }
 
 func resourceArmLogicAppTriggerHttpRequestDelete(d *schema.ResourceData, meta interface{}) error {
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

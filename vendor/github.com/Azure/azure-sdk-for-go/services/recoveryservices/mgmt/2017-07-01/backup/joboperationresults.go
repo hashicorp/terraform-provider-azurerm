@@ -41,7 +41,6 @@ func NewJobOperationResultsClientWithBaseURI(baseURI string, subscriptionID stri
 }
 
 // Get fetches the result of any operation.
-// the operation.
 // Parameters:
 // vaultName - the name of the recovery services vault.
 // resourceGroupName - the name of the resource group where the recovery services vault is present.
@@ -89,7 +88,7 @@ func (client JobOperationResultsClient) GetPreparer(ctx context.Context, vaultNa
 		"vaultName":         autorest.Encode("path", vaultName),
 	}
 
-	const APIVersion = "2016-12-01"
+	const APIVersion = "2019-05-13"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -105,8 +104,8 @@ func (client JobOperationResultsClient) GetPreparer(ctx context.Context, vaultNa
 // GetSender sends the Get request. The method will close the
 // http.Response Body if it receives an error.
 func (client JobOperationResultsClient) GetSender(req *http.Request) (*http.Response, error) {
-	return autorest.SendWithSender(client, req,
-		azure.DoRetryWithRegistration(client.Client))
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	return autorest.SendWithSender(client, req, sd...)
 }
 
 // GetResponder handles the response to the Get request. The method always

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_snapshot"
 sidebar_current: "docs-azurerm-datasource-snapshot"
@@ -13,7 +14,7 @@ Use this data source to access information about an existing Snapshot.
 ## Example Usage
 
 ```hcl
-data "azurerm_snapshot" "test" {
+data "azurerm_snapshot" "example" {
   name                = "my-snapshot"
   resource_group_name = "my-resource-group"
 }

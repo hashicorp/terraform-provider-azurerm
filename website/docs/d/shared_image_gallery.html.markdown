@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_shared_image_gallery"
 sidebar_current: "docs-azurerm-datasource-shared-image-gallery"
@@ -11,12 +12,10 @@ description: |-
 
 Use this data source to access information about an existing Shared Image Gallery.
 
--> **NOTE** Shared Image Galleries are currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-gb/blog/announcing-the-public-preview-of-shared-image-gallery/).
-
 ## Example Usage
 
 ```hcl
-data "azurerm_shared_image_gallery" "test" {
+data "azurerm_shared_image_gallery" "example" {
   name                = "my-image-gallery"
   resource_group_name = "example-resources"
 }

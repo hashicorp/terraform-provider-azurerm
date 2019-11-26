@@ -3,10 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-02-01/containerservice"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/containerservice/mgmt/2019-06-01/containerservice"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/kubernetes"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -14,15 +18,19 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmKubernetesClusterRead,
 
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"addon_profile": {
 				Type:     schema.TypeList,
@@ -62,6 +70,32 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 								},
 							},
 						},
+
+						"kube_dashboard": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
+
+						"azure_policy": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"enabled": {
+										Type:     schema.TypeBool,
+										Computed: true,
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -76,9 +110,37 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"type": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
 						"count": {
 							Type:     schema.TypeInt,
 							Computed: true,
+						},
+
+						"max_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"min_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"enable_auto_scaling": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"availability_zones": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 
 						// TODO: remove this in a future version
@@ -111,6 +173,17 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 						"max_pods": {
 							Type:     schema.TypeInt,
 							Computed: true,
+						},
+
+						"node_taints": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+
+						"enable_node_public_ip": {
+							Type:     schema.TypeBool,
+							Optional: true,
 						},
 					},
 				},
@@ -239,6 +312,19 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"windows_profile": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"admin_username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"network_profile": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -270,6 +356,11 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 						},
 
 						"pod_cidr": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+
+						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -330,14 +421,15 @@ func dataSourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).kubernetesClustersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Containers.KubernetesClustersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -361,7 +453,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.ManagedClusterProperties; props != nil {
@@ -383,6 +475,11 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		linuxProfile := flattenKubernetesClusterDataSourceLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
+		}
+
+		windowsProfile := flattenKubernetesClusterDataSourceWindowsProfile(props.WindowsProfile)
+		if err := d.Set("windows_profile", windowsProfile); err != nil {
+			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
 		}
 
 		networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
@@ -424,9 +521,7 @@ func dataSourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error setting `kube_config`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenKubernetesClusterDataSourceRoleBasedAccessControl(input *containerservice.ManagedClusterProperties) []interface{} {
@@ -538,6 +633,34 @@ func flattenKubernetesClusterDataSourceAddonProfiles(profile map[string]*contain
 	}
 	values["oms_agent"] = agents
 
+	kubeDashboards := make([]interface{}, 0)
+	if kubeDashboard := profile["kubeDashboard"]; kubeDashboard != nil {
+		enabled := false
+		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		kubeDashboards = append(kubeDashboards, output)
+	}
+	values["kube_dashboard"] = kubeDashboards
+
+	azurePolicies := make([]interface{}, 0)
+	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
+		enabled := false
+		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
+			enabled = *enabledVal
+		}
+
+		output := map[string]interface{}{
+			"enabled": enabled,
+		}
+		azurePolicies = append(azurePolicies, output)
+	}
+	values["azure_policy"] = azurePolicies
+
 	return []interface{}{values}
 }
 
@@ -551,9 +674,27 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 	for _, profile := range *input {
 		agentPoolProfile := make(map[string]interface{})
 
+		if profile.Type != "" {
+			agentPoolProfile["type"] = string(profile.Type)
+		}
+
 		if profile.Count != nil {
 			agentPoolProfile["count"] = int(*profile.Count)
 		}
+
+		if profile.MinCount != nil {
+			agentPoolProfile["min_count"] = int(*profile.MinCount)
+		}
+
+		if profile.MaxCount != nil {
+			agentPoolProfile["max_count"] = int(*profile.MaxCount)
+		}
+
+		if profile.EnableAutoScaling != nil {
+			agentPoolProfile["enable_auto_scaling"] = *profile.EnableAutoScaling
+		}
+
+		agentPoolProfile["availability_zones"] = utils.FlattenStringSlice(profile.AvailabilityZones)
 
 		if profile.Name != nil {
 			agentPoolProfile["name"] = *profile.Name
@@ -577,6 +718,14 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]containerservi
 
 		if profile.MaxPods != nil {
 			agentPoolProfile["max_pods"] = int(*profile.MaxPods)
+		}
+
+		if profile.NodeTaints != nil {
+			agentPoolProfile["node_taints"] = *profile.NodeTaints
+		}
+
+		if profile.EnableNodePublicIP != nil {
+			agentPoolProfile["enable_node_public_ip"] = *profile.EnableNodePublicIP
 		}
 
 		agentPoolProfiles = append(agentPoolProfiles, agentPoolProfile)
@@ -612,6 +761,19 @@ func flattenKubernetesClusterDataSourceLinuxProfile(input *containerservice.Linu
 	return []interface{}{values}
 }
 
+func flattenKubernetesClusterDataSourceWindowsProfile(input *containerservice.ManagedClusterWindowsProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+	values := make(map[string]interface{})
+
+	if username := input.AdminUsername; username != nil {
+		values["admin_username"] = *username
+	}
+
+	return []interface{}{values}
+}
+
 func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.NetworkProfileType) []interface{} {
 	values := make(map[string]interface{})
 
@@ -635,6 +797,10 @@ func flattenKubernetesClusterDataSourceNetworkProfile(profile *containerservice.
 
 	if profile.PodCidr != nil {
 		values["pod_cidr"] = *profile.PodCidr
+	}
+
+	if profile.LoadBalancerSku != "" {
+		values["load_balancer_sku"] = string(profile.LoadBalancerSku)
 	}
 
 	return []interface{}{values}

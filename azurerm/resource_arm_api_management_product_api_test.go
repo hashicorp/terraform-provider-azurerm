@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMAPIManagementProductApi_basic(t *testing.T) {
 }
 
 func TestAccAzureRMAPIManagementProductApi_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -65,7 +66,7 @@ func TestAccAzureRMAPIManagementProductApi_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAPIManagementProductApiDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).apiManagementProductApisClient
+	client := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductApisClient
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_api" {
 			continue
@@ -101,14 +102,14 @@ func testCheckAzureRMAPIManagementProductApiExists(resourceName string) resource
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serviceName := rs.Primary.Attributes["api_management_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).apiManagementProductApisClient
+		client := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductApisClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.CheckEntityExists(ctx, resourceGroup, serviceName, productId, apiName)
 		if err != nil {
 			if utils.ResponseWasNotFound(resp) {
 				return fmt.Errorf("Bad: API %q / Product %q (API Management Service %q / Resource Group %q) does not exist", apiName, productId, serviceName, resourceGroup)
 			}
-			return fmt.Errorf("Bad: Get on apiManagementProductApisClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.ProductApisClient: %+v", err)
 		}
 
 		return nil
@@ -129,10 +130,7 @@ resource "azurerm_api_management" "test" {
   publisher_name      = "pub1"
   publisher_email     = "pub1@email.com"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_product" "test" {
@@ -145,7 +143,6 @@ resource "azurerm_api_management_product" "test" {
   published             = true
 }
 
-
 resource "azurerm_api_management_api" "test" {
   name                = "acctestapi-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -157,10 +154,10 @@ resource "azurerm_api_management_api" "test" {
 }
 
 resource "azurerm_api_management_product_api" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  api_name              = "${azurerm_api_management_api.test.name}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  api_name            = "${azurerm_api_management_api.test.name}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 }
 `, rInt, location, rInt, rInt)
 }

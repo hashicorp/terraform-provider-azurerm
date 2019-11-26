@@ -3,11 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/servicebus/mgmt/2017-04-01/servicebus"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,6 +22,13 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 		Delete: resourceArmServiceBusSubscriptionDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -43,9 +53,9 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				ValidateFunc: azure.ValidateServiceBusTopicName(),
 			},
 
-			"location": deprecatedLocationSchema(),
+			"location": azure.SchemaLocationDeprecated(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"auto_delete_on_idle": {
 				Type:     schema.TypeString,
@@ -92,6 +102,11 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Optional: true,
 			},
 
+			"forward_dead_lettered_messages_to": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			// TODO: remove in the next major version
 			"dead_lettering_on_filter_evaluation_exceptions": {
 				Type:       schema.TypeBool,
@@ -103,8 +118,9 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 }
 
 func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM ServiceBus Subscription creation.")
 
 	name := d.Get("name").(string)
@@ -117,7 +133,7 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 	maxDeliveryCount := int32(d.Get("max_delivery_count").(int))
 	requiresSession := d.Get("requires_session").(bool)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, namespaceName, topicName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -151,6 +167,10 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		parameters.SBSubscriptionProperties.ForwardTo = &forwardTo
 	}
 
+	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
+		parameters.SBSubscriptionProperties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
+	}
+
 	if defaultMessageTtl := d.Get("default_message_ttl").(string); defaultMessageTtl != "" {
 		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
@@ -173,10 +193,11 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -207,6 +228,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_to", props.ForwardTo)
+		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))
@@ -217,10 +239,11 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 }
 
 func resourceArmServiceBusSubscriptionDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).serviceBusSubscriptionsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ServiceBus.SubscriptionsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

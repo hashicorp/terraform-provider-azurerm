@@ -8,12 +8,14 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mysql/mgmt/2017-12-01/mysql"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,6 +29,13 @@ func resourceArmMySqlVirtualNetworkRule() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -35,7 +44,7 @@ func resourceArmMySqlVirtualNetworkRule() *schema.Resource {
 				ValidateFunc: validate.VirtualNetworkRuleName,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"server_name": {
 				Type:         schema.TypeString,
@@ -54,15 +63,16 @@ func resourceArmMySqlVirtualNetworkRule() *schema.Resource {
 }
 
 func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlVirtualNetworkRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	serverName := d.Get("server_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 	subnetId := d.Get("subnet_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serverName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -77,8 +87,8 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 
 	// due to a bug in the API we have to ensure the Subnet's configured correctly or the API call will timeout
 	// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3719
-	subnetsClient := meta.(*ArmClient).subnetClient
-	subnetParsedId, err := parseAzureResourceID(subnetId)
+	subnetsClient := meta.(*ArmClient).Network.SubnetsClient
+	subnetParsedId, err := azure.ParseAzureResourceID(subnetId)
 	if err != nil {
 		return err
 	}
@@ -132,9 +142,18 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 		Pending:                   []string{"Initializing", "InProgress", "Unknown", "ResponseNotFound"},
 		Target:                    []string{"Ready"},
 		Refresh:                   mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx, client, resourceGroup, serverName, name),
-		Timeout:                   30 * time.Minute,
 		MinTimeout:                1 * time.Minute,
 		ContinuousTargetOccurence: 5,
+	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 30 * time.Minute
 	}
 
 	if _, err = stateConf.WaitForState(); err != nil {
@@ -152,10 +171,11 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMySqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlVirtualNetworkRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,10 +207,11 @@ func resourceArmMySqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMySqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mysqlVirtualNetworkRulesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -217,7 +238,7 @@ func resourceArmMySqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client mysql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
+func mySQLVirtualNetworkStateStatusCodeRefreshFunc(ctx context.Context, client *mysql.VirtualNetworkRulesClient, resourceGroup string, serverName string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
 

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service"
 sidebar_current: "docs-azurerm-datasource-app-service-x"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing App Service.
 ## Example Usage
 
 ```hcl
-data "azurerm_app_service" "test" {
+data "azurerm_app_service" "example" {
   name                = "search-app-service"
   resource_group_name = "search-service"
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.test.id}"
+  value = "${data.azurerm_app_service.example.id}"
 }
 ```
 
@@ -52,6 +53,8 @@ output "app_service_id" {
 * `site_config` - A `site_config` block as defined below.
 
 * `tags` - A mapping of tags to assign to the resource.
+
+* `default_site_hostname` - The Default Hostname associated with the App Service - such as `mysite.azurewebsites.net`
 
 * `outbound_ip_addresses` - A comma separated list of outbound IP addresses - such as `52.23.25.3,52.143.43.12`
 
@@ -110,6 +113,8 @@ A `ip_restriction` block exports the following:
 * `java_container_version` - The version of the Java Container in use.
 
 * `linux_fx_version` - Linux App Framework and version for the AppService.
+
+* `windows_fx_version` - Windows Container Docker Image for the AppService.
 
 * `local_mysql_enabled` - Is "MySQL In App" Enabled? This runs a local MySQL instance with your app and shares resources from the App Service plan.
 

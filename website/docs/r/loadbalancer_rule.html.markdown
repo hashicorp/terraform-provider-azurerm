@@ -1,4 +1,5 @@
 ---
+subcategory: "Load Balancer"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_lb_rule"
 sidebar_current: "docs-azurerm-resource-loadbalancer-rule"
@@ -15,32 +16,32 @@ Manages a Load Balancer Rule.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "LoadBalancerRG"
   location = "West US"
 }
 
-resource "azurerm_public_ip" "test" {
-  name                         = "PublicIPForLB"
-  location                     = "West US"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
-  allocation_method = "Static"
+resource "azurerm_public_ip" "example" {
+  name                = "PublicIPForLB"
+  location            = "West US"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  allocation_method   = "Static"
 }
 
-resource "azurerm_lb" "test" {
+resource "azurerm_lb" "example" {
   name                = "TestLoadBalancer"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
   }
 }
 
-resource "azurerm_lb_rule" "test" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+resource "azurerm_lb_rule" "example" {
+  resource_group_name            = "${azurerm_resource_group.example.name}"
+  loadbalancer_id                = "${azurerm_lb.example.id}"
   name                           = "LBRule"
   protocol                       = "Tcp"
   frontend_port                  = 3389
@@ -65,17 +66,17 @@ The following arguments are supported:
 * `enable_floating_ip` - (Optional) Floating IP is pertinent to failover scenarios: a "floating” IP is reassigned to a secondary server in case the primary server fails. Floating IP is required for SQL AlwaysOn.
 * `idle_timeout_in_minutes` - (Optional) Specifies the timeout for the Tcp idle connection. The value can be set between 4 and 30 minutes. The default value is 4 minutes. This element is only used when the protocol is set to Tcp.
 * `load_distribution` - (Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are: `Default` – The load balancer is configured to use a 5 tuple hash to map traffic to available servers. `SourceIP` – The load balancer is configured to use a 2 tuple hash to map traffic to available servers. `SourceIPProtocol` – The load balancer is configured to use a 3 tuple hash to map traffic to available servers. Also known as Session Persistence, where  the options are called `None`, `Client IP` and `Client IP and Protocol` respectively.
-
+* `disable_outbound_snat` - (Optional) Indicates whether outbound snat is disabled or enabled. Default false.
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Load Balancer to which the resource is attached.
+* `id` - The ID of the Load Balancer Rule.
 
 ## Import
 
 Load Balancer Rules can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_lb_rule.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/loadBalancingRules/rule1
+terraform import azurerm_lb_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/loadBalancers/lb1/loadBalancingRules/rule1
 ```

@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine"
 sidebar_current: "docs-azurerm-datasource-virtual-machine"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing Virtual Machine.
 ## Example Usage
 
 ```hcl
-data "azurerm_virtual_machine" "test" {
+data "azurerm_virtual_machine" "example" {
   name                = "production"
   resource_group_name = "networking"
 }
 
 output "virtual_machine_id" {
-  value = "${data.azurerm_virtual_machine.test.id}"
+  value = "${data.azurerm_virtual_machine.example.id}"
 }
 ```
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "Base"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
 sidebar_current: "docs-azurerm-resource-resource-group"
@@ -13,7 +14,7 @@ Manages a resource group on Azure.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "testResourceGroup1"
   location = "West US"
 
@@ -37,10 +38,9 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the arguments above, the following attributes are exported:
 
 * `id` - The resource group ID.
-
 
 ## Import
 

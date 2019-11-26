@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_server"
 sidebar_current: "docs-azurerm-resource-database-mariadb-server"
@@ -10,20 +11,18 @@ description: |-
 
 Manages a MariaDB Server.
 
--> **NOTE** MariaDB Server is currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-us/updates/mariadb-public-preview/).
-
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_mariadb_server" "test" {
+resource "azurerm_mariadb_server" "example" {
   name                = "mariadb-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
@@ -36,6 +35,7 @@ resource "azurerm_mariadb_server" "test" {
     storage_mb            = 5120
     backup_retention_days = 7
     geo_redundant_backup  = "Disabled"
+    storage_autogrow      = "Disabled"
   }
 
   administrator_login          = "mariadbadmin"
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MariaDB Server.
 
-* `version` - (Required) Specifies the version of MariaDB to use. The valid value is `10.2`. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of MariaDB to use. Possible values are `10.2` and `10.3`. Changing this forces a new resource to be created.
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 
@@ -90,6 +90,8 @@ A `storage_profile` block supports the following:
 * `backup_retention_days` - (Optional) Backup retention days for the server, supported values are between `7` and `35` days.
 
 * `geo_redundant_backup` - (Optional) Enable Geo-redundant or not for server backup. Valid values for this property are `Enabled` or `Disabled`.
+
+* `auto_grow` - (Optional) Defines whether autogrow is enabled or disabled for the storage. Valid values are `Enabled` or `Disabled`.
 
 -> **NOTE:** Geo Redundant Backups cannot be configured when using the `Basic` tier.
 

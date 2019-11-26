@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -37,7 +38,7 @@ func TestAccAzureRMApiManagementProductPolicy_basic(t *testing.T) {
 }
 
 func TestAccAzureRMApiManagementProductPolicy_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -109,7 +110,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 		serviceName := rs.Primary.Attributes["api_management_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		conn := testAccProvider.Meta().(*ArmClient).apiManagementProductPoliciesClient
+		conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, serviceName, productID)
 		if err != nil {
@@ -117,7 +118,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 				return fmt.Errorf("Bad: Product Policy (API Management Service %q / Product %q/  Resource Group %q) does not exist", serviceName, productID, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on apiManagementProductPoliciesClient: %+v", err)
+			return fmt.Errorf("Bad: Get on apiManagement.ProductPoliciesClient: %+v", err)
 		}
 
 		return nil
@@ -125,7 +126,7 @@ func testCheckAzureRMApiManagementProductPolicyExists(resourceName string) resou
 }
 
 func testCheckAzureRMApiManagementProductPolicyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).apiManagementProductPoliciesClient
+	conn := testAccProvider.Meta().(*ArmClient).ApiManagement.ProductPoliciesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_api_management_product_policy" {
@@ -181,10 +182,10 @@ resource "azurerm_api_management_product" "test" {
 }
 
 resource "azurerm_api_management_product_policy" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  xml_link = "https://gist.githubusercontent.com/tombuildsstuff/4f58581599d2c9f64b236f505a361a67/raw/0d29dcb0167af1e5afe4bd52a6d7f69ba1e05e1f/example.xml"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  xml_link            = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
 }
 `, rInt, location, rInt)
 }
@@ -195,10 +196,10 @@ func testAccAzureRMApiManagementProductPolicy_requiresImport(rInt int, location 
 %s
 
 resource "azurerm_api_management_product_policy" "import" {
-  product_id            = "${azurerm_api_management_product_policy.test.product_id}"
-  api_management_name   = "${azurerm_api_management_product_policy.test.api_management_name}"
-  resource_group_name   = "${azurerm_api_management_product_policy.test.resource_group_name}"
-  xml_link              = "${azurerm_api_management_product_policy.test.xml_link}"
+  product_id          = "${azurerm_api_management_product_policy.test.product_id}"
+  api_management_name = "${azurerm_api_management_product_policy.test.api_management_name}"
+  resource_group_name = "${azurerm_api_management_product_policy.test.resource_group_name}"
+  xml_link            = "${azurerm_api_management_product_policy.test.xml_link}"
 }
 `, template)
 }
@@ -233,12 +234,14 @@ resource "azurerm_api_management_product" "test" {
 }
 
 resource "azurerm_api_management_product_policy" "test" {
-  product_id            = "${azurerm_api_management_product.test.product_id}"
-  api_management_name   = "${azurerm_api_management.test.name}"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
+  product_id          = "${azurerm_api_management_product.test.product_id}"
+  api_management_name = "${azurerm_api_management.test.name}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
   xml_content = <<XML
 <policies>
   <inbound>
+    <set-variable name="abc" value="@(context.Request.Headers.GetValueOrDefault("X-Header-Name", ""))" />
     <find-and-replace from="xyz" to="abc" />
   </inbound>
 </policies>

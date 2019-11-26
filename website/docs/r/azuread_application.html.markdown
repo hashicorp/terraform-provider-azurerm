@@ -1,4 +1,5 @@
 ---
+subcategory: "Azure Active Directory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_application"
 sidebar_current: "docs-azurerm-resource-azuread-application"
@@ -13,12 +14,12 @@ Manages an Application within Azure Active Directory.
 
 ~> **NOTE:** The Azure Active Directory resources have been split out into [a new AzureAD Provider](http://terraform.io/docs/providers/azuread/index.html) - as such the AzureAD resources within the AzureRM Provider are deprecated and will be removed in the next major version (2.0). Information on how to migrate from the existing resources to the new AzureAD Provider [can be found here](../guides/migrating-to-azuread.html).
 
--> **NOTE:** If you're authenticating using a Service Principal then it must have permissions to both `Read and write all applications` and `Sign in and read user profile` within the `Windows Azure Active Directory` API.
+-> **NOTE:** If you're authenticating using a Service Principal then it must have permissions to both `Read and write all applications` and `Sign in and read user profile` within the legacy `Windows Azure Active Directory` API.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_azuread_application" "test" {
+resource "azurerm_azuread_application" "example" {
   name                       = "example"
   homepage                   = "https://homepage"
   identifier_uris            = ["https://uri"]
@@ -55,5 +56,5 @@ The following attributes are exported:
 Azure Active Directory Applications can be imported using the `object id`, e.g.
 
 ```shell
-terraform import azurerm_azuread_application.test 00000000-0000-0000-0000-000000000000
+terraform import azurerm_azuread_application.example 00000000-0000-0000-0000-000000000000
 ```

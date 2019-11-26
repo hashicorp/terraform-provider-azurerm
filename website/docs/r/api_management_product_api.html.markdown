@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_product_api"
 sidebar_current: "docs-azurerm-resource-api-management-product-api"
@@ -18,14 +19,14 @@ data "azurerm_api_management" "example" {
   resource_group_name = "example-resources"
 }
 
-
 data "azurerm_api_management_api" "example" {
   name                = "search-api"
   api_management_name = "${data.azurerm_api_management.example.name}"
   resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
   revision            = "2"
 }
-data "azurerm_api_management_product" "test" {
+
+data "azurerm_api_management_product" "example" {
   product_id          = "my-product"
   api_management_name = "${data.azurerm_api_management.example.name}"
   resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"

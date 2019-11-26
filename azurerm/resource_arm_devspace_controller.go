@@ -3,13 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/devspaces/mgmt/2018-06-01-preview/devspaces"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/devspaces/mgmt/2019-04-01/devspaces"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -23,6 +27,13 @@ func resourceArmDevSpaceController() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -31,9 +42,9 @@ func resourceArmDevSpaceController() *schema.Resource {
 				ValidateFunc: validate.DevSpaceName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -62,13 +73,6 @@ func resourceArmDevSpaceController() *schema.Resource {
 				},
 			},
 
-			"host_suffix": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validate.NoEmptyStrings,
-			},
-
 			"target_container_host_resource_id": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -84,9 +88,14 @@ func resourceArmDevSpaceController() *schema.Resource {
 				ValidateFunc: validate.Base64String(),
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"data_plane_fqdn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"host_suffix": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -95,15 +104,16 @@ func resourceArmDevSpaceController() *schema.Resource {
 }
 
 func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller creation")
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -116,21 +126,19 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
+	location := azure.NormalizeLocation(d.Get("location").(string))
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandDevSpaceControllerSku(d)
 
-	hostSuffix := d.Get("host_suffix").(string)
 	tarCHResId := d.Get("target_container_host_resource_id").(string)
 	tarCHCredBase64 := d.Get("target_container_host_credentials_base64").(string)
 
 	controller := devspaces.Controller{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 		Sku:      sku,
 		ControllerProperties: &devspaces.ControllerProperties{
-			HostSuffix:                           &hostSuffix,
 			TargetContainerHostResourceID:        &tarCHResId,
 			TargetContainerHostCredentialsBase64: &tarCHCredBase64,
 		},
@@ -159,10 +167,11 @@ func resourceArmDevSpaceControllerCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -183,7 +192,7 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 	d.Set("name", result.Name)
 	d.Set("resource_group_name", resGroupName)
 	if location := result.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if err := d.Set("sku", flattenDevSpaceControllerSku(result.Sku)); err != nil {
@@ -196,23 +205,22 @@ func resourceArmDevSpaceControllerRead(d *schema.ResourceData, meta interface{})
 		d.Set("target_container_host_resource_id", props.TargetContainerHostResourceID)
 	}
 
-	flattenAndSetTags(d, result.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, result.Tags)
 }
 
 func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevSpace Controller updating")
 
 	name := d.Get("name").(string)
 	resGroupName := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	params := devspaces.ControllerUpdateParameters{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	result, err := client.Update(ctx, resGroupName, name, params)
@@ -229,10 +237,11 @@ func resourceArmDevSpaceControllerUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmDevSpaceControllerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devSpaceControllerClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevSpace.ControllersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

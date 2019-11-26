@@ -2,19 +2,24 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"bytes"
-
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/hashcode"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmVirtualNetworkGatewayRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -23,9 +28,9 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"location": locationForDataSourceSchema(),
+			"location": azure.SchemaLocationForDataSource(),
 
 			"type": {
 				Type:     schema.TypeString,
@@ -94,7 +99,7 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 						},
 
 						"root_certificate": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -109,11 +114,10 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 									},
 								},
 							},
-							Set: hashVirtualNetworkGatewayDataSourceRootCert,
 						},
 
 						"revoked_certificate": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Computed: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -128,7 +132,6 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 									},
 								},
 							},
-							Set: hashVirtualNetworkGatewayDataSourceRevokedCert,
 						},
 
 						"radius_server_address": {
@@ -180,14 +183,15 @@ func dataSourceArmVirtualNetworkGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsForDataSourceSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
 
 func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).vnetGatewayClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.VnetGatewayClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
@@ -206,7 +210,7 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if resp.VirtualNetworkGatewayPropertiesFormat != nil {
@@ -243,9 +247,7 @@ func dataSourceArmVirtualNetworkGatewayRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func flattenArmVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {
@@ -287,19 +289,18 @@ func flattenArmVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnCl
 
 	flat := make(map[string]interface{})
 
-	addressSpace := make([]interface{}, 0)
 	if pool := cfg.VpnClientAddressPool; pool != nil {
-		if prefixes := pool.AddressPrefixes; prefixes != nil {
-			for _, addr := range *prefixes {
-				addressSpace = append(addressSpace, addr)
-			}
-		}
+		flat["address_space"] = utils.FlattenStringSlice(pool.AddressPrefixes)
+	} else {
+		flat["address_space"] = []interface{}{}
 	}
-	flat["address_space"] = addressSpace
 
 	rootCerts := make([]interface{}, 0)
 	if certs := cfg.VpnClientRootCertificates; certs != nil {
 		for _, cert := range *certs {
+			if cert.Name == nil || cert.VpnClientRootCertificatePropertiesFormat == nil || cert.VpnClientRootCertificatePropertiesFormat.PublicCertData == nil {
+				continue
+			}
 			v := map[string]interface{}{
 				"name":             *cert.Name,
 				"public_cert_data": *cert.VpnClientRootCertificatePropertiesFormat.PublicCertData,
@@ -307,11 +308,14 @@ func flattenArmVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnCl
 			rootCerts = append(rootCerts, v)
 		}
 	}
-	flat["root_certificate"] = schema.NewSet(hashVirtualNetworkGatewayDataSourceRootCert, rootCerts)
+	flat["root_certificate"] = rootCerts
 
 	revokedCerts := make([]interface{}, 0)
 	if certs := cfg.VpnClientRevokedCertificates; certs != nil {
 		for _, cert := range *certs {
+			if cert.Name == nil || cert.VpnClientRevokedCertificatePropertiesFormat == nil || cert.VpnClientRevokedCertificatePropertiesFormat.Thumbprint == nil {
+				continue
+			}
 			v := map[string]interface{}{
 				"name":       *cert.Name,
 				"thumbprint": *cert.VpnClientRevokedCertificatePropertiesFormat.Thumbprint,
@@ -319,12 +323,12 @@ func flattenArmVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnCl
 			revokedCerts = append(revokedCerts, v)
 		}
 	}
-	flat["revoked_certificate"] = schema.NewSet(hashVirtualNetworkGatewayDataSourceRevokedCert, revokedCerts)
+	flat["revoked_certificate"] = revokedCerts
 
-	vpnClientProtocols := &schema.Set{F: schema.HashString}
+	vpnClientProtocols := make([]interface{}, 0)
 	if vpnProtocols := cfg.VpnClientProtocols; vpnProtocols != nil {
 		for _, protocol := range *vpnProtocols {
-			vpnClientProtocols.Add(string(protocol))
+			vpnClientProtocols = append(vpnClientProtocols, string(protocol))
 		}
 	}
 	flat["vpn_client_protocols"] = vpnClientProtocols
@@ -360,24 +364,4 @@ func flattenArmVirtualNetworkGatewayDataSourceBgpSettings(settings *network.BgpS
 	}
 
 	return output
-}
-
-func hashVirtualNetworkGatewayDataSourceRootCert(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["public_cert_data"].(string)))
-
-	return hashcode.String(buf.String())
-}
-
-func hashVirtualNetworkGatewayDataSourceRevokedCert(v interface{}) int {
-	var buf bytes.Buffer
-	m := v.(map[string]interface{})
-
-	buf.WriteString(fmt.Sprintf("%s-", m["name"].(string)))
-	buf.WriteString(fmt.Sprintf("%s-", m["thumbprint"].(string)))
-
-	return hashcode.String(buf.String())
 }

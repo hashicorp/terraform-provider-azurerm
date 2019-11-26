@@ -1,4 +1,5 @@
 ---
+subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_group"
 sidebar_current: "docs-azurerm-management-group"
@@ -16,20 +17,22 @@ Manages a Management Group.
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_management_group" "example_parent" {
-  display_name     = "ParentGroup"
+  display_name = "ParentGroup"
+
   subscription_ids = [
-    "${data.azurerm_subscription.current.id}",
+    "${data.azurerm_subscription.current.subscription_id}",
   ]
 }
 
 resource "azurerm_management_group" "example_child" {
   display_name               = "ChildGroup"
   parent_management_group_id = "${azurerm_management_group.example_parent.id}"
-  
+
   subscription_ids = [
-    "${data.azurerm_subscription.current.id}",
-    # other subscription IDs can go here
+    "${data.azurerm_subscription.current.subscription_id}",
   ]
+
+  # other subscription IDs can go here
 }
 ```
 
@@ -43,7 +46,7 @@ The following arguments are supported:
 
 * `parent_management_group_id` - (Optional) The ID of the Parent Management Group. Changing this forces a new resource to be created.
 
-* `subscription_ids` - (Optional) A list of Subscription ID's which should be assigned to the Management Group.
+* `subscription_ids` - (Optional) A list of Subscription GUIDs which should be assigned to the Management Group.
 
 ## Attributes Reference
 
@@ -56,5 +59,5 @@ The following attributes are exported:
 Management Groups can be imported using the `management group resource id`, e.g.
 
 ```shell
-terraform import azurerm_management_group.test /providers/Microsoft.Management/ManagementGroups/group1
+terraform import azurerm_management_group.example/providers/Microsoft.Management/ManagementGroups/group1
 ```

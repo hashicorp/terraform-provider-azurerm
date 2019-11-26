@@ -4,23 +4,35 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDevTestVirtualNetwork() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDevTestVirtualNetworkCreateUpdate,
+		Create: resourceArmDevTestVirtualNetworkCreate,
 		Read:   resourceArmDevTestVirtualNetworkRead,
-		Update: resourceArmDevTestVirtualNetworkCreateUpdate,
+		Update: resourceArmDevTestVirtualNetworkUpdate,
 		Delete: resourceArmDevTestVirtualNetworkDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -40,7 +52,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"description": {
 				Type:     schema.TypeString,
@@ -77,7 +89,7 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"unique_identifier": {
 				Type:     schema.TypeString,
@@ -87,9 +99,10 @@ func resourceArmDevTestVirtualNetwork() *schema.Resource {
 	}
 }
 
-func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualNetworksClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmDevTestVirtualNetworkCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
 
@@ -97,7 +110,7 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 	labName := d.Get("lab_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, labName, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -111,14 +124,14 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 	}
 
 	description := d.Get("description").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	subscriptionId := meta.(*ArmClient).subscriptionId
 	subnetsRaw := d.Get("subnet").([]interface{})
-	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, labName, name)
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
 
 	parameters := dtl.VirtualNetwork{
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
 			Description:     utils.String(description),
 			SubnetOverrides: subnets,
@@ -127,11 +140,11 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating/updating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error creating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for creation/update of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+		return fmt.Errorf("Error waiting for creation of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
 	}
 
 	read, err := client.Get(ctx, resourceGroup, labName, name, "")
@@ -145,14 +158,15 @@ func resourceArmDevTestVirtualNetworkCreateUpdate(d *schema.ResourceData, meta i
 
 	d.SetId(*read.ID)
 
-	return resourceArmDevTestVirtualNetworkRead(d, meta)
+	return resourceArmDevTestVirtualNetworkUpdate(d, meta)
 }
 
 func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualNetworksClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -187,16 +201,64 @@ func resourceArmDevTestVirtualNetworkRead(d *schema.ResourceData, meta interface
 		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 
-	flattenAndSetTags(d, read.Tags)
+	return tags.FlattenAndSet(d, read.Tags)
+}
 
-	return nil
+func resourceArmDevTestVirtualNetworkUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for DevTest Virtual Network creation")
+
+	name := d.Get("name").(string)
+	labName := d.Get("lab_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	description := d.Get("description").(string)
+	t := d.Get("tags").(map[string]interface{})
+
+	subscriptionId := meta.(*ArmClient).subscriptionId
+	subnetsRaw := d.Get("subnet").([]interface{})
+	subnets := expandDevTestVirtualNetworkSubnets(subnetsRaw, subscriptionId, resourceGroup, name)
+
+	parameters := dtl.VirtualNetwork{
+		Tags: tags.Expand(t),
+		VirtualNetworkProperties: &dtl.VirtualNetworkProperties{
+			Description:     utils.String(description),
+			SubnetOverrides: subnets,
+		},
+	}
+
+	future, err := client.CreateOrUpdate(ctx, resourceGroup, labName, name, parameters)
+	if err != nil {
+		return fmt.Errorf("Error updating DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting for update of DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+	}
+
+	read, err := client.Get(ctx, resourceGroup, labName, name, "")
+	if err != nil {
+		return fmt.Errorf("Error retrieving DevTest Virtual Network %q (Lab %q / Resource Group %q): %+v", name, labName, resourceGroup, err)
+	}
+
+	if read.ID == nil {
+		return fmt.Errorf("Cannot read DevTest Virtual Network %q (Lab %q / Resource Group %q) ID", name, labName, resourceGroup)
+	}
+
+	d.SetId(*read.ID)
+
+	return resourceArmDevTestVirtualNetworkRead(d, meta)
 }
 
 func resourceArmDevTestVirtualNetworkDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).devTestVirtualNetworksClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DevTestLabs.VirtualNetworksClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -233,12 +295,12 @@ func validateDevTestVirtualNetworkName() schema.SchemaValidateFunc {
 		"Virtual Network Name can only include alphanumeric characters, underscores, hyphens.")
 }
 
-func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, labName, virtualNetworkName string) *[]dtl.SubnetOverride {
+func expandDevTestVirtualNetworkSubnets(input []interface{}, subscriptionId, resourceGroupName, virtualNetworkName string) *[]dtl.SubnetOverride {
 	results := make([]dtl.SubnetOverride, 0)
 	// default found from the Portal
 	name := fmt.Sprintf("%sSubnet", virtualNetworkName)
-	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.DevTestLab/labs/%s/virtualnetworks/%s/subnets/%s"
-	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, labName, virtualNetworkName, name)
+	idFmt := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/virtualNetworks/%s/subnets/%s"
+	subnetId := fmt.Sprintf(idFmt, subscriptionId, resourceGroupName, virtualNetworkName, name)
 	if len(input) == 0 {
 		result := dtl.SubnetOverride{
 			ResourceID:                   utils.String(subnetId),

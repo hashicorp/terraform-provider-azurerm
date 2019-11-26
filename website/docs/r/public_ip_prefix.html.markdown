@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_public_ip_prefix"
 sidebar_current: "docs-azurerm-resource-network-public-ip-prefix"
@@ -8,24 +9,22 @@ description: |-
 
 # azurerm_public_ip_prefix
 
-Manage a Public IP Prefix.
-
--> **NOTE** Public IP Prefix are currently in Public Preview. You can find more information about [Public IP Preifx Preview here](https://docs.microsoft.com/en-us/azure/virtual-network/public-ip-address-prefix).
+Manages a Public IP Prefix.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
   location = "West Europe"
 }
 
-resource "azurerm_public_ip_prefix" "test" {
+resource "azurerm_public_ip_prefix" "example" {
   name                = "acceptanceTestPublicIpPrefix1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
-  prefix_length   = 31
+  prefix_length = 31
 
   tags = {
     environment = "Production"

@@ -6,11 +6,13 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,6 +29,13 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -46,13 +55,14 @@ func resourceArmSecurityCenterWorkspace() *schema.Resource {
 }
 
 func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	priceClient := meta.(*ArmClient).securityCenterPricingClient
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
-	ctx := meta.(*ArmClient).StopContext
+	priceClient := meta.(*ArmClient).SecurityCenter.PricingClient
+	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := securityCenterWorkspaceName
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -100,10 +110,8 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Waiting"},
 		Target:     []string{"Populated"},
-		Timeout:    30 * time.Minute,
 		MinTimeout: 30 * time.Second,
 		Refresh: func() (interface{}, string, error) {
-
 			resp, err2 := client.Get(ctx, name)
 			if err2 != nil {
 				return resp, "Error", fmt.Errorf("Error reading Security Center Workspace: %+v", err2)
@@ -119,6 +127,16 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 		},
 	}
 
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 30 * time.Minute
+	}
+
 	resp, err := stateConf.WaitForState()
 	if err != nil {
 		return fmt.Errorf("Error waiting: %+v", err)
@@ -132,8 +150,9 @@ func resourceArmSecurityCenterWorkspaceCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Get(ctx, securityCenterWorkspaceName)
 	if err != nil {
@@ -154,9 +173,10 @@ func resourceArmSecurityCenterWorkspaceRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceArmSecurityCenterWorkspaceDelete(_ *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).securityCenterWorkspaceClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmSecurityCenterWorkspaceDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).SecurityCenter.WorkspaceClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resp, err := client.Delete(ctx, securityCenterWorkspaceName)
 	if err != nil {

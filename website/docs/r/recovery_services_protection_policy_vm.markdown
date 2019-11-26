@@ -1,4 +1,5 @@
 ---
+subcategory: "Recovery Services"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
 sidebar_current: "docs-azurerm-recovery-services-protection-policy-vm"
@@ -25,7 +26,7 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "test" {
+resource "azurerm_recovery_services_protection_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
@@ -91,7 +92,7 @@ The `backup` block supports:
 
 * `frequency` - (Required) Sets the backup frequency. Must be either `Daily` or`Weekly`. 
 
-* `times` - (Required) The time of day to preform the backup in 24hour format.
+* `times` - (Required) The time of day to perform the backup in 24hour format.
 
 * `weekdays` - (Optional) The days of the week to perform backups on. Must be one of `Sunday`, `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday` or `Saturday`.
 
@@ -129,7 +130,7 @@ The `retention_yearly` block supports:
 
 * `weeks` - (Required) The weeks of the month to retain backups of. Must be one of `First`, `Second`, `Third`, `Fourth`, `Last`.
 
-* `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `Febuary`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
+* `months` - (Required) The months of the year to retain backups of. Must be one of `January`, `February`, `March`, `April`, `May`, `June`, `July`, `Augest`, `September`, `October`, `November` and `December`.
 
 ---
 

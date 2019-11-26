@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_notification_hub_namespace"
 sidebar_current: "docs-azurerm-resource-messaging-notification-hub-namespace"
@@ -14,20 +15,18 @@ Manages a Notification Hub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "notificationhub-resources"
   location = "Australia East"
 }
 
-resource "azurerm_notification_hub_namespace" "test" {
+resource "azurerm_notification_hub_namespace" "example" {
   name                = "myappnamespace"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   namespace_type      = "NotificationHub"
 
-  sku {
-    name = "Free"
-  }
+  sku_name = "Free"
 }
 ```
 
@@ -43,11 +42,13 @@ The following arguments are supported:
 
 * `namespace_type` - (Required) The Type of Namespace - possible values are `Messaging` or `NotificationHub`. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
+
+* `sku_name` - (Optional) The name of the SKU to use for this Notification Hub Namespace. Possible values are `Free`, `Basic` or `Standard`. Changing this forces a new resource to be created.
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
 
----
+----
 
 A `sku` block contains:
 

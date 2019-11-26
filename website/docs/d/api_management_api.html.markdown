@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api"
 sidebar_current: "docs-azurerm-datasource-azurerm-api-management-api-x"
@@ -13,7 +14,7 @@ Use this data source to access information about an existing API Management API.
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management_api" "test" {
+data "azurerm_api_management_api" "example" {
   name                = "search-api"
   api_management_name = "search-api-management"
   resource_group_name = "search-service"
@@ -21,7 +22,7 @@ data "azurerm_api_management_api" "test" {
 }
 
 output "api_management_api_id" {
-  value = "${data.azurerm_api_management_api.test.id}"
+  value = "${data.azurerm_api_management_api.example.id}"
 }
 ```
 

@@ -1,4 +1,5 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_access_policy"
 sidebar_current: "docs-azurerm-resource-key-vault-access-policy"
@@ -17,19 +18,17 @@ Manages a Key Vault Access Policy.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "resourceGroup1"
-  location = "${azurerm_resource_group.test.location}"
+  location = "${azurerm_resource_group.example.location}"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "testvault"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   tenant_id = "22222222-2222-2222-2222-222222222222"
 
@@ -40,9 +39,8 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_access_policy" "test" {
-  vault_name          = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+resource "azurerm_key_vault_access_policy" "example" {
+  key_vault_id = "${azurerm_key_vault.example.id}"
 
   tenant_id = "00000000-0000-0000-0000-000000000000"
   object_id = "11111111-1111-1111-1111-111111111111"
@@ -61,10 +59,15 @@ resource "azurerm_key_vault_access_policy" "test" {
 
 The following arguments are supported:
 
-* `vault_name` - (Required) Specifies the name of the Key Vault resource. Changing this
+* `key_vault_id` - (Required) Specifies the id of the Key Vault resource. Changing this
     forces a new resource to be created.
 
-* `resource_group_name` - (Required) The name of the resource group in which to
+-> **NOTE:** At this time the Key Vault `<->` Key Vault Access Policy associations need to be configured using the field `key_vault_id` or using both fields `vault_name` and `resource_group_name`. These fields are now deprecated and will be removed in favour of `key_vault_id` in the next major version (2.0) of the AzureRM Provider.
+
+* `vault_name` - (Required / **Deprecated**) Specifies the name of the Key Vault resource. Changing this
+    forces a new resource to be created.
+
+* `resource_group_name` - (Required / **Deprecated**) The name of the resource group in which to
     create the namespace. Changing this forces a new resource to be created.
 
 * `tenant_id` - (Required) The Azure Active Directory tenant ID that should be used
@@ -106,7 +109,7 @@ Key Vault Access Policies can be imported using the Resource ID of the Key Vault
 If both an `object_id` and `application_id` are specified, then the Access Policy can be imported using the following code:
 
 ```shell
-terraform import azurerm_key_vault_access_policy.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111/applicationId/22222222-2222-2222-2222-222222222222
+terraform import azurerm_key_vault_access_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111/applicationId/22222222-2222-2222-2222-222222222222
 ```
 
 where `11111111-1111-1111-1111-111111111111` is the `object_id` and `22222222-2222-2222-2222-222222222222` is the `application_id`.
@@ -116,7 +119,7 @@ where `11111111-1111-1111-1111-111111111111` is the `object_id` and `22222222-22
 Access Policies with an `object_id` but no `application_id` can be imported using the following command:
 
 ```shell
-terraform import azurerm_key_vault_access_policy.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111
+terraform import azurerm_key_vault_access_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/vaults/test-vault/objectId/11111111-1111-1111-1111-111111111111
 ```
 
 where `11111111-1111-1111-1111-111111111111` is the `object_id`.

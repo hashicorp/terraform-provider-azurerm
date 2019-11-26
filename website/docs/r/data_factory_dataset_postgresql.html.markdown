@@ -1,14 +1,15 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_dataset_postgresql"
 sidebar_current: "docs-azurerm-resource-data-factory-dataset-postgresql"
 description: |-
-  Manage a PostgreSQL Dataset inside a Azure Data Factory.
+  Manages a PostgreSQL Dataset inside a Azure Data Factory.
 ---
 
 # azurerm_data_factory_dataset_postgresql
 
-Manage a PostgreSQL Dataset inside a Azure Data Factory.
+Manages a PostgreSQL Dataset inside a Azure Data Factory.
 
 ## Example Usage
 
@@ -35,7 +36,7 @@ resource "azurerm_data_factory_dataset_postgresql" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
   data_factory_name   = "${azurerm_data_factory.example.name}"
-  linked_service_name = "${azurerm_data_factory_linked_service_postgresql.test.name}"
+  linked_service_name = "${azurerm_data_factory_linked_service_postgresql.example.name}"
 }
 ```
 

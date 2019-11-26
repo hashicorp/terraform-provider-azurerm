@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit_peering"
 sidebar_current: "docs-azurerm-resource-network-express-route-circuit-peering"
@@ -13,15 +14,15 @@ Manages an ExpressRoute Circuit Peering.
 ## Example Usage (Creating a Microsoft Peering)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "exprtTest"
   location = "West US"
 }
 
-resource "azurerm_express_route_circuit" "test" {
+resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  location              = "${azurerm_resource_group.example.location}"
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50
@@ -38,10 +39,10 @@ resource "azurerm_express_route_circuit" "test" {
   }
 }
 
-resource "azurerm_express_route_circuit_peering" "test" {
+resource "azurerm_express_route_circuit_peering" "example" {
   peering_type                  = "MicrosoftPeering"
-  express_route_circuit_name    = "${azurerm_express_route_circuit.test.name}"
-  resource_group_name           = "${azurerm_resource_group.test.name}"
+  express_route_circuit_name    = "${azurerm_express_route_circuit.example.name}"
+  resource_group_name           = "${azurerm_resource_group.example.name}"
   peer_asn                      = 100
   primary_peer_address_prefix   = "123.0.0.0/30"
   secondary_peer_address_prefix = "123.0.0.4/30"

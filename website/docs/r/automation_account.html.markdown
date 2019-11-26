@@ -1,4 +1,5 @@
 ---
+subcategory: "Automation"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_automation_account"
 sidebar_current: "docs-azurerm-resource-automation-account"
@@ -23,9 +24,7 @@ resource "azurerm_automation_account" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  sku {
-    name = "Basic"
-  }
+  sku_name = "Basic"
 
   tags = {
     environment = "development"
@@ -43,13 +42,19 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku` - (Required) A `sku` block as defined below.
+* `sku` - (Optional **Deprecated**)) A `sku` block as described below.
+
+* `sku_name` - (Optional) The SKU name of the account - only `Basic` is supported at this time.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
-`sku` supports the following:
+----
 
-* `name` - (Optional) The SKU name of the account - only `Basic` is supported at this time. Defaults to `Basic`.
+A `sku` block supports the following:
+
+* `name` - (Required) The SKU name of the account - only `Basic` is supported at this time.
+
+----
 
 ## Attributes Reference
 

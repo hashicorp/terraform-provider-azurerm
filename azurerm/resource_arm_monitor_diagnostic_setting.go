@@ -7,14 +7,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2018-03-01/insights"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +28,13 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 		Delete: resourceArmMonitorDiagnosticSettingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -71,6 +80,13 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: azure.ValidateResourceID,
+			},
+
+			"log_analytics_destination_type": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     false,
+				ValidateFunc: validation.StringInSlice([]string{"Dedicated"}, false),
 			},
 
 			"log": {
@@ -155,14 +171,15 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 }
 
 func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Printf("[INFO] preparing arguments for Azure ARM Diagnostic Settings.")
 
 	name := d.Get("name").(string)
 	actualResourceId := d.Get("target_resource_id").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, actualResourceId, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -234,6 +251,14 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 		valid = true
 	}
 
+	if v := d.Get("log_analytics_destination_type").(string); v != "" {
+		if workspaceId != "" {
+			properties.DiagnosticSettings.LogAnalyticsDestinationType = &v
+		} else {
+			return fmt.Errorf("`log_analytics_workspace_id` must be set for `log_analytics_destination_type` to be used")
+		}
+	}
+
 	if !valid {
 		return fmt.Errorf("Either a `eventhub_authorization_rule_id`, `log_analytics_workspace_id` or `storage_account_id` must be set")
 	}
@@ -258,8 +283,9 @@ func resourceArmMonitorDiagnosticSettingCreateUpdate(d *schema.ResourceData, met
 }
 
 func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseMonitorDiagnosticId(d.Id())
 	if err != nil {
@@ -287,6 +313,8 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 	d.Set("log_analytics_workspace_id", resp.WorkspaceID)
 	d.Set("storage_account_id", resp.StorageAccountID)
 
+	d.Set("log_analytics_destination_type", resp.LogAnalyticsDestinationType)
+
 	if err := d.Set("log", flattenMonitorDiagnosticLogs(resp.Logs)); err != nil {
 		return fmt.Errorf("Error setting `log`: %+v", err)
 	}
@@ -299,8 +327,9 @@ func resourceArmMonitorDiagnosticSettingRead(d *schema.ResourceData, meta interf
 }
 
 func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitorDiagnosticSettingsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Monitor.DiagnosticSettingsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseMonitorDiagnosticId(d.Id())
 	if err != nil {
@@ -321,10 +350,16 @@ func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   monitorDiagnosticSettingDeletedRefreshFunc(ctx, client, targetResourceId, id.name),
-		Timeout:                   60 * time.Minute,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 60 * time.Minute
+	}
+
 	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.name, id.resourceID, err)
 	}
@@ -332,7 +367,7 @@ func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client insights.DiagnosticSettingsClient, targetResourceId string, name string) resource.StateRefreshFunc {
+func monitorDiagnosticSettingDeletedRefreshFunc(ctx context.Context, client *insights.DiagnosticSettingsClient, targetResourceId string, name string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		res, err := client.Get(ctx, targetResourceId, name)
 		if err != nil {

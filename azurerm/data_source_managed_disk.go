@@ -2,14 +2,23 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmManagedDisk() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmManagedDiskRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -17,9 +26,9 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Required: true,
 			},
 
-			"resource_group_name": resourceGroupNameForDataSourceSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"zones": zonesSchemaComputed(),
+			"zones": azure.SchemaZonesComputed(),
 
 			"storage_account_type": {
 				Type:     schema.TypeString,
@@ -51,14 +60,25 @@ func dataSourceArmManagedDisk() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"disk_iops_read_write": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"disk_mbps_read_write": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).diskClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Compute.DisksClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -78,12 +98,10 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if props := resp.DiskProperties; props != nil {
-		if diskSize := props.DiskSizeGB; diskSize != nil {
-			d.Set("disk_size_gb", *diskSize)
-		}
-		if osType := props.OsType; osType != "" {
-			d.Set("os_type", string(osType))
-		}
+		d.Set("disk_size_gb", props.DiskSizeGB)
+		d.Set("disk_iops_read_write", props.DiskIOPSReadWrite)
+		d.Set("disk_mbps_read_write", props.DiskMBpsReadWrite)
+		d.Set("os_type", props.OsType)
 	}
 
 	if resp.CreationData != nil {
@@ -92,7 +110,5 @@ func dataSourceArmManagedDiskRead(d *schema.ResourceData, meta interface{}) erro
 
 	d.Set("zones", resp.Zones)
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }

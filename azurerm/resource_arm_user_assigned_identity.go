@@ -3,11 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/msi/mgmt/2015-08-31-preview/msi"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -21,19 +26,26 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringLenBetween(1, 24),
+				ValidateFunc: validation.StringLenBetween(3, 128),
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"principal_id": {
 				Type:     schema.TypeString,
@@ -49,17 +61,18 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 }
 
 func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).userAssignedIdentitiesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure ARM user identity creation.")
 
 	name := d.Get("name").(string)
 	location := d.Get("location").(string)
 	resGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -75,7 +88,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 	identity := msi.Identity{
 		Name:     &name,
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resGroup, name, identity); err != nil {
@@ -97,10 +110,11 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).userAssignedIdentitiesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -130,16 +144,15 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).userAssignedIdentitiesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -1,14 +1,15 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_pipeline"
 sidebar_current: "docs-azurerm-resource-data-factory-pipeline"
 description: |-
-  Manage a Pipeline inside a Azure Data Factory.
+  Manages a Pipeline inside a Azure Data Factory.
 ---
 
 # azurerm_data_factory_pipeline
 
-Manage a Pipeline inside a Azure Data Factory.
+Manages a Pipeline inside a Azure Data Factory.
 
 ## Example Usage
 

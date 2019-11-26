@@ -1,4 +1,5 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_stream_input_iothub"
 sidebar_current: "docs-azurerm-resource-stream-analytics-stream-input-iothub"
@@ -22,8 +23,7 @@ data "azurerm_stream_analytics_job" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-
-resource "azurerm_iothub" "test" {
+resource "azurerm_iothub" "example" {
   name                = "example-iothub"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
@@ -35,7 +35,7 @@ resource "azurerm_iothub" "test" {
   }
 }
 
-resource "azurerm_stream_analytics_stream_input_iothub" "test" {
+resource "azurerm_stream_analytics_stream_input_iothub" "example" {
   name                         = "example-iothub-input"
   stream_analytics_job_name    = "${data.azurerm_stream_analytics_job.example.name}"
   resource_group_name          = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
@@ -80,7 +80,7 @@ A `serialization` block supports the following:
 
 * `type` - (Required) The serialization format used for incoming data streams. Possible values are `Avro`, `Csv` and `Json`.
 
-* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output.
+* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
 -> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
 
@@ -99,5 +99,5 @@ The following attributes are exported in addition to the arguments listed above:
 Stream Analytics Stream Input IoTHub's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_stream_input_iothub.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
+terraform import azurerm_stream_analytics_stream_input_iothub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/inputs/input1
 ```

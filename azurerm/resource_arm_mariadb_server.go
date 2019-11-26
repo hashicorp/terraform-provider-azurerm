@@ -6,14 +6,18 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,6 +31,13 @@ func resourceArmMariaDbServer() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -38,9 +49,9 @@ func resourceArmMariaDbServer() *schema.Resource {
 				),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"sku": {
 				Type:     schema.TypeList,
@@ -120,6 +131,7 @@ func resourceArmMariaDbServer() *schema.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"10.2",
+					"10.3",
 				}, false),
 			},
 
@@ -149,6 +161,16 @@ func resourceArmMariaDbServer() *schema.Resource {
 								string(mariadb.Disabled),
 							}, false),
 						},
+
+						"auto_grow": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  string(mariadb.StorageAutogrowEnabled),
+							ValidateFunc: validation.StringInSlice([]string{
+								string(mariadb.StorageAutogrowEnabled),
+								string(mariadb.StorageAutogrowDisabled),
+							}, false),
+						},
 					},
 				},
 			},
@@ -167,21 +189,22 @@ func resourceArmMariaDbServer() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).MariaDB.ServersClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM MariaDB Server creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -194,12 +217,12 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	adminLogin := d.Get("administrator_login").(string)
 	adminLoginPassword := d.Get("administrator_login_password").(string)
 	sslEnforcement := d.Get("ssl_enforcement").(string)
 	version := d.Get("version").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	sku := expandAzureRmMariaDbServerSku(d)
 	storageProfile := expandAzureRmMariaDbStorageProfile(d)
@@ -267,7 +290,7 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 			CreateMode:                 mariadb.CreateModeDefault,
 		},
 		Sku:  sku,
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, properties)
@@ -294,10 +317,11 @@ func resourceArmMariaDbServerCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).MariaDB.ServersClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -319,7 +343,7 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if properties := resp.ServerProperties; properties != nil {
@@ -338,16 +362,15 @@ func resourceArmMariaDbServerRead(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Error setting `sku`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMariaDbServerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).mariadbServersClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).MariaDB.ServersClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -398,11 +421,13 @@ func expandAzureRmMariaDbStorageProfile(d *schema.ResourceData) *mariadb.Storage
 	backupRetentionDays := storageprofile["backup_retention_days"].(int)
 	geoRedundantBackup := storageprofile["geo_redundant_backup"].(string)
 	storageMB := storageprofile["storage_mb"].(int)
+	autoGrow := storageprofile["auto_grow"].(string)
 
 	return &mariadb.StorageProfile{
 		BackupRetentionDays: utils.Int32(int32(backupRetentionDays)),
 		GeoRedundantBackup:  mariadb.GeoRedundantBackup(geoRedundantBackup),
 		StorageMB:           utils.Int32(int32(storageMB)),
+		StorageAutogrow:     mariadb.StorageAutogrow(autoGrow),
 	}
 }
 
@@ -446,6 +471,8 @@ func flattenMariaDbStorageProfile(storage *mariadb.StorageProfile) []interface{}
 	}
 
 	values["geo_redundant_backup"] = string(storage.GeoRedundantBackup)
+
+	values["auto_grow"] = string(storage.StorageAutogrow)
 
 	return []interface{}{values}
 }

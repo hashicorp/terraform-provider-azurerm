@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -36,7 +37,7 @@ func TestAccAzureRMServiceBusSubscription_basic(t *testing.T) {
 }
 
 func TestAccAzureRMServiceBusSubscription_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -189,8 +190,43 @@ func TestAccAzureRMServiceBusSubscription_updateForwardTo(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(t *testing.T) {
+	resourceName := "azurerm_servicebus_subscription.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+	preConfig := testAccAzureRMServiceBusSubscription_basic(ri, location)
+	postConfig := testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(ri, location)
+
+	expectedValue := fmt.Sprintf("acctestservicebustopic-forward_dl_messages_to-%d", ri)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMServiceBusSubscriptionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMServiceBusSubscriptionExists(resourceName),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "forward_dead_lettered_messages_to", expectedValue),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMServiceBusSubscriptionDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).serviceBusSubscriptionsClient
+	client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -232,10 +268,10 @@ func testCheckAzureRMServiceBusSubscriptionExists(resourceName string) resource.
 		namespaceName := rs.Primary.Attributes["namespace_name"]
 		resourceGroup, hasResourceGroup := rs.Primary.Attributes["resource_group_name"]
 		if !hasResourceGroup {
-			return fmt.Errorf("Bad: no resource group found in state for subscription: %q", topicName)
+			return fmt.Errorf("Bad: no resource group found in state for Subscription: %q", topicName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).serviceBusSubscriptionsClient
+		client := testAccProvider.Meta().(*ArmClient).ServiceBus.SubscriptionsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, namespaceName, topicName, subscriptionName)
@@ -286,7 +322,8 @@ func testAccAzureRMServiceBusSubscription_basic(rInt int, location string) strin
 
 func testAccAzureRMServiceBusSubscription_requiresImport(rInt int, location string) string {
 	return fmt.Sprintf(`
-%s 
+
+%s
 
 resource "azurerm_servicebus_subscription" "import" {
     name                = "${azurerm_servicebus_subscription.test.name}"
@@ -325,4 +362,18 @@ resource "azurerm_servicebus_topic" "forward_to" {
 `
 	return fmt.Sprintf(forwardToTf, rInt, location, rInt, rInt, rInt,
 		"forward_to = \"${azurerm_servicebus_topic.forward_to.name}\"\n", rInt)
+}
+
+func testAccAzureRMServiceBusSubscription_updateForwardDeadLetteredMessagesTo(rInt int, location string) string {
+	forwardToTf := testAccAzureRMServiceBusSubscription_tfTemplate + `
+
+resource "azurerm_servicebus_topic" "forward_dl_messages_to" {
+    name = "acctestservicebustopic-forward_dl_messages_to-%d"
+    namespace_name = "${azurerm_servicebus_namespace.test.name}"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+`
+	return fmt.Sprintf(forwardToTf, rInt, location, rInt, rInt, rInt,
+		"forward_dead_lettered_messages_to = \"${azurerm_servicebus_topic.forward_dl_messages_to.name}\"\n", rInt)
 }

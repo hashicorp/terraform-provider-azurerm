@@ -100,7 +100,6 @@ func TestIntDivisibleBy(t *testing.T) {
 }
 
 func TestIntInSlice(t *testing.T) {
-
 	cases := []struct {
 		Input  []int
 		Value  int
@@ -140,5 +139,4 @@ func TestIntInSlice(t *testing.T) {
 			t.Fatalf("Expected the validateIntInSlice trigger a validation error for input: %+v looking for %+v", tc.Input, tc.Value)
 		}
 	}
-
 }

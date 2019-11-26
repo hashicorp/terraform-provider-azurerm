@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_traffic_manager_profile"
 sidebar_current: "docs-azurerm-resource-network-traffic-manager-profile"
@@ -23,14 +24,14 @@ resource "random_id" "server" {
   byte_length = 8
 }
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "trafficmanagerProfile"
   location = "West US"
 }
 
-resource "azurerm_traffic_manager_profile" "test" {
+resource "azurerm_traffic_manager_profile" "example" {
   name                   = "${random_id.server.hex}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
+  resource_group_name    = "${azurerm_resource_group.example.name}"
   traffic_routing_method = "Weighted"
 
   dns_config {
@@ -39,9 +40,12 @@ resource "azurerm_traffic_manager_profile" "test" {
   }
 
   monitor_config {
-    protocol = "http"
-    port     = 80
-    path     = "/"
+    protocol                     = "http"
+    port                         = 80
+    path                         = "/"
+    interval_in_seconds          = 30
+    timeout_in_seconds           = 9
+    tolerated_number_of_failures = 3
   }
 
   tags = {
@@ -97,6 +101,12 @@ The `monitor_config` block supports:
 
 * `path` - (Optional) The path used by the monitoring checks. Required when `protocol` is set to `HTTP` or `HTTPS` - cannot be set when `protocol` is set to `TCP`.
 
+* `interval_in_seconds` - (Optional) The interval used to check the endpoint health from a Traffic Manager probing agent. You can specify two values here: `30` (normal probing) and `10` (fast probing). The default value is `30`.
+
+* `timeout_in_seconds` - (Optional) The amount of time the Traffic Manager probing agent should wait before considering that check a failure when a health check probe is sent to the endpoint. If `interval_in_seconds` is set to `30`, then `timeout_in_seconds` can be between `5` and `10`. The default value is `10`. If `interval_in_seconds` is set to `10`, then valid values are between `5` and `9` and `timeout_in_seconds` is required.
+
+* `tolerated_number_of_failures` - (Optional) The number of failures a Traffic Manager probing agent tolerates before marking that endpoint as unhealthy. Valid values are between `0` and `9`. The default value is `3`
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -113,5 +123,5 @@ The Traffic Manager is created with the location `global`.
 Traffic Manager Profiles can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_traffic_manager_profile.testProfile /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1
+terraform import azurerm_traffic_manager_profile.exampleProfile /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/trafficManagerProfiles/mytrafficmanagerprofile1
 ```

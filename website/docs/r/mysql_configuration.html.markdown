@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_configuration"
 sidebar_current: "docs-azurerm-resource-database-mysql-configuration"
@@ -13,15 +14,15 @@ Sets a MySQL Configuration value on a MySQL Server.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
+resource "azurerm_mysql_server" "example" {
   name                = "mysql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
@@ -42,10 +43,10 @@ resource "azurerm_mysql_server" "test" {
   ssl_enforcement              = "Enabled"
 }
 
-resource "azurerm_mysql_configuration" "test" {
+resource "azurerm_mysql_configuration" "example" {
   name                = "interactive_timeout"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  server_name         = "${azurerm_mysql_server.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  server_name         = "${azurerm_mysql_server.example.name}"
   value               = "600"
 }
 ```

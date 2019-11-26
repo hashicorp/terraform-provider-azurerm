@@ -1,14 +1,15 @@
 ---
+subcategory: "Data Factory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_data_factory_linked_service_mysql"
 sidebar_current: "docs-azurerm-resource-data-factory-linked-service-mysql"
 description: |-
-  Manage a Linked Service (connection) between MySQL and Azure Data Factory.
+  Manages a Linked Service (connection) between MySQL and Azure Data Factory.
 ---
 
 # azurerm_data_factory_linked_service_mysql
 
-Manage a Linked Service (connection) between MySQL and Azure Data Factory.
+Manages a Linked Service (connection) between MySQL and Azure Data Factory.
 
 ~> **Note:** All arguments including the connection_string will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
@@ -28,8 +29,8 @@ resource "azurerm_data_factory" "example" {
 
 resource "azurerm_data_factory_linked_service_mysql" "example" {
   name                = "example"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  data_factory_name   = "${azurerm_data_factory.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  data_factory_name   = "${azurerm_data_factory.example.name}"
   connection_string   = "Server=test;Port=3306;Database=test;User=test;SSLMode=1;UseSystemTrustStore=0;Password=test"
 }
 ```

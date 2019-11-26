@@ -3,12 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +25,13 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 		Delete: resourceArmKeyVaultSecretDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceArmKeyVaultChildResourceImporter,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -61,20 +73,33 @@ func resourceArmKeyVaultSecret() *schema.Resource {
 				Optional: true,
 			},
 
+			"not_before_date": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RFC3339Time,
+			},
+
+			"expiration_date": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validate.RFC3339Time,
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
 func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) error {
-	vaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	vaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret creation.")
 
@@ -89,7 +114,7 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 		pKeyVaultBaseUrl, err := azure.GetKeyVaultBaseUrlFromID(ctx, vaultClient, keyVaultId)
 		if err != nil {
-			return fmt.Errorf("Error looking up Secret %q vault url form id %q: %+v", name, keyVaultId, err)
+			return fmt.Errorf("Error looking up Secret %q vault url from id %q: %+v", name, keyVaultId, err)
 		}
 
 		keyVaultBaseUrl = pKeyVaultBaseUrl
@@ -101,7 +126,7 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 		d.Set("key_vault_id", id)
 	}
 
-	if requireResourcesToBeImported {
+	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetSecret(ctx, keyVaultBaseUrl, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -116,12 +141,25 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	parameters := keyvault.SecretSetParameters{
-		Value:       utils.String(value),
-		ContentType: utils.String(contentType),
-		Tags:        expandTags(tags),
+		Value:            utils.String(value),
+		ContentType:      utils.String(contentType),
+		Tags:             tags.Expand(t),
+		SecretAttributes: &keyvault.SecretAttributes{},
+	}
+
+	if v, ok := d.GetOk("not_before_date"); ok {
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		notBeforeUnixTime := date.UnixTime(notBeforeDate)
+		parameters.SecretAttributes.NotBefore = &notBeforeUnixTime
+	}
+
+	if v, ok := d.GetOk("expiration_date"); ok {
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		expirationUnixTime := date.UnixTime(expirationDate)
+		parameters.SecretAttributes.Expires = &expirationUnixTime
 	}
 
 	if _, err := client.SetSecret(ctx, keyVaultBaseUrl, name, parameters); err != nil {
@@ -143,9 +181,10 @@ func resourceArmKeyVaultSecretCreate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 	log.Print("[INFO] preparing arguments for AzureRM KeyVault Secret update.")
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
@@ -173,14 +212,29 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 
 	value := d.Get("value").(string)
 	contentType := d.Get("content_type").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
+
+	secretAttributes := &keyvault.SecretAttributes{}
+
+	if v, ok := d.GetOk("not_before_date"); ok {
+		notBeforeDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		notBeforeUnixTime := date.UnixTime(notBeforeDate)
+		secretAttributes.NotBefore = &notBeforeUnixTime
+	}
+
+	if v, ok := d.GetOk("expiration_date"); ok {
+		expirationDate, _ := time.Parse(time.RFC3339, v.(string)) //validated by schema
+		expirationUnixTime := date.UnixTime(expirationDate)
+		secretAttributes.Expires = &expirationUnixTime
+	}
 
 	if d.HasChange("value") {
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
-			Value:       utils.String(value),
-			ContentType: utils.String(contentType),
-			Tags:        expandTags(tags),
+			Value:            utils.String(value),
+			ContentType:      utils.String(contentType),
+			Tags:             tags.Expand(t),
+			SecretAttributes: secretAttributes,
 		}
 
 		if _, err = client.SetSecret(ctx, id.KeyVaultBaseUrl, id.Name, parameters); err != nil {
@@ -201,8 +255,9 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 		d.SetId(*read.ID)
 	} else {
 		parameters := keyvault.SecretUpdateParameters{
-			ContentType: utils.String(contentType),
-			Tags:        expandTags(tags),
+			ContentType:      utils.String(contentType),
+			Tags:             tags.Expand(t),
+			SecretAttributes: secretAttributes,
 		}
 
 		if _, err = client.UpdateSecret(ctx, id.KeyVaultBaseUrl, id.Name, id.Version, parameters); err != nil {
@@ -214,9 +269,10 @@ func resourceArmKeyVaultSecretUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {
@@ -266,14 +322,24 @@ func resourceArmKeyVaultSecretRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 
-	flattenAndSetTags(d, resp.Tags)
-	return nil
+	if attributes := resp.Attributes; attributes != nil {
+		if v := attributes.NotBefore; v != nil {
+			d.Set("not_before_date", time.Time(*v).Format(time.RFC3339))
+		}
+
+		if v := attributes.Expires; v != nil {
+			d.Set("expiration_date", time.Time(*v).Format(time.RFC3339))
+		}
+	}
+
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmKeyVaultSecretDelete(d *schema.ResourceData, meta interface{}) error {
-	keyVaultClient := meta.(*ArmClient).keyVaultClient
-	client := meta.(*ArmClient).keyVaultManagementClient
-	ctx := meta.(*ArmClient).StopContext
+	keyVaultClient := meta.(*ArmClient).KeyVault.VaultsClient
+	client := meta.(*ArmClient).KeyVault.ManagementClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseKeyVaultChildID(d.Id())
 	if err != nil {

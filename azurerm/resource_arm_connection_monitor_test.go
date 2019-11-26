@@ -6,9 +6,11 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func testAccAzureRMConnectionMonitor_addressBasic(t *testing.T) {
@@ -27,7 +29,7 @@ func testAccAzureRMConnectionMonitor_addressBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMConnectionMonitorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(resourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(resourceName, "auto_start", "true"),
 					resource.TestCheckResourceAttr(resourceName, "interval_in_seconds", "60"),
 				),
@@ -42,7 +44,7 @@ func testAccAzureRMConnectionMonitor_addressBasic(t *testing.T) {
 }
 
 func testAccAzureRMConnectionMonitor_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -69,7 +71,6 @@ func testAccAzureRMConnectionMonitor_requiresImport(t *testing.T) {
 			},
 		},
 	})
-
 }
 
 func testAccAzureRMConnectionMonitor_addressComplete(t *testing.T) {
@@ -158,7 +159,7 @@ func testAccAzureRMConnectionMonitor_vmBasic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMConnectionMonitorExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
-					resource.TestCheckResourceAttr(resourceName, "location", azureRMNormalizeLocation(location)),
+					resource.TestCheckResourceAttr(resourceName, "location", azure.NormalizeLocation(location)),
 					resource.TestCheckResourceAttr(resourceName, "auto_start", "true"),
 					resource.TestCheckResourceAttr(resourceName, "interval_in_seconds", "60"),
 				),
@@ -327,7 +328,7 @@ func testCheckAzureRMConnectionMonitorExists(resourceName string) resource.TestC
 		watcherName := rs.Primary.Attributes["network_watcher_name"]
 		connectionMonitorName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).connectionMonitorsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.ConnectionMonitorsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, watcherName, connectionMonitorName)
@@ -344,7 +345,7 @@ func testCheckAzureRMConnectionMonitorExists(resourceName string) resource.TestC
 }
 
 func testCheckAzureRMConnectionMonitorDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).connectionMonitorsClient
+	client := testAccProvider.Meta().(*ArmClient).Network.ConnectionMonitorsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -522,7 +523,7 @@ resource "azurerm_connection_monitor" "test" {
 
   destination {
     address = "terraform.io"
-    port = 80
+    port    = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]
@@ -661,9 +662,9 @@ resource "azurerm_connection_monitor" "test" {
   }
 
   destination {
-		address            = "terraform.io"
-		virtual_machine_id = "${azurerm_virtual_machine.src.id}"
-		port               = 80
+    address            = "terraform.io"
+    virtual_machine_id = "${azurerm_virtual_machine.src.id}"
+    port               = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]
@@ -688,7 +689,7 @@ resource "azurerm_connection_monitor" "import" {
 
   destination {
     address = "terraform.io"
-    port = 80
+    port    = 80
   }
 
   depends_on = ["azurerm_virtual_machine_extension.src"]

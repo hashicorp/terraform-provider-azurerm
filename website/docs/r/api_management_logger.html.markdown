@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_logger"
 sidebar_current: "docs-azurerm-resource-api-management-logger"
@@ -33,10 +34,7 @@ resource "azurerm_api_management" "example" {
   publisher_name      = "My Company"
   publisher_email     = "company@terraform.io"
 
-  sku {
-    name     = "Developer"
-    capacity = 1
-  }
+  sku_name = "Developer_1"
 }
 
 resource "azurerm_api_management_logger" "example" {

@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_gateway"
 sidebar_current: "docs-azurerm-resource-network-application-gateway"
@@ -13,54 +14,54 @@ Manages an Application Gateway.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "example-network"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   address_space       = ["10.254.0.0/16"]
 }
 
 resource "azurerm_subnet" "frontend" {
   name                 = "frontend"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.254.0.0/24"
 }
 
 resource "azurerm_subnet" "backend" {
   name                 = "backend"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.254.2.0/24"
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                = "example-pip"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
   allocation_method   = "Dynamic"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
 locals {
-  backend_address_pool_name      = "${azurerm_virtual_network.test.name}-beap"
-  frontend_port_name             = "${azurerm_virtual_network.test.name}-feport"
-  frontend_ip_configuration_name = "${azurerm_virtual_network.test.name}-feip"
-  http_setting_name              = "${azurerm_virtual_network.test.name}-be-htst"
-  listener_name                  = "${azurerm_virtual_network.test.name}-httplstn"
-  request_routing_rule_name      = "${azurerm_virtual_network.test.name}-rqrt"
-  redirect_configuration_name    = "${azurerm_virtual_network.test.name}-rdrcfg"
+  backend_address_pool_name      = "${azurerm_virtual_network.example.name}-beap"
+  frontend_port_name             = "${azurerm_virtual_network.example.name}-feport"
+  frontend_ip_configuration_name = "${azurerm_virtual_network.example.name}-feip"
+  http_setting_name              = "${azurerm_virtual_network.example.name}-be-htst"
+  listener_name                  = "${azurerm_virtual_network.example.name}-httplstn"
+  request_routing_rule_name      = "${azurerm_virtual_network.example.name}-rqrt"
+  redirect_configuration_name    = "${azurerm_virtual_network.example.name}-rdrcfg"
 }
 
 resource "azurerm_application_gateway" "network" {
   name                = "example-appgateway"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "Standard_Small"
@@ -80,7 +81,7 @@ resource "azurerm_application_gateway" "network" {
 
   frontend_ip_configuration {
     name                 = "${local.frontend_ip_configuration_name}"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
   }
 
   backend_address_pool {
@@ -90,7 +91,7 @@ resource "azurerm_application_gateway" "network" {
   backend_http_settings {
     name                  = "${local.http_setting_name}"
     cookie_based_affinity = "Disabled"
-    path         = "/path1/"
+    path                  = "/path1/"
     port                  = 80
     protocol              = "Http"
     request_timeout       = 1
@@ -104,11 +105,11 @@ resource "azurerm_application_gateway" "network" {
   }
 
   request_routing_rule {
-    name                        = "${local.request_routing_rule_name}"
-    rule_type                   = "Basic"
-    http_listener_name          = "${local.listener_name}"
-    backend_address_pool_name   = "${local.backend_address_pool_name}"
-    backend_http_settings_name  = "${local.http_setting_name}"
+    name                       = "${local.request_routing_rule_name}"
+    rule_type                  = "Basic"
+    http_listener_name         = "${local.listener_name}"
+    backend_address_pool_name  = "${local.backend_address_pool_name}"
+    backend_http_settings_name = "${local.http_setting_name}"
   }
 }
 ```
@@ -135,6 +136,8 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `identity` - (Optional) A `identity` block.
+
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
@@ -147,7 +150,12 @@ The following arguments are supported:
 
 * `authentication_certificate` - (Optional) One or more `authentication_certificate` blocks as defined below.
 
-* `disabled_ssl_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+* `trusted_root_certificate` - (Optional) One or more `trusted_root_certificate` blocks as defined below.
+
+* `disabled_ssl_protocols` - (Optional / **Deprecated**) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+~> **NOTE:** `disabled_ssl_protocols ` has been deprecated in favour of `disabled_protocols` in the `ssl_policy` block.
+
+* `ssl_policy` (Optional) a `ssl policy` block as defined below.
 
 * `enable_http2` - (Optional) Is HTTP2 enabled on the application gateway resource? Defaults to `false`.
 
@@ -167,9 +175,19 @@ The following arguments are supported:
 
 * `autoscale_configuration` - (Optional) A `autoscale_configuration` block as defined below.
 
+* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 SKUs.
+
 ---
 
 A `authentication_certificate` block supports the following:
+
+* `name` - (Required) The Name of the Authentication Certificate to use.
+
+* `data` - (Required) The contents of the Authentication Certificate which should be used.
+
+---
+
+A `trusted_root_certificate` block supports the following:
 
 * `name` - (Required) The Name of the Authentication Certificate to use.
 
@@ -200,6 +218,8 @@ A `backend_address_pool` block supports the following:
 A `backend_http_settings` block supports the following:
 
 * `cookie_based_affinity` - (Required) Is Cookie-Based Affinity enabled? Possible values are `Enabled` and `Disabled`.
+
+* `affinity_cookie_name` - (Optional) The name of the affinity cookie.
 
 * `name` - (Required) The name of the Backend HTTP Settings Collection.
 
@@ -284,6 +304,14 @@ A `http_listener` block supports the following:
 
 ---
 
+A `identity` block supports the following:
+
+* `type` - (Optional) The Managed Service Identity Type of this Application Gateway. The only possible value is `UserAssigned`. Defaults to `UserAssigned`.
+
+* `identity_ids` - (Required) Specifies a list with a single user managed identity id to be assigned to the Application Gateway.
+
+---
+
 A `match` block supports the following:
 
 * `body` - (Optional) A snippet from the Response Body which must be present in the Response. Defaults to `*`.
@@ -303,6 +331,8 @@ A `path_rule` block supports the following:
 * `backend_http_settings_name` - (Optional) The Name of the Backend HTTP Settings Collection to use for this Path Rule. Cannot be set if `redirect_configuration_name` is set.
 
 * `redirect_configuration_name` - (Optional) The Name of a Redirect Configuration to use for this Path Rule. Cannot be set if `backend_address_pool_name` or `backend_http_settings_name` is set.
+
+* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
 ---
 
@@ -344,6 +374,8 @@ A `request_routing_rule` block supports the following:
 
 * `redirect_configuration_name` - (Optional) The Name of the Redirect Configuration which should be used for this Routing Rule. Cannot be set if either `backend_address_pool_name` or `backend_http_settings_name` is set.
 
+* `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
+
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
 ---
@@ -378,8 +410,34 @@ A `url_path_map` block supports the following:
 
 * `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
 
+* `default_rewrite_rule_set_name` - (Optional) The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
 * `path_rule` - (Required) One or more `path_rule` blocks as defined above.
+
+---
+
+A `ssl_policy` block supports the following:
+
+* `disabled_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+
+~> **NOTE:** `disabled_protocols` cannot be set when `policy_name` or `policy_type` are set.
+
+* `policy_type` - (Optional) The Type of the Policy. Possible values are `Predefined` and `Custom`.
+
+~> **NOTE:** `policy_type` is Required when `policy_name` is set - cannot be set if `disabled_protocols` is set.
+
+When using a `policy_type` of `Predefined` the following fields are supported:
+
+* `policy_name` - (Optional) The Name of the Policy e.g AppGwSslPolicy20170401S. Required if `policy_type` is set to `Predefined`. Possible values can change over time and 
+are published here https://docs.microsoft.com/en-us/azure/application-gateway/application-gateway-ssl-policy-overview. Not compatible with `disabled_protocols`.
+
+When using a `policy_type` of `Custom` the following fields are supported:
+
+* `cipher_suites` - (Required) A List of accepted cipher suites. Possible values are: `TLS_DHE_DSS_WITH_AES_128_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_128_CBC_SHA256`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA`, `TLS_DHE_DSS_WITH_AES_256_CBC_SHA256`, `TLS_DHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_128_GCM_SHA256`, `TLS_DHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_DHE_RSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384`, `TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA`, `TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384`, `TLS_RSA_WITH_3DES_EDE_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA`, `TLS_RSA_WITH_AES_128_CBC_SHA256`, `TLS_RSA_WITH_AES_128_GCM_SHA256`, `TLS_RSA_WITH_AES_256_CBC_SHA`, `TLS_RSA_WITH_AES_256_CBC_SHA256` and `TLS_RSA_WITH_AES_256_GCM_SHA384`.
+
+* `min_protocol_version` - (Required) The minimal TLS version. Possible values are `TLSv1_0`, `TLSv1_1` and `TLSv1_2`.
+
+
 
 ---
 
@@ -391,7 +449,7 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_type` - (Required) The Type of the Rule Set used for this Web Application Firewall.
 
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall.
+* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `2.2.9`, `3.0`, and `3.1`.
 
 * `disabled_rule_group` - (Optional) one or more `disabled_rule_group` blocks as defined below.
 
@@ -407,7 +465,7 @@ A `waf_configuration` block supports the following:
 
 A `disabled_rule_group` block supports the following:
 
-* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Accepted values are:  `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`
+* `rule_group_name` - (Required) The rule group where specific rules should be disabled. Accepted values are:  `crs_20_protocol_violations`, `crs_21_protocol_anomalies`, `crs_23_request_limits`, `crs_30_http_policy`, `crs_35_bad_robots`, `crs_40_generic_attacks`, `crs_41_sql_injection_attacks`, `crs_41_xss_attacks`, `crs_42_tight_security`, `crs_45_trojans`, `General`, `REQUEST-911-METHOD-ENFORCEMENT`, `REQUEST-913-SCANNER-DETECTION`, `REQUEST-920-PROTOCOL-ENFORCEMENT`, `REQUEST-921-PROTOCOL-ATTACK`, `REQUEST-930-APPLICATION-ATTACK-LFI`, `REQUEST-931-APPLICATION-ATTACK-RFI`, `REQUEST-932-APPLICATION-ATTACK-RCE`, `REQUEST-933-APPLICATION-ATTACK-PHP`, `REQUEST-941-APPLICATION-ATTACK-XSS`, `REQUEST-942-APPLICATION-ATTACK-SQLI`, `REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION`
 
 * `rules` - (Optional) A list of rules which should be disabled in that group. Disables all rules in the specified group if `rules` is not specified.
 
@@ -452,6 +510,56 @@ A `autoscale_configuration` block supports the following:
 * `min_capacity` - (Required) Minimum capacity for autoscaling.
 
 * `max_capacity` - (Optional) Maximum capacity for autoscaling.
+
+---
+
+A `rewrite_rule_set` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule set block
+
+* `rewrite_rule` - (Required) One or more `rewrite_rule` blocks as defined above.
+
+---
+
+A `rewrite_rule` block supports the following:
+
+* `name` - (Required) Unique name of the rewrite rule block
+
+* `rule_sequence` - (Required) Rule sequence of the rewrite rule that determines the order of execution in a set.
+
+* `condition` - (Optional) One or more `condition` blocks as defined above.
+
+* `request_header_configuration` - (Optional) One or more `request_header_configuration` blocks as defined above.
+
+* `response_header_configuration` - (Optional) One or more `response_header_configuration` blocks as defined above.
+
+---
+
+A `condition` block supports the following:
+
+* `variable` - (Required) The [variable](https://docs.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers#server-variables) of the condition.
+
+* `pattern` - (Required) The pattern, either fixed string or regular expression, that evaluates the truthfulness of the condition.
+
+* `ignore_case` - (Optional) Perform a case in-sensitive comparison. Defaults to `false`
+
+* `negate` - (Optional) Negate the result of the condition evaluation. Defaults to `false`
+
+---
+
+A `request_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration. To delete a request header set this property to an empty string.
+
+---
+
+A `response_header_configuration` block supports the following:
+
+* `header_name` - (Required) Header name of the header configuration.
+
+* `header_value` - (Required) Header value of the header configuration. To delete a response header set this property to an empty string.
 
 ## Attributes Reference
 
@@ -555,6 +663,8 @@ A `path_rule` block exports the following:
 
 * `redirect_configuration_id` - The ID of the Redirect Configuration used in this Path Rule.
 
+* `rewrite_rule_set_id` - The ID of the Rewrite Rule Set used in this Path Rule.
+
 ---
 
 A `probe` block exports the following:
@@ -574,6 +684,8 @@ A `request_routing_rule` block exports the following:
 * `backend_http_settings_id` - The ID of the associated Backend HTTP Settings Configuration.
 
 * `redirect_configuration_id` - The ID of the associated Redirect Configuration.
+
+* `rewrite_rule_set_id` - The ID of the associated Rewrite Rule Set.
 
 * `url_path_map_id` - The ID of the associated URL Path Map.
 
@@ -611,10 +723,16 @@ A `redirect_configuration` block exports the following:
 
 * `id` - The ID of the Redirect Configuration.
 
+---
+
+A `rewrite_rule_set` block exports the following:
+
+* `id` - The ID of the Rewrite Rule Set
+
 ## Import
 
 Application Gateway's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_application_gateway.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
+terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
 ```

@@ -3,10 +3,16 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/logic/mgmt/2016-06-01/logic"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -22,6 +28,13 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -29,14 +42,17 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			// TODO: should Parameters be split out into their own object to allow validation on the different sub-types?
 			"parameters": {
 				Type:     schema.TypeMap,
 				Optional: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"workflow_schema": {
@@ -53,7 +69,7 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 				Default:  "1.0.0.0",
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 
 			"access_endpoint": {
 				Type:     schema.TypeString,
@@ -64,15 +80,16 @@ func resourceArmLogicAppWorkflow() *schema.Resource {
 }
 
 func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Logic.WorkflowsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Logic App Workflow creation.")
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -85,12 +102,12 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
 
 	workflowSchema := d.Get("workflow_schema").(string)
 	workflowVersion := d.Get("workflow_version").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := logic.Workflow{
 		Location: utils.String(location),
@@ -103,7 +120,7 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 			},
 			Parameters: parameters,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
@@ -124,10 +141,11 @@ func resourceArmLogicAppWorkflowCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Logic.WorkflowsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -136,8 +154,8 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 	name := id.Path["workflows"]
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	azureRMLockByName(name, logicAppResourceName)
-	defer azureRMUnlockByName(name, logicAppResourceName)
+	locks.ByName(name, logicAppResourceName)
+	defer locks.UnlockByName(name, logicAppResourceName)
 
 	read, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -153,9 +171,9 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("[ERROR] Error parsing Logic App Workflow - `WorkflowProperties` is nil")
 	}
 
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	parameters := expandLogicAppWorkflowParameters(d.Get("parameters").(map[string]interface{}))
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
 	properties := logic.Workflow{
 		Location: utils.String(location),
@@ -163,7 +181,7 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 			Definition: read.WorkflowProperties.Definition,
 			Parameters: parameters,
 		},
-		Tags: expandTags(tags),
+		Tags: tags.Expand(t),
 	}
 
 	if _, err = client.CreateOrUpdate(ctx, resourceGroup, name, properties); err != nil {
@@ -174,10 +192,11 @@ func resourceArmLogicAppWorkflowUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Logic.WorkflowsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -198,7 +217,7 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("resource_group_name", resourceGroup)
 
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	if props := resp.WorkflowProperties; props != nil {
@@ -217,16 +236,15 @@ func resourceArmLogicAppWorkflowRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).logicWorkflowsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Logic.WorkflowsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -234,8 +252,8 @@ func resourceArmLogicAppWorkflowDelete(d *schema.ResourceData, meta interface{})
 	name := id.Path["workflows"]
 
 	// lock to prevent against Actions, Parameters or Triggers conflicting
-	azureRMLockByName(name, logicAppResourceName)
-	defer azureRMUnlockByName(name, logicAppResourceName)
+	locks.ByName(name, logicAppResourceName)
+	defer locks.UnlockByName(name, logicAppResourceName)
 
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {

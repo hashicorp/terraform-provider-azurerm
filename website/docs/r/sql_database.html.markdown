@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_database"
 sidebar_current: "docs-azurerm-resource-database-sql-database"
@@ -13,25 +14,25 @@ Allows you to manage an Azure SQL Database
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
-  resource_group_name          = "${azurerm_resource_group.test.name}"
+  resource_group_name          = "${azurerm_resource_group.example.name}"
   location                     = "West US"
   version                      = "12.0"
   administrator_login          = "4dm1n157r470r"
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
-resource "azurerm_sql_database" "test" {
+resource "azurerm_sql_database" "example" {
   name                = "mysqldatabase"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "West US"
-  server_name         = "${azurerm_sql_server.test.name}"
+  server_name         = "${azurerm_sql_server.example.name}"
 
   tags = {
     environment = "production"
@@ -50,7 +51,7 @@ The following arguments are supported:
 
 * `server_name` - (Required) The name of the SQL Server on which to create the database.
 
-* `create_mode` - (Optional) Specifies the type of database to create. Defaults to `Default`. See below for the accepted values/
+* `create_mode` - (Optional) Specifies how to create the database. Must be either `Default` to create a new database or `PointInTimeRestore` to restore from a snapshot. Defaults to `Default`.
 
 * `import` - (Optional) A Database Import block as documented below. `create_mode` must be set to `Default`.
 
@@ -58,7 +59,7 @@ The following arguments are supported:
 
 * `restore_point_in_time` - (Optional) The point in time for the restore. Only applies if `create_mode` is `PointInTimeRestore` e.g. 2013-11-08T22:00:40Z
 
-* `edition` - (Optional) The edition of the database to be created. Applies only if `create_mode` is `Default`. Valid values are: `Basic`, `Standard`, `Premium`, or `DataWarehouse`. Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
+* `edition` - (Optional) The edition of the database to be created. Applies only if `create_mode` is `Default`. Valid values are: `Basic`, `Standard`, `Premium`, `DataWarehouse`, `Business`, `BusinessCritical`, `Free`, `GeneralPurpose`, `Hyperscale`, `Premium`, `PremiumRS`, `Standard`, `Stretch`, `System`, `System2`, or `Web`. Please see [Azure SQL Database Service Tiers](https://azure.microsoft.com/en-gb/documentation/articles/sql-database-service-tiers/).
 
 * `collation` - (Optional) The name of the collation. Applies only if `create_mode` is `Default`.  Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new resource to be created.
 
@@ -74,6 +75,8 @@ The following arguments are supported:
 * `elastic_pool_name` - (Optional) The name of the elastic database pool.
 
 * `threat_detection_policy` - (Optional) Threat detection policy configuration. The `threat_detection_policy` block supports fields documented below.
+
+* `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-read-scale-out).
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

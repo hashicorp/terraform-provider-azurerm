@@ -2,15 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmManagementGroup() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmManagementGroupRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"group_id": {
@@ -39,8 +45,9 @@ func dataSourceArmManagementGroup() *schema.Resource {
 }
 
 func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).managementGroupsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).ManagementGroups.GroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	groupId := d.Get("group_id").(string)
 
@@ -79,7 +86,6 @@ func dataSourceArmManagementGroupRead(d *schema.ResourceData, meta interface{}) 
 			}
 		}
 		d.Set("parent_management_group_id", parentId)
-
 	}
 
 	return nil
@@ -98,7 +104,7 @@ func flattenArmManagementGroupDataSourceSubscriptionIds(input *[]managementgroup
 
 		id, err := parseManagementGroupSubscriptionID(*child.ID)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to parse child subscription ID %+v", err)
+			return nil, fmt.Errorf("Unable to parse child Subscription ID %+v", err)
 		}
 
 		if id != nil {

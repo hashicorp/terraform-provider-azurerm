@@ -2,43 +2,51 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func resourceArmDataFactory() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmDataFactoryCreateOrUpdate,
+		Create: resourceArmDataFactoryCreateUpdate,
 		Read:   resourceArmDataFactoryRead,
-		Update: resourceArmDataFactoryCreateOrUpdate,
+		Update: resourceArmDataFactoryCreateUpdate,
 		Delete: resourceArmDataFactoryDelete,
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid name for Data Factory, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryName(),
 			},
 
-			"location": locationSchema(),
+			"location": azure.SchemaLocation(),
 
 			// There's a bug in the Azure API where this is returned in lower-case
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/5788
-			"resource_group_name": resourceGroupNameDiffSuppressSchema(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"identity": {
 				Type:     schema.TypeList,
@@ -137,27 +145,28 @@ func resourceArmDataFactory() *schema.Resource {
 						"tenant_id": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateUUID,
+							ValidateFunc: validate.UUID,
 						},
 					},
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }
 
-func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryClient
-	ctx := meta.(*ArmClient).StopContext
+func resourceArmDataFactoryCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).DataFactory.FactoriesClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
-	location := azureRMNormalizeLocation(d.Get("location").(string))
+	location := azure.NormalizeLocation(d.Get("location").(string))
 	resourceGroup := d.Get("resource_group_name").(string)
-	tags := d.Get("tags").(map[string]interface{})
+	t := d.Get("tags").(map[string]interface{})
 
-	if requireResourcesToBeImported && d.IsNewResource() {
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name, "")
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
@@ -172,7 +181,7 @@ func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface
 
 	dataFactory := datafactory.Factory{
 		Location: &location,
-		Tags:     expandTags(tags),
+		Tags:     tags.Expand(t),
 	}
 
 	if v, ok := d.GetOk("identity.0.type"); ok {
@@ -211,10 +220,11 @@ func resourceArmDataFactoryCreateOrUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.FactoriesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -234,7 +244,7 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
-		d.Set("location", azureRMNormalizeLocation(*location))
+		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
 	d.Set("vsts_configuration", []interface{}{})
@@ -259,16 +269,15 @@ func resourceArmDataFactoryRead(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Error flattening `identity`: %+v", err)
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
-	return nil
+	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmDataFactoryDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).dataFactoryClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).DataFactory.FactoriesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

@@ -3,11 +3,13 @@ package azurerm
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
@@ -38,7 +40,7 @@ func TestAccAzureRMLogAnalyticsLinkedService_basic(t *testing.T) {
 }
 
 func TestAccAzureRMLogAnalyticsLinkedService_requiresImport(t *testing.T) {
-	if !requireResourcesToBeImported {
+	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
 	}
@@ -94,8 +96,50 @@ func TestAccAzureRMLogAnalyticsLinkedService_complete(t *testing.T) {
 	})
 }
 
+// Deprecated - remove in 2.0
+func TestAccAzureRMLogAnalyticsLinkedService_noResourceID(t *testing.T) {
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccAzureRMLogAnalyticsLinkedService_noResourceID(ri, testLocation()),
+				ExpectError: regexp.MustCompile("A `resource_id` must be specified either using the `resource_id` field at the top level or within the `linked_service_properties` block"),
+			},
+		},
+	})
+}
+
+// Deprecated - remove in 2.0
+func TestAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(t *testing.T) {
+	resourceName := "azurerm_log_analytics_linked_service.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMLogAnalyticsLinkedServiceDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
 func testCheckAzureRMLogAnalyticsLinkedServiceDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).linkedServicesClient
+	conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.LinkedServicesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -140,7 +184,7 @@ func testCheckAzureRMLogAnalyticsLinkedServiceExists(resourceName string) resour
 			return fmt.Errorf("Bad: no resource group found in state for Log Analytics Linked Service: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).linkedServicesClient
+		conn := testAccProvider.Meta().(*ArmClient).LogAnalytics.LinkedServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, workspaceName, lsName)
@@ -192,6 +236,33 @@ resource "azurerm_log_analytics_linked_service" "test" {
   workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
   linked_service_name = "automation"
   resource_id         = "${azurerm_automation_account.test.id}"
+}
+`, template)
+}
+
+func testAccAzureRMLogAnalyticsLinkedService_noResourceID(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_linked_service" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+}
+`, template)
+}
+
+func testAccAzureRMLogAnalyticsLinkedService_linkedServiceProperties(rInt int, location string) string {
+	template := testAccAzureRMLogAnalyticsLinkedService_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_log_analytics_linked_service" "test" {
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  workspace_name      = "${azurerm_log_analytics_workspace.test.name}"
+  linked_service_properties {
+    resource_id = "${azurerm_automation_account.test.id}"
+  }
 }
 `, template)
 }

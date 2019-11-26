@@ -1,4 +1,5 @@
 ---
+subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_certificate"
 sidebar_current: "docs-azurerm-resource-key-vault-certificate"
@@ -18,20 +19,18 @@ Manages a Key Vault Certificate.
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "key-vault-certificate-example"
   location = "West Europe"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "keyvaultcertexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
@@ -88,9 +87,9 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_certificate" "test" {
-  name     = "imported-cert"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "imported-cert"
+  key_vault_id = "${azurerm_key_vault.example.id}"
 
   certificate {
     contents = "${filebase64("certificate-to-import.pfx")}"
@@ -121,40 +120,66 @@ resource "azurerm_key_vault_certificate" "test" {
 ```hcl
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "key-vault-certificate-example"
   location = "West Europe"
 }
 
-resource "azurerm_key_vault" "test" {
+resource "azurerm_key_vault" "example" {
   name                = "keyvaultcertexample"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
 
-  sku {
-    name = "standard"
-  }
+  sku_name = "standard"
 
   access_policy {
     tenant_id = "${data.azurerm_client_config.current.tenant_id}"
     object_id = "${data.azurerm_client_config.current.service_principal_object_id}"
 
     certificate_permissions = [
-      "create","delete","deleteissuers",
-      "get","getissuers","import","list",
-      "listissuers","managecontacts","manageissuers",
-      "setissuers","update",
+      "create",
+      "delete",
+      "deleteissuers",
+      "get",
+      "getissuers",
+      "import",
+      "list",
+      "listissuers",
+      "managecontacts",
+      "manageissuers",
+      "setissuers",
+      "update",
     ]
 
     key_permissions = [
-      "backup","create","decrypt","delete","encrypt","get",
-      "import","list","purge","recover","restore","sign",
-      "unwrapKey","update","verify","wrapKey",
+      "backup",
+      "create",
+      "decrypt",
+      "delete",
+      "encrypt",
+      "get",
+      "import",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "sign",
+      "unwrapKey",
+      "update",
+      "verify",
+      "wrapKey",
     ]
 
     secret_permissions = [
-      "backup","delete","get","list","purge","recover","restore","set",
+      "backup",
+      "delete",
+      "get",
+      "list",
+      "purge",
+      "recover",
+      "restore",
+      "set",
     ]
   }
 
@@ -163,9 +188,9 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "azurerm_key_vault_certificate" "test" {
-  name     = "generated-cert"
-  key_vault_id = "${azurerm_key_vault.test.id}"
+resource "azurerm_key_vault_certificate" "example" {
+  name         = "generated-cert"
+  key_vault_id = "${azurerm_key_vault.example.id}"
 
   certificate_policy {
     issuer_parameters {
@@ -299,8 +324,8 @@ The following attributes are exported:
 * `id` - The Key Vault Certificate ID.
 * `secret_id` - The ID of the associated Key Vault Secret.
 * `version` - The current version of the Key Vault Certificate.
-* `certificate_data` - The raw Key Vault Certificate.
-* `thumbprint` - The X509 Thumbprint of the Key Vault Certificate returned as hex string.
+* `certificate_data` - The raw Key Vault Certificate data represented as a hexadecimal string.
+* `thumbprint` - The X509 Thumbprint of the Key Vault Certificate represented as a hexadecimal string.
 
 
 ## Import
@@ -308,5 +333,5 @@ The following attributes are exported:
 Key Vault Certificates can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_key_vault_certificate.test https://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
+terraform import azurerm_key_vault_certificate.examplehttps://example-keyvault.vault.azure.net/certificates/example/fdf067c93bbb4b22bff4d8b7a9a56217
 ```

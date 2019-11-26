@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func validateAzureRMDataFactoryLinkedServiceDatasetName(v interface{}, k string) (warnings []string, errors []error) {
@@ -31,7 +31,7 @@ func expandDataFactoryLinkedServiceIntegrationRuntime(integrationRuntimeName str
 
 // Because the password isn't returned from the api in the connection string, we'll check all
 // but the password string and return true if they match.
-func azureRmDataFactoryLinkedServiceConnectionStringDiff(k, old string, new string, d *schema.ResourceData) bool {
+func azureRmDataFactoryLinkedServiceConnectionStringDiff(_, old string, new string, _ *schema.ResourceData) bool {
 	oldSplit := strings.Split(strings.ToLower(old), ";")
 	newSplit := strings.Split(strings.ToLower(new), ";")
 

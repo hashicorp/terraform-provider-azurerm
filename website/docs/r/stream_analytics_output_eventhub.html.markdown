@@ -1,4 +1,5 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_output_eventhub"
 sidebar_current: "docs-azurerm-resource-stream-analytics-output-eventhub"
@@ -22,7 +23,7 @@ data "azurerm_stream_analytics_job" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "example-ehnamespace"
   location            = "${data.azurerm_resource_group.example.location}"
   resource_group_name = "${data.azurerm_resource_group.example.name}"
@@ -31,7 +32,7 @@ resource "azurerm_eventhub_namespace" "test" {
   kafka_enabled       = false
 }
 
-resource "azurerm_eventhub" "test" {
+resource "azurerm_eventhub" "example" {
   name                = "example-eventhub"
   namespace_name      = "${azurerm_eventhub_namespace.example.name}"
   resource_group_name = "${data.azurerm_resource_group.example.name}"
@@ -52,7 +53,6 @@ resource "azurerm_stream_analytics_output_eventhub" "example" {
     type = "Avro"
   }
 }
-
 ```
 
 ## Argument Reference
@@ -81,7 +81,7 @@ A `serialization` block supports the following:
 
 * `type` - (Required) The serialization format used for outgoing data streams. Possible values are `Avro`, `Csv` and `Json`.
 
-* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output.
+* `encoding` - (Optional) The encoding of the incoming data in the case of input and the encoding of outgoing data in the case of output. It currently can only be set to `UTF8`.
 
 -> **NOTE:** This is required when `type` is set to `Csv` or `Json`.
 
@@ -89,7 +89,7 @@ A `serialization` block supports the following:
 
 -> **NOTE:** This is required when `type` is set to `Csv`.
 
-* `format` - (Optional) Specifies the format of the JSON the output will be written in.
+* `format` - (Optional) Specifies the format of the JSON the output will be written in. Possible values are `Array` and `LineSeparated`.
 
 -> **NOTE:** This is Required and can only be specified when `type` is set to `Json`.
 
@@ -104,5 +104,5 @@ The following attributes are exported in addition to the arguments listed above:
 Stream Analytics Outputs to an EventHub can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_eventhub.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_eventhub.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
 ```
