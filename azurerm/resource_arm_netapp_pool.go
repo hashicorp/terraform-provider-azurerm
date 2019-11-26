@@ -88,13 +88,15 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	serviceLevel := d.Get("service_level").(string)
-	size := int64(d.Get("size_in_tb").(int) * 1099511627776)
+	sizeInTB := int64(d.Get("size_in_tb").(int))
+	sizeInMB := sizeInTB * 1024 * 1024
+	sizeInBytes := sizeInMB * 1024 * 1024
 
 	capacityPoolParameters := netapp.CapacityPool{
 		Location: utils.String(location),
 		PoolProperties: &netapp.PoolProperties{
 			ServiceLevel: netapp.ServiceLevel(serviceLevel),
-			Size:         utils.Int64(size),
+			Size:         utils.Int64(sizeInBytes),
 		},
 	}
 
@@ -148,9 +150,14 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
 		d.Set("service_level", poolProperties.ServiceLevel)
+
+		sizeInTB := int64(0)
 		if poolProperties.Size != nil {
-			d.Set("size_in_tb", *poolProperties.Size/1099511627776)
+			sizeInBytes := *poolProperties.Size
+			sizeInMB := sizeInBytes / 1024 / 1024
+			sizeInTB = sizeInMB / 1024 / 1024
 		}
+		d.Set("size_in_tb", int(sizeInTB))
 	}
 
 	return nil
