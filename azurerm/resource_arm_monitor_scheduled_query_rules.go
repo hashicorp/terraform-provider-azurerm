@@ -34,129 +34,19 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
-			"resource_group_name": azure.SchemaResourceGroupName(),
-
-			"query": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"data_source_id": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
-			},
-			"authorized_resources": {
-				Type:     schema.TypeSet,
-				Required: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-			},
-			"query_type": {
-				Type:     schema.TypeString,
-				Required: true,
-				Default:  "ResultCount",
-				ValidateFunc: validation.StringInSlice([]string{
-					"ResultCount",
-				}, false),
-			},
-
-			"frequency_in_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"time_window_in_minutes": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"criteria": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				MinItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-
-						"metric_name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validate.NoEmptyStrings,
-						},
-						"operator": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"Equals",
-								"NotEquals",
-								"GreaterThan",
-								"GreaterThanOrEqual",
-								"LessThan",
-								"LessThanOrEqual",
-							}, false),
-						},
-						"threshold": {
-							Type:     schema.TypeFloat,
-							Required: true,
-						},
-						"dimension": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"name": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-									"operator": {
-										Type:     schema.TypeString,
-										Required: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											"Include",
-											"Exclude",
-										}, false),
-									},
-									"values": {
-										Type:     schema.TypeList,
-										Required: true,
-										MinItems: 1,
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
 			"action": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"severity": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"0",
-								"1",
-								"2",
-								"3",
-								"4",
-							}, false),
-						},
-						"throttling": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
 						"azns_action": {
 							Type:     schema.TypeSet,
-							Optional: true,
+							Required: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"action_groups": {
+									"action_group": {
 										Type:         schema.TypeSet,
 										Required:     true,
 										ValidateFunc: azure.ValidateResourceID,
@@ -173,50 +63,102 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 								},
 							},
 						},
-					},
-				},
-			},
-			"trigger": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"thresholdOperator": {
+						"severity": {
 							Type:     schema.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								"GreaterThan",
-								"LessThan",
-								"Equal",
+								"0",
+								"1",
+								"2",
+								"3",
+								"4",
 							}, false),
 						},
-						"threshold": {
+						"throttling": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Optional: true,
+						},
+						"trigger": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"threshold": {
+										Type:     schema.TypeInt,
+										Required: true,
+									},
+								},
+								"thresholdOperator": {
+									Type:     schema.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										"GreaterThan",
+										"LessThan",
+										"Equal",
+									}, false),
+								},
+							},
 						},
 					},
 				},
 			},
-
+			"action_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"AlertingAction",
+					"LogToMetricAction",
+				}, false),
+			},
+			"authorized_resources": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+			},
+			"data_source_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: azure.ValidateResourceID,
+			},
 			"description": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-
 			"enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  true,
 			},
-
+			"frequency": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"lastUpdatedTime": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
 			"provisioningState": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"query": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"query_type": {
+				Type:     schema.TypeString,
+				Required: true,
+				Default:  "ResultCount",
+				ValidateFunc: validation.StringInSlice([]string{
+					"ResultCount",
+				}, false),
+			},
+			"time_window": {
+				Type:     schema.TypeInt,
+				Optional: true,
 			},
 
 			"tags": tags.Schema(),
@@ -251,6 +193,9 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 	actionRaw := d.Get("action").(*schema.Set).List()
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
+	source, _ := expandMonitorScheduledQueryRulesSource(sourceRaw)
+	schedule, _ := expandMonitorScheduledQueryRulesSchedule(scheduleRaw)
+
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
@@ -259,9 +204,9 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 		LogSearchRule: &insights.LogSearchRule{
 			Enabled:     enabled,
 			Description: utils.String(description),
-			Source:      expandMonitorScheduledQueryRulesSource(sourceRaw),
-			Schedule:    expandMonitorScheduledQueryRulesSchedule(scheduleRaw),
-			Action:      expandMonitorScheduledQueryRulesAction(actionRaw),
+			Source:      source,
+			Schedule:    schedule,
+			Action:      insights.AlertingAction{}{},
 		},
 		Tags: expandedTags,
 	}
@@ -283,7 +228,7 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 }
 
 func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).monitor.ScheduledQueryRulesClient
+	client := meta.(*ArmClient).Monitor.ScheduledQueryRulesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -305,18 +250,14 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 
 	d.Set("name", name)
 	d.Set("resource_group_name", resourceGroup)
-	if rule := resp.ScheduledQueryRules; rule != nil {
+	if rule := resp.LogSearchRule; rule != nil {
 		d.Set("enabled", rule.Enabled)
 		d.Set("description", rule.Description)
-		d.Set("displayName", rule.DisplayName)
-		if err := d.Set("source", flattenMonitorScheduledQueryRulesSource(rule.Source)); err != nil {
+		if err := d.Set("source", flattenAzureRmScheduledQueryRulesSource(rule.Source)); err != nil {
 			return fmt.Errorf("Error setting `source`: %+v", err)
 		}
-		if err := d.Set("schedule", flattenMonitorScheduledQueryRulesSchedule(rule.Schedule)); err != nil {
+		if err := d.Set("schedule", flattenAzureRmScheduledQueryRulesSchedule(rule.Schedule)); err != nil {
 			return fmt.Errorf("Error setting `schedule`: %+v", err)
-		}
-		if err := d.Set("action", flattenMonitorScheduledQueryRulesAction(rule.Action)); err != nil {
-			return fmt.Errorf("Error setting `action`: %+v", err)
 		}
 	}
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -418,57 +359,27 @@ func expandMonitorScheduledQueryRulesSchedule(input []interface{}) (*insights.Sc
 	}
 }
 
-func flattenAzureRmScheduledQueryRulesAction(input insights.BasicAction) []interface{} {
-	result := make(map[string]interface{})
+func expandMonitorScheduledQueryRulesSource(input []interface{}) (*insights.Source, error) {
+	actions := make([]insights.ScheduledQueryRulesActionGroup, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		if agID := v["action_group_id"].(string); agID != "" {
+			props := make(map[string]*string)
+			if pVal, ok := v["webhook_properties"]; ok {
+				for pk, pv := range pVal.(map[string]interface{}) {
+					props[pk] = utils.String(pv.(string))
+				}
+			}
 
-	if input == nil {
-		return []interface{}{result}
+			actions = append(actions, insights.ScheduledQueryRulesActionGroup{
+				ActionGroupID:     utils.String(agID),
+				WebhookProperties: props,
+			})
+		}
 	}
-
-	alertingAction, ok := input.(*insights.AlertingAction)
-	if ok {
-		result["action"] = flattenAzureRmScheduledQueryRulesAlertingAction(alertingAction)
+	return &insights.ScheduledQueryRulesActionList{
+		ActionGroups: &actions,
 	}
-
-	logToMetricAction, ok := input.(*insights.LogToMetricAction)
-	if ok {
-		result["action"] = flattenAzureRmScheduledQueryRulesLogToMetricAction(logToMetricAction)
-	}
-
-	return []interface{}{result}
-}
-
-func flattenAzureRmScheduledQueryRulesAlertingAction(action *insights.AlertingAction) map[string]interface{} {
-	result := make(map[string]interface{})
-
-	result["severity"] = action.Severity
-
-	// https://github.com/Azure/azure-sdk-for-go/blob/7a9d2769e4a581b0b1bc609c71b59af043e05c98/services/preview/monitor/mgmt/2019-06-01/insights/models.go#L1771-L1779
-	if action.AznsAction != nil {
-		result["azns_action"] = *action.AznsAction
-	}
-
-	if action.ThrottlingInMin != nil {
-		result["throttling"] = *action.ThrottlingInMin
-	}
-
-	// https://github.com/Azure/azure-sdk-for-go/blob/7a9d2769e4a581b0b1bc609c71b59af043e05c98/services/preview/monitor/mgmt/2019-06-01/insights/models.go#L5608-L5616
-	if action.Trigger != nil {
-		result["trigger"] = *action.Trigger
-	}
-
-	return result
-}
-
-func flattenAzureRmScheduledQueryRulesLogToMetricAction(action *insights.LogToMetricAction) map[string]interface{} {
-	result := make(map[string]interface{})
-
-	// https://github.com/Azure/azure-sdk-for-go/blob/7a9d2769e4a581b0b1bc609c71b59af043e05c98/services/preview/monitor/mgmt/2019-06-01/insights/models.go#L1929-L1935
-	if action.Criteria != nil {
-		result["criteria"] = *action.Criteria
-	}
-
-	return result
 }
 
 func flattenAzureRmScheduledQueryRulesSchedule(input *insights.Schedule) []interface{} {

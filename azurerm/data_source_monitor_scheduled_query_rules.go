@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -15,43 +16,13 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"enabled": {
-				Type:     schema.TypeBool,
-				Computed: true,
-			},
-			"description": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"frequency_in_minutes": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"time_window_in_minutes": {
-				Type:     schema.TypeInt,
-				Computed: true,
-			},
-			"query": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"data_source_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"query_type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
+
 			"action": {
 				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"severity": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
 						"azns_action": {
 							Type:     schema.TypeSet,
 							Computed: true,
@@ -62,8 +33,36 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 										Computed: true,
 										Elem:     schema.TypeString,
 									},
+									"custom_webhook_payload": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
 									"email_subject": {
 										Type:     schema.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"severity": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"throttling": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"trigger": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"operator": {
+										Type:     schema.TypeString,
+										Computed: true,
+									},
+									"threshold": {
+										Type:     schema.TypeFloat,
 										Computed: true,
 									},
 								},
@@ -72,21 +71,37 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 					},
 				},
 			},
-			"trigger": {
-				Type:     schema.TypeSet,
+			"action_type": {
+				Type:     schema.TypeString,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"operator": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"threshold": {
-							Type:     schema.TypeFloat,
-							Computed: true,
-						},
-					},
-				},
+			},
+			"data_source_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"description": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"enabled": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"frequency": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"query": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"query_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"time_window": {
+				Type:     schema.TypeInt,
+				Computed: true,
 			},
 		},
 	}
@@ -108,20 +123,25 @@ func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta in
 	}
 
 	d.SetId(*resp.ID)
+
+	switch *resp.Type {
+	case "OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesAlertingAction":
+		d.Set("action_type", "AlertingAction")
+	case "OdataTypeMicrosoftWindowsAzureManagementMonitoringAlertsModelsMicrosoftAppInsightsNexusDataContractsResourcesScheduledQueryRulesLogToMetricAction":
+		d.Set("action_type", "LogToMetricAction")
+	default:
+		return fmt.Errorf("Error setting `action_type`: %+v", err)
+	}
+
 	// set required props for creation
 	d.Set("description", resp.Description)
 	d.Set("enabled", resp.Enabled)
 
 	// read-only props
-	d.Set("type", *resp.Type)
 	d.Set("last_updated_time", resp.LastUpdatedTime)
 	d.Set("provisioning_state", resp.ProvisioningState)
 
 	//optional props
-	if err := d.Set("action", flattenAzureRmScheduledQueryRulesAction(resp.Action)); err != nil {
-		return fmt.Errorf("Error setting `action`: %+v", err)
-	}
-
 	if err := d.Set("schedule", flattenAzureRmScheduledQueryRulesSchedule(resp.Schedule)); err != nil {
 		return fmt.Errorf("Error setting `schedule`: %+v", err)
 	}
