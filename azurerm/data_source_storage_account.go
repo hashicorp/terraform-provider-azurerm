@@ -265,7 +265,7 @@ func dataSourceArmStorageAccount() *schema.Resource {
 
 func dataSourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.AccountsClient
-	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
+	endpointSuffix := meta.(*ArmClient).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

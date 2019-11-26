@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -104,9 +105,14 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
+			"default_node_pool": containers.SchemaDefaultNodePool(),
+
+			// TODO: remove in 2.0
 			"agent_pool_profile": {
-				Type:     schema.TypeList,
-				Required: true,
+				Type:       schema.TypeList,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This has been replaced by `default_node_pool` and will be removed in version 2.0 of the AzureRM Provider",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -251,100 +257,22 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			},
 
 			// Optional
-			"addon_profile": {
-				Type:     schema.TypeList,
-				MaxItems: 1,
+			"addon_profile": containers.SchemaKubernetesAddOnProfiles(),
+
+			"api_server_authorized_ip_ranges": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.CIDR,
+				},
+			},
+
+			// TODO: remove Computed in 2.0
+			"enable_pod_security_policy": {
+				Type:     schema.TypeBool,
 				Optional: true,
 				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"http_application_routing": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							ForceNew: true,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										ForceNew: true,
-										Required: true,
-									},
-									"http_application_routing_zone_name": {
-										Type:     schema.TypeString,
-										Computed: true,
-									},
-								},
-							},
-						},
-
-						"oms_agent": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"log_analytics_workspace_id": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: azure.ValidateResourceID,
-									},
-								},
-							},
-						},
-
-						"aci_connector_linux": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-									"subnet_name": {
-										Type:         schema.TypeString,
-										Optional:     true,
-										ValidateFunc: validate.NoEmptyStrings,
-									},
-								},
-							},
-						},
-
-						"kube_dashboard": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-								},
-							},
-						},
-
-						"azure_policy": {
-							Type:     schema.TypeList,
-							MaxItems: 1,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"enabled": {
-										Type:     schema.TypeBool,
-										Required: true,
-									},
-								},
-							},
-						},
-					},
-				},
 			},
 
 			"linux_profile": {
@@ -375,26 +303,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 									},
 								},
 							},
-						},
-					},
-				},
-			},
-
-			"windows_profile": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"admin_username": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"admin_password": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Sensitive:    true,
-							ValidateFunc: validate.NoEmptyStrings,
 						},
 					},
 				},
@@ -476,6 +384,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"node_resource_group": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
 			"role_based_access_control": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -535,12 +450,33 @@ func resourceArmKubernetesCluster() *schema.Resource {
 
 			"tags": tags.Schema(),
 
+			"windows_profile": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"admin_username": {
+							Type:     schema.TypeString,
+							Required: true,
+							ForceNew: true,
+						},
+						"admin_password": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Sensitive:    true,
+							ValidateFunc: validate.NoEmptyStrings,
+						},
+					},
+				},
+			},
+
+			// Computed
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			// Computed
 			"kube_admin_config": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -624,28 +560,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
-
-			"node_resource_group": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-
-			"api_server_authorized_ip_ranges": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validate.CIDR,
-				},
-			},
-
-			"enable_pod_security_policy": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -654,7 +568,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*ArmClient).tenantId
+	tenantId := meta.(*ArmClient).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
@@ -678,20 +592,46 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	dnsPrefix := d.Get("dns_prefix").(string)
 	kubernetesVersion := d.Get("kubernetes_version").(string)
 
-	linuxProfile := expandKubernetesClusterLinuxProfile(d)
-	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
-	if err != nil {
-		return err
-	}
-	windowsProfile := expandKubernetesClusterWindowsProfile(d)
-	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
-	networkProfile := expandKubernetesClusterNetworkProfile(d)
-	addonProfiles := expandKubernetesClusterAddonProfiles(d)
+	linuxProfileRaw := d.Get("linux_profile").([]interface{})
+	linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
 
-	t := d.Get("tags").(map[string]interface{})
+	agentProfiles, err := containers.ExpandDefaultNodePool(d)
+	if err != nil {
+		return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
+	}
+
+	// TODO: remove me in 2.0
+	if agentProfiles == nil {
+		agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
+		agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, true)
+		if err != nil {
+			return err
+		}
+
+		agentProfiles = &agentProfilesLegacy
+	}
+
+	addOnProfilesRaw := d.Get("addon_profile").([]interface{})
+	addonProfiles := containers.ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
+
+	networkProfileRaw := d.Get("network_profile").([]interface{})
+	networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
 
 	rbacRaw := d.Get("role_based_access_control").([]interface{})
 	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+
+	// since the Create and Update use separate methods, there's no point extracting this out
+	servicePrincipalProfileRaw := d.Get("service_principal").([]interface{})
+	servicePrincipalProfileVal := servicePrincipalProfileRaw[0].(map[string]interface{})
+	servicePrincipalProfile := &containerservice.ManagedClusterServicePrincipalProfile{
+		ClientID: utils.String(servicePrincipalProfileVal["client_id"].(string)),
+		Secret:   utils.String(servicePrincipalProfileVal["client_secret"].(string)),
+	}
+
+	t := d.Get("tags").(map[string]interface{})
+
+	windowsProfileRaw := d.Get("windows_profile").([]interface{})
+	windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
 
 	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
 	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
@@ -707,7 +647,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
 			AadProfile:                  azureADProfile,
 			AddonProfiles:               addonProfiles,
-			AgentPoolProfiles:           &agentProfiles,
+			AgentPoolProfiles:           agentProfiles,
 			DNSPrefix:                   utils.String(dnsPrefix),
 			EnableRBAC:                  utils.Bool(rbacEnabled),
 			KubernetesVersion:           utils.String(kubernetesVersion),
@@ -745,20 +685,23 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Containers.KubernetesClustersClient
+	nodePoolsClient := meta.(*ArmClient).Containers.AgentPoolsClient
+	clusterClient := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*ArmClient).tenantId
+	tenantId := meta.(*ArmClient).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := containers.ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	resourceGroup := id.ResourceGroup
-	name := id.Path["managedClusters"]
+	name := id.Name
+
+	d.Partial(true)
 
 	if d.HasChange("service_principal") {
 		log.Printf("[DEBUG] Updating the Service Principal for Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
@@ -772,84 +715,155 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 			ClientID: utils.String(clientId),
 			Secret:   utils.String(clientSecret),
 		}
-		future, err := client.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
+		future, err := clusterClient.ResetServicePrincipalProfile(ctx, resourceGroup, name, params)
 		if err != nil {
 			return fmt.Errorf("Error updating Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 
-		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
 			return fmt.Errorf("Error waiting for update of Service Principal for Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 		log.Printf("[DEBUG] Updated the Service Principal for Kubernetes Cluster %q (Resource Group %q).", name, resourceGroup)
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	dnsPrefix := d.Get("dns_prefix").(string)
-	kubernetesVersion := d.Get("kubernetes_version").(string)
-
-	linuxProfile := expandKubernetesClusterLinuxProfile(d)
-	agentProfiles, err := expandKubernetesClusterAgentPoolProfiles(d)
+	// we need to conditionally update the cluster
+	existing, err := clusterClient.Get(ctx, resourceGroup, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	windowsProfile := expandKubernetesClusterWindowsProfile(d)
-	networkProfile := expandKubernetesClusterNetworkProfile(d)
-	servicePrincipalProfile := expandAzureRmKubernetesClusterServicePrincipal(d)
-	addonProfiles := expandKubernetesClusterAddonProfiles(d)
-
-	t := d.Get("tags").(map[string]interface{})
-
-	rbacRaw := d.Get("role_based_access_control").([]interface{})
-	rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
-
-	apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
-	apiServerAuthorizedIPRanges := utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
-
-	nodeResourceGroup := d.Get("node_resource_group").(string)
-
-	enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
-
-	// TODO: should these values be conditionally updated?
-	parameters := containerservice.ManagedCluster{
-		Name:     &name,
-		Location: &location,
-		ManagedClusterProperties: &containerservice.ManagedClusterProperties{
-			APIServerAuthorizedIPRanges: apiServerAuthorizedIPRanges,
-			AadProfile:                  azureADProfile,
-			AddonProfiles:               addonProfiles,
-			AgentPoolProfiles:           &agentProfiles,
-			DNSPrefix:                   utils.String(dnsPrefix),
-			EnableRBAC:                  utils.Bool(rbacEnabled),
-			KubernetesVersion:           utils.String(kubernetesVersion),
-			LinuxProfile:                linuxProfile,
-			WindowsProfile:              windowsProfile,
-			NetworkProfile:              networkProfile,
-			ServicePrincipalProfile:     servicePrincipalProfile,
-			NodeResourceGroup:           utils.String(nodeResourceGroup),
-			EnablePodSecurityPolicy:     utils.Bool(enablePodSecurityPolicy),
-		},
-		Tags: tags.Expand(t),
+	if existing.ManagedClusterProperties == nil {
+		return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", name, resourceGroup)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
-	if err != nil {
-		return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	// since there's multiple reasons why we could be called into Update, we use this to only update if something's changed that's not SP/Version
+	updateCluster := false
+
+	if d.HasChange("addon_profile") {
+		updateCluster = true
+		addOnProfilesRaw := d.Get("addon_profile").([]interface{})
+		addonProfiles := containers.ExpandKubernetesAddOnProfiles(addOnProfilesRaw)
+		existing.ManagedClusterProperties.AddonProfiles = addonProfiles
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if d.HasChange("api_server_authorized_ip_ranges") {
+		updateCluster = true
+		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
+		existing.APIServerAuthorizedIPRanges = utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
 	}
 
-	read, err := client.Get(ctx, resourceGroup, name)
-	if err != nil {
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+	if d.HasChange("enable_pod_security_policy") {
+		updateCluster = true
+		enablePodSecurityPolicy := d.Get("enable_pod_security_policy").(bool)
+		existing.ManagedClusterProperties.EnablePodSecurityPolicy = utils.Bool(enablePodSecurityPolicy)
 	}
 
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read ID for Managed Kubernetes Cluster %q (Resource Group %q)", name, resourceGroup)
+	if d.HasChange("linux_profile") {
+		updateCluster = true
+		linuxProfileRaw := d.Get("linux_profile").([]interface{})
+		linuxProfile := expandKubernetesClusterLinuxProfile(linuxProfileRaw)
+		existing.ManagedClusterProperties.LinuxProfile = linuxProfile
 	}
 
-	d.SetId(*read.ID)
+	if d.HasChange("network_profile") {
+		updateCluster = true
+		networkProfileRaw := d.Get("network_profile").([]interface{})
+		networkProfile := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+		existing.ManagedClusterProperties.NetworkProfile = networkProfile
+	}
+
+	if d.HasChange("role_based_access_control") {
+		updateCluster = true
+		rbacRaw := d.Get("role_based_access_control").([]interface{})
+		rbacEnabled, azureADProfile := expandKubernetesClusterRoleBasedAccessControl(rbacRaw, tenantId)
+		existing.ManagedClusterProperties.AadProfile = azureADProfile
+		existing.ManagedClusterProperties.EnableRBAC = utils.Bool(rbacEnabled)
+	}
+
+	if d.HasChange("tags") {
+		updateCluster = true
+		t := d.Get("tags").(map[string]interface{})
+		existing.Tags = tags.Expand(t)
+	}
+
+	if d.HasChange("windows_profile") {
+		updateCluster = true
+		windowsProfileRaw := d.Get("windows_profile").([]interface{})
+		windowsProfile := expandKubernetesClusterWindowsProfile(windowsProfileRaw)
+		existing.ManagedClusterProperties.WindowsProfile = windowsProfile
+	}
+
+	if updateCluster {
+		log.Printf("[DEBUG] Updating the Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
+		future, err := clusterClient.CreateOrUpdate(ctx, resourceGroup, name, existing)
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated the Kubernetes Cluster %q (Resource Group %q)..", name, resourceGroup)
+	}
+
+	// update the node pool using the separate API
+	if d.HasChange("default_node_pool") || d.HasChange("agent_pool_profile") {
+		log.Printf("[DEBUG] Updating of Default Node Pool..")
+
+		agentProfiles, err := containers.ExpandDefaultNodePool(d)
+		if err != nil {
+			return fmt.Errorf("Error expanding `default_node_pool`: %+v", err)
+		}
+
+		// TODO: remove me in 2.0
+		if agentProfiles == nil {
+			agentProfilesRaw := d.Get("agent_pool_profile").([]interface{})
+			agentProfilesLegacy, err := expandKubernetesClusterAgentPoolProfiles(agentProfilesRaw, false)
+			if err != nil {
+				return err
+			}
+
+			agentProfiles = &agentProfilesLegacy
+		}
+
+		agentProfile := containers.ConvertDefaultNodePoolToAgentPool(agentProfiles)
+		agentPool, err := nodePoolsClient.CreateOrUpdate(ctx, resourceGroup, name, *agentProfile.Name, agentProfile)
+		if err != nil {
+			return fmt.Errorf("Error updating Default Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err := agentPool.WaitForCompletionRef(ctx, nodePoolsClient.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Default Node Pool %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		log.Printf("[DEBUG] Updated Default Node Pool.")
+	}
+
+	// then roll the version of Kubernetes if necessary
+	if d.HasChange("kubernetes_version") {
+		existing, err = clusterClient.Get(ctx, resourceGroup, name)
+		if err != nil {
+			return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+		if existing.ManagedClusterProperties == nil {
+			return fmt.Errorf("Error retrieving existing Kubernetes Cluster %q (Resource Group %q): `properties` was nil", name, resourceGroup)
+		}
+
+		kubernetesVersion := d.Get("kubernetes_version").(string)
+		log.Printf("[DEBUG] Upgrading the version of Kubernetes to %q..", kubernetesVersion)
+		existing.ManagedClusterProperties.KubernetesVersion = utils.String(kubernetesVersion)
+
+		future, err := clusterClient.CreateOrUpdate(ctx, resourceGroup, name, existing)
+		if err != nil {
+			return fmt.Errorf("Error updating Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, clusterClient.Client); err != nil {
+			return fmt.Errorf("Error waiting for update of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
+		}
+
+		log.Printf("[DEBUG] Upgraded the version of Kubernetes to %q..", kubernetesVersion)
+	}
+
+	d.Partial(false)
 
 	return resourceArmKubernetesClusterRead(d, meta)
 }
@@ -859,31 +873,29 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := containers.ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["managedClusters"]
 
-	resp, err := client.Get(ctx, resGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", name, resGroup)
+			log.Printf("[DEBUG] Managed Kubernetes Cluster %q was not found in Resource Group %q - removing from state!", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
-	profile, err := client.GetAccessProfile(ctx, resGroup, name, "clusterUser")
+	profile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.Name, "clusterUser")
 	if err != nil {
-		return fmt.Errorf("Error retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error retrieving Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -900,24 +912,28 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
 		}
 
-		addonProfiles := flattenKubernetesClusterAddonProfiles(props.AddonProfiles)
+		addonProfiles := containers.FlattenKubernetesAddOnProfiles(props.AddonProfiles)
 		if err := d.Set("addon_profile", addonProfiles); err != nil {
 			return fmt.Errorf("Error setting `addon_profile`: %+v", err)
 		}
 
+		// TODO: remove me in 2.0
 		agentPoolProfiles := flattenKubernetesClusterAgentPoolProfiles(props.AgentPoolProfiles, resp.Fqdn)
 		if err := d.Set("agent_pool_profile", agentPoolProfiles); err != nil {
 			return fmt.Errorf("Error setting `agent_pool_profile`: %+v", err)
 		}
 
+		flattenedDefaultNodePool, err := containers.FlattenDefaultNodePool(props.AgentPoolProfiles, d)
+		if err != nil {
+			return fmt.Errorf("Error flattening `default_node_pool`: %+v", err)
+		}
+		if err := d.Set("default_node_pool", flattenedDefaultNodePool); err != nil {
+			return fmt.Errorf("Error setting `default_node_pool`: %+v", err)
+		}
+
 		linuxProfile := flattenKubernetesClusterLinuxProfile(props.LinuxProfile)
 		if err := d.Set("linux_profile", linuxProfile); err != nil {
 			return fmt.Errorf("Error setting `linux_profile`: %+v", err)
-		}
-
-		windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
-		if err := d.Set("windows_profile", windowsProfile); err != nil {
-			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
 		}
 
 		networkProfile := flattenKubernetesClusterNetworkProfile(props.NetworkProfile)
@@ -935,11 +951,16 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Error setting `service_principal`: %+v", err)
 		}
 
+		windowsProfile := flattenKubernetesClusterWindowsProfile(props.WindowsProfile, d)
+		if err := d.Set("windows_profile", windowsProfile); err != nil {
+			return fmt.Errorf("Error setting `windows_profile`: %+v", err)
+		}
+
 		// adminProfile is only available for RBAC enabled clusters with AAD
 		if props.AadProfile != nil {
-			adminProfile, err := client.GetAccessProfile(ctx, resGroup, name, "clusterAdmin")
+			adminProfile, err := client.GetAccessProfile(ctx, id.ResourceGroup, id.Name, "clusterAdmin")
 			if err != nil {
-				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+				return fmt.Errorf("Error retrieving Admin Access Profile for Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 			}
 
 			adminKubeConfigRaw, adminKubeConfig := flattenKubernetesClusterAccessProfile(adminProfile)
@@ -967,20 +988,18 @@ func resourceArmKubernetesClusterDelete(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := azure.ParseAzureResourceID(d.Id())
+	id, err := containers.ParseKubernetesClusterID(d.Id())
 	if err != nil {
 		return err
 	}
-	resGroup := id.ResourceGroup
-	name := id.Path["managedClusters"]
 
-	future, err := client.Delete(ctx, resGroup, name)
+	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error deleting Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", name, resGroup, err)
+		return fmt.Errorf("Error waiting for the deletion of Managed Kubernetes Cluster %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil
@@ -1014,181 +1033,11 @@ func flattenKubernetesClusterAccessProfile(profile containerservice.ManagedClust
 	return nil, []interface{}{}
 }
 
-func expandKubernetesClusterAddonProfiles(d *schema.ResourceData) map[string]*containerservice.ManagedClusterAddonProfile {
-	profiles := d.Get("addon_profile").([]interface{})
-	if len(profiles) == 0 {
-		return nil
-	}
-
-	profile := profiles[0].(map[string]interface{})
-	addonProfiles := map[string]*containerservice.ManagedClusterAddonProfile{}
-
-	httpApplicationRouting := profile["http_application_routing"].([]interface{})
-	if len(httpApplicationRouting) > 0 {
-		value := httpApplicationRouting[0].(map[string]interface{})
-		enabled := value["enabled"].(bool)
-		addonProfiles["httpApplicationRouting"] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-		}
-	}
-
-	omsAgent := profile["oms_agent"].([]interface{})
-	if len(omsAgent) > 0 {
-		value := omsAgent[0].(map[string]interface{})
-		config := make(map[string]*string)
-		enabled := value["enabled"].(bool)
-
-		if workspaceId, ok := value["log_analytics_workspace_id"]; ok && workspaceId != "" {
-			config["logAnalyticsWorkspaceResourceID"] = utils.String(workspaceId.(string))
-		}
-
-		addonProfiles["omsagent"] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  config,
-		}
-	}
-
-	aciConnector := profile["aci_connector_linux"].([]interface{})
-	if len(aciConnector) > 0 {
-		value := aciConnector[0].(map[string]interface{})
-		config := make(map[string]*string)
-		enabled := value["enabled"].(bool)
-
-		if subnetName, ok := value["subnet_name"]; ok && subnetName != "" {
-			config["SubnetName"] = utils.String(subnetName.(string))
-		}
-
-		addonProfiles["aciConnectorLinux"] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  config,
-		}
-	}
-
-	kubeDashboard := profile["kube_dashboard"].([]interface{})
-	if len(kubeDashboard) > 0 {
-		value := kubeDashboard[0].(map[string]interface{})
-		enabled := value["enabled"].(bool)
-
-		addonProfiles["kubeDashboard"] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  nil,
-		}
-	}
-
-	azurePolicy := profile["azure_policy"].([]interface{})
-	if len(azurePolicy) > 0 && azurePolicy[0] != nil {
-		value := azurePolicy[0].(map[string]interface{})
-		enabled := value["enabled"].(bool)
-
-		addonProfiles["azurepolicy"] = &containerservice.ManagedClusterAddonProfile{
-			Enabled: utils.Bool(enabled),
-			Config:  nil,
-		}
-	}
-
-	return addonProfiles
-}
-
-func flattenKubernetesClusterAddonProfiles(profile map[string]*containerservice.ManagedClusterAddonProfile) []interface{} {
-	values := make(map[string]interface{})
-
-	routes := make([]interface{}, 0)
-	if httpApplicationRouting := profile["httpApplicationRouting"]; httpApplicationRouting != nil {
-		enabled := false
-		if enabledVal := httpApplicationRouting.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		zoneName := ""
-		if v := httpApplicationRouting.Config["HTTPApplicationRoutingZoneName"]; v != nil {
-			zoneName = *v
-		}
-
-		output := map[string]interface{}{
-			"enabled":                            enabled,
-			"http_application_routing_zone_name": zoneName,
-		}
-		routes = append(routes, output)
-	}
-	values["http_application_routing"] = routes
-
-	agents := make([]interface{}, 0)
-	if omsAgent := profile["omsagent"]; omsAgent != nil {
-		enabled := false
-		if enabledVal := omsAgent.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		workspaceId := ""
-		if workspaceResourceID := omsAgent.Config["logAnalyticsWorkspaceResourceID"]; workspaceResourceID != nil {
-			workspaceId = *workspaceResourceID
-		}
-
-		output := map[string]interface{}{
-			"enabled":                    enabled,
-			"log_analytics_workspace_id": workspaceId,
-		}
-		agents = append(agents, output)
-	}
-	values["oms_agent"] = agents
-
-	aciConnectors := make([]interface{}, 0)
-	if aciConnector := profile["aciConnectorLinux"]; aciConnector != nil {
-		enabled := false
-		if enabledVal := aciConnector.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		subnetName := ""
-		if v := aciConnector.Config["SubnetName"]; v != nil {
-			subnetName = *v
-		}
-
-		output := map[string]interface{}{
-			"enabled":     enabled,
-			"subnet_name": subnetName,
-		}
-		aciConnectors = append(aciConnectors, output)
-	}
-	values["aci_connector_linux"] = aciConnectors
-
-	kubeDashboards := make([]interface{}, 0)
-	if kubeDashboard := profile["kubeDashboard"]; kubeDashboard != nil {
-		enabled := false
-		if enabledVal := kubeDashboard.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		output := map[string]interface{}{
-			"enabled": enabled,
-		}
-		kubeDashboards = append(kubeDashboards, output)
-	}
-	values["kube_dashboard"] = kubeDashboards
-
-	azurePolicies := make([]interface{}, 0)
-	if azurePolicy := profile["azurepolicy"]; azurePolicy != nil {
-		enabled := false
-		if enabledVal := azurePolicy.Enabled; enabledVal != nil {
-			enabled = *enabledVal
-		}
-
-		output := map[string]interface{}{
-			"enabled": enabled,
-		}
-		azurePolicies = append(azurePolicies, output)
-	}
-	values["azure_policy"] = azurePolicies
-
-	return []interface{}{values}
-}
-
-func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
-	configs := d.Get("agent_pool_profile").([]interface{})
-
+func expandKubernetesClusterAgentPoolProfiles(input []interface{}, isNewResource bool) ([]containerservice.ManagedClusterAgentPoolProfile, error) {
 	profiles := make([]containerservice.ManagedClusterAgentPoolProfile, 0)
-	for config_id := range configs {
-		config := configs[config_id].(map[string]interface{})
+
+	for _, v := range input {
+		config := v.(map[string]interface{})
 
 		name := config["name"].(string)
 		poolType := config["type"].(string)
@@ -1228,13 +1077,13 @@ func expandKubernetesClusterAgentPoolProfiles(d *schema.ResourceData) ([]contain
 
 			// Auto scaling will change the number of nodes, but the original count number should not be sent again.
 			// This avoid the cluster being resized after creation.
-			if *profile.EnableAutoScaling && !d.IsNewResource() {
+			if *profile.EnableAutoScaling && !isNewResource {
 				profile.Count = nil
 			}
 		}
 
-		if availavilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availavilityZones) > 0 {
-			profile.AvailabilityZones = availavilityZones
+		if availabilityZones := utils.ExpandStringSlice(config["availability_zones"].([]interface{})); len(*availabilityZones) > 0 {
+			profile.AvailabilityZones = availabilityZones
 		}
 
 		if *profile.EnableAutoScaling && (profile.MinCount == nil || profile.MaxCount == nil) {
@@ -1340,14 +1189,12 @@ func flattenKubernetesClusterAgentPoolProfiles(profiles *[]containerservice.Mana
 	return agentPoolProfiles
 }
 
-func expandKubernetesClusterLinuxProfile(d *schema.ResourceData) *containerservice.LinuxProfile {
-	profiles := d.Get("linux_profile").([]interface{})
-
-	if len(profiles) == 0 {
+func expandKubernetesClusterLinuxProfile(input []interface{}) *containerservice.LinuxProfile {
+	if len(input) == 0 {
 		return nil
 	}
 
-	config := profiles[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
 	linuxKeys := config["ssh_key"].([]interface{})
@@ -1402,14 +1249,12 @@ func flattenKubernetesClusterLinuxProfile(profile *containerservice.LinuxProfile
 	}
 }
 
-func expandKubernetesClusterWindowsProfile(d *schema.ResourceData) *containerservice.ManagedClusterWindowsProfile {
-	profiles := d.Get("windows_profile").([]interface{})
-
-	if len(profiles) == 0 {
+func expandKubernetesClusterWindowsProfile(input []interface{}) *containerservice.ManagedClusterWindowsProfile {
+	if len(input) == 0 {
 		return nil
 	}
 
-	config := profiles[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
 
 	adminUsername := config["admin_username"].(string)
 	adminPassword := config["admin_password"].(string)
@@ -1446,13 +1291,12 @@ func flattenKubernetesClusterWindowsProfile(profile *containerservice.ManagedClu
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(d *schema.ResourceData) *containerservice.NetworkProfileType {
-	configs := d.Get("network_profile").([]interface{})
-	if len(configs) == 0 {
+func expandKubernetesClusterNetworkProfile(input []interface{}) *containerservice.NetworkProfileType {
+	if len(input) == 0 {
 		return nil
 	}
 
-	config := configs[0].(map[string]interface{})
+	config := input[0].(map[string]interface{})
 
 	networkPlugin := config["network_plugin"].(string)
 	networkPolicy := config["network_policy"].(string)
@@ -1612,25 +1456,6 @@ func flattenKubernetesClusterRoleBasedAccessControl(input *containerservice.Mana
 			"enabled":                rbacEnabled,
 			"azure_active_directory": results,
 		},
-	}
-}
-
-func expandAzureRmKubernetesClusterServicePrincipal(d *schema.ResourceData) *containerservice.ManagedClusterServicePrincipalProfile {
-	value, exists := d.GetOk("service_principal")
-	configs := value.([]interface{})
-
-	if !exists || len(configs) == 0 {
-		return nil
-	}
-
-	config := configs[0].(map[string]interface{})
-
-	clientId := config["client_id"].(string)
-	clientSecret := config["client_secret"].(string)
-
-	return &containerservice.ManagedClusterServicePrincipalProfile{
-		ClientID: &clientId,
-		Secret:   &clientSecret,
 	}
 }
 

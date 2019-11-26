@@ -23,9 +23,6 @@ build-docker:
 	mkdir -p bin
 	docker run --rm -v $$(pwd)/bin:/go/bin -v $$(pwd):/go/src/github.com/terraform-providers/terraform-provider-azurerm -w /go/src/github.com/terraform-providers/terraform-provider-azurerm -e GOOS golang:1.13 make build
 
-docscheck:
-	@sh "$(CURDIR)/scripts/docscheck.sh"
-
 fmt:
 	@echo "==> Fixing source code with gofmt..."
 	# This logic should match the search logic in scripts/gofmtcheck.sh
@@ -90,6 +87,9 @@ debugacc: fmtcheck
 website-lint:
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text -i hdinsight website/
+
+website-registrycheck:
+	@sh "$(CURDIR)/scripts/website-registrycheck.sh"
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))

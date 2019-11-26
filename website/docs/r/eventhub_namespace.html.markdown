@@ -14,15 +14,15 @@ Manages an EventHub Namespace.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_eventhub_namespace" "test" {
+resource "azurerm_eventhub_namespace" "example" {
   name                = "example-namespace"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
   capacity            = 2
 

@@ -14,7 +14,7 @@ Manages a Firewall Rule for a MariaDB Server
 ## Example Usage (Single IP Address)
 
 ```hcl
-resource "azurerm_mariadb_firewall_rule" "test" {
+resource "azurerm_mariadb_firewall_rule" "example" {
   name                = "test-rule"
   resource_group_name = "test-rg"
   server_name         = "test-server"
@@ -26,7 +26,7 @@ resource "azurerm_mariadb_firewall_rule" "test" {
 ## Example Usage (IP Range)
 
 ```hcl
-resource "azurerm_mariadb_firewall_rule" "test" {
+resource "azurerm_mariadb_firewall_rule" "example" {
   name                = "test-rule"
   resource_group_name = "test-rg"
   server_name         = "test-server"

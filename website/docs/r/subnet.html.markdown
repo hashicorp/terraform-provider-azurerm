@@ -19,22 +19,22 @@ At this time you cannot use a Virtual Network with in-line Subnets in conjunctio
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "acceptanceTestVirtualNetwork1"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "testsubnet"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.1.0/24"
 
   delegation {
@@ -59,6 +59,10 @@ The following arguments are supported:
 * `virtual_network_name` - (Required) The name of the virtual network to which to attach the subnet. Changing this forces a new resource to be created.
 
 * `address_prefix` - (Required) The address prefix to use for the subnet.
+
+* `enforce_private_link_service_network_policies` - (Optional) Enable or Disable network policies on the `private link service` in the subnet. Default is `false`.
+
+-> **NOTE:** Network policies like network security groups (NSG) are not supported for the private link service. In order to deploy a private link service on a given subnet, an explicit disable setting is required on that subnet(e.g. `enforce_private_link_service_network_policies` = `true`). This setting is only applicable for the private link service. For other resources in the subnet, access is controlled based on Network Security Groups (NSG) security rules definition.
 
 * `network_security_group_id` - (Optional / **Deprecated**) The ID of the Network Security Group to associate with the subnet.
 
@@ -106,5 +110,5 @@ The following attributes are exported:
 Subnets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_subnet.testSubnet /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1
+terraform import azurerm_subnet.exampleSubnet /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1
 ```
