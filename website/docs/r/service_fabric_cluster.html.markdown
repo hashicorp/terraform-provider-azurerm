@@ -24,7 +24,7 @@ resource "azurerm_service_fabric_cluster" "test" {
   location             = "${azurerm_resource_group.test.location}"
   reliability_level    = "Bronze"
   upgrade_mode         = "Manual"
-  cluster_code_version = "6.3.176.9494"
+  cluster_code_version = "6.5.639.9590"
   vm_image             = "Windows"
   management_endpoint  = "https://example:80"
 
