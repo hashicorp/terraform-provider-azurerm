@@ -259,11 +259,11 @@ func expandVPNGatewayBGPSettings(input []interface{}) *network.BgpSettings {
 
 	val := input[0].(map[string]interface{})
 
-	agp := val["agp"].(int)
+	asn := val["asn"].(int)
 	peerWeight := val["peer_weight"].(int)
 
 	return &network.BgpSettings{
-		Asn:        utils.Int64(int64(agp)),
+		Asn:        utils.Int64(int64(asn)),
 		PeerWeight: utils.Int32(int32(peerWeight)),
 	}
 }
