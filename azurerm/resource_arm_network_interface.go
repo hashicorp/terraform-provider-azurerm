@@ -93,6 +93,7 @@ func resourceArmNetworkInterface() *schema.Resource {
 						"private_ip_address": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 
 						"private_ip_address_version": {

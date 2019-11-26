@@ -14,6 +14,9 @@ Manages an App Service certificate.
 
 ## Example Usage
 
+This example provisions an App Service Certificate from a Local File. Additional examples of how to use the `azurerm_app_service_certificate` resource can be found [in the ./examples/app-service/certificate` directory within the Github Repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/app-service/certificate).
+
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -22,9 +25,9 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_app_service_certificate" "example" {
   name                = "example-cert"
-  resource_group_name = "${azurerm_resource_group.example.name}"
-  location            = "${azurerm_resource_group.example.location}"
-  pfx_blob            = "${filebase64("certificate.pfx")}"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  pfx_blob            = filebase64("certificate.pfx")
   password            = "terraform"
 }
 ```

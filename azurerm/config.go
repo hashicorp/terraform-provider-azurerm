@@ -90,23 +90,6 @@ type ArmClient struct {
 
 	// Services
 	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	DataBricks       *databricks.Client
-	DataFactory      *datafactory.Client
-	Datalake         *datalake.Client
-	DevSpace         *devspace.Client
-	DevTestLabs      *devtestlabs.Client
-	Dns              *dns.Client
-	EventGrid        *eventgrid.Client
-	Eventhub         *eventhub.Client
-	Frontdoor        *frontdoor.Client
-	Graph            *graph.Client
-	HDInsight        *hdinsight.Client
-	Healthcare       *healthcare.Client
-	IoTHub           *iothub.Client
-	KeyVault         *keyvault.Client
-	Kusto            *kusto.Client
-	LogAnalytics     *loganalytics.Client
-	Logic            *logic.Client
 	ManagementGroups *managementgroup.Client
 	Maps             *maps.Client
 	MariaDB          *mariadb.Client

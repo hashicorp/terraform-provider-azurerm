@@ -69,6 +69,11 @@ func dataSourceArmLoadBalancer() *schema.Resource {
 						},
 
 						"zones": azure.SchemaZonesComputed(),
+
+						"id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 					},
 				},
 			},
@@ -156,6 +161,10 @@ func flattenLoadBalancerDataSourceFrontendIpConfiguration(ipConfigs *[]network.F
 		ipConfig := make(map[string]interface{})
 		if config.Name != nil {
 			ipConfig["name"] = *config.Name
+		}
+
+		if config.ID != nil {
+			ipConfig["id"] = *config.ID
 		}
 
 		zones := make([]string, 0)

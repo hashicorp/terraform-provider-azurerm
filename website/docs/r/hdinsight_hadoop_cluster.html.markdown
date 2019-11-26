@@ -100,6 +100,8 @@ The following arguments are supported:
 
 * `storage_account` - (Required) One or more `storage_account` block as defined below.
 
+* `storage_account_gen2` - (Required) A `storage_account_gen2` block as defined below.
+
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight Hadoop Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
 ---
@@ -162,11 +164,27 @@ A `storage_account` block supports the following:
 
 * `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
 
--> **NOTE:** One of the `storage_account` blocks must be marked as the default.
+-> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
 * `storage_account_key` - (Required) The Access Key which should be used to connect to the Storage Account. Changing this forces a new resource to be created.
 
 * `storage_container_id` - (Required) The ID of the Storage Container. Changing this forces a new resource to be created.
+
+-> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
+
+---
+
+A `storage_account_gen2` block supports the following:
+
+* `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
+
+-> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
+
+* `storage_resource_id` - (Required) The ID of the Storage Account. Changing this forces a new resource to be created.
+
+* `filesystem_id` - (Required) The ID of the Gen2 Filesystem. Changing this forces a new resource to be created.
+
+* `managed_identity_resource_id` - (Required) The ID of Managed Identity to use for accessing the Gen2 filesystem. Changing this forces a new resource to be created.
 
 -> **NOTE:** This can be obtained from the `id` of the `azurerm_storage_container` resource.
 

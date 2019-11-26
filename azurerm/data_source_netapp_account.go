@@ -2,11 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -16,12 +15,9 @@ func dataSourceArmNetAppAccount() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`(^[\da-zA-Z])([-\da-zA-Z]{1,62})([\da-zA-Z]$)`),
-					`The name must be between 3 and 64 characters in length and begin with a letter or number, end with a letter or number and may contain only letters, numbers or hyphens.`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: aznetapp.ValidateNetAppAccountName,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),

@@ -323,7 +323,10 @@ func resourceArmContainerGroup() *schema.Resource {
 							Optional: true,
 							Computed: true,
 							ForceNew: true,
-							Elem:     &schema.Schema{Type: schema.TypeString},
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validate.NoEmptyStrings,
+							},
 						},
 
 						"volume": {

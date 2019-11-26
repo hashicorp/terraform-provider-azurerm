@@ -68,7 +68,7 @@ A `cors` block supports the following:
 
 A `features` block supports the following:
 
-* `flag` - (Required) A kind of feature. At this time the only supported value is `ServiceMode`.
+* `flag` - (Required) The kind of Feature. Possible values are `EnableConnectivityLogs` and `ServiceMode`.
 
 * `value` - (Required) A value of a feature flag. Possible values are `Classic`, `Default` and `Serverless`.
 
