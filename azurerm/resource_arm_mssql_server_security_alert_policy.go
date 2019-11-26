@@ -45,7 +45,7 @@ func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
 						"Access_Anomaly",
 						"Data_Exfiltration",
 						"Unsafe_Action",
-					}, true),
+					}, false),
 				},
 			},
 
