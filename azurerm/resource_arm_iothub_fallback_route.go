@@ -48,7 +48,7 @@ func resourceArmIotHubFallbackRoute() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.NoEmptyStrings,
+					ValidateFunc: validate.IoTHubEndpointName,
 				},
 			},
 
