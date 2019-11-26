@@ -68,6 +68,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* dependencies: temporarily switching to use a fork of github.com/Azure/azure-sdk-for-go to get around a build issue on 32-bit systems [GH-4979]
 * Data Source: `azurerm_network_interface` - exporting the IP Address for Dynamic Network Interfaces [GH-4852]
 * `azurerm_api_management_api_policy` - sending `policy` as Raw XML [GH-4140]
 * `azurerm_bastion_host` - matching the validation for `name` used by Azure [GH-4766]
