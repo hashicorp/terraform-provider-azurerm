@@ -168,7 +168,7 @@ func testAccAzureRMPrivateEndpointTemplate_template(rInt int, location string) s
 data "azurerm_subscription" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-privateendpoint-%d"
+  name     = "acctestRG-privatelink-%d"
   location = "%s"
 }
 
@@ -235,7 +235,7 @@ func testAccAzureRMPrivateEndpoint_basic(rInt int, location string) string {
 %s
 
 resource "azurerm_private_link_endpoint" "test" {
-  name                = "acctest-PrivateEndpoint-%d"
+  name                = "acctest-privatelink-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id
@@ -256,7 +256,7 @@ func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
 %s
 
 resource "azurerm_private_link_endpoint" "test" {
-  name                = "acctest-PrivateEndpoint-%d"
+  name                = "acctest-privatelink-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.test.id

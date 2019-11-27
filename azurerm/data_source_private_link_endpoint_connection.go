@@ -10,9 +10,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateLinkEndpointConnections() *schema.Resource {
+func dataSourceArmPrivateLinkEndpointConnection() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceArmPrivateLinkEndpointConnectionsRead,
+		Read: dataSourceArmPrivateLinkEndpointConnectionRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -29,7 +29,6 @@ func dataSourceArmPrivateLinkEndpointConnections() *schema.Resource {
 			"private_service_connection": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -55,7 +54,7 @@ func dataSourceArmPrivateLinkEndpointConnections() *schema.Resource {
 	}
 }
 
-func dataSourceArmPrivateLinkEndpointConnectionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.PrivateEndpointClient
 	ctx := meta.(*ArmClient).StopContext
 
@@ -91,7 +90,7 @@ func dataSourceArmPrivateLinkEndpointConnectionsRead(d *schema.ResourceData, met
 			}
 		}
 
-		if err := d.Set("private_service_connection", flattenArmPrivateLinkEndpointServiceConnections(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
+		if err := d.Set("private_service_connection", flattenArmDataSourcePrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
 	}
@@ -131,7 +130,7 @@ func getPrivateIpAddress(networkInterfaceId string, meta interface{}) string {
 	return privateIpAddress
 }
 
-func flattenArmPrivateLinkEndpointServiceConnections(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
+func flattenArmDataSourcePrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results

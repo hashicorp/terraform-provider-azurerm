@@ -106,22 +106,27 @@ func dataSourceArmSubnetRead(d *schema.ResourceData, meta interface{}) error {
 		if pe := props.PrivateEndpointNetworkPolicies; pe != nil {
 			d.Set("enforce_private_link_endpoint_network_policies", strings.EqualFold("Disabled", *pe))
 		}
+
 		if ps := props.PrivateLinkServiceNetworkPolicies; ps != nil {
 			d.Set("enforce_private_link_service_network_policies", strings.EqualFold("Disabled", *ps))
 		}
+
 		if props.NetworkSecurityGroup != nil {
 			d.Set("network_security_group_id", props.NetworkSecurityGroup.ID)
 		} else {
 			d.Set("network_security_group_id", "")
 		}
+
 		if props.RouteTable != nil {
 			d.Set("route_table_id", props.RouteTable.ID)
 		} else {
 			d.Set("route_table_id", "")
 		}
+
 		if err := d.Set("ip_configurations", flattenSubnetIPConfigurations(props.IPConfigurations)); err != nil {
 			return err
 		}
+
 		if err := d.Set("service_endpoints", flattenSubnetServiceEndpoints(props.ServiceEndpoints)); err != nil {
 			return err
 		}
