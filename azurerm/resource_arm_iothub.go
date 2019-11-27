@@ -232,6 +232,7 @@ func resourceArmIotHub() *schema.Resource {
 			"endpoint": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
@@ -262,7 +263,7 @@ func resourceArmIotHub() *schema.Resource {
 						"name": {
 							Type:         schema.TypeString,
 							Required:     true,
-							ValidateFunc: validateIoTHubEndpointName,
+							ValidateFunc: validate.IoTHubEndpointName,
 						},
 						"batch_frequency_in_seconds": {
 							Type:             schema.TypeInt,
@@ -307,6 +308,7 @@ func resourceArmIotHub() *schema.Resource {
 			"route": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -430,7 +432,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	subscriptionID := meta.(*ArmClient).subscriptionId
+	subscriptionID := meta.(*ArmClient).Account.SubscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -468,11 +470,23 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	skuInfo := expandIoTHubSku(d)
 	t := d.Get("tags").(map[string]interface{})
-	fallbackRoute := expandIoTHubFallbackRoute(d)
 
-	endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
-	if err != nil {
-		return fmt.Errorf("Error expanding `endpoint`: %+v", err)
+	routingProperties := devices.RoutingProperties{}
+
+	if _, ok := d.GetOk("route"); ok {
+		routingProperties.Routes = expandIoTHubRoutes(d)
+	}
+
+	if _, ok := d.GetOk("fallback_route"); ok {
+		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
+	}
+
+	if _, ok := d.GetOk("endpoint"); ok {
+		endpoints, err := expandIoTHubEndpoints(d, subscriptionID)
+		if err != nil {
+			return fmt.Errorf("Error expanding `endpoint`: %+v", err)
+		}
+		routingProperties.Endpoints = endpoints
 	}
 
 	storageEndpoints, messagingEndpoints, enableFileUploadNotifications, err := expandIoTHubFileUpload(d)
@@ -480,7 +494,6 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error expanding `file_upload`: %+v", err)
 	}
 
-	routes := expandIoTHubRoutes(d)
 	ipFilterRules := expandIPFilterRules(d)
 
 	properties := devices.IotHubDescription{
@@ -488,12 +501,8 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 		Location: utils.String(location),
 		Sku:      skuInfo,
 		Properties: &devices.IotHubProperties{
-			IPFilterRules: ipFilterRules,
-			Routing: &devices.RoutingProperties{
-				Endpoints:     endpoints,
-				Routes:        routes,
-				FallbackRoute: fallbackRoute,
-			},
+			IPFilterRules:                 ipFilterRules,
+			Routing:                       &routingProperties,
 			StorageEndpoints:              storageEndpoints,
 			MessagingEndpoints:            messagingEndpoints,
 			EnableFileUploadNotifications: &enableFileUploadNotifications,
@@ -1063,25 +1072,6 @@ func flattenIoTHubFallbackRoute(input *devices.RoutingProperties) []interface{} 
 	output["endpoint_names"] = utils.FlattenStringSlice(route.EndpointNames)
 
 	return []interface{}{output}
-}
-
-func validateIoTHubEndpointName(v interface{}, _ string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	reservedNames := []string{
-		"events",
-		"operationsMonitoringEvents",
-		"fileNotifications",
-		"$default",
-	}
-
-	for _, name := range reservedNames {
-		if name == value {
-			errors = append(errors, fmt.Errorf("The reserved endpoint name %s could not be used as a name for a custom endpoint", name))
-		}
-	}
-
-	return warnings, errors
 }
 
 func validateIoTHubFileNameFormat(v interface{}, k string) (warnings []string, errors []error) {

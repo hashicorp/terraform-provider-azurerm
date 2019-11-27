@@ -28,7 +28,7 @@ func dataSourceArmSubscriptionRead(d *schema.ResourceData, meta interface{}) err
 
 	subscriptionId := d.Get("subscription_id").(string)
 	if subscriptionId == "" {
-		subscriptionId = client.subscriptionId
+		subscriptionId = client.Account.SubscriptionId
 	}
 
 	resp, err := groupClient.Get(ctx, subscriptionId)

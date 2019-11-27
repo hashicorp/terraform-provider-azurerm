@@ -29,7 +29,6 @@ resource "azurerm_eventhub_namespace" "example" {
   resource_group_name = "${data.azurerm_resource_group.example.name}"
   sku                 = "Standard"
   capacity            = 1
-  kafka_enabled       = false
 }
 
 resource "azurerm_eventhub" "example" {

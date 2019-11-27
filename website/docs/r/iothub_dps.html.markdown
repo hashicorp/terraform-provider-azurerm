@@ -1,15 +1,15 @@
 ---
-subcategory: "Messaging"
+subcategory: "IoT Hub"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_iot_dps"
-sidebar_current: "docs-azurerm-resource-messaging-iot-dps-x"
+page_title: "Azure Resource Manager: azurerm_iothub_dps"
+sidebar_current: "docs-azurerm-resource-iothub-dps-x"
 description: |-
   Manages an IoT Device Provisioning Service.
 ---
 
-# azurerm_iot_dps
+# azurerm_iothub_dps
 
-Manages an IoT Device Provisioning Service.
+Manages an IotHub Device Provisioning Service.
 
 ## Example Usage
 
@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_iot_dps" "example" {
+resource "azurerm_iothub_dps" "example" {
   name                = "example"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "${azurerm_resource_group.example.location}"
@@ -78,10 +78,18 @@ The following attributes are exported:
 
 * `id` - The ID of the IoT Device Provisioning Service.
 
+* `allocation_policy` - The allocation policy of the IoT Device Provisioning Service.
+
+* `device_provisioning_host_name` - The device endpoint of the IoT Device Provisioning Service.
+
+* `id_scope` - The unique identifier of the IoT Device Provisioning Service.
+
+* `service_operations_host_name` - The service endpoint of the IoT Device Provisioning Service.
+
 ## Import
 
 IoT Device Provisioning Service can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_iot_dps.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example
+terraform import azurerm_iothub_dps.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Devices/provisioningServices/example
 ```

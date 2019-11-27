@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Azure/go-autorest/autorest/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
@@ -25,9 +26,13 @@ func TestAzureRMStorageTableMigrateStateV0ToV1(t *testing.T) {
 			"storage_account_name": "account1",
 		}
 		meta := &ArmClient{
-			environment: cloud,
+			Client: clients.Client{
+				Account: &clients.ResourceManagerAccount{
+					Environment: cloud,
+				},
+			},
 		}
-		suffix := meta.environment.StorageEndpointSuffix
+		suffix := meta.Account.Environment.StorageEndpointSuffix
 
 		expected := map[string]interface{}{
 			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
@@ -60,9 +65,13 @@ func TestAzureRMStorageTableMigrateStateV1ToV2(t *testing.T) {
 		t.Logf("[DEBUG] Testing with Cloud %q", cloud.Name)
 
 		meta := &ArmClient{
-			environment: cloud,
+			Client: clients.Client{
+				Account: &clients.ResourceManagerAccount{
+					Environment: cloud,
+				},
+			},
 		}
-		suffix := meta.environment.StorageEndpointSuffix
+		suffix := meta.Account.Environment.StorageEndpointSuffix
 
 		input := map[string]interface{}{
 			"id":                   fmt.Sprintf("https://account1.table.%s/table1", suffix),
