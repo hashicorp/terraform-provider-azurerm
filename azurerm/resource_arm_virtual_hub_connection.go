@@ -244,9 +244,6 @@ func resourceArmVirtualHubConnectionRead(d *schema.ResourceData, meta interface{
 	virtualHubName := virtualHubConnectionId.VirtualHubName
 	name := virtualHubConnectionId.Name
 
-	locks.ByName(virtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtualHubName, virtualHubResourceName)
-
 	virtualHub, err := client.Get(ctx, resourceGroup, virtualHubName)
 	if err != nil {
 		if utils.ResponseWasNotFound(virtualHub.Response) {
