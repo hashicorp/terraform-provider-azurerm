@@ -13,9 +13,6 @@ import (
 )
 
 func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
-	// if ok := skipMsTeamsChannel(); ok {
-	// 	t.Skip("Skipping as one of `ARM_TEST_MsTeams_CLIENT_ID`, `ARM_TEST_MsTeams_CLIENT_SECRET`, or `ARM_TEST_MsTeams_VERIFICATION_TOKEN` was not specified")
-	// }
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
 	resourceName := "azurerm_bot_channel_msteams.test"
@@ -46,9 +43,6 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 }
 
 func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
-	// if ok := skipMsTeamsChannel(); ok {
-	// 	t.Skip("Skipping as one of `ARM_TEST_MsTeams_CLIENT_ID`, `ARM_TEST_MsTeams_CLIENT_SECRET`, or `ARM_TEST_MsTeams_VERIFICATION_TOKEN` was not specified")
-	// }
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
 	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(ri, testLocation())
@@ -181,11 +175,3 @@ resource "azurerm_bot_channel_msteams" "test" {
 }
 `, template)
 }
-
-// func skipMsTeamsChannel() bool {
-// 	if os.Getenv("ARM_TEST_MsTeams_CLIENT_ID") == "" || os.Getenv("ARM_TEST_MsTeams_CLIENT_SECRET") == "" || os.Getenv("ARM_TEST_MsTeams_VERIFICATION_TOKEN") == "" {
-// 		return true
-// 	}
-
-// 	return false
-// }

@@ -45,12 +45,6 @@ func resourceArmBotChannelMsTeams() *schema.Resource {
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
-			"enabled": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
-			},
-
 			"calling_web_hook": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -91,7 +85,7 @@ func resourceArmBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}
 			Properties: &botservice.MsTeamsChannelProperties{
 				EnableCalling:  utils.Bool(d.Get("enable_calling").(bool)),
 				CallingWebHook: utils.String(d.Get("calling_web_hook").(string)),
-				IsEnabled:      utils.Bool(d.Get("enabled").(bool)),
+				IsEnabled:      utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameMsTeamsChannel1,
 		},
@@ -169,7 +163,7 @@ func resourceArmBotChannelMsTeamsUpdate(d *schema.ResourceData, meta interface{}
 			Properties: &botservice.MsTeamsChannelProperties{
 				EnableCalling:  utils.Bool(d.Get("enable_calling").(bool)),
 				CallingWebHook: utils.String(d.Get("calling_web_hook").(string)),
-				IsEnabled:      utils.Bool(d.Get("enabled").(bool)),
+				IsEnabled:      utils.Bool(true),
 			},
 			ChannelName: botservice.ChannelNameMsTeamsChannel1,
 		},
