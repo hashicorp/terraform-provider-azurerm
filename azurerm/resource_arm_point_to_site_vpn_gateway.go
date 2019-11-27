@@ -60,6 +60,37 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 				ValidateFunc: networkSvc.ValidateVpnServerConfigurationID,
 			},
 
+			"connection_configuration": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+
+						"vpn_client_address_pool": {
+							Type:     schema.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"address_prefixes": {
+										Type:     schema.TypeSet,
+										Required: true,
+										Elem: &schema.Schema{
+											Type:         schema.TypeString,
+											ValidateFunc: validate.CIDR,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
 			"scale_unit": {
 				Type:     schema.TypeInt,
 				Required: true,
@@ -97,9 +128,13 @@ func resourceArmPointToSiteVPNGatewayCreateUpdate(d *schema.ResourceData, meta i
 	vpnServerConfigurationId := d.Get("vpn_server_configuration_id").(string)
 	t := d.Get("tags").(map[string]interface{})
 
+	connectionConfigurationsRaw := d.Get("connection_configuration").([]interface{})
+	connectionConfigurations := expandPointToSiteVPNGatewayConnectionConfiguration(connectionConfigurationsRaw)
+
 	parameters := network.P2SVpnGateway{
 		Location: utils.String(location),
 		P2SVpnGatewayProperties: &network.P2SVpnGatewayProperties{
+			P2SConnectionConfigurations: connectionConfigurations,
 			VpnServerConfiguration: &network.SubResource{
 				ID: utils.String(vpnServerConfigurationId),
 			},
@@ -161,6 +196,11 @@ func resourceArmPointToSiteVPNGatewayRead(d *schema.ResourceData, meta interface
 	}
 
 	if props := resp.P2SVpnGatewayProperties; props != nil {
+		flattenedConfigurations := flattenPointToSiteVPNGatewayConnectionConfiguration(props.P2SConnectionConfigurations)
+		if err := d.Set("connection_configuration", flattenedConfigurations); err != nil {
+			return fmt.Errorf("Error setting `connection_configuration`: %+v", err)
+		}
+
 		scaleUnit := 0
 		if props.VpnGatewayScaleUnit != nil {
 			scaleUnit = int(*props.VpnGatewayScaleUnit)
@@ -204,4 +244,75 @@ func resourceArmPointToSiteVPNGatewayDelete(d *schema.ResourceData, meta interfa
 	}
 
 	return nil
+}
+
+func expandPointToSiteVPNGatewayConnectionConfiguration(input []interface{}) *[]network.P2SConnectionConfiguration {
+	configurations := make([]network.P2SConnectionConfiguration, 0)
+
+	for _, v := range input {
+		raw := v.(map[string]interface{})
+
+		addressPrefixes := make([]string, 0)
+		name := raw["name"].(string)
+
+		clientAddressPoolsRaw := raw["vpn_client_address_pool"].([]interface{})
+		for _, clientV := range clientAddressPoolsRaw {
+			clientRaw := clientV.(map[string]interface{})
+
+			addressPrefixesRaw := clientRaw["address_prefixes"].(*schema.Set).List()
+			for _, prefix := range addressPrefixesRaw {
+				addressPrefixes = append(addressPrefixes, prefix.(string))
+			}
+		}
+
+		configurations = append(configurations, network.P2SConnectionConfiguration{
+			Name: utils.String(name),
+			P2SConnectionConfigurationProperties: &network.P2SConnectionConfigurationProperties{
+				VpnClientAddressPool: &network.AddressSpace{
+					AddressPrefixes: &addressPrefixes,
+				},
+			},
+		})
+	}
+
+	return &configurations
+}
+
+func flattenPointToSiteVPNGatewayConnectionConfiguration(input *[]network.P2SConnectionConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	output := make([]interface{}, 0)
+
+	for _, v := range *input {
+		name := ""
+		if v.Name != nil {
+			name = *v.Name
+		}
+
+		addressPrefixes := make([]interface{}, 0)
+		if props := v.P2SConnectionConfigurationProperties; props != nil {
+			if props.VpnClientAddressPool == nil {
+				continue
+			}
+
+			if props.VpnClientAddressPool.AddressPrefixes != nil {
+				for _, prefix := range *props.VpnClientAddressPool.AddressPrefixes {
+					addressPrefixes = append(addressPrefixes, prefix)
+				}
+			}
+		}
+
+		output = append(output, map[string]interface{}{
+			"name": name,
+			"vpn_client_address_pool": []interface{}{
+				map[string]interface{}{
+					"address_prefixes": addressPrefixes,
+				},
+			},
+		})
+	}
+
+	return output
 }

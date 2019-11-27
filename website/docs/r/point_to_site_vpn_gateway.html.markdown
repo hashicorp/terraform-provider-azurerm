@@ -40,6 +40,8 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `connection_configuration` - (Required) One or more `connection_configuration` blocks as defined below.
+
 * `scale_unit` - (Required) The Scale Unit for this Point-to-Site VPN Gateway.
 
 * `virtual_hub_id` - (Required) The ID of the Virtual Hub where this Point-to-Site VPN Gateway should exist. Changing this forces a new resource to be created.
@@ -47,6 +49,20 @@ The following arguments are supported:
 * `vpn_server_configuration_id` - (Required) The ID of the VPN Server Configuration which this Point-to-Site VPN Gateway should use. Changing this forces a new resource to be created. 
 
 * `tags` - (Optional) A mapping of tags to assign to the Point-to-Site VPN Gateway.
+
+---
+
+A `connection_configuration` block supports the following:
+
+* `name` - (Required) The Name which should be used for this Connection Configuration.
+
+* `vpn_client_address_pool` - (Required) A `vpn_client_address_pool` block as defined below.
+
+---
+
+A `vpn_client_address_pool` block supports the following:
+
+* `address_prefixes` - (Required) A list of CIDR Ranges which should be used as Address Prefixes.
 
 ## Attributes Reference
 

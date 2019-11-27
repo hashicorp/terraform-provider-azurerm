@@ -186,6 +186,13 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 1
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = [ "172.100.0.0/14" ]
+    }
+  }
 }
 `, template, rInt)
 }
@@ -202,6 +209,18 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 2
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = [ "172.100.0.0/14" ]
+    }
+
+    name = "second"
+    vpn_client_address_pool {
+      address_prefixes = [ "10.100.0.0/14" ]
+    }
+  }
 }
 `, template, rInt)
 }
@@ -218,6 +237,13 @@ resource "azurerm_point_to_site_vpn_gateway" "import" {
   virtual_hub_id              = azurerm_point_to_site_vpn_gateway.test.virtual_hub_id
   vpn_server_configuration_id = azurerm_point_to_site_vpn_gateway.test.vpn_server_configuration_id
   scale_unit                  = azurerm_point_to_site_vpn_gateway.test.scale_unit
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = [ "172.100.0.0/14" ]
+    }
+  }
 }
 `, template)
 }
@@ -234,6 +260,13 @@ resource "azurerm_point_to_site_vpn_gateway" "import" {
   virtual_hub_id              = azurerm_virtual_hub.test.id
   vpn_server_configuration_id = azurerm_vpn_server_configuration.test.id
   scale_unit                  = 1
+
+  connection_configuration {
+    name = "first"
+    vpn_client_address_pool {
+      address_prefixes = [ "172.100.0.0/14" ]
+    }
+  }
 
   tags = {
     Hello = "World"
