@@ -204,6 +204,10 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
+	
+	if version != "" && versionSetId == "" {
+		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
+	}
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, serviceName, apiId)
@@ -260,9 +264,6 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
 
-	if version != "" && versionSetId == "" {
-		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
-	}
 
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
