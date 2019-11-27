@@ -204,7 +204,7 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	apiId := fmt.Sprintf("%s;rev=%s", name, revision)
 	version := d.Get("version").(string)
 	versionSetId := d.Get("version_set_id").(string)
-	
+
 	if version != "" && versionSetId == "" {
 		return fmt.Errorf("Error setting `version` without the required `version_set_id`")
 	}
@@ -263,7 +263,6 @@ func resourceArmApiManagementApiCreateUpdate(d *schema.ResourceData, meta interf
 	description := d.Get("description").(string)
 	displayName := d.Get("display_name").(string)
 	serviceUrl := d.Get("service_url").(string)
-
 
 	protocolsRaw := d.Get("protocols").(*schema.Set).List()
 	protocols := expandApiManagementApiProtocols(protocolsRaw)
