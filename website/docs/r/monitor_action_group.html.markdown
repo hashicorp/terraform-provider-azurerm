@@ -27,7 +27,7 @@ resource "azurerm_monitor_action_group" "example" {
 
   arm_role_receiver {
     name                    = "armroleaction"
-    resource_id             = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-logicapp/providers/Microsoft.Logic/workflows/logicapp"
+    role_id                 = "de139f84-1756-47ae-9be6-808fbbe84772"
     use_common_alert_schema = true
   }
 
