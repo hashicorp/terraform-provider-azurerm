@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_eventhub_namespace_disaster_recovery_config"
 sidebar_current: "docs-azurerm-resource-messaging-eventhub-namespace-disaster-recovery-config"
@@ -33,10 +34,10 @@ resource "azurerm_eventhub_namespace" "secondary" {
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "example" {
-  name                   = "replicate-evenhub"
-  resource_group_name    = "${azurerm_resource_group.example.name}"
-  namespace_name         = "${azurerm_eventhub_namespace.primary.name}"
-  partner_namespace_id   = "${azurerm_eventhub_namespace.secondary.id}"
+  name                 = "replicate-evenhub"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  namespace_name       = "${azurerm_eventhub_namespace.primary.name}"
+  partner_namespace_id = "${azurerm_eventhub_namespace.secondary.id}"
 }
 ```
 

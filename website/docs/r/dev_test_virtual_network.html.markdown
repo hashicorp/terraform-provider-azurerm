@@ -1,4 +1,5 @@
 ---
+subcategory: "Dev Test"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_virtual_network"
 sidebar_current: "docs-azurerm-resource-dev-test-virtual-network"
@@ -13,25 +14,25 @@ Manages a Virtual Network within a Dev Test Lab.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West US"
 }
 
-resource "azurerm_dev_test_lab" "test" {
+resource "azurerm_dev_test_lab" "example" {
   name                = "example-devtestlab"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   tags = {
     "Sydney" = "Australia"
   }
 }
 
-resource "azurerm_dev_test_virtual_network" "test" {
+resource "azurerm_dev_test_virtual_network" "example" {
   name                = "example-network"
-  lab_name            = "${azurerm_dev_test_lab.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   subnet {
     use_public_ip_address           = "Allow"

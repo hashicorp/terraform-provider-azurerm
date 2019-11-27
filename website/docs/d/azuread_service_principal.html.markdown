@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_service_principal"
 sidebar_current: "docs-azurerm-datasource-azuread-service-principal"
@@ -18,7 +19,7 @@ Gets information about an existing Service Principal associated with an Applicat
 ## Example Usage (by Application Display Name)
 
 ```hcl
-data "azurerm_azuread_service_principal" "test" {
+data "azurerm_azuread_service_principal" "example" {
   display_name = "my-awesome-application"
 }
 ```
@@ -26,7 +27,7 @@ data "azurerm_azuread_service_principal" "test" {
 ## Example Usage (by Application ID)
 
 ```hcl
-data "azurerm_azuread_service_principal" "test" {
+data "azurerm_azuread_service_principal" "example" {
   application_id = "00000000-0000-0000-0000-000000000000"
 }
 ```
@@ -34,7 +35,7 @@ data "azurerm_azuread_service_principal" "test" {
 ## Example Usage (by Object ID)
 
 ```hcl
-data "azurerm_azuread_service_principal" "test" {
+data "azurerm_azuread_service_principal" "example" {
   object_id = "00000000-0000-0000-0000-000000000000"
 }
 ```

@@ -1,4 +1,5 @@
 ---
+subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_role_definition"
 sidebar_current: "docs-azurerm-resource-authorization-role-definition"
@@ -16,7 +17,7 @@ Manages a custom Role Definition, used to assign Roles to Users/Principals. See 
 ```hcl
 data "azurerm_subscription" "primary" {}
 
-resource "azurerm_role_definition" "test" {
+resource "azurerm_role_definition" "example" {
   name        = "my-custom-role"
   scope       = "${data.azurerm_subscription.primary.id}"
   description = "This is a custom role created via Terraform"
@@ -69,5 +70,5 @@ The following attributes are exported:
 Role Definitions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_role_definition.test /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000
+terraform import azurerm_role_definition.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000
 ```

@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_network_peering"
 sidebar_current: "docs-azurerm-resource-network-virtual-network-peering"
@@ -15,37 +16,37 @@ resources in the linked virtual network.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "peeredvnets-rg"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test1" {
+resource "azurerm_virtual_network" "example-1" {
   name                = "peternetwork1"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   address_space       = ["10.0.1.0/24"]
   location            = "West US"
 }
 
-resource "azurerm_virtual_network" "test2" {
+resource "azurerm_virtual_network" "example-2" {
   name                = "peternetwork2"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   address_space       = ["10.0.2.0/24"]
   location            = "West US"
 }
 
-resource "azurerm_virtual_network_peering" "test1" {
+resource "azurerm_virtual_network_peering" "example-1" {
   name                      = "peer1to2"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test1.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.test2.id}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
+  virtual_network_name      = "${azurerm_virtual_network.example-1.name}"
+  remote_virtual_network_id = "${azurerm_virtual_network.example-2.id}"
 }
 
-resource "azurerm_virtual_network_peering" "test2" {
+resource "azurerm_virtual_network_peering" "example-2" {
   name                      = "peer2to1"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test2.name}"
-  remote_virtual_network_id = "${azurerm_virtual_network.test1.id}"
+  resource_group_name       = "${azurerm_resource_group.example.name}"
+  virtual_network_name      = "${azurerm_virtual_network.example-2.name}"
+  remote_virtual_network_id = "${azurerm_virtual_network.example-1.id}"
 }
 ```
 
@@ -154,5 +155,5 @@ Virtual Network peerings cannot be created, updated or deleted concurrently.
 Virtual Network Peerings can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_virtual_network_peering.testPeering /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/virtualNetworkPeerings/myvnet1peering
+terraform import azurerm_virtual_network_peering.examplePeering /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/virtualNetworkPeerings/myvnet1peering
 ```

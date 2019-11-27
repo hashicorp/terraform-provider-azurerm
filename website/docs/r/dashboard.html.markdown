@@ -1,4 +1,5 @@
 ---
+subcategory: "Portal"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dashboard"
 sidebar_current: "docs-azurerm-resource-portal-dashboards"
@@ -18,26 +19,26 @@ variable "md_content" {
   default     = "# Hello all :)"
 }
 
-variable "video_link"{
-    description = "Link to a video"
-    default = "https://www.youtube.com/watch?v=......"
+variable "video_link" {
+  description = "Link to a video"
+  default     = "https://www.youtube.com/watch?v=......"
 }
-   
+
 data "azurerm_subscription" "current" {}
 
-resource "azurerm_resource_group" "my-group"{
-    name = "mygroup"
-    location = "uksouth"
+resource "azurerm_resource_group" "my-group" {
+  name     = "mygroup"
+  location = "uksouth"
 }
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = <<DASH
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = <<DASH
 {
    "lenses": {
         "0": {
@@ -147,7 +148,7 @@ resource "azurerm_dashboard" "my-board" {
     }
 }
 DASH
-    }
+}
 
 ```
 
@@ -200,20 +201,20 @@ data "template_file" "dash-template" {
   vars = {
     md_content = "Variable content here!"
     video_link = "https://www.youtube.com/watch?v=......"
-    sub_id = data.azurerm_subscription.current.subscription_id
+    sub_id     = data.azurerm_subscription.current.subscription_id
   }
 }
 
 ...
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = data.template_file.dash-template.rendered
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = data.template_file.dash-template.rendered
 }
 
 ```
@@ -224,18 +225,18 @@ resource "azurerm_dashboard" "my-board" {
 ...
 
 resource "azurerm_dashboard" "my-board" {
-    name                       = "my-cool-dashboard"
-    resource_group_name        = azurerm_resource_group.my-group.name
-    location                   = azurerm_resource_group.my-group.location
-    tags = {
-        source = "terraform"
-    }
-    dashboard_properties       = templatefile("dash.tpl", 
-                                    {
-                                        md_content = "Variable content here!",
-                                        video_link = "https://www.youtube.com/watch?v=......",
-                                        sub_id = data.azurerm_subscription.current.subscription_id 
-                                    })
+  name                = "my-cool-dashboard"
+  resource_group_name = azurerm_resource_group.my-group.name
+  location            = azurerm_resource_group.my-group.location
+  tags = {
+    source = "terraform"
+  }
+  dashboard_properties = templatefile("dash.tpl",
+    {
+      md_content = "Variable content here!",
+      video_link = "https://www.youtube.com/watch?v=......",
+      sub_id     = data.azurerm_subscription.current.subscription_id
+  })
 }
 ```
 

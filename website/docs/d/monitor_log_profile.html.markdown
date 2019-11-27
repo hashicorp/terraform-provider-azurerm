@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_log_profile"
 sidebar_current: "docs-azurerm-datasource-monitor-log-profile"
@@ -13,12 +14,12 @@ Use this data source to access the properties of a Log Profile.
 ## Example Usage
 
 ```hcl
-data "azurerm_monitor_log_profile" "test" {
+data "azurerm_monitor_log_profile" "example" {
   name = "test-logprofile"
 }
 
 output "log_profile_storage_account_id" {
-  value = "${data.azurerm_monitor_log_profile.test.storage_account_id}"
+  value = "${data.azurerm_monitor_log_profile.example.storage_account_id}"
 }
 ```
 

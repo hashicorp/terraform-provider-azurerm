@@ -1,14 +1,13 @@
 module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
-	github.com/Azure/azure-sdk-for-go v34.2.0+incompatible
-	github.com/Azure/go-autorest v13.2.0+incompatible // indirect
-	github.com/Azure/go-autorest/autorest v0.9.0
+	github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
+	github.com/Azure/go-autorest/autorest v0.9.2
 	github.com/Azure/go-autorest/autorest/date v0.2.0
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.1.1
-	github.com/hashicorp/go-azure-helpers v0.9.0
+	github.com/hashicorp/go-azure-helpers v0.10.0
 	github.com/hashicorp/go-getter v1.4.0
 	github.com/hashicorp/go-multierror v1.0.0
 	github.com/hashicorp/go-uuid v1.0.1
@@ -23,5 +22,7 @@ require (
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
 	gopkg.in/yaml.v2 v2.2.2
 )
+
+replace github.com/Azure/azure-sdk-for-go => github.com/hashicorp/azure-sdk-for-go v36.2.2-hashi+incompatible
 
 go 1.13

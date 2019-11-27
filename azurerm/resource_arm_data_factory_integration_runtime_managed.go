@@ -42,13 +42,10 @@ func resourceArmDataFactoryIntegrationRuntimeManaged() *schema.Resource {
 			},
 
 			"data_factory_name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				ValidateFunc: validation.StringMatch(
-					regexp.MustCompile(`^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$`),
-					`Invalid name for Data Factory, see https://docs.microsoft.com/en-us/azure/data-factory/naming-rules`,
-				),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validate.DataFactoryName(),
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),

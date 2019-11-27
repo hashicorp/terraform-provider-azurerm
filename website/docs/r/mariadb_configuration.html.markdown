@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mariadb_configuration"
 sidebar_current: "docs-azurerm-resource-database-mariadb-configuration"
@@ -9,8 +10,6 @@ description: |-
 # azurerm_mariadb_configuration
 
 Sets a MariaDB Configuration value on a MariaDB Server.
-
--> **NOTE** MariaDB Server is currently in Public Preview. You can find more information, including [how to register for the Public Preview here](https://azure.microsoft.com/en-us/updates/mariadb-public-preview/).
 
 ## Example Usage
 

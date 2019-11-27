@@ -1,4 +1,5 @@
 ---
+subcategory: "Messaging"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_servicebus_subscription"
 sidebar_current: "docs-azurerm-resource-messaging-servicebus-subscription-x"
@@ -89,13 +90,13 @@ The following arguments are supported:
     supports the concept of a session. Defaults to false. Changing this forces a
     new resource to be created.
 
-* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward 
-    messages to.
-    
+* `forward_to` - (Optional) The name of a Queue or Topic to automatically forward messages to.
+
+* `forward_dead_lettered_messages_to` - (Optional) The name of a Queue or Topic to automatically forward Dead Letter messages to.
+
 ### TimeSpan Format
 
-Some arguments for this resource are required in the TimeSpan format which is
-used to represent a length of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
+Some arguments for this resource are required in the TimeSpan format which is used to represent a length of time. The supported format is documented [here](https://msdn.microsoft.com/en-us/library/se73z7b9(v=vs.110).aspx#Anchor_2)
 
 ## Attributes Reference
 
@@ -108,5 +109,5 @@ The following attributes are exported:
 Service Bus Subscriptions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_subscription.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
+terraform import azurerm_servicebus_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
 ```

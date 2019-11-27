@@ -102,6 +102,11 @@ func resourceArmServiceBusSubscription() *schema.Resource {
 				Optional: true,
 			},
 
+			"forward_dead_lettered_messages_to": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			// TODO: remove in the next major version
 			"dead_lettering_on_filter_evaluation_exceptions": {
 				Type:       schema.TypeBool,
@@ -162,6 +167,10 @@ func resourceArmServiceBusSubscriptionCreateUpdate(d *schema.ResourceData, meta 
 		parameters.SBSubscriptionProperties.ForwardTo = &forwardTo
 	}
 
+	if forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string); forwardDeadLetteredMessagesTo != "" {
+		parameters.SBSubscriptionProperties.ForwardDeadLetteredMessagesTo = &forwardDeadLetteredMessagesTo
+	}
+
 	if defaultMessageTtl := d.Get("default_message_ttl").(string); defaultMessageTtl != "" {
 		parameters.DefaultMessageTimeToLive = &defaultMessageTtl
 	}
@@ -219,6 +228,7 @@ func resourceArmServiceBusSubscriptionRead(d *schema.ResourceData, meta interfac
 		d.Set("enable_batched_operations", props.EnableBatchedOperations)
 		d.Set("requires_session", props.RequiresSession)
 		d.Set("forward_to", props.ForwardTo)
+		d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 
 		if count := props.MaxDeliveryCount; count != nil {
 			d.Set("max_delivery_count", int(*count))

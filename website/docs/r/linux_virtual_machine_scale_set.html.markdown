@@ -1,4 +1,5 @@
 ---
+subcategory: "Beta"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_linux_virtual_machine_scale_set"
 sidebar_current: "docs-azurerm-resource-linux-virtual-machine-scale-set"
@@ -10,7 +11,7 @@ description: |-
 
 ~> **NOTE:** **This resource is in Beta** and as such the Schema can change in Minor versions of the Provider.
 
-~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. Read more about sensitive data in state.
+~> **NOTE**: All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
 Manages a Linux Virtual Machine Scale Set.
 
@@ -28,7 +29,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "example-network"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -238,7 +239,7 @@ A `data_disk` block supports the following:
 
 -> **NOTE:** `UltraSSD_LRS` is only supported when `ultra_ssd_enabled` within the `additional_capabilities` block is enabled.
 
-* `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`. 
+* `write_accelerator_enabled` - (Optional) Should Write Accelerator be enabled for this Data Disk? Defaults to `false`.
 
 -> **NOTE:** This requires that the `storage_account_type` is set to `Premium_LRS` and that `caching` is set to `None`.
 
@@ -270,7 +271,11 @@ A `ip_configuration` block supports the following:
 
 * `load_balancer_backend_address_pool_ids` - (Optional) A list of Backend Address Pools ID's from a Load Balancer which this Virtual Machine Scale Set should be connected to.
 
+-> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
+
 * `load_balancer_inbound_nat_rules_ids` - (Optional) A list of NAT Rule ID's from a Load Balancer which this Virtual Machine Scale Set should be connected to.
+
+-> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
 
 * `primary` - (Optional) Is this the Primary IP Configuration for this Network Interface? Defaults to `false`.
 
@@ -395,5 +400,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Linux Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_linux_virtual_machine_scale_set.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachineScaleSets/scaleset1
+terraform import azurerm_linux_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```

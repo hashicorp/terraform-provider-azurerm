@@ -8,7 +8,7 @@ import (
 )
 
 type Client struct {
-	ProtectedItemsClient            *backup.ProtectedItemsGroupClient
+	ProtectedItemsClient            *backup.ProtectedItemsClient
 	ProtectionPoliciesClient        *backup.ProtectionPoliciesClient
 	VaultsClient                    *recoveryservices.VaultsClient
 	FabricClient                    func(resourceGroupName string, vaultName string) siterecovery.ReplicationFabricsClient
@@ -23,7 +23,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VaultsClient := recoveryservices.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VaultsClient.Client, o.ResourceManagerAuthorizer)
 
-	ProtectedItemsClient := backup.NewProtectedItemsGroupClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	ProtectedItemsClient := backup.NewProtectedItemsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ProtectedItemsClient.Client, o.ResourceManagerAuthorizer)
 
 	ProtectionPoliciesClient := backup.NewProtectionPoliciesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)

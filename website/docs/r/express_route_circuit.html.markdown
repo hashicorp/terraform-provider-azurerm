@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
 sidebar_current: "docs-azurerm-resource-network-express-route-circuit-x"
@@ -13,15 +14,15 @@ Manages an ExpressRoute circuit.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "exprtTest"
   location = "West US"
 }
 
-resource "azurerm_express_route_circuit" "test" {
+resource "azurerm_express_route_circuit" "example" {
   name                  = "expressRoute1"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  location              = "${azurerm_resource_group.test.location}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  location              = "${azurerm_resource_group.example.location}"
   service_provider_name = "Equinix"
   peering_location      = "Silicon Valley"
   bandwidth_in_mbps     = 50

@@ -1,4 +1,5 @@
 ---
+subcategory: "Bot"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_bot_channel_email"
 sidebar_current: "docs-azurerm-resource-bot-channel-email"
@@ -52,7 +53,7 @@ The following arguments are supported:
 
 * `email_address` - (Required) The email address that the Bot will authenticate with.
 
-* `email_password` - (Required) The email password that the the Bot will authenticate with.
+* `email_password` - (Required) The email password that the Bot will authenticate with.
 
 
 ## Attributes Reference

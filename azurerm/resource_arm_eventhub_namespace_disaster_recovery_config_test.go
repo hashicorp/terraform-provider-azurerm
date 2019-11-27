@@ -169,10 +169,10 @@ resource "azurerm_eventhub_namespace" "testb" {
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
-  name                   = "acctest-EHN-DRC-%[1]d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  namespace_name         = "${azurerm_eventhub_namespace.testa.name}"
-  partner_namespace_id   = "${azurerm_eventhub_namespace.testb.id}"
+  name                 = "acctest-EHN-DRC-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  namespace_name       = "${azurerm_eventhub_namespace.testa.name}"
+  partner_namespace_id = "${azurerm_eventhub_namespace.testb.id}"
 }
 
 `, rInt, location, altlocation)
@@ -200,11 +200,11 @@ resource "azurerm_eventhub_namespace" "testb" {
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
-  name                   = "${azurerm_eventhub_namespace.testa.name}"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  namespace_name         = "${azurerm_eventhub_namespace.testa.name}"
-  partner_namespace_id   = "${azurerm_eventhub_namespace.testb.id}"
-  alternate_name         = "acctest-EHN-DRC-%[1]d-alt"
+  name                 = "${azurerm_eventhub_namespace.testa.name}"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  namespace_name       = "${azurerm_eventhub_namespace.testa.name}"
+  partner_namespace_id = "${azurerm_eventhub_namespace.testb.id}"
+  alternate_name       = "acctest-EHN-DRC-%[1]d-alt"
 }
 
 `, rInt, location, altlocation)
@@ -239,10 +239,10 @@ resource "azurerm_eventhub_namespace" "testc" {
 }
 
 resource "azurerm_eventhub_namespace_disaster_recovery_config" "test" {
-  name                   = "acctest-EHN-DRC-%[1]d"
-  resource_group_name    = "${azurerm_resource_group.test.name}"
-  namespace_name         = "${azurerm_eventhub_namespace.testa.name}"
-  partner_namespace_id   = "${azurerm_eventhub_namespace.testc.id}"
+  name                 = "acctest-EHN-DRC-%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  namespace_name       = "${azurerm_eventhub_namespace.testa.name}"
+  partner_namespace_id = "${azurerm_eventhub_namespace.testc.id}"
 }
 
 `, rInt, location, altlocation)

@@ -265,6 +265,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -316,6 +317,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -342,7 +344,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type         = "UserAssigned"
+    type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]
@@ -376,6 +378,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -402,7 +405,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type         = "UserAssigned"
+    type = "UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
       azurerm_user_assigned_identity.other.id,
@@ -431,6 +434,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
+
   disable_password_authentication = false
 
   source_image_reference {
@@ -457,7 +461,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type         = "SystemAssigned, UserAssigned"
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id,
     ]

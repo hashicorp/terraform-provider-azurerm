@@ -70,7 +70,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 	subscriptionsClient := meta.(*ArmClient).ManagementGroups.SubscriptionClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	armTenantID := meta.(*ArmClient).tenantId
+	armTenantID := meta.(*ArmClient).Account.TenantId
 
 	groupId := d.Get("group_id").(string)
 	if groupId == "" {
@@ -159,7 +159,7 @@ func resourceArmManagementGroupCreateUpdate(d *schema.ResourceData, meta interfa
 		log.Printf("[DEBUG] Assigning Subscription ID %q to management group %q", subscriptionId, groupId)
 		_, err = subscriptionsClient.Create(ctx, groupId, subscriptionId, managementGroupCacheControl)
 		if err != nil {
-			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q", subscriptionId, groupId)
+			return fmt.Errorf("[DEBUG] Error assigning Subscription ID %q to Management Group %q: %+v", subscriptionId, groupId, err)
 		}
 	}
 

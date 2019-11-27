@@ -1,4 +1,5 @@
 ---
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_data_lake_gen2_filesystem"
 sidebar_current: "docs-azurerm-resource-storage-data-lake-gen2-filesystem"
@@ -15,22 +16,24 @@ Manages a Data Lake Gen2 File System within an Azure Storage Account.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "examplestorageacc"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+  is_hns_enabled           = "true"
 }
 
-resource "azurerm_storage_data_lake_gen2_filesystem" "test" {
+resource "azurerm_storage_data_lake_gen2_filesystem" "example" {
   name               = "example"
-  storage_account_id = azurerm_storage_account.test.id
+  storage_account_id = azurerm_storage_account.example.id
 
   properties = {
     hello = "aGVsbG8="
@@ -45,6 +48,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the Data Lake Gen2 File System which should be created within the Storage Account. Must be unique within the storage account the queue is located. Changing this forces a new resource to be created.
 
 * `storage_account_id` - (Required) Specifies the ID of the Storage Account in which the Data Lake Gen2 File System should exist. Changing this forces a new resource to be created.
+
+~> **NOTE:** The Storage Account requires `account_kind` to be either `StorageV2` or `BlobStorage`. In addition, `is_hns_enabled` has to be set to `true`.
 
 * `properties` - (Optional) A mapping of Key to Base64-Encoded Values which should be assigned to this Data Lake Gen2 File System. 
 

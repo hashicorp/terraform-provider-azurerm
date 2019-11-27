@@ -74,8 +74,9 @@ func resourceArmMonitorActivityLogAlert() *schema.Resource {
 								"Autoscale",
 								"Policy",
 								"Recommendation",
+								"ResourceHealth",
 								"Security",
-								"Service Health",
+								"ServiceHealth",
 							}, false),
 						},
 						"operation_name": {

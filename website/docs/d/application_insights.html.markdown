@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights"
 sidebar_current: "docs-azurerm-datasource-application-insights"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing Application Insight
 ## Example Usage
 
 ```hcl
-data "azurerm_application_insights" "test" {
+data "azurerm_application_insights" "example" {
   name                = "production"
   resource_group_name = "networking"
 }
 
 output "application_insights_instrumentation_key" {
-  value = "${data.azurerm_application_insights.test.instrumentation_key}"
+  value = "${data.azurerm_application_insights.example.instrumentation_key}"
 }
 ```
 

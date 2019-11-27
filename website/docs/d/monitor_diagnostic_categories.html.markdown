@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_monitor_diagnostic_categories"
 sidebar_current: "docs-azurerm-datasource-monitor-diagnostic-categories"
@@ -14,13 +15,13 @@ Use this data source to access information about the Monitor Diagnostics Categor
 ## Example Usage
 
 ```hcl
-data "azurerm_key_vault" "test" {
-  name                = "${azurerm_key_vault.test.name}"
-  resource_group_name = "${azurerm_key_vault.test.resource_group_name}"
+data "azurerm_key_vault" "example" {
+  name                = "${azurerm_key_vault.example.name}"
+  resource_group_name = "${azurerm_key_vault.example.resource_group_name}"
 }
 
-data "azurerm_monitor_diagnostic_categories" "test" {
-  resource_id = "${data.azurerm_key_vault.test.id}"
+data "azurerm_monitor_diagnostic_categories" "example" {
+  resource_id = "${data.azurerm_key_vault.example.id}"
 }
 ```
 

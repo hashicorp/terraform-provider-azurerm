@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_profile"
 sidebar_current: "docs-azurerm-datasource-cdn-profile"
@@ -13,13 +14,13 @@ Use this data source to access information about an existing CDN Profile.
 ## Example Usage
 
 ```hcl
-data "azurerm_cdn_profile" "test" {
+data "azurerm_cdn_profile" "example" {
   name                = "myfirstcdnprofile"
   resource_group_name = "example-resources"
 }
 
 output "cdn_profile_id" {
-  value = "${data.azurerm_cdn_profile.test.id}"
+  value = "${data.azurerm_cdn_profile.example.id}"
 }
 ```
 
