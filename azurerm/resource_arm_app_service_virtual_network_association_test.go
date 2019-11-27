@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -104,7 +104,7 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationExists(resourceName stri
 		name := parsedID.Path["sites"]
 		resourceGroup := parsedID.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.GetSwiftVirtualNetworkConnection(ctx, resourceGroup, name)
 		if err != nil {
@@ -135,7 +135,7 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationDisappears(resourceName 
 		name := parsedID.Path["sites"]
 		resourceGroup := parsedID.ResourceGroup
 
-		client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+		client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.DeleteSwiftVirtualNetwork(ctx, resourceGroup, name)
 		if err != nil {
@@ -149,7 +149,7 @@ func testCheckAzureRMAppServiceVirtualNetworkAssociationDisappears(resourceName 
 }
 
 func testCheckAzureRMAppServiceVirtualNetworkAssociationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).web.AppServicesClient
+	client := testAccProvider.Meta().(*ArmClient).Web.AppServicesClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_app_service_virtual_network_association" {

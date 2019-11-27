@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -38,7 +38,7 @@ func resourceArmAppServiceVirtualNetworkAssociation() *schema.Resource {
 }
 
 func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
@@ -86,7 +86,7 @@ func resourceArmAppServiceVirtualNetworkAssociationCreateUpdate(d *schema.Resour
 }
 
 func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Id())
@@ -128,7 +128,7 @@ func resourceArmAppServiceVirtualNetworkAssociationRead(d *schema.ResourceData, 
 }
 
 func resourceArmAppServiceVirtualNetworkAssociationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).web.AppServicesClient
+	client := meta.(*ArmClient).Web.AppServicesClient
 	ctx := meta.(*ArmClient).StopContext
 
 	id, err := azure.ParseAzureResourceID(d.Get("app_service_id").(string))
