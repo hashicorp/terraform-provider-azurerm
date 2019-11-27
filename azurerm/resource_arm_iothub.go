@@ -471,12 +471,14 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	skuInfo := expandIoTHubSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	routingProperties := devices.RoutingProperties{
-		FallbackRoute: expandIoTHubFallbackRoute(d),
-	}
+	routingProperties := devices.RoutingProperties{}
 
 	if _, ok := d.GetOk("route"); ok {
 		routingProperties.Routes = expandIoTHubRoutes(d)
+	}
+
+	if _, ok := d.GetOk("fallback_route"); ok {
+		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
 	}
 
 	if _, ok := d.GetOk("endpoint"); ok {
