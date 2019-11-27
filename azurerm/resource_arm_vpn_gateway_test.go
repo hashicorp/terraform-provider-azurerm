@@ -81,7 +81,7 @@ func TestAccAzureRMVPNGateway_bgpSettings(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMVPNGateway_bgpSettings(ri, location, 3209, 0),
+				Config: testAccAzureRMVPNGateway_bgpSettings(ri, location, 65515, 1),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVPNGatewayExists(resourceName),
 				),
