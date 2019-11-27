@@ -1,4 +1,9 @@
 ## 1.38.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_iothub_fallback_route` (#4965)
+
 ## 1.37.0 (November 26, 2019)
 
 NOTES
