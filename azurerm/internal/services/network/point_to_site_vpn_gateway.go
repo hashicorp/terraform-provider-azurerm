@@ -20,11 +20,11 @@ func ParsePointToSiteVPNGatewayID(input string) (*PointToSiteVPNGatewayResourceI
 
 	routeTable := PointToSiteVPNGatewayResourceID{
 		Base: *id,
-		Name: id.Path["p2svpnGateways"],
+		Name: id.Path["p2sVpnGateways"],
 	}
 
 	if routeTable.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `p2svpnGateways` element")
+		return nil, fmt.Errorf("ID was missing the `p2sVpnGateways` element")
 	}
 
 	return &routeTable, nil

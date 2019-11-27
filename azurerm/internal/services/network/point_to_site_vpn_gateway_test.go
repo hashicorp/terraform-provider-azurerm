@@ -24,12 +24,12 @@ func TestParsePointToSiteVPNGateway(t *testing.T) {
 		},
 		{
 			Name:     "No Point-to-Site VPN Gateways Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/p2svpnGateways/",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/p2sVpnGateways/",
 			Expected: nil,
 		},
 		{
 			Name:  "Completed",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/p2svpnGateways/example",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/p2sVpnGateways/example",
 			Expected: &PointToSiteVPNGatewayResourceID{
 				Name: "example",
 				Base: azure.ResourceID{
