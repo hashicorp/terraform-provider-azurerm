@@ -107,6 +107,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_monitor_diagnostic_categories":             dataSourceArmMonitorDiagnosticCategories(),
 		"azurerm_monitor_log_profile":                       dataSourceArmMonitorLogProfile(),
 		"azurerm_mssql_elasticpool":                         dataSourceArmMsSqlElasticpool(),
+		"azurerm_mssql_server_blob_auditing_policies":       dataSourceArmMsSqlServerBlobAuditingPolicies(),
+		"azurerm_mssql_server_blob_extended_auditing_policies":       dataSourceArmMsSqlServerBlobExtendedAuditingPolicies(),
 		"azurerm_netapp_account":                            dataSourceArmNetAppAccount(),
 		"azurerm_netapp_pool":                               dataSourceArmNetAppPool(),
 		"azurerm_network_ddos_protection_plan":              dataSourceNetworkDDoSProtectionPlan(),
