@@ -64,8 +64,8 @@ func testCheckAzureRMSubscriptionId(resourceName string) resource.TestCheckFunc 
 		attributeName := "subscription_id"
 		subscriptionId := rs.Primary.Attributes[attributeName]
 		client := testAccProvider.Meta().(*ArmClient)
-		if subscriptionId != client.subscriptionId {
-			return fmt.Errorf("%s: Attribute '%s' expected \"%s\", got \"%s\"", resourceName, attributeName, client.subscriptionId, subscriptionId)
+		if subscriptionId != client.Account.SubscriptionId {
+			return fmt.Errorf("%s: Attribute '%s' expected \"%s\", got \"%s\"", resourceName, attributeName, client.Account.SubscriptionId, subscriptionId)
 		}
 
 		return nil

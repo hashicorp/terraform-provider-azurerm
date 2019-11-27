@@ -308,6 +308,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iothub_dps_certificate":                             resourceArmIotHubDPSCertificate(),
 		"azurerm_iothub_consumer_group":                              resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                             resourceArmIotHub(),
+		"azurerm_iothub_fallback_route":                              resourceArmIotHubFallbackRoute(),
 		"azurerm_iothub_route":                                       resourceArmIotHubRoute(),
 		"azurerm_iothub_endpoint_eventhub":                           resourceArmIotHubEndpointEventHub(),
 		"azurerm_iothub_endpoint_servicebus_queue":                   resourceArmIotHubEndpointServiceBusQueue(),
@@ -486,7 +487,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
-		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
@@ -494,6 +494,11 @@ func Provider() terraform.ResourceProvider {
 	if features.SupportsTwoPointZeroResources() {
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
 		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
+	}
+
+	// NOTE: these resources have been pulled since they require rework
+	if false {
+		resources["azurerm_virtual_hub"] = resourceArmVirtualHub()
 	}
 
 	// avoids this showing up in test output
@@ -714,11 +719,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
-		partnerId := d.Get("partner_id").(string)
-		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
-		disableTerraformPartnerID := d.Get("disable_terraform_partner_id").(bool)
-
 		terraformVersion := p.TerraformVersion
 		if terraformVersion == "" {
 			// Terraform 0.12 introduced this field to the protocol
@@ -726,8 +726,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			terraformVersion = "0.11+compatible"
 		}
 
-		// TODO: we should pass in an Object here
-		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID, disableTerraformPartnerID)
+		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+		clientBuilder := armClientBuilder{
+			authConfig:                  config,
+			skipProviderRegistration:    skipProviderRegistration,
+			terraformVersion:            terraformVersion,
+			partnerId:                   d.Get("partner_id").(string),
+			disableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+			disableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		}
+		client, err := getArmClient(p.StopContext(), clientBuilder)
 		if err != nil {
 			return nil, err
 		}
