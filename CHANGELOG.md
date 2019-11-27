@@ -2,7 +2,7 @@
 
 FEATURES:
 
-* **New Resource:** `azurerm_iothub_fallback_route` (#4965)
+* **New Resource:** `azurerm_iothub_fallback_route` [GH-4965]
 
 ## 1.37.0 (November 26, 2019)
 
