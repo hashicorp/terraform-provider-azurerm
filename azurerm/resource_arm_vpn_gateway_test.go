@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 func TestAccAzureRMVPNGateway_basic(t *testing.T) {
@@ -36,6 +37,11 @@ func TestAccAzureRMVPNGateway_basic(t *testing.T) {
 }
 
 func TestAccAzureRMVPNGateway_requiresImport(t *testing.T) {
+	if !features.ShouldResourcesBeImported() {
+		t.Skip("Skipping since resources aren't required to be imported")
+		return
+	}
+
 	resourceName := "azurerm_vpn_gateway.test"
 	ri := tf.AccRandTimeInt()
 	location := testLocation()
