@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -52,7 +52,7 @@ func TestAccDataSourceArmStorageAccountBlobContainerSas_basic(t *testing.T) {
 func testAccDataSourceAzureRMStorageAccountBlobContainerSas_basic(rInt int, rString string, location string, startDate string, endDate string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "rg" {
-  name     = "acctestsa-%d"
+  name     = "acctestRG-storage-%d"
   location = "%s"
 }
 

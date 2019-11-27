@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
+
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	az "github.com/Azure/go-autorest/autorest/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
@@ -18,7 +20,9 @@ import (
 )
 
 type Client struct {
-	AccountsClient storage.AccountsClient
+	AccountsClient           *storage.AccountsClient
+	FileSystemsClient        *filesystems.Client
+	ManagementPoliciesClient storage.ManagementPoliciesClient
 
 	environment az.Environment
 }
@@ -27,93 +31,101 @@ func BuildClient(options *common.ClientOptions) *Client {
 	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
 
+	fileSystemsClient := filesystems.NewWithEnvironment(options.Environment)
+	fileSystemsClient.Authorizer = options.StorageAuthorizer
+
+	managementPoliciesClient := storage.NewManagementPoliciesClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
+	options.ConfigureClient(&managementPoliciesClient.Client, options.ResourceManagerAuthorizer)
+
 	// TODO: switch Storage Containers to using the storage.BlobContainersClient
 	// (which should fix #2977) when the storage clients have been moved in here
 	return &Client{
-		AccountsClient: accountsClient,
-		environment:    options.Environment,
+		AccountsClient:           &accountsClient,
+		FileSystemsClient:        &fileSystemsClient,
+		ManagementPoliciesClient: managementPoliciesClient,
+		environment:              options.Environment,
 	}
 }
 
-func (client Client) BlobsClient(ctx context.Context, resourceGroup, accountName string) (*blobs.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*blobs.Client, error) {
+	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyAuthorizer(account.name, *accountKey)
 	blobsClient := blobs.NewWithEnvironment(client.environment)
 	blobsClient.Client.Authorizer = storageAuth
 	return &blobsClient, nil
 }
 
-func (client Client) ContainersClient(ctx context.Context, resourceGroup, accountName string) (*containers.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+func (client Client) ContainersClient(ctx context.Context, account accountDetails) (*containers.Client, error) {
+	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyAuthorizer(account.name, *accountKey)
 	containersClient := containers.NewWithEnvironment(client.environment)
 	containersClient.Client.Authorizer = storageAuth
 	return &containersClient, nil
 }
 
-func (client Client) FileShareDirectoriesClient(ctx context.Context, resourceGroup, accountName string) (*directories.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+func (client Client) FileShareDirectoriesClient(ctx context.Context, account accountDetails) (*directories.Client, error) {
+	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(account.name, *accountKey)
 	directoriesClient := directories.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
 }
 
-func (client Client) FileSharesClient(ctx context.Context, resourceGroup, accountName string) (*shares.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (*shares.Client, error) {
+	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(account.name, *accountKey)
 	directoriesClient := shares.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
 }
 
-func (client Client) QueuesClient(ctx context.Context, resourceGroup, accountName string) (*queues.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+func (client Client) QueuesClient(ctx context.Context, account accountDetails) (*queues.Client, error) {
+	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(account.name, *accountKey)
 	queuesClient := queues.NewWithEnvironment(client.environment)
 	queuesClient.Client.Authorizer = storageAuth
 	return &queuesClient, nil
 }
 
-func (client Client) TableEntityClient(ctx context.Context, resourceGroup, accountName string) (*entities.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+func (client Client) TableEntityClient(ctx context.Context, account accountDetails) (*entities.Client, error) {
+	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(account.name, *accountKey)
 	entitiesClient := entities.NewWithEnvironment(client.environment)
 	entitiesClient.Client.Authorizer = storageAuth
 	return &entitiesClient, nil
 }
 
-func (client Client) TablesClient(ctx context.Context, resourceGroup, accountName string) (*tables.Client, error) {
-	accountKey, err := client.findAccountKey(ctx, resourceGroup, accountName)
+func (client Client) TablesClient(ctx context.Context, account accountDetails) (*tables.Client, error) {
+	accountKey, err := account.AccountKey(ctx, client)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(accountName, *accountKey)
+	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(account.name, *accountKey)
 	tablesClient := tables.NewWithEnvironment(client.environment)
 	tablesClient.Client.Authorizer = storageAuth
 	return &tablesClient, nil

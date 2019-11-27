@@ -3,14 +3,20 @@ package azurerm
 import (
 	"fmt"
 	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 )
 
 func dataSourceArmSubscriptions() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmSubscriptionsRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"display_name_prefix": {
@@ -34,8 +40,9 @@ func dataSourceArmSubscriptions() *schema.Resource {
 
 func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) error {
 	armClient := meta.(*ArmClient)
-	subClient := armClient.subscription.Client
-	ctx := armClient.StopContext
+	subClient := armClient.Subscription.Client
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	displayNamePrefix := strings.ToLower(d.Get("display_name_prefix").(string))
 	displayNameContains := strings.ToLower(d.Get("display_name_contains").(string))
@@ -97,7 +104,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 		subscriptions = append(subscriptions, s)
 	}
 
-	d.SetId("subscriptions-" + armClient.tenantId)
+	d.SetId("subscriptions-" + armClient.Account.TenantId)
 	if err = d.Set("subscriptions", subscriptions); err != nil {
 		return fmt.Errorf("Error setting `subscriptions`: %+v", err)
 	}

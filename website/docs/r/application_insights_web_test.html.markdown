@@ -1,4 +1,5 @@
 ---
+subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights_web_test"
 sidebar_current: "docs-azurerm-resource-application-insights-web-test"
@@ -13,23 +14,23 @@ Manages an Application Insights WebTest.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
 }
 
-resource "azurerm_application_insights" "test" {
+resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   application_type    = "web"
 }
 
-resource "azurerm_application_insights_web_test" "test" {
+resource "azurerm_application_insights_web_test" "example" {
   name                    = "tf-test-appinsights-webtest"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  location                = "${azurerm_resource_group.example.location}"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  application_insights_id = "${azurerm_application_insights.example.id}"
   kind                    = "ping"
   frequency               = 300
   timeout                 = 60
@@ -46,15 +47,15 @@ XML
 }
 
 output "webtest_id" {
-  value = "${azurerm_application_insights_web_test.test.id}"
+  value = "${azurerm_application_insights_web_test.example.id}"
 }
 
 output "webtest_provisioning_state" {
-  value = "${azurerm_application_insights_web_test.test.provisioning_state}"
+  value = "${azurerm_application_insights_web_test.example.provisioning_state}"
 }
 
 output "webtests_synthetic_id" {
-  value = "${azurerm_application_insights_web_test.test.synthetic_monitor_id}"
+  value = "${azurerm_application_insights_web_test.example.synthetic_monitor_id}"
 }
 ```
 

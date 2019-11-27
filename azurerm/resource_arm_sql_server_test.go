@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -120,6 +121,68 @@ func TestAccAzureRMSqlServer_withTags(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlServer_withIdentity(t *testing.T) {
+	resourceName := "azurerm_sql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlServer_withIdentity(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
+	resourceName := "azurerm_sql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+				),
+			},
+			{
+				Config: testAccAzureRMSqlServer_withIdentity(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.principal_id", validate.UUIDRegExp),
+					resource.TestMatchResourceAttr(resourceName, "identity.0.tenant_id", validate.UUIDRegExp),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -134,7 +197,7 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 			return fmt.Errorf("Bad: no resource group found in state for SQL Server: %s", sqlServerName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).sql.ServersClient
+		conn := testAccProvider.Meta().(*ArmClient).Sql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, sqlServerName)
 		if err != nil {
@@ -149,7 +212,7 @@ func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc
 }
 
 func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).sql.ServersClient
+	conn := testAccProvider.Meta().(*ArmClient).Sql.ServersClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -171,7 +234,6 @@ func testCheckAzureRMSqlServerDestroy(s *terraform.State) error {
 		}
 
 		return fmt.Errorf("SQL Server %s still exists", sqlServerName)
-
 	}
 
 	return nil
@@ -188,7 +250,7 @@ func testCheckAzureRMSqlServerDisappears(resourceName string) resource.TestCheck
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).sql.ServersClient
+		client := testAccProvider.Meta().(*ArmClient).Sql.ServersClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		future, err := client.Delete(ctx, resourceGroup, serverName)
@@ -275,5 +337,27 @@ resource "azurerm_sql_server" "test" {
     environment = "production"
   }
 }
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMSqlServer_withIdentity(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_sql_server" "test" {
+	name                         = "acctestsqlserver%d"
+	resource_group_name          = "${azurerm_resource_group.test.name}"
+	location                     = "${azurerm_resource_group.test.location}"
+	version                      = "12.0"
+	administrator_login          = "mradministrator"
+	administrator_login_password = "thisIsDog11"
+
+	identity {
+		type = "SystemAssigned"
+	}
+}	
 `, rInt, location, rInt)
 }

@@ -1,10 +1,11 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 // NOTE: this is intentionally an acceptance test (and we're not explicitly setting the env)
@@ -16,7 +17,15 @@ func TestAccAzureRMStorageQueueMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false, "", true)
+	builder := armClientBuilder{
+		authConfig:                  config,
+		terraformVersion:            "0.0.0",
+		partnerId:                   "",
+		disableCorrelationRequestID: true,
+		disableTerraformPartnerID:   false,
+		skipProviderRegistration:    false,
+	}
+	client, err := getArmClient(context.Background(), builder)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return
@@ -24,7 +33,7 @@ func TestAccAzureRMStorageQueueMigrateState(t *testing.T) {
 
 	client.StopContext = testAccProvider.StopContext()
 
-	suffix := client.environment.StorageEndpointSuffix
+	suffix := client.Account.Environment.StorageEndpointSuffix
 
 	cases := map[string]struct {
 		StateVersion       int

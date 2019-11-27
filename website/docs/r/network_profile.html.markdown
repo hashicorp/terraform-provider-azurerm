@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_profile"
 sidebar_current: "docs-azurerm-resource-network-profile-x"
@@ -47,7 +48,7 @@ resource "azurerm_network_profile" "example" {
   location            = "${azurerm_resource_group.example.location}"
   resource_group_name = "${azurerm_resource_group.example.name}"
 
-  container_network_interface_configuration {
+  container_network_interface {
     name = "examplecnic"
 
     ip_configuration {
@@ -68,13 +69,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the resource. Changing this forces a new resource to be created.
 
-* `container_network_interface_configuration` - (Required) A `container_network_interface_configuration` block as documented below.
+* `container_network_interface` - (Required) A `container_network_interface` block as documented below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
-A `container_network_interface_configuration` block supports the following:
+A `container_network_interface` block supports the following:
 
 * `name` - (Required) Specifies the name of the IP Configuration.
 

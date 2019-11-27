@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -224,10 +224,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -235,11 +235,11 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -253,10 +253,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -264,15 +264,15 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   actions = [
-      "push"
+    "push"
   ]
 
   tags = {
-	label = "test"
+    label = "test"
   }
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -286,10 +286,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -297,16 +297,16 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   actions = [
-      "push"
+    "push"
   ]
 
   tags = {
-	label = "test1"
-	ENV   = "prod"
+    label = "test1"
+    ENV   = "prod"
   }
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -320,10 +320,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -331,11 +331,11 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -349,10 +349,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -360,12 +360,12 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   actions = [
-      "push",
-      "delete"
+    "push",
+    "delete"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -379,10 +379,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -390,13 +390,13 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   status = "enabled"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -410,10 +410,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -421,13 +421,13 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   status = "disabled"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -441,10 +441,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -452,11 +452,11 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -470,10 +470,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -481,13 +481,13 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://my.webhookreceiver.example/mytag/2"
+
+  service_uri = "https://my.webhookreceiver.example/mytag/2"
 
   status = "disabled"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -501,10 +501,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -512,13 +512,13 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   scope = "mytag:*"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -532,10 +532,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -543,13 +543,13 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   scope = "mytag:4"
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -563,10 +563,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -574,15 +574,15 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   custom_headers = {
     "Content-Type" = "application/json"
   }
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
@@ -596,10 +596,10 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                     = "acrwebhooktest%d"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "%s"
-  sku                      = "Standard"
+  name                = "acrwebhooktest%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = "%s"
+  sku                 = "Standard"
 }
 
 resource "azurerm_container_registry_webhook" "test" {
@@ -607,23 +607,23 @@ resource "azurerm_container_registry_webhook" "test" {
   resource_group_name = azurerm_resource_group.rg.name
   registry_name       = azurerm_container_registry.acr.name
   location            = "%s"
-  
-  service_uri    = "https://mywebhookreceiver.example/mytag"
+
+  service_uri = "https://mywebhookreceiver.example/mytag"
 
   custom_headers = {
-    "Content-Type"  = "application/xml"
-    "Accept-Charset" = "utf-8" 
+    "Content-Type"   = "application/xml"
+    "Accept-Charset" = "utf-8"
   }
 
   actions = [
-      "push"
+    "push"
   ]
 }
 `, rInt, location, rInt, location, rInt, location)
 }
 
 func testCheckAzureRMContainerRegistryWebhookDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).containers.WebhooksClient
+	client := testAccProvider.Meta().(*ArmClient).Containers.WebhooksClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_container_registry_webhook" {
@@ -669,7 +669,7 @@ func testCheckAzureRMContainerRegistryWebhookExists(resourceName string) resourc
 			return fmt.Errorf("Bad: no registry name found in state for Container Registry Webhook: %s", webhookName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).containers.WebhooksClient
+		client := testAccProvider.Meta().(*ArmClient).Containers.WebhooksClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := client.Get(ctx, resourceGroup, registryName, webhookName)
 		if err != nil {

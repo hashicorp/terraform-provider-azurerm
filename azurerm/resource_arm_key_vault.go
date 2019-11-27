@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/keyvault/mgmt/2018-02-14/keyvault"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	uuid "github.com/satori/go.uuid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -43,6 +44,13 @@ func resourceArmKeyVault() *schema.Resource {
 
 		MigrateState:  resourceAzureRMKeyVaultMigrateState,
 		SchemaVersion: 1,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -85,7 +93,8 @@ func resourceArmKeyVault() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(keyvault.Standard),
 					string(keyvault.Premium),
-				}, false),
+					// TODO: revert this in 2.0
+				}, true),
 			},
 
 			"vault_uri": {
@@ -189,8 +198,9 @@ func resourceArmKeyVault() *schema.Resource {
 }
 
 func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	// Remove in 2.0
 	var sku keyvault.Sku
@@ -307,10 +317,15 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 					Pending:                   []string{"pending"},
 					Target:                    []string{"available"},
 					Refresh:                   keyVaultRefreshFunc(*vault),
-					Timeout:                   30 * time.Minute,
 					Delay:                     30 * time.Second,
 					PollInterval:              10 * time.Second,
 					ContinuousTargetOccurence: 10,
+				}
+
+				if features.SupportsCustomTimeouts() {
+					stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+				} else {
+					stateConf.Timeout = 30 * time.Minute
 				}
 
 				if _, err := stateConf.WaitForState(); err != nil {
@@ -324,8 +339,9 @@ func resourceArmKeyVaultCreateUpdate(d *schema.ResourceData, meta interface{}) e
 }
 
 func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -384,8 +400,9 @@ func resourceArmKeyVaultRead(d *schema.ResourceData, meta interface{}) error {
 }
 
 func resourceArmKeyVaultDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).keyvault.VaultsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).KeyVault.VaultsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

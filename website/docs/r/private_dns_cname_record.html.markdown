@@ -1,4 +1,5 @@
 ---
+subcategory: "Private DNS"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_dns_cname_record"
 sidebar_current: "docs-azurerm-resource-private-dns-cname-record"
@@ -6,27 +7,27 @@ description: |-
   Manages a Private DNS CNAME Record.
 ---
 
-# azurerm_dns_a_record
+# azurerm_private_dns_cname_record
 
 Enables you to manage DNS CNAME Records within Azure Private DNS.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acceptanceTestResourceGroup1"
   location = "West US"
 }
 
-resource "azurerm_private_dns_zone" "test" {
+resource "azurerm_private_dns_zone" "example" {
   name                = "mydomain.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_private_dns_cname_record" "test" {
+resource "azurerm_private_dns_cname_record" "example" {
   name                = "test"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  zone_name           = "${azurerm_private_dns_zone.example.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   ttl                 = 300
   record              = "contoso.com"
 }
@@ -59,5 +60,5 @@ The following attributes are exported:
 Private DNS CName Records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_private_dns_cname_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/zone1/CName/myrecord1
+terraform import azurerm_private_dns_cname_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/zone1/CName/myrecord1
 ```

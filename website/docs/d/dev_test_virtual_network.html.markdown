@@ -1,4 +1,5 @@
 ---
+subcategory: ""
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_dev_test_virtual_network"
 sidebar_current: "docs-azurerm-datasource-dev-test-virtual-network"
@@ -13,14 +14,14 @@ Use this data source to access information about an existing Dev Test Lab Virtua
 ## Example Usage
 
 ```hcl
-data "azurerm_dev_test_virtual_network" "test" {
+data "azurerm_dev_test_virtual_network" "example" {
   name                = "example-network"
   lab_name            = "examplelab"
   resource_group_name = "example-resource"
 }
 
 output "lab_subnet_name" {
-  value = "${data.azurerm_dev_test_virtual_network.test.allowed_subnets.0.lab_subnet_name}
+  value = "${data.azurerm_dev_test_virtual_network.example.allowed_subnets.0.lab_subnet_name}"
 }
 ```
 

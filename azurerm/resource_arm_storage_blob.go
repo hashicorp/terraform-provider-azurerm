@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 )
@@ -27,6 +29,13 @@ func resourceArmStorageBlob() *schema.Resource {
 		SchemaVersion: 1,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -48,7 +57,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateArmStorageContainerName,
+				ValidateFunc: validate.StorageContainerName,
 			},
 
 			"type": {
@@ -123,7 +132,7 @@ func resourceArmStorageBlob() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 
-			"metadata": storage.MetaDataSchema(),
+			"metadata": storage.MetaDataComputedSchema(),
 
 			// Deprecated fields
 			"attempts": {
@@ -141,22 +150,23 @@ func resourceArmStorageBlob() *schema.Resource {
 }
 
 func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	accountName := d.Get("storage_account_name").(string)
 	containerName := d.Get("storage_container_name").(string)
 	name := d.Get("name").(string)
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+	account, err := storageClient.FindAccount(ctx, accountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", accountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", accountName, name, containerName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Blob %q (Container %q / Account %q)", name, containerName, accountName)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, accountName)
+	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
@@ -167,7 +177,7 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 		props, err := blobsClient.GetProperties(ctx, accountName, containerName, name, input)
 		if err != nil {
 			if !utils.ResponseWasNotFound(props.Response) {
-				return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, *resourceGroup, err)
+				return fmt.Errorf("Error checking if Blob %q exists (Container %q / Account %q / Resource Group %q): %s", name, containerName, accountName, account.ResourceGroup, err)
 			}
 		}
 		if !utils.ResponseWasNotFound(props.Response) {
@@ -203,23 +213,24 @@ func resourceArmStorageBlobCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Blob %q (Container %q / Account %q)", id.BlobName, id.ContainerName, id.AccountName)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
+	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
@@ -259,29 +270,30 @@ func resourceArmStorageBlobUpdate(d *schema.ResourceData, meta interface{}) erro
 		log.Printf("[DEBUG] Updated MetaData for Blob %q (Container %q / Account %q).", id.BlobName, id.ContainerName, id.AccountName)
 	}
 
-	return nil
+	return resourceArmStorageBlobRead(d, meta)
 }
 
 func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		log.Printf("[DEBUG] Unable to locate Resource Group for Blob %q (Container %q / Account %q) - assuming removed & removing from state!", id.BlobName, id.ContainerName, id.AccountName)
+	if account == nil {
+		log.Printf("[DEBUG] Unable to locate Account %q for Blob %q (Container %q) - assuming removed & removing from state!", id.AccountName, id.BlobName, id.ContainerName)
 		d.SetId("")
 		return nil
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
+	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}
@@ -302,7 +314,7 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 	d.Set("name", id.BlobName)
 	d.Set("storage_container_name", id.ContainerName)
 	d.Set("storage_account_name", id.AccountName)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", account.ResourceGroup)
 
 	d.Set("access_tier", string(props.AccessTier))
 	d.Set("content_type", props.ContentType)
@@ -322,23 +334,24 @@ func resourceArmStorageBlobRead(d *schema.ResourceData, meta interface{}) error 
 }
 
 func resourceArmStorageBlobDelete(d *schema.ResourceData, meta interface{}) error {
-	storageClient := meta.(*ArmClient).storage
-	ctx := meta.(*ArmClient).StopContext
+	storageClient := meta.(*ArmClient).Storage
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := blobs.ParseResourceID(d.Id())
 	if err != nil {
 		return fmt.Errorf("Error parsing %q: %s", d.Id(), err)
 	}
 
-	resourceGroup, err := storageClient.FindResourceGroup(ctx, id.AccountName)
+	account, err := storageClient.FindAccount(ctx, id.AccountName)
 	if err != nil {
-		return fmt.Errorf("Error locating Resource Group for Storage Account %q: %s", id.AccountName, err)
+		return fmt.Errorf("Error retrieving Account %q for Blob %q (Container %q): %s", id.AccountName, id.BlobName, id.ContainerName, err)
 	}
-	if resourceGroup == nil {
-		return fmt.Errorf("Unable to locate Resource Group for Storage Account %q!", id.AccountName)
+	if account == nil {
+		return fmt.Errorf("Unable to locate Storage Account %q!", id.AccountName)
 	}
 
-	blobsClient, err := storageClient.BlobsClient(ctx, *resourceGroup, id.AccountName)
+	blobsClient, err := storageClient.BlobsClient(ctx, *account)
 	if err != nil {
 		return fmt.Errorf("Error building Blobs Client: %s", err)
 	}

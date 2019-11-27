@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -41,44 +41,44 @@ func TestAccAzureRMRecoveryNetworkMapping_basic(t *testing.T) {
 func testAccAzureRMRecoveryNetworkMapping_basic(rInt int, location string, altLocation string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name                        = "acctestRG1-%d"
-  location                    = "%s"
+  name     = "acctestRG-recovery1-%d"
+  location = "%s"
 }
 
 resource "azurerm_recovery_services_vault" "test" {
-  name                        = "acctest-vault-%d"
-  location                    = "${azurerm_resource_group.test.location}"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  sku                         = "Standard"
+  name                = "acctest-vault-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  sku                 = "Standard"
 }
 
 resource "azurerm_recovery_services_fabric" "test1" {
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  recovery_vault_name         = "${azurerm_recovery_services_vault.test.name}"
-  name                        = "acctest-fabric1-%d"
-  location                    = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  name                = "acctest-fabric1-%d"
+  location            = "${azurerm_resource_group.test.location}"
 }
 
 resource "azurerm_recovery_services_fabric" "test2" {
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  recovery_vault_name         = "${azurerm_recovery_services_vault.test.name}"
-  name                        = "acctest-fabric2-%d"
-  location                    = "%s"
-  depends_on                  = ["azurerm_recovery_services_fabric.test1"]
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
+  name                = "acctest-fabric2-%d"
+  location            = "%s"
+  depends_on          = ["azurerm_recovery_services_fabric.test1"]
 }
 
 resource "azurerm_virtual_network" "test1" {
-  name                        = "network1-%d"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  address_space               = [ "192.168.1.0/24" ]
-  location                    = "${azurerm_recovery_services_fabric.test1.location}"
+  name                = "network1-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["192.168.1.0/24"]
+  location            = "${azurerm_recovery_services_fabric.test1.location}"
 }
 
 resource "azurerm_virtual_network" "test2" {
-  name                        = "network2-%d"
-  resource_group_name         = "${azurerm_resource_group.test.name}"
-  address_space               = [ "192.168.2.0/24" ]
-  location                    = "${azurerm_recovery_services_fabric.test2.location}"
+  name                = "network2-%d"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["192.168.2.0/24"]
+  location            = "${azurerm_recovery_services_fabric.test2.location}"
 }
 
 resource "azurerm_recovery_network_mapping" "test" {
@@ -124,7 +124,7 @@ func testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupStateName, vaultS
 		mappingName := networkMappingState.Primary.Attributes["name"]
 
 		// Ensure mapping exists in API
-		client := testAccProvider.Meta().(*ArmClient).recoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
+		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.NetworkMappingClient(resourceGroupName, vaultName)
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, fabricName, networkName, mappingName)

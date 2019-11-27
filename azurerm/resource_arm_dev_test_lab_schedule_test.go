@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -130,7 +130,7 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 		devTestLabName := rs.Primary.Attributes["lab_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).devTestLabs.LabSchedulesClient
+		client := testAccProvider.Meta().(*ArmClient).DevTestLabs.LabSchedulesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, devTestLabName, name, "")
@@ -147,7 +147,7 @@ func testCheckAzureRMDevTestLabScheduleExists(resourceName string) resource.Test
 }
 
 func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).devTestLabs.LabSchedulesClient
+	client := testAccProvider.Meta().(*ArmClient).DevTestLabs.LabSchedulesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -175,36 +175,36 @@ func testCheckAzureRMDevTestLabScheduleDestroy(s *terraform.State) error {
 
 func testAccAzureRMDevTestLabSchedule_autoShutdownBasic(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
-  }
-  
-  resource "azurerm_dev_test_lab" "test" {
-    name                = "acctdtl-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
-  }
-  
-  resource "azurerm_dev_test_schedule" "test" {
-    name = "LabVmsShutdown"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    lab_name = "${azurerm_dev_test_lab.test.name}"
-    daily_recurrence  {
-        time = "0100"
-    }
-    time_zone_id = "India Standard Time"
-    task_type = "LabVmsShutdownTask"
-    notification_settings {
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
 
-    }
+resource "azurerm_dev_test_lab" "test" {
+  name                = "acctdtl-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    tags = {
-      environment = "Production"
-    }
+}
+
+resource "azurerm_dev_test_schedule" "test" {
+  name                = "LabVmsShutdown"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  daily_recurrence {
+    time = "0100"
   }
+  time_zone_id = "India Standard Time"
+  task_type    = "LabVmsShutdownTask"
+  notification_settings {
+
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
 `, rInt, location, rInt)
 }
 
@@ -219,26 +219,26 @@ resource "azurerm_dev_test_lab" "test" {
   name                = "acctdtl-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  
+
 }
 
 resource "azurerm_dev_test_schedule" "test" {
-  name = "LabVmsShutdown"
-  status = "Enabled"
+  name                = "LabVmsShutdown"
+  status              = "Enabled"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  lab_name = "${azurerm_dev_test_lab.test.name}"
-  daily_recurrence  {
-      time = "0900"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  daily_recurrence {
+    time = "0900"
   }
   time_zone_id = "India Standard Time"
-  task_type = "LabVmsShutdownTask"
+  task_type    = "LabVmsShutdownTask"
   notification_settings {
     time_in_minutes = 30
-    webhook_url = "https://www.bing.com/2/4"
-    status = "Enabled"
+    webhook_url     = "https://www.bing.com/2/4"
+    status          = "Enabled"
   }
-tags = {
+  tags = {
     environment = "Production"
   }
 }
@@ -248,39 +248,39 @@ tags = {
 
 func testAccAzureRMDevTestLabSchedule_autoStartupBasic(rInt int, location string) string {
 	return fmt.Sprintf(`
-  resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
-  }
-  
-  resource "azurerm_dev_test_lab" "test" {
-    name                = "acctdtl-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
-  }
-  
-  resource "azurerm_dev_test_schedule" "test" {
-    name = "LabVmAutoStart"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    lab_name = "${azurerm_dev_test_lab.test.name}"
-		weekly_recurrence {
-			time = "1100"
-			week_days = ["Monday", "Tuesday"]
-		}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
 
-    time_zone_id = "India Standard Time"
-    task_type = "LabVmsStartupTask"
-		
-		notification_settings {
+resource "azurerm_dev_test_lab" "test" {
+  name                = "acctdtl-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
 
-    }
+}
 
-    tags = {
-      environment = "Production"
-    }
+resource "azurerm_dev_test_schedule" "test" {
+  name                = "LabVmAutoStart"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  weekly_recurrence {
+    time      = "1100"
+    week_days = ["Monday", "Tuesday"]
   }
+
+  time_zone_id = "India Standard Time"
+  task_type    = "LabVmsStartupTask"
+
+  notification_settings {
+
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
 `, rInt, location, rInt)
 }
 
@@ -295,31 +295,31 @@ resource "azurerm_dev_test_lab" "test" {
   name                = "acctdtl-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
-  
+
 }
 
 resource "azurerm_dev_test_schedule" "test" {
-  name = "LabVmAutoStart"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-	lab_name = "${azurerm_dev_test_lab.test.name}"
-		weekly_recurrence {
-			time = "1000"
-			week_days = ["Wednesday", "Thursday", "Friday"]
-		}
+  name                = "LabVmAutoStart"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  weekly_recurrence {
+    time      = "1000"
+    week_days = ["Wednesday", "Thursday", "Friday"]
+  }
 
-    time_zone_id = "India Standard Time"
-		task_type = "LabVmsStartupTask"
-		
-    notification_settings {
- 
-		}
+  time_zone_id = "India Standard Time"
+  task_type    = "LabVmsStartupTask"
 
-		status = "Enabled"
-		
-    tags = {
-      environment = "Production"
-    }
+  notification_settings {
+
+  }
+
+  status = "Enabled"
+
+  tags = {
+    environment = "Production"
+  }
 }
 
 `, rInt, location, rInt)
@@ -327,57 +327,57 @@ resource "azurerm_dev_test_schedule" "test" {
 
 func testAccAzureRMDevTestLabSchedule_concurrent(rInt int, location string) string {
 	return fmt.Sprintf(`
-	resource "azurerm_resource_group" "test" {
-    name     = "acctestrg-%d"
-    location = "%s"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestrg-%d"
+  location = "%s"
+}
+
+resource "azurerm_dev_test_lab" "test" {
+  name                = "acctdtl-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+}
+
+resource "azurerm_dev_test_schedule" "test" {
+  name                = "LabVmAutoStart"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  weekly_recurrence {
+    time      = "1100"
+    week_days = ["Monday", "Tuesday"]
   }
-  
-  resource "azurerm_dev_test_lab" "test" {
-    name                = "acctdtl-%d"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    
+
+  time_zone_id = "India Standard Time"
+  task_type    = "LabVmsStartupTask"
+
+  notification_settings {
+
   }
-  
-  resource "azurerm_dev_test_schedule" "test" {
-    name = "LabVmAutoStart"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    lab_name = "${azurerm_dev_test_lab.test.name}"
-		weekly_recurrence {
-			time = "1100"
-			week_days = ["Monday", "Tuesday"]
-		}
 
-    time_zone_id = "India Standard Time"
-    task_type = "LabVmsStartupTask"
-		
-		notification_settings {
-
-    }
-
-    tags = {
-      environment = "Production"
-    }
-	}
-	
-	resource "azurerm_dev_test_schedule" "test2" {
-    name = "LabVmsShutdown"
-    location            = "${azurerm_resource_group.test.location}"
-    resource_group_name = "${azurerm_resource_group.test.name}"
-    lab_name = "${azurerm_dev_test_lab.test.name}"
-    daily_recurrence  {
-        time = "0100"
-    }
-    time_zone_id = "India Standard Time"
-    task_type = "LabVmsShutdownTask"
-    notification_settings {
-
-    }
-
-    tags = {
-      environment = "Production"
-    }
+  tags = {
+    environment = "Production"
   }
+}
+
+resource "azurerm_dev_test_schedule" "test2" {
+  name                = "LabVmsShutdown"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  lab_name            = "${azurerm_dev_test_lab.test.name}"
+  daily_recurrence {
+    time = "0100"
+  }
+  time_zone_id = "India Standard Time"
+  task_type    = "LabVmsShutdownTask"
+  notification_settings {
+
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
 `, rInt, location, rInt)
 }

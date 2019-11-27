@@ -8,6 +8,7 @@ import (
 )
 
 type Client struct {
+	AgentPoolsClient         *containerservice.AgentPoolsClient
 	KubernetesClustersClient *containerservice.ManagedClustersClient
 	GroupsClient             *containerinstance.ContainerGroupsClient
 	RegistriesClient         *containerregistry.RegistriesClient
@@ -17,7 +18,6 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	RegistriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RegistriesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -38,7 +38,11 @@ func BuildClient(o *common.ClientOptions) *Client {
 	KubernetesClustersClient := containerservice.NewManagedClustersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&KubernetesClustersClient.Client, o.ResourceManagerAuthorizer)
 
+	agentPoolsClient := containerservice.NewAgentPoolsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&agentPoolsClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
+		AgentPoolsClient:         &agentPoolsClient,
 		KubernetesClustersClient: &KubernetesClustersClient,
 		GroupsClient:             &GroupsClient,
 		RegistriesClient:         &RegistriesClient,

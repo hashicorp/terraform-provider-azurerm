@@ -3,17 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-
-	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -24,6 +24,13 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 		Delete: resourceArmPostgreSQLDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -52,15 +59,16 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseCollation,
+				ValidateFunc: validate.PostgresDatabaseCollation,
 			},
 		},
 	}
 }
 
 func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.DatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Postgres.DatabasesClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM PostgreSQL Database creation.")
 
@@ -114,8 +122,9 @@ func resourceArmPostgreSQLDatabaseCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.DatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Postgres.DatabasesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -142,19 +151,16 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("charset", props.Charset)
-
-		if collation := props.Collation; collation != nil {
-			v := strings.Replace(*collation, "-", "_", -1)
-			d.Set("collation", v)
-		}
+		d.Set("collation", props.Collation)
 	}
 
 	return nil
 }
 
 func resourceArmPostgreSQLDatabaseDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).postgres.DatabasesClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Postgres.DatabasesClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

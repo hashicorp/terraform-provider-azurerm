@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -70,7 +70,7 @@ func TestAccAzureRMAutomationDscConfiguration_requiresImport(t *testing.T) {
 }
 
 func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).automation.DscConfigurationClient
+	conn := testAccProvider.Meta().(*ArmClient).Automation.DscConfigurationClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -97,14 +97,12 @@ func testCheckAzureRMAutomationDscConfigurationDestroy(s *terraform.State) error
 		}
 
 		return fmt.Errorf("Automation Dsc Configuration still exists:\n%#v", resp)
-
 	}
 
 	return nil
 }
 
 func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resource.TestCheckFunc {
-
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -120,7 +118,7 @@ func testCheckAzureRMAutomationDscConfigurationExists(resourceName string) resou
 			return fmt.Errorf("Bad: no resource group found in state for Automation Dsc Configuration: '%s'", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).automation.DscConfigurationClient
+		conn := testAccProvider.Meta().(*ArmClient).Automation.DscConfigurationClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, accName, name)

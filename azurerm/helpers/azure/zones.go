@@ -1,6 +1,6 @@
 package azure
 
-import "github.com/hashicorp/terraform/helper/schema"
+import "github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 
 func SchemaZones() *schema.Schema {
 	return &schema.Schema{
@@ -19,6 +19,18 @@ func SchemaSingleZone() *schema.Schema {
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}
+
+func SchemaMultipleZones() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MinItems: 1,
 		Elem: &schema.Schema{
 			Type: schema.TypeString,
 		},
@@ -46,4 +58,16 @@ func ExpandZones(v []interface{}) *[]string {
 	} else {
 		return nil
 	}
+}
+
+func FlattenZones(v *[]string) []interface{} {
+	zones := make([]interface{}, 0)
+	if v == nil {
+		return zones
+	}
+
+	for _, s := range *v {
+		zones = append(zones, s)
+	}
+	return zones
 }

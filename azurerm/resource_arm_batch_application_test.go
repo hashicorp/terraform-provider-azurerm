@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -78,7 +78,7 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		accountName := rs.Primary.Attributes["account_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).batch.ApplicationClient
+		client := testAccProvider.Meta().(*ArmClient).Batch.ApplicationClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
@@ -93,7 +93,7 @@ func testCheckAzureRMBatchApplicationExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMBatchApplicationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).batch.ApplicationClient
+	client := testAccProvider.Meta().(*ArmClient).Batch.ApplicationClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -143,8 +143,8 @@ resource "azurerm_batch_account" "test" {
 resource "azurerm_batch_application" "test" {
   name                = "acctestbatchapp-%d"
   resource_group_name = "${azurerm_resource_group.test.name}"
-	account_name        = "${azurerm_batch_account.test.name}"
-	%s
+  account_name        = "${azurerm_batch_account.test.name}"
+  %s
 }
 `, rInt, location, rString, rString, rInt, displayName)
 }

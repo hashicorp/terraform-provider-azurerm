@@ -6,8 +6,8 @@ import (
 	"path"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -387,7 +387,7 @@ func testCheckAzureRMTrafficManagerEndpointExists(resourceName string) resource.
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		resp, err := conn.Get(ctx, resourceGroup, profileName, path.Base(endpointType), name)
 		if err != nil {
@@ -419,7 +419,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 		}
 
 		// Ensure resource group/virtual network combination exists in API
-		conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+		conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := conn.Delete(ctx, resourceGroup, profileName, path.Base(endpointType), name); err != nil {
@@ -431,8 +431,7 @@ func testCheckAzureRMTrafficManagerEndpointDisappears(resourceName string) resou
 }
 
 func testCheckAzureRMTrafficManagerEndpointDestroy(s *terraform.State) error {
-
-	conn := testAccProvider.Meta().(*ArmClient).trafficManager.EndpointsClient
+	conn := testAccProvider.Meta().(*ArmClient).TrafficManager.EndpointsClient
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_traffic_manager_endpoint" {
@@ -788,7 +787,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   }
   subnet {
     first = "11.12.13.14"
-    last = "11.12.13.14"
+    last  = "11.12.13.14"
   }
 }
 
@@ -846,7 +845,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   subnet {
     first = "12.34.56.78"
-    last = "12.34.56.78"
+    last  = "12.34.56.78"
   }
 }
 `, rInt, location, rInt, rInt, rInt, rInt)
@@ -884,7 +883,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternal" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 1
   custom_header {
-    name = "header"
+    name  = "header"
     value = "www.bing.com"
   }
 }
@@ -941,7 +940,7 @@ resource "azurerm_traffic_manager_endpoint" "testExternalNew" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   priority            = 2
   custom_header {
-    name = "header"
+    name  = "header"
     value = "www.bing.com"
   }
 }

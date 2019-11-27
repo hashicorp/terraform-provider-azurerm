@@ -3,18 +3,17 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
-
-	"github.com/hashicorp/terraform/helper/validation"
-
-	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
-
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +25,13 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 		Delete: resourceArmStreamAnalyticsJobDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -42,7 +48,8 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 			"compatibility_level": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					// values found in the other API the portal uses
 					string(streamanalytics.OneFullStopZero),
@@ -55,40 +62,45 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 
 			"data_locale": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"events_late_arrival_max_delay_in_seconds": {
-				Type:     schema.TypeInt,
-				Required: true,
 				// portal allows for up to 20d 23h 59m 59s
+				Type:         schema.TypeInt,
+				Optional:     true,
 				ValidateFunc: validation.IntBetween(-1, 1814399),
+				Default:      5,
 			},
 
 			"events_out_of_order_max_delay_in_seconds": {
-				Type:     schema.TypeInt,
-				Required: true,
 				// portal allows for up to 9m 59s
+				Type:         schema.TypeInt,
+				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 599),
+				Default:      0,
 			},
 
 			"events_out_of_order_policy": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.Adjust),
 					string(streamanalytics.Drop),
 				}, false),
+				Default: string(streamanalytics.Adjust),
 			},
 
 			"output_error_policy": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(streamanalytics.OutputErrorPolicyDrop),
 					string(streamanalytics.OutputErrorPolicyStop),
 				}, false),
+				Default: string(streamanalytics.OutputErrorPolicyDrop),
 			},
 
 			"streaming_units": {
@@ -114,9 +126,10 @@ func resourceArmStreamAnalyticsJob() *schema.Resource {
 }
 
 func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.JobsClient
-	transformationsClient := meta.(*ArmClient).streamanalytics.TransformationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).StreamAnalytics.JobsClient
+	transformationsClient := meta.(*ArmClient).StreamAnalytics.TransformationsClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Job creation.")
 
@@ -137,7 +150,6 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	compatibilityLevel := d.Get("compatibility_level").(string)
-	dataLocale := d.Get("data_locale").(string)
 	eventsLateArrivalMaxDelayInSeconds := d.Get("events_late_arrival_max_delay_in_seconds").(int)
 	eventsOutOfOrderMaxDelayInSeconds := d.Get("events_out_of_order_max_delay_in_seconds").(int)
 	eventsOutOfOrderPolicy := d.Get("events_out_of_order_policy").(string)
@@ -164,13 +176,16 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 				Name: streamanalytics.Standard,
 			},
 			CompatibilityLevel:                 streamanalytics.CompatibilityLevel(compatibilityLevel),
-			DataLocale:                         utils.String(dataLocale),
 			EventsLateArrivalMaxDelayInSeconds: utils.Int32(int32(eventsLateArrivalMaxDelayInSeconds)),
 			EventsOutOfOrderMaxDelayInSeconds:  utils.Int32(int32(eventsOutOfOrderMaxDelayInSeconds)),
 			EventsOutOfOrderPolicy:             streamanalytics.EventsOutOfOrderPolicy(eventsOutOfOrderPolicy),
 			OutputErrorPolicy:                  streamanalytics.OutputErrorPolicy(outputErrorPolicy),
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if dataLocale, ok := d.GetOk("data_locale"); ok {
+		props.StreamingJobProperties.DataLocale = utils.String(dataLocale.(string))
 	}
 
 	if d.IsNewResource() {
@@ -208,9 +223,10 @@ func resourceArmStreamAnalyticsJobCreateUpdate(d *schema.ResourceData, meta inte
 }
 
 func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.JobsClient
-	transformationsClient := meta.(*ArmClient).streamanalytics.TransformationsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).StreamAnalytics.JobsClient
+	transformationsClient := meta.(*ArmClient).StreamAnalytics.TransformationsClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -275,8 +291,9 @@ func resourceArmStreamAnalyticsJobRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmStreamAnalyticsJobDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).streamanalytics.JobsClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).StreamAnalytics.JobsClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

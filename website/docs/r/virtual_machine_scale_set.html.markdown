@@ -1,4 +1,5 @@
 ---
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set"
 sidebar_current: "docs-azurerm-resource-compute-virtualmachine-scale-set"
@@ -10,64 +11,66 @@ description: |-
 
 Manages a virtual machine scale set.
 
-~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
+~> **NOTE:** All arguments including the administrator login and password will be stored in the raw state as plain-text.
 [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+
+-> **NOTE:** The `azurerm_virtual_machine_scale_set` resource will be superseded by two new resources in the next major version of the Azure Provider (2.0) - [you can find out more about these changes here](https://github.com/terraform-providers/terraform-provider-azurerm/issues/2807).
 
 ## Example Usage with Managed Disks (Recommended)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG"
   location = "West US 2"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   allocation_method   = "Static"
-  domain_name_label   = "${azurerm_resource_group.test.name}"
+  domain_name_label   = "${azurerm_resource_group.example.name}"
 
   tags = {
     environment = "staging"
   }
 }
 
-resource "azurerm_lb" "test" {
+resource "azurerm_lb" "example" {
   name                = "test"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = "${azurerm_public_ip.test.id}"
+    public_ip_address_id = "${azurerm_public_ip.example.id}"
   }
 }
 
 resource "azurerm_lb_backend_address_pool" "bpepool" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  loadbalancer_id     = "${azurerm_lb.example.id}"
   name                = "BackEndAddressPool"
 }
 
 resource "azurerm_lb_nat_pool" "lbnatpool" {
-  resource_group_name            = "${azurerm_resource_group.test.name}"
+  resource_group_name            = "${azurerm_resource_group.example.name}"
   name                           = "ssh"
-  loadbalancer_id                = "${azurerm_lb.test.id}"
+  loadbalancer_id                = "${azurerm_lb.example.id}"
   protocol                       = "Tcp"
   frontend_port_start            = 50000
   frontend_port_end              = 50119
@@ -75,19 +78,19 @@ resource "azurerm_lb_nat_pool" "lbnatpool" {
   frontend_ip_configuration_name = "PublicIPAddress"
 }
 
-resource "azurerm_lb_probe" "test" {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  loadbalancer_id     = "${azurerm_lb.test.id}"
+resource "azurerm_lb_probe" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  loadbalancer_id     = "${azurerm_lb.example.id}"
   name                = "http-probe"
   protocol            = "Http"
   request_path        = "/health"
   port                = 8080
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "mytestscaleset-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   # automatic rolling upgrade
   automatic_os_upgrade = true
@@ -101,7 +104,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   # required when using rolling upgrade policy
-  health_probe_id = "${azurerm_lb_probe.test.id}"
+  health_probe_id = "${azurerm_lb_probe.example.id}"
 
   sku {
     name     = "Standard_F2"
@@ -151,9 +154,9 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name                                   = "TestIPConfiguration"
       primary                                = true
-      subnet_id                              = "${azurerm_subnet.test.id}"
+      subnet_id                              = "${azurerm_subnet.example.id}"
       load_balancer_backend_address_pool_ids = ["${azurerm_lb_backend_address_pool.bpepool.id}"]
-      load_balancer_inbound_nat_rules_ids    = ["${element(azurerm_lb_nat_pool.lbnatpool.*.id, count.index)}"]
+      load_balancer_inbound_nat_rules_ids    = ["${azurerm_lb_nat_pool.lbnatpool.id}"]
     }
   }
 
@@ -166,28 +169,28 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 ## Example Usage with Unmanaged Disks
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "acctestRG"
   location = "West US"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "acctvn"
   address_space       = ["10.0.0.0/16"]
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_subnet" "test" {
+resource "azurerm_subnet" "example" {
   name                 = "acctsub"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  resource_group_name  = "${azurerm_resource_group.example.name}"
+  virtual_network_name = "${azurerm_virtual_network.example.name}"
   address_prefix       = "10.0.2.0/24"
 }
 
-resource "azurerm_storage_account" "test" {
+resource "azurerm_storage_account" "example" {
   name                     = "accsa"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
   location                 = "westus"
   account_tier             = "Standard"
   account_replication_type = "LRS"
@@ -197,17 +200,17 @@ resource "azurerm_storage_account" "test" {
   }
 }
 
-resource "azurerm_storage_container" "test" {
+resource "azurerm_storage_container" "example" {
   name                  = "vhds"
-  resource_group_name   = "${azurerm_resource_group.test.name}"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  resource_group_name   = "${azurerm_resource_group.example.name}"
+  storage_account_name  = "${azurerm_storage_account.example.name}"
   container_access_type = "private"
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "mytestscaleset-1"
   location            = "West US"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   upgrade_policy_mode = "Manual"
 
   sku {
@@ -237,7 +240,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     ip_configuration {
       name      = "TestIPConfiguration"
       primary   = true
-      subnet_id = "${azurerm_subnet.test.id}"
+      subnet_id = "${azurerm_subnet.example.id}"
     }
   }
 
@@ -245,7 +248,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
     name           = "osDiskProfile"
     caching        = "ReadWrite"
     create_option  = "FromImage"
-    vhd_containers = ["${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"]
+    vhd_containers = ["${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"]
   }
 
   storage_profile_image_reference {
@@ -338,15 +341,15 @@ The following arguments are supported:
 
 `identity` supports the following:
 
-* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
+* `type` - (Required) Specifies the identity type to be assigned to the scale set. Allowable values are `SystemAssigned` and `UserAssigned`. For the `SystemAssigned` identity the scale set's Service Principal ID (SPN) can be retrieved after the scale set has been created. See [documentation](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of user managed identity ids to be assigned to the VMSS. Required if `type` is `UserAssigned`.
 
 ```hcl
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name                = "vm-scaleset"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  location            = "${azurerm_resource_group.example.location}"
 
   sku {
     name     = "${var.vm_sku}"
@@ -355,7 +358,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   }
 
   identity {
-    type = "systemAssigned"
+    type = "SystemAssigned"
   }
 
   extension {
@@ -370,7 +373,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
 }
 
 output "principal_id" {
-  value = "${lookup(azurerm_virtual_machine_scale_set.test.identity[0], "principal_id")}"
+  value = "${lookup(azurerm_virtual_machine_scale_set.example.identity[0], "principal_id")}"
 }
 ```
 
@@ -436,9 +439,15 @@ output "principal_id" {
 
 * `name` - (Required) Specifies name of the IP configuration.
 * `subnet_id` - (Required) Specifies the identifier of the subnet.
-* `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of one application gateway. Multiple scale sets cannot use the same application gateway.
+* `application_gateway_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of application gateways. A scale set can reference backend address pools of multiple application gateways. Multiple scale sets cannot use the same application gateway.
 * `load_balancer_backend_address_pool_ids` - (Optional) Specifies an array of references to backend address pools of load balancers. A scale set can reference backend address pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
-* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT rules for load balancers.
+
+-> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
+
+* `load_balancer_inbound_nat_rules_ids` - (Optional) Specifies an array of references to inbound NAT pools for load balancers. A scale set can reference inbound nat pools of one public and one internal load balancer. Multiple scale sets cannot use the same load balancer.
+
+-> **NOTE:** When using this field you'll also need to configure a Rule for the Load Balancer, and use a `depends_on` between this resource and the Load Balancer Rule.
+
 * `primary` - (Required) Specifies if this ip_configuration is the primary one.
 * `application_security_group_ids` - (Optional) Specifies up to `20` application security group IDs.
 * `public_ip_address_configuration` - (Optional) Describes a virtual machines scale set IP Configuration's PublicIPAddress configuration. The public_ip_address_configuration is documented below.
@@ -504,19 +513,19 @@ machine scale set, as in the [example below](#example-of-storage_profile_image_r
 ## Example of storage_profile_image_reference with id
 
 ```hcl
-resource "azurerm_image" "test" {
+resource "azurerm_image" "example" {
   name = "test"
 
   # ...
 }
 
-resource "azurerm_virtual_machine_scale_set" "test" {
+resource "azurerm_virtual_machine_scale_set" "example" {
   name = "test"
 
   # ...
 
   storage_profile_image_reference {
-    id = "${azurerm_image.test.id}"
+    id = "${azurerm_image.example.id}"
   }
 
   # ...

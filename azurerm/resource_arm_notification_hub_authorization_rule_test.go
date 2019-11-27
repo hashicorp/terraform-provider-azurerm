@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -234,7 +234,7 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 			return fmt.Errorf("not found: %s", resourceName)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).notificationHubs.HubsClient
+		client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
@@ -256,7 +256,7 @@ func testCheckAzureRMNotificationHubAuthorizationRuleExists(resourceName string)
 }
 
 func testCheckAzureRMNotificationHubAuthorizationRuleDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).notificationHubs.HubsClient
+	client := testAccProvider.Meta().(*ArmClient).NotificationHubs.HubsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -342,21 +342,21 @@ resource "azurerm_notification_hub_authorization_rule" "test1" {
 }
 
 resource "azurerm_notification_hub_authorization_rule" "test2" {
-	name                  = "acctestruletwo-%d"
-	notification_hub_name = "${azurerm_notification_hub.test.name}"
-	namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	send                  = true
-	listen                = true
+  name                  = "acctestruletwo-%d"
+  notification_hub_name = "${azurerm_notification_hub.test.name}"
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  send                  = true
+  listen                = true
 }
 
 resource "azurerm_notification_hub_authorization_rule" "test3" {
-	name                  = "acctestrulethree-%d"
-	notification_hub_name = "${azurerm_notification_hub.test.name}"
-	namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
-	resource_group_name   = "${azurerm_resource_group.test.name}"
-	send                  = true
-	listen                = true
+  name                  = "acctestrulethree-%d"
+  notification_hub_name = "${azurerm_notification_hub.test.name}"
+  namespace_name        = "${azurerm_notification_hub_namespace.test.name}"
+  resource_group_name   = "${azurerm_resource_group.test.name}"
+  send                  = true
+  listen                = true
 }
 
 `, template, ri, ri, ri)

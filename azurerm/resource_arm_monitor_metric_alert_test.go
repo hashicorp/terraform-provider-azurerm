@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -357,7 +357,7 @@ resource "azurerm_monitor_metric_alert" "test" {
 }
 
 func testCheckAzureRMMonitorMetricAlertDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).monitor.MetricAlertsClient
+	conn := testAccProvider.Meta().(*ArmClient).Monitor.MetricAlertsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_monitor_metric_alert" {
@@ -392,7 +392,7 @@ func testCheckAzureRMMonitorMetricAlertExists(resourceName string) resource.Test
 			return fmt.Errorf("Bad: no resource group found in state for Metric Alert Instance: %s", name)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).monitor.MetricAlertsClient
+		conn := testAccProvider.Meta().(*ArmClient).Monitor.MetricAlertsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, name)

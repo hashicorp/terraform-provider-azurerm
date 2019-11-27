@@ -3,16 +3,18 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,12 +29,19 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.CosmosEntityName,
+				ValidateFunc: validate.NoEmptyStrings,
 			},
 
 			"resource_group_name": azure.SchemaResourceGroupName(),
@@ -53,7 +62,7 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 				Type:         schema.TypeString,
 				ForceNew:     true,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: validate.UUID,
 			},
 
 			"display_name": {
@@ -97,8 +106,9 @@ func resourceArmBotChannelsRegistration() *schema.Resource {
 }
 
 func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -109,17 +119,12 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 			if !utils.ResponseWasNotFound(existing.Response) {
 				return fmt.Errorf("Error checking for presence of creating Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
-		} else {
-			id, err := azure.CosmosGetIDFromResponse(existing.Response)
-			if err != nil {
-				return fmt.Errorf("Error generating import ID for Bot Channels Registration %q (Resource Group %q): %+v", name, resourceGroup, err)
-			}
-
-			return tf.ImportAsExistsError("azurerm_bot", id)
+		}
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_bot_channels_registration", *existing.ID)
 		}
 	}
 
-	t := d.Get("tags").(map[string]interface{})
 	displayName := d.Get("display_name").(string)
 	if displayName == "" {
 		displayName = name
@@ -139,7 +144,7 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
 		Kind: botservice.KindBot,
-		Tags: tags.Expand(t),
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if _, err := client.Create(ctx, resourceGroup, name, bot); err != nil {
@@ -161,8 +166,9 @@ func resourceArmBotChannelsRegistrationCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmBotChannelsRegistrationRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -201,8 +207,9 @@ func resourceArmBotChannelsRegistrationRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -248,8 +255,9 @@ func resourceArmBotChannelsRegistrationUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmBotChannelsRegistrationDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).bot.BotClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Bot.BotClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

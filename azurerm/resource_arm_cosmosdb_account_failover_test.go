@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
@@ -30,7 +30,6 @@ func TestAccAzureRMCosmosDBAccount_failover_boundedStaleness(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(t *testing.T) {
-
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCosmosDBAccount_failover_boundedStalenessComplete(ri, testLocation())
 
@@ -128,7 +127,6 @@ func TestAccAzureRMCosmosDBAccount_failover_strong(t *testing.T) {
 }
 
 func TestAccAzureRMCosmosDBAccount_failover_geoReplicated(t *testing.T) {
-
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMCosmosDBAccount_failover_geoReplicated(ri, testLocation(), testAltLocation())
 

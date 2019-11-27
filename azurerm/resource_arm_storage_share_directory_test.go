@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -190,18 +190,18 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
 		if err != nil {
-			return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", name, shareName, accountName, err)
+			return fmt.Errorf("Error retrieving Account %q for Directory %q (Share %q): %s", accountName, name, shareName, err)
 		}
-		if resourceGroup == nil {
-			return fmt.Errorf("Unable to locate Resource Group for Storage Share Directory %q (Share %s, Account %s) ", name, shareName, accountName)
+		if account == nil {
+			return fmt.Errorf("Unable to locate Storage Account %q!", accountName)
 		}
 
-		client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileShareDirectoriesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}
@@ -212,7 +212,7 @@ func testCheckAzureRMStorageShareDirectoryExists(resourceName string) resource.T
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Directory %q (File Share %q / Account %q / Resource Group %q) does not exist", name, shareName, accountName, *resourceGroup)
+			return fmt.Errorf("Bad: Directory %q (File Share %q / Account %q / Resource Group %q) does not exist", name, shareName, accountName, account.ResourceGroup)
 		}
 
 		return nil
@@ -229,20 +229,24 @@ func testCheckAzureRMStorageShareDirectoryDestroy(s *terraform.State) error {
 		shareName := rs.Primary.Attributes["share_name"]
 		accountName := rs.Primary.Attributes["storage_account_name"]
 
-		storageClient := testAccProvider.Meta().(*ArmClient).storage
+		storageClient := testAccProvider.Meta().(*ArmClient).Storage
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
-		resourceGroup, err := storageClient.FindResourceGroup(ctx, accountName)
+		account, err := storageClient.FindAccount(ctx, accountName)
+		if err != nil {
+			return fmt.Errorf("Error retrieving Account %q for Directory %q (Share %q): %s", accountName, name, shareName, err)
+		}
+
+		// not found, the account's gone
+		if account == nil {
+			return nil
+		}
+
 		if err != nil {
 			return fmt.Errorf("Error locating Resource Group for Storage Share Directory %q (Share %s, Account %s): %s", name, shareName, accountName, err)
 		}
 
-		// not found, the account's gone
-		if resourceGroup == nil {
-			return nil
-		}
-
-		client, err := storageClient.FileShareDirectoriesClient(ctx, *resourceGroup, accountName)
+		client, err := storageClient.FileShareDirectoriesClient(ctx, *account)
 		if err != nil {
 			return fmt.Errorf("Error building FileShare Client: %s", err)
 		}

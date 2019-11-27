@@ -12,10 +12,10 @@ type Client struct {
 	DeploymentsClient *resources.DeploymentsClient
 	LocksClient       *locks.ManagementLocksClient
 	ProvidersClient   *providers.ProvidersClient
+	ResourcesClient   *resources.Client
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-
 	LocksClient := locks.NewManagementLocksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocksClient.Client, o.ResourceManagerAuthorizer)
 
@@ -29,10 +29,14 @@ func BuildClient(o *common.ClientOptions) *Client {
 	ProvidersClient := providers.NewProvidersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ProvidersClient.Client, o.ResourceManagerAuthorizer)
 
+	ResourcesClient := resources.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&ResourcesClient.Client, o.ResourceManagerAuthorizer)
+
 	return &Client{
 		GroupsClient:      &GroupsClient,
 		DeploymentsClient: &DeploymentsClient,
 		LocksClient:       &LocksClient,
 		ProvidersClient:   &ProvidersClient,
+		ResourcesClient:   &ResourcesClient,
 	}
 }

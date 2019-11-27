@@ -6,9 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -171,7 +171,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 
 		// Ensure resource group exists in API
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
-		conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
+		conn := testAccProvider.Meta().(*ArmClient).Batch.AccountClient
 
 		resp, err := conn.Get(ctx, resourceGroup, batchAccount)
 		if err != nil {
@@ -187,7 +187,7 @@ func testCheckAzureRMBatchAccountExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMBatchAccountDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).batch.AccountClient
+	conn := testAccProvider.Meta().(*ArmClient).Batch.AccountClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -302,7 +302,7 @@ resource "azurerm_batch_account" "test" {
 func testAccAzureRMBatchAccount_userSubscription(rInt int, batchAccountSuffix string, location string, tenantID string) string {
 	return fmt.Sprintf(`
 data "azuread_service_principal" "test" {
-	display_name = "Microsoft Azure Batch"
+  display_name = "Microsoft Azure Batch"
 }
 
 resource "azurerm_resource_group" "test" {
@@ -326,24 +326,24 @@ resource "azurerm_key_vault" "test" {
   access_policy {
     tenant_id = "%s"
     object_id = "${data.azuread_service_principal.test.object_id}"
-   
+
     secret_permissions = [
-  	  "get",
-  	  "list",
-  	  "set",
-  	  "delete"
+      "get",
+      "list",
+      "set",
+      "delete"
     ]
-   
+
   }
 }
 
 resource "azurerm_batch_account" "test" {
-  name                 = "testaccbatch%s"
-  resource_group_name  = "${azurerm_resource_group.test.name}"
-  location             = "${azurerm_resource_group.test.location}"
-  
+  name                = "testaccbatch%s"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.test.location}"
+
   pool_allocation_mode = "UserSubscription"
-  
+
   key_vault_reference {
     id  = "${azurerm_key_vault.test.id}"
     url = "${azurerm_key_vault.test.vault_uri}"

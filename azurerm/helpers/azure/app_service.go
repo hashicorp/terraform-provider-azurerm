@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -154,6 +155,9 @@ func SchemaAppServiceAuthSettings() *schema.Schema {
 				"additional_login_params": {
 					Type:     schema.TypeMap,
 					Optional: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
 				},
 				"allowed_external_redirect_urls": {
 					Type:     schema.TypeList,
@@ -325,17 +329,16 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				"java_version": {
 					Type:     schema.TypeString,
 					Optional: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"1.7",
-						"1.8",
-						"11",
-					}, false),
+					ValidateFunc: validation.StringMatch(
+						regexp.MustCompile(`^(1\.7|1\.8|11)`),
+						`Invalid Java version provided`),
 				},
 
 				"java_container": {
 					Type:     schema.TypeString,
 					Optional: true,
 					ValidateFunc: validation.StringInSlice([]string{
+						"JAVA",
 						"JETTY",
 						"TOMCAT",
 					}, true),
@@ -373,6 +376,7 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 						"7.0",
 						"7.1",
 						"7.2",
+						"7.3",
 					}, false),
 				},
 
@@ -480,6 +484,11 @@ func SchemaAppServiceSiteConfig() *schema.Schema {
 				},
 
 				"cors": SchemaWebCorsSettings(),
+
+				"auto_swap_slot_name": {
+					Type:     schema.TypeString,
+					Optional: true,
+				},
 			},
 		},
 	}
@@ -1161,7 +1170,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 	appLogs := make([]interface{}, 0)
 	if input.ApplicationLogs != nil {
-
 		appLogsItem := make(map[string]interface{})
 
 		blobStorage := make([]interface{}, 0)
@@ -1194,7 +1202,6 @@ func FlattenAppServiceLogs(input *web.SiteLogsConfigProperties) []interface{} {
 
 		fileSystem := make([]interface{}, 0)
 		if fileSystemInput := input.HTTPLogs.FileSystem; fileSystemInput != nil {
-
 			fileSystemItem := make(map[string]interface{})
 
 			if fileSystemInput.RetentionInDays != nil {
@@ -1461,7 +1468,6 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 			}
 
 			restrictions = append(restrictions, ipSecurityRestriction)
-
 		}
 		siteConfig.IPSecurityRestrictions = &restrictions
 	}
@@ -1518,6 +1524,10 @@ func ExpandAppServiceSiteConfig(input interface{}) (*web.SiteConfig, error) {
 		corsSettings := v.(interface{})
 		expand := ExpandWebCorsSettings(corsSettings)
 		siteConfig.Cors = &expand
+	}
+
+	if v, ok := config["auto_swap_slot_name"]; ok {
+		siteConfig.AutoSwapSlotName = utils.String(v.(string))
 	}
 
 	return siteConfig, nil
@@ -1639,6 +1649,10 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	result["cors"] = FlattenWebCorsSettings(input.Cors)
+
+	if input.AutoSwapSlotName != nil {
+		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
+	}
 
 	return append(results, result)
 }

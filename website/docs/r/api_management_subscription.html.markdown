@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_subscription"
 sidebar_current: "docs-azurerm-resource-api-management-subscription"
@@ -14,28 +15,28 @@ Manages a Subscription within a API Management Service.
 ## Example Usage
 
 ```hcl
-data "azurerm_api_management" "test" {
+data "azurerm_api_management" "example" {
   name                = "example-apim"
   resource_group_name = "example-resources"
 }
 
-data "azurerm_api_management_product" "test" {
+data "azurerm_api_management_product" "example" {
   product_id          = "00000000-0000-0000-0000-000000000000"
-  api_management_name = "${data.azurerm_api_management.test.name}"
-  resource_group_name = "${data.azurerm_api_management.test.resource_group_name}"
+  api_management_name = "${data.azurerm_api_management.example.name}"
+  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
 }
 
-data "azurerm_api_management_user" "test" {
+data "azurerm_api_management_user" "example" {
   user_id             = "11111111-1111-1111-1111-111111111111"
-  api_management_name = "${data.azurerm_api_management.test.name}"
-  resource_group_name = "${data.azurerm_api_management.test.resource_group_name}"
+  api_management_name = "${data.azurerm_api_management.example.name}"
+  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
 }
 
-resource "azurerm_api_management_subscription" "test" {
-  api_management_name = "${data.azurerm_api_management.test.name}"
-  resource_group_name = "${data.azurerm_api_management.test.resource_group_name}"
-  user_id             = "${data.azurerm_api_management_user.test.id}"
-  product_id          = "${data.azurerm_api_management_product.test.id}"
+resource "azurerm_api_management_subscription" "example" {
+  api_management_name = "${data.azurerm_api_management.example.name}"
+  resource_group_name = "${data.azurerm_api_management.example.resource_group_name}"
+  user_id             = "${data.azurerm_api_management_user.example.id}"
+  product_id          = "${data.azurerm_api_management_product.example.id}"
   display_name        = "Parser API"
 }
 ```
@@ -57,7 +58,7 @@ The following arguments are supported:
 
 ---
 
-* `state` - (Optional) The state of this Subscription. Possible values are `Active`, `Cancelled`, `Expired`, `Rejected`, `Submitted` and `Suspended`. Defaults to `Submitted`.
+* `state` - (Optional) The state of this Subscription. Possible values are `active`, `cancelled`, `expired`, `rejected`, `submitted` and `suspended`. Defaults to `submitted`.
 
 * `subscription_id` - (Optional) An Identifier which should used as the ID of this Subscription. If not specified a new Subscription ID will be generated. Changing this forces a new resource to be created.
 

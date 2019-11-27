@@ -1,7 +1,9 @@
 package azurerm
 
 import (
-	"github.com/hashicorp/terraform/helper/schema"
+	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
@@ -14,6 +16,13 @@ func resourceArmAutomationVariableString() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: resourceAutomationVariableCommonSchema(schema.TypeString, validate.NoEmptyStrings),

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-helpers/sender"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
@@ -32,6 +31,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -45,9 +45,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
@@ -71,131 +73,113 @@ import (
 // ArmClient contains the handles to all the specific Azure Resource Manager
 // resource classes' respective clients.
 type ArmClient struct {
-	clientId                 string
-	tenantId                 string
-	subscriptionId           string
-	partnerId                string
-	usingServicePrincipal    bool
-	environment              azure.Environment
-	skipProviderRegistration bool
-
-	StopContext context.Context
+	// inherit the fields from the parent, so that we should be able to set/access these at either level
+	clients.Client
 
 	// Services
-	analysisservices *analysisservices.Client
-	apiManagement    *apimanagement.Client
-	appInsights      *applicationinsights.Client
-	automation       *automation.Client
-	authorization    *authorization.Client
-	batch            *batch.Client
-	bot              *bot.Client
-	cdn              *cdn.Client
-	cognitive        *cognitive.Client
-	compute          *compute.Client
-	containers       *containers.Client
-	cosmos           *cosmos.Client
-	databricks       *databricks.Client
-	dataFactory      *datafactory.Client
-	datalake         *datalake.Client
-	devSpace         *devspace.Client
-	devTestLabs      *devtestlabs.Client
-	dns              *dns.Client
-	privateDns       *privatedns.Client
-	eventGrid        *eventgrid.Client
-	eventhub         *eventhub.Client
-	frontdoor        *frontdoor.Client
-	graph            *graph.Client
-	hdinsight        *hdinsight.Client
-	iothub           *iothub.Client
-	keyvault         *keyvault.Client
-	kusto            *kusto.Client
-	logAnalytics     *loganalytics.Client
-	logic            *logic.Client
-	managementGroups *managementgroup.Client
-	maps             *maps.Client
-	mariadb          *mariadb.Client
-	media            *media.Client
-	monitor          *monitor.Client
-	mysql            *mysql.Client
-	msi              *msi.Client
-	mssql            *mssql.Client
-	network          *network.Client
-	notificationHubs *notificationhub.Client
-	policy           *policy.Client
-	postgres         *postgres.Client
-	recoveryServices *recoveryservices.Client
-	redis            *redis.Client
-	relay            *relay.Client
-	resource         *resource.Client
-	scheduler        *scheduler.Client
-	search           *search.Client
-	securityCenter   *securitycenter.Client
-	servicebus       *servicebus.Client
-	serviceFabric    *servicefabric.Client
-	signalr          *signalr.Client
-	storage          *storage.Client
-	streamanalytics  *streamanalytics.Client
-	subscription     *subscription.Client
-	sql              *sql.Client
-	trafficManager   *trafficmanager.Client
-	web              *web.Client
+	// NOTE: all new services should be Public as they're going to be relocated in the near-future
+	ManagementGroups *managementgroup.Client
+	Maps             *maps.Client
+	MariaDB          *mariadb.Client
+	Media            *media.Client
+	Monitor          *monitor.Client
+	Msi              *msi.Client
+	Mssql            *mssql.Client
+	Mysql            *mysql.Client
+	Netapp           *netapp.Client
+	Network          *network.Client
+	NotificationHubs *notificationhub.Client
+	Policy           *policy.Client
+	Portal           *portal.Client
+	Postgres         *postgres.Client
+	PrivateDns       *privatedns.Client
+	RecoveryServices *recoveryservices.Client
+	Redis            *redis.Client
+	Relay            *relay.Client
+	Resource         *resource.Client
+	Scheduler        *scheduler.Client
+	Search           *search.Client
+	SecurityCenter   *securitycenter.Client
+	ServiceBus       *servicebus.Client
+	ServiceFabric    *servicefabric.Client
+	SignalR          *signalr.Client
+	Storage          *storage.Client
+	StreamAnalytics  *streamanalytics.Client
+	Subscription     *subscription.Client
+	Sql              *sql.Client
+	TrafficManager   *trafficmanager.Client
+	Web              *web.Client
+}
+
+type armClientBuilder struct {
+	authConfig                  *authentication.Config
+	skipProviderRegistration    bool
+	terraformVersion            string
+	partnerId                   string
+	disableCorrelationRequestID bool
+	disableTerraformPartnerID   bool
 }
 
 // getArmClient is a helper method which returns a fully instantiated
 // *ArmClient based on the Config's current settings.
-func getArmClient(c *authentication.Config, skipProviderRegistration bool, partnerId string, disableCorrelationRequestID bool) (*ArmClient, error) {
-	env, err := authentication.DetermineEnvironment(c.Environment)
+func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, error) {
+	env, err := authentication.DetermineEnvironment(builder.authConfig.Environment)
 	if err != nil {
 		return nil, err
 	}
 
 	// client declarations:
-	client := ArmClient{
-		clientId:                 c.ClientID,
-		tenantId:                 c.TenantID,
-		subscriptionId:           c.SubscriptionID,
-		partnerId:                partnerId,
-		environment:              *env,
-		usingServicePrincipal:    c.AuthenticatedAsAServicePrincipal,
-		skipProviderRegistration: skipProviderRegistration,
+	account, err := clients.NewResourceManagerAccount(ctx, *builder.authConfig, *env)
+	if err != nil {
+		return nil, fmt.Errorf("Error building account: %+v", err)
 	}
 
-	oauthConfig, err := c.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
+	client := ArmClient{
+		Client: clients.Client{
+			Account: account,
+		},
+	}
+
+	oauthConfig, err := builder.authConfig.BuildOAuthConfig(env.ActiveDirectoryEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// OAuthConfigForTenant returns a pointer, which can be nil.
 	if oauthConfig == nil {
-		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", c.TenantID)
+		return nil, fmt.Errorf("Unable to configure OAuthConfig for tenant %s", builder.authConfig.TenantID)
 	}
 
 	sender := sender.BuildSender("AzureRM")
 
 	// Resource Manager endpoints
 	endpoint := env.ResourceManagerEndpoint
-	auth, err := c.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
+	auth, err := builder.authConfig.GetAuthorizationToken(sender, oauthConfig, env.TokenAudience)
 	if err != nil {
 		return nil, err
 	}
 
 	// Graph Endpoints
 	graphEndpoint := env.GraphEndpoint
-	graphAuth, err := c.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
+	graphAuth, err := builder.authConfig.GetAuthorizationToken(sender, oauthConfig, graphEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	// Storage Endpoints
-	storageAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
+	storageAuth, err := builder.authConfig.GetAuthorizationToken(sender, oauthConfig, env.ResourceIdentifiers.Storage)
+	if err != nil {
+		return nil, err
+	}
 
 	// Key Vault Endpoints
-	keyVaultAuth := c.BearerAuthorizerCallback(sender, oauthConfig)
+	keyVaultAuth := builder.authConfig.BearerAuthorizerCallback(sender, oauthConfig)
 
 	o := &common.ClientOptions{
-		SubscriptionId:              c.SubscriptionID,
-		TenantID:                    c.TenantID,
-		PartnerId:                   partnerId,
+		SubscriptionId:              builder.authConfig.SubscriptionID,
+		TenantID:                    builder.authConfig.TenantID,
+		PartnerId:                   builder.partnerId,
+		TerraformVersion:            builder.terraformVersion,
 		GraphAuthorizer:             graphAuth,
 		GraphEndpoint:               graphEndpoint,
 		KeyVaultAuthorizer:          keyVaultAuth,
@@ -203,68 +187,72 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool, partn
 		ResourceManagerEndpoint:     endpoint,
 		StorageAuthorizer:           storageAuth,
 		PollingDuration:             180 * time.Minute,
-		SkipProviderReg:             skipProviderRegistration,
-		DisableCorrelationRequestID: disableCorrelationRequestID,
+		SkipProviderReg:             builder.skipProviderRegistration,
+		DisableCorrelationRequestID: builder.disableCorrelationRequestID,
+		DisableTerraformPartnerID:   builder.disableTerraformPartnerID,
 		Environment:                 *env,
 	}
 
-	client.analysisservices = analysisservices.BuildClient(o)
-	client.apiManagement = apimanagement.BuildClient(o)
-	client.appInsights = applicationinsights.BuildClient(o)
-	client.automation = automation.BuildClient(o)
-	client.authorization = authorization.BuildClient(o)
-	client.batch = batch.BuildClient(o)
-	client.bot = bot.BuildClient(o)
-	client.cdn = cdn.BuildClient(o)
-	client.cognitive = cognitive.BuildClient(o)
-	client.compute = compute.BuildClient(o)
-	client.containers = containers.BuildClient(o)
-	client.cosmos = cosmos.BuildClient(o)
-	client.databricks = databricks.BuildClient(o)
-	client.dataFactory = datafactory.BuildClient(o)
-	client.datalake = datalake.BuildClient(o)
-	client.devSpace = devspace.BuildClient(o)
-	client.devTestLabs = devtestlabs.BuildClient(o)
-	client.dns = dns.BuildClient(o)
-	client.eventGrid = eventgrid.BuildClient(o)
-	client.eventhub = eventhub.BuildClient(o)
-	client.frontdoor = frontdoor.BuildClient(o)
-	client.graph = graph.BuildClient(o)
-	client.hdinsight = hdinsight.BuildClient(o)
-	client.iothub = iothub.BuildClient(o)
-	client.keyvault = keyvault.BuildClient(o)
-	client.kusto = kusto.BuildClient(o)
-	client.logic = logic.BuildClient(o)
-	client.logAnalytics = loganalytics.BuildClient(o)
-	client.maps = maps.BuildClient(o)
-	client.mariadb = mariadb.BuildClient(o)
-	client.media = media.BuildClient(o)
-	client.monitor = monitor.BuildClient(o)
-	client.mssql = mssql.BuildClient(o)
-	client.msi = msi.BuildClient(o)
-	client.mysql = mysql.BuildClient(o)
-	client.managementGroups = managementgroup.BuildClient(o)
-	client.network = network.BuildClient(o)
-	client.notificationHubs = notificationhub.BuildClient(o)
-	client.policy = policy.BuildClient(o)
-	client.postgres = postgres.BuildClient(o)
-	client.privateDns = privatedns.BuildClient(o)
-	client.recoveryServices = recoveryservices.BuildClient(o)
-	client.redis = redis.BuildClient(o)
-	client.relay = relay.BuildClient(o)
-	client.resource = resource.BuildClient(o)
-	client.search = search.BuildClient(o)
-	client.securityCenter = securitycenter.BuildClient(o)
-	client.servicebus = servicebus.BuildClient(o)
-	client.serviceFabric = servicefabric.BuildClient(o)
-	client.scheduler = scheduler.BuildClient(o)
-	client.signalr = signalr.BuildClient(o)
-	client.streamanalytics = streamanalytics.BuildClient(o)
-	client.storage = storage.BuildClient(o)
-	client.subscription = subscription.BuildClient(o)
-	client.sql = sql.BuildClient(o)
-	client.trafficManager = trafficmanager.BuildClient(o)
-	client.web = web.BuildClient(o)
+	client.AnalysisServices = analysisservices.BuildClient(o)
+	client.ApiManagement = apimanagement.BuildClient(o)
+	client.AppInsights = applicationinsights.BuildClient(o)
+	client.Automation = automation.BuildClient(o)
+	client.Authorization = authorization.BuildClient(o)
+	client.Batch = batch.BuildClient(o)
+	client.Bot = bot.BuildClient(o)
+	client.Cdn = cdn.BuildClient(o)
+	client.Cognitive = cognitive.BuildClient(o)
+	client.Compute = clients.NewComputeClient(o)
+	client.Containers = containers.BuildClient(o)
+	client.Cosmos = cosmos.BuildClient(o)
+	client.DataBricks = databricks.BuildClient(o)
+	client.DataFactory = datafactory.BuildClient(o)
+	client.Datalake = datalake.BuildClient(o)
+	client.DevSpace = devspace.BuildClient(o)
+	client.DevTestLabs = devtestlabs.BuildClient(o)
+	client.Dns = dns.BuildClient(o)
+	client.EventGrid = eventgrid.BuildClient(o)
+	client.Eventhub = eventhub.BuildClient(o)
+	client.Frontdoor = frontdoor.BuildClient(o)
+	client.Graph = graph.BuildClient(o)
+	client.HDInsight = hdinsight.BuildClient(o)
+	client.Healthcare = healthcare.BuildClient(o)
+	client.IoTHub = iothub.BuildClient(o)
+	client.KeyVault = keyvault.BuildClient(o)
+	client.Kusto = kusto.BuildClient(o)
+	client.Logic = logic.BuildClient(o)
+	client.LogAnalytics = loganalytics.BuildClient(o)
+	client.Maps = maps.BuildClient(o)
+	client.MariaDB = mariadb.BuildClient(o)
+	client.Media = media.BuildClient(o)
+	client.Monitor = monitor.BuildClient(o)
+	client.Mssql = mssql.BuildClient(o)
+	client.Msi = msi.BuildClient(o)
+	client.Mysql = mysql.BuildClient(o)
+	client.ManagementGroups = managementgroup.BuildClient(o)
+	client.Netapp = netapp.BuildClient(o)
+	client.Network = network.BuildClient(o)
+	client.NotificationHubs = notificationhub.BuildClient(o)
+	client.Policy = policy.BuildClient(o)
+	client.Portal = portal.BuildClient(o)
+	client.Postgres = postgres.BuildClient(o)
+	client.PrivateDns = privatedns.BuildClient(o)
+	client.RecoveryServices = recoveryservices.BuildClient(o)
+	client.Redis = redis.BuildClient(o)
+	client.Relay = relay.BuildClient(o)
+	client.Resource = resource.BuildClient(o)
+	client.Search = search.BuildClient(o)
+	client.SecurityCenter = securitycenter.BuildClient(o)
+	client.ServiceBus = servicebus.BuildClient(o)
+	client.ServiceFabric = servicefabric.BuildClient(o)
+	client.Scheduler = scheduler.BuildClient(o)
+	client.SignalR = signalr.BuildClient(o)
+	client.StreamAnalytics = streamanalytics.BuildClient(o)
+	client.Storage = storage.BuildClient(o)
+	client.Subscription = subscription.BuildClient(o)
+	client.Sql = sql.BuildClient(o)
+	client.TrafficManager = trafficmanager.BuildClient(o)
+	client.Web = web.BuildClient(o)
 
 	return &client, nil
 }

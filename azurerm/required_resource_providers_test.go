@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -13,13 +14,21 @@ func TestAccAzureRMEnsureRequiredResourceProvidersAreRegistered(t *testing.T) {
 		return
 	}
 
-	// this test intentionally checks all the RP's are registered - so this is intentional
-	armClient, err := getArmClient(config, true, "", true)
+	builder := armClientBuilder{
+		authConfig:                  config,
+		terraformVersion:            "0.0.0",
+		partnerId:                   "",
+		disableCorrelationRequestID: true,
+		disableTerraformPartnerID:   false,
+		// this test intentionally checks all the RP's are registered - so this is intentional
+		skipProviderRegistration: true,
+	}
+	armClient, err := getArmClient(context.Background(), builder)
 	if err != nil {
 		t.Fatalf("Error building ARM Client: %+v", err)
 	}
 
-	client := armClient.resource.ProvidersClient
+	client := armClient.Resource.ProvidersClient
 	ctx := testAccProvider.StopContext()
 	providerList, err := client.List(ctx, nil, "")
 	if err != nil {

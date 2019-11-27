@@ -1,4 +1,5 @@
 ---
+subcategory: "CosmosDB (DocumentDB)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cosmosdb_cassandra_keyspace"
 sidebar_current: "docs-azurerm-resource-cosmosdb-cassandra-keyspace"
@@ -13,15 +14,34 @@ Manages a Cassandra KeySpace within a Cosmos DB Account.
 ## Example Usage
 
 ```hcl
-data "azurerm_cosmosdb_account" "example" {
+data "azurerm_resource_group" "example" {
+  name = "tflex-cosmosdb-account-rg"
+}
+
+resource "azurerm_cosmosdb_account" "example" {
   name                = "tfex-cosmosdb-account"
-  resource_group_name = "tfex-cosmosdb-account-rg"
+  resource_group_name = data.azurerm_resource_group.example.name
+  location            = data.azurerm_resource_group.example.location
+  offer_type          = "Standard"
+
+  capabilities {
+    name = "EnableCassandra"
+  }
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  geo_location {
+    location          = "West US"
+    failover_priority = 0
+  }
 }
 
 resource "azurerm_cosmosdb_cassandra_keyspace" "example" {
   name                = "tfex-cosmos-cassandra-keyspace"
-  resource_group_name = "${data.azurerm_cosmosdb_account.example.resource_group_name}"
-  account_name        = "${data.azurerm_cosmosdb_account.example.name}"
+  resource_group_name = data.azurerm_cosmosdb_account.example.resource_group_name
+  account_name        = azurerm_cosmosdb_account.example.name
 }
 ```
 

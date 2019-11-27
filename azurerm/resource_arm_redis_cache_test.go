@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
@@ -578,7 +578,7 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 			return fmt.Errorf("Bad: no resource group found in state for Redis Instance: %s", redisName)
 		}
 
-		conn := testAccProvider.Meta().(*ArmClient).redis.Client
+		conn := testAccProvider.Meta().(*ArmClient).Redis.Client
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resourceGroup, redisName)
@@ -595,7 +595,7 @@ func testCheckAzureRMRedisCacheExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMRedisCacheDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).redis.Client
+	conn := testAccProvider.Meta().(*ArmClient).Redis.Client
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -743,10 +743,10 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
 
   redis_configuration {
-	maxmemory_reserved = 2
-	maxfragmentationmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
+    maxmemory_reserved              = 2
+    maxfragmentationmemory_reserved = 2
+    maxmemory_delta                 = 2
+    maxmemory_policy                = "allkeys-lru"
   }
 }
 `, rInt, location, rInt)
@@ -770,10 +770,10 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxmemory_reserved = 2
-	maxfragmentationmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
+    maxmemory_reserved              = 2
+    maxfragmentationmemory_reserved = 2
+    maxmemory_delta                 = 2
+    maxmemory_policy                = "allkeys-lru"
   }
 }
 `, rInt, location, rInt)
@@ -797,10 +797,10 @@ resource "azurerm_redis_cache" "test" {
   shard_count         = 3
 
   redis_configuration {
-    maxmemory_reserved = 2
-	maxfragmentationmemory_reserved = 2
-    maxmemory_delta    = 2
-    maxmemory_policy   = "allkeys-lru"
+    maxmemory_reserved              = 2
+    maxfragmentationmemory_reserved = 2
+    maxmemory_delta                 = 2
+    maxmemory_policy                = "allkeys-lru"
   }
 }
 `, rInt, location, rInt)
@@ -1113,7 +1113,7 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
   redis_configuration {}
-  zones               = ["1"]
+  zones = ["1"]
 }
 `, ri, location, ri, ri)
 }
@@ -1149,8 +1149,8 @@ resource "azurerm_redis_cache" "test" {
   enable_non_ssl_port = false
   subnet_id           = "${azurerm_subnet.test.id}"
   redis_configuration {
-		enable_authentication = false
-	}
+    enable_authentication = false
+  }
 }
 `, ri, location, ri, ri)
 }

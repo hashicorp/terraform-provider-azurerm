@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
@@ -27,7 +27,7 @@ func TestAccAzureRMMapsAccount_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "s0"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "S0"),
 				),
 			},
 			{
@@ -55,7 +55,7 @@ func TestAccAzureRMMapsAccount_sku(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "x_ms_client_id"),
 					resource.TestCheckResourceAttrSet(resourceName, "primary_access_key"),
 					resource.TestCheckResourceAttrSet(resourceName, "secondary_access_key"),
-					resource.TestCheckResourceAttr(resourceName, "sku_name", "s1"),
+					resource.TestCheckResourceAttr(resourceName, "sku_name", "S1"),
 				),
 			},
 			{
@@ -117,7 +117,7 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 		mapsAccountName := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).maps.AccountsClient
+		client := testAccProvider.Meta().(*ArmClient).Maps.AccountsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, mapsAccountName)
@@ -134,7 +134,7 @@ func testCheckAzureRMMapsAccountExists(resourceName string) resource.TestCheckFu
 }
 
 func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).maps.AccountsClient
+	client := testAccProvider.Meta().(*ArmClient).Maps.AccountsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -156,7 +156,6 @@ func testCheckAzureRMMapsAccountDestroy(s *terraform.State) error {
 	}
 
 	return nil
-
 }
 
 func testAccAzureRMMapsAccount_basic(rInt int, location string) string {
@@ -169,7 +168,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "s0"
+  sku_name            = "S0"
 }
 `, rInt, location, rInt)
 }
@@ -184,7 +183,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "s1"
+  sku_name            = "S1"
 }
 `, rInt, location, rInt)
 }
@@ -199,7 +198,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_maps_account" "test" {
   name                = "accMapsAccount-%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "s0"
+  sku_name            = "S0"
 
   tags = {
     environment = "testing"

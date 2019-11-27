@@ -1,4 +1,5 @@
 ---
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_function_javascript_udf"
 sidebar_current: "docs-azurerm-resource-stream-analytics-function-javascript-udf"
@@ -22,7 +23,7 @@ data "azurerm_stream_analytics_job" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_stream_analytics_function_javascript_udf" "test" {
+resource "azurerm_stream_analytics_function_javascript_udf" "example" {
   name                      = "example-javascript-function"
   stream_analytics_job_name = "${data.azurerm_stream_analytics_job.example.name}"
   resource_group_name       = "${data.azurerm_stream_analytics_job.example.resource_group_name}"
@@ -82,5 +83,5 @@ The following attributes are exported in addition to the arguments listed above:
 Stream Analytics JavaScript UDF Functions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_stream_analytics_output_blob.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
+terraform import azurerm_stream_analytics_output_blob.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/group1/providers/Microsoft.StreamAnalytics/streamingjobs/job1/outputs/output1
 ```
