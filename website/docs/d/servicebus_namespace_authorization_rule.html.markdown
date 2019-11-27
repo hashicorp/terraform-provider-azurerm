@@ -35,7 +35,7 @@ output "rule_id" {
 
 ## Attributes Reference
 
-* `id` - The id of the the ServiceBus Namespace Authorization Rule.
+* `id` - The id of the ServiceBus Namespace Authorization Rule.
 
 * `primary_connection_string` - The primary connection string for the authorization rule.
     
