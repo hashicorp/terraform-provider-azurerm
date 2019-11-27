@@ -27,6 +27,7 @@ func TestAccAzureRMDnsNsRecord_deprecatedBasic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsNsRecordExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
 				),
 			},
 		},
