@@ -40,7 +40,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `connection_configuration` - (Required) One or more `connection_configuration` blocks as defined below.
+* `connection_configuration` - (Required) A `connection_configuration` block as defined below.
 
 * `scale_unit` - (Required) The Scale Unit for this Point-to-Site VPN Gateway.
 

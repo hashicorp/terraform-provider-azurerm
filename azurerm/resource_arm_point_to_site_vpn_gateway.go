@@ -89,6 +89,9 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 						},
 					},
 				},
+				// Code="P2SVpnGatewayCanHaveOnlyOneP2SConnectionConfiguration"
+				// Message="Currently, P2SVpnGateway [ID] can have only one P2SConnectionConfiguration. Specified number of P2SConnectionConfiguration are 2.
+				MaxItems: 1,
 			},
 
 			"scale_unit": {

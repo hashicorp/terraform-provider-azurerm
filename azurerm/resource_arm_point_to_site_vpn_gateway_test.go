@@ -213,14 +213,7 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
   connection_configuration {
     name = "first"
     vpn_client_address_pool {
-      address_prefixes = [ "172.100.0.0/14" ]
-    }
-  }
-
-  connection_configuration {
-    name = "second"
-    vpn_client_address_pool {
-      address_prefixes = [ "10.100.0.0/14" ]
+      address_prefixes = [ "172.100.0.0/14", "10.100.0.0/14" ]
     }
   }
 }
