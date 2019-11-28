@@ -300,6 +300,10 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku", sku.Name)
+	}
+
 	if endpoint := resp.Endpoint; endpoint != nil {
 		d.Set("endpoint", resp.Endpoint)
 	}
