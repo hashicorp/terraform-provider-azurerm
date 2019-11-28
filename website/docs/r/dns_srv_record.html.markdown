@@ -74,6 +74,7 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS SRV Record ID.
+* `fqdn` - The FQDN of the DNS SRV Record.
 
 ## Import
 
