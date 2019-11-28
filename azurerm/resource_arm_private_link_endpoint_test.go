@@ -179,13 +179,21 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.5.0.0/16"]
 }
 
-resource "azurerm_subnet" "test" {
-  name                   = "acctestsnet-%d"
+resource "azurerm_subnet" "service" {
+  name                   = "acctestsnetservice-%d"
   resource_group_name    = azurerm_resource_group.test.name
   virtual_network_name   = azurerm_virtual_network.test.name
   address_prefix         = "10.5.1.0/24"
 
   enforce_private_link_service_network_policies  = true
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                   = "acctestsnetendpoint-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  virtual_network_name   = azurerm_virtual_network.test.name
+  address_prefix         = "10.5.2.0/24"
+
   enforce_private_link_endpoint_network_policies = true
 }
 
@@ -218,19 +226,17 @@ resource "azurerm_private_link_service" "test" {
   nat_ip_configuration {
     name                         = "primaryIpConfiguration-%d"
     primary                      = true
-    subnet_id                    = azurerm_subnet.test.id
+    subnet_id                    = azurerm_subnet.service.id
   }
 
   load_balancer_frontend_ip_configuration_ids = [
     azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMPrivateEndpoint_basic(rInt int, location string) string {
-	standardResources := testAccAzureRMPrivateEndpointTemplate_template(rInt, location)
-
 	return fmt.Sprintf(`
 %s
 
@@ -238,20 +244,18 @@ resource "azurerm_private_link_endpoint" "test" {
   name                = "acctest-privatelink-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  subnet_id           = azurerm_subnet.test.id
+  subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                           = "acctest-PSC-%d"
+    name                           = azurerm_private_link_service.test.name
     is_manual_connection           = false
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
-`, standardResources, rInt, rInt)
+`, testAccAzureRMPrivateEndpointTemplate_template(rInt, location), rInt)
 }
 
 func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
-	standardResources := testAccAzureRMPrivateEndpointTemplate_template(rInt, location)
-
 	return fmt.Sprintf(`
 %s
 
@@ -259,10 +263,10 @@ resource "azurerm_private_link_endpoint" "test" {
   name                = "acctest-privatelink-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  subnet_id           = azurerm_subnet.test.id
+  subnet_id           = azurerm_subnet.endpoint.id
 
   private_service_connection {
-    name                           = "acctest-PSC-%d"
+    name                           = azurerm_private_link_service.test.name
     is_manual_connection           = false
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
@@ -271,5 +275,5 @@ resource "azurerm_private_link_endpoint" "test" {
     env = "test"
   }
 }
-`, standardResources, rInt, rInt)
+`, testAccAzureRMPrivateEndpointTemplate_template(rInt, location), rInt)
 }

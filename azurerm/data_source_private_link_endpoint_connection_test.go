@@ -20,7 +20,6 @@ func TestAccDataSourceAzureRMPrivateLinkEndpointConnection_complete(t *testing.T
 			{
 				Config: testAccDataSourcePrivateLinkEndpointConnection_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(dataSourceName),
 					resource.TestCheckResourceAttr(dataSourceName, "private_service_connection.0.status", "Approved"),
 				),
 			},

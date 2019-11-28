@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -26,17 +27,15 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"auto_approval_subscription_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			"visibility_subscription_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
@@ -79,10 +78,9 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			},
 
 			"load_balancer_frontend_ip_configuration_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			"alias": {
@@ -91,10 +89,9 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 			},
 
 			"tags": tags.SchemaDataSource(),
@@ -148,12 +145,12 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 			}
 		}
 		if props.LoadBalancerFrontendIPConfigurations != nil {
-			if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
+			if err := d.Set("load_balancer_frontend_ip_configuration_ids", dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 				return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 			}
 		}
 		if props.NetworkInterfaces != nil {
-			if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
+			if err := d.Set("network_interface_ids", dataSourceFlattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
 				return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 			}
 		}
@@ -165,4 +162,34 @@ func dataSourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{
 	d.SetId(*resp.ID)
 
 	return tags.FlattenAndSet(d, resp.Tags)
+}
+
+func dataSourceFlattenArmPrivateLinkServiceFrontendIPConfiguration(input *[]network.FrontendIPConfiguration) []string {
+	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if id := item.ID; id != nil {
+			results = append(results, *id)
+		}
+	}
+
+	return results
+}
+
+func dataSourceFlattenArmPrivateLinkServiceInterface(input *[]network.Interface) []string {
+	results := make([]string, 0)
+	if input == nil {
+		return results
+	}
+
+	for _, item := range *input {
+		if id := item.ID; id != nil {
+			results = append(results, *id)
+		}
+	}
+
+	return results
 }
