@@ -216,4 +216,3 @@ storage_account_subscription_id   = "00000000-0000-0000-3333-000000000000"
 }
 `, rInt, location, rInt, rInt, rInt)
 }
-

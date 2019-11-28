@@ -3,7 +3,9 @@ module github.com/terraform-providers/terraform-provider-azurerm
 require (
 	github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.2
+	github.com/Azure/go-autorest/autorest/azure/auth v0.3.0
 	github.com/Azure/go-autorest/autorest/date v0.2.0
+	github.com/Azure/go-autorest/autorest/to v0.3.0
 	github.com/btubbs/datetime v0.1.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/google/uuid v1.1.1
