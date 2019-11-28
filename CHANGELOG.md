@@ -16,6 +16,10 @@ IMPROVEMENTS:
 * `azurerm_dns_srv_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_txt_record` - exposing the `fqdn` [GH-5000]
 
+BUG FIXES:
+
+* `azurerm_storage_account` - ensuring we only lock each Virtual Network once during deletion [GH-4908]
+
 ## 1.37.0 (November 26, 2019)
 
 NOTES
