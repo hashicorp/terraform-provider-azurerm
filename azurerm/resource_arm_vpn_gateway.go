@@ -62,11 +62,13 @@ func resourceArmVPNGateway() *schema.Resource {
 						"asn": {
 							Type:     schema.TypeInt,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"peer_weight": {
 							Type:     schema.TypeInt,
 							Required: true,
+							ForceNew: true,
 						},
 
 						"bgp_peering_address": {

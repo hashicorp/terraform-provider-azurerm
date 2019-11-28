@@ -76,18 +76,7 @@ func TestAccAzureRMVPNGateway_bgpSettings(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVPNGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVPNGateway_bgpSettings(ri, location, 65515, 0),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVPNGatewayExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMVPNGateway_bgpSettings(ri, location, 65515, 1),
+				Config: testAccAzureRMVPNGateway_bgpSettings(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVPNGatewayExists(resourceName),
 				),
@@ -262,7 +251,7 @@ resource "azurerm_vpn_gateway" "import" {
 `, template)
 }
 
-func testAccAzureRMVPNGateway_bgpSettings(rInt int, location string, asn int, peerWeight int) string {
+func testAccAzureRMVPNGateway_bgpSettings(rInt int, location string) string {
 	template := testAccAzureRMVPNGateway_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -274,11 +263,11 @@ resource "azurerm_vpn_gateway" "test" {
   virtual_hub_id      = azurerm_virtual_hub.test.id
 
   bgp_settings {
-    asn         = %d
-    peer_weight = %d
+    asn         = 65515
+    peer_weight = 0
   }
 }
-`, template, rInt, asn, peerWeight)
+`, template, rInt)
 }
 
 func testAccAzureRMVPNGateway_scaleUnit(rInt int, location string, scaleUnit int) string {

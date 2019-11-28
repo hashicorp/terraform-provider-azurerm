@@ -72,9 +72,9 @@ The following arguments are supported:
 
 A `bgp_settings` block supports the following:
 
-* `asn` - (Required) The ASN of the BGP Speaker.
+* `asn` - (Required) The ASN of the BGP Speaker. Changing this forces a new resource to be created.
 
-* `peer_weighting` - (Required) The weight added to Routes learned from this BGP Speaker.
+* `peer_weight` - (Required) The weight added to Routes learned from this BGP Speaker. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
