@@ -19,7 +19,7 @@ func ValidateResourceIDPriorToImport(idParser ResourceIDValidator) *schema.Resou
 			log.Printf("[DEBUG] Importing Resource - parsing %q", d.Id())
 
 			if err := idParser(d.Id()); err != nil {
-				return []*schema.ResourceData{d}, fmt.Errorf("Error parsing Resource ID: %v", d.Id())
+				return []*schema.ResourceData{d}, fmt.Errorf("Error parsing Resource ID %q: %+v", d.Id(), err)
 			}
 
 			return schema.ImportStatePassthrough(d, meta)
