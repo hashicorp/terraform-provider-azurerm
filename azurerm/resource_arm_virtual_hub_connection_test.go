@@ -242,17 +242,16 @@ func testCheckAzureRMVirtualHubConnectionDestroy(s *terraform.State) error {
 			}
 		}
 
+		// since it's been deleted, that's fine
 		if resp.VirtualHubProperties == nil {
-			return fmt.Errorf("VirtualHubProperties was nil!")
+			return nil
 		}
-
 		props := *resp.VirtualHubProperties
 		if props.VirtualNetworkConnections == nil {
-			return fmt.Errorf("props.VirtualNetworkConnections was nil")
+			return nil
 		}
 
 		conns := *props.VirtualNetworkConnections
-
 		for _, conn := range conns {
 			if conn.Name != nil && *conn.Name == name {
 				return fmt.Errorf("Connection %q still exists", name)
