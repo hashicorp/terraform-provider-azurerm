@@ -20,9 +20,7 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceArmVirtualHubConnectionCreate,
 		Read:   resourceArmVirtualHubConnectionRead,
-		Update: resourceArmVirtualHubConnectionUpdate,
 		Delete: resourceArmVirtualHubConnectionDelete,
-
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -161,76 +159,6 @@ func resourceArmVirtualHubConnectionCreate(d *schema.ResourceData, meta interfac
 	}
 
 	d.SetId(*newConnection.ID)
-	return resourceArmVirtualHubConnectionRead(d, meta)
-}
-
-func resourceArmVirtualHubConnectionUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Network.VirtualHubClient
-	ctx := meta.(*ArmClient).StopContext
-
-	virtualHubConnectionId, err := networkSvc.ParseVirtualHubConnectionID(d.Id())
-	if err != nil {
-		return err
-	}
-
-	resourceGroup := virtualHubConnectionId.Base.ResourceGroup
-	virtualHubName := virtualHubConnectionId.VirtualHubName
-	name := virtualHubConnectionId.Name
-
-	locks.ByName(virtualHubName, virtualHubResourceName)
-	defer locks.UnlockByName(virtualHubName, virtualHubResourceName)
-
-	virtualHub, err := client.Get(ctx, resourceGroup, virtualHubName)
-	if err != nil {
-		if utils.ResponseWasNotFound(virtualHub.Response) {
-			return fmt.Errorf("Virtual Hub %q was not found in Resource Group %q", virtualHubName, resourceGroup)
-		}
-
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): %+v", virtualHubName, resourceGroup, err)
-	}
-
-	if virtualHub.VirtualHubProperties == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties` was nil", virtualHubName, resourceGroup)
-	}
-
-	if virtualHub.VirtualHubProperties.VirtualNetworkConnections == nil {
-		return fmt.Errorf("Error retrieving Virtual Hub %q (Resource Group %q): `properties.VirtualNetworkConnections` was nil", virtualHubName, resourceGroup)
-	}
-	connections := *virtualHub.VirtualHubProperties.VirtualNetworkConnections
-
-	connection, index := findVirtualHubConnection(name, connections)
-	if connection == nil {
-		return fmt.Errorf("Connection %q was not found within Virtual Hub %q (Resource Group %q): %+v", name, virtualHubName, resourceGroup, err)
-	}
-	if connection.HubVirtualNetworkConnectionProperties == nil {
-		return fmt.Errorf("Error retrieving Connection %q (Virtual Hub %q / Resource Group %q): `properties` was nil`", name, virtualHubName, resourceGroup)
-	}
-
-	connectionProps := *connection.HubVirtualNetworkConnectionProperties
-
-	if d.HasChange("allow_hub_to_remote_vnet_transit") {
-		connectionProps.AllowHubToRemoteVnetTransit = utils.Bool(d.Get("allow_hub_to_remote_vnet_transit").(bool))
-	}
-
-	if d.HasChange("allow_remote_vnet_to_use_hub_vnet_gateways") {
-		connectionProps.AllowRemoteVnetToUseHubVnetGateways = utils.Bool(d.Get("allow_remote_vnet_to_use_hub_vnet_gateways").(bool))
-	}
-
-	if d.HasChange("enable_internet_security") {
-		connectionProps.EnableInternetSecurity = utils.Bool(d.Get("enable_internet_security").(bool))
-	}
-	connections[index] = *connection
-	virtualHub.VirtualHubProperties.VirtualNetworkConnections = &connections
-
-	future, err := client.CreateOrUpdate(ctx, resourceGroup, virtualHubName, virtualHub)
-	if err != nil {
-		return fmt.Errorf("Error updating Connection %q to Virtual Hub %q (Resource Group %q): %+v", name, virtualHubName, resourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for update of Connection %q to Virtual Hub %q (Resource Group %q): %+v", name, virtualHubName, resourceGroup, err)
-	}
-
 	return resourceArmVirtualHubConnectionRead(d, meta)
 }
 
