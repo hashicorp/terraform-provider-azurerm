@@ -75,40 +75,6 @@ import (
 type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
 	clients.Client
-
-	// Services
-	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	ManagementGroups *managementgroup.Client
-	Maps             *maps.Client
-	MariaDB          *mariadb.Client
-	Media            *media.Client
-	Monitor          *monitor.Client
-	Msi              *msi.Client
-	Mssql            *mssql.Client
-	Mysql            *mysql.Client
-	Netapp           *netapp.Client
-	Network          *network.Client
-	NotificationHubs *notificationhub.Client
-	Policy           *policy.Client
-	Portal           *portal.Client
-	Postgres         *postgres.Client
-	PrivateDns       *privatedns.Client
-	RecoveryServices *recoveryservices.Client
-	Redis            *redis.Client
-	Relay            *relay.Client
-	Resource         *resource.Client
-	Scheduler        *scheduler.Client
-	Search           *search.Client
-	SecurityCenter   *securitycenter.Client
-	ServiceBus       *servicebus.Client
-	ServiceFabric    *servicefabric.Client
-	SignalR          *signalr.Client
-	Storage          *storage.Client
-	StreamAnalytics  *streamanalytics.Client
-	Subscription     *subscription.Client
-	Sql              *sql.Client
-	TrafficManager   *trafficmanager.Client
-	Web              *web.Client
 }
 
 type armClientBuilder struct {
