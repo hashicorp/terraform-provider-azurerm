@@ -479,7 +479,6 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_traffic_manager_profile":                                                resourceArmTrafficManagerProfile(),
 		"azurerm_user_assigned_identity":                                                 resourceArmUserAssignedIdentity(),
 		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
-		"azurerm_virtual_hub_connection":                                                 resourceArmVirtualHubConnection(),
 		"azurerm_virtual_machine_data_disk_attachment":                                   resourceArmVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":                                              resourceArmVirtualMachineExtensions(),
 		"azurerm_virtual_machine_scale_set":                                              resourceArmVirtualMachineScaleSet(),
