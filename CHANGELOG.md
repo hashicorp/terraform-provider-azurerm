@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource:** `azurerm_iothub_fallback_route` [GH-4965]
+* **New resource:** `azurerm_private_dns_mx_record` [GH-4915]
+
 
 IMPROVEMENTS:
 
