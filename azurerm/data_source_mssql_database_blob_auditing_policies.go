@@ -90,20 +90,18 @@ func dataSourceArmMsSqlDataBaseBlobAuditingPoliciesRead(d *schema.ResourceData, 
 	d.Set("database_name", databaseName)
 	d.Set("resource_group_name", resourceGroup)
 
-	if databaseBlobAuditingPolicyProperties := resp.DatabaseBlobAuditingPolicyProperties; databaseBlobAuditingPolicyProperties != nil {
-		d.Set("state", databaseBlobAuditingPolicyProperties.State)
-		if auditActionsAndGroups := databaseBlobAuditingPolicyProperties.AuditActionsAndGroups; auditActionsAndGroups != nil {
-			d.Set("audit_actions_and_groups", strings.Join(*auditActionsAndGroups, ","))
-		}
-		d.Set("is_azure_monitor_target_enabled", databaseBlobAuditingPolicyProperties.IsAzureMonitorTargetEnabled)
-		d.Set("is_storage_secondary_key_in_use", databaseBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse)
-		d.Set("retention_days", databaseBlobAuditingPolicyProperties.RetentionDays)
-		if storageAccountSubscriptionID := databaseBlobAuditingPolicyProperties.StorageAccountSubscriptionID; storageAccountSubscriptionID != nil {
-			d.Set("storage_account_subscription_id", storageAccountSubscriptionID.String())
-		}
-		if storageEndpoint := databaseBlobAuditingPolicyProperties.StorageEndpoint; storageEndpoint != nil {
-			d.Set("storage_endpoint", storageEndpoint)
-		}
+	d.Set("state", resp.State)
+	if auditActionsAndGroups := resp.AuditActionsAndGroups; auditActionsAndGroups != nil {
+		d.Set("audit_actions_and_groups", strings.Join(*auditActionsAndGroups, ","))
+	}
+	d.Set("is_azure_monitor_target_enabled", resp.IsAzureMonitorTargetEnabled)
+	d.Set("is_storage_secondary_key_in_use", resp.IsStorageSecondaryKeyInUse)
+	d.Set("retention_days", resp.RetentionDays)
+	if storageAccountSubscriptionID := resp.StorageAccountSubscriptionID; storageAccountSubscriptionID != nil {
+		d.Set("storage_account_subscription_id", storageAccountSubscriptionID.String())
+	}
+	if storageEndpoint := resp.StorageEndpoint; storageEndpoint != nil {
+		d.Set("storage_endpoint", storageEndpoint)
 	}
 
 	return nil
