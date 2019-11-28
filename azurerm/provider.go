@@ -307,6 +307,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iothub_dps_certificate":                                resourceArmIotHubDPSCertificate(),
 		"azurerm_iothub_consumer_group":                                 resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                                resourceArmIotHub(),
+		"azurerm_iothub_fallback_route":                                 resourceArmIotHubFallbackRoute(),
 		"azurerm_iothub_route":                                          resourceArmIotHubRoute(),
 		"azurerm_iothub_endpoint_eventhub":                              resourceArmIotHubEndpointEventHub(),
 		"azurerm_iothub_endpoint_servicebus_queue":                      resourceArmIotHubEndpointServiceBusQueue(),

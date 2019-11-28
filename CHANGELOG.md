@@ -1,4 +1,21 @@
 ## 1.38.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `azurerm_iothub_fallback_route` [GH-4965]
+
+IMPROVEMENTS:
+
+* `azurerm_dns_a_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_aaaa_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_caa_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_cname_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_mx_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_ns_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_ptr_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_srv_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_dns_txt_record` - exposing the `fqdn` [GH-5000]
+
 ## 1.37.0 (November 26, 2019)
 
 NOTES
