@@ -16,7 +16,7 @@ Use this data source to access endpoint connection information about an existing
 
 ```hcl
 data "azurerm_private_link_service_endpoint_connections" "example" {
-  name                = azurerm_private_link_service.example.name
+  service_id          = azurerm_private_link_service.example.id
   resource_group_name = azurerm_resource_group.example.name
 }
 
