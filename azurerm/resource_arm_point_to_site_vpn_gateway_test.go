@@ -136,15 +136,15 @@ func testCheckAzureRMPointToSiteVPNGatewayExists(resourceName string) resource.T
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VpnServerConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.PointToSiteVpnGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: VPN Gateway Server Configurations %q (Resource Group %q) does not exist", name, resourceGroup)
+				return fmt.Errorf("Bad: VPN Gateway %q (Resource Group %q) does not exist", name, resourceGroup)
 			}
 
-			return fmt.Errorf("Bad: Get on network.VpnServerConfigurationsClient: %+v", err)
+			return fmt.Errorf("Bad: Get on network.PointToSiteVpnGatewaysClient: %+v", err)
 		}
 
 		return nil
@@ -157,14 +157,14 @@ func testCheckAzureRMPointToSiteVPNGatewayDestroy(s *terraform.State) error {
 			continue
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Network.VpnServerConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).Network.PointToSiteVpnGatewaysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		name := rs.Primary.Attributes["name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("Bad: Get on network.VpnServerConfigurationsClient: %+v", err)
+				return fmt.Errorf("Bad: Get on network.PointToSiteVpnGatewaysClient: %+v", err)
 			}
 		}
 
