@@ -20,6 +20,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
+* `azurerm_mssql_elasticpool` - no longer panicing when `sku` is nil [GH-5017]
 * `azurerm_storage_account` - ensuring we only lock each Virtual Network once during deletion [GH-4908]
 
 ## 1.37.0 (November 26, 2019)
