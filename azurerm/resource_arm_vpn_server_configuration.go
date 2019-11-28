@@ -48,7 +48,7 @@ func resourceArmVPNServerConfiguration() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"vpn_authentication_types": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -349,7 +349,7 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 	supportsCertificates := false
 	supportsRadius := false
 
-	vpnAuthenticationTypesRaw := d.Get("vpn_authentication_types").(*schema.Set).List()
+	vpnAuthenticationTypesRaw := d.Get("vpn_authentication_types").([]interface{})
 	vpnAuthenticationTypes := make([]network.VpnAuthenticationType, 0)
 	for _, v := range vpnAuthenticationTypesRaw {
 		authType := network.VpnAuthenticationType(v.(string))
@@ -357,15 +357,12 @@ func resourceArmVPNServerConfigurationCreateUpdate(d *schema.ResourceData, meta 
 		switch authType {
 		case network.AAD:
 			supportsAAD = true
-			break
 
 		case network.Certificate:
 			supportsCertificates = true
-			break
 
 		case network.Radius:
 			supportsRadius = true
-			break
 
 		default:
 			return fmt.Errorf("Unsupported `vpn_authentication_type`: %q", authType)
@@ -492,7 +489,7 @@ func resourceArmVPNServerConfigurationRead(d *schema.ResourceData, meta interfac
 				vpnAuthenticationTypes = append(vpnAuthenticationTypes, string(v))
 			}
 		}
-		if err := d.Set("vpn_authentication_types", schema.NewSet(schema.HashString, vpnAuthenticationTypes)); err != nil {
+		if err := d.Set("vpn_authentication_types", vpnAuthenticationTypes); err != nil {
 			return fmt.Errorf("Error setting `vpn_authentication_types`: %+v", err)
 		}
 
