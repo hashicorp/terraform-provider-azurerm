@@ -6,6 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
+* `azurerm_application_gateway` - updating the validation for `min_capacity` and `max_capacity` within the `autoscale_configuration` block [GH-4958]
 * `azurerm_dns_a_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_aaaa_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_caa_record` - exposing the `fqdn` [GH-5000]
