@@ -20,6 +20,11 @@ func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
+			"service_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"location": azure.SchemaLocationForDataSource(),
 
 			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
@@ -68,12 +73,13 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceDa
 	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
 	ctx := meta.(*ArmClient).StopContext
 
-	id, err := azure.ParseAzureResourceID(d.Get("service_id").(string))
+	serviceId := d.Get("service_id").(string)
+
+	id, err := azure.ParseAzureResourceID(serviceId)
 	if err != nil {
-		return fmt.Errorf("Error parsing %q: %s", d.Get("service_id").(string), err)
+		return fmt.Errorf("Error parsing %q: %s", serviceId, err)
 	}
 
-	//name := d.Get("name").(string)
 	name := id.Path["privateLinkServices"]
 	resourceGroup := d.Get("resource_group_name").(string)
 
@@ -88,7 +94,8 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceDa
 		return fmt.Errorf("API returns a nil/empty id on Private Link Service Endpoint Connection Status %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	d.Set("service_id", id)
+	d.Set("service_id", serviceId)
+	d.Set("service_name", name)
 	d.Set("resource_group_name", resourceGroup)
 	d.Set("location", azure.NormalizeLocation(*resp.Location))
 
