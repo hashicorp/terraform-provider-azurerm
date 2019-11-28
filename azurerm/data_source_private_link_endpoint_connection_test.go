@@ -28,7 +28,6 @@ func TestAccDataSourceAzureRMPrivateLinkEndpointConnection_complete(t *testing.T
 }
 
 func testAccDataSourcePrivateLinkEndpointConnection_complete(rInt int, location string) string {
-	config := testAccAzureRMPrivateEndpoint_complete(rInt, location)
 	return fmt.Sprintf(`
 %s
 
@@ -36,5 +35,5 @@ data "azurerm_private_link_endpoint_connection" "test" {
   name                = azurerm_private_link_endpoint.test.name
   resource_group_name = azurerm_resource_group.test.name
 }
-`, config)
+`, testAccAzureRMPrivateEndpoint_complete(rInt, location))
 }

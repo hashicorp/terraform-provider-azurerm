@@ -105,7 +105,7 @@ func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceDa
 		}
 	}
 
-	d.SetId(*resp.ID)
+	d.SetId(fmt.Sprintf("%s/privateLinkServiceEndpointConnections/%s", *resp.ID, name))
 
 	return nil
 }
