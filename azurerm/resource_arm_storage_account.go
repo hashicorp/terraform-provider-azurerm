@@ -1213,6 +1213,11 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 					}
 
 					networkName := id.Path["virtualNetworks"]
+					for _, virtualNetworkName := range virtualNetworkNames {
+						if networkName == virtualNetworkName {
+							continue
+						}
+					}
 					virtualNetworkNames = append(virtualNetworkNames, networkName)
 				}
 			}
