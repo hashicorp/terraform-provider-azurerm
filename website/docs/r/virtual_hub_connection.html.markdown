@@ -59,11 +59,11 @@ The following arguments are supported:
 
 ---
 
-* `allow_hub_to_remote_vnet_transit` - (Optional) Allow the Virtual Hub to transit traffic via the Remote Virtual Network?
+* `allow_hub_to_remote_vnet_transit` - (Optional) Allow the Virtual Hub to transit traffic via the Remote Virtual Network? Changing this forces a new resource to be created. 
 
-* `allow_remote_vnet_to_use_hub_vnet_gateways` - (Optional) Allow the Remote Virtual Network to transit use the Hub's Virtual Network Gateway's?
+* `allow_remote_vnet_to_use_hub_vnet_gateways` - (Optional) Allow the Remote Virtual Network to transit use the Hub's Virtual Network Gateway's? Changing this forces a new resource to be created.
 
-* `enable_internet_security` - (Optional) Should Internet Security be enabled?
+* `enable_internet_security` - (Optional) Should Internet Security be enabled? Changing this forces a new resource to be created.
 
 ## Attributes Reference
 

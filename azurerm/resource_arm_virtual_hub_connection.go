@@ -56,16 +56,19 @@ func resourceArmVirtualHubConnection() *schema.Resource {
 			"allow_hub_to_remote_vnet_transit": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"allow_remote_vnet_to_use_hub_vnet_gateways": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"enable_internet_security": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}

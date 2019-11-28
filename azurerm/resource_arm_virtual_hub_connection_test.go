@@ -102,29 +102,7 @@ func TestAccAzureRMVirtualHubConnection_allowHubToRemoteVnetTransit(t *testing.T
 		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHubConnection_allowHubToRemoteVnetTransit(ri, location, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_allowHubToRemoteVnetTransit(ri, location, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_allowHubToRemoteVnetTransit(ri, location, false),
+				Config: testAccAzureRMVirtualHubConnection_allowHubToRemoteVnetTransit(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubConnectionExists(resourceName),
 				),
@@ -149,29 +127,7 @@ func TestAccAzureRMVirtualHubConnection_allowRemoteVnetToUseHubVnetGateways(t *t
 		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHubConnection_allowRemoteVnetToUseHubVnetGateways(ri, location, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_allowRemoteVnetToUseHubVnetGateways(ri, location, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_allowRemoteVnetToUseHubVnetGateways(ri, location, false),
+				Config: testAccAzureRMVirtualHubConnection_allowRemoteVnetToUseHubVnetGateways(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubConnectionExists(resourceName),
 				),
@@ -196,29 +152,7 @@ func TestAccAzureRMVirtualHubConnection_enableInternetSecurity(t *testing.T) {
 		CheckDestroy: testCheckAzureRMVirtualHubConnectionDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMVirtualHubConnection_enableInternetSecurity(ri, location, false),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_enableInternetSecurity(ri, location, true),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubConnectionExists(resourceName),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMVirtualHubConnection_enableInternetSecurity(ri, location, false),
+				Config: testAccAzureRMVirtualHubConnection_enableInternetSecurity(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubConnectionExists(resourceName),
 				),
@@ -357,7 +291,7 @@ resource "azurerm_virtual_hub_connection" "import" {
 `, template)
 }
 
-func testAccAzureRMVirtualHubConnection_allowHubToRemoteVnetTransit(rInt int, location string, enabled bool) string {
+func testAccAzureRMVirtualHubConnection_allowHubToRemoteVnetTransit(rInt int, location string) string {
 	template := testAccAzureRMVirtualHubConnection_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -366,12 +300,12 @@ resource "azurerm_virtual_hub_connection" "test" {
   name                             = "acctestvhub-%d"
   virtual_hub_id                   = azurerm_virtual_hub.test.id
   remote_virtual_network_id        = azurerm_virtual_network.test.id
-  allow_hub_to_remote_vnet_transit = %t
+  allow_hub_to_remote_vnet_transit = true
 }
-`, template, rInt, enabled)
+`, template, rInt)
 }
 
-func testAccAzureRMVirtualHubConnection_allowRemoteVnetToUseHubVnetGateways(rInt int, location string, enabled bool) string {
+func testAccAzureRMVirtualHubConnection_allowRemoteVnetToUseHubVnetGateways(rInt int, location string) string {
 	template := testAccAzureRMVirtualHubConnection_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -380,12 +314,12 @@ resource "azurerm_virtual_hub_connection" "test" {
   name                                       = "acctestvhub-%d"
   virtual_hub_id                             = azurerm_virtual_hub.test.id
   remote_virtual_network_id                  = azurerm_virtual_network.test.id
-  allow_remote_vnet_to_use_hub_vnet_gateways = %t
+  allow_remote_vnet_to_use_hub_vnet_gateways = true
 }
-`, template, rInt, enabled)
+`, template, rInt)
 }
 
-func testAccAzureRMVirtualHubConnection_enableInternetSecurity(rInt int, location string, enabled bool) string {
+func testAccAzureRMVirtualHubConnection_enableInternetSecurity(rInt int, location string) string {
 	template := testAccAzureRMVirtualHubConnection_template(rInt, location)
 	return fmt.Sprintf(`
 %s
@@ -394,9 +328,9 @@ resource "azurerm_virtual_hub_connection" "test" {
   name                      = "acctestvhub-%d"
   virtual_hub_id            = azurerm_virtual_hub.test.id
   remote_virtual_network_id = azurerm_virtual_network.test.id
-  enable_internet_security  = %t
+  enable_internet_security  = true
 }
-`, template, rInt, enabled)
+`, template, rInt)
 }
 
 func testAccAzureRMVirtualHubConnection_complete(rInt int, location string) string {
