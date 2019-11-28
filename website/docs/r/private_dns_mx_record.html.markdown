@@ -19,15 +19,15 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
-resource "azurerm_private_dns_zone" "test" {
+resource "azurerm_private_dns_zone" "example" {
   name                = "contoso.com"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_private_dns_mx_record" "test" {
-  name                = "test"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  zone_name           = "${azurerm_private_dns_zone.test.name}"
+resource "azurerm_private_dns_mx_record" "example" {
+  name                = "example"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  zone_name           = "${azurerm_private_dns_zone.example.name}"
   ttl                 = 300
 
   record {
@@ -81,5 +81,5 @@ The following attributes are exported:
 Private DNS MX Records can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_private_dns_srv_record.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/contoso.com/MX/@
+terraform import azurerm_private_dns_srv_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/privateDnsZones/contoso.com/MX/@
 ```

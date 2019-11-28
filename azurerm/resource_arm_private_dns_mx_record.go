@@ -186,8 +186,7 @@ func resourceArmPrivateDnsMxRecordDelete(d *schema.ResourceData, meta interface{
 	name := id.Path["MX"]
 	zoneName := id.Path["privateDnsZones"]
 
-	_, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.MX, name, "")
-	if err != nil {
+	if _, err = dnsClient.Delete(ctx, resGroup, zoneName, privatedns.MX, name, ""); err != nil {
 		return fmt.Errorf("Error deleting Private DNS MX Record %s: %+v", name, err)
 	}
 
