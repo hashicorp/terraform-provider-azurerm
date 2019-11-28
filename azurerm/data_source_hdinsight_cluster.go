@@ -73,6 +73,53 @@ func dataSourceArmHDInsightSparkCluster() *schema.Resource {
 				},
 			},
 
+			"security": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enable_enterprise_security_package": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"domain": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"organizational_unit_dn": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"ldaps_urls": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"domain_username": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"cluster_users_group_dns": {
+							Type:     schema.TypeSet,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+						"aadds_resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"msi_resource_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.SchemaDataSource(),
 
 			"edge_ssh_endpoint": {
@@ -137,6 +184,12 @@ func dataSourceArmHDInsightClusterRead(d *schema.ResourceData, meta interface{})
 			}
 			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+			}
+		}
+
+		if def := props.SecurityProfile; def != nil {
+			if err := d.Set("security", azure.FlattenHDInsightsSecurityProfile(def)); err != nil {
+				return fmt.Errorf("Error flattening `security`: %+v", err)
 			}
 		}
 

@@ -20,6 +20,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/domainservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
@@ -88,6 +89,7 @@ type Client struct {
 	DevSpace         *devspace.Client
 	DevTestLabs      *devtestlabs.Client
 	Dns              *dns.Client
+	DomainServices   *domainservices.Client
 	EventGrid        *eventgrid.Client
 	Eventhub         *eventhub.Client
 	Frontdoor        *frontdoor.Client

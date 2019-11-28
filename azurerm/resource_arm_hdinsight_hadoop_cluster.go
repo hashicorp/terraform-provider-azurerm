@@ -95,6 +95,8 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 			"storage_account_gen2": azure.SchemaHDInsightsGen2StorageAccounts(),
 
+			"security": azure.SchemaHDInsightSecurity(),
+
 			"roles": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -169,6 +171,7 @@ func resourceArmHDInsightHadoopCluster() *schema.Resource {
 
 func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).HDInsight.ClustersClient
+	domainServicesClient := meta.(*ArmClient).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -237,6 +240,20 @@ func resourceArmHDInsightHadoopClusterCreate(d *schema.ResourceData, meta interf
 		Tags:     tags.Expand(t),
 		Identity: identity,
 	}
+
+	if security, ok := d.GetOk("security"); ok {
+		securityProfile, clusterIdentity, err := azure.ExpandHDInsightsSecurityProfile(ctx, domainServicesClient, security.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("Error expanding `security`: %+v", err)
+		}
+		if securityProfile != nil {
+			params.Properties.SecurityProfile = securityProfile
+		}
+		if clusterIdentity != nil {
+			params.Identity = clusterIdentity
+		}
+	}
+
 	future, err := client.Create(ctx, resourceGroup, name, params)
 	if err != nil {
 		return fmt.Errorf("Error creating HDInsight Hadoop Cluster %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -333,6 +350,12 @@ func resourceArmHDInsightHadoopClusterRead(d *schema.ResourceData, meta interfac
 
 			if err := d.Set("gateway", azure.FlattenHDInsightsConfigurations(configuration.Value)); err != nil {
 				return fmt.Errorf("Error flattening `gateway`: %+v", err)
+			}
+		}
+
+		if def := props.SecurityProfile; def != nil {
+			if err := d.Set("security", azure.FlattenHDInsightsSecurityProfile(def)); err != nil {
+				return fmt.Errorf("Error flattening `security`: %+v", err)
 			}
 		}
 
