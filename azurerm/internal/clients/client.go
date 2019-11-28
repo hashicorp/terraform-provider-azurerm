@@ -31,6 +31,37 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
 type Client struct {
@@ -68,4 +99,35 @@ type Client struct {
 	Kusto            *kusto.Client
 	LogAnalytics     *loganalytics.Client
 	Logic            *logic.Client
+	ManagementGroups *managementgroup.Client
+	Maps             *maps.Client
+	MariaDB          *mariadb.Client
+	Media            *media.Client
+	Monitor          *monitor.Client
+	Msi              *msi.Client
+	Mssql            *mssql.Client
+	Mysql            *mysql.Client
+	Netapp           *netapp.Client
+	Network          *network.Client
+	NotificationHubs *notificationhub.Client
+	Policy           *policy.Client
+	Portal           *portal.Client
+	Postgres         *postgres.Client
+	PrivateDns       *privatedns.Client
+	RecoveryServices *recoveryservices.Client
+	Redis            *redis.Client
+	Relay            *relay.Client
+	Resource         *resource.Client
+	Scheduler        *scheduler.Client
+	Search           *search.Client
+	SecurityCenter   *securitycenter.Client
+	ServiceBus       *servicebus.Client
+	ServiceFabric    *servicefabric.Client
+	SignalR          *signalr.Client
+	Storage          *storage.Client
+	StreamAnalytics  *streamanalytics.Client
+	Subscription     *subscription.Client
+	Sql              *sql.Client
+	TrafficManager   *trafficmanager.Client
+	Web              *web.Client
 }
