@@ -215,7 +215,9 @@ resource "azurerm_point_to_site_vpn_gateway" "test" {
     vpn_client_address_pool {
       address_prefixes = [ "172.100.0.0/14" ]
     }
+  }
 
+  connection_configuration {
     name = "second"
     vpn_client_address_pool {
       address_prefixes = [ "10.100.0.0/14" ]
@@ -253,7 +255,7 @@ func testAccAzureRMAzureRMPointToSiteVPNGateway_tags(rInt int, location string) 
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_point_to_site_vpn_gateway" "import" {
+resource "azurerm_point_to_site_vpn_gateway" "test" {
   name                        = "acctestp2svpng-%d"
   location                    = azurerm_resource_group.test.location
   resource_group_name         = azurerm_resource_group.test.name
