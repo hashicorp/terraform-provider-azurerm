@@ -16,6 +16,7 @@ IMPROVEMENTS:
 * `azurerm_dns_ptr_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_srv_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_txt_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_mysql_server` - add support for version 8.0 [GH-5019]
 
 BUG FIXES:
 
