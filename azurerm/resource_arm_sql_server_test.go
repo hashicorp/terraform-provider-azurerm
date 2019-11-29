@@ -196,7 +196,7 @@ func TestAccAzureRMSqlServer_withBlobAuditingPolices(t *testing.T) {
 				Config: testAccAzureRMSqlServer_withBlobAuditingPolices(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "blob_auditing_policies.state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "blob_auditing_policies.0.state", "Enabled"),
 				),
 			},
 			{
