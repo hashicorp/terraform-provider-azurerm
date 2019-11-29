@@ -81,9 +81,8 @@ func SchemaHDInsightSecurity() *schema.Schema {
 					},
 				},
 				"aadds_resource_id": {
-					Type:         schema.TypeString,
-					Optional:     true,
-					ValidateFunc: ValidateResourceIDOrEmpty,
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 				"msi_resource_id": {
 					Type:         schema.TypeString,
