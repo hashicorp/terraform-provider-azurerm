@@ -3,6 +3,8 @@
 FEATURES:
 
 * **New Resource:** `azurerm_iothub_fallback_route` [GH-4965]
+* **New resource:** `azurerm_private_dns_mx_record` [GH-4915]
+
 
 IMPROVEMENTS:
 
@@ -16,9 +18,11 @@ IMPROVEMENTS:
 * `azurerm_dns_ptr_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_srv_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_txt_record` - exposing the `fqdn` [GH-5000]
+* `azurerm_mysql_server` - add support for version 8.0 [GH-5019]
 
 BUG FIXES:
 
+* `azurerm_mssql_elasticpool` - no longer panicing when `sku` is nil [GH-5017]
 * `azurerm_storage_account` - ensuring we only lock each Virtual Network once during deletion [GH-4908]
 
 ## 1.37.0 (November 26, 2019)
