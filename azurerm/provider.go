@@ -388,6 +388,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_policy_assignment":                                                      resourceArmPolicyAssignment(),
 		"azurerm_policy_definition":                                                      resourceArmPolicyDefinition(),
 		"azurerm_policy_set_definition":                                                  resourceArmPolicySetDefinition(),
+		"azurerm_point_to_site_vpn_gateway":                                              resourceArmPointToSiteVPNGateway(),
 		"azurerm_postgresql_configuration":                                               resourceArmPostgreSQLConfiguration(),
 		"azurerm_postgresql_database":                                                    resourceArmPostgreSQLDatabase(),
 		"azurerm_postgresql_firewall_rule":                                               resourceArmPostgreSQLFirewallRule(),
@@ -477,6 +478,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_traffic_manager_endpoint":                                               resourceArmTrafficManagerEndpoint(),
 		"azurerm_traffic_manager_profile":                                                resourceArmTrafficManagerProfile(),
 		"azurerm_user_assigned_identity":                                                 resourceArmUserAssignedIdentity(),
+		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_virtual_machine_data_disk_attachment":                                   resourceArmVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":                                              resourceArmVirtualMachineExtensions(),
 		"azurerm_virtual_machine_scale_set":                                              resourceArmVirtualMachineScaleSet(),
@@ -486,6 +488,8 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
+		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
+		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
@@ -493,11 +497,6 @@ func Provider() terraform.ResourceProvider {
 	if features.SupportsTwoPointZeroResources() {
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
 		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
-	}
-
-	// NOTE: these resources have been pulled since they require rework
-	if false {
-		resources["azurerm_virtual_hub"] = resourceArmVirtualHub()
 	}
 
 	// avoids this showing up in test output
