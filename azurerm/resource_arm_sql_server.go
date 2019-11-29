@@ -2,7 +2,9 @@ package azurerm
 
 import (
 	"fmt"
+	uuid "github.com/satori/go.uuid"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
@@ -99,6 +101,57 @@ func resourceArmSqlServer() *schema.Resource {
 				},
 			},
 
+			"blob_auditing_policies": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"state": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice([]string{"Enabled", "Disabled"}, false),
+						},
+						"storage_endpoint": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"storage_account_access_key": {
+							Type:      schema.TypeString,
+							Required:  true,
+							Sensitive: true,
+						},
+						"retention_days": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+						"audit_actions_and_groups": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"storage_account_subscription_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: func(val interface{}, key string) (warns []string, errs []error) {
+								v := val.(string)
+								var _, err = uuid.FromString(v)
+								if err != nil {
+									errs = append(errs, fmt.Errorf("%q is not in correct format:%+v", key, err))
+								}
+								return
+							},
+						},
+						"is_storage_secondary_key_in_use": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"tags": tags.Schema(),
 		},
 	}
@@ -170,6 +223,26 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(*resp.ID)
 
+	if _, ok := d.GetOk("blob_auditing_policies"); ok {
+		auditingClient := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
+		serverBlobAuditingPolicyProperties := expandAzureRmSqlServerBlobAuditingPolicies(d)
+		auditingParameters := sql.ServerBlobAuditingPolicy{
+			ServerBlobAuditingPolicyProperties: serverBlobAuditingPolicyProperties,
+		}
+		future, err := auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingParameters)
+		if err != nil {
+			return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
+		}
+
+		if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+			if response.WasConflict(future.Response()) {
+				return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
+			}
+
+			return fmt.Errorf("Error waiting on create/update future for SQL Server %q Blob Auditing Policies (Resource Group %q): %+v", name, resGroup, err)
+		}
+	}
+
 	return resourceArmSqlServerRead(d, meta)
 }
 
@@ -212,6 +285,18 @@ func resourceArmSqlServerRead(d *schema.ResourceData, meta interface{}) error {
 		d.Set("administrator_login", serverProperties.AdministratorLogin)
 		d.Set("fully_qualified_domain_name", serverProperties.FullyQualifiedDomainName)
 	}
+
+	auditingClient := meta.(*ArmClient).Sql.ServerBlobAuditingPoliciesClient
+	auditingResp, err := auditingClient.Get(ctx, resGroup, name)
+	if err != nil {
+		if utils.ResponseWasNotFound(resp.Response) {
+			log.Printf("[INFO] Error reading SQL Server %q Blob Auditing Policies - removing from state", d.Id())
+		}
+
+		return fmt.Errorf("Error reading SQL Server %s: %v Blob Auditing Policies", name, err)
+	}
+
+	d.Set("blob_auditing_policies", flattenAzureRmSqlServerBlobAuditingPolicies(&auditingResp))
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }
@@ -259,6 +344,67 @@ func flattenAzureRmSqlServerIdentity(identity *sql.ResourceIdentity) []interface
 	}
 	if identity.TenantID != nil {
 		result["tenant_id"] = identity.TenantID.String()
+	}
+
+	return []interface{}{result}
+}
+func expandAzureRmSqlServerBlobAuditingPolicies(d *schema.ResourceData) *sql.ServerBlobAuditingPolicyProperties {
+	serverBlobAuditingPoliciesList := d.Get("blob_auditing_policies").([]interface{})
+	if len(serverBlobAuditingPoliciesList) == 0 {
+		return &sql.ServerBlobAuditingPolicyProperties{}
+	}
+	serverBlobAuditingPolicies := serverBlobAuditingPoliciesList[0].(map[string]interface{})
+	state := sql.BlobAuditingPolicyState(serverBlobAuditingPolicies["state"].(string))
+	storageEndpoint := serverBlobAuditingPolicies["storage_endpoint"].(string)
+	storageAccountAccessKey := serverBlobAuditingPolicies["storage_account_access_key"].(string)
+
+	ServerBlobAuditingPolicyProperties := sql.ServerBlobAuditingPolicyProperties{
+		State:                   state,
+		StorageEndpoint:         &storageEndpoint,
+		StorageAccountAccessKey: &storageAccountAccessKey,
+		AuditActionsAndGroups  : nil,
+	}
+	//retention_days
+	if retentionDays, ok := serverBlobAuditingPolicies["retention_days"]; ok {
+		retentionDays := int32(retentionDays.(int))
+		ServerBlobAuditingPolicyProperties.RetentionDays = &retentionDays
+	}
+	//audit_actions_and_groups
+	if auditActionsAndGroups, ok := serverBlobAuditingPolicies["audit_actions_and_groups"]; ok {
+		auditActionsAndGroups := strings.Split(auditActionsAndGroups.(string), ",")
+		ServerBlobAuditingPolicyProperties.AuditActionsAndGroups = &auditActionsAndGroups
+	}
+	//storage_account_subscription_id
+	if storageAccountSubscriptionID, ok := serverBlobAuditingPolicies["storage_account_subscription_id"]; ok {
+		storageAccountSubscriptionID, _ := uuid.FromString(storageAccountSubscriptionID.(string))
+		ServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &storageAccountSubscriptionID
+	}
+	//is_storage_secondary_key_in_use
+	if isStorageSecondaryKeyInUse, ok := serverBlobAuditingPolicies["is_storage_secondary_key_in_use"]; ok {
+		isStorageSecondaryKeyInUse := isStorageSecondaryKeyInUse.(bool)
+		ServerBlobAuditingPolicyProperties.IsStorageSecondaryKeyInUse = &isStorageSecondaryKeyInUse
+	}
+	return &ServerBlobAuditingPolicyProperties
+}
+func flattenAzureRmSqlServerBlobAuditingPolicies(serverBlobAuditingPolicy *sql.ServerBlobAuditingPolicy) []interface{} {
+	if serverBlobAuditingPolicy == nil {
+		return []interface{}{}
+	}
+	result := make(map[string]interface{})
+
+	result["state"] = serverBlobAuditingPolicy.State
+	result["is_storage_secondary_key_in_use"] = serverBlobAuditingPolicy.IsStorageSecondaryKeyInUse
+	if auditActionsAndGroups := serverBlobAuditingPolicy.AuditActionsAndGroups; auditActionsAndGroups != nil {
+		result["audit_actions_and_groups"] = strings.Join(*auditActionsAndGroups, ",")
+	}
+	if RetentionDays := serverBlobAuditingPolicy.RetentionDays; RetentionDays != nil {
+		result["retention_days"] = RetentionDays
+	}
+	if StorageAccountSubscriptionID := serverBlobAuditingPolicy.StorageAccountSubscriptionID; StorageAccountSubscriptionID != nil {
+		result["storage_account_subscription_id"] = StorageAccountSubscriptionID.String()
+	}
+	if StorageEndpoint := serverBlobAuditingPolicy.StorageEndpoint; StorageEndpoint != nil {
+		result["storage_endpoint"] = StorageEndpoint
 	}
 
 	return []interface{}{result}

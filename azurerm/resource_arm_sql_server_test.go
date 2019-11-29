@@ -183,6 +183,33 @@ func TestAccAzureRMSqlServer_updateWithIdentityAdded(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlServer_withBlobAuditingPolices(t *testing.T) {
+	resourceName := "azurerm_sql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlServer_withBlobAuditingPolices(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "identity.0.type", "SystemAssigned"),
+					resource.TestCheckResourceAttr(resourceName, "blob_auditing_policies.state", "Enabled"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+			},
+		},
+	})
+}
+
 func testCheckAzureRMSqlServerExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
@@ -360,4 +387,37 @@ resource "azurerm_sql_server" "test" {
 	}
 }	
 `, rInt, location, rInt)
+}
+
+func testAccAzureRMSqlServer_withBlobAuditingPolices(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-%d"
+	location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+ name                     = "accstr%d"
+ resource_group_name      = "${azurerm_resource_group.test.name}"
+ location                 = "${azurerm_resource_group.test.location}"
+ account_tier             = "Standard"
+ account_replication_type = "GRS"
+}
+
+resource "azurerm_sql_server" "test" {
+	name                         = "acctestsqlserver%d"
+	resource_group_name          = "${azurerm_resource_group.test.name}"
+	location                     = "${azurerm_resource_group.test.location}"
+	version                      = "12.0"
+	administrator_login          = "mradministrator"
+	administrator_login_password = "thisIsDog11"
+
+	blob_auditing_policies {
+		state                         = "Enabled"
+		storage_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
+        storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
+
+	}
+}	
+`, rInt, location, rInt, rInt)
 }
