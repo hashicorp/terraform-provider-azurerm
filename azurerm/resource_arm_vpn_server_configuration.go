@@ -771,7 +771,6 @@ func flattenVpnServerConfigurationRadiusServer(input *network.VpnServerConfigura
 		radiusAddress = *input.RadiusServerAddress
 	}
 
-	// TODO: confirm if secret is returned or if we need to look it up
 	radiusSecret := ""
 	if input.RadiusServerSecret != nil {
 		radiusSecret = *input.RadiusServerSecret

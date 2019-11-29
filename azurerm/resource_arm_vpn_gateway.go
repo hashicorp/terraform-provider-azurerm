@@ -9,6 +9,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -49,8 +50,10 @@ func resourceArmVPNGateway() *schema.Resource {
 			"location": azure.SchemaLocation(),
 
 			"virtual_hub_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: networkSvc.ValidateVirtualHubID,
 			},
 
 			"bgp_settings": {
@@ -80,9 +83,10 @@ func resourceArmVPNGateway() *schema.Resource {
 			},
 
 			"scale_unit": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  1,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      1,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"tags": tags.Schema(),

@@ -215,7 +215,7 @@ func testAccAzureRMVirtualHub_basic(rInt int, location string) string {
 %s
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctestvhub-%d"
+  name                = "acctestVHUB-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
@@ -244,7 +244,7 @@ func testAccAzureRMVirtualHub_updated(rInt int, location string) string {
 %s
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctestvhub-%d"
+  name                = "acctestVHUB-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
@@ -259,7 +259,7 @@ func testAccAzureRMVirtualHub_route(rInt int, location string) string {
 %s
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctestvhub-%d"
+  name                = "acctestVHUB-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
@@ -279,7 +279,7 @@ func testAccAzureRMVirtualHub_routeUpdated(rInt int, location string) string {
 %s
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctestvhub-%d"
+  name                = "acctestVHUB-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id
@@ -299,7 +299,7 @@ func testAccAzureRMVirtualHub_tags(rInt int, location string) string {
 %s
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctestvhub-%d"
+  name                = "acctestVHUB-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   virtual_wan_id      = azurerm_virtual_wan.test.id

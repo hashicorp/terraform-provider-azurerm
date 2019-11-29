@@ -229,7 +229,7 @@ func testAccAzureRMVPNGateway_basic(rInt int, location string) string {
 %s
 
 resource "azurerm_vpn_gateway" "test" {
-  name                = "acctestvpng-%d"
+  name                = "acctestVPNG-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_hub_id      = azurerm_virtual_hub.test.id
@@ -257,7 +257,7 @@ func testAccAzureRMVPNGateway_bgpSettings(rInt int, location string) string {
 %s
 
 resource "azurerm_vpn_gateway" "test" {
-  name                = "acctestvpng-%d"
+  name                = "acctestVPNG-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_hub_id      = azurerm_virtual_hub.test.id
@@ -276,7 +276,7 @@ func testAccAzureRMVPNGateway_scaleUnit(rInt int, location string, scaleUnit int
 %s
 
 resource "azurerm_vpn_gateway" "test" {
-  name                = "acctestvpng-%d"
+  name                = "acctestVPNG-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_hub_id      = azurerm_virtual_hub.test.id
@@ -291,7 +291,7 @@ func testAccAzureRMVPNGateway_tags(rInt int, location string) string {
 %s
 
 resource "azurerm_vpn_gateway" "test" {
-  name                = "acctestvpng-%d"
+  name                = "acctestVPNG-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_hub_id      = azurerm_virtual_hub.test.id
@@ -309,7 +309,7 @@ func testAccAzureRMVPNGateway_tagsUpdated(rInt int, location string) string {
 %s
 
 resource "azurerm_vpn_gateway" "test" {
-  name                = "acctestvpng-%d"
+  name                = "acctestVPNG-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   virtual_hub_id      = azurerm_virtual_hub.test.id

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -63,11 +64,15 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 			"connection_configuration": {
 				Type:     schema.TypeList,
 				Required: true,
+				// Code="P2SVpnGatewayCanHaveOnlyOneP2SConnectionConfiguration"
+				// Message="Currently, P2SVpnGateway [ID] can have only one P2SConnectionConfiguration. Specified number of P2SConnectionConfiguration are 2.
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validate.NoEmptyStrings,
 						},
 
 						"vpn_client_address_pool": {
@@ -89,14 +94,12 @@ func resourceArmPointToSiteVPNGateway() *schema.Resource {
 						},
 					},
 				},
-				// Code="P2SVpnGatewayCanHaveOnlyOneP2SConnectionConfiguration"
-				// Message="Currently, P2SVpnGateway [ID] can have only one P2SConnectionConfiguration. Specified number of P2SConnectionConfiguration are 2.
-				MaxItems: 1,
 			},
 
 			"scale_unit": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:         schema.TypeInt,
+				Required:     true,
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 
 			"tags": tags.Schema(),

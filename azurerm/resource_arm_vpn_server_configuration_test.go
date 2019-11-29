@@ -257,7 +257,7 @@ func testAccAzureRMAzureRMVPNServerConfiguration_azureAD(rInt int, location stri
 %s
 
 resource "azurerm_vpn_server_configuration" "test" {
-  name                    = "acctestrg-%d"
+  name                    = "acctestVPNSC-%d"
   resource_group_name     = azurerm_resource_group.test.name
   location                = azurerm_resource_group.test.location
   vpn_authentication_types =  [ "AAD" ]
@@ -277,7 +277,7 @@ func testAccAzureRMAzureRMVPNServerConfiguration_certificate(rInt int, location 
 %s
 
 resource "azurerm_vpn_server_configuration" "test" {
-  name                     = "acctestrg-%d"
+  name                     = "acctestVPNSC-%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   vpn_authentication_types = ["Certificate"]
@@ -317,7 +317,7 @@ func testAccAzureRMAzureRMVPNServerConfiguration_certificateUpdated(rInt int, lo
 %s
 
 resource "azurerm_vpn_server_configuration" "test" {
-  name                     = "acctestrg-%d"
+  name                     = "acctestVPNSC-%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   vpn_authentication_types = ["Certificate"]
@@ -362,7 +362,7 @@ func testAccAzureRMAzureRMVPNServerConfiguration_radius(rInt int, location strin
 %s
 
 resource "azurerm_vpn_server_configuration" "test" {
-  name                    = "acctestrg-%d"
+  name                    = "acctestVPNSC-%d"
   resource_group_name     = azurerm_resource_group.test.name
   location                = azurerm_resource_group.test.location
   vpn_authentication_types =  [ "Radius" ]
@@ -447,7 +447,7 @@ func testAccAzureRMAzureRMVPNServerConfiguration_tags(rInt int, location string)
 %s
 
 resource "azurerm_vpn_server_configuration" "test" {
-  name                     = "acctestrg-%d"
+  name                     = "acctestVPNSC-%d"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   vpn_authentication_types = ["Certificate"]

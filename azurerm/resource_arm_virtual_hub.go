@@ -21,7 +21,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-var virtualHubResourceName = "azurerm_virtual_hub"
+const virtualHubResourceName = "azurerm_virtual_hub"
 
 func resourceArmVirtualHub() *schema.Resource {
 	return &schema.Resource{
