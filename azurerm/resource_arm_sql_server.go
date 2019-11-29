@@ -370,12 +370,12 @@ func expandAzureRmSqlServerBlobAuditingPolicies(d *schema.ResourceData) *sql.Ser
 		ServerBlobAuditingPolicyProperties.RetentionDays = &retentionDays
 	}
 	//audit_actions_and_groups
-	if auditActionsAndGroups, ok := serverBlobAuditingPolicies["audit_actions_and_groups"]; ok {
+	if auditActionsAndGroups, ok := serverBlobAuditingPolicies["audit_actions_and_groups"] ; ok && auditActionsAndGroups!=""{
 		auditActionsAndGroups := strings.Split(auditActionsAndGroups.(string), ",")
 		ServerBlobAuditingPolicyProperties.AuditActionsAndGroups = &auditActionsAndGroups
 	}
 	//storage_account_subscription_id
-	if storageAccountSubscriptionID, ok := serverBlobAuditingPolicies["storage_account_subscription_id"]; ok {
+	if storageAccountSubscriptionID, ok := serverBlobAuditingPolicies["storage_account_subscription_id"]; ok && storageAccountSubscriptionID!=""{
 		storageAccountSubscriptionID, _ := uuid.FromString(storageAccountSubscriptionID.(string))
 		ServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &storageAccountSubscriptionID
 	}
