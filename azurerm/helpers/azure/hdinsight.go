@@ -59,18 +59,11 @@ func SchemaHDInsightSecurity() *schema.Schema {
 					Type:     schema.TypeBool,
 					Optional: true,
 					Default:  false,
-				},
-				"ldaps_urls": {
-					Type:     schema.TypeSet,
-					Optional: true,
-					Elem: &schema.Schema{
-						Type:         schema.TypeString,
-						ValidateFunc: validate.NoEmptyStrings,
-					},
+					ForceNew: true,
 				},
 				"domain_username": {
 					Type:     schema.TypeString,
-					Optional: true,
+					Required: true,
 				},
 				"cluster_users_group_dns": {
 					Type:     schema.TypeSet,
@@ -84,10 +77,17 @@ func SchemaHDInsightSecurity() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+				"ldaps_urls": {
+					Type:     schema.TypeSet,
+					Computed: true,
+					Elem: &schema.Schema{
+						Type: schema.TypeString,
+					},
+				},
 				"msi_resource_id": {
 					Type:         schema.TypeString,
-					Optional:     true,
-					ValidateFunc: ValidateResourceIDOrEmpty,
+					Required:     true,
+					ValidateFunc: ValidateResourceID,
 				},
 				"domain": {
 					Type:     schema.TypeString,

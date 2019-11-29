@@ -80,6 +80,76 @@ resource "azurerm_hdinsight_hbase_cluster" "example" {
 }
 ```
 
+## HDInsight HBase cluster with enterprise security package support
+The standard Azure HDInsight cluster is a single-user cluster. Azure HDInsight Enterprise Security Package (ESP) can provides Active Directory-based authentication, multi-user support, and role-based access control for HDInsight clusters.
+, please refer to [Azure Hdinsight docs](https://docs.microsoft.com/en-us/azure/hdinsight/domain-joined/apache-domain-joined-configure-using-azure-adds)
+
+### important note if enable esp support
+* Enabling AzureAD-DS is a prerequisite before you can create a HDInsight cluster with ESP
+* It's easier to place both the Azure AD-DS instance and the HDInsight cluster in the same Azure virtual network. If you plan to use different VNETs, you must peer those virtual networks
+* the managed user assigned identity should have the `HDInsight Domain Services Contributor` role, so that this identity has proper (on behalf of) access to perform domain services operations such as creating OUs, deleting OUs, etc. on the AAD-DS domain
+
+### HDInsight HBase Cluster with ESP Example
+```
+resource "azurerm_hdinsight_hbase_cluster" "example" {
+  name                = "example"
+  resource_group_name = "example"
+  location            = "East Asia"
+  cluster_version     = "3.6"
+  tier                = "Premium"
+
+  component_version {
+    hbase = "1.1"
+  }
+
+  gateway {
+    enabled  = true
+    username = "acctestusrgw"
+    password = "TerrAform123!"
+  }
+
+  storage_account {
+    storage_container_id = "${azurerm_storage_container.example.id}"
+    storage_account_key  = "${azurerm_storage_account.example.primary_access_key}"
+    is_default           = true
+  }
+
+  roles {
+    head_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+      subnet_id = "${azurerm_subnet.example.id}"
+      virtual_network_id = "${azurerm_virtual_network.example.id}"
+    }
+
+    worker_node {
+      vm_size               = "Standard_D3_V2"
+      username              = "acctestusrvm"
+      password              = "AccTestvdSC4daf986!"
+      target_instance_count = 4
+      subnet_id = "${azurerm_subnet.example.id}"
+      virtual_network_id = "${azurerm_virtual_network.example.id}"
+    }
+
+    zookeeper_node {
+      vm_size  = "Standard_D3_V2"
+      username = "acctestusrvm"
+      password = "AccTestvdSC4daf986!"
+      subnet_id = "${azurerm_subnet.example.id}"
+      virtual_network_id = "${azurerm_virtual_network.example.id}"
+    }
+  }
+
+  security {
+    enable_enterprise_security_package = true
+    domain_username = "admin@example.onmicrosoft.com"
+    cluster_users_group_dns = ["AAD DC Administrators"]
+    msi_resource_id = "${var.managed_service_id}"
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -105,6 +175,8 @@ The following arguments are supported:
 * `tier` - (Required) Specifies the Tier which should be used for this HDInsight HBase Cluster. Possible values are `Standard` or `Premium`. Changing this forces a new resource to be created.
 
 ---
+
+* `security` - (Optional) A `security` block as defined below, which defines the property related to enterprise security packages
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight HBase Cluster.
 
@@ -160,7 +232,7 @@ A `roles` block supports the following:
 
 A `storage_account` block supports the following:
 
-* `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
+* `is_default` - (Required) Is this the Default Storage Account for the HDInsight HBase Cluster? Changing this forces a new resource to be created.
 
 -> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
@@ -174,7 +246,7 @@ A `storage_account` block supports the following:
 
 A `storage_account_gen2` block supports the following:
 
-* `is_default` - (Required) Is this the Default Storage Account for the HDInsight Hadoop Cluster? Changing this forces a new resource to be created.
+* `is_default` - (Required) Is this the Default Storage Account for the HDInsight HBase Cluster? Changing this forces a new resource to be created.
 
 -> **NOTE:** One of the `storage_account` or `storage_account_gen2` blocks must be marked as the default.
 
@@ -229,6 +301,18 @@ A `zookeeper_node` block supports the following:
 * `subnet_id` - (Optional) The ID of the Subnet within the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network where the Zookeeper Nodes should be provisioned within. Changing this forces a new resource to be created.
+
+---
+
+A `security` block supports the following:
+
+* `enable_enterprise_security_package` - (Optional) whether or not enable ESP support, default: false
+
+* `domain_username` - (Required) The domain user account that will have admin privileges on the cluster
+
+* `cluster_users_group_dns` - (Optional) The Distinguished Names for cluster user groups. Users in these groups can also access the cluster
+
+* `msi_resource_id` - (Required) User assigned identity that has permissions to read and create cluster-related artifacts in the user's AADDS
 
 ## Attributes Reference
 
