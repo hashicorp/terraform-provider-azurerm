@@ -2,12 +2,17 @@
 
 FEATURES:
 
+* **New Data Source:** `azurerm_virtual_hub` [GH-5004]
 * **New Resource:** `azurerm_iothub_fallback_route` [GH-4965]
-* **New resource:** `azurerm_private_dns_mx_record` [GH-4915]
-
+* **New Resource:** `azurerm_point_to_site_vpn_gateway` [GH-5004]
+* **New Resource:** `azurerm_private_dns_mx_record` [GH-4915]
+* **New Resource:** `azurerm_virtual_hub` [GH-5004]
+* **New Resource:** `azurerm_vpn_gateway` [GH-5004]
+* **New Resource:** `azurerm_vpn_server_configuration` [GH-5004]
 
 IMPROVEMENTS:
 
+* network: updating to use API version `2019-09-01` [GH-5004]
 * `azurerm_application_gateway` - updating the validation for `min_capacity` and `max_capacity` within the `autoscale_configuration` block [GH-4958]
 * `azurerm_dns_a_record` - exposing the `fqdn` [GH-5000]
 * `azurerm_dns_aaaa_record` - exposing the `fqdn` [GH-5000]
@@ -24,6 +29,7 @@ BUG FIXES:
 
 * `azurerm_mssql_elasticpool` - no longer panicing when `sku` is nil [GH-5017]
 * `azurerm_storage_account` - ensuring we only lock each Virtual Network once during deletion [GH-4908]
+* `azurerm_virtual_wan` - deprecating the `security_provider_name` field since it's no longer used [GH-5004]
 
 ## 1.37.0 (November 26, 2019)
 
