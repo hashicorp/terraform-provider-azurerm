@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
@@ -71,7 +70,7 @@ type Client struct {
 	Authorization    *AuthorizationClient
 	Automation       *AutomationClient
 	Batch            *BatchClient
-	Bot              *bot.Client
+	Bot              *BotClient
 	Cdn              *cdn.Client
 	Cognitive        *cognitive.Client
 	Containers       *containers.Client
@@ -134,6 +133,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Authorization = newAuthorizationClient(o)
 	client.Automation = newAutomationClient(o)
 	client.Batch = newBatchClient(o)
+	client.Bot = newBotClient(o)
 	client.Compute = newComputeClient(o)
 	return nil
 }
