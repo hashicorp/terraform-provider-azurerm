@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
@@ -71,9 +70,11 @@ type Client struct {
 	Bot              *BotClient
 	Cdn              *CdnClient
 	Cognitive        *CognitiveServicesClient
-	Containers       *containers.Client
-	Cosmos           *cosmos.Client
 	Compute          *ComputeClient
+	Containers       *ContainerServicesClient
+	Cosmos           *cosmos.Client
+
+	// TODO: relocate
 	DataBricks       *databricks.Client
 	DataFactory      *datafactory.Client
 	Datalake         *datalake.Client
@@ -135,5 +136,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Cdn = newCdnClient(o)
 	client.Cognitive = newCognitiveServicesClient(o)
 	client.Compute = newComputeClient(o)
+	client.Containers = newContainerServicesClient(o)
+
 	return nil
 }

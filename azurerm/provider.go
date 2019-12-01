@@ -23,6 +23,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -69,6 +70,7 @@ func Provider() terraform.ResourceProvider {
 		cdn.Registration{},
 		cognitive.Registration{},
 		compute.Registration{},
+		containers.Registration{},
 	}
 
 	dataSources := map[string]*schema.Resource{
