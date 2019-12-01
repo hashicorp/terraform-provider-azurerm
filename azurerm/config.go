@@ -159,6 +159,17 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 		Environment:                 *env,
 	}
 
+	if err := client.Build(o); err != nil {
+		return nil, fmt.Errorf("Error building Client: %+v", err)
+	}
+
+	return &client, nil
+}
+
+func (client *ArmClient) Build(o *common.ClientOptions) error {
+	client.Compute = clients.NewComputeClient(o)
+
+	// TODO: move these Clients inside of Common so this method can be moved in there
 	client.AnalysisServices = analysisservices.BuildClient(o)
 	client.ApiManagement = apimanagement.BuildClient(o)
 	client.AppInsights = applicationinsights.BuildClient(o)
@@ -168,7 +179,6 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 	client.Bot = bot.BuildClient(o)
 	client.Cdn = cdn.BuildClient(o)
 	client.Cognitive = cognitive.BuildClient(o)
-	client.Compute = clients.NewComputeClient(o)
 	client.Containers = containers.BuildClient(o)
 	client.Cosmos = cosmos.BuildClient(o)
 	client.DataBricks = databricks.BuildClient(o)
@@ -220,5 +230,5 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 	client.TrafficManager = trafficmanager.BuildClient(o)
 	client.Web = web.BuildClient(o)
 
-	return &client, nil
+	return nil
 }

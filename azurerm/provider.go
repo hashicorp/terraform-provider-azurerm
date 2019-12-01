@@ -30,8 +30,7 @@ func Provider() terraform.ResourceProvider {
 	//  4. (DONE) Introducing a parent struct which becomes a nested field in `config.go`
 	//  	for those properties, to ease migration (probably internal/common/clients.go)
 	//	5. (DONE) Making the SDK Clients public in the ArmClient
-	//
-	//  6. Migrating the Fields from the `ArmClient` to the new base `Client`
+	//  6. (DONE) Migrating the Fields from the `ArmClient` to the new base `Client`
 	//		But leaving the referencing accessing the top-level field e.g.
 	//			type Client struct { // ./azurerm/internal/common/client.go
 	//				Example example.Client
@@ -42,6 +41,7 @@ func Provider() terraform.ResourceProvider {
 	//		Then access the fields using: `meta.(*ArmClient).Example.Inner`
 	//		Rather than `meta.(*ArmClient).Client.Example.Inner`
 	//		This allows us to have less code changes in Step 7
+	//
 	//	7. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
 	//		Unfortunately this'll need to be in a big-bang, due to the fact this is cast
 	//		All over the place
