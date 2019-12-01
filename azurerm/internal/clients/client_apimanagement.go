@@ -1,11 +1,11 @@
-package apimanagement
+package clients
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
-type Client struct {
+type ApiManagementClient struct {
 	ApiClient                  *apimanagement.APIClient
 	ApiPoliciesClient          *apimanagement.APIPolicyClient
 	ApiOperationsClient        *apimanagement.APIOperationClient
@@ -32,7 +32,7 @@ type Client struct {
 	UsersClient                *apimanagement.UserClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func newApiManagementClient(o *common.ClientOptions) *ApiManagementClient {
 	apiClient := apimanagement.NewAPIClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&apiClient.Client, o.ResourceManagerAuthorizer)
 
@@ -105,7 +105,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 	usersClient := apimanagement.NewUserClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&usersClient.Client, o.ResourceManagerAuthorizer)
 
-	return &Client{
+	return &ApiManagementClient{
 		ApiClient:                  &apiClient,
 		ApiPoliciesClient:          &apiPoliciesClient,
 		ApiOperationsClient:        &apiOperationsClient,
