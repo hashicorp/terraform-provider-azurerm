@@ -153,7 +153,7 @@ func resourceArmIotHubEndpointEventHubRead(d *schema.ResourceData, meta interfac
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
+	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -193,7 +193,7 @@ func resourceArmIotHubEndpointEventHubDelete(d *schema.ResourceData, meta interf
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubEndpointId, err := parseAzureResourceID(d.Id())
+	parsedIothubEndpointId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

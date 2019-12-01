@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
@@ -13,11 +12,6 @@ import (
 
 // nolint: deadcode unused
 var requireResourcesToBeImported = features.ShouldResourcesBeImported()
-
-// nolint: deadcode unused
-func parseAzureResourceID(id string) (*azure.ResourceID, error) {
-	return azure.ParseAzureResourceID(id)
-}
 
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { // nolint: unparam
 	_, errors := validateFunc(i, k)

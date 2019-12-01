@@ -173,7 +173,7 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
