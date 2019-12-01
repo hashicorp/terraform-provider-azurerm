@@ -152,7 +152,7 @@ func resourceArmHealthcareService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.Schema(),
 		},
 	}
 }

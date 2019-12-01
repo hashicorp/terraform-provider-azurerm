@@ -7,18 +7,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 )
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
 
 // nolint: deadcode unused
 var requireResourcesToBeImported = features.ShouldResourcesBeImported()
-
-// nolint: deadcode unused
-func tagsSchema() *schema.Schema {
-	return tags.Schema()
-}
 
 // nolint: deadcode unused
 func parseAzureResourceID(id string) (*azure.ResourceID, error) {
