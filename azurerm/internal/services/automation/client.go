@@ -20,50 +20,50 @@ type Client struct {
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	AccountClient := automation.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AccountClient.Client, o.ResourceManagerAuthorizer)
+	accountClient := automation.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 
-	AgentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AgentRegistrationInfoClient.Client, o.ResourceManagerAuthorizer)
+	agentRegistrationInfoClient := automation.NewAgentRegistrationInformationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&agentRegistrationInfoClient.Client, o.ResourceManagerAuthorizer)
 
-	CredentialClient := automation.NewCredentialClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&CredentialClient.Client, o.ResourceManagerAuthorizer)
+	credentialClient := automation.NewCredentialClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&credentialClient.Client, o.ResourceManagerAuthorizer)
 
-	DscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&DscConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	dscConfigurationClient := automation.NewDscConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&dscConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
-	DscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&DscNodeConfigurationClient.Client, o.ResourceManagerAuthorizer)
+	dscNodeConfigurationClient := automation.NewDscNodeConfigurationClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&dscNodeConfigurationClient.Client, o.ResourceManagerAuthorizer)
 
-	JobScheduleClient := automation.NewJobScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&JobScheduleClient.Client, o.ResourceManagerAuthorizer)
+	jobScheduleClient := automation.NewJobScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&jobScheduleClient.Client, o.ResourceManagerAuthorizer)
 
-	ModuleClient := automation.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ModuleClient.Client, o.ResourceManagerAuthorizer)
+	moduleClient := automation.NewModuleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&moduleClient.Client, o.ResourceManagerAuthorizer)
 
-	RunbookClient := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&RunbookClient.Client, o.ResourceManagerAuthorizer)
+	runbookClient := automation.NewRunbookClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&runbookClient.Client, o.ResourceManagerAuthorizer)
 
-	ScheduleClient := automation.NewScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ScheduleClient.Client, o.ResourceManagerAuthorizer)
+	runbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&runbookDraftClient.Client, o.ResourceManagerAuthorizer)
 
-	RunbookDraftClient := automation.NewRunbookDraftClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&RunbookDraftClient.Client, o.ResourceManagerAuthorizer)
+	scheduleClient := automation.NewScheduleClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&scheduleClient.Client, o.ResourceManagerAuthorizer)
 
-	VariableClient := automation.NewVariableClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&VariableClient.Client, o.ResourceManagerAuthorizer)
+	variableClient := automation.NewVariableClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&variableClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AccountClient:               &AccountClient,
-		AgentRegistrationInfoClient: &AgentRegistrationInfoClient,
-		CredentialClient:            &CredentialClient,
-		DscConfigurationClient:      &DscConfigurationClient,
-		DscNodeConfigurationClient:  &DscNodeConfigurationClient,
-		JobScheduleClient:           &JobScheduleClient,
-		ModuleClient:                &ModuleClient,
-		RunbookClient:               &RunbookClient,
-		RunbookDraftClient:          &RunbookDraftClient,
-		ScheduleClient:              &ScheduleClient,
-		VariableClient:              &VariableClient,
+		AccountClient:               &accountClient,
+		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
+		CredentialClient:            &credentialClient,
+		DscConfigurationClient:      &dscConfigurationClient,
+		DscNodeConfigurationClient:  &dscNodeConfigurationClient,
+		JobScheduleClient:           &jobScheduleClient,
+		ModuleClient:                &moduleClient,
+		RunbookClient:               &runbookClient,
+		RunbookDraftClient:          &runbookDraftClient,
+		ScheduleClient:              &scheduleClient,
+		VariableClient:              &variableClient,
 	}
 }
