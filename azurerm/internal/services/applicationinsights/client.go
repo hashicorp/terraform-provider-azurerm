@@ -7,28 +7,28 @@ import (
 
 type Client struct {
 	AnalyticsItemsClient *insights.AnalyticsItemsClient
-	APIKeyClient         *insights.APIKeysClient
+	APIKeysClient        *insights.APIKeysClient
 	ComponentsClient     *insights.ComponentsClient
 	WebTestsClient       *insights.WebTestsClient
 }
 
 func BuildClient(o *common.ClientOptions) *Client {
-	AnalyticsItemsClient := insights.NewAnalyticsItemsClient(o.SubscriptionId)
-	o.ConfigureClient(&AnalyticsItemsClient.Client, o.ResourceManagerAuthorizer)
+	analyticsItemsClient := insights.NewAnalyticsItemsClient(o.SubscriptionId)
+	o.ConfigureClient(&analyticsItemsClient.Client, o.ResourceManagerAuthorizer)
 
-	APIKeyClient := insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&APIKeyClient.Client, o.ResourceManagerAuthorizer)
+	apiKeysClient := insights.NewAPIKeysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&apiKeysClient.Client, o.ResourceManagerAuthorizer)
 
-	ComponentsClient := insights.NewComponentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&ComponentsClient.Client, o.ResourceManagerAuthorizer)
+	componentsClient := insights.NewComponentsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&componentsClient.Client, o.ResourceManagerAuthorizer)
 
-	WebTestsClient := insights.NewWebTestsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&WebTestsClient.Client, o.ResourceManagerAuthorizer)
+	webTestsClient := insights.NewWebTestsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&webTestsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AnalyticsItemsClient: &AnalyticsItemsClient,
-		APIKeyClient:         &APIKeyClient,
-		ComponentsClient:     &ComponentsClient,
-		WebTestsClient:       &WebTestsClient,
+		AnalyticsItemsClient: &analyticsItemsClient,
+		APIKeysClient:        &apiKeysClient,
+		ComponentsClient:     &componentsClient,
+		WebTestsClient:       &webTestsClient,
 	}
 }
