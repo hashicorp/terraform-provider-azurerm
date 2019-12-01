@@ -12,6 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -40,14 +43,19 @@ func Provider() terraform.ResourceProvider {
 	//			}
 	//		Then access the fields using: `meta.(*ArmClient).Example.Inner`
 	//		Rather than `meta.(*ArmClient).Client.Example.Inner`
-	//		This allows us to have less code changes in Step 7
+	//		This allows us to have less code changes in Step 8
+	//	7. Move the client registration into a Build method on the Common struct, allowing us
+	//	   to move the resources without breaking (as) many WIP PR's
 	//
-	//	7. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
+	//	8. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
 	//		Unfortunately this'll need to be in a big-bang, due to the fact this is cast
 	//		All over the place
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
 	supportedServices := []common.ServiceRegistration{
+		analysisservices.Registration{},
+		apimanagement.Registration{},
+		applicationinsights.Registration{},
 		compute.Registration{},
 	}
 
