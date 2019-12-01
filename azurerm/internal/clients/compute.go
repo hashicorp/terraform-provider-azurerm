@@ -26,7 +26,7 @@ type ComputeClient struct {
 	VMImageClient                  *compute.VirtualMachineImagesClient
 }
 
-func NewComputeClient(o *common.ClientOptions) *ComputeClient {
+func newComputeClient(o *common.ClientOptions) *ComputeClient {
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
 

@@ -167,7 +167,9 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 }
 
 func (client *ArmClient) Build(o *common.ClientOptions) error {
-	client.Compute = clients.NewComputeClient(o)
+	if err := client.Client.Build(o); err != nil {
+		return err
+	}
 
 	// TODO: move these Clients inside of Common so this method can be moved in there
 	client.AnalysisServices = analysisservices.BuildClient(o)

@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
@@ -130,4 +131,9 @@ type Client struct {
 	Sql              *sql.Client
 	TrafficManager   *trafficmanager.Client
 	Web              *web.Client
+}
+
+func (client *Client) Build(o *common.ClientOptions) error {
+	client.Compute = newComputeClient(o)
+	return nil
 }
