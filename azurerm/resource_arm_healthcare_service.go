@@ -276,8 +276,6 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	flattenAndSetTags(d, resp.Tags)
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
