@@ -16,11 +16,6 @@ import (
 var requireResourcesToBeImported = features.ShouldResourcesBeImported()
 
 // nolint: deadcode unused
-func expandTags(tagsMap map[string]interface{}) map[string]*string {
-	return tags.Expand(tagsMap)
-}
-
-// nolint: deadcode unused
 func tagsSchema() *schema.Schema {
 	return tags.Schema()
 }

@@ -168,8 +168,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 	resGroup := d.Get("resource_group_name").(string)
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	tags := d.Get("tags").(map[string]interface{})
-	expandedTags := expandTags(tags)
+	t := d.Get("tags").(map[string]interface{})
 
 	kind := d.Get("kind").(string)
 	cdba := int32(d.Get("cosmosdb_throughput").(int))
@@ -189,7 +188,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 
 	healthcareServiceDescription := healthcareapis.ServicesDescription{
 		Location: utils.String(location),
-		Tags:     expandedTags,
+		Tags:     tags.Expand(t),
 		Kind:     healthcareapis.Kind(kind),
 		Properties: &healthcareapis.ServicesProperties{
 			AccessPolicies: expandAzureRMhealthcareapisAccessPolicyEntries(d),
