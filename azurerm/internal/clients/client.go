@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
@@ -71,7 +70,7 @@ type Client struct {
 	Batch            *BatchClient
 	Bot              *BotClient
 	Cdn              *CdnClient
-	Cognitive        *cognitive.Client
+	Cognitive        *CognitiveServicesClient
 	Containers       *containers.Client
 	Cosmos           *cosmos.Client
 	Compute          *ComputeClient
@@ -134,6 +133,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Batch = newBatchClient(o)
 	client.Bot = newBotClient(o)
 	client.Cdn = newCdnClient(o)
+	client.Cognitive = newCognitiveServicesClient(o)
 	client.Compute = newComputeClient(o)
 	return nil
 }
