@@ -1,11 +1,11 @@
-package automation
+package clients
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/automation/mgmt/2015-10-31/automation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
-type Client struct {
+type AutomationClient struct {
 	AccountClient               *automation.AccountClient
 	AgentRegistrationInfoClient *automation.AgentRegistrationInformationClient
 	CredentialClient            *automation.CredentialClient
@@ -19,7 +19,7 @@ type Client struct {
 	VariableClient              *automation.VariableClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func newAutomationClient(o *common.ClientOptions) *AutomationClient {
 	accountClient := automation.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 
@@ -53,7 +53,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 	variableClient := automation.NewVariableClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&variableClient.Client, o.ResourceManagerAuthorizer)
 
-	return &Client{
+	return &AutomationClient{
 		AccountClient:               &accountClient,
 		AgentRegistrationInfoClient: &agentRegistrationInfoClient,
 		CredentialClient:            &credentialClient,
