@@ -5,13 +5,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 )
 
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
-
-// nolint: deadcode unused
-var requireResourcesToBeImported = features.ShouldResourcesBeImported()
 
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc schema.SchemaValidateFunc) (bool, error) { // nolint: unparam
 	_, errors := validateFunc(i, k)

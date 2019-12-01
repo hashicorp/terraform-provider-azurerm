@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -117,7 +118,7 @@ func resourceArmIotHubEndpointServiceBusTopicCreateUpdate(d *schema.ResourceData
 	for _, existingEndpoint := range *routing.Endpoints.ServiceBusTopics {
 		if existingEndpointName := existingEndpoint.Name; existingEndpointName != nil {
 			if strings.EqualFold(*existingEndpointName, endpointName) {
-				if d.IsNewResource() && requireResourcesToBeImported {
+				if d.IsNewResource() && features.ShouldResourcesBeImported() {
 					return tf.ImportAsExistsError("azurerm_iothub_endpoint_servicebus_topic", resourceId)
 				}
 				endpoints = append(endpoints, topicEndpoint)
