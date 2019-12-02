@@ -123,7 +123,6 @@ func resourceArmHDInsightHBaseCluster() *schema.Resource {
 
 func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).HDInsight.ClustersClient
-	domainServicesClient := meta.(*ArmClient).DomainServices.DomainServicesClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -193,17 +192,13 @@ func resourceArmHDInsightHBaseClusterCreate(d *schema.ResourceData, meta interfa
 		Identity: identity,
 	}
 
-	if security, ok := d.GetOk("security"); ok {
-		securityProfile, clusterIdentity, err := azure.ExpandHDInsightsSecurityProfile(ctx, domainServicesClient, security.([]interface{}))
+	if _, ok := d.GetOk("security"); ok {
+		securityProfile, clusterIdentity, err := azure.ExpandHDInsightsSecurityProfile(d)
 		if err != nil {
 			return fmt.Errorf("Error expanding `security`: %+v", err)
 		}
-		if securityProfile != nil {
-			params.Properties.SecurityProfile = securityProfile
-		}
-		if clusterIdentity != nil {
-			params.Identity = clusterIdentity
-		}
+		params.Properties.SecurityProfile = securityProfile
+		params.Identity = clusterIdentity
 	}
 
 	future, err := client.Create(ctx, resourceGroup, name, params)
@@ -280,10 +275,8 @@ func resourceArmHDInsightHBaseClusterRead(d *schema.ResourceData, meta interface
 			}
 		}
 
-		if def := props.SecurityProfile; def != nil {
-			if err := d.Set("security", azure.FlattenHDInsightsSecurityProfile(def)); err != nil {
-				return fmt.Errorf("Error flattening `security`: %+v", err)
-			}
+		if err := d.Set("security", azure.FlattenHDInsightsSecurityProfile(props.SecurityProfile)); err != nil {
+			return fmt.Errorf("Error flattening `security`: %+v", err)
 		}
 
 		hbaseRoles := hdInsightRoleDefinition{

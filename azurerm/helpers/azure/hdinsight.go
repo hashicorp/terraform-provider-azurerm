@@ -1,13 +1,10 @@
 package azure
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2017-06-01/aad"
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
 	"github.com/hashicorp/go-getter/helper/url"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -52,18 +49,20 @@ func SchemaHDInsightSecurity() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MaxItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
-				"enable_enterprise_security_package": {
-					Type:     schema.TypeBool,
-					Optional: true,
-					Default:  false,
-					ForceNew: true,
+				"azure_active_directory_domain_service_id": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ForceNew:     true,
+					ValidateFunc: ValidateResourceID,
 				},
 				"domain_username": {
 					Type:     schema.TypeString,
 					Required: true,
+					ForceNew: true,
 				},
 				"cluster_users_group_dns": {
 					Type:     schema.TypeSet,
@@ -73,9 +72,10 @@ func SchemaHDInsightSecurity() *schema.Schema {
 						ValidateFunc: validate.NoEmptyStrings,
 					},
 				},
-				"aadds_resource_id": {
-					Type:     schema.TypeString,
-					Computed: true,
+				"user_assigned_identity": {
+					Type:         schema.TypeString,
+					Required:     true,
+					ValidateFunc: ValidateResourceID,
 				},
 				"ldaps_urls": {
 					Type:     schema.TypeSet,
@@ -83,19 +83,6 @@ func SchemaHDInsightSecurity() *schema.Schema {
 					Elem: &schema.Schema{
 						Type: schema.TypeString,
 					},
-				},
-				"msi_resource_id": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: ValidateResourceID,
-				},
-				"domain": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-				"organizational_unit_dn": {
-					Type:     schema.TypeString,
-					Computed: true,
 				},
 			},
 		},
@@ -338,47 +325,38 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 	return &results, clusterIndentity, nil
 }
 
-func ExpandHDInsightsSecurityProfile(ctx context.Context, client *aad.DomainServicesClient, inputs []interface{}) (*hdinsight.SecurityProfile, *hdinsight.ClusterIdentity, error) {
-	if len(inputs) == 0 {
+func ExpandHDInsightsSecurityProfile(d *schema.ResourceData) (*hdinsight.SecurityProfile, *hdinsight.ClusterIdentity, error) {
+	securities := d.Get("security").([]interface{})
+	if len(securities) == 0 {
 		return nil, nil, nil
 	}
-	input := inputs[0].(map[string]interface{})
-
-	if enableEnterpriseSecurityPackage := input["enable_enterprise_security_package"].(bool); !enableEnterpriseSecurityPackage {
-		return nil, nil, nil
-	}
-	securityProfile := hdinsight.SecurityProfile{
-		DirectoryType: hdinsight.ActiveDirectory,
-	}
+	input := securities[0].(map[string]interface{})
 
 	domainUsername := input["domain_username"].(string)
-	securityProfile.DomainUsername = &domainUsername
+	userAssignedIdentity := input["user_assigned_identity"].(string)
+	azureActiveDirectoryDomainServiceID := input["azure_active_directory_domain_service_id"].(string)
+
+	id, err := ParseAzureResourceID(azureActiveDirectoryDomainServiceID)
+	if err != nil {
+		return nil, nil, err
+	}
+	domainServiceName := id.Path["domainServices"]
+	ldapsUrl := fmt.Sprintf("ldaps://%s:636", domainServiceName)
 
 	clusterUsersGroupDNS := make([]string, 0)
 	for _, v := range input["cluster_users_group_dns"].(*schema.Set).List() {
 		clusterUsersGroupDNS = append(clusterUsersGroupDNS, v.(string))
 	}
-	securityProfile.ClusterUsersGroupDNS = &clusterUsersGroupDNS
 
-	domainServiceListResultPage, err := client.List(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("list domain services error %+v", err)
+	securityProfile := hdinsight.SecurityProfile{
+		DirectoryType:        hdinsight.ActiveDirectory,
+		DomainUsername:       &domainUsername,
+		MsiResourceID:        &userAssignedIdentity,
+		Domain:               &domainServiceName,
+		AaddsResourceID:      &azureActiveDirectoryDomainServiceID,
+		LdapsUrls:            &[]string{ldapsUrl},
+		ClusterUsersGroupDNS: &clusterUsersGroupDNS,
 	}
-	domainServices := domainServiceListResultPage.Values()
-	if len(domainServices) != 0 {
-		domainService := domainServices[0]
-
-		securityProfile.Domain = domainService.DomainName
-		securityProfile.AaddsResourceID = domainService.ID
-
-		ldapUrl := fmt.Sprintf("ldaps://%s:636", *domainService.DomainName)
-		securityProfile.LdapsUrls = &[]string{ldapUrl}
-	} else {
-		return nil, nil, errors.New("please enable Azure Active Directory Domain Services before creating HDInsights with esp")
-	}
-
-	msiResourceID := input["msi_resource_id"].(string)
-	securityProfile.MsiResourceID = &msiResourceID
 
 	userAssignedIdentities := make(map[string]*hdinsight.ClusterIdentityUserAssignedIdentitiesValue)
 	userAssignedIdentities[*securityProfile.MsiResourceID] = &hdinsight.ClusterIdentityUserAssignedIdentitiesValue{}
@@ -389,28 +367,36 @@ func ExpandHDInsightsSecurityProfile(ctx context.Context, client *aad.DomainServ
 	return &securityProfile, &clusterIdentity, nil
 }
 
-func FlattenHDInsightsSecurityProfile(securityProfile *hdinsight.SecurityProfile) []interface{} {
-	result := make(map[string]interface{})
-	if securityProfile.AaddsResourceID != nil {
-		result["aadds_resource_id"] = *securityProfile.AaddsResourceID
+func FlattenHDInsightsSecurityProfile(input *hdinsight.SecurityProfile) []interface{} {
+	if input == nil {
+		return []interface{}{}
 	}
-	if securityProfile.Domain != nil {
-		result["domain"] = *securityProfile.Domain
-		result["enable_enterprise_security_package"] = true
+	azureActiveDirectoryDomainServiceID := ""
+	domainUsername := ""
+	clusterUsersGroupDNS := []string{}
+	ldapsUrls := []string{}
+
+	if input.AaddsResourceID != nil {
+		azureActiveDirectoryDomainServiceID = *input.AaddsResourceID
 	}
-	if securityProfile.OrganizationalUnitDN != nil {
-		result["organizational_unit_dn"] = *securityProfile.OrganizationalUnitDN
+	if input.DomainUsername != nil {
+		domainUsername = *input.DomainUsername
 	}
-	if securityProfile.DomainUsername != nil {
-		result["domain_username"] = *securityProfile.DomainUsername
+	if len(*input.ClusterUsersGroupDNS) != 0 {
+		clusterUsersGroupDNS = *input.ClusterUsersGroupDNS
 	}
-	if len(*securityProfile.ClusterUsersGroupDNS) != 0 {
-		result["cluster_users_group_dns"] = *securityProfile.ClusterUsersGroupDNS
+	if len(*input.LdapsUrls) != 0 {
+		ldapsUrls = *input.LdapsUrls
 	}
-	if len(*securityProfile.LdapsUrls) != 0 {
-		result["ldaps_urls"] = *securityProfile.LdapsUrls
+
+	return []interface{}{
+		map[string]interface{}{
+			"azure_active_directory_domain_service_id": azureActiveDirectoryDomainServiceID,
+			"domain_username":                          domainUsername,
+			"cluster_users_group_dns":                  clusterUsersGroupDNS,
+			"ldaps_urls":                               ldapsUrls,
+		},
 	}
-	return []interface{}{result}
 }
 
 type HDInsightNodeDefinition struct {

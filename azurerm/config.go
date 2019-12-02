@@ -26,7 +26,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/domainservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
@@ -178,7 +177,6 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 	client.DevSpace = devspace.BuildClient(o)
 	client.DevTestLabs = devtestlabs.BuildClient(o)
 	client.Dns = dns.BuildClient(o)
-	client.DomainServices = domainservices.BuildClient(o)
 	client.EventGrid = eventgrid.BuildClient(o)
 	client.Eventhub = eventhub.BuildClient(o)
 	client.Frontdoor = frontdoor.BuildClient(o)
