@@ -35,13 +35,12 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 				Tags: tags.Expand(t),
 			}
 			if _, err := client.Update(ctx, resourceGroup, name, params); err != nil {
-				return fmt.Errorf("Error updating Tags for HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+				return fmt.Errorf("error updating Tags for HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 			}
 		}
 
 		if d.HasChange("roles.0.worker_node") {
-
-			oldWorkerNodeCount, newWorkerNodeCount := d.GetChange("roles.0.edge_node.0.target_instance_count")
+			oldWorkerNodeCount, newWorkerNodeCount := d.GetChange("roles.0.worker_node.0.target_instance_count")
 			oldWorkerNodeInt := oldWorkerNodeCount.(int)
 			newWorkerNodeInt := newWorkerNodeCount.(int)
 
@@ -58,11 +57,11 @@ func hdinsightClusterUpdate(clusterKind string, readFunc schema.ReadFunc) schema
 
 				future, err := client.Resize(ctx, resourceGroup, name, params)
 				if err != nil {
-					return fmt.Errorf("Error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
+					return fmt.Errorf("error resizing the HDInsight %q Cluster %q (Resource Group %q): %+v", clusterKind, name, resourceGroup, err)
 				}
 
 				if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-					return fmt.Errorf("Error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
+					return fmt.Errorf("error waiting for the HDInsight %q Cluster %q (Resource Group %q) to finish resizing: %+v", clusterKind, name, resourceGroup, err)
 				}
 			}
 		}
