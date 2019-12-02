@@ -1,5 +1,6 @@
 ---
 layout: "azurerm"
+subcategory: "Beta"
 page_title: "Azure Resource Manager: azurerm_virtual_machine_scale_set_extension"
 sidebar_current: "docs-azurerm-resource-virtual-machine-scale-set-extension"
 description: |-
