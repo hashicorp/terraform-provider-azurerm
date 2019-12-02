@@ -117,8 +117,6 @@ An `blob_extended_auditing_policy` block supports the following:
 
 * `audit_actions_and_groups` - Specifies the Actions-Groups and Actions to audit.For more information, see [Database-Level Audit Actions](https://docs.microsoft.com/en-us/sql/relational-databases/security/auditing/sql-server-audit-action-groups-and-actions#database-level-audit-actions).
 
-* `is_azure_monitor_target_enabled` - Specifies whether audit events are sent to Azure Monitor.For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207) or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043).
-
 * `predicate_expression` - Specifies condition of where clause when creating an audit.
 
 
