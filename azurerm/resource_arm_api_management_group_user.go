@@ -60,7 +60,7 @@ func resourceArmApiManagementGroupUserCreate(d *schema.ResourceData, meta interf
 		}
 
 		if !utils.ResponseWasNotFound(resp) {
-			subscriptionId := meta.(*ArmClient).subscriptionId
+			subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 			resourceId := fmt.Sprintf("/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/groups/%s/users/%s", subscriptionId, resourceGroup, serviceName, groupName, userId)
 			return tf.ImportAsExistsError("azurerm_api_management_group_user", resourceId)
 		}

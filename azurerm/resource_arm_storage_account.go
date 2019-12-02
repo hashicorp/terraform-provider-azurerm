@@ -988,7 +988,7 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.AccountsClient
 	advancedThreatProtectionClient := meta.(*ArmClient).SecurityCenter.AdvancedThreatProtectionClient
-	endpointSuffix := meta.(*ArmClient).environment.StorageEndpointSuffix
+	endpointSuffix := meta.(*ArmClient).Account.Environment.StorageEndpointSuffix
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -1213,6 +1213,11 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 					}
 
 					networkName := id.Path["virtualNetworks"]
+					for _, virtualNetworkName := range virtualNetworkNames {
+						if networkName == virtualNetworkName {
+							continue
+						}
+					}
 					virtualNetworkNames = append(virtualNetworkNames, networkName)
 				}
 			}
@@ -1585,7 +1590,7 @@ func validateArmStorageAccountName(v interface{}, _ string) (warnings []string, 
 	input := v.(string)
 
 	if !regexp.MustCompile(`\A([a-z0-9]{3,24})\z`).MatchString(input) {
-		errors = append(errors, fmt.Errorf("name can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long"))
+		errors = append(errors, fmt.Errorf("name (%q) can only consist of lowercase letters and numbers, and must be between 3 and 24 characters long", input))
 	}
 
 	return warnings, errors

@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `email_address` - (Required) The email address that the Bot will authenticate with.
 
-* `email_password` - (Required) The email password that the the Bot will authenticate with.
+* `email_password` - (Required) The email password that the Bot will authenticate with.
 
 
 ## Attributes Reference

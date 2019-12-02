@@ -64,43 +64,6 @@ func TestAccAzureRMVirtualHub_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMVirtualHub_complete(t *testing.T) {
-	resourceName := "azurerm_virtual_hub.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMVirtualHub_complete(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMVirtualHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address_prefix", "10.0.2.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "virtual_network_connection.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "virtual_network_connection.0.name", "testConnection"),
-					resource.TestCheckResourceAttr(resourceName, "virtual_network_connection.0.allow_hub_to_remote_vnet_transit", "false"),
-					resource.TestCheckResourceAttr(resourceName, "virtual_network_connection.0.allow_remote_vnet_to_use_hub_vnet_gateways", "false"),
-					resource.TestCheckResourceAttr(resourceName, "virtual_network_connection.0.enable_internet_security", "false"),
-					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "route.0.address_prefixes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "route.0.address_prefixes.0", "10.0.3.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "route.0.next_hop_ip_address", "10.0.5.6"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.ENV", "prod"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
 func TestAccAzureRMVirtualHub_update(t *testing.T) {
 	resourceName := "azurerm_virtual_hub.test"
 	ri := tf.AccRandTimeInt()
@@ -115,10 +78,6 @@ func TestAccAzureRMVirtualHub_update(t *testing.T) {
 				Config: testAccAzureRMVirtualHub_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address_prefix", "10.0.1.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "virtual_network_connection.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "route.#", "0"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
 				),
 			},
 			{
@@ -127,16 +86,70 @@ func TestAccAzureRMVirtualHub_update(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMVirtualHub_complete(ri, location),
+				Config: testAccAzureRMVirtualHub_updated(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMVirtualHubExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "address_prefix", "10.0.2.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "virtual_network_connection.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "route.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "route.0.address_prefixes.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "route.0.address_prefixes.0", "10.0.3.0/24"),
-					resource.TestCheckResourceAttr(resourceName, "route.0.next_hop_ip_address", "10.0.5.6"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualHub_routes(t *testing.T) {
+	resourceName := "azurerm_virtual_hub.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHub_route(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMVirtualHub_routeUpdated(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func TestAccAzureRMVirtualHub_tags(t *testing.T) {
+	resourceName := "azurerm_virtual_hub.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualHubDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMVirtualHub_tags(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualHubExists(resourceName),
 				),
 			},
 			{
@@ -197,98 +210,119 @@ func testCheckAzureRMVirtualHubDestroy(s *terraform.State) error {
 }
 
 func testAccAzureRMVirtualHub_basic(rInt int, location string) string {
+	template := testAccAzureRMVirtualHub_template(rInt, location)
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-network-%d"
-  location = "%s"
-}
-
-resource "azurerm_virtual_wan" "test" {
-  name                = "acctest-VirtualWan-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-}
+%s
 
 resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-VirtualHub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
   address_prefix      = "10.0.1.0/24"
-  virtual_wan_id      = "${azurerm_virtual_wan.test.id}"
 }
-`, rInt, location, rInt, rInt)
+`, template, rInt)
 }
 
 func testAccAzureRMVirtualHub_requiresImport(rInt int, location string) string {
+	template := testAccAzureRMVirtualHub_basic(rInt, location)
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_virtual_hub" "import" {
-  name                = "${azurerm_virtual_hub.test.name}"
-  location            = "${azurerm_virtual_hub.test.location}"
-  resource_group_name = "${azurerm_virtual_hub.test.name}"
+  name                = azurerm_virtual_hub.test.name
+  location            = azurerm_virtual_hub.test.location
+  resource_group_name = azurerm_virtual_hub.test.resource_group_name
+  address_prefix      = "10.0.1.0/24"
 }
-`, testAccAzureRMVirtualHub_basic(rInt, location))
+`, template)
 }
 
-func testAccAzureRMVirtualHub_complete(rInt int, location string) string {
+func testAccAzureRMVirtualHub_updated(rInt int, location string) string {
+	template := testAccAzureRMVirtualHub_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.2.0/24"
+}
+`, template, rInt)
+}
+
+func testAccAzureRMVirtualHub_route(rInt int, location string) string {
+	template := testAccAzureRMVirtualHub_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  route {
+    address_prefixes    = [ "172.0.1.0/24" ]
+    next_hop_ip_address = "12.34.56.78"
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMVirtualHub_routeUpdated(rInt int, location string) string {
+	template := testAccAzureRMVirtualHub_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  route {
+    address_prefixes    = [ "172.0.1.0/24" ]
+    next_hop_ip_address = "87.65.43.21"
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMVirtualHub_tags(rInt int, location string) string {
+	template := testAccAzureRMVirtualHub_template(rInt, location)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_hub" "test" {
+  name                = "acctestVHUB-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  virtual_wan_id      = azurerm_virtual_wan.test.id
+  address_prefix      = "10.0.1.0/24"
+
+  tags = {
+    Hello = "World"
+  }
+}
+`, template, rInt)
+}
+
+func testAccAzureRMVirtualHub_template(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-network-%d"
+  name     = "acctestrg-%d"
   location = "%s"
 }
 
-resource "azurerm_virtual_network" "test" {
-  name                = "acctest-VirtualNetwork-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  address_space       = ["10.5.0.0/16"]
-}
-
-resource "azurerm_network_security_group" "test" {
-  name                = "acctest-NetworkSecurityGroup-%d"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-}
-
-resource "azurerm_subnet" "test" {
-  name                      = "acctest-Subnet-%d"
-  resource_group_name       = "${azurerm_resource_group.test.name}"
-  virtual_network_name      = "${azurerm_virtual_network.test.name}"
-  address_prefix            = "10.5.1.0/24"
-  network_security_group_id = "${azurerm_network_security_group.test.id}"
-}
-
 resource "azurerm_virtual_wan" "test" {
-  name                = "acctest-VirtualWan-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  name                = "acctestvwan-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
-
-resource "azurerm_virtual_hub" "test" {
-  name                = "acctest-VirtualHub-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
-  address_prefix      = "10.0.2.0/24"
-
-  virtual_wan_id  = "${azurerm_virtual_wan.test.id}"
-
-  virtual_network_connection {
-    name                                       = "testConnection"
-    remote_virtual_network_id                  = "${azurerm_virtual_network.test.id}"
-    allow_hub_to_remote_vnet_transit           = "false"
-    allow_remote_vnet_to_use_hub_vnet_gateways = "false"
-    enable_internet_security                   = "false"
-  }
-
-  route {
-    address_prefixes    = ["10.0.3.0/24"]
-    next_hop_ip_address = "10.0.5.6"
-  }
-
-  tags = {
-    ENV = "prod"
-  }
-}
-`, rInt, location, rInt, rInt, rInt, rInt, rInt)
+`, rInt, location, rInt)
 }

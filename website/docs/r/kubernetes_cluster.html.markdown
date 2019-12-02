@@ -126,7 +126,7 @@ resource "azurerm_subnet" "virtual" {
 
 -> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
 
-* `node_resource_group` - (Optional) The name of the Resource Group where the the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
+* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 

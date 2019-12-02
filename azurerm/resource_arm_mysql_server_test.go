@@ -99,6 +99,33 @@ func TestAccAzureRMMySQLServer_basicFiveSeven(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMMySQLServer_basicEightZero(t *testing.T) {
+	resourceName := "azurerm_mysql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMMySQLServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMySQLServer_basicEightZero(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMySQLServerExists(resourceName),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"administrator_login_password", // not returned as sensitive
+				},
+			},
+		},
+	})
+}
+
 func TestAccAzureRMMySqlServer_generalPurpose(t *testing.T) {
 	resourceName := "azurerm_mysql_server.test"
 	ri := tf.AccRandTimeInt()
@@ -386,6 +413,39 @@ resource "azurerm_mysql_server" "test" {
   administrator_login          = "acctestun"
   administrator_login_password = "H@Sh1CoR3!"
   version                      = "5.7"
+  ssl_enforcement              = "Enabled"
+}
+`, rInt, location, rInt)
+}
+
+func testAccAzureRMMySQLServer_basicEightZero(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_mysql_server" "test" {
+  name                = "acctestmysqlsvr-%d"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  sku {
+    name     = "GP_Gen5_2"
+    capacity = 2
+    tier     = "GeneralPurpose"
+    family   = "Gen5"
+  }
+
+  storage_profile {
+    storage_mb            = 51200
+    backup_retention_days = 7
+    geo_redundant_backup  = "Disabled"
+  }
+
+  administrator_login          = "acctestun"
+  administrator_login_password = "H@Sh1CoR3!"
+  version                      = "8.0"
   ssl_enforcement              = "Enabled"
 }
 `, rInt, location, rInt)

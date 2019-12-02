@@ -436,6 +436,10 @@ Splitting the Virtual Machine Scale Set resource in two allows us to both provid
 
 The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
 
+### Resource: `azurerm_virtual_wan`
+
+The deprecated `security_provider_name` field will be removed, since this option is no longer supported by Azure.
+
 ---
 
 We've spent the past few months laying the groundwork for these changes - and whilst we appreciate that your Terraform Configurations may require code changes to upgrade to 2.0 - we take Semantic Versioning seriously and so try our best to limit these changes to major versions.

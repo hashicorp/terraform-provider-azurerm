@@ -69,7 +69,7 @@ The following arguments are supported:
 
 `os_disk` supports the following:
 
-* `os_type` - (Required) Specifies the type of operating system contained in the the virtual machine image. Possible values are: Windows or Linux.
+* `os_type` - (Required) Specifies the type of operating system contained in the virtual machine image. Possible values are: Windows or Linux.
 * `os_state` - (Required) Specifies the state of the operating system contained in the blob. Currently, the only value is Generalized.
 * `managed_disk_id` - (Optional) Specifies the ID of the managed disk resource that you want to use to create the image.
 * `blob_uri` - (Optional) Specifies the URI in Azure storage of the blob that you want to use to create the image.
