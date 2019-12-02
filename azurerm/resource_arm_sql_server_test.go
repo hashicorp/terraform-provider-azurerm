@@ -196,14 +196,40 @@ func TestAccAzureRMSqlServer_withBlobAuditingPolices(t *testing.T) {
 				Config: testAccAzureRMSqlServer_withBlobAuditingPolices(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMSqlServerExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "blob_auditing_policies.0.state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "blob_extended_auditing_policy.0.state", "Enabled"),
 				),
 			},
 			{
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"administrator_login_password"},
+				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlServer_withoutBlobAuditingPolices(t *testing.T) {
+	resourceName := "azurerm_sql_server.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlServer_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlServerExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "blob_extended_auditing_policy.0.state", "Disabled"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"},
 			},
 		},
 	})
@@ -411,11 +437,10 @@ resource "azurerm_sql_server" "test" {
 	administrator_login          = "mradministrator"
 	administrator_login_password = "thisIsDog11"
 
-	blob_auditing_policies {
+	blob_extended_auditing_policy {
 		state                         = "Enabled"
 		storage_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
         storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
-
 	}
 }	
 `, rInt, location, rInt, rInt)

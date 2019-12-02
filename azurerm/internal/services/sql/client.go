@@ -14,7 +14,6 @@ type Client struct {
 	ServersClient                            *sql.ServersClient
 	ServerAzureADAdministratorsClient        *sql.ServerAzureADAdministratorsClient
 	VirtualNetworkRulesClient                *sql.VirtualNetworkRulesClient
-	ServerBlobAuditingPoliciesClient         *sql.ServerBlobAuditingPoliciesClient
 	ExtendedServerBlobAuditingPoliciesClient *sql.ExtendedServerBlobAuditingPoliciesClient
 }
 
@@ -44,9 +43,6 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VirtualNetworkRulesClient := sql.NewVirtualNetworkRulesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualNetworkRulesClient.Client, o.ResourceManagerAuthorizer)
 
-	ServerBlobAuditingPoliciesClient := sql.NewServerBlobAuditingPoliciesClient(o.SubscriptionId)
-	o.ConfigureClient(&ServerBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
-
 	ExtendedServerBlobAuditingPoliciesClient := sql.NewExtendedServerBlobAuditingPoliciesClient(o.SubscriptionId)
 	o.ConfigureClient(&ExtendedServerBlobAuditingPoliciesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -59,7 +55,6 @@ func BuildClient(o *common.ClientOptions) *Client {
 		ServersClient:                            &ServersClient,
 		ServerAzureADAdministratorsClient:        &ServerAzureADAdministratorsClient,
 		VirtualNetworkRulesClient:                &VirtualNetworkRulesClient,
-		ServerBlobAuditingPoliciesClient:         &ServerBlobAuditingPoliciesClient,
 		ExtendedServerBlobAuditingPoliciesClient: &ExtendedServerBlobAuditingPoliciesClient,
 	}
 }
