@@ -89,7 +89,7 @@ The standard Azure HDInsight cluster is a single-user cluster. Azure HDInsight E
 * It's easier to place both the Azure AD-DS instance and the HDInsight cluster in the same Azure virtual network. If you plan to use different VNETs, you must peer those virtual networks
 * the managed user assigned identity should have the `HDInsight Domain Services Contributor` role, so that this identity has proper (on behalf of) access to perform domain services operations such as creating OUs, deleting OUs, etc. on the AAD-DS domain
 
-### HDInsight HBase Cluster with ESP Example
+### Example Usage
 ```
 resource "azurerm_hdinsight_hbase_cluster" "example" {
   name                = "example"
@@ -142,10 +142,10 @@ resource "azurerm_hdinsight_hbase_cluster" "example" {
   }
 
   security {
-    enable_enterprise_security_package = true
+    azure_active_directory_domain_service_id = "${var.aadds}"
     domain_username = "admin@example.onmicrosoft.com"
     cluster_users_group_dns = ["AAD DC Administrators"]
-    msi_resource_id = "${var.managed_service_id}"
+    user_assigned_identity = "${var.managed_service_id}"
   }
 }
 ```
@@ -176,7 +176,7 @@ The following arguments are supported:
 
 ---
 
-* `security` - (Optional) A `security` block as defined below, which defines the property related to enterprise security packages
+* `security` - (Optional) A `security` block as defined below.
 
 * `tags` - (Optional) A map of Tags which should be assigned to this HDInsight HBase Cluster.
 
@@ -306,13 +306,13 @@ A `zookeeper_node` block supports the following:
 
 A `security` block supports the following:
 
-* `enable_enterprise_security_package` - (Optional) whether or not enable ESP support, default: false
+* `azure_active_directory_domain_service_id` - (Required) the resource id of Azure Active Directory Domain Service
 
 * `domain_username` - (Required) The domain user account that will have admin privileges on the cluster
 
 * `cluster_users_group_dns` - (Optional) The Distinguished Names for cluster user groups. Users in these groups can also access the cluster
 
-* `msi_resource_id` - (Required) User assigned identity that has permissions to read and create cluster-related artifacts in the user's AADDS
+* `user_assigned_identity` - (Required) User assigned identity that has permissions to read and create cluster-related artifacts in the user's AADDS
 
 ## Attributes Reference
 
