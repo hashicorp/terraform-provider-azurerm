@@ -3,13 +3,15 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/go-azure-helpers/response"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -19,8 +21,16 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 		Read:   resourceArmNetworkWatcherFlowLogRead,
 		Update: resourceArmNetworkWatcherFlowLogCreateUpdate,
 		Delete: resourceArmNetworkWatcherFlowLogDelete,
+
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -31,7 +41,7 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"resource_group_name": resourceGroupNameSchema(),
+			"resource_group_name": azure.SchemaResourceGroupName(),
 
 			"network_security_group_id": {
 				Type:         schema.TypeString,
@@ -62,6 +72,7 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 							Required:         true,
 							DiffSuppressFunc: azureRMSuppressFlowLogRetentionPolicyEnabledDiff,
 						},
+
 						"days": {
 							Type:             schema.TypeInt,
 							Required:         true,
@@ -81,17 +92,20 @@ func resourceArmNetworkWatcherFlowLog() *schema.Resource {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
+
 						"workspace_id": {
 							Type:         schema.TypeString,
 							Required:     true,
 							ValidateFunc: validate.UUID,
 						},
+
 						"workspace_region": {
 							Type:             schema.TypeString,
 							Required:         true,
-							StateFunc:        azureRMNormalizeLocation,
-							DiffSuppressFunc: azureRMSuppressLocationDiff,
+							StateFunc:        azure.NormalizeLocation,
+							DiffSuppressFunc: azure.SuppressLocationDiff,
 						},
+
 						"workspace_resource_id": {
 							Type:         schema.TypeString,
 							Required:     true,
@@ -117,8 +131,9 @@ func azureRMSuppressFlowLogRetentionPolicyDaysDiff(k, old, new string, d *schema
 }
 
 func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.WatcherClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	networkWatcherName := d.Get("network_watcher_name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
@@ -150,16 +165,21 @@ func resourceArmNetworkWatcherFlowLogCreateUpdate(d *schema.ResourceData, meta i
 
 	resp, err := client.Get(ctx, resourceGroupName, networkWatcherName)
 	if err != nil {
-		return fmt.Errorf("Cannot read Network Watcher %q (Resource Group %q) ID: %+v", networkWatcherName, resourceGroupName, err)
+		return fmt.Errorf("Cannot read Network Watcher %q (Resource Group %q) err: %+v", networkWatcherName, resourceGroupName, err)
 	}
-	d.SetId(*resp.ID)
+	if resp.ID == nil {
+		return fmt.Errorf("Network Watcher %q is nil (Resource Group %q)", networkWatcherName, resourceGroupName)
+	}
+
+	d.SetId(*resp.ID + "/networkSecurityGroupId/" + networkSecurityGroupID)
 
 	return resourceArmNetworkWatcherFlowLogRead(d, meta)
 }
 
 func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.WatcherClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -167,9 +187,9 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 	}
 	resourceGroupName := id.ResourceGroup
 	networkWatcherName := id.Path["networkWatchers"]
+	networkSecurityGroupID := id.Path["networkSecurityGroupId"]
 
 	// Get current flow log status
-	networkSecurityGroupID := d.Get("network_security_group_id").(string)
 	statusParameters := network.FlowLogStatusParameters{
 		TargetResourceID: &networkSecurityGroupID,
 	}
@@ -190,7 +210,7 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
-	fli, err := future.Result(client)
+	fli, err := future.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
@@ -221,8 +241,9 @@ func resourceArmNetworkWatcherFlowLogRead(d *schema.ResourceData, meta interface
 }
 
 func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).watcherClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).Network.WatcherClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -230,9 +251,9 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 	}
 	resourceGroupName := id.ResourceGroup
 	networkWatcherName := id.Path["networkWatchers"]
+	networkSecurityGroupID := id.Path["networkSecurityGroupId"]
 
 	// Get current flow log status
-	networkSecurityGroupID := d.Get("network_security_group_id").(string)
 	statusParameters := network.FlowLogStatusParameters{
 		TargetResourceID: &networkSecurityGroupID,
 	}
@@ -245,7 +266,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}
 
-	fli, err := future.Result(client)
+	fli, err := future.Result(*client)
 	if err != nil {
 		return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 	}

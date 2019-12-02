@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2018-12-01/network"
-	"github.com/hashicorp/terraform/helper/acctest"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
 func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(8)
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -22,7 +21,7 @@ func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -46,8 +45,7 @@ func testAccAzureRMNetworkWatcherFlowLog_basic(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(8)
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -56,7 +54,7 @@ func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_disabledConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_disabledConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -80,8 +78,7 @@ func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(8)
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -90,7 +87,7 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_disabledConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_disabledConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -109,7 +106,7 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -133,8 +130,7 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(8)
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -143,7 +139,7 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -162,7 +158,7 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -186,9 +182,7 @@ func testAccAzureRMNetworkWatcherFlowLog_retentionPolicy(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(8)
-	rsNew := acctest.RandString(8)
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -197,7 +191,7 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -216,7 +210,7 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, rsNew, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -240,8 +234,7 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 
 func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 	resourceName := "azurerm_network_watcher_flow_log.test"
-	ri := acctest.RandInt()
-	rs := acctest.RandString(8)
+	ri := tf.AccRandTimeInt()
 	location := testLocation()
 
 	resource.Test(t, resource.TestCase{
@@ -250,7 +243,7 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 		CheckDestroy: testCheckAzureRMNetworkWatcherDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -269,7 +262,7 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -283,7 +276,7 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(ri, rs, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -312,13 +305,15 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 
 func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*ArmClient).Network.WatcherClient
+		ctx := testAccProvider.Meta().(*ArmClient).StopContext
+
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		networkSecurityGroupID := rs.Primary.Attributes["network_security_group_id"]
 		parsedID, err := parseAzureResourceID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
@@ -326,9 +321,8 @@ func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheck
 
 		resourceGroupName := parsedID.ResourceGroup
 		networkWatcherName := parsedID.Path["networkWatchers"]
+		networkSecurityGroupID := parsedID.Path["networkSecurityGroupId"]
 
-		client := testAccProvider.Meta().(*ArmClient).watcherClient
-		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 		statusParameters := network.FlowLogStatusParameters{
 			TargetResourceID: &networkSecurityGroupID,
 		}
@@ -341,7 +335,7 @@ func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheck
 			return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 		}
 
-		if _, err := future.Result(client); err != nil {
+		if _, err := future.Result(*client); err != nil {
 			return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
 		}
 
@@ -349,10 +343,10 @@ func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheck
 	}
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt int, rString, location string) string {
+func testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt int, location string) string {
 	return fmt.Sprintf(` 
 resource "azurerm_resource_group" "test" {
-    name     = "acctestRG-%d"
+    name     = "acctestRG-watcher-%d"
     location = "%s"
 }
 
@@ -369,7 +363,7 @@ resource "azurerm_network_watcher" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name                = "acctestsa%s"
+    name                = "acctestsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     location            = "${azurerm_resource_group.test.location}"
 
@@ -377,10 +371,10 @@ resource "azurerm_storage_account" "test" {
     account_replication_type  = "LRS"
     enable_https_traffic_only = true
 }
-`, rInt, location, rInt, rInt, rString)
+`, rInt, location, rInt, rInt, rInt%1000000)
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_basicConfig(rInt int, rString string, location string) string {
+func testAccAzureRMNetworkWatcherFlowLog_basicConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -397,10 +391,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
         days    = 0
     }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location))
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, location))
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(rInt int, rString string, location string) string {
+func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -417,10 +411,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
         days    = 7
     }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location))
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, location))
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_disabledConfig(rInt int, rString string, location string) string {
+func testAccAzureRMNetworkWatcherFlowLog_disabledConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -437,10 +431,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
         days    = 7
     }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location))
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, location))
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(rInt int, rString string, location string) string {
+func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -471,10 +465,10 @@ resource "azurerm_network_watcher_flow_log" "test" {
         workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
     }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location), rInt)
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, location), rInt)
 }
 
-func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(rInt int, rString string, location string) string {
+func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(rInt int, location string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -505,5 +499,5 @@ resource "azurerm_network_watcher_flow_log" "test" {
         workspace_resource_id = "${azurerm_log_analytics_workspace.test.id}"
     }
 }
-`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, rString, location), rInt)
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, location), rInt)
 }
