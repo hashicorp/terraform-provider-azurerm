@@ -8,6 +8,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -87,7 +88,7 @@ func resourceArmIotHubFallbackRouteCreateUpdate(d *schema.ResourceData, meta int
 	}
 
 	resourceId := fmt.Sprintf("%s/FallbackRoute/defined", *iothub.ID)
-	if d.IsNewResource() && routing.FallbackRoute != nil && requireResourcesToBeImported {
+	if d.IsNewResource() && routing.FallbackRoute != nil && features.ShouldResourcesBeImported() {
 		return tf.ImportAsExistsError("azurerm_iothub_fallback_route", resourceId)
 	}
 
@@ -117,7 +118,7 @@ func resourceArmIotHubFallbackRouteRead(d *schema.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -151,7 +152,7 @@ func resourceArmIotHubFallbackRouteDelete(d *schema.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 
 	if err != nil {
 		return err

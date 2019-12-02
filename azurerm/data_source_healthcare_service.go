@@ -110,7 +110,7 @@ func dataSourceArmHealthcareService() *schema.Resource {
 				},
 			},
 
-			"tags": tagsSchema(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }
