@@ -23,6 +23,15 @@ resource "azurerm_resource_group" "example" {
   location = "West US"
 }
 
+resource "azurerm_storage_account" "example" {
+ name                     = "accstr"
+ resource_group_name      = "${azurerm_resource_group.example.name}"
+ location                 = "${azurerm_resource_group.example.location}"
+ account_tier             = "Standard"
+ account_replication_type = "GRS"
+}
+
+
 resource "azurerm_sql_server" "example" {
   name                         = "mysqlserver"
   resource_group_name          = "${azurerm_resource_group.example.name}"
@@ -30,6 +39,13 @@ resource "azurerm_sql_server" "example" {
   version                      = "12.0"
   administrator_login          = "mradministrator"
   administrator_login_password = "thisIsDog11"
+  
+  blob_extended_auditing_policy {
+		state                         = "Enabled"
+		storage_endpoint              = "${azurerm_storage_account.example.primary_blob_endpoint}"
+        storage_account_access_key    = "${azurerm_storage_account.example.primary_access_key}"
+	}
+
 
   tags = {
     environment = "production"
@@ -53,6 +69,8 @@ The following arguments are supported:
 * `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
 
 * `identity` - (Optional) An `identity` block as defined below.
+
+* `blob_extended_auditing_policy` - (Optional) An `blob_extended_auditing_policy` block as defined below.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -80,6 +98,29 @@ The following attributes are exported:
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Server.
 
 -> You can access the Principal ID via `${azurerm_sql_server.example.identity.0.principal_id}` and the Tenant ID via `${azurerm_sql_server.example.identity.0.tenant_id}`
+
+---
+
+An `blob_extended_auditing_policy` block supports the following:
+
+* `state` - (Required) Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'Enabled', 'Disabled'
+
+* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
+
+* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+
+* `retention_days` - Specifies the number of days to keep in the audit logs in the storage account.
+
+* `storage_account_subscription_id` - Specifies the blob storage subscription Id.
+
+* `is_storage_secondary_key_in_use` - Specifies whether storageAccountAccessKey value is the storage's secondary key.
+
+* `audit_actions_and_groups` - Specifies the Actions-Groups and Actions to audit.For more information, see [Database-Level Audit Actions](https://docs.microsoft.com/en-us/sql/relational-databases/security/auditing/sql-server-audit-action-groups-and-actions#database-level-audit-actions).
+
+* `is_azure_monitor_target_enabled` - Specifies whether audit events are sent to Azure Monitor.For more information, see [Diagnostic Settings REST API](https://go.microsoft.com/fwlink/?linkid=2033207) or [Diagnostic Settings PowerShell](https://go.microsoft.com/fwlink/?linkid=2033043).
+
+* `predicate_expression` - Specifies condition of where clause when creating an audit.
+
 
 ## Import
 
