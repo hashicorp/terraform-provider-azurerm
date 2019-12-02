@@ -26,6 +26,7 @@ func TestAccAzureRMDnsCaaRecord_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsCaaRecordExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
 				),
 			},
 			{

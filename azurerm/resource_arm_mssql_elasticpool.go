@@ -387,22 +387,26 @@ func expandAzureRmMsSqlElasticPoolSku(d *schema.ResourceData) *sql.Sku {
 	}
 }
 
-func flattenAzureRmMsSqlElasticPoolSku(resp *sql.Sku) []interface{} {
+func flattenAzureRmMsSqlElasticPoolSku(input *sql.Sku) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	values := map[string]interface{}{}
 
-	if name := resp.Name; name != nil {
+	if name := input.Name; name != nil {
 		values["name"] = *name
 	}
 
-	if tier := resp.Tier; tier != nil {
+	if tier := input.Tier; tier != nil {
 		values["tier"] = *tier
 	}
 
-	if family := resp.Family; family != nil {
+	if family := input.Family; family != nil {
 		values["family"] = *family
 	}
 
-	if capacity := resp.Capacity; capacity != nil {
+	if capacity := input.Capacity; capacity != nil {
 		values["capacity"] = *capacity
 	}
 

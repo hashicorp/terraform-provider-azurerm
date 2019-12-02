@@ -507,9 +507,9 @@ A `redirect_configuration` block supports the following:
 
 A `autoscale_configuration` block supports the following:
 
-* `min_capacity` - (Required) Minimum capacity for autoscaling.
+* `min_capacity` - (Required) Minimum capacity for autoscaling. Accepted values are in the range `0` to `100`.
 
-* `max_capacity` - (Optional) Maximum capacity for autoscaling.
+* `max_capacity` - (Optional) Maximum capacity for autoscaling. Accepted values are in the range `2` to `125`.
 
 ---
 

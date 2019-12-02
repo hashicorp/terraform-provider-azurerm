@@ -20,6 +20,7 @@ type ComputeClient struct {
 	VMExtensionImageClient         *compute.VirtualMachineExtensionImagesClient
 	VMExtensionClient              *compute.VirtualMachineExtensionsClient
 	VMScaleSetClient               *compute.VirtualMachineScaleSetsClient
+	VMScaleSetExtensionsClient     *compute.VirtualMachineScaleSetExtensionsClient
 	VMScaleSetVMsClient            *compute.VirtualMachineScaleSetVMsClient
 	VMClient                       *compute.VirtualMachinesClient
 	VMImageClient                  *compute.VirtualMachineImagesClient
@@ -68,6 +69,9 @@ func NewComputeClient(o *common.ClientOptions) *ComputeClient {
 	vmScaleSetClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetClient.Client, o.ResourceManagerAuthorizer)
 
+	vmScaleSetExtensionsClient := compute.NewVirtualMachineScaleSetExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vmScaleSetExtensionsClient.Client, o.ResourceManagerAuthorizer)
+
 	vmScaleSetVMsClient := compute.NewVirtualMachineScaleSetVMsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&vmScaleSetVMsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -88,6 +92,7 @@ func NewComputeClient(o *common.ClientOptions) *ComputeClient {
 		VMExtensionImageClient:         &vmExtensionImageClient,
 		VMExtensionClient:              &vmExtensionClient,
 		VMScaleSetClient:               &vmScaleSetClient,
+		VMScaleSetExtensionsClient:     &vmScaleSetExtensionsClient,
 		VMScaleSetVMsClient:            &vmScaleSetVMsClient,
 		VMClient:                       &vmClient,
 		VMImageClient:                  &vmImageClient,

@@ -26,6 +26,7 @@ func TestAccAzureRMDnsPtrRecord_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsPtrRecordExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
 				),
 			},
 			{

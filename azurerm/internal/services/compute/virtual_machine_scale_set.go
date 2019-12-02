@@ -23,16 +23,16 @@ func ParseVirtualMachineScaleSetResourceID(input string) (*VirtualMachineScaleSe
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set ID %q: %+v", input, err)
 	}
 
-	networkSecurityGroup := VirtualMachineScaleSetResourceID{
+	vmScaleSet := VirtualMachineScaleSetResourceID{
 		Base: *id,
 		Name: id.Path["virtualMachineScaleSets"],
 	}
 
-	if networkSecurityGroup.Name == "" {
+	if vmScaleSet.Name == "" {
 		return nil, fmt.Errorf("ID was missing the `virtualMachineScaleSets` element")
 	}
 
-	return &networkSecurityGroup, nil
+	return &vmScaleSet, nil
 }
 
 func VirtualMachineScaleSetAdditionalCapabilitiesSchema() *schema.Schema {

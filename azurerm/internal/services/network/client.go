@@ -1,7 +1,7 @@
 package network
 
 import (
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
@@ -18,6 +18,7 @@ type Client struct {
 	InterfacesClient                     *network.InterfacesClient
 	LoadBalancersClient                  *network.LoadBalancersClient
 	LocalNetworkGatewaysClient           *network.LocalNetworkGatewaysClient
+	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
 	ProfileClient                        *network.ProfilesClient
 	PacketCapturesClient                 *network.PacketCapturesClient
 	PrivateEndpointClient                *network.PrivateEndpointsClient
@@ -34,6 +35,8 @@ type Client struct {
 	VnetPeeringsClient                   *network.VirtualNetworkPeeringsClient
 	VirtualWanClient                     *network.VirtualWansClient
 	VirtualHubClient                     *network.VirtualHubsClient
+	VpnGatewaysClient                    *network.VpnGatewaysClient
+	VpnServerConfigurationsClient        *network.VpnServerConfigurationsClient
 	WatcherClient                        *network.WatchersClient
 	WebApplicationFirewallPoliciesClient *network.WebApplicationFirewallPoliciesClient
 	PrivateLinkServiceClient             *network.PrivateLinkServicesClient
@@ -75,6 +78,12 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	LocalNetworkGatewaysClient := network.NewLocalNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LocalNetworkGatewaysClient.Client, o.ResourceManagerAuthorizer)
+
+	pointToSiteVpnGatewaysClient := network.NewP2sVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&pointToSiteVpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
+
+	vpnServerConfigurationsClient := network.NewVpnServerConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vpnServerConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
 	ProfileClient := network.NewProfilesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ProfileClient.Client, o.ResourceManagerAuthorizer)
@@ -127,6 +136,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	VirtualHubClient := network.NewVirtualHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VirtualHubClient.Client, o.ResourceManagerAuthorizer)
 
+	vpnGatewaysClient := network.NewVpnGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&vpnGatewaysClient.Client, o.ResourceManagerAuthorizer)
+
 	WatcherClient := network.NewWatchersClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WatcherClient.Client, o.ResourceManagerAuthorizer)
 
@@ -146,6 +158,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		InterfacesClient:                     &InterfacesClient,
 		LoadBalancersClient:                  &LoadBalancersClient,
 		LocalNetworkGatewaysClient:           &LocalNetworkGatewaysClient,
+		PointToSiteVpnGatewaysClient:         &pointToSiteVpnGatewaysClient,
 		ProfileClient:                        &ProfileClient,
 		PacketCapturesClient:                 &PacketCapturesClient,
 		PrivateEndpointClient:                &PrivateEndpointClient,
@@ -162,6 +175,8 @@ func BuildClient(o *common.ClientOptions) *Client {
 		VnetPeeringsClient:                   &VnetPeeringsClient,
 		VirtualWanClient:                     &VirtualWanClient,
 		VirtualHubClient:                     &VirtualHubClient,
+		VpnGatewaysClient:                    &vpnGatewaysClient,
+		VpnServerConfigurationsClient:        &vpnServerConfigurationsClient,
 		WatcherClient:                        &WatcherClient,
 		WebApplicationFirewallPoliciesClient: &WebApplicationFirewallPoliciesClient,
 		PrivateLinkServiceClient:             &PrivateLinkServiceClient,

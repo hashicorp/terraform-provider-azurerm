@@ -568,7 +568,7 @@ func resourceArmKubernetesClusterCreate(d *schema.ResourceData, meta interface{}
 	client := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*ArmClient).tenantId
+	tenantId := meta.(*ArmClient).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster create.")
 
@@ -689,7 +689,7 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	clusterClient := meta.(*ArmClient).Containers.KubernetesClustersClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	tenantId := meta.(*ArmClient).tenantId
+	tenantId := meta.(*ArmClient).Account.TenantId
 
 	log.Printf("[INFO] preparing arguments for Managed Kubernetes Cluster update.")
 

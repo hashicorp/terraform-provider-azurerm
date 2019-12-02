@@ -308,6 +308,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iothub_dps_certificate":                             resourceArmIotHubDPSCertificate(),
 		"azurerm_iothub_consumer_group":                              resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                             resourceArmIotHub(),
+		"azurerm_iothub_fallback_route":                              resourceArmIotHubFallbackRoute(),
 		"azurerm_iothub_route":                                       resourceArmIotHubRoute(),
 		"azurerm_iothub_endpoint_eventhub":                           resourceArmIotHubEndpointEventHub(),
 		"azurerm_iothub_endpoint_servicebus_queue":                   resourceArmIotHubEndpointServiceBusQueue(),
@@ -388,6 +389,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_policy_assignment":                                                      resourceArmPolicyAssignment(),
 		"azurerm_policy_definition":                                                      resourceArmPolicyDefinition(),
 		"azurerm_policy_set_definition":                                                  resourceArmPolicySetDefinition(),
+		"azurerm_point_to_site_vpn_gateway":                                              resourceArmPointToSiteVPNGateway(),
 		"azurerm_postgresql_configuration":                                               resourceArmPostgreSQLConfiguration(),
 		"azurerm_postgresql_database":                                                    resourceArmPostgreSQLDatabase(),
 		"azurerm_postgresql_firewall_rule":                                               resourceArmPostgreSQLFirewallRule(),
@@ -397,10 +399,11 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
 		"azurerm_private_dns_aaaa_record":                                                resourceArmPrivateDnsAaaaRecord(),
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
-		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
+		"azurerm_private_dns_mx_record":                                                  resourceArmPrivateDnsMxRecord(),
 		"azurerm_private_dns_ptr_record":                                                 resourceArmPrivateDnsPtrRecord(),
 		"azurerm_private_dns_srv_record":                                                 resourceArmPrivateDnsSrvRecord(),
 		"azurerm_private_dns_zone_virtual_network_link":                                  resourceArmPrivateDnsZoneVirtualNetworkLink(),
+		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
 		"azurerm_private_link_service":                                                   resourceArmPrivateLinkService(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -477,6 +480,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_traffic_manager_endpoint":                                               resourceArmTrafficManagerEndpoint(),
 		"azurerm_traffic_manager_profile":                                                resourceArmTrafficManagerProfile(),
 		"azurerm_user_assigned_identity":                                                 resourceArmUserAssignedIdentity(),
+		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_virtual_machine_data_disk_attachment":                                   resourceArmVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":                                              resourceArmVirtualMachineExtensions(),
 		"azurerm_virtual_machine_scale_set":                                              resourceArmVirtualMachineScaleSet(),
@@ -486,13 +490,15 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
-		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
+		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
+		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
 	// 2.0 resources
 	if features.SupportsTwoPointZeroResources() {
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
+		resources["azurerm_virtual_machine_scale_set_extension"] = resourceArmVirtualMachineScaleSetExtension()
 		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
 	}
 
@@ -714,11 +720,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
-		partnerId := d.Get("partner_id").(string)
-		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
-		disableTerraformPartnerID := d.Get("disable_terraform_partner_id").(bool)
-
 		terraformVersion := p.TerraformVersion
 		if terraformVersion == "" {
 			// Terraform 0.12 introduced this field to the protocol
@@ -726,8 +727,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			terraformVersion = "0.11+compatible"
 		}
 
-		// TODO: we should pass in an Object here
-		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID, disableTerraformPartnerID)
+		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+		clientBuilder := armClientBuilder{
+			authConfig:                  config,
+			skipProviderRegistration:    skipProviderRegistration,
+			terraformVersion:            terraformVersion,
+			partnerId:                   d.Get("partner_id").(string),
+			disableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+			disableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		}
+		client, err := getArmClient(p.StopContext(), clientBuilder)
 		if err != nil {
 			return nil, err
 		}
@@ -762,7 +771,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If you do not have permissions to register resource providers you may want to use the skip_provider_registration flag, however this may cause additional errors if unregistered APIs are called that look something like `API version 2017-07-07 was not found for Microsoft.Foo`. Please see https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration for more details: %s", err)
+					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 				}
 			}
 		}
@@ -770,3 +779,25 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		return client, nil
 	}
 }
+
+const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
+
+Terraform automatically attempts to register the Resource Providers it supports to
+ensure it's able to provision resources.
+
+If you don't have permission to register Resource Providers you may wish to use the
+"skip_provider_registration" flag in the Provider block to disable this functionality.
+
+Please note that if you opt out of Resource Provider Registration and Terraform tries
+to provision a resource from a Resource Provider which is unregistered, then the errors
+may appear misleading - for example:
+
+> API version 2019-XX-XX was not found for Microsoft.Foo
+
+Could indicate either that the Resource Provider "Microsoft.Foo" requires registration,
+but this could also indicate that this Azure Region doesn't support this API version.
+
+More information on the "skip_provider_registration" flag can be found here:
+https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration
+
+Original Error: %s`

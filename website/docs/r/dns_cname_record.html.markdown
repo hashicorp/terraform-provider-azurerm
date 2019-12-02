@@ -54,6 +54,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The DNS CName Record ID.
+* `fqdn` - The FQDN of the DNS CName Record.
 
 ## Import
 
