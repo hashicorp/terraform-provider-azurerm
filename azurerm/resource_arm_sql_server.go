@@ -236,17 +236,9 @@ func resourceArmSqlServerCreateUpdate(d *schema.ResourceData, meta interface{}) 
 		auditingParameters := sql.ExtendedServerBlobAuditingPolicy{
 			ExtendedServerBlobAuditingPolicyProperties: extendedServerBlobAuditingPolicyProperties,
 		}
-		future, err := auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingParameters)
+		_, err := auditingClient.CreateOrUpdate(ctx, resGroup, name, auditingParameters)
 		if err != nil {
 			return fmt.Errorf("Error issuing create/update request for SQL Server %q Blob Auditing Policies(Resource Group %q): %+v", name, resGroup, err)
-		}
-
-		if err = future.WaitForCompletionRef(ctx, auditingClient.Client); err != nil {
-			if response.WasConflict(future.Response()) {
-				return fmt.Errorf("SQL Server names need to be globally unique and %q is already in use.", name)
-			}
-
-			return fmt.Errorf("Error waiting on create/update future for SQL Server %q Blob Extended Auditing Policies (Resource Group %q): %+v", name, resGroup, err)
 		}
 	}
 
