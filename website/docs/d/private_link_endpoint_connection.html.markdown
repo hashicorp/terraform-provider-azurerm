@@ -1,26 +1,26 @@
 ---
 subcategory: ""
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_private_link_endpoint_connections"
-sidebar_current: "docs-azurerm-datasource-private-endpoint-connections"
+page_title: "Azure Resource Manager: azurerm_private_link_endpoint_connection"
+sidebar_current: "docs-azurerm-datasource-private-endpoint-connection"
 description: |-
-  Gets connecton status information about an existing Private Link Endpoint
+  Gets the connecton status information about an existing Private Link Endpoint
 ---
 
-# Data Source: azurerm_private_link_endpoint_connections
+# Data Source: azurerm_private_link_endpoint_connection
 
-Use this data source to access connection status information about an existing Private Link Endpoint.
+Use this data source to access the connection status information about an existing Private Link Endpoint.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_private_link_endpoint_connections" "example" {
+data "azurerm_private_link_endpoint_connection" "example" {
   name                = "example-private-endpoint"
   resource_group_name = "example-rg"
 }
 
 output "private_link_endpoint_status" {
-  value = data.azurerm_private_link_endpoint_connections.example.private_service_connection.0.status
+  value = data.azurerm_private_link_endpoint_connection.example.private_service_connection.0.status
 }
 ```
 
@@ -35,7 +35,7 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The ID of the Prviate Link Endpoint.
+* `id` - The Azure resource ID of the Prviate Link Endpoint.
 * `location` - The supported Azure location where the resource exists.
 
 A `private_service_connection` block exports the following:

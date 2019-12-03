@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -13,7 +13,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -96,8 +95,6 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 				},
 				Set: schema.HashString,
 			},
-
-			"tags": tags.Schema(),
 		},
 	}
 }
@@ -129,7 +126,6 @@ func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta int
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 	subnetId := d.Get("subnet_id").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.PrivateEndpoint{
 		Location: utils.String(location),
@@ -140,7 +136,6 @@ func resourceArmPrivateLinkEndpointCreateUpdate(d *schema.ResourceData, meta int
 				ID: utils.String(subnetId),
 			},
 		},
-		Tags: tags.Expand(t),
 	}
 
 	future, err := client.CreateOrUpdate(ctx, resourceGroup, name, parameters)
@@ -201,7 +196,8 @@ func resourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	// API Issue "Unable to remove Tags from Private Link Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
+	return nil
 }
 
 func resourceArmPrivateLinkEndpointDelete(d *schema.ResourceData, meta interface{}) error {

@@ -3,7 +3,7 @@ package azurerm
 import (
 	"fmt"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -90,7 +90,7 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 			}
 		}
 
-		if err := d.Set("private_service_connection", flattenArmDataSourcePrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
+		if err := d.Set("private_service_connection", dataSourceFlattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
 	}
@@ -130,7 +130,7 @@ func getPrivateIpAddress(networkInterfaceId string, meta interface{}) string {
 	return privateIpAddress
 }
 
-func flattenArmDataSourcePrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
+func dataSourceFlattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results

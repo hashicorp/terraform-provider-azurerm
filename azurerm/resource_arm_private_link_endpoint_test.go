@@ -36,84 +36,9 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMPrivateEndpoint_complete(t *testing.T) {
-	resourceName := "azurerm_private_link_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_complete(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
-
-func TestAccAzureRMPrivateEndpoint_update(t *testing.T) {
-	resourceName := "azurerm_private_link_endpoint.test"
-	ri := tf.AccRandTimeInt()
-	location := testLocation()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAzureRMPrivateEndpoint_basic(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMPrivateEndpoint_complete(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "1"),
-					resource.TestCheckResourceAttr(resourceName, "tags.env", "test"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-			{
-				Config: testAccAzureRMPrivateEndpoint_basic(ri, location),
-				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMPrivateEndpointExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "tags.%", "0"),
-				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
-		},
-	})
-}
+// The update and complete test cases had to be totally removed since there is a bug with tags and the support for 
+// tags has been removed, all other attributes are ForceNew.
+// API Issue "Unable to remove Tags from Private Link Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
 
 func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -250,29 +175,6 @@ resource "azurerm_private_link_endpoint" "test" {
     name                           = azurerm_private_link_service.test.name
     is_manual_connection           = false
     private_connection_resource_id = azurerm_private_link_service.test.id
-  }
-}
-`, testAccAzureRMPrivateEndpointTemplate_template(rInt, location), rInt)
-}
-
-func testAccAzureRMPrivateEndpoint_complete(rInt int, location string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_private_link_endpoint" "test" {
-  name                = "acctest-privatelink-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  subnet_id           = azurerm_subnet.endpoint.id
-
-  private_service_connection {
-    name                           = azurerm_private_link_service.test.name
-    is_manual_connection           = false
-    private_connection_resource_id = azurerm_private_link_service.test.id
-  }
-
-  tags = {
-    env = "test"
   }
 }
 `, testAccAzureRMPrivateEndpointTemplate_template(rInt, location), rInt)

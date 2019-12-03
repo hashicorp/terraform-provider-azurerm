@@ -28,13 +28,21 @@ resource "azurerm_virtual_network" "example" {
   resource_group_name = azurerm_resource_group.example.name
 }
 
-resource "azurerm_subnet" "example" {
+resource "azurerm_subnet" "service" {
   name                 = "exampleSubnet"
   resource_group_name  = azurerm_resource_group.example.name
   virtual_network_name = azurerm_virtual_network.example.name
   address_prefix       = "10.0.1.0/24"
 
   disable_private_link_service_network_policy_enforcement  = true
+}
+
+resource "azurerm_subnet" "endpoint" {
+  name                 = "exampleSubnet"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefix       = "10.0.2.0/24"
+
   disable_private_link_endpoint_network_policy_enforcement = true
 }
 
@@ -66,7 +74,7 @@ resource "azurerm_private_link_service" "example" {
   nat_ip_configuration {
     name      = azurerm_public_ip.example.name
     primary   = true
-    subnet_id = azurerm_subnet.example.id
+    subnet_id = azurerm_subnet.service.id
   }
 
   load_balancer_frontend_ip_configuration_ids = [azurerm_lb.test.frontend_ip_configuration.0.id]
@@ -76,11 +84,7 @@ resource "azurerm_private_link_endpoint" "example" {
   name                = "examplepe"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  subnet_id           = azurerm_subnet.example.id
-
-  tags = {
-    env = "example"
-  }
+  subnet_id           = azurerm_subnet.endpoint.id
 }
 
 ```
@@ -98,8 +102,6 @@ The following arguments are supported:
 * `subnet_id` - (Required) Specifies the resource ID of the subnet from which the private IP addresses will be allocated for the private link endpoint.
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below. Once defined it becomes a required argument.
-
-* `tags` - (Optional) A mapping of tags assigned to the resource. Changing this forces a new resource to be created.
 
 ---
 
