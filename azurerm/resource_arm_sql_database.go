@@ -568,7 +568,6 @@ func resourceArmSqlDatabaseCreateUpdate(d *schema.ResourceData, meta interface{}
 		if err != nil {
 			return fmt.Errorf("Error issuing create/update request for SQL Server %q Database %q Blob Auditing Policies(Resource Group %q): %+v", serverName, name, resourceGroup, err)
 		}
-
 	}
 
 	return resourceArmSqlDatabaseRead(d, meta)
