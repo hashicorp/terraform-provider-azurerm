@@ -13,8 +13,8 @@ import (
 func TestAccAzureRMNatGateway_basic(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in west-us.
-	location := "westus"
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,8 +39,8 @@ func TestAccAzureRMNatGateway_basic(t *testing.T) {
 func TestAccAzureRMNatGateway_complete(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in west-us.
-	location := "westus"
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -70,8 +70,8 @@ func TestAccAzureRMNatGateway_complete(t *testing.T) {
 func TestAccAzureRMNatGateway_update(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in west-us.
-	location := "westus"
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -155,7 +155,7 @@ func testCheckAzureRMNatGatewayDestroy(s *terraform.State) error {
 func testAccAzureRMNatGateway_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-network-%d"
   location = "%s"
 }
 

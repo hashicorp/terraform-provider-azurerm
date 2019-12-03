@@ -15,7 +15,8 @@ import (
 func TestAccAzureRMSubnetNatGatewayAssociation_basic(t *testing.T) {
 	resourceName := "azurerm_subnet_nat_gateway_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -46,7 +47,8 @@ func TestAccAzureRMSubnetNatGatewayAssociation_requiresImport(t *testing.T) {
 
 	resourceName := "azurerm_subnet_nat_gateway_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -70,7 +72,8 @@ func TestAccAzureRMSubnetNatGatewayAssociation_requiresImport(t *testing.T) {
 func TestAccAzureRMSubnetNatGatewayAssociation_deleted(t *testing.T) {
 	resourceName := "azurerm_subnet_nat_gateway_association.test"
 	ri := tf.AccRandTimeInt()
-	location := testLocation()
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -213,7 +216,7 @@ func testCheckAzureRMSubnetHasNoNatGateways(resourceName string) resource.TestCh
 func testAccAzureRMSubnetNatGatewayAssociation_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-network-%d"
   location = "%s"
 }
 
