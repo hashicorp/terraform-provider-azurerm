@@ -98,7 +98,9 @@ func dataSourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error
 		}
 		return fmt.Errorf("Error reading Nat Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-
+	if resp.ID == nil {
+		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
+	}
 	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)

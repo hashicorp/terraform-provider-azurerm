@@ -39,7 +39,7 @@ The following attributes are exported:
 
 * `resource_guid` - The resource GUID property of the Nat Gateway.
 
-* `subnet_ids` - An array of IDs of the Subnets using this NAT Gateway resource.
+* `subnet_ids` - A list subnet IDs that are using this NAT Gateway resource.
 
 ## Import
 

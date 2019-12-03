@@ -10,8 +10,8 @@ import (
 
 func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in west-us.
-	location := "westus"
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -28,8 +28,8 @@ func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 func TestAccDataSourceAzureRMNatGateway_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in west-us.
-	location := "westus"
+	// It is hard-coded because this resource currently only available in eastus2.
+	location := "eastus2"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
