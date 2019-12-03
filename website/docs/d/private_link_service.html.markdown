@@ -39,6 +39,8 @@ The following arguments are supported:
 
 The following attributes are exported:
 
+* `id` - The Azure resource ID of the Prviate Link Service.
+
 * `location` - The supported Azure location where the resource exists.
 
 * `alias` - The alias is a globally unique name for your private link service which Azure generates for you. Your can use this alias to request a connection to your private link service.
