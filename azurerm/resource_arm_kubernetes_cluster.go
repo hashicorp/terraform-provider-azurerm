@@ -126,7 +126,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							ForceNew: true,
-							Default:  string(containerservice.AvailabilitySet),
+							Default:  string(containerservice.VirtualMachineScaleSets),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.AvailabilitySet),
 								string(containerservice.VirtualMachineScaleSets),
@@ -372,7 +372,7 @@ func resourceArmKubernetesCluster() *schema.Resource {
 						"load_balancer_sku": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  string(containerservice.Basic),
+							Default:  string(containerservice.Standard),
 							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.Basic),

@@ -184,7 +184,7 @@ A `agent_pool_profile` block supports the following:
 
 * `os_type` - (Optional) The Operating System used for the Agents. Possible values are `Linux` and `Windows`.  Changing this forces a new resource to be created. Defaults to `Linux`.
 
-* `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `AvailabilitySet`.
+* `type` - (Optional) Type of the Agent Pool. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Changing this forces a new resource to be created. Defaults to `VirtualMachineScaleSets`.
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
@@ -301,7 +301,7 @@ A `network_profile` block supports the following:
 
 Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com/en-us/azure/aks/networking-overview#advanced-networking) can be [found in the `./examples/kubernetes/` directory in the Github repository](https://github.com/terraform-providers/terraform-provider-azurerm/tree/master/examples/kubernetes).
 
-* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `basic`.
+* `load_balancer_sku` - (Optional) Specifies the SKU of the Load Balancer used for this Kubernetes Cluster. Possible values are `basic` and `standard`. Defaults to `standard`.
 
 ---
 
