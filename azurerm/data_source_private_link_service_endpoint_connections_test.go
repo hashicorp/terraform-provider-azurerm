@@ -42,5 +42,5 @@ data "azurerm_private_link_service_endpoint_connections" "test" {
 	resource_group_name = azurerm_resource_group.test.name
 	depends_on          = [azurerm_private_link_endpoint.test,]
 }
-`, testAccAzureRMPrivateEndpoint_complete(rInt, location))
+`, testAccAzureRMPrivateEndpoint_basic(rInt, location))
 }
