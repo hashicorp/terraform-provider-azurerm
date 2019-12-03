@@ -269,7 +269,7 @@ func resourceArmMonitorScheduledQueryRulesCreateUpdate(d *schema.ResourceData, m
 	enabledRaw := d.Get("enabled").(bool)
 
 	enabled := insights.True
-	if enabledRaw == false {
+	if !enabledRaw {
 		enabled = insights.False
 	}
 
@@ -347,7 +347,7 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if lastUpdated := resp.LastUpdatedTime; lastUpdated != nil {
-		d.Set("last_updated_time", *lastUpdated)
+		d.Set("last_updated_time", lastUpdated.Format(time.RFC3339))
 	}
 	d.Set("provisioning_state", resp.ProvisioningState)
 
@@ -357,46 +357,39 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 		d.Set("enabled", false)
 	}
 
-	d.Set("description", *resp.Description)
+	d.Set("description", resp.Description)
 
 	switch action := resp.Action.(type) {
 	case insights.AlertingAction:
 		d.Set("action_type", "Alerting")
-		d.Set("azns_action", flattenAzureRmScheduledQueryRulesAznsAction(action.AznsAction))
+		if err = d.Set("azns_action", flattenAzureRmScheduledQueryRulesAznsAction(action.AznsAction)); err != nil {
+			return fmt.Errorf("Error setting `azns_action`: %+v", err)
+		}
 		severity, err := strconv.Atoi(string(action.Severity))
 		if err != nil {
 			return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
 		}
 		d.Set("severity", severity)
-		d.Set("throttling", *action.ThrottlingInMin)
-		d.Set("trigger", flattenAzureRmScheduledQueryRulesTrigger(action.Trigger))
+		d.Set("throttling", action.ThrottlingInMin)
+		if err = d.Set("trigger", flattenAzureRmScheduledQueryRulesTrigger(action.Trigger)); err != nil {
+			return fmt.Errorf("Error setting `trigger`: %+v", err)
+		}
 	case insights.LogToMetricAction:
 		d.Set("action_type", "LogToMetric")
-		d.Set("criteria", flattenAzureRmScheduledQueryRulesCriteria(action.Criteria))
+		if err = d.Set("criteria", flattenAzureRmScheduledQueryRulesCriteria(action.Criteria)); err != nil {
+			return fmt.Errorf("Error setting `criteria`: %+v", err)
+		}
 	default:
 		return fmt.Errorf("Unknown action type in scheduled query rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
 
 	if schedule := resp.Schedule; schedule != nil {
 		if schedule.FrequencyInMinutes != nil {
-			d.Set("frequency", *schedule.FrequencyInMinutes)
+			d.Set("frequency", schedule.FrequencyInMinutes)
 		}
 		if schedule.TimeWindowInMinutes != nil {
-			d.Set("time_window", *schedule.TimeWindowInMinutes)
+			d.Set("time_window", schedule.TimeWindowInMinutes)
 		}
-	}
-
-	if source := resp.Source; source != nil {
-		if source.AuthorizedResources != nil {
-			d.Set("authorized_resources", *source.AuthorizedResources)
-		}
-		if source.DataSourceID != nil {
-			d.Set("data_source_id", *source.DataSourceID)
-		}
-		if source.Query != nil {
-			d.Set("query", *source.Query)
-		}
-		d.Set("query_type", string(source.QueryType))
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
@@ -573,9 +566,6 @@ func flattenAzureRmScheduledQueryRulesCriteria(input *[]insights.Criteria) []int
 		for _, criteria := range *input {
 			v := make(map[string]interface{})
 
-			/*if err = d.Set("azure_function_receiver", flattenMonitorActionGroupAzureFunctionReceiver(group.AzureFunctionReceivers)); err != nil {
-				return fmt.Errorf("Error setting `azure_function_receiver`: %+v", err)
-			}*/
 			v["dimension"] = flattenAzureRmScheduledQueryRulesDimension(criteria.Dimensions)
 			v["metric_name"] = *criteria.MetricName
 
@@ -630,41 +620,6 @@ func flattenAzureRmScheduledQueryRulesMetricTrigger(input *insights.LogMetricTri
 	if input.MetricColumn != nil {
 		result["metric_column"] = *input.MetricColumn
 	}
-	return []interface{}{result}
-}
-
-func flattenAzureRmScheduledQueryRulesSchedule(input *insights.Schedule) []interface{} {
-	result := make(map[string]interface{})
-
-	if input == nil {
-		return []interface{}{}
-	}
-
-	if input.FrequencyInMinutes != nil {
-		result["frequency_in_minutes"] = int(*input.FrequencyInMinutes)
-	}
-
-	if input.TimeWindowInMinutes != nil {
-		result["time_window_in_minutes"] = int(*input.TimeWindowInMinutes)
-	}
-
-	return []interface{}{result}
-}
-
-func flattenAzureRmScheduledQueryRulesSource(input *insights.Source) []interface{} {
-	result := make(map[string]interface{})
-
-	if input.AuthorizedResources != nil {
-		result["authorized_resources"] = *input.AuthorizedResources
-	}
-	if input.DataSourceID != nil {
-		result["data_source_id"] = *input.DataSourceID
-	}
-	if input.Query != nil {
-		result["query"] = *input.Query
-	}
-	result["query_type"] = string(input.QueryType)
-
 	return []interface{}{result}
 }
 

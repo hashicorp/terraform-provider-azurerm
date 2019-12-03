@@ -38,7 +38,6 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingAction(t *testing.T) {
 			},
 		},
 	})
-	return
 }
 
 func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T) {
@@ -66,7 +65,6 @@ func TestAccAzureRMMonitorScheduledQueryRules_AlertingActionCrossResource(t *tes
 			},
 		},
 	})
-	return
 }
 
 func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
@@ -94,7 +92,6 @@ func TestAccAzureRMMonitorScheduledQueryRules_LogToMetricAction(t *testing.T) {
 			},
 		},
 	})
-	return
 }
 
 func testAccAzureRMMonitorScheduledQueryRules_alertingAction(rInt int, rString, location string) string {
