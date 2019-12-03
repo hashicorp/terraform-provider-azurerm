@@ -95,6 +95,9 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 				},
 				Set: schema.HashString,
 			},
+
+			// tags has been removed
+			// API Issue "Unable to remove Tags from Private Link Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
 		},
 	}
 }

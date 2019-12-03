@@ -36,10 +36,6 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 	})
 }
 
-// The update and complete test cases had to be totally removed since there is a bug with tags and the support for 
-// tags has been removed, all other attributes are ForceNew.
-// API Issue "Unable to remove Tags from Private Link Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
-
 func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
