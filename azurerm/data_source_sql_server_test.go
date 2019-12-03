@@ -27,6 +27,7 @@ func TestAccDataSourceAzureRMSqlServer_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "version"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "administrator_login"),
 					resource.TestCheckResourceAttr(dataSourceName, "tags.%", "0"),
+					resource.TestCheckResourceAttr(dataSourceName, "blob_extended_auditing_policy.0.state", "Disabled"),
 				),
 			},
 		},

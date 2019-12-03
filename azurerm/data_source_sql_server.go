@@ -91,8 +91,7 @@ func dataSourceSqlServer() *schema.Resource {
 							Computed: true,
 							Set:      schema.HashString,
 							Elem: &schema.Schema{
-								Type:     schema.TypeString,
-								Computed: true,
+								Type: schema.TypeString,
 							},
 						},
 						"storage_account_subscription_id": {
