@@ -80,7 +80,7 @@ func resourceArmDatabricksWorkspaceCreateUpdate(d *schema.ResourceData, meta int
 	client := meta.(*ArmClient).DataBricks.WorkspacesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	subscriptionID := meta.(*ArmClient).subscriptionId
+	subscriptionID := meta.(*ArmClient).Account.SubscriptionId
 
 	log.Printf("[INFO] preparing arguments for Azure ARM Databricks Workspace creation.")
 

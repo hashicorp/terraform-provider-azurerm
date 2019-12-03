@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -25,6 +26,13 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 		Delete: resourceArmAppServiceCertificateOrderDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -162,7 +170,8 @@ func resourceArmAppServiceCertificateOrder() *schema.Resource {
 
 func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.CertificatesOrderClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for App Service Certificate creation.")
 
@@ -238,6 +247,8 @@ func resourceArmAppServiceCertificateOrderCreateUpdate(d *schema.ResourceData, m
 
 func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.CertificatesOrderClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -247,7 +258,6 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 	resourceGroup := id.ResourceGroup
 	name := id.Path["certificateOrders"]
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
@@ -306,6 +316,8 @@ func resourceArmAppServiceCertificateOrderRead(d *schema.ResourceData, meta inte
 
 func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Web.CertificatesOrderClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -316,7 +328,6 @@ func resourceArmAppServiceCertificateOrderDelete(d *schema.ResourceData, meta in
 
 	log.Printf("[DEBUG] Deleting App Service Certificate Order %q (Resource Group %q)", name, resourceGroup)
 
-	ctx := meta.(*ArmClient).StopContext
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
 		if !utils.ResponseWasNotFound(resp) {

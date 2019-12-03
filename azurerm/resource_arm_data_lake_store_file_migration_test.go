@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -16,7 +17,15 @@ func TestAccAzureRMDataLakeStoreFileMigrateState(t *testing.T) {
 		return
 	}
 
-	client, err := getArmClient(config, false, "0.0.0", "", true, false)
+	builder := armClientBuilder{
+		authConfig:                  config,
+		terraformVersion:            "0.0.0",
+		partnerId:                   "",
+		disableCorrelationRequestID: true,
+		disableTerraformPartnerID:   false,
+		skipProviderRegistration:    false,
+	}
+	client, err := getArmClient(context.Background(), builder)
 	if err != nil {
 		t.Fatal(fmt.Errorf("Error building ARM Client: %+v", err))
 		return

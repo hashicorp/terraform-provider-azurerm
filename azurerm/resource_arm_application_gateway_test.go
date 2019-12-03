@@ -51,12 +51,12 @@ func TestAccAzureRMApplicationGateway_autoscaleConfiguration(t *testing.T) {
 		CheckDestroy: testCheckAzureRMApplicationGatewayDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 2, 10),
+				Config: testAccAzureRMApplicationGateway_autoscaleConfiguration(ri, testLocation(), 0, 10),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMApplicationGatewayExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.name", "Standard_v2"),
 					resource.TestCheckResourceAttr(resourceName, "sku.0.tier", "Standard_v2"),
-					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.min_capacity", "2"),
+					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.min_capacity", "0"),
 					resource.TestCheckResourceAttr(resourceName, "autoscale_configuration.0.max_capacity", "10"),
 					resource.TestCheckResourceAttr(resourceName, "waf_configuration.#", "0"),
 				),

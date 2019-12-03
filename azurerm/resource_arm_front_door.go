@@ -451,7 +451,7 @@ func resourceArmFrontDoorCreateUpdate(d *schema.ResourceData, meta interface{}) 
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
-	subscriptionId := meta.(*ArmClient).subscriptionId
+	subscriptionId := meta.(*ArmClient).Account.SubscriptionId
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		resp, err := client.Get(ctx, resourceGroup, name)
@@ -596,7 +596,7 @@ func resourceArmFrontDoorRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -668,7 +668,7 @@ func resourceArmFrontDoorDelete(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -1409,7 +1409,7 @@ func flattenArmFrontDoorSubResource(input *frontdoor.SubResource, resourceType s
 	name := ""
 
 	if id := input.ID; id != nil {
-		aid, err := parseAzureResourceID(*id)
+		aid, err := azure.ParseAzureResourceID(*id)
 		if err != nil {
 			return ""
 		}

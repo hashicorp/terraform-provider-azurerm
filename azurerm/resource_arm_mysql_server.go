@@ -139,6 +139,7 @@ func resourceArmMySqlServer() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(mysql.FiveFullStopSix),
 					string(mysql.FiveFullStopSeven),
+					"8.0", //TODO: Update to EightFullStopZero ServerVersion constant when available in Azure Go SDK https://github.com/Azure/azure-rest-api-specs/pull/7864
 				}, true),
 				DiffSuppressFunc: suppress.CaseDifference,
 				ForceNew:         true,
