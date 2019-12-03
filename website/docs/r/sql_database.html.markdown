@@ -28,11 +28,25 @@ resource "azurerm_sql_server" "example" {
   administrator_login_password = "4-v3ry-53cr37-p455w0rd"
 }
 
+resource "azurerm_storage_account" "example" {
+  name                     = "accstr"
+  resource_group_name      = "${azurerm_resource_group.example.name}"
+  location                 = "${azurerm_resource_group.example.location}"
+  account_tier             = "Standard"
+  account_replication_type = "GRS"
+}
+
 resource "azurerm_sql_database" "example" {
   name                = "mysqldatabase"
   resource_group_name = "${azurerm_resource_group.example.name}"
   location            = "West US"
   server_name         = "${azurerm_sql_server.example.name}"
+
+  blob_extended_auditing_policy {
+    state                      = "Enabled"
+    storage_endpoint           = "${azurerm_storage_account.example.primary_blob_endpoint}"
+    storage_account_access_key = "${azurerm_storage_account.example.primary_access_key}"
+  }
 
   tags = {
     environment = "production"
@@ -78,6 +92,8 @@ The following arguments are supported:
 
 * `read_scale` - (Optional) Read-only connections will be redirected to a high-available replica. Please see [Use read-only replicas to load-balance read-only query workloads](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-read-scale-out).
 
+* `blob_extended_auditing_policy` - (Optional) An `blob_extended_auditing_policy` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 `import` supports the following:
@@ -102,6 +118,19 @@ The following arguments are supported:
 * `storage_account_access_key` - (Optional) Specifies the identifier key of the Threat Detection audit storage account. Required if `state` is `Enabled`.
 * `storage_endpoint` - (Optional) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). This blob storage will hold all Threat Detection audit logs. Required if `state` is `Enabled`.
 * `use_server_default` - (Optional) Should the default server policy be used? Defaults to `Disabled`.
+
+---
+
+An `blob_extended_auditing_policy` block supports the following:
+
+* `state` - (Required) Specifies the state of the policy. If state is Enabled, storageEndpoint or isAzureMonitorTargetEnabled are required. Possible values include: 'Enabled', 'Disabled'
+* `storage_endpoint` - (Required) Specifies the blob storage endpoint (e.g. https://MyAccount.blob.core.windows.net). If state is Enabled, storageEndpoint is required.
+* `storage_account_access_key` - (Required)Specifies the identifier key of the auditing storage account. If state is Enabled and storageEndpoint is specified, storageAccountAccessKey is required.
+* `retention_days` - Specifies the number of days to keep in the audit logs in the storage account.
+* `storage_account_subscription_id` - Specifies the blob storage subscription Id.
+* `is_storage_secondary_key_in_use` - Specifies whether storageAccountAccessKey value is the storage's secondary key.
+* `audit_actions_and_groups` - Specifies the Actions-Groups and Actions to audit.For more information, see [Database-Level Audit Actions](https://docs.microsoft.com/en-us/sql/relational-databases/security/auditing/sql-server-audit-action-groups-and-actions#database-level-audit-actions).
+* `predicate_expression` - Specifies condition of where clause when creating an audit.
 
 ## Attributes Reference
 
