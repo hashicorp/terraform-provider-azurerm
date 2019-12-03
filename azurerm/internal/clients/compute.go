@@ -8,6 +8,7 @@ import (
 
 type ComputeClient struct {
 	AvailabilitySetsClient         *compute.AvailabilitySetsClient
+	DedicatedHostGroupsClient      *compute.DedicatedHostGroupsClient
 	DisksClient                    *compute.DisksClient
 	GalleriesClient                *compute.GalleriesClient
 	GalleryImagesClient            *compute.GalleryImagesClient
@@ -29,6 +30,9 @@ type ComputeClient struct {
 func NewComputeClient(o *common.ClientOptions) *ComputeClient {
 	availabilitySetsClient := compute.NewAvailabilitySetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&availabilitySetsClient.Client, o.ResourceManagerAuthorizer)
+
+	dedicatedHostGroupsClient := compute.NewDedicatedHostGroupsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&dedicatedHostGroupsClient.Client, o.ResourceManagerAuthorizer)
 
 	disksClient := compute.NewDisksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&disksClient.Client, o.ResourceManagerAuthorizer)
@@ -80,6 +84,7 @@ func NewComputeClient(o *common.ClientOptions) *ComputeClient {
 
 	return &ComputeClient{
 		AvailabilitySetsClient:         &availabilitySetsClient,
+		DedicatedHostGroupsClient:      &dedicatedHostGroupsClient,
 		DisksClient:                    &disksClient,
 		GalleriesClient:                &galleriesClient,
 		GalleryImagesClient:            &galleryImagesClient,
