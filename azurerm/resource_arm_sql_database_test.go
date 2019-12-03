@@ -426,6 +426,58 @@ func TestAccAzureRMSqlDatabase_bacpac(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMSqlDatabase_withBlobAuditingPolices(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlDatabase_withBlobAuditingPolices(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "blob_extended_auditing_policy.0.state", "Enabled"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key", "create_mode"},
+			},
+		},
+	})
+}
+
+func TestAccAzureRMSqlDatabase_withoutBlobAuditingPolices(t *testing.T) {
+	resourceName := "azurerm_sql_database.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMSqlDatabaseDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMSqlDatabase_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMSqlDatabaseExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "blob_extended_auditing_policy.0.state", "Disabled"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"administrator_login_password", "blob_extended_auditing_policy.0.storage_account_access_key"},
+			},
+		},
+	})
+}
+
 func testAccAzureRMSqlDatabase_basic(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -847,4 +899,47 @@ resource "azurerm_sql_database" "test" {
   read_scale          = %t
 }
 `, rInt, location, rInt, rInt, readScale)
+}
+
+func testAccAzureRMSqlDatabase_withBlobAuditingPolices(rInt int, location string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_storage_account" "test" {
+ name                     = "accstr%d"
+ resource_group_name      = "${azurerm_resource_group.test.name}"
+ location                 = "${azurerm_resource_group.test.location}"
+ account_tier             = "Standard"
+ account_replication_type = "GRS"
+}
+
+resource "azurerm_sql_server" "test" {
+  name                         = "acctestsqlserver%d"
+  resource_group_name          = "${azurerm_resource_group.test.name}"
+  location                     = "${azurerm_resource_group.test.location}"
+  version                      = "12.0"
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+}
+
+resource "azurerm_sql_database" "test" {
+  name                             = "acctestdb%d"
+  resource_group_name              = "${azurerm_resource_group.test.name}"
+  server_name                      = "${azurerm_sql_server.test.name}"
+  location                         = "${azurerm_resource_group.test.location}"
+  edition                          = "Standard"
+  collation                        = "SQL_Latin1_General_CP1_CI_AS"
+  max_size_bytes                   = "1073741824"
+  requested_service_objective_name = "S0"
+
+  blob_extended_auditing_policy {
+		state                         = "Enabled"
+		storage_endpoint              = "${azurerm_storage_account.test.primary_blob_endpoint}"
+        storage_account_access_key    = "${azurerm_storage_account.test.primary_access_key}"
+	}
+}
+`, rInt, location, rInt, rInt, rInt)
 }
