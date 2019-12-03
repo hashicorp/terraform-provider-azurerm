@@ -346,6 +346,10 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+	if lastUpdated := resp.LastUpdatedTime; lastUpdated != nil {
+		d.Set("last_updated_time", *lastUpdated)
+	}
+	d.Set("provisioning_state", resp.ProvisioningState)
 
 	if resp.Enabled == insights.True {
 		d.Set("enabled", true)
@@ -395,17 +399,13 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 		d.Set("query_type", string(source.QueryType))
 	}
 
-	// read-only props
-	d.Set("last_updated_time", *resp.LastUpdatedTime)
-	d.Set("provisioning_state", resp.ProvisioningState)
-
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
 func resourceArmMonitorScheduledQueryRulesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Monitor.ScheduledQueryRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
-  defer cancel()
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

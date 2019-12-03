@@ -15,16 +15,16 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRules_logToMetricAction(t *tes
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 	location := testLocation()
+	config := testAccDataSourceAzureRMMonitorScheduledQueryRules_logToMetricActionConfig(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_logToMetricActionConfig(ri, rs, location),
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
-					resource.TestCheckResourceAttr(dataSourceName, "enabled", "true"),
 				),
 			},
 		},
@@ -36,13 +36,14 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRules_alertingAction(t *testin
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 	location := testLocation()
+	config := testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionConfig(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionConfig(ri, rs, location),
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 				),
@@ -56,13 +57,14 @@ func TestAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionCrossResou
 	ri := tf.AccRandTimeInt()
 	rs := acctest.RandString(10)
 	location := testLocation()
+	config := testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionCrossResourceConfig(ri, rs, location)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceAzureRMMonitorScheduledQueryRules_alertingActionCrossResourceConfig(ri, rs, location),
+				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(dataSourceName, "id"),
 				),
@@ -142,20 +144,19 @@ resource "azurerm_monitor_action_group" "test" {
 }
 
 resource "azurerm_monitor_scheduled_query_rules" "test" {
-  name                = "acctestSqr-%d"
+  name                = "acctestsqr-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
 	description         = "test alerting action"
 	enabled             = true
 	action_type         = "Alerting"
 
-	query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h"
+	query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
 	data_source_id = "${azurerm_log_analytics_workspace.test.id}"
 	query_type     = "ResultCount"
 
 	frequency   = 60
   time_window = 60
-
 
 	severity    = 3
 	azns_action {
@@ -166,6 +167,12 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 	trigger {
 		operator  = "GreaterThan"
 		threshold = 5000
+		metric_trigger {
+			operator            = "GreaterThan"
+			threshold           = 1
+			metric_trigger_type = "Total"
+			metric_column       = "TimeGenerated"
+		}
 	}
 }
 
@@ -232,6 +239,12 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 	trigger {
 		operator          = "GreaterThan"
 		threshold         = 5000
+		metric_trigger {
+			operator            = "GreaterThan"
+			threshold           = 1
+			metric_trigger_type = "Total"
+			metric_column       = "TimeGenerated"
+		}
 	}
 }
 

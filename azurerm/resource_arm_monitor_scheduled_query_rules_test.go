@@ -123,12 +123,12 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
   name                = "acctestsqr-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	description         = "test log to metric action"
+	description         = "test alerting action"
 	enabled             = true
 	action_type         = "Alerting"
 
 	data_source_id = "${azurerm_application_insights.test.id}"
-  query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h"
+  query          = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
 	query_type     = "ResultCount"
 
 	frequency   = 60
@@ -142,13 +142,13 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 	}
 
 	trigger {
-		operator = "GreaterThan"
-		threshold         = 5000
+		operator  = "GreaterThan"
+		threshold = 5000
 		metric_trigger {
 			operator            = "GreaterThan"
-			threshold           = 5
-			metric_trigger_type = "Consecutive"
-			metric_column       = "Computer"
+			threshold           = 1
+			metric_trigger_type = "Total"
+			metric_column       = "TimeGenerated"
 		}
 	}
 }
@@ -189,13 +189,13 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
   name                = "acctestsqr-%d"
 	resource_group_name = "${azurerm_resource_group.test.name}"
   location            = "${azurerm_resource_group.test.location}"
-	description         = "test log to metric action"
+	description         = "test alerting action cross-resource"
 	enabled             = true
 	action_type         = "Alerting"
 
 	authorized_resources = ["${azurerm_application_insights.test.id}", "${azurerm_log_analytics_workspace.test.id}"]
 	data_source_id       = "${azurerm_application_insights.test.id}"
-  query                = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h"
+  query                = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
 	query_type           = "ResultCount"
 
 	frequency   = 60
@@ -212,9 +212,9 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 		threshold         = 5000
 		metric_trigger {
 			operator            = "GreaterThan"
-			threshold           = 5
-			metric_trigger_type = "Consecutive"
-			metric_column       = "Computer"
+			threshold           = 1
+			metric_trigger_type = "Total"
+			metric_column       = "TimeGenerated"
 		}
 	}
 }

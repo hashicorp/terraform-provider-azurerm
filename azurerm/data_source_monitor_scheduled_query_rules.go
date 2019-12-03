@@ -85,8 +85,11 @@ func dataSourceArmMonitorScheduledQueryRules() *schema.Resource {
 										Computed: true,
 									},
 									"values": {
-										Type:     schema.TypeString,
+										Type:     schema.TypeList,
 										Computed: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
+										},
 									},
 								},
 							},
@@ -220,17 +223,20 @@ func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta in
 	switch action := resp.Action.(type) {
 	case insights.AlertingAction:
 		d.Set("action_type", "Alerting")
-		d.Set("azns_action", *action.AznsAction)
+
+		aznsAction := flattenAzureRmScheduledQueryRulesAznsAction(action.AznsAction)
+		d.Set("azns_action", aznsAction)
+
 		severity, err := strconv.Atoi(string(action.Severity))
 		if err != nil {
 			return fmt.Errorf("Error converting action.Severity %q in query rule %q to int (resource group %q): %+v", action.Severity, name, resourceGroup, err)
 		}
 		d.Set("severity", severity)
 		d.Set("throttling", *action.ThrottlingInMin)
-		d.Set("trigger", *action.Trigger)
+		d.Set("trigger", flattenAzureRmScheduledQueryRulesTrigger(action.Trigger))
 	case insights.LogToMetricAction:
 		d.Set("action_type", "LogToMetric")
-		d.Set("criteria", *action.Criteria)
+		d.Set("criteria", flattenAzureRmScheduledQueryRulesCriteria(action.Criteria))
 	default:
 		return fmt.Errorf("Unknown action type in scheduled query rule %q (resource group %q): %T", name, resourceGroup, resp.Action)
 	}
@@ -257,8 +263,9 @@ func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta in
 		d.Set("query_type", string(source.QueryType))
 	}
 
-	// read-only props
-	d.Set("last_updated_time", *resp.LastUpdatedTime)
+	if lastUpdated := resp.LastUpdatedTime; lastUpdated != nil {
+		d.Set("last_updated_time", *lastUpdated)
+	}
 	d.Set("provisioning_state", resp.ProvisioningState)
 
 	return tags.FlattenAndSet(d, resp.Tags)
