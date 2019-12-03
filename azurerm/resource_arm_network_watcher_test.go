@@ -297,7 +297,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_watcher" "test" {
-  name                = "acctestnw-%d"
+  name                = "acctestNW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
@@ -325,7 +325,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_watcher" "test" {
-  name                = "acctestnw-%d"
+  name                = "acctestNW-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

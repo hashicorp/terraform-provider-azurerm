@@ -314,29 +314,25 @@ func testCheckAzureRMNetworkWatcherFlowLogExists(name string) resource.TestCheck
 			return fmt.Errorf("Not found: %s", name)
 		}
 
-		parsedID, err := parseAzureResourceID(rs.Primary.Attributes["id"])
+		id, err := ParseNetworkWatcherFlowLogID(rs.Primary.Attributes["id"])
 		if err != nil {
 			return err
 		}
 
-		resourceGroupName := parsedID.ResourceGroup
-		networkWatcherName := parsedID.Path["networkWatchers"]
-		networkSecurityGroupID := parsedID.Path["networkSecurityGroupId"]
-
 		statusParameters := network.FlowLogStatusParameters{
-			TargetResourceID: &networkSecurityGroupID,
+			TargetResourceID: &id.NetworkSecurityGroupID,
 		}
-		future, err := client.GetFlowLogStatus(ctx, resourceGroupName, networkWatcherName, statusParameters)
+		future, err := client.GetFlowLogStatus(ctx, id.ResourceGroup, id.NetworkWatcherName, statusParameters)
 		if err != nil {
-			return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
+			return fmt.Errorf("Error retrieving Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
 		}
 
 		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
+			return fmt.Errorf("Error waiting for retrieval of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
 		}
 
 		if _, err := future.Result(*client); err != nil {
-			return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", networkSecurityGroupID, networkWatcherName, resourceGroupName, err)
+			return fmt.Errorf("Error retrieving of Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
 		}
 
 		return nil
@@ -351,19 +347,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_network_security_group" "test" {
-    name                = "acctestnsg%d"
+    name                = "acctestNSG%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_network_watcher" "test" {
-    name                = "acctestnw-%d"
+    name                = "acctest-NW-%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
 }
 
 resource "azurerm_storage_account" "test" {
-    name                = "acctestsa%d"
+    name                = "acctestSA%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     location            = "${azurerm_resource_group.test.location}"
 
@@ -439,7 +435,7 @@ func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsEnabledConfig(rInt int,
 %s
 
 resource "azurerm_log_analytics_workspace" "test" {
-    name                = "acctestlaw-%d"
+    name                = "acctestLAW-%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku                 = "PerGB2018"
@@ -473,7 +469,7 @@ func testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(rInt int
 %s
 
 resource "azurerm_log_analytics_workspace" "test" {
-    name                = "acctestlaw-%d"
+    name                = "acctestLAW-%d"
     location            = "${azurerm_resource_group.test.location}"
     resource_group_name = "${azurerm_resource_group.test.name}"
     sku                 = "PerGB2018"
