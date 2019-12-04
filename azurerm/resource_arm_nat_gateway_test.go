@@ -13,8 +13,8 @@ import (
 func TestAccAzureRMNatGateway_basic(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in eastus2.
-	location := "eastus2"
+	// Using alt location because the resource currently in private preview and is only available in eastus2.
+	location := testAltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -39,8 +39,8 @@ func TestAccAzureRMNatGateway_basic(t *testing.T) {
 func TestAccAzureRMNatGateway_complete(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in eastus2.
-	location := "eastus2"
+	// Using alt location because the resource currently in private preview and is only available in eastus2.
+	location := testAltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -70,8 +70,8 @@ func TestAccAzureRMNatGateway_complete(t *testing.T) {
 func TestAccAzureRMNatGateway_update(t *testing.T) {
 	resourceName := "azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in eastus2.
-	location := "eastus2"
+	// Using alt location because the resource currently in private preview and is only available in eastus2.
+	location := testAltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
