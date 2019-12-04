@@ -6,10 +6,48 @@ sidebar_current: "docs-azurerm-resource-nat-gateway"
 description: |-
   Manages an Azure NAT Gateway instance.
 ---
-
 # azurerm_nat_gateway
 
 Manages an Azure NAT Gateway instance.
+
+-> **NOTE:** The Azure NAT Gateway service is currently in private preview. Your subscription must be on the NAT Gateway private preview whitelist for this resource to be provisioned correctly. If you attempt to provision this resource and receive an `InvalidResourceType` error that means that your subscription is not part of the NAT Gateway private preview whitelist and you will not be able to use this resource. The NAT Gateway private preview service is currently only available in the `East US 2` and `West Central US` regions.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "nat-gateway-example-rg"
+  location = "eastus2"
+}
+
+resource "azurerm_public_ip" "example" {
+  name                = "nat-gateway-publicIP"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  zones               = ["1"]
+}
+
+resource "azurerm_public_ip_prefix" "example" {
+  name                = "nat-gateway-publicIPPrefix"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  prefix_length       = 30
+  zones               = ["1"]
+}
+
+resource "azurerm_nat_gateway" "example" {
+  name                    = "nat-Gateway"
+  location                = "${azurerm_resource_group.example.location}"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
+  public_ip_address_ids   = ["${azurerm_public_ip.example.id}"]
+  public_ip_prefix_ids    = ["${azurerm_public_ip_prefix.example.id}"]
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 10
+  zones                   = ["1"]
+}
+```
 
 ## Argument Reference
 
