@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -32,5 +33,6 @@ func SupportedServices() []common.ServiceRegistration {
 		containers.Registration{},
 		cosmos.Registration{},
 		databricks.Registration{},
+		datafactory.Registration{},
 	}
 }
