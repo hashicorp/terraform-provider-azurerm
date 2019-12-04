@@ -23,7 +23,7 @@ import (
 	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
 	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
 	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
@@ -162,6 +162,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.DevTestLabs = devtestlabs.NewClient(o)
 	client.Dns = dns.NewClient(o)
 	client.EventGrid = eventgrid.NewClient(o)
+	client.Eventhub = eventhub.NewClient(o)
 
 	return nil
 }
