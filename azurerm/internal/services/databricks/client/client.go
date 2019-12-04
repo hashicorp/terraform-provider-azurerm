@@ -1,4 +1,4 @@
-package databricks
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/databricks/mgmt/2018-04-01/databricks"
@@ -9,7 +9,7 @@ type Client struct {
 	WorkspacesClient *databricks.WorkspacesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	WorkspacesClient := databricks.NewWorkspacesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&WorkspacesClient.Client, o.ResourceManagerAuthorizer)
 

@@ -16,7 +16,7 @@ import (
 	compute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
+	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
@@ -155,6 +155,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Compute = compute.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
+	client.DataBricks = databricks.NewClient(o)
 
 	return nil
 }
