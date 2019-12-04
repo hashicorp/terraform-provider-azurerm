@@ -1,4 +1,4 @@
-package graph
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -10,7 +10,7 @@ type Client struct {
 	ServicePrincipalsClient *graphrbac.ServicePrincipalsClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	ApplicationsClient := graphrbac.NewApplicationsClientWithBaseURI(o.GraphEndpoint, o.TenantID)
 	o.ConfigureClient(&ApplicationsClient.Client, o.GraphAuthorizer)
 
