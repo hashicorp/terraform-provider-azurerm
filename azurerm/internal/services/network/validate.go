@@ -124,3 +124,20 @@ func ValidateNatGatewayName(i interface{}, k string) (warnings []string, errors 
 
 	return warnings, errors
 }
+
+func ValidatePrivateLinkSubResourceName(i interface{}, k string) (_ []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		return nil, append(errors, fmt.Errorf("expected type of %s to be string", k))
+	}
+
+	if len(strings.TrimSpace(v)) >= 1 {
+		if m, _ := validate.RegExHelper(i, k, `^[\w\.]$`); !m {
+			errors = append(errors, fmt.Errorf("%s must only contain upper or lowercase letters, numbers, underscores, and periods", k))
+		}
+	} else {
+		errors = append(errors, fmt.Errorf("%s must be at least 1 character in length", k))
+	}
+
+	return nil, errors
+}

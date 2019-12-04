@@ -36,6 +36,50 @@ func TestAccAzureRMPrivateEndpoint_basic(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMPrivateEndpoint_requestMessage(t *testing.T) {
+	resourceName := "azurerm_private_link_endpoint.test"
+	ri := tf.AccRandTimeInt()
+	location := testLocation()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMPrivateEndpointDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMPrivateEndpoint_requestMessage(ri, location, "CATS: ALL YOUR BASE ARE BELONG TO US."),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateEndpointExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
+					resource.TestCheckResourceAttr(resourceName, "private_service_connection.0.request_message", "CATS: ALL YOUR BASE ARE BELONG TO US."),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+			{
+				Config: testAccAzureRMPrivateEndpoint_requestMessage(ri, location, "CAPTAIN: WHAT YOU SAY!!"),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMPrivateEndpointExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "subnet_id"),
+					resource.TestCheckResourceAttr(resourceName, "private_service_connection.0.request_message", "CAPTAIN: WHAT YOU SAY!!"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+// The update and complete test cases had to be totally removed since there is a bug with tags and the support for
+// tags has been removed, all other attributes are ForceNew.
+// API Issue "Unable to remove Tags from Private Link Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
+
 func testCheckAzureRMPrivateEndpointExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -84,7 +128,7 @@ func testCheckAzureRMPrivateEndpointDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccAzureRMPrivateEndpointTemplate_template(rInt int, location string) string {
+func testAccAzureRMPrivateEndpointTemplate_template(rInt int, location string, seviceCfg string) string {
 	return fmt.Sprintf(`
 data "azurerm_subscription" "current" {}
 
@@ -137,6 +181,12 @@ resource "azurerm_lb" "test" {
   }
 }
 
+%s
+`, rInt, location, rInt, rInt, rInt, rInt, rInt, seviceCfg)
+}
+
+func testAccAzureRMPrivateEndpoint_serviceAutoApprove(rInt int) string {
+	return fmt.Sprintf(`
 resource "azurerm_private_link_service" "test" {
   name                           = "acctestPLS-%d"
   location                       = azurerm_resource_group.test.location
@@ -151,10 +201,30 @@ resource "azurerm_private_link_service" "test" {
   }
 
   load_balancer_frontend_ip_configuration_ids = [
-    azurerm_lb.test.frontend_ip_configuration.0.id
+  azurerm_lb.test.frontend_ip_configuration.0.id
   ]
 }
-`, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt)
+`, rInt, rInt)
+}
+
+func testAccAzureRMPrivateEndpoint_serviceManualApprove(rInt int) string {
+	return fmt.Sprintf(`
+resource "azurerm_private_link_service" "test" {
+  name                           = "acctestPLS-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+
+  nat_ip_configuration {
+    name                         = "primaryIpConfiguration-%d"
+    primary                      = true
+    subnet_id                    = azurerm_subnet.service.id
+  }
+
+  load_balancer_frontend_ip_configuration_ids = [
+  azurerm_lb.test.frontend_ip_configuration.0.id
+  ]
+}
+`, rInt, rInt)
 }
 
 func testAccAzureRMPrivateEndpoint_basic(rInt int, location string) string {
@@ -173,5 +243,25 @@ resource "azurerm_private_link_endpoint" "test" {
     private_connection_resource_id = azurerm_private_link_service.test.id
   }
 }
-`, testAccAzureRMPrivateEndpointTemplate_template(rInt, location), rInt)
+`, testAccAzureRMPrivateEndpointTemplate_template(rInt, location, testAccAzureRMPrivateEndpoint_serviceAutoApprove(rInt)), rInt)
+}
+
+func testAccAzureRMPrivateEndpoint_requestMessage(rInt int, location string, msg string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_private_link_endpoint" "test" {
+  name                = "acctest-privatelink-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  subnet_id           = azurerm_subnet.endpoint.id
+
+  private_service_connection {
+    name                           = azurerm_private_link_service.test.name
+    is_manual_connection           = true
+    private_connection_resource_id = azurerm_private_link_service.test.id
+    request_message                = %q
+  }
+}
+`, testAccAzureRMPrivateEndpointTemplate_template(rInt, location, testAccAzureRMPrivateEndpoint_serviceManualApprove(rInt)), rInt, msg)
 }

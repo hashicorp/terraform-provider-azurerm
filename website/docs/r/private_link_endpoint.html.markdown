@@ -99,7 +99,7 @@ The following arguments are supported:
 
 * `location` - (Required) The supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) Specifies the resource ID of the subnet from which the private IP addresses will be allocated for the private link endpoint.
+* `subnet_id` - (Required) Specifies the resource ID of the subnet from which the private IP addresses will be allocated for the private link endpoint. Changing this forces a new resource to be created.
 
 * `private_service_connection` - (Required) A `private_service_connection` block as defined below. Once defined it becomes a required argument.
 
@@ -129,11 +129,13 @@ Storage Account  | file | file_secondary
 Storage Account  | web | web_secondary
 Data Lake File System Gen2 | dfs | dfs_secondary
 
+See the product [documentation](https://docs.microsoft.com/en-us/azure/private-link/private-endpoint-overview#dns-configuration) for more information.
+
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Prviate Link Endpoint.
+* `id` - The Azure resource ID of the Prviate Link Endpoint.
 
 * `network_interface_ids` - Displays an list of network interface resource IDs that have been created for this Private Link Endpoint.
 
