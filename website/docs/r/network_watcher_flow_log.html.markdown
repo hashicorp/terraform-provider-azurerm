@@ -1,4 +1,5 @@
 ---
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_watcher_flow_log"
 sidebar_current: "docs-azurerm-resource-network-watcher-flow-log"

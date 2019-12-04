@@ -23,7 +23,6 @@ type NetworkWatcherFlowLogAccountID struct {
 }
 
 func ParseNetworkWatcherFlowLogID(id string) (*NetworkWatcherFlowLogAccountID, error) {
-
 	parts := strings.Split(id, "/networkSecurityGroupId")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("Error: Network Watcher Flow Log ID could not be split on `/networkSecurityGroupId`: %s", id)
