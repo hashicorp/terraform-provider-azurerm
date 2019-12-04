@@ -912,6 +912,10 @@ func resourceArmVirtualMachineRead(d *schema.ResourceData, meta interface{}) err
 				}
 			}
 		}
+
+		if licenseType := props.LicenseType; licenseType != nil {
+			d.Set("license_type", licenseType)
+		}
 	}
 
 	return tags.FlattenAndSet(d, resp.Tags)
