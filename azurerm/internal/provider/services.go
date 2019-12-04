@@ -24,6 +24,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -50,5 +51,6 @@ func SupportedServices() []common.ServiceRegistration {
 		eventhub.Registration{},
 		frontdoor.Registration{},
 		graph.Registration{},
+		hdinsight.Registration{},
 	}
 }
