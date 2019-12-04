@@ -19,6 +19,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -40,5 +42,7 @@ func SupportedServices() []common.ServiceRegistration {
 		datalake.Registration{},
 		devspace.Registration{},
 		devtestlabs.Registration{},
+		dns.Registration{},
+		eventgrid.Registration{},
 	}
 }

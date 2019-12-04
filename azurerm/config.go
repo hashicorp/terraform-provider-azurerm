@@ -9,8 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
@@ -156,8 +154,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	}
 
 	// TODO: move these Clients inside of Common so this method can be moved in there
-	client.Dns = dns.BuildClient(o)
-	client.EventGrid = eventgrid.BuildClient(o)
 	client.Eventhub = eventhub.BuildClient(o)
 	client.Frontdoor = frontdoor.BuildClient(o)
 	client.Graph = graph.BuildClient(o)

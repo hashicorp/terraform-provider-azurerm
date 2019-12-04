@@ -21,8 +21,8 @@ import (
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
 	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
+	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
+	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
@@ -160,6 +160,8 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Datalake = datalake.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
 	client.DevTestLabs = devtestlabs.NewClient(o)
+	client.Dns = dns.NewClient(o)
+	client.EventGrid = eventgrid.NewClient(o)
 
 	return nil
 }
