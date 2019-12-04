@@ -20,7 +20,7 @@ import (
 	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
 	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
 	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
+	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
@@ -159,6 +159,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.DataFactory = datafactory.NewClient(o)
 	client.Datalake = datalake.NewClient(o)
 	client.DevSpace = devspace.NewClient(o)
+	client.DevTestLabs = devtestlabs.NewClient(o)
 
 	return nil
 }

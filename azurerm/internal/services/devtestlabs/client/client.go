@@ -1,4 +1,4 @@
-package devtestlabs
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
@@ -13,7 +13,7 @@ type Client struct {
 	VirtualNetworksClient *dtl.VirtualNetworksClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	LabsClient := dtl.NewLabsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&LabsClient.Client, o.ResourceManagerAuthorizer)
 
