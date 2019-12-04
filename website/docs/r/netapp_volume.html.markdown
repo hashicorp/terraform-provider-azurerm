@@ -86,11 +86,11 @@ The following arguments are supported:
 
 * `pool_name` - (Required) The name of the NetApp pool in which the NetApp Volume should be created. Changing this forces a new resource to be created.
 
-* `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
+* `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
-* `subnet_id` - (Required) The ID of a Subnet in which the NetApp Volume, which must have the delegation Microsoft.NetApp/volumes. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the Subnet within the NetApp Volume, which must have the delegation Microsoft.NetApp/volumes. Changing this forces a new resource to be created.
 
-* `usage_threshold` - (Required) The maximum Storage Quota in Gigabytes allowed for a file system.
+* `usage_threshold` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
@@ -100,7 +100,7 @@ An `export_policy_rule` block supports the following:
 
 * `rule_index` - (Required) The index number of the rule.
 
-* `allowed_clients` - (Required) Client ingress specification as list with IPv4 CIDRs, IPv4 host addresses.
+* `allowed_clients` - (Required) The allowed clients as set with IPv4 CIDRs, IPv4 host addresses.
 
 * `cifs` - (Required) Is the CIFS protocol allowed?
 

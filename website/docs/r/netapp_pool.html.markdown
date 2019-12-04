@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group where the NetApp Pool should be created. Changing this forces a new resource to be created.
 
-* `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created.
+* `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
