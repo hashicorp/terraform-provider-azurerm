@@ -12,19 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -61,21 +49,6 @@ func Provider() terraform.ResourceProvider {
 	//		All over the place
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
-	supportedServices := []common.ServiceRegistration{
-		analysisservices.Registration{},
-		apimanagement.Registration{},
-		applicationinsights.Registration{},
-		authorization.Registration{},
-		automation.Registration{},
-		batch.Registration{},
-		bot.Registration{},
-		cdn.Registration{},
-		cognitive.Registration{},
-		compute.Registration{},
-		containers.Registration{},
-		cosmos.Registration{},
-	}
-
 	dataSources := map[string]*schema.Resource{
 		"azurerm_api_management":                            dataSourceApiManagementService(),
 		"azurerm_api_management_api":                        dataSourceApiManagementApi(),
@@ -538,6 +511,8 @@ func Provider() terraform.ResourceProvider {
 
 		log.Printf(f, v...)
 	}
+
+	supportedServices := provider.SupportedServices()
 	for _, service := range supportedServices {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
