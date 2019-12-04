@@ -1,4 +1,4 @@
-package clients
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/containerinstance/mgmt/2018-10-01/containerinstance"
@@ -7,7 +7,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
-type ContainerServicesClient struct {
+type Client struct {
 	AgentPoolsClient         *containerservice.AgentPoolsClient
 	KubernetesClustersClient *containerservice.ManagedClustersClient
 	GroupsClient             *containerinstance.ContainerGroupsClient
@@ -19,7 +19,7 @@ type ContainerServicesClient struct {
 	ServicesClient *containerservice.ContainerServicesClient
 }
 
-func newContainerServicesClient(o *common.ClientOptions) *ContainerServicesClient {
+func NewClient(o *common.ClientOptions) *Client {
 	registriesClient := containerregistry.NewRegistriesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&registriesClient.Client, o.ResourceManagerAuthorizer)
 
@@ -43,7 +43,7 @@ func newContainerServicesClient(o *common.ClientOptions) *ContainerServicesClien
 	servicesClient := containerservice.NewContainerServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&servicesClient.Client, o.ResourceManagerAuthorizer)
 
-	return &ContainerServicesClient{
+	return &Client{
 		AgentPoolsClient:         &agentPoolsClient,
 		KubernetesClustersClient: &kubernetesClustersClient,
 		GroupsClient:             &groupsClient,

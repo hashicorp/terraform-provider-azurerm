@@ -1,18 +1,18 @@
-package clients
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/batch/mgmt/2018-12-01/batch"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 )
 
-type BatchClient struct {
+type Client struct {
 	AccountClient     *batch.AccountClient
 	ApplicationClient *batch.ApplicationClient
 	CertificateClient *batch.CertificateClient
 	PoolClient        *batch.PoolClient
 }
 
-func newBatchClient(o *common.ClientOptions) *BatchClient {
+func NewClient(o *common.ClientOptions) *Client {
 	accountClient := batch.NewAccountClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 
@@ -25,7 +25,7 @@ func newBatchClient(o *common.ClientOptions) *BatchClient {
 	poolClient := batch.NewPoolClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&poolClient.Client, o.ResourceManagerAuthorizer)
 
-	return &BatchClient{
+	return &Client{
 		AccountClient:     &accountClient,
 		ApplicationClient: &applicationClient,
 		CertificateClient: &certificateClient,
