@@ -159,13 +159,13 @@ func resourceArmVirtualMachine() *schema.Resource {
 			},
 
 			"license_type": {
-				Type:             schema.TypeString,
-				Optional:         true,
-				Computed:         true,
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "None",
 				ValidateFunc: validation.StringInSlice([]string{
 					"Windows_Client",
 					"Windows_Server",
+					"None",
 				}, true),
 			},
 
