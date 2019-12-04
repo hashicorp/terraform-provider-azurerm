@@ -22,6 +22,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -46,5 +47,6 @@ func SupportedServices() []common.ServiceRegistration {
 		dns.Registration{},
 		eventgrid.Registration{},
 		eventhub.Registration{},
+		frontdoor.Registration{},
 	}
 }
