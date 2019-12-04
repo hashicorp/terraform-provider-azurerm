@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -67,11 +67,7 @@ func testAccAzureRMNetworkWatcherFlowLog_disabled(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
 			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
-			},
+			// disabled flow logs don't import all values
 		},
 	})
 }
@@ -99,11 +95,6 @@ func testAccAzureRMNetworkWatcherFlowLog_reenabled(t *testing.T) {
 					resource.TestCheckResourceAttrSet(resourceName, "retention_policy.0.days"),
 					resource.TestCheckResourceAttr(resourceName, "enabled", "false"),
 				),
-			},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 			{
 				Config: testAccAzureRMNetworkWatcherFlowLog_basicConfig(ri, location),
@@ -210,7 +201,7 @@ func testAccAzureRMNetworkWatcherFlowLog_updateStorageAccount(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfig(ri, location),
+				Config: testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfigUpdateStorageAccount(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
@@ -299,6 +290,21 @@ func testAccAzureRMNetworkWatcherFlowLog_trafficAnalytics(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
+			// flow log must be disabled before destroy
+			{
+				Config: testAccAzureRMNetworkWatcherFlowLog_TrafficAnalyticsDisabledConfig(ri, location),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMNetworkWatcherFlowLogExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "network_watcher_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
+					resource.TestCheckResourceAttrSet(resourceName, "network_security_group_id"),
+					resource.TestCheckResourceAttrSet(resourceName, "storage_account_id"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "retention_policy.0.days", "7"),
+					resource.TestCheckResourceAttr(resourceName, "enabled", "true"),
+				),
+			},
 		},
 	})
 }
@@ -359,11 +365,12 @@ resource "azurerm_network_watcher" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-    name                = "acctestSA%d"
+    name                = "acctestsa%d"
     resource_group_name = "${azurerm_resource_group.test.name}"
     location            = "${azurerm_resource_group.test.location}"
 
     account_tier              = "Standard"
+    account_kind              = "StorageV2"
     account_replication_type  = "LRS"
     enable_https_traffic_only = true
 }
@@ -408,6 +415,37 @@ resource "azurerm_network_watcher_flow_log" "test" {
     }
 }
 `, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, location))
+}
+
+func testAccAzureRMNetworkWatcherFlowLog_retentionPolicyConfigUpdateStorageAccount(rInt int, location string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account" "testb" {
+    name                = "acctestsab%d"
+    resource_group_name = "${azurerm_resource_group.test.name}"
+    location            = "${azurerm_resource_group.test.location}"
+
+    account_tier              = "Standard"
+    account_kind              = "StorageV2"
+    account_replication_type  = "LRS"
+    enable_https_traffic_only = true
+}
+
+resource "azurerm_network_watcher_flow_log" "test" {
+    network_watcher_name = "${azurerm_network_watcher.test.name}"
+    resource_group_name  = "${azurerm_resource_group.test.name}"
+
+    network_security_group_id = "${azurerm_network_security_group.test.id}"
+    storage_account_id        = "${azurerm_storage_account.testb.id}"
+    enabled                   = true
+    
+    retention_policy {
+        enabled = true
+        days    = 7
+    }
+}
+`, testAccAzureRMNetworkWatcherFlowLog_prerequisites(rInt, location), rInt%1000000+1)
 }
 
 func testAccAzureRMNetworkWatcherFlowLog_disabledConfig(rInt int, location string) string {

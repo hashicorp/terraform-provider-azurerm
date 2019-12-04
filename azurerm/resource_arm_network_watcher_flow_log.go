@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-07-01/network"
+	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -299,10 +299,7 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 	// There is no delete in Azure API. Disabling flow log is effectively a delete in Terraform.
 	if *fli.FlowLogProperties.Enabled {
 		fli.FlowLogProperties.Enabled = utils.Bool(false)
-
-		if isDefaultDisabledFlowLogTrafficAnalytics(fli.FlowAnalyticsConfiguration) {
-			fli.FlowAnalyticsConfiguration = nil
-		}
+		fli.FlowAnalyticsConfiguration = nil
 
 		setFuture, err := client.SetFlowLogConfiguration(ctx, id.ResourceGroup, id.NetworkWatcherName, fli)
 		if err != nil {
@@ -347,9 +344,7 @@ func flattenAzureRmNetworkWatcherFlowLogRetentionPolicy(input *network.Retention
 }
 
 func flattenAzureRmNetworkWatcherFlowLogTrafficAnalytics(input *network.TrafficAnalyticsProperties) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	} else if isDefaultDisabledFlowLogTrafficAnalytics(input) {
+	if input == nil || input.NetworkWatcherFlowAnalyticsConfiguration == nil {
 		return []interface{}{}
 	}
 
