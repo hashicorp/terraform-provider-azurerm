@@ -25,6 +25,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -52,5 +53,6 @@ func SupportedServices() []common.ServiceRegistration {
 		frontdoor.Registration{},
 		graph.Registration{},
 		hdinsight.Registration{},
+		healthcare.Registration{},
 	}
 }

@@ -27,7 +27,7 @@ import (
 	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
 	graph "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -166,6 +166,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.Graph = graph.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
+	client.Healthcare = healthcare.NewClient(o)
 
 	return nil
 }
