@@ -15,7 +15,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
-
 )
 
 var storageAccountResourceName = "azurerm_storage_account"
