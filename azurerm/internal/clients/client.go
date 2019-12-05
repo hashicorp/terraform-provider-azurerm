@@ -29,7 +29,7 @@ import (
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
+	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
@@ -168,6 +168,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.HDInsight = hdinsight.NewClient(o)
 	client.Healthcare = healthcare.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
+	client.KeyVault = keyvault.NewClient(o)
 
 	return nil
 }

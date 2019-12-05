@@ -27,6 +27,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -56,5 +57,6 @@ func SupportedServices() []common.ServiceRegistration {
 		hdinsight.Registration{},
 		healthcare.Registration{},
 		iothub.Registration{},
+		keyvault.Registration{},
 	}
 }
