@@ -319,7 +319,7 @@ func expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d *schema.ResourceData) *
 	if len(vs) < 1 || vs[0] == nil {
 		return nil
 	}
-	
+
 	v := vs[0].(map[string]interface{})
 	enabled := v["enabled"].(bool)
 	days := v["days"].(int)
