@@ -34,75 +34,86 @@ resource "azurerm_log_analytics_workspace" "example" {
   retention_in_days   = 30
 }
 
-# Example: AlertingAction
+# Example: Alerting Action
 resource "azurerm_scheduled_query_rule" "example" {
   name                   = format("%s-queryrule", var.prefix)
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
 
-  action_type              = "AlertingAction"
-  azns_action              = {
+  action_type              = "Alerting"
+  azns_action {
     action_group           = []
     email_subject          = "Email Header"
-    custom_webhook_payload = {}
+    custom_webhook_payload = "{}"
   }
   data_source_id           = azurerm_application_insights.example.id
-  description              = "Scheduled query rule AlertingAction example"
+  description              = "Scheduled query rule Alerting Action example"
   enabled                  = true
   frequency                = 5
   query                    = "requests | where status_code >= 500 | summarize AggregatedValue = count() by bin(timestamp, 5m)"
   query_type               = "ResultCount"
-  severity                 = "1"
+  severity                 = 1
   time_window              = 30
-  trigger                  = {
+  trigger {
     threshold_operator     = "GreaterThan"
     threshold              = 3
+    metric_trigger {
+      operator            = "GreaterThan"
+      threshold           = 1
+      metric_trigger_type = "Total"
+      metric_column       = "timestamp"
+    }
   }
 }
 
-# Example: AlertingAction Cross-Resource
+# Example: Alerting Action Cross-Resource
 resource "azurerm_scheduled_query_rule" "example2" {
   name                   = format("%s-queryrule2", var.prefix)
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
 
-  action_type              = "AlertingAction"
+  action_type              = "Alerting"
   authorized_resources     = [azurerm_application_insights.example.id,
                               azurerm_log_analytics_workspace.example.id]
-  azns_action              = {
+  azns_action {
     action_group           = []
     email_subject          = "Email Header"
-    custom_webhook_payload = {}
+    custom_webhook_payload = "{}"
   }
   data_source_id           = azurerm_application_insights.example.id
-  description              = "Scheduled query rule AlertingAction cross-resource example"
+  description              = "Scheduled query rule Alerting Action cross-resource example"
   enabled                  = true
   frequency                = 5
-  query                    = "union requests, workspace(\"loganalytics\").Heartbeat"
+  query                    = format(<<QUERY
+let a=workspace('%s').Perf | where Computer="dependency" and TimeGenerated > ago(1h) | where ObjectName == "Processor" and CounterName == "%% Processor Time" | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated);
+let b=requests | where resultCode == "200" and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp);
+a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5
+QUERY
+  , azurerm_log_analytics_workspace.example.id)
   query_type               = "ResultCount"
   severity                 = "1"
   time_window              = 30
-  trigger                  = {
+  trigger {
     threshold_operator     = "GreaterThan"
     threshold              = 3
   }
 }
 
-# Example: LogToMetricAction
+# Example: LogToMetric Action
 resource "azurerm_scheduled_query_rule" "example3" {
   name                   = format("%s-queryrule3", var.prefix)
   location               = azurerm_resource_group.example.location
   resource_group_name    = azurerm_resource_group.example.name
 
-  action_type            = "LogToMetricAction"
-  criteria               = [{
+  action_type            = "LogToMetric"
+  criteria {
       metric_name        = "Average_% Idle Time"
-      dimensions         = [{
-        name             = "dimension"
-        operator         = "GreaterThan"
-        values           = ["latency"]
-      }]
-  }]
+      dimensions {
+        name             = "InstanceName"
+        operator         = "Include"
+        values           = [""]
+      }
+  }
   data_source_id         = azurerm_application_insights.example.id
   description            = "Scheduled query rule LogToMetric example"
   enabled                = true

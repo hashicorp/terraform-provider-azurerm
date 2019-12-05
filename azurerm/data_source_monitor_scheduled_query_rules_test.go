@@ -104,11 +104,11 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 	data_source_id = "${azurerm_application_insights.test.id}"
 
 	criteria {
-		metric_name        = "Average_percent Idle Time"
+		metric_name        = "Average_%% Idle Time"
 		dimension {
-			name             = "dimension"
+			name             = "InstanceName"
 			operator         = "Include"
-			values           = ["latency"]
+			values           = [""]
 		}
 	}
 }

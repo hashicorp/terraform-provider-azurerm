@@ -215,8 +215,9 @@ func resourceArmMonitorScheduledQueryRules() *schema.Resource {
 										}, false),
 									},
 									"threshold": {
-										Type:     schema.TypeFloat,
-										Required: true,
+										Type:         schema.TypeFloat,
+										Required:     true,
+										ValidateFunc: validation.NoZeroValues,
 									},
 								},
 							},
@@ -392,6 +393,19 @@ func resourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta inte
 		}
 	}
 
+	if source := resp.Source; source != nil {
+		if source.AuthorizedResources != nil {
+			d.Set("authorized_resources", utils.FlattenStringSlice(source.AuthorizedResources))
+		}
+		if source.DataSourceID != nil {
+			d.Set("data_source_id", source.DataSourceID)
+		}
+		if source.Query != nil {
+			d.Set("query", source.Query)
+		}
+		d.Set("query_type", string(source.QueryType))
+	}
+
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -500,8 +514,11 @@ func expandMonitorScheduledQueryRulesSchedule(d *schema.ResourceData) *insights.
 }
 
 func expandMonitorScheduledQueryRulesMetricTrigger(input []interface{}) *insights.LogMetricTrigger {
-	result := insights.LogMetricTrigger{}
+	if len(input) == 0 {
+		return nil
+	}
 
+	result := insights.LogMetricTrigger{}
 	for _, item := range input {
 		v := item.(map[string]interface{})
 		result.ThresholdOperator = insights.ConditionalOperator(v["operator"].(string))

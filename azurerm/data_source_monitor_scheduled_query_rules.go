@@ -255,7 +255,7 @@ func dataSourceArmMonitorScheduledQueryRulesRead(d *schema.ResourceData, meta in
 
 	if source := resp.Source; source != nil {
 		if source.AuthorizedResources != nil {
-			d.Set("authorized_resources", source.AuthorizedResources)
+			d.Set("authorized_resources", utils.FlattenStringSlice(source.AuthorizedResources))
 		}
 		if source.DataSourceID != nil {
 			d.Set("data_source_id", source.DataSourceID)

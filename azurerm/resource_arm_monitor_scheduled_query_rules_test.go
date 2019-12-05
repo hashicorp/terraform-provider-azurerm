@@ -153,8 +153,6 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 }
 
 func testAccAzureRMMonitorScheduledQueryRules_alertingActionCrossResource(rInt int, rString, location string) string {
-	ts := time.Now().Format(time.RFC3339)
-
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -192,11 +190,11 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 
 	authorized_resources = ["${azurerm_application_insights.test.id}", "${azurerm_log_analytics_workspace.test.id}"]
 	data_source_id       = "${azurerm_application_insights.test.id}"
-  query                = "let d=datatable(TimeGenerated: datetime, usage_percent: double) [  '%s', 25.4, '%s', 75.4 ]; d | summarize AggregatedValue=avg(usage_percent) by bin(TimeGenerated, 1h)"
+	query                = format("let a=workspace('%%s').Perf | where Computer='dependency' and TimeGenerated > ago(1h) | where ObjectName == 'Processor' and CounterName == '%%%% Processor Time' | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated); let b=requests | where resultCode == '200' and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp); a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5", azurerm_log_analytics_workspace.test.id)
 	query_type           = "ResultCount"
 
 	frequency   = 60
-  time_window = 60
+	time_window = 60
 
 	severity     = 3
 	azns_action {
@@ -205,17 +203,11 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 	}
 
 	trigger {
-		operator = "GreaterThan"
-		threshold         = 5000
-		metric_trigger {
-			operator            = "GreaterThan"
-			threshold           = 1
-			metric_trigger_type = "Total"
-			metric_column       = "TimeGenerated"
-		}
+		operator  = "GreaterThan"
+		threshold = 5000
 	}
 }
-`, rInt, location, rInt, rInt, rInt, rInt, ts, ts)
+`, rInt, location, rInt, rInt, rInt, rInt)
 }
 
 func testAccAzureRMMonitorScheduledQueryRules_logToMetricAction(rInt int, rString, location string) string {
@@ -249,11 +241,11 @@ resource "azurerm_monitor_scheduled_query_rules" "test" {
 	data_source_id = "${azurerm_application_insights.test.id}"
 
 	criteria {
-		metric_name        = "Average_percent Idle Time"
+		metric_name        = "Average_%% Idle Time"
 		dimension {
-			name             = "dimension"
+			name             = "InstanceName"
 			operator         = "Include"
-			values           = ["latency"]
+			values           = [""]
 		}
 	}
 }
