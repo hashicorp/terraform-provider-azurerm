@@ -2,7 +2,9 @@ package azurerm
 
 import (
 	"fmt"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -27,6 +29,13 @@ func resourceArmStorageAccountNetworkRules() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"resource_group_name": azure.SchemaResourceGroupName(),
 
@@ -38,9 +47,10 @@ func resourceArmStorageAccountNetworkRules() *schema.Resource {
 			},
 
 			"bypass": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 					ValidateFunc: validation.StringInSlice([]string{
@@ -48,23 +58,33 @@ func resourceArmStorageAccountNetworkRules() *schema.Resource {
 						string(storage.Logging),
 						string(storage.Metrics),
 						string(storage.None),
-					}, true),
+					}, false),
 				},
 				Set: schema.HashString,
 			},
 
 			"ip_rules": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validate.IPv4Address,
+				},
+				Set: schema.HashString,
 			},
 
 			"virtual_network_subnet_ids": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Computed:   true,
+				ConfigMode: schema.SchemaConfigModeAttr,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: azure.ValidateResourceID,
+				},
+				Set: schema.HashString,
 			},
 
 			"default_action": {
@@ -117,11 +137,11 @@ func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if v, ok := d.GetOk("ip_rules"); ok {
-		rules.IPRules = expandStorageAccountNetworkRuleIpRules(v.([]interface{}))
+		rules.IPRules = expandStorageAccountNetworkRuleIpRules(v.(*schema.Set).List())
 	}
 
 	if v, ok := d.GetOk("virtual_network_subnet_ids"); ok {
-		rules.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(v.([]interface{}))
+		rules.VirtualNetworkRules = expandStorageAccountNetworkRuleVirtualRules(v.(*schema.Set).List())
 	}
 
 	opts := storage.AccountUpdateParameters{
@@ -161,13 +181,15 @@ func resourceArmStorageAccountNetworkRulesRead(d *schema.ResourceData, meta inte
 	d.Set("resource_group_name", resourceGroup)
 
 	if rules := storageAccount.NetworkRuleSet; rules != nil {
-		if err := d.Set("ip_rules", flattenStorageAccountIPRules(rules.IPRules)); err != nil {
+		if err := d.Set("ip_rules", schema.NewSet(schema.HashString, flattenStorageAccountIPRules(rules.IPRules))); err != nil {
 			return fmt.Errorf("Error setting `ip_rules`: %+v", err)
 		}
-		if err := d.Set("virtual_network_subnet_ids", flattenStorageAccountVirtualNetworks(rules.VirtualNetworkRules)); err != nil {
+		if err := d.Set("virtual_network_subnet_ids", schema.NewSet(schema.HashString, flattenStorageAccountVirtualNetworks(rules.VirtualNetworkRules))); err != nil {
 			return fmt.Errorf("Error setting `virtual_network_subnet_ids`: %+v", err)
 		}
-		d.Set("bypass", schema.NewSet(schema.HashString, flattenStorageAccountBypass(rules.Bypass)))
+		if err := d.Set("bypass", schema.NewSet(schema.HashString, flattenStorageAccountBypass(rules.Bypass))); err != nil {
+			return fmt.Errorf("Error setting `bypass`: %+v", err)
+		}
 		d.Set("default_action", string(rules.DefaultAction))
 	}
 
