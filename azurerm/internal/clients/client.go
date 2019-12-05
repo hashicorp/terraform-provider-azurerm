@@ -30,7 +30,7 @@ import (
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
+	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
@@ -169,6 +169,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Healthcare = healthcare.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
+	client.Kusto = kusto.NewClient(o)
 
 	return nil
 }
