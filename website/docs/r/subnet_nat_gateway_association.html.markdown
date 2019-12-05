@@ -5,7 +5,6 @@ page_title: "Azure Resource Manager: azurerm_subnet_nat_gateway_association"
 sidebar_current: "docs-azurerm-resource-network-subnet-nat-gateway-association"
 description: |-
   Associates a [NAT Gateway](nat_gateway.html) with a [Subnet](subnet.html) within a [Virtual Network](virtual_network.html).
-
 ---
 
 # azurerm_subnet_route_table_association
@@ -16,7 +15,7 @@ Associates a [NAT Gateway](nat_gateway.html) with a [Subnet](subnet.html) within
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG-network-%d"
+  name     = "example-nat-gateway-rg"
   location = "East US 2"
 }
 
@@ -50,19 +49,19 @@ resource "azurerm_subnet_nat_gateway_association" "example" {
 
 The following arguments are supported:
 
-* `nat_gateway_id` - (Required) The ID of the NAT Gateway which should be associated with the Subnet. Changing this forces a new resource to be created.
+* `nat_gateway_id` - (Required) The Azure resource ID of the NAT Gateway which should be associated with the Subnet. Changing this forces a new resource to be created.
 
-* `subnet_id` - (Required) The ID of the Subnet. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The Azure resource ID of the Subnet. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `id` - The ID of the Subnet.
+* `id` - The Azure resource ID of the Subnet.
 
 ## Import
 
-Subnet Route Table Associations can be imported using the `resource id` of the Subnet, e.g.
+Subnet NAT Gateway Associations can be imported using the `resource id` of the Subnet, e.g.
 
 ```shell
 terraform import azurerm_subnet_nat_gateway_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/subnets/mysubnet1

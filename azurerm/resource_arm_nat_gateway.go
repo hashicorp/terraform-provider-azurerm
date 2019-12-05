@@ -10,7 +10,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -68,9 +67,8 @@ func resourceArmNatGateway() *schema.Resource {
 			},
 
 			"resource_guid": {
-				Type:         schema.TypeString,
-				Computed:     true,
-				ValidateFunc: validate.UUID,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"sku_name": {
