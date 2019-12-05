@@ -84,12 +84,7 @@ resource "azurerm_scheduled_query_rule" "example2" {
   description              = "Scheduled query rule Alerting Action cross-resource example"
   enabled                  = true
   frequency                = 5
-  query                    = format(<<QUERY
-let a=workspace('%s').Perf | where Computer="dependency" and TimeGenerated > ago(1h) | where ObjectName == "Processor" and CounterName == "%% Processor Time" | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated);
-let b=requests | where resultCode == "200" and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp);
-a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5
-QUERY
-  , azurerm_log_analytics_workspace.example.id)
+  query                    = format("let a=workspace('%s').Perf | where Computer='dependency' and TimeGenerated > ago(1h) | where ObjectName == 'Processor' and CounterName == '%% Processor Time' | summarize cpu=avg(CounterValue) by bin(TimeGenerated, 1m) | extend ts=tostring(TimeGenerated); let b=requests | where resultCode == '200' and timestamp > ago(1h) | summarize reqs=count() by bin(timestamp, 1m) | extend ts = tostring(timestamp); a | join b on $left.ts == $right.ts | where cpu > 50 and reqs > 5", azurerm_log_analytics_workspace.test.id)
   query_type               = "ResultCount"
   severity                 = "1"
   time_window              = 30
