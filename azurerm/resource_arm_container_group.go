@@ -64,6 +64,37 @@ func resourceArmContainerGroup() *schema.Resource {
 				}, true),
 			},
 
+			"ports": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Computed: true,
+				Set:      resourceArmContainerGroupPortsHash,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"port": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ForceNew:     true,
+							Computed:     true,
+							ValidateFunc: validate.PortNumber,
+						},
+
+						"protocol": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ForceNew: true,
+							Computed: true,
+							//Default:  string(containerinstance.TCP), restore in 2.0
+							ValidateFunc: validation.StringInSlice([]string{
+								string(containerinstance.TCP),
+								string(containerinstance.UDP),
+							}, false),
+						},
+					},
+				},
+			},
+
 			"network_profile_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -484,7 +515,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 	diagnosticsRaw := d.Get("diagnostics").([]interface{})
 	diagnostics := expandContainerGroupDiagnostics(diagnosticsRaw)
 
-	containers, containerGroupPorts, containerGroupVolumes := expandContainerGroupContainers(d)
+	containers, containerGroupVolumes := expandContainerGroupContainers(d)
 	containerGroup := containerinstance.ContainerGroup{
 		Name:     &name,
 		Location: &location,
@@ -496,7 +527,7 @@ func resourceArmContainerGroupCreate(d *schema.ResourceData, meta interface{}) e
 			RestartPolicy: containerinstance.ContainerGroupRestartPolicy(restartPolicy),
 			IPAddress: &containerinstance.IPAddress{
 				Type:  containerinstance.ContainerGroupIPAddressType(IPAddressType),
-				Ports: containerGroupPorts,
+				Ports: expandPorts(d),
 			},
 			OsType:                   containerinstance.OperatingSystemTypes(OSType),
 			Volumes:                  containerGroupVolumes,
@@ -589,6 +620,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		if address := props.IPAddress; address != nil {
 			d.Set("ip_address_type", address.Type)
 			d.Set("ip_address", address.IP)
+			d.Set("ports", address.Ports)
 			d.Set("dns_name_label", address.DNSNameLabel)
 			d.Set("fqdn", address.Fqdn)
 		}
@@ -726,10 +758,9 @@ func containerGroupEnsureDetachedFromNetworkProfileRefreshFunc(ctx context.Conte
 	}
 }
 
-func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Port, *[]containerinstance.Volume) {
+func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstance.Container, *[]containerinstance.Volume) {
 	containersConfig := d.Get("container").([]interface{})
 	containers := make([]containerinstance.Container, 0)
-	containerGroupPorts := make([]containerinstance.Port, 0)
 	containerGroupVolumes := make([]containerinstance.Volume, 0)
 
 	for _, containerConfig := range containersConfig {
@@ -780,10 +811,6 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 					Port:     &port,
 					Protocol: containerinstance.ContainerNetworkProtocol(proto),
 				})
-				containerGroupPorts = append(containerGroupPorts, containerinstance.Port{
-					Port:     &port,
-					Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
-				})
 			}
 			container.Ports = &ports
 		} else {
@@ -804,7 +831,6 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 				}
 
 				container.Ports = &ports
-				containerGroupPorts = append(containerGroupPorts, port)
 			}
 		}
 
@@ -864,7 +890,7 @@ func expandContainerGroupContainers(d *schema.ResourceData) (*[]containerinstanc
 		containers = append(containers, container)
 	}
 
-	return &containers, &containerGroupPorts, &containerGroupVolumes
+	return &containers, &containerGroupVolumes
 }
 
 func expandContainerEnvironmentVariables(input interface{}, secure bool) *[]containerinstance.EnvironmentVariable {
@@ -933,6 +959,28 @@ func expandContainerImageRegistryCredentials(d *schema.ResourceData) *[]containe
 			Server:   utils.String(credConfig["server"].(string)),
 			Password: utils.String(credConfig["password"].(string)),
 			Username: utils.String(credConfig["username"].(string)),
+		})
+	}
+
+	return &output
+}
+
+func expandPorts(d *schema.ResourceData) *[]containerinstance.Port {
+	portsRaw := d.Get("ports").(*schema.Set)
+	if len(portsRaw.List()) == 0 {
+		return nil
+	}
+
+	output := make([]containerinstance.Port, 0)
+
+	for _, p := range portsRaw.List() {
+		portConfig := p.(map[string]interface{})
+
+		port := int32(portConfig["port"].(int))
+		proto := portConfig["protocol"].(string)
+		output = append(output, containerinstance.Port{
+			Port:     &port,
+			Protocol: containerinstance.ContainerGroupNetworkProtocol(proto),
 		})
 	}
 

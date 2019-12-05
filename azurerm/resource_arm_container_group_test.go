@@ -293,6 +293,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "ports.#", "1"),
 				),
 			},
 			{
@@ -301,6 +302,7 @@ func TestAccAzureRMContainerGroup_linuxBasicUpdate(t *testing.T) {
 					testCheckAzureRMContainerGroupExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "container.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "container.0.ports.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "ports.#", "2"),
 				),
 			},
 		},
@@ -644,6 +646,10 @@ resource "azurerm_container_group" "test" {
   ip_address_type     = "public"
   os_type             = "Linux"
 
+  ports {
+    port = 80
+  }
+
   container {
     name   = "hw"
     image  = "microsoft/aci-helloworld:latest"
@@ -836,6 +842,15 @@ resource "azurerm_container_group" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   ip_address_type     = "public"
   os_type             = "Linux"
+
+  ports {
+    port = 80
+  }
+
+  ports {
+    port     = 5443
+    protocol = "UDP"
+  }
 
   container {
     name   = "hw"

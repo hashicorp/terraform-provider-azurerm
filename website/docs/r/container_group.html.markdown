@@ -86,6 +86,10 @@ The following arguments are supported:
 
 ~> **Note:** `dns_name_label`, `identity` and `os_type` set to `windows` are not compatible with `Private` `ip_address_type`
 
+* `ports` - (Optional) A set of public ports for the container group. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
+
+~> **Note:** Any `ports` specified at the container group level must also be specified on an individual container.
+
 * `network_profile_id` - (Optional) Network profile ID for deploying to virtual network.
 
 * `image_registry_credential` - (Optional) A `image_registry_credential` block as documented below. Changing this forces a new resource to be created.
