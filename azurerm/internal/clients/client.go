@@ -174,6 +174,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Logic = logic.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
 	client.Maps = maps.NewClient(o)
+	client.MariaDB = mariadb.NewClient(o)
 
 	return nil
 }

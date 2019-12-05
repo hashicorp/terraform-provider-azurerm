@@ -68,5 +68,6 @@ func SupportedServices() []common.ServiceRegistration {
 		logic.Registration{},
 		managementgroup.Registration{},
 		maps.Registration{},
+		maridadb.Registration{},
 	}
 }

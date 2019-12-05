@@ -1,4 +1,4 @@
-package mariadb
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/mariadb/mgmt/2018-06-01/mariadb"
@@ -13,7 +13,7 @@ type Client struct {
 	VirtualNetworkRulesClient *mariadb.VirtualNetworkRulesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	configurationsClient := mariadb.NewConfigurationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&configurationsClient.Client, o.ResourceManagerAuthorizer)
 

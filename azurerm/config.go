@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
@@ -142,7 +141,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	}
 
 	// TODO: move these Clients inside of Common so this method can be moved in there
-	client.MariaDB = mariadb.BuildClient(o)
 	client.Media = media.BuildClient(o)
 	client.Monitor = monitor.BuildClient(o)
 	client.Mssql = mssql.BuildClient(o)
