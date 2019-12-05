@@ -225,11 +225,12 @@ func resourceArmFunctionApp() *schema.Resource {
 						"min_tls_version": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								string(web.OneFullStopZero),
 								string(web.OneFullStopOne),
 								string(web.OneFullStopTwo),
-								string(web.OneFullStopZero),
-							}, true),
+							}, false),
 						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
