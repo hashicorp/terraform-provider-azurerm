@@ -68,7 +68,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"primary_read_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -93,7 +92,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"secondary_read_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -118,7 +116,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"primary_write_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -143,7 +140,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"secondary_write_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
