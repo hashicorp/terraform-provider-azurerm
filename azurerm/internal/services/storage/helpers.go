@@ -88,7 +88,10 @@ func (client Client) FindAccount(ctx context.Context, accountName string) (*acco
 	var accounts []storage.Account
 	for accountsPage.NotDone() {
 		accounts = append(accounts, accountsPage.Values()...)
-		accountsPage.NextWithContext(ctx)
+		err = accountsPage.NextWithContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("Error retrieving next page of storage accounts: %+v", err)
+		}
 	}
 
 	for _, v := range accounts {
