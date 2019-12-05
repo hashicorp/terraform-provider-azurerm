@@ -17,12 +17,12 @@ import (
 
 var storageAccountResourceName = "azurerm_storage_account"
 
-func resourceArmStorageAccountNetworkRule() *schema.Resource {
+func resourceArmStorageAccountNetworkRules() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmStorageAccountNetworkRuleCreateUpdate,
-		Read:   resourceArmStorageAccountNetworkRuleRead,
-		Update: resourceArmStorageAccountNetworkRuleCreateUpdate,
-		Delete: resourceArmStorageAccountNetworkRuleDelete,
+		Create: resourceArmStorageAccountNetworkRulesCreateUpdate,
+		Read:   resourceArmStorageAccountNetworkRulesRead,
+		Update: resourceArmStorageAccountNetworkRulesCreateUpdate,
+		Delete: resourceArmStorageAccountNetworkRulesDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -79,7 +79,7 @@ func resourceArmStorageAccountNetworkRule() *schema.Resource {
 	}
 }
 
-func resourceArmStorageAccountNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.AccountsClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -104,8 +104,6 @@ func resourceArmStorageAccountNetworkRuleCreateUpdate(d *schema.ResourceData, me
 			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", *storageAccount.ID)
 		}
 	}
-
-	resourceId := fmt.Sprintf("%s/NetworkRules", *storageAccount.ID)
 
 	rules := storageAccount.NetworkRuleSet
 	if rules == nil {
@@ -136,12 +134,12 @@ func resourceArmStorageAccountNetworkRuleCreateUpdate(d *schema.ResourceData, me
 		return fmt.Errorf("Error updating Azure Storage Account Network Rules %q (Resource Group %q): %+v", storageAccountName, resourceGroup, err)
 	}
 
-	d.SetId(resourceId)
+	d.SetId(*storageAccount.ID)
 
-	return resourceArmStorageAccountNetworkRuleRead(d, meta)
+	return resourceArmStorageAccountNetworkRulesRead(d, meta)
 }
 
-func resourceArmStorageAccountNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageAccountNetworkRulesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.AccountsClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -176,7 +174,7 @@ func resourceArmStorageAccountNetworkRuleRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceArmStorageAccountNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmStorageAccountNetworkRulesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Storage.AccountsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
