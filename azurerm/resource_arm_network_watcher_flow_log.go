@@ -296,17 +296,18 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 	}
 
 	// There is no delete in Azure API. Disabling flow log is effectively a delete in Terraform.
-	if *fli.FlowLogProperties.Enabled {
-		fli.FlowLogProperties.Enabled = utils.Bool(false)
-		fli.FlowAnalyticsConfiguration = nil
+	if props := fli.FlowLogProperties; props != nil {
+		if props.Enabled != nil && *props.Enabled {
+			props.Enabled = utils.Bool(false)
 
-		setFuture, err := client.SetFlowLogConfiguration(ctx, id.ResourceGroup, id.NetworkWatcherName, fli)
-		if err != nil {
-			return fmt.Errorf("Error disabling Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
-		}
+			setFuture, err := client.SetFlowLogConfiguration(ctx, id.ResourceGroup, id.NetworkWatcherName, fli)
+			if err != nil {
+				return fmt.Errorf("Error disabling Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
+			}
 
-		if err = setFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting for completion of disabling Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
+			if err = setFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+				return fmt.Errorf("Error waiting for completion of disabling Flow Log Configuration for target %q (Network Watcher %q / Resource Group %q): %+v", id.NetworkSecurityGroupID, id.NetworkWatcherName, id.ResourceGroup, err)
+			}
 		}
 	}
 
@@ -315,6 +316,10 @@ func resourceArmNetworkWatcherFlowLogDelete(d *schema.ResourceData, meta interfa
 
 func expandAzureRmNetworkWatcherFlowLogRetentionPolicy(d *schema.ResourceData) *network.RetentionPolicyParameters {
 	vs := d.Get("retention_policy").([]interface{})
+	if len(vs) < 1 || vs[0] == nil {
+		return nil
+	}
+	
 	v := vs[0].(map[string]interface{})
 	enabled := v["enabled"].(bool)
 	days := v["days"].(int)
