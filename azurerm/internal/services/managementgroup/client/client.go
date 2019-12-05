@@ -1,4 +1,4 @@
-package managementgroup
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-preview/managementgroups"
@@ -10,7 +10,7 @@ type Client struct {
 	SubscriptionClient *managementgroups.SubscriptionsClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	GroupsClient := managementgroups.NewClientWithBaseURI(o.ResourceManagerEndpoint)
 	o.ConfigureClient(&GroupsClient.Client, o.ResourceManagerAuthorizer)
 

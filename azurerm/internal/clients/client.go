@@ -33,7 +33,7 @@ import (
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
@@ -172,6 +172,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Kusto = kusto.NewClient(o)
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
+	client.ManagementGroups = managementgroup.NewClient(o)
 
 	return nil
 }

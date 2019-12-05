@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
@@ -151,7 +150,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	client.Mssql = mssql.BuildClient(o)
 	client.Msi = msi.BuildClient(o)
 	client.Mysql = mysql.BuildClient(o)
-	client.ManagementGroups = managementgroup.BuildClient(o)
 	client.Netapp = netapp.BuildClient(o)
 	client.Network = network.BuildClient(o)
 	client.NotificationHubs = notificationhub.BuildClient(o)
