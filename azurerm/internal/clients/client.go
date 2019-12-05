@@ -40,7 +40,7 @@ import (
 	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	mysql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
@@ -179,6 +179,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Monitor = monitor.NewClient(o)
 	client.Msi = msi.NewClient(o)
 	client.Mssql = mssql.NewClient(o)
+	client.Mysql = mysql.NewClient(o)
 
 	return nil
 }
