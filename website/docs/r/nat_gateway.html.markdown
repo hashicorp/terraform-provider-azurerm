@@ -10,7 +10,7 @@ description: |-
 
 Manages an Azure NAT Gateway instance.
 
--> **NOTE:** The Azure NAT Gateway service is currently in private preview. Your subscription must be on the NAT Gateway private preview whitelist for this resource to be provisioned correctly. If you attempt to provision this resource and receive an `InvalidResourceType` error that means that your subscription is not part of the NAT Gateway private preview whitelist and you will not be able to use this resource. The NAT Gateway private preview service is currently only available in the `East US 2` and `West Central US` regions. You can opt into the Private Preview by contacting your Microsoft Representative.
+-> **NOTE:** The Azure NAT Gateway service is currently in private preview. Your subscription must be on the NAT Gateway private preview whitelist for this resource to be provisioned correctly. If you attempt to provision this resource and receive an `InvalidResourceType` error that means that your subscription is not part of the NAT Gateway private preview whitelist and you will not be able to use this resource. The NAT Gateway private preview service is currently available in a limited set of regions. You can opt into the Private Preview by contacting your Microsoft Representative.
 
 ## Example Usage
 
