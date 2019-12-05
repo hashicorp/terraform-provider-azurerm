@@ -311,7 +311,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 
 	values := resultPage.Values()
 	for _, value := range values {
-		if &value == nil {
+		if value.ID == nil || value.Value == nil || value.ConnectionString == nil || value.Name == nil || value.ReadOnly == nil {
 			continue
 		}
 
