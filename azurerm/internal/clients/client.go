@@ -39,7 +39,7 @@ import (
 	media "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/client"
 	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
+	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
@@ -85,7 +85,7 @@ type Client struct {
 	Containers       *containerServices.Client
 	Cosmos           *cosmosdb.Client
 
-	// TODO: Phase 2
+	// Phase 2
 	DataBricks  *databricks.Client
 	DataFactory *datafactory.Client
 	Datalake    *datalake.Client
@@ -99,7 +99,7 @@ type Client struct {
 	HDInsight   *hdinsight.Client
 	Healthcare  *healthcare.Client
 
-	// TODO: Phrase 3
+	// Phrase 3
 	IoTHub           *iothub.Client
 	KeyVault         *keyvault.Client
 	Kusto            *kusto.Client
@@ -178,6 +178,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Media = media.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
 	client.Msi = msi.NewClient(o)
+	client.Mssql = mssql.NewClient(o)
 
 	return nil
 }
