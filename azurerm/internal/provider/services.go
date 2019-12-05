@@ -33,6 +33,8 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -68,6 +70,7 @@ func SupportedServices() []common.ServiceRegistration {
 		logic.Registration{},
 		managementgroup.Registration{},
 		maps.Registration{},
-		maridadb.Registration{},
+		mariadb.Registration{},
+		media.Registration{},
 	}
 }

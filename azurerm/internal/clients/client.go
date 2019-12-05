@@ -35,8 +35,8 @@ import (
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
+	media "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
@@ -175,6 +175,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.ManagementGroups = managementgroup.NewClient(o)
 	client.Maps = maps.NewClient(o)
 	client.MariaDB = mariadb.NewClient(o)
+	client.Media = media.NewClient(o)
 
 	return nil
 }

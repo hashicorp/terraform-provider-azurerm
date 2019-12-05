@@ -1,4 +1,4 @@
-package media
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/mediaservices/mgmt/2018-07-01/media"
@@ -9,7 +9,7 @@ type Client struct {
 	ServicesClient *media.MediaservicesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	ServicesClient := media.NewMediaservicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ServicesClient.Client, o.ResourceManagerAuthorizer)
 
