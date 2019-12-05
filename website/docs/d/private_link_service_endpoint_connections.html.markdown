@@ -16,7 +16,7 @@ Use this data source to access endpoint connection information about an existing
 
 ```hcl
 data "azurerm_private_link_service_endpoint_connections" "example" {
-  name                = azurerm_private_link_service.example.name
+  service_id          = azurerm_private_link_service.example.id
   resource_group_name = azurerm_resource_group.example.name
 }
 
@@ -30,12 +30,14 @@ output "private_endpoint_status" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the private link service.
+* `service_id` - (Required) The resource ID of the private link service.
 
 * `resource_group_name` - (Required) The name of the resource group in which the private link service resides.
 
 
 ## Attributes Reference
+
+* `service_name` - The name of the private link service.
 
 The `private_endpoint_connections` block exports the following:
 

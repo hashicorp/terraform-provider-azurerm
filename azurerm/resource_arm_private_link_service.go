@@ -44,7 +44,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznet.ValidatePrivateLinkServiceName,
+				ValidateFunc: aznet.ValidatePrivateLinkName,
 			},
 
 			"location": azure.SchemaLocation(),
@@ -94,7 +94,7 @@ func resourceArmPrivateLinkService() *schema.Resource {
 							Type:         schema.TypeString,
 							Required:     true,
 							ForceNew:     true,
-							ValidateFunc: aznet.ValidatePrivateLinkServiceName,
+							ValidateFunc: aznet.ValidatePrivateLinkName,
 						},
 						"private_ip_address": {
 							Type:         schema.TypeString,
@@ -229,6 +229,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	// we can't rely on the use of the Future here due to the resource being successfully completed but now the service is applying those values.
+	// currently being tracked with issue #6466: https://github.com/Azure/azure-sdk-for-go/issues/6466
 	log.Printf("[DEBUG] Waiting for Private Link Service to %q (Resource Group %q) to finish applying", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Pending", "Updating", "Creating"},

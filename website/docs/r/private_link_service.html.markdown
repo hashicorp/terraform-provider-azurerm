@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `visibility_subscription_ids` - (Optional) A list of subscription globally unique identifiers(GUID) that will be able to see this service. If left undefined all Azure subscriptions will be able to see this service.
 
-* `nat_ip_configuration` - (Required) A `nat_ip_configuration` block as defined below.
+* `nat_ip_configuration` - (Required) A `nat_ip_configuration` block as defined below. There maybe upto 8 nat_ip_configuration blocks per private link service.
 
 * `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Standard Load Balancer(SLB) resource IDs. The Private Link service is tied to the frontend IP address of a SLB. All traffic destined for the private link service will reach the frontend of the SLB. You can configure SLB rules to direct this traffic to appropriate backend pools where your applications are running.
 

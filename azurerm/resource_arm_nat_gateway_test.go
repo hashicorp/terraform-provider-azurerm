@@ -170,7 +170,7 @@ resource "azurerm_nat_gateway" "test" {
 func testAccAzureRMNatGateway_complete(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-network-%d"
   location = "%s"
 }
 

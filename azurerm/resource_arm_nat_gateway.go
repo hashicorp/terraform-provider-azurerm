@@ -69,7 +69,6 @@ func resourceArmNatGateway() *schema.Resource {
 
 			"resource_guid": {
 				Type:         schema.TypeString,
-				Optional:     true,
 				Computed:     true,
 				ValidateFunc: validate.UUID,
 			},
