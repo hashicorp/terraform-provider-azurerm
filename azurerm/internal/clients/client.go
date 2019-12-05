@@ -31,8 +31,8 @@ import (
 	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
 	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
+	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
+	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
@@ -170,6 +170,8 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.IoTHub = iothub.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
+	client.LogAnalytics = loganalytics.NewClient(o)
+	client.Logic = logic.NewClient(o)
 
 	return nil
 }

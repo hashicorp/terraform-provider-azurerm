@@ -1,4 +1,4 @@
-package cilent
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/kusto/mgmt/2019-05-15/kusto"
