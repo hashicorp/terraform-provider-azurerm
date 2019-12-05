@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in eastus2.
+	// Using alt location because the resource currently in private preview and is only available in eastus2.
 	location := testAltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -28,7 +28,7 @@ func TestAccDataSourceAzureRMNatGateway_basic(t *testing.T) {
 func TestAccDataSourceAzureRMNatGateway_complete(t *testing.T) {
 	dataSourceName := "data.azurerm_nat_gateway.test"
 	ri := tf.AccRandTimeInt()
-	// It is hard-coded because this resource currently only available in eastus2.
+	// Using alt location because the resource currently in private preview and is only available in eastus2.
 	location := testAltLocation()
 
 	resource.ParallelTest(t, resource.TestCase{
