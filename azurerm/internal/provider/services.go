@@ -36,6 +36,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -74,5 +75,6 @@ func SupportedServices() []common.ServiceRegistration {
 		mariadb.Registration{},
 		media.Registration{},
 		monitor.Registration{},
+		msi.Registration{},
 	}
 }
