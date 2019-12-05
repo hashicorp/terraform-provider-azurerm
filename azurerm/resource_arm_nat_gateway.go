@@ -66,11 +66,6 @@ func resourceArmNatGateway() *schema.Resource {
 				},
 			},
 
-			"resource_guid": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"sku_name": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -89,6 +84,11 @@ func resourceArmNatGateway() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
 				},
+			},
+
+			"resource_guid": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"tags": tags.Schema(),
