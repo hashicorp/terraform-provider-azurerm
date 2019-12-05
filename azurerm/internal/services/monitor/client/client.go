@@ -1,4 +1,4 @@
-package monitor
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
@@ -19,7 +19,7 @@ type Client struct {
 	MetricAlertsClient               *insights.MetricAlertsClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	AutoscaleSettingsClient := insights.NewAutoscaleSettingsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AutoscaleSettingsClient.Client, o.ResourceManagerAuthorizer)
 

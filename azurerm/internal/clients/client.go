@@ -37,7 +37,7 @@ import (
 	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
 	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
 	media "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
+	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
@@ -176,6 +176,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Maps = maps.NewClient(o)
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
+	client.Monitor = monitor.NewClient(o)
 
 	return nil
 }
