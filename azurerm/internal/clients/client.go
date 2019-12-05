@@ -34,7 +34,7 @@ import (
 	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
 	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
 	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
@@ -173,6 +173,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.LogAnalytics = loganalytics.NewClient(o)
 	client.Logic = logic.NewClient(o)
 	client.ManagementGroups = managementgroup.NewClient(o)
+	client.Maps = maps.NewClient(o)
 
 	return nil
 }
