@@ -28,7 +28,7 @@ import (
 	graph "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
@@ -167,6 +167,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Graph = graph.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.Healthcare = healthcare.NewClient(o)
+	client.IoTHub = iothub.NewClient(o)
 
 	return nil
 }
