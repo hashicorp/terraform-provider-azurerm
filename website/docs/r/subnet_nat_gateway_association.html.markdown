@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_subnet_nat_gateway_association"
 sidebar_current: "docs-azurerm-resource-network-subnet-nat-gateway-association"

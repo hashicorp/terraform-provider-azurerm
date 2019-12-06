@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Healthcare"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_healthcare_service"
 sidebar_current: "docs-azurerm-datasource-healthcare-service-x"
@@ -21,17 +21,7 @@ data "azurerm_healthcare_service" "example" {
 }
 
 output "healthcare_service_id" {
-  name                = "uniquefhirname"
-  resource_group_name = "sample-resource-group"
-  kind                = "fhir-R4"
-  cosmosdb_throughput = "2000"
-
-  access_policy_object_ids = ["xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"]
-
-  tags = {
-    "environment" = "testenv"
-    "purpose"     = "AcceptanceTests"
-  }
+  value = data.azurerm_healthcare_service.example.id
 }
 ```
 

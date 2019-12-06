@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api"
 sidebar_current: "docs-azurerm-datasource-azurerm-api-management-api-x"
