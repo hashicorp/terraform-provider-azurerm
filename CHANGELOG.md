@@ -2,15 +2,15 @@
 
 FEATURES:
 
-* **New Data Source:** `azurerm_private_link_endpoint_connection` [GH-4493]
 * **New Data Source:** `azurerm_nat_gateway` [GH-4449]
+* **New Data Source:** `azurerm_private_link_endpoint_connection` [GH-4493]
 * **New Data Source:** `azurerm_virtual_hub` [GH-5004]
-* **New Resource:** `azurerm_private_link_endpoint` [GH-4493]
 * **New Resource:** `azurerm_iothub_fallback_route` [GH-4965]
 * **New Resource:** `azurerm_nat_gateway` [GH-4449]
-* **New Resource:** `azurerm_subnet_nat_gateway_association` [GH-4449]
 * **New Resource:** `azurerm_point_to_site_vpn_gateway` [GH-5004]
 * **New Resource:** `azurerm_private_dns_mx_record` [GH-4915]
+* **New Resource:** `azurerm_private_link_endpoint` [GH-4493]
+* **New Resource:** `azurerm_subnet_nat_gateway_association` [GH-4449]
 * **New Resource:** `azurerm_virtual_hub` [GH-5004]
 * **New Resource:** `azurerm_vpn_gateway` [GH-5004]
 * **New Resource:** `azurerm_vpn_server_configuration` [GH-5004]
