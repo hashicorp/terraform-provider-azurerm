@@ -10,6 +10,7 @@ FEATURES:
 * **New Resource:** `azurerm_point_to_site_vpn_gateway` [GH-5004]
 * **New Resource:** `azurerm_private_dns_mx_record` [GH-4915]
 * **New Resource:** `azurerm_private_link_endpoint` [GH-4493]
+* **New Resource:** `azurerm_storage_account_network_rules` [GH-5082]
 * **New Resource:** `azurerm_subnet_nat_gateway_association` [GH-4449]
 * **New Resource:** `azurerm_virtual_hub` [GH-5004]
 * **New Resource:** `azurerm_vpn_gateway` [GH-5004]
