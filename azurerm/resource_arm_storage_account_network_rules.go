@@ -230,7 +230,7 @@ func resourceArmStorageAccountNetworkRulesDelete(d *schema.ResourceData, meta in
 		AccountPropertiesUpdateParameters: &storage.AccountPropertiesUpdateParameters{
 			NetworkRuleSet: &storage.NetworkRuleSet{
 				Bypass:        storage.AzureServices,
-				DefaultAction: storage.DefaultActionDeny,
+				DefaultAction: storage.DefaultActionAllow,
 			},
 		},
 	}
