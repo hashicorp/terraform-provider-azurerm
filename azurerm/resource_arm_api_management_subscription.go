@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/satori/uuid"
@@ -118,12 +118,15 @@ func resourceArmApiManagementSubscriptionCreateUpdate(d *schema.ResourceData, me
 	state := d.Get("state").(string)
 	userId := d.Get("user_id").(string)
 
+	scope := "/products/" + productId
+	ownerId := "/users/" + userId
+	// TODO: VERIFY THAT THIS WORKS AS EXPECTED
 	params := apimanagement.SubscriptionCreateParameters{
 		SubscriptionCreateParameterProperties: &apimanagement.SubscriptionCreateParameterProperties{
 			DisplayName: utils.String(displayName),
-			ProductID:   utils.String(productId),
+			Scope:       utils.String(scope),
 			State:       apimanagement.SubscriptionState(state),
-			UserID:      utils.String(userId),
+			OwnerID:     utils.String(ownerId),
 		},
 	}
 
@@ -184,8 +187,8 @@ func resourceArmApiManagementSubscriptionRead(d *schema.ResourceData, meta inter
 		d.Set("primary_key", props.PrimaryKey)
 		d.Set("secondary_key", props.SecondaryKey)
 		d.Set("state", string(props.State))
-		d.Set("product_id", props.ProductID)
-		d.Set("user_id", props.UserID)
+		d.Set("scope", props.Scope)      // TODO: check if this is a breaking change. was product_id
+		d.Set("owner_id", props.OwnerID) // TODO: check if this is a breaking change. was user_id
 	}
 
 	return nil

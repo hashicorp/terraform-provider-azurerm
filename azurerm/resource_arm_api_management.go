@@ -3,11 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2018-01-01/apimanagement"
+	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
@@ -553,14 +554,14 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
 	signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 	signInClient := meta.(*ArmClient).ApiManagement.SignInClient
-	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings); err != nil {
+	if _, err := signInClient.CreateOrUpdate(ctx, resourceGroup, name, signInSettings, ""); err != nil { // TODO: Check how to deal with etag
 		return fmt.Errorf("Error setting Sign In settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
 	signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 	signUpClient := meta.(*ArmClient).ApiManagement.SignUpClient
-	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings); err != nil {
+	if _, err := signUpClient.CreateOrUpdate(ctx, resourceGroup, name, signUpSettings, ""); err != nil { // TODO: Check how to deal with etag
 		return fmt.Errorf("Error setting Sign Up settings for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
@@ -581,7 +582,7 @@ func resourceArmApiManagementServiceCreateUpdate(d *schema.ResourceData, meta in
 
 		// then add the new one, if it exists
 		if policy != nil {
-			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy); err != nil {
+			if _, err := policyClient.CreateOrUpdate(ctx, resourceGroup, name, *policy, ""); err != nil { // TODO: Check how to deal with etag
 				return fmt.Errorf("Error setting Policies for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 			}
 		}
@@ -627,7 +628,7 @@ func resourceArmApiManagementServiceRead(d *schema.ResourceData, meta interface{
 	}
 
 	policyClient := meta.(*ArmClient).ApiManagement.PolicyClient
-	policy, err := policyClient.Get(ctx, resourceGroup, name)
+	policy, err := policyClient.Get(ctx, resourceGroup, name, apimanagement.PolicyExportFormatXML) // TODO: Verify this setting
 	if err != nil {
 		if !utils.ResponseWasNotFound(policy.Response) {
 			return fmt.Errorf("Error retrieving Policy for API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
@@ -711,7 +712,7 @@ func resourceArmApiManagementServiceDelete(d *schema.ResourceData, meta interfac
 	log.Printf("[DEBUG] Deleting API Management Service %q (Resource Grouo %q)", name, resourceGroup)
 	resp, err := client.Delete(ctx, resourceGroup, name)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp) {
+		if !(resp.Response() != nil && (*resp.Response()).StatusCode == http.StatusNotFound) { // TODO: VERIFY!!!
 			return fmt.Errorf("Error deleting API Management Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
@@ -1317,8 +1318,8 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlContent != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				ContentFormat: apimanagement.XML,
-				PolicyContent: utils.String(xmlContent),
+				Format: apimanagement.XML,
+				Value:  utils.String(xmlContent),
 			},
 		}, nil
 	}
@@ -1326,8 +1327,8 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 	if xmlLink != "" {
 		return &apimanagement.PolicyContract{
 			PolicyContractProperties: &apimanagement.PolicyContractProperties{
-				ContentFormat: apimanagement.XMLLink,
-				PolicyContent: utils.String(xmlLink),
+				Format: apimanagement.XMLLink,
+				Value:  utils.String(xmlLink),
 			},
 		}, nil
 	}
@@ -1338,8 +1339,8 @@ func expandApiManagementPolicies(input []interface{}) (*apimanagement.PolicyCont
 func flattenApiManagementPolicies(d *schema.ResourceData, input apimanagement.PolicyContract) []interface{} {
 	xmlContent := ""
 	if props := input.PolicyContractProperties; props != nil {
-		if props.PolicyContent != nil {
-			xmlContent = *props.PolicyContent
+		if props.Value != nil {
+			xmlContent = *props.Value
 		}
 	}
 
