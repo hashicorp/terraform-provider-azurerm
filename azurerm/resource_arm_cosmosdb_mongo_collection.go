@@ -22,9 +22,9 @@ import (
 
 func resourceArmCosmosDbMongoCollection() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceArmCosmosDbMongoCollectionCreateUpdate,
+		Create: resourceArmCosmosDbMongoCollectionCreate,
 		Read:   resourceArmCosmosDbMongoCollectionRead,
-		Update: resourceArmCosmosDbMongoCollectionCreateUpdate,
+		Update: resourceArmCosmosDbMongoCollectionUpdate,
 		Delete: resourceArmCosmosDbMongoCollectionDelete,
 
 		Importer: &schema.ResourceImporter{
@@ -80,6 +80,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
 
@@ -109,7 +110,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 	}
 }
 
-func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Cosmos.DatabaseClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
@@ -119,38 +120,19 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 	account := d.Get("account_name").(string)
 	database := d.Get("database_name").(string)
 
-	throughput, hasThroughput := d.GetOk("throughput")
-	var throughputStr = ""
-	var throughputInt = 0
-	if hasThroughput {
-		throughputStr = fmt.Sprintf("%v", throughput)
-		var err error
-		throughputInt, err = strconv.Atoi(throughputStr)
+	if features.ShouldResourcesBeImported() {
+		existing, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 		if err != nil {
-			return fmt.Errorf("Configured throughput could not be converted to an integer for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
-	}
-
-	createUpdateOptions := map[string]*string{}
-
-	if d.IsNewResource() {
-		if features.ShouldResourcesBeImported() {
-			existing, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
-			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
-					return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
-				}
-			} else {
-				id, err := azure.CosmosGetIDFromResponse(existing.Response)
-				if err != nil {
-					return fmt.Errorf("Error generating import ID for Cosmos Mongo Collection %s (Account %s, Database %s)", name, account, database)
-				}
-
-				return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id)
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of creating Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 			}
-		}
-		if hasThroughput {
-			createUpdateOptions["throughput"] = utils.String(throughputStr)
+		} else {
+			id, err := azure.CosmosGetIDFromResponse(existing.Response)
+			if err != nil {
+				return fmt.Errorf("Error generating import ID for Cosmos Mongo Collection %s (Account %s, Database %s)", name, account, database)
+			}
+
+			return tf.ImportAsExistsError("azurerm_cosmosdb_mongo_collection", id)
 		}
 	}
 
@@ -165,8 +147,13 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 				ID:      &name,
 				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
 			},
-			Options: createUpdateOptions,
 		},
+	}
+
+	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
+		db.MongoDBCollectionCreateUpdateProperties.Options = map[string]*string{
+			"throughput": utils.String(strconv.Itoa(throughput.(int))),
+		}
 	}
 
 	if v, ok := d.GetOkExists("shard_key"); ok {
@@ -184,29 +171,6 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
 	}
 
-	if hasThroughput && !d.IsNewResource() {
-		throughputParameters := documentdb.ThroughputUpdateParameters{
-			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-				Resource: &documentdb.ThroughputResource{
-					Throughput: utils.Int32(int32(throughputInt)),
-				},
-			},
-		}
-
-		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, resourceGroup, account, database, name, throughputParameters)
-		if err != nil {
-			if throughputFuture.Response().StatusCode == http.StatusNotFound {
-				d.Set("throughput", nil)
-				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %s (Account %s, Database %s): %+v - "+
-					"If the collection has not been created with an initial throughput, you cannot configure it later.", name, account, database, err)
-			}
-		}
-
-		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
-		}
-	}
-
 	resp, err := client.GetMongoDBCollection(ctx, resourceGroup, account, database, name)
 	if err != nil {
 		return fmt.Errorf("Error making get request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", name, account, database, err)
@@ -217,6 +181,74 @@ func resourceArmCosmosDbMongoCollectionCreateUpdate(d *schema.ResourceData, meta
 		return fmt.Errorf("Error getting ID for Cosmos Mongo Collection %s (Account %s, Database %s) ID: %v", name, account, database, err)
 	}
 	d.SetId(id)
+
+	return resourceArmCosmosDbMongoCollectionRead(d, meta)
+}
+
+func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).Cosmos.DatabaseClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	id, err := azure.ParseCosmosDatabaseCollectionID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	var ttl *int
+	if v, ok := d.GetOkExists("default_ttl_seconds"); ok {
+		ttl = utils.Int(v.(int))
+	}
+
+	db := documentdb.MongoDBCollectionCreateUpdateParameters{
+		MongoDBCollectionCreateUpdateProperties: &documentdb.MongoDBCollectionCreateUpdateProperties{
+			Resource: &documentdb.MongoDBCollectionResource{
+				ID:      &id.Collection,
+				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
+			},
+		},
+	}
+
+	if v, ok := d.GetOkExists("shard_key"); ok {
+		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{
+			v.(string): utils.String("Hash"), // looks like only hash is supported for now
+		}
+	}
+
+	future, err := client.CreateUpdateMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection, db)
+	if err != nil {
+		return fmt.Errorf("Error issuing create/update request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+	}
+
+	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+	}
+
+	throughputParameters := documentdb.ThroughputUpdateParameters{
+		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+			Resource: &documentdb.ThroughputResource{
+				Throughput: utils.Int32(int32(throughputInt)),
+			},
+		},
+	}
+
+	throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection, throughputParameters)
+	if err != nil {
+		if throughputFuture.Response().StatusCode == http.StatusNotFound {
+			d.Set("throughput", nil)
+			return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %s (Account %s, Database %s): %+v - "+
+				"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Collection, id.Account, id.Database, err)
+		}
+	}
+
+	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+	}
+
+	resp, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
+	if err != nil {
+		return fmt.Errorf("Error making get request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+	}
 
 	return resourceArmCosmosDbMongoCollectionRead(d, meta)
 }

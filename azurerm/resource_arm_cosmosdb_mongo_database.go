@@ -56,6 +56,7 @@ func resourceArmCosmosDbMongoDatabase() *schema.Resource {
 			"throughput": {
 				Type:         schema.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.CosmosThroughput,
 			},
 		},
