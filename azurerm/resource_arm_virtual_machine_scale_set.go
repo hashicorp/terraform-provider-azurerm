@@ -543,6 +543,21 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 				},
 			},
 
+			"additional_capabilities": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ultra_ssd_enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+							ForceNew: true,
+						},
+					},
+				},
+			},
+
 			//lintignore:S018
 			"storage_profile_os_disk": {
 				Type:     schema.TypeSet,
@@ -635,6 +650,7 @@ func resourceArmVirtualMachineScaleSet() *schema.Resource {
 								string(compute.StorageAccountTypesPremiumLRS),
 								string(compute.StorageAccountTypesStandardLRS),
 								string(compute.StorageAccountTypesStandardSSDLRS),
+								string(compute.StorageAccountTypesUltraSSDLRS),
 							}, true),
 						},
 					},
@@ -882,6 +898,10 @@ func resourceArmVirtualMachineScaleSetCreateUpdate(d *schema.ResourceData, meta 
 		scaleSetProps.VirtualMachineProfile.DiagnosticsProfile = &diagnosticProfile
 	}
 
+	if _, ok := d.GetOk("additional_capabilities"); ok {
+		scaleSetProps.AdditionalCapabilities = expandAzureRmVirtualMachineScaleSetAdditionalCapabilities(d)
+	}
+
 	if v, ok := d.GetOk("health_probe_id"); ok {
 		scaleSetProps.VirtualMachineProfile.NetworkProfile.HealthProbe = &compute.APIEntityReference{
 			ID: utils.String(v.(string)),
@@ -999,6 +1019,12 @@ func resourceArmVirtualMachineScaleSetRead(d *schema.ResourceData, meta interfac
 		}
 		d.Set("overprovision", properties.Overprovision)
 		d.Set("single_placement_group", properties.SinglePlacementGroup)
+
+		if additionalCapabilities := properties.AdditionalCapabilities; additionalCapabilities != nil {
+			if err := d.Set("additional_capabilities", flattenAzureRmVirtualMachineScaleSetAdditionalCapabilities(additionalCapabilities)); err != nil {
+				return fmt.Errorf("[DEBUG] Error setting Virtual Machine Scale Set Additional Capabilities error: %#v", err)
+			}
+		}
 
 		if profile := properties.VirtualMachineProfile; profile != nil {
 			d.Set("license_type", profile.LicenseType)
@@ -1261,6 +1287,18 @@ func flattenAzureRmVirtualMachineScaleSetBootDiagnostics(bootDiagnostic *compute
 	}
 
 	return []interface{}{b}
+}
+
+func flattenAzureRmVirtualMachineScaleSetAdditionalCapabilities(profile *compute.AdditionalCapabilities) []interface{} {
+	if profile == nil {
+		return []interface{}{}
+	}
+
+	result := make(map[string]interface{})
+	if v := profile.UltraSSDEnabled; v != nil {
+		result["ultra_ssd_enabled"] = *v
+	}
+	return []interface{}{result}
 }
 
 func flattenAzureRmVirtualMachineScaleSetRollingUpgradePolicy(rollingUpgradePolicy *compute.RollingUpgradePolicy) []interface{} {
@@ -1970,6 +2008,20 @@ func expandAzureRMVirtualMachineScaleSetsDiagnosticProfile(d *schema.ResourceDat
 	}
 
 	return diagnosticsProfile
+}
+
+func expandAzureRmVirtualMachineScaleSetAdditionalCapabilities(d *schema.ResourceData) *compute.AdditionalCapabilities {
+	additionalCapabilities := d.Get("additional_capabilities").([]interface{})
+	if len(additionalCapabilities) == 0 {
+		return nil
+	}
+
+	additionalCapability := additionalCapabilities[0].(map[string]interface{})
+	capability := &compute.AdditionalCapabilities{
+		UltraSSDEnabled: utils.Bool(additionalCapability["ultra_ssd_enabled"].(bool)),
+	}
+
+	return capability
 }
 
 func expandAzureRmVirtualMachineScaleSetIdentity(d *schema.ResourceData) *compute.VirtualMachineScaleSetIdentity {
