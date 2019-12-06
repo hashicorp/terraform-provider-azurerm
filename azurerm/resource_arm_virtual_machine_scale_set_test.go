@@ -1954,7 +1954,7 @@ resource "azurerm_virtual_machine_scale_set" "test" {
   resource_group_name    = "${azurerm_resource_group.test.name}"
   upgrade_policy_mode    = "Manual"
   single_placement_group = false
-  zones                  = ["2"]
+  zones                  = ["3"]
 
   sku {
     name     = "Standard_D2s_v3"
