@@ -272,8 +272,9 @@ func resourceArmDomainServiceCreate(d *schema.ResourceData, meta interface{}) er
 		if err != nil {
 			return fmt.Errorf("Error readding Virtual Network %q (Resource Group %q): %+v", virtualNetworkName, resourceGroupName, err)
 		}
+		dns := domainControllerIPAddress.([]string)
 		resp.DhcpOptions = &network.DhcpOptions{
-			DNSServers: expandStringSlice(domainControllerIPAddress.([]string)),
+			DNSServers: &dns,
 		}
 		if _, err := vnetClient.CreateOrUpdate(ctx, resourceGroupName, virtualNetworkName, resp); err != nil {
 			return fmt.Errorf("Error updating DNS server to %+v for Virtual Network %q (Resource Group %q): %+v", domainControllerIPAddress, virtualNetworkName, resourceGroupName, err)
@@ -409,14 +410,6 @@ func domainServiceControllerRefreshFunc(ctx context.Context, client *aad.DomainS
 		}
 		return *resp.DomainControllerIPAddress, "available", nil
 	}
-}
-
-func expandStringSlice(input []string) *[]string {
-	result := make([]string, 0)
-	for _, item := range input {
-		result = append(result, item)
-	}
-	return &result
 }
 
 func expandArmDomainServiceDomainSecuritySettings(input []interface{}) *aad.DomainSecuritySettings {
