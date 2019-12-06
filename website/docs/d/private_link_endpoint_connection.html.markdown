@@ -11,6 +11,8 @@ description: |-
 
 Use this data source to access the connection status information about an existing Private Link Endpoint.
 
+-> **NOTE** Private Link is currently in Public Preview.
+
 ## Example Usage
 
 ```hcl
