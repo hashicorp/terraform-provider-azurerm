@@ -164,6 +164,10 @@ The deprecated block `agent_pool_profile` will be removed. This has been replace
 
 The deprecated field `internal_fqdn` will be removed.
 
+### Data Source: `azurerm_private_link_service`
+
+The deprecated field `network_interface_ids` will be removed.
+
 ### Data Source: `azurerm_scheduler_job_collection`
 
 Azure Scheduler is being retired in favour of Logic Apps ([more information can be found here](https://docs.microsoft.com/en-us/azure/scheduler/migrate-from-scheduler-to-logic-apps)) - as such this Data Source will be removed.
