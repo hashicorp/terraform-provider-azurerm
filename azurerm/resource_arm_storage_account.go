@@ -625,6 +625,9 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	storageAccountName := d.Get("name").(string)
 	resourceGroupName := d.Get("resource_group_name").(string)
 
+	locks.ByName(storageAccountName, storageAccountResourceName)
+	defer locks.UnlockByName(storageAccountName, storageAccountResourceName)
+
 	if features.ShouldResourcesBeImported() {
 		existing, err := client.GetProperties(ctx, resourceGroupName, storageAccountName, "")
 		if err != nil {
@@ -794,6 +797,9 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 	storageAccountName := id.Path["storageAccounts"]
 	resourceGroupName := id.ResourceGroup
+
+	locks.ByName(storageAccountName, iothubResourceName)
+	defer locks.UnlockByName(storageAccountName, iothubResourceName)
 
 	accountTier := d.Get("account_tier").(string)
 	replicationType := d.Get("account_replication_type").(string)
@@ -1187,6 +1193,9 @@ func resourceArmStorageAccountDelete(d *schema.ResourceData, meta interface{}) e
 	}
 	name := id.Path["storageAccounts"]
 	resourceGroup := id.ResourceGroup
+
+	locks.ByName(name, storageAccountResourceName)
+	defer locks.UnlockByName(name, storageAccountResourceName)
 
 	read, err := client.GetProperties(ctx, resourceGroup, name, "")
 	if err != nil {
