@@ -86,16 +86,6 @@ func resourceArmPrivateLinkEndpoint() *schema.Resource {
 				},
 			},
 
-			"network_interface_ids": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-				Set: schema.HashString,
-			},
-
 			// tags has been removed
 			// API Issue "Unable to remove Tags from Private Link Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
 		},
@@ -187,16 +177,18 @@ func resourceArmPrivateLinkEndpointRead(d *schema.ResourceData, meta interface{}
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
+
 	if props := resp.PrivateEndpointProperties; props != nil {
-		if subnet := props.Subnet; subnet != nil {
-			d.Set("subnet_id", subnet.ID)
-		}
-		if err := d.Set("private_service_connection", flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections)); err != nil {
+		flattenedConnection := flattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections)
+		if err := d.Set("private_service_connection", flattenedConnection); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
-		if err := d.Set("network_interface_ids", flattenArmPrivateLinkEndpointInterface(props.NetworkInterfaces)); err != nil {
-			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
+
+		subnetId := ""
+		if subnet := props.Subnet; subnet != nil {
+			subnetId = *subnet.ID
 		}
+		d.Set("subnet_id", subnetId)
 	}
 
 	// API Issue "Unable to remove Tags from Private Link Endpoint": https://github.com/Azure/azure-sdk-for-go/issues/6467
@@ -224,7 +216,7 @@ func resourceArmPrivateLinkEndpointDelete(d *schema.ResourceData, meta interface
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for deletion of Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -269,61 +261,61 @@ func flattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]networ
 
 	if serviceConnections != nil {
 		for _, item := range *serviceConnections {
-			result := make(map[string]interface{})
-
-			result["is_manual_connection"] = false
-
-			if v := item.Name; v != nil {
-				result["name"] = *v
+			name := ""
+			if item.Name != nil {
+				name = *item.Name
 			}
+
+			privateConnectionId := ""
+			subResourceNames := make([]interface{}, 0)
+
 			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
 				if v := props.GroupIds; v != nil {
-					result["subresource_names"] = utils.FlattenStringSlice(v)
+					subResourceNames = utils.FlattenStringSlice(v)
 				}
-				if v := props.PrivateLinkServiceID; v != nil {
-					result["private_connection_resource_id"] = *v
+				if props.PrivateLinkServiceID != nil {
+					privateConnectionId = *props.PrivateLinkServiceID
 				}
 			}
-			results = append(results, result)
+			results = append(results, map[string]interface{}{
+				"name":                           name,
+				"is_manual_connection":           false,
+				"private_connection_resource_id": privateConnectionId,
+				"subresource_names":              subResourceNames,
+			})
 		}
 	}
 
 	if manualServiceConnections != nil {
 		for _, item := range *manualServiceConnections {
-			result := make(map[string]interface{})
-
-			result["is_manual_connection"] = true
-
-			if v := item.Name; v != nil {
-				result["name"] = *v
+			name := ""
+			if item.Name != nil {
+				name = *item.Name
 			}
+
+			privateConnectionId := ""
+			requestMessage := ""
+			subResourceNames := make([]interface{}, 0)
+
 			if props := item.PrivateLinkServiceConnectionProperties; props != nil {
 				if v := props.GroupIds; v != nil {
-					result["subresource_names"] = utils.FlattenStringSlice(v)
+					subResourceNames = utils.FlattenStringSlice(v)
 				}
-				if v := props.PrivateLinkServiceID; v != nil {
-					result["private_connection_resource_id"] = *v
+				if props.PrivateLinkServiceID != nil {
+					privateConnectionId = *props.PrivateLinkServiceID
 				}
-				if v := props.RequestMessage; v != nil {
-					result["request_message"] = *v
+				if props.RequestMessage != nil {
+					requestMessage = *props.RequestMessage
 				}
 			}
-			results = append(results, result)
-		}
-	}
 
-	return results
-}
-
-func flattenArmPrivateLinkEndpointInterface(input *[]network.Interface) *schema.Set {
-	results := &schema.Set{F: schema.HashString}
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if id := item.ID; id != nil {
-			results.Add(*id)
+			results = append(results, map[string]interface{}{
+				"name":                           name,
+				"is_manual_connection":           true,
+				"private_connection_resource_id": privateConnectionId,
+				"request_message":                requestMessage,
+				"subresource_names":              subResourceNames,
+			})
 		}
 	}
 

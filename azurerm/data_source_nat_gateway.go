@@ -58,19 +58,6 @@ func dataSourceArmNatGateway() *schema.Resource {
 				Computed: true,
 			},
 
-			"subnet_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
-
-			"type": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"zones": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -121,10 +108,6 @@ func dataSourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error
 
 		if err := d.Set("public_ip_prefix_ids", flattenArmNatGatewaySubResourceID(props.PublicIPPrefixes)); err != nil {
 			return fmt.Errorf("Error setting `public_ip_prefix_ids`: %+v", err)
-		}
-
-		if err := d.Set("subnet_ids", flattenArmNatGatewaySubResourceID(props.Subnets)); err != nil {
-			return fmt.Errorf("Error setting `subnet_ids`: %+v", err)
 		}
 	}
 

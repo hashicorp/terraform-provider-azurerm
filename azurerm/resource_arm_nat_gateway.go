@@ -69,22 +69,13 @@ func resourceArmNatGateway() *schema.Resource {
 			"sku_name": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  string(network.Standard),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.Standard),
 				}, false),
-				Default: string(network.Standard),
 			},
 
 			"zones": azure.SchemaZones(),
-
-			"subnet_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: azure.ValidateResourceID,
-				},
-			},
 
 			"resource_guid": {
 				Type:     schema.TypeString,
@@ -195,10 +186,6 @@ func resourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error {
 
 		if err := d.Set("public_ip_prefix_ids", flattenArmNatGatewaySubResourceID(props.PublicIPPrefixes)); err != nil {
 			return fmt.Errorf("Error setting `public_ip_prefix_ids`: %+v", err)
-		}
-
-		if err := d.Set("subnet_ids", flattenArmNatGatewaySubResourceID(props.Subnets)); err != nil {
-			return fmt.Errorf("Error setting `subnet_ids`: %+v", err)
 		}
 	}
 

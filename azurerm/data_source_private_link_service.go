@@ -44,15 +44,6 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
-			// "fqdns": {
-			// 	Type:     schema.TypeList,
-			// 	Computed: true,
-			// 	Elem: &schema.Schema{
-			// 		Type: schema.TypeString,
-			// 	},
-			// },
-
 			"nat_ip_configuration": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -95,9 +86,10 @@ func dataSourceArmPrivateLinkService() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:       schema.TypeList,
+				Computed:   true,
+				Deprecated: "This field has been deprecated and will be removed in version 2.0 of the Azure Provider",
+				Elem:       &schema.Schema{Type: schema.TypeString},
 			},
 
 			"tags": tags.SchemaDataSource(),

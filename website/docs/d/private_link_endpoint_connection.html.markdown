@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_private_link_endpoint_connection"
 sidebar_current: "docs-azurerm-datasource-private-endpoint-connection"
@@ -10,6 +10,8 @@ description: |-
 # Data Source: azurerm_private_link_endpoint_connection
 
 Use this data source to access the connection status information about an existing Private Link Endpoint.
+
+-> **NOTE** Private Link is currently in Public Preview.
 
 ## Example Usage
 

@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azure_user_assigned_identity"
 sidebar_current: "docs-azurerm-datasource-user-assigned-identity"
