@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"reflect"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/apimanagement/mgmt/2019-01-01/apimanagement"
@@ -140,14 +139,7 @@ func resourceArmApiManagementApiSchemaRead(d *schema.ResourceData, meta interfac
 	if properties := resp.SchemaContractProperties; properties != nil {
 		d.Set("content_type", properties.ContentType)
 		if documentProperties := properties.Document; documentProperties != nil {
-			// TODO: Make sure this makes sense
-			t := reflect.TypeOf(properties.Document)
-			value, ok := t.FieldByName("value")
-			if !ok {
-				log.Printf("[DEBUG] API Schema %q could not read value from schema", schemaID)
-			} else {
-				d.Set("value", value)
-			}
+			d.Set("value", documentProperties)
 		}
 	}
 
