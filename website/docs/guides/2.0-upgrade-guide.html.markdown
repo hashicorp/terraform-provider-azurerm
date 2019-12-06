@@ -354,6 +354,10 @@ The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block 
 
 The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
 
+### Resource: `azurerm_private_link_service`
+
+The deprecated `network_interface_ids` field will be removed.
+
 ### Resource: `azurerm_public_ip`
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
