@@ -1,4 +1,4 @@
-package bot
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
@@ -11,7 +11,7 @@ type Client struct {
 	ChannelClient    *botservice.ChannelsClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	botClient := botservice.NewBotsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&botClient.Client, o.ResourceManagerAuthorizer)
 

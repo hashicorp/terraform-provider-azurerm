@@ -1,4 +1,4 @@
-package cognitive
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cognitiveservices/mgmt/2017-04-18/cognitiveservices"
@@ -9,11 +9,11 @@ type Client struct {
 	AccountsClient *cognitiveservices.AccountsClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
-	AccountsClient := cognitiveservices.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&AccountsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) *Client {
+	accountsClient := cognitiveservices.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&accountsClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		AccountsClient: &AccountsClient,
+		AccountsClient: &accountsClient,
 	}
 }
