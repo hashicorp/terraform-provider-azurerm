@@ -1,0 +1,68 @@
+package web
+
+import (
+	"testing"
+
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+)
+
+func TestParseAppServicePlan(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    string
+		Expected *AppServicePlanResourceID
+	}{
+		{
+			Name:     "Empty",
+			Input:    "",
+			Expected: nil,
+		},
+		{
+			Name:     "No Resource Groups Segment",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000",
+			Expected: nil,
+		},
+		{
+			Name:     "No Resource Groups Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/",
+			Expected: nil,
+		},
+		{
+			Name:     "Resource Group ID",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/",
+			Expected: nil,
+		},
+		{
+			Name:     "Missing Server Farms Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/",
+			Expected: nil,
+		},
+		{
+			Name:  "App Service Plan Resource ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/farm1",
+			Expected: &AppServicePlanResourceID{
+				Name: "farm1",
+				Base: azure.ResourceID{
+					ResourceGroup: "foo",
+				},
+			},
+		},
+	}
+
+	for _, v := range testData {
+		t.Logf("[DEBUG] Testing %q", v.Name)
+
+		actual, err := ParseAppServicePlanID(v.Input)
+		if err != nil {
+			if v.Expected == nil {
+				continue
+			}
+
+			t.Fatalf("Expected a value but got an error: %s", err)
+		}
+
+		if actual.Name != v.Expected.Name {
+			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		}
+	}
+}

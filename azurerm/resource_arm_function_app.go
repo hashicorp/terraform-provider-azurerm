@@ -14,6 +14,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	webSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -650,15 +651,15 @@ func getBasicFunctionAppAppSettings(d *schema.ResourceData, appServiceTier strin
 }
 
 func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, meta interface{}) (string, error) {
-	id, err := azure.ParseAzureResourceID(appServicePlanId)
+	id, err := webSvc.ParseAppServicePlanID(appServicePlanId)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving App Server Plan %s", id.Path["serverfarms"])
+	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.Base.ResourceGroup)
 
 	appServicePlansClient := meta.(*ArmClient).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Path["serverfarms"])
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.Base.ResourceGroup, id.Name)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
