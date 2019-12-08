@@ -85,14 +85,16 @@ func dataSourceArmNatGatewayRead(d *schema.ResourceData, meta interface{}) error
 		}
 		return fmt.Errorf("Error reading Nat Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)
-	d.Set("sku_name", resp.Sku.Name)
 	d.Set("resource_group_name", resourceGroup)
+	if sku := resp.Sku; sku != nil {
+		d.Set("sku_name", resp.Sku.Name)
+	}
 
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))

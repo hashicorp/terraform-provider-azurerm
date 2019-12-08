@@ -140,7 +140,7 @@ func resourceArmNatGatewayCreateUpdate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf("Error retrieving NAT Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read NAT Gateway %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
