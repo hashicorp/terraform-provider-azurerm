@@ -6,11 +6,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func TestParseAppServicePlan(t *testing.T) {
+func TestParseAppServiceCertificate(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServicePlanResourceID
+		Expected *AppServiceCertificateResourceID
 	}{
 		{
 			Name:     "Empty",
@@ -33,26 +33,36 @@ func TestParseAppServicePlan(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing Server Farms Value",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/",
+			Name:     "Missing Sites Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/",
 			Expected: nil,
 		},
 		{
-			Name:  "App Service Plan Resource ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/serverfarms/farm1",
-			Expected: &AppServicePlanResourceID{
-				Name: "farm1",
+			Name:     "App Service Resource ID",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1",
+			Expected: nil,
+		},
+		{
+			Name:  "App Service Certificate Resource ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificates/cert1",
+			Expected: &AppServiceCertificateResourceID{
+				Name: "cert1",
 				Base: azure.ResourceID{
 					ResourceGroup: "mygroup1",
 				},
 			},
+		},
+		{
+			Name:     "Wrong Casing",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/Certificates/cert1",
+			Expected: nil,
 		},
 	}
 
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseAppServicePlanID(v.Input)
+		actual, err := ParseAppServiceCertificateID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

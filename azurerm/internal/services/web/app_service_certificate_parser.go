@@ -6,29 +6,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-type AppServiceResourceID struct {
+type AppServiceCertificateResourceID struct {
 	Base azure.ResourceID
 
 	Name string
 }
 
-func ParseAppServiceID(input string) (*AppServiceResourceID, error) {
+func ParseAppServiceCertificateID(input string) (*AppServiceCertificateResourceID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("[ERROR] Unable to parse App Service ID %q: %+v", input, err)
+		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Certificate ID %q: %+v", input, err)
 	}
 
-	group := AppServiceResourceID{
+	group := AppServiceCertificateResourceID{
 		Base: *id,
-		Name: id.Path["sites"],
+		Name: id.Path["certificates"],
 	}
 
 	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `sites` element")
+		return nil, fmt.Errorf("ID was missing the `certificates` element")
 	}
 
 	pathWithoutElements := group.Base.Path
-	delete(pathWithoutElements, "sites")
+	delete(pathWithoutElements, "certificates")
 	if len(pathWithoutElements) != 0 {
 		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
 	}

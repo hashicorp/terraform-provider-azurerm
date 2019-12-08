@@ -43,7 +43,7 @@ func TestParseAppService(t *testing.T) {
 			Expected: &AppServiceResourceID{
 				Name: "site1",
 				Base: azure.ResourceID{
-					ResourceGroup: "foo",
+					ResourceGroup: "mygroup1",
 				},
 			},
 		},
@@ -68,6 +68,10 @@ func TestParseAppService(t *testing.T) {
 
 		if actual.Name != v.Expected.Name {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
+		}
+
+		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.Base.ResourceGroup, actual.Base.ResourceGroup)
 		}
 	}
 }
