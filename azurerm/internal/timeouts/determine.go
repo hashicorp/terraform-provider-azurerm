@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/tracer"
 )
 
 // TODO: tests for this
@@ -58,9 +59,11 @@ func buildWithTimeout(ctx context.Context, timeout time.Duration) (context.Conte
 	if features.SupportsCustomTimeouts() {
 		return context.WithTimeout(ctx, timeout)
 	}
+	newCtx := tracer.MyTracer.StartSpan(ctx, "root")
 
 	nullFunc := func() {
+		tracer.MyTracer.EndSpan(newCtx, 0, nil)
 		// do nothing on cancel since timeouts aren't enabled
 	}
-	return ctx, nullFunc
+	return newCtx, nullFunc
 }
