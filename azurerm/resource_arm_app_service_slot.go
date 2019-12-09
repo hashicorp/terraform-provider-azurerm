@@ -208,7 +208,8 @@ func resourceArmAppServiceSlotCreateUpdate(d *schema.ResourceData, meta interfac
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentity := azure.ExpandAppServiceIdentity(d)
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -356,10 +357,11 @@ func resourceArmAppServiceSlotUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("identity") {
-		identity := azure.ExpandAppServiceIdentity(d)
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
 		sitePatchResource := web.SitePatchResource{
 			ID:       utils.String(d.Id()),
-			Identity: identity,
+			Identity: appServiceIdentity,
 		}
 		_, err := client.UpdateSlot(ctx, resourceGroup, appServiceName, sitePatchResource, slot)
 		if err != nil {

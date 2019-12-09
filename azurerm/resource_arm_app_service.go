@@ -250,7 +250,8 @@ func resourceArmAppServiceCreate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentity := azure.ExpandAppServiceIdentity(d)
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
@@ -458,7 +459,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 	}
 
 	if d.HasChange("storage_account") {
-		storageAccounts := azure.ExpandAppServiceStorageAccounts(d)
+		storageAccountsRaw := d.Get("storage_account").(*schema.Set).List()
+		storageAccounts := azure.ExpandAppServiceStorageAccounts(storageAccountsRaw)
 		properties := web.AzureStoragePropertyDictionaryResource{
 			Properties: storageAccounts,
 		}
@@ -486,7 +488,8 @@ func resourceArmAppServiceUpdate(d *schema.ResourceData, meta interface{}) error
 			return fmt.Errorf("Error getting configuration for App Service %q: %+v", name, err)
 		}
 
-		appServiceIdentity := azure.ExpandAppServiceIdentity(d)
+		appServiceIdentityRaw := d.Get("identity").([]interface{})
+		appServiceIdentity := azure.ExpandAppServiceIdentity(appServiceIdentityRaw)
 		site.Identity = appServiceIdentity
 
 		future, err := client.CreateOrUpdate(ctx, resGroup, name, site)
