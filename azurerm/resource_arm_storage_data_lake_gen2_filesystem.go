@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"regexp"
@@ -25,7 +26,8 @@ func resourceArmStorageDataLakeGen2FileSystem() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 				storageClients := meta.(*ArmClient).Storage
-				ctx := meta.(*ArmClient).StopContext
+				ctx, cancel := context.WithTimeout(meta.(*ArmClient).StopContext, 5*time.Minute)
+				defer cancel()
 
 				id, err := filesystems.ParseResourceID(d.Id())
 				if err != nil {

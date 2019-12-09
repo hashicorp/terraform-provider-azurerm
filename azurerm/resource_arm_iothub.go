@@ -10,11 +10,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -308,6 +308,7 @@ func resourceArmIotHub() *schema.Resource {
 			"route": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -431,7 +432,7 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*ArmClient).IoTHub.ResourceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
-	subscriptionID := meta.(*ArmClient).subscriptionId
+	subscriptionID := meta.(*ArmClient).Account.SubscriptionId
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -470,11 +471,14 @@ func resourceArmIotHubCreateUpdate(d *schema.ResourceData, meta interface{}) err
 	skuInfo := expandIoTHubSku(d)
 	t := d.Get("tags").(map[string]interface{})
 
-	fallbackRoute := expandIoTHubFallbackRoute(d)
-	routes := expandIoTHubRoutes(d)
-	routingProperties := devices.RoutingProperties{
-		Routes:        routes,
-		FallbackRoute: fallbackRoute,
+	routingProperties := devices.RoutingProperties{}
+
+	if _, ok := d.GetOk("route"); ok {
+		routingProperties.Routes = expandIoTHubRoutes(d)
+	}
+
+	if _, ok := d.GetOk("fallback_route"); ok {
+		routingProperties.FallbackRoute = expandIoTHubFallbackRoute(d)
 	}
 
 	if _, ok := d.GetOk("endpoint"); ok {

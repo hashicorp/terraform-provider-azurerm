@@ -30,7 +30,7 @@ func TestDatabaseCollation(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		_, errors := DatabaseCollation(tc.Value, "collation")
+		_, errors := PostgresDatabaseCollation(tc.Value, "collation")
 		if len(errors) != tc.Errors {
 			t.Fatalf("Expected DatabaseCollation to trigger '%d' errors for '%s' - got '%d'", tc.Errors, tc.Value, len(errors))
 		}

@@ -250,7 +250,7 @@ func testGeneralizeVMImage(resourceGroup string, vmName string, userName string,
 		ctx := armClient.StopContext
 
 		normalizedLocation := azure.NormalizeLocation(location)
-		suffix := armClient.environment.ResourceManagerVMDNSSuffix
+		suffix := armClient.Account.Environment.ResourceManagerVMDNSSuffix
 		dnsName := fmt.Sprintf("%s.%s.%s", hostName, normalizedLocation, suffix)
 
 		if err := deprovisionVM(userName, password, dnsName, port); err != nil {

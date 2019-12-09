@@ -2,7 +2,7 @@
 subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster"
-sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster"
+sidebar_current: "docs-azurerm-resource-container-kubernetes-cluster-x"
 description: |-
   Manages a managed Kubernetes Cluster (also known as AKS / Azure Kubernetes Service)
 ---
@@ -19,30 +19,20 @@ This example provisions a basic Managed Kubernetes Cluster. Other examples of th
 
 ```hcl
 resource "azurerm_resource_group" "example" {
-  name     = "acctestRG1"
-  location = "East US"
+  name     = "example-resources"
+  location = "West Europe"
 }
 
 resource "azurerm_kubernetes_cluster" "example" {
-  name                = "acctestaks1"
+  name                = "example-aks1"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  dns_prefix          = "acctestagent1"
+  dns_prefix          = "exampleaks1"
 
-  agent_pool_profile {
-    name            = "default"
-    count           = 1
-    vm_size         = "Standard_D1_v2"
-    os_type         = "Linux"
-    os_disk_size_gb = 30
-  }
-
-  agent_pool_profile {
-    name            = "pool2"
-    count           = 1
-    vm_size         = "Standard_D2_v2"
-    os_type         = "Linux"
-    os_disk_size_gb = 30
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_D2_v2"
   }
 
   service_principal {
@@ -56,11 +46,11 @@ resource "azurerm_kubernetes_cluster" "example" {
 }
 
 output "client_certificate" {
-  value = "${azurerm_kubernetes_cluster.example.kube_config.0.client_certificate}"
+  value = azurerm_kubernetes_cluster.example.kube_config.0.client_certificate
 }
 
 output "kube_config" {
-  value = "${azurerm_kubernetes_cluster.example.kube_config_raw}"
+  value = azurerm_kubernetes_cluster.example.kube_config_raw
 }
 ```
 
@@ -74,13 +64,20 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the Resource Group where the Managed Kubernetes Cluster should exist. Changing this forces a new resource to be created.
 
-* `agent_pool_profile` - (Required) One or more `agent_pool_profile` blocks as defined below.
+* `default_node_pool` - (Optional) A `default_node_pool` block as defined below.
+
+-> **NOTE:** The `default_node_pool` block will become required in 2.0
+
 
 * `dns_prefix` - (Required) DNS prefix specified when creating the managed cluster. Changing this forces a new resource to be created.
 
 -> **NOTE:** The `dns_prefix` must contain between 3 and 45 characters, and can contain only letters, numbers, and hyphens. It must start with a letter and must end with a letter or a number.
 
 * `service_principal` - (Required) A `service_principal` block as documented below.
+
+* `agent_pool_profile` - (Optional) One or more `agent_pool_profile` blocks as defined below.
+
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
 
 ---
 
@@ -109,65 +106,79 @@ resource "azurerm_subnet" "virtual" {
 
 ---
 
-* `addon_profile` - (Optional) A `addon_profile` block.
+* `addon_profile` - (Optional) A `addon_profile` block as defined below.
 
 * `api_server_authorized_ip_ranges` - (Optional) The IP ranges to whitelist for incoming traffic to the masters.
 
 -> **NOTE:** `api_server_authorized_ip_ranges` Is currently in Preview on an opt-in basis. To use it, enable feature `APIServerSecurityPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [How to enable the Azure Firewall Public Preview](https://docs.microsoft.com/en-us/azure/firewall/public-preview)
 
-* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
-
-* `linux_profile` - (Optional) A `linux_profile` block.
-
-* `windows_profile` - (Optional) A `windows_profile` block.
-
-* `network_profile` - (Optional) A `network_profile` block.
-
--> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
-
-* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
-
 * `enable_pod_security_policy` - (Optional) Whether Pod Security Policies are enabled. Note that this also requires role based access control to be enabled.
 
 -> **NOTE:** Support for `enable_pod_security_policy` is currently in Preview on an opt-in basis. To use it, enable feature `PodSecurityPolicyPreview` for `namespace Microsoft.ContainerService`. For an example of how to enable a Preview feature, please visit [Register scale set feature provider](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler#register-scale-set-feature-provider).
 
-* `node_resource_group` - (Optional) The name of the Resource Group where the the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
+* `kubernetes_version` - (Optional) Version of Kubernetes specified when creating the AKS managed cluster. If not specified, the latest recommended version will be used at provisioning time (but won't auto-upgrade).
+
+-> **NOTE:** Upgrading your cluster may take up to 10 minutes per node.
+
+* `linux_profile` - (Optional) A `linux_profile` block as defined below.
+
+* `network_profile` - (Optional) A `network_profile` block as defined below.
+
+-> **NOTE:** If `network_profile` is not defined, `kubenet` profile will be used by default.
+
+* `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
 -> **NOTE:** Azure requires that a new, non-existent Resource Group is used, as otherwise the provisioning of the Kubernetes Service will fail.
 
+* `role_based_access_control` - (Optional) A `role_based_access_control` block. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
+
+* `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
 ---
 
 A `addon_profile` block supports the following:
 
 * `aci_connector_linux` - (Optional) A `aci_connector_linux` block. For more details, please visit [Create and configure an AKS cluster to use virtual nodes](https://docs.microsoft.com/en-us/azure/aks/virtual-nodes-portal).
-* `http_application_routing` - (Optional) A `http_application_routing` block.
-* `oms_agent` - (Optional) A `oms_agent` block. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
-* `kube_dashboard` - (Optional) A `kube_dashboard` block.
-* `azure_policy` - (Optional) A `azure_policy` block.  For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
+
+* `azure_policy` - (Optional) A `azure_policy` block as defined below. For more details please visit [Understand Azure Policy for Azure Kubernetes Service](https://docs.microsoft.com/en-ie/azure/governance/policy/concepts/rego-for-aks)
 
 -> **NOTE**: Azure Policy for Azure Kubernetes Service is currently in preview and not available to subscriptions that have not [opted-in](https://docs.microsoft.com/en-us/azure/governance/policy/concepts/rego-for-aks?toc=/azure/aks/toc.json) to join `Azure Policy` preview.
+
+* `http_application_routing` - (Optional) A `http_application_routing` block as defined below.
+
+* `kube_dashboard` - (Optional) A `kube_dashboard` block as defined below.
+
+* `oms_agent` - (Optional) A `oms_agent` block as defined below. For more details, please visit [How to onboard Azure Monitor for containers](https://docs.microsoft.com/en-us/azure/monitoring/monitoring-container-insights-onboard).
 
 ---
 
 A `agent_pool_profile` block supports the following:
 
+~> **NOTE:** The `agent_pool_profile` block has been superseded by the `default_node_pool` block and will be removed in 2.0
+
 * `name` - (Required) Unique name of the Agent Pool Profile in the context of the Subscription and Resource Group. Changing this forces a new resource to be created.
 
 * `count` - (Optional) Number of Agents (VMs) in the Pool. Possible values must be in the range of 1 to 100 (inclusive). Defaults to `1`.
 
+-> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
+
 * `vm_size` - (Required) The size of each VM in the Agent Pool (e.g. `Standard_F1`). Changing this forces a new resource to be created.
 
-* `availability_zones` - (Optional)  Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
+* `availability_zones` - (Optional) Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
-* `min_count` - (Optional) Minimum number of nodes for auto-scaling
+* `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
 
-* `max_count` - (Optional) Maximum number of nodes for auto-scaling
+* `min_count` - (Optional) Minimum number of nodes for auto-scaling.
+
+* `max_count` - (Optional) Maximum number of nodes for auto-scaling.
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
+
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
 
 * `os_disk_size_gb` - (Optional) The Agent Operating System disk size in GB. Changing this forces a new resource to be created.
 
@@ -177,9 +188,9 @@ A `agent_pool_profile` block supports the following:
 
 * `vnet_subnet_id` - (Optional) The ID of the Subnet where the Agents in the Pool should be provisioned. Changing this forces a new resource to be created.
 
-~> **NOTE:** A route table should be configured on this Subnet.
+-> **NOTE:** At this time the `vnet_subnet_id` must be the same for all node pools in the cluster
 
-* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`)
+~> **NOTE:** A route table must be configured on this Subnet.
 
 ---
 
@@ -193,6 +204,61 @@ A `azure_active_directory` block supports the following:
 
 * `tenant_id` - (Optional) The Tenant ID used for Azure Active Directory Application. If this isn't specified the Tenant ID of the current Subscription is used. Changing this forces a new resource to be created.
 
+
+---
+
+A `azure_policy` block supports the following:
+
+* `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
+
+---
+
+A `default_node_pool` block supports the following:
+
+* `name` - (Required) The name which should be used for the default Kubernetes Node Pool. Changing this forces a new resource to be created.
+
+* `vm_size` - (Required) The size of the Virtual Machine, such as `Standard_DS2_v2`.
+
+* `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread.
+
+-> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
+
+* `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
+
+-> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
+
+-> **NOTE:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to the `node_count` field.
+
+* `enable_node_public_ip` - (Optional) Should nodes in this Node Pool have a Public IP Address? Defaults to `false`.
+
+* `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this forces a new resource to be created.
+
+* `node_taints` - (Optional) A list of Kubernetes taints which should be applied to nodes in the agent pool (e.g `key=value:NoSchedule`).
+
+* `os_disk_size_gb` - (Optional) The size of the OS Disk which should be used for each agent in the Node Pool. Changing this forces a new resource to be created.
+
+* `type` - (Optional) The type of Node Pool which should be created. Possible values are `AvailabilitySet` and `VirtualMachineScaleSets`. Defaults to `VirtualMachineScaleSets`.
+
+-> **NOTE:** This default value differs from the default value for the `agent_pool_profile` block and matches a change to the default within AKS.
+
+* `vnet_subnet_id` - (Required) The ID of a Subnet where the Kubernetes Node Pool should exist. Changing this forces a new resource to be created.
+
+~> **NOTE:** A Route Table must be configured on this Subnet.
+
+If `enable_auto_scaling` is set to `true`, then the following fields can also be configured:
+
+* `max_count` - (Required) The maximum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+
+* `min_count` - (Required) The minimum number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+
+* `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100` and between `min_count` and `max_count`.
+
+-> **NOTE:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/docs/configuration/resources.html#ignore_changes) to ignore changes to this field.
+
+If `enable_auto_scaling` is set to `false`, then the following fields can also be configured:
+
+* `node_count` - (Required) The number of nodes which should exist in this Node Pool. If specified this must be between `1` and `100`.
+
 ---
 
 A `http_application_routing` block supports the following:
@@ -201,19 +267,17 @@ A `http_application_routing` block supports the following:
 
 ---
 
+A `kube_dashboard` block supports the following:
+
+* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
+
+---
+
 A `linux_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for the Cluster. Changing this forces a new resource to be created.
 
-* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed.  Changing this forces a new resource to be created.
-
----
-
-A `windows_profile` block supports the following:
-
-* `admin_username` - (Required) The Admin Username for Windows VMs.
-
-* `admin_password` - (Required) The Admin Password for Windows VMs.
+* `ssh_key` - (Required) An `ssh_key` block. Only one is currently allowed. Changing this forces a new resource to be created.
 
 ---
 
@@ -249,18 +313,6 @@ A `oms_agent` block supports the following:
 
 ---
 
-A `kube_dashboard` block supports the following:
-
-* `enabled` - (Required) Is the Kubernetes Dashboard enabled?
-
----
-
-A `azure_policy` block supports the following:
-
-* `enabled` - (Required) Is the Azure Policy for Kubernetes Add On enabled?
-
----
-
 A `role_based_access_control` block supports the following:
 
 * `azure_active_directory` - (Optional) An `azure_active_directory` block. Changing this forces a new resource to be created.
@@ -280,6 +332,15 @@ A `service_principal` block supports the following:
 A `ssh_key` block supports the following:
 
 * `key_data` - (Required) The Public SSH Key used to access the cluster. Changing this forces a new resource to be created.
+
+---
+
+A `windows_profile` block supports the following:
+
+* `admin_username` - (Required) The Admin Username for Windows VMs.
+
+* `admin_password` - (Required) The Admin Password for Windows VMs.
+
 
 ## Attributes Reference
 
@@ -335,8 +396,6 @@ provider "kubernetes" {
   cluster_ca_certificate = "${base64decode(azurerm_kubernetes_cluster.main.kube_config.0.cluster_ca_certificate)}"
 }
 ```
-
----
 
 ## Import
 

@@ -512,17 +512,17 @@ resource "azurerm_api_management" "test" {
 func testAccAzureRMApiManagement_complete(rInt int, location string, altLocation string, altLocation2 string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test1" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-api1-%d"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%d"
+  name     = "acctestRG-api1-%d"
   location = "%s"
 }
 
 resource "azurerm_resource_group" "test3" {
-  name     = "acctestRG3-%d"
+  name     = "acctestRG-api1-%d"
   location = "%s"
 }
 

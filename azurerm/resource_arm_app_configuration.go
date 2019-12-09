@@ -8,10 +8,10 @@ import (
 	"time"
 
 	appconf "github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -309,30 +309,38 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 
 	values := resultPage.Values()
 	for _, value := range values {
-		if value.ID == nil || value.Value == nil || value.ConnectionString == nil || value.Name == nil || value.ReadOnly == nil {
-			continue
+		accessKeyParams := map[string]string{}
+		if id := value.ID; id != nil {
+			accessKeyParams["id"] = *id
+		}
+		if value := value.Value; value != nil {
+			accessKeyParams["secret"] = *value
+		}
+		if connectionString := value.ConnectionString; connectionString != nil {
+			accessKeyParams["connection_string"] = *value.ConnectionString
 		}
 
-		accessKey := []interface{}{map[string]string{
-			"id":                *value.ID,
-			"secret":            *value.Value,
-			"connection_string": *value.ConnectionString,
-		}}
-
-		if strings.HasPrefix(*value.Name, "Primary") {
-			if *value.ReadOnly {
-				d.Set("primary_read_key", accessKey)
+		accessKey := []interface{}{accessKeyParams}
+		if name := value.Name; name != nil {
+			if strings.HasPrefix(*name, "Primary") {
+				if readOnly := value.ReadOnly; readOnly != nil {
+					if *readOnly {
+						d.Set("primary_read_key", accessKey)
+					} else {
+						d.Set("primary_write_key", accessKey)
+					}
+				}
+			} else if strings.HasPrefix(*name, "Secondary") {
+				if readOnly := value.ReadOnly; readOnly != nil {
+					if *readOnly {
+						d.Set("secondary_read_key", accessKey)
+					} else {
+						d.Set("secondary_write_key", accessKey)
+					}
+				}
 			} else {
-				d.Set("primary_write_key", accessKey)
+				log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", *name)
 			}
-		} else if strings.HasPrefix(*value.Name, "Secondary") {
-			if *value.ReadOnly {
-				d.Set("secondary_read_key", accessKey)
-			} else {
-				d.Set("secondary_write_key", accessKey)
-			}
-		} else {
-			log.Printf("[WARN] Received unknown App Configuration access key '%s', ignoring...", *value.Name)
 		}
 	}
 

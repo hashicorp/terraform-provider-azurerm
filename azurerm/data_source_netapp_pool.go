@@ -2,16 +2,22 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmNetAppPool() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmNetAppPoolRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -35,7 +41,7 @@ func dataSourceArmNetAppPool() *schema.Resource {
 				Computed: true,
 			},
 
-			"size_in_4_tb": {
+			"size_in_tb": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -45,7 +51,8 @@ func dataSourceArmNetAppPool() *schema.Resource {
 
 func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Netapp.PoolClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
@@ -70,7 +77,7 @@ func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
 		d.Set("service_level", poolProperties.ServiceLevel)
 		if poolProperties.Size != nil {
-			d.Set("size_in_4_tb", *poolProperties.Size/4398046511104)
+			d.Set("size_in_tb", *poolProperties.Size/1099511627776)
 		}
 	}
 

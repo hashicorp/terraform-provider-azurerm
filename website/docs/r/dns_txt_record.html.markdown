@@ -68,6 +68,7 @@ The `record` block supports:
 The following attributes are exported:
 
 * `id` - The DNS TXT Record ID.
+* `fqdn` - The FQDN of the DNS TXT Record.
 
 ## Import
 
