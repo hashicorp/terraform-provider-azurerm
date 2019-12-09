@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
@@ -211,13 +212,11 @@ func resourceArmBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func validateCallingWebHook() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
-		value := i.(string)
-		if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {
-			errors = append(errors, fmt.Errorf("invalid `calling_web_hook`, must start with `https://` and end with `/`"))
-		}
-
-		return warnings, errors
+func validateCallingWebHook(i interface{}, k string) (warnings []string, errors []error) {
+	value := i.(string)
+	if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {
+		errors = append(errors, fmt.Errorf("invalid `calling_web_hook`, must start with `https://` and end with `/`"))
 	}
+
+	return warnings, errors
 }
