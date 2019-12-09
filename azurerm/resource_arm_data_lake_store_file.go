@@ -95,7 +95,7 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	}
 	defer func(c io.Closer) {
 		if err := c.Close(); err != nil {
-			fmt.Sprintf("Error closing Data Lake Store File %q: %+v", localFilePath, err)
+			log.Printf("[DEBUG] Error closing Data Lake Store File %q: %+v", localFilePath, err)
 		}
 	}(file)
 
