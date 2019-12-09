@@ -1,6 +1,7 @@
 module github.com/terraform-providers/terraform-provider-azurerm
 
 require (
+	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/zipkin v0.1.1
 	github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
 	github.com/Azure/go-autorest/autorest v0.9.2

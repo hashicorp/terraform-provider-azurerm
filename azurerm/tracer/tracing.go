@@ -5,22 +5,34 @@ import (
 	"log"
 	"net/http"
 
-	"contrib.go.opencensus.io/exporter/zipkin"
+	"contrib.go.opencensus.io/exporter/jaeger"
+
 	_ "github.com/Azure/go-autorest/tracing/opencensus"
-	openzipkin "github.com/openzipkin/zipkin-go"
-	zipkinHTTP "github.com/openzipkin/zipkin-go/reporter/http"
 	"go.opencensus.io/trace"
 )
 
 func init() {
-	localEndpoint, err := openzipkin.NewEndpoint("terraform", "192.168.1.5:5454")
-	if err != nil {
-		log.Fatalf("Failed to create the local zipkinEndpoint: %v", err)
-	}
-	reporter := zipkinHTTP.NewReporter("http://localhost:9411/api/v2/spans")
-	ze := zipkin.NewExporter(reporter, localEndpoint)
-	trace.RegisterExporter(ze)
+	//localEndpoint, err := openzipkin.NewEndpoint("terraform", "192.168.1.5:5454")
+	//if err != nil {
+	//	log.Fatalf("Failed to create the local zipkinEndpoint: %v", err)
+	//}
+	//reporter := zipkinHTTP.NewReporter("http://localhost:9411/api/v2/spans")
+	//e := zipkin.NewExporter(reporter, localEndpoint)
 
+	collectionEndpointURI := "http://localhost:14268/api/traces"
+	agentEndpointURI := "localhost:6831"
+	e, err := jaeger.NewExporter(jaeger.Options{
+		AgentEndpoint:     agentEndpointURI,
+		CollectorEndpoint: collectionEndpointURI,
+		Process: jaeger.Process{
+			ServiceName: "terraform",
+		},
+	})
+	if err != nil {
+		log.Fatalf("Failed to initialize exporter: %s", err)
+	}
+
+	trace.RegisterExporter(e)
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 }
 
