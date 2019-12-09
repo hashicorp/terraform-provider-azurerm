@@ -15,7 +15,7 @@ import (
 func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
-	resourceName := "azurerm_bot_channel_msteams.test"
+	resourceName := "azurerm_bot_channel_ms_teams.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -32,11 +32,6 @@ func testAccAzureRMBotChannelMsTeams_basic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"enabled",
-					"calling_web_hook",
-					"enable_calling",
-				},
 			},
 		},
 	})
@@ -46,7 +41,7 @@ func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 	ri := tf.AccRandTimeInt()
 	config := testAccAzureRMBotChannelMsTeams_basicConfig(ri, testLocation())
 	config2 := testAccAzureRMBotChannelMsTeams_basicUpdate(ri, testLocation())
-	resourceName := "azurerm_bot_channel_msteams.test"
+	resourceName := "azurerm_bot_channel_ms_teams.test"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -63,11 +58,6 @@ func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"enabled",
-					"calling_web_hook",
-					"enable_calling",
-				},
 			},
 			{
 				Config: config2,
@@ -79,11 +69,6 @@ func testAccAzureRMBotChannelMsTeams_update(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"enabled",
-					"calling_web_hook",
-					"enable_calling",
-				},
 			},
 		},
 	})
@@ -124,7 +109,7 @@ func testCheckAzureRMBotChannelMsTeamsDestroy(s *terraform.State) error {
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "azurerm_bot_channel_msteams" {
+		if rs.Type != "azurerm_bot_channel_ms_teams" {
 			continue
 		}
 
@@ -150,7 +135,7 @@ func testAccAzureRMBotChannelMsTeams_basicConfig(rInt int, location string) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_bot_channel_msteams" "test" {
+resource "azurerm_bot_channel_ms_teams" "test" {
   bot_name            = "${azurerm_bot_channels_registration.test.name}"
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
@@ -165,7 +150,7 @@ func testAccAzureRMBotChannelMsTeams_basicUpdate(rInt int, location string) stri
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_bot_channel_msteams" "test" {
+resource "azurerm_bot_channel_ms_teams" "test" {
   bot_name            = "${azurerm_bot_channels_registration.test.name}"
   location            = "${azurerm_bot_channels_registration.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"

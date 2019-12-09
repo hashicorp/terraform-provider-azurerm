@@ -48,7 +48,7 @@ func resourceArmBotChannelMsTeams() *schema.Resource {
 			"calling_web_hook": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validate.NoEmptyStrings,
+				ValidateFunc: validateCallingWebHook,
 			},
 
 			"enable_calling": {
@@ -76,7 +76,7 @@ func resourceArmBotChannelMsTeamsCreate(d *schema.ResourceData, meta interface{}
 			}
 		}
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_bot_channel_msteams", *existing.ID)
+			return tf.ImportAsExistsError("azurerm_bot_channel_ms_teams", *existing.ID)
 		}
 	}
 
@@ -209,4 +209,15 @@ func resourceArmBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func validateCallingWebHook() schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (warnings []string, errors []error) {
+		value := i.(string)
+		if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {
+			errors = append(errors, fmt.Errorf("invalid `calling_web_hook`, must start with `https://` and end with `/`"))
+		}
+
+		return warnings, errors
+	}
 }
