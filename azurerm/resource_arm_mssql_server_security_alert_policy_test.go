@@ -133,7 +133,7 @@ resource "azurerm_mssql_server_security_alert_policy" "test" {
 func testAccAzureRMMssqlServerSecurityAlertPolicy_server(rInt int, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-mssql-%d"
   location = "%s"
 }
 
