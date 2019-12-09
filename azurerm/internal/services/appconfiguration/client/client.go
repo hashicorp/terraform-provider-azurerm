@@ -1,4 +1,4 @@
-package appconfiguration
+package client
 
 import (
 	appconf "github.com/Azure/azure-sdk-for-go/services/appconfiguration/mgmt/2019-10-01/appconfiguration"
@@ -9,7 +9,7 @@ type Client struct {
 	AppConfigurationsClient *appconf.ConfigurationStoresClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	AppConfigurationsClient := appconf.NewConfigurationStoresClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&AppConfigurationsClient.Client, o.ResourceManagerAuthorizer)
 
