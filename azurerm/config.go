@@ -9,18 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -160,19 +148,19 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 		Environment:                 *env,
 	}
 
-	client.AnalysisServices = analysisservices.BuildClient(o)
-	client.ApiManagement = apimanagement.BuildClient(o)
-	client.AppConfiguration = appconfiguration.BuildClient(o)
-	client.AppInsights = applicationinsights.BuildClient(o)
-	client.Automation = automation.BuildClient(o)
-	client.Authorization = authorization.BuildClient(o)
-	client.Batch = batch.BuildClient(o)
-	client.Bot = bot.BuildClient(o)
-	client.Cdn = cdn.BuildClient(o)
-	client.Cognitive = cognitive.BuildClient(o)
-	client.Compute = clients.NewComputeClient(o)
-	client.Containers = containers.BuildClient(o)
-	client.Cosmos = cosmos.BuildClient(o)
+	if err := client.Build(o); err != nil {
+		return nil, fmt.Errorf("Error building Client: %+v", err)
+	}
+
+	return &client, nil
+}
+
+func (client *ArmClient) Build(o *common.ClientOptions) error {
+	if err := client.Client.Build(o); err != nil {
+		return err
+	}
+
+	// TODO: move these Clients inside of Common so this method can be moved in there
 	client.DataBricks = databricks.BuildClient(o)
 	client.DataFactory = datafactory.BuildClient(o)
 	client.Datalake = datalake.BuildClient(o)
@@ -222,5 +210,5 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 	client.TrafficManager = trafficmanager.BuildClient(o)
 	client.Web = web.BuildClient(o)
 
-	return &client, nil
+	return nil
 }

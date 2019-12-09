@@ -2,6 +2,7 @@ package azurerm
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -25,6 +26,13 @@ func resourceArmContainerService() *schema.Resource {
 		Read:   resourceArmContainerServiceRead,
 		Update: resourceArmContainerServiceCreateUpdate,
 		Delete: resourceArmContainerServiceDelete,
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(90 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(90 * time.Minute),
+			Delete: schema.DefaultTimeout(90 * time.Minute),
+		},
 
 		DeprecationMessage: `Azure Container Service (ACS) has been deprecated in favour of Azure (Managed) Kubernetes Service (AKS).
 
@@ -271,7 +279,7 @@ func resourceArmContainerServiceCreateUpdate(d *schema.ResourceData, meta interf
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"Updating", "Creating"},
 		Target:     []string{"Succeeded"},
-		Refresh:    containerServiceStateRefreshFunc(client, resGroup, name),
+		Refresh:    containerServiceStateRefreshFunc(ctx, client, resGroup, name),
 		MinTimeout: 15 * time.Second,
 	}
 
@@ -562,9 +570,8 @@ func expandAzureRmContainerServiceAgentProfiles(d *schema.ResourceData) []contai
 	return profiles
 }
 
-func containerServiceStateRefreshFunc(client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
+func containerServiceStateRefreshFunc(ctx context.Context, client *ArmClient, resourceGroupName string, containerServiceName string) resource.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		ctx := client.StopContext
 		res, err := client.Containers.ServicesClient.Get(ctx, resourceGroupName, containerServiceName)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error issuing read request in containerServiceStateRefreshFunc to Azure ARM for Container Service '%s' (RG: '%s'): %s", containerServiceName, resourceGroupName, err)

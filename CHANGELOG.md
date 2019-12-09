@@ -1,35 +1,55 @@
-## 1.38.0 (Unreleased)
-
-FEATURES:
-
-* **New Data Source:** `azurerm_virtual_hub` [GH-5004]
-* **New Resource:** `azurerm_iothub_fallback_route` [GH-4965]
-* **New Resource:** `azurerm_point_to_site_vpn_gateway` [GH-5004]
-* **New Resource:** `azurerm_private_dns_mx_record` [GH-4915]
-* **New Resource:** `azurerm_virtual_hub` [GH-5004]
-* **New Resource:** `azurerm_vpn_gateway` [GH-5004]
-* **New Resource:** `azurerm_vpn_server_configuration` [GH-5004]
-
-IMPROVEMENTS:
-
-* network: updating to use API version `2019-09-01` [GH-5004]
-* `azurerm_application_gateway` - updating the validation for `min_capacity` and `max_capacity` within the `autoscale_configuration` block [GH-4958]
-* `azurerm_dns_a_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_aaaa_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_caa_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_cname_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_mx_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_ns_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_ptr_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_srv_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_dns_txt_record` - exposing the `fqdn` [GH-5000]
-* `azurerm_mysql_server` - add support for version 8.0 [GH-5019]
+## 1.39.0 (Unreleased)
 
 BUG FIXES:
 
-* `azurerm_mssql_elasticpool` - no longer panicing when `sku` is nil [GH-5017]
-* `azurerm_storage_account` - ensuring we only lock each Virtual Network once during deletion [GH-4908]
-* `azurerm_virtual_wan` - deprecating the `security_provider_name` field since it's no longer used [GH-5004]
+* Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
+* `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
+* `azurerm_storage_account` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_blob` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_container` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_file` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_queue` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_table` - querying all pages when listing storage accounts [GH-5075]
+
+## 1.38.0 (December 06, 2019)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_nat_gateway` ([#4449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4449))
+* **New Data Source:** `azurerm_private_link_endpoint_connection` ([#4493](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4493))
+* **New Data Source:** `azurerm_virtual_hub` ([#5004](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5004))
+* **New Resource:** `azurerm_iothub_fallback_route` ([#4965](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4965))
+* **New Resource:** `azurerm_nat_gateway` ([#4449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4449))
+* **New Resource:** `azurerm_point_to_site_vpn_gateway` ([#5004](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5004))
+* **New Resource:** `azurerm_private_dns_mx_record` ([#4915](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4915))
+* **New Resource:** `azurerm_private_link_endpoint` ([#4493](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4493))
+* **New Resource:** `azurerm_storage_account_network_rules` ([#5082](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5082))
+* **New Resource:** `azurerm_subnet_nat_gateway_association` ([#4449](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4449))
+* **New Resource:** `azurerm_virtual_hub` ([#5004](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5004))
+* **New Resource:** `azurerm_vpn_gateway` ([#5004](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5004))
+* **New Resource:** `azurerm_vpn_server_configuration` ([#5004](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5004))
+
+IMPROVEMENTS:
+
+* network: updating to use API version `2019-09-01` ([#5004](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5004))
+* `azurerm_application_gateway` - updating the validation for `min_capacity` and `max_capacity` within the `autoscale_configuration` block ([#4958](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4958))
+* `azurerm_application_gateway` - fixes a crash when an empty body for probe match was used ([#5056](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5056))
+* `azurerm_dns_a_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_aaaa_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_caa_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_cname_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_mx_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_ns_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_ptr_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_srv_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_dns_txt_record` - exposing the `fqdn` ([#5000](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5000))
+* `azurerm_mysql_server` - add support for version 8.0 ([#5019](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5019))
+
+BUG FIXES:
+
+* `azurerm_mssql_elasticpool` - no longer panicing when `sku` is nil ([#5017](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5017))
+* `azurerm_storage_account` - ensuring we only lock each Virtual Network once during deletion ([#4908](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4908))
+* `azurerm_virtual_wan` - deprecating the `security_provider_name` field since it's no longer used ([#5004](https://github.com/terraform-providers/terraform-provider-azurerm/issues/5004))
 
 ## 1.37.0 (November 26, 2019)
 
