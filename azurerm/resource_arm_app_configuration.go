@@ -30,8 +30,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		SchemaVersion: 2,
-
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
@@ -68,7 +66,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"primary_read_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -93,7 +90,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"secondary_read_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -118,7 +114,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"primary_write_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -143,7 +138,6 @@ func resourceArmAppConfiguration() *schema.Resource {
 
 			"secondary_write_key": {
 				Type:     schema.TypeList,
-				MaxItems: 1,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -315,7 +309,7 @@ func resourceArmAppConfigurationRead(d *schema.ResourceData, meta interface{}) e
 
 	values := resultPage.Values()
 	for _, value := range values {
-		if &value == nil {
+		if value.ID == nil || value.Value == nil || value.ConnectionString == nil || value.Name == nil || value.ReadOnly == nil {
 			continue
 		}
 
