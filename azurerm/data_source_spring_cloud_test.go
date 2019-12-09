@@ -39,7 +39,7 @@ func testAccDataSourceSpringCloud_complete(rInt int, location string) string {
 
 data "azurerm_spring_cloud" "test" {
   name                = azurerm_spring_cloud.test.name
-  resource_group      = azurerm_spring_cloud.test.resource_group
+  resource_group_name = azurerm_spring_cloud.test.resource_group_name
 }
 `, config)
 }

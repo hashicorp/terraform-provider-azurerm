@@ -123,7 +123,7 @@ func testCheckAzureRMSpringCloudExists(resourceName string) resource.TestCheckFu
 		}
 
 		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		client := testAccProvider.Meta().(*ArmClient).AppPlatform.ServicesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -149,7 +149,7 @@ func testCheckAzureRMSpringCloudDestroy(s *terraform.State) error {
 		}
 
 		name := rs.Primary.Attributes["name"]
-		resourceGroup := rs.Primary.Attributes["resource_group"]
+		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
 		if resp, err := client.Get(ctx, resourceGroup, name); err != nil {
 			if !utils.ResponseWasNotFound(resp.Response) {
@@ -173,7 +173,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_spring_cloud" "test" {
   name                     = "acctestsc-%d"
   location                 = azurerm_resource_group.test.location
-  resource_group           = azurerm_resource_group.test.name
+  resource_group_name      = azurerm_resource_group.test.name
 
   tags = {
     env = "test"
@@ -193,7 +193,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_spring_cloud" "test" {
   name                     = "acctestsc-%d"
   location                 = azurerm_resource_group.test.location
-  resource_group           = azurerm_resource_group.test.name
+  resource_group_name      = azurerm_resource_group.test.name
 
   tags = {
     env = "test"

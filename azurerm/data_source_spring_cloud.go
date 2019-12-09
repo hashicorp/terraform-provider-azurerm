@@ -23,7 +23,7 @@ func dataSourceArmSpringCloud() *schema.Resource {
 
 			"location": azure.SchemaLocationForDataSource(),
 
-			"resource_group": azure.SchemaResourceGroupNameForDataSource(),
+			"resource_group_name": azure.SchemaResourceGroupNameForDataSource(),
 
 			"service_id": {
 				Type:     schema.TypeString,
@@ -45,7 +45,7 @@ func dataSourceArmSpringCloudRead(d *schema.ResourceData, meta interface{}) erro
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	resp, err := client.Get(ctx, resourceGroup, name)
 	if err != nil {
@@ -58,7 +58,7 @@ func dataSourceArmSpringCloudRead(d *schema.ResourceData, meta interface{}) erro
 	d.SetId(*resp.ID)
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group", resourceGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}

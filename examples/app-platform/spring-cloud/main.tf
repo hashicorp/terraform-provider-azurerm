@@ -5,7 +5,7 @@ resource "azurerm_resource_group" "example" {
 
 resource "azurerm_spring_cloud" "example" {
   name                     = "${var.prefix}-sc"
-  resource_group           = azurerm_resource_group.example.name
+  resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
 
   tags = {

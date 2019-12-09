@@ -38,7 +38,7 @@ func resourceArmSpringCloud() *schema.Resource {
 			// `East US`, `Southeast Asia`, `West Europe`, `West US 2`
 			"location": azure.SchemaLocation(),
 
-			"resource_group": azure.SchemaResourceGroupNameDiffSuppress(),
+			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
 			"service_id": {
 				Type:     schema.TypeString,
@@ -60,7 +60,7 @@ func resourceArmSpringCloudCreate(d *schema.ResourceData, meta interface{}) erro
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 
 	if features.ShouldResourcesBeImported() && d.IsNewResource() {
 		existing, err := client.Get(ctx, resourceGroup, name)
@@ -124,7 +124,7 @@ func resourceArmSpringCloudRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group", resourceGroup)
+	d.Set("resource_group_name", resourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -141,7 +141,7 @@ func resourceArmSpringCloudUpdate(d *schema.ResourceData, meta interface{}) erro
 	ctx := meta.(*ArmClient).StopContext
 
 	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
 	t := d.Get("tags").(map[string]interface{})
 
 	resource := appplatform.ServiceResource{
