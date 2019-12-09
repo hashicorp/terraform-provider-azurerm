@@ -232,8 +232,7 @@ func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, met
 		return fmt.Errorf("error waiting for creation/update of mssql server security alert policy (server %q, resource group %q): %+v", serverName, resourceGroupName, err)
 	}
 
-	_, err = client.Get(ctx, resourceGroupName, serverName)
-	if err != nil {
+	if _, err = client.Get(ctx, resourceGroupName, serverName); err != nil {
 		return fmt.Errorf("error deleting mssql server security alert policy: %v", err)
 	}
 
