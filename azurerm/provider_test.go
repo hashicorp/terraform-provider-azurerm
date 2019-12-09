@@ -14,16 +14,19 @@ var testAccProvider *schema.Provider
 
 func init() {
 	azureProvider := Provider().(*schema.Provider)
-	supportedProviders := map[string]terraform.ResourceProvider{
+
+	testAccProvider = azureProvider
+	acceptance.AzureProvider = azureProvider
+
+	// NOTE: these /cannot/ be simplified into a single shared variable (tried, it causes a nil-slice)
+	testAccProviders = map[string]terraform.ResourceProvider{
 		"azurerm": testAccProvider,
 		"azuread": azuread.Provider().(*schema.Provider),
 	}
-
-	// TODO: these can be de-duped once this is relocated
-	testAccProvider = azureProvider
-	acceptance.AzureProvider = azureProvider
-	testAccProviders = supportedProviders
-	acceptance.SupportedProviders = supportedProviders
+	acceptance.SupportedProviders = map[string]terraform.ResourceProvider{
+		"azurerm": testAccProvider,
+		"azuread": azuread.Provider().(*schema.Provider),
+	}
 }
 
 func TestProvider(t *testing.T) {
