@@ -620,7 +620,7 @@ func resourceArmContainerGroupRead(d *schema.ResourceData, meta interface{}) err
 		if address := props.IPAddress; address != nil {
 			d.Set("ip_address_type", address.Type)
 			d.Set("ip_address", address.IP)
-			d.Set("ports", address.Ports)
+			d.Set("ports", flattenPorts(address.Ports))
 			d.Set("dns_name_label", address.DNSNameLabel)
 			d.Set("fqdn", address.Fqdn)
 		}
@@ -1196,19 +1196,10 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 			}
 		}
 
-		if cPorts := container.Ports; cPorts != nil && len(*cPorts) > 0 {
-			ports := make([]interface{}, 0)
-			for _, p := range *cPorts {
-				port := make(map[string]interface{})
-				if v := p.Port; v != nil {
-					port["port"] = int(*v)
-				}
-				port["protocol"] = string(p.Protocol)
-				ports = append(ports, port)
-			}
-			containerConfig["ports"] = schema.NewSet(resourceArmContainerGroupPortsHash, ports)
+		containerConfig["ports"] = flattenPorts(container.Ports)
 
-			//old deprecated code
+		//old deprecated code
+		if cPorts := container.Ports; cPorts != nil && len(*cPorts) > 0 {
 			containerPort := *(*cPorts)[0].Port
 			containerConfig["port"] = containerPort
 			// protocol isn't returned in container config, have to search in container group ports
@@ -1270,6 +1261,35 @@ func flattenContainerGroupContainers(d *schema.ResourceData, containers *[]conta
 	}
 
 	return containerCfg
+}
+
+func flattenPorts(ports interface{}) *schema.Set {
+	portsList := make([]interface{}, 0)
+	switch tPorts := ports.(type) {
+	case *[]containerinstance.Port:
+		if tPorts != nil && len(*tPorts) > 0 {
+			for _, p := range *tPorts {
+				port := make(map[string]interface{})
+				if v := p.Port; v != nil {
+					port["port"] = int(*v)
+				}
+				port["protocol"] = string(p.Protocol)
+				portsList = append(portsList, port)
+			}
+		}
+	case *[]containerinstance.ContainerPort:
+		if tPorts != nil && len(*tPorts) > 0 {
+			for _, p := range *tPorts {
+				port := make(map[string]interface{})
+				if v := p.Port; v != nil {
+					port["port"] = int(*v)
+				}
+				port["protocol"] = string(p.Protocol)
+				portsList = append(portsList, port)
+			}
+		}
+	}
+	return schema.NewSet(resourceArmContainerGroupPortsHash, portsList)
 }
 
 func flattenContainerEnvironmentVariables(input *[]containerinstance.EnvironmentVariable, isSecure bool, d *schema.ResourceData, oldContainerIndex int) map[string]interface{} {
