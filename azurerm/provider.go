@@ -540,10 +540,9 @@ func Provider() terraform.ResourceProvider {
 		for _, v := range resources {
 			if v.Timeouts == nil {
 				v.Timeouts = &schema.ResourceTimeout{
-					Create:  schema.DefaultTimeout(3 * time.Hour),
-					Update:  schema.DefaultTimeout(3 * time.Hour),
-					Delete:  schema.DefaultTimeout(3 * time.Hour),
-					Default: schema.DefaultTimeout(3 * time.Hour),
+					Create: schema.DefaultTimeout(3 * time.Hour),
+					Update: schema.DefaultTimeout(3 * time.Hour),
+					Delete: schema.DefaultTimeout(3 * time.Hour),
 
 					// Read is the only exception, since if it's taken more than 5 minutes something's seriously wrong
 					Read: schema.DefaultTimeout(5 * time.Minute),
