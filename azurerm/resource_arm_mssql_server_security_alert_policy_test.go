@@ -36,6 +36,36 @@ func TestAccAzureRMMssqlServerSecurityAlertPolicy_basic(t *testing.T) {
 				ImportStateVerify:       true,
 				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
 			},
+		},
+	})
+}
+
+func TestAccAzureRMMssqlServerSecurityAlertPolicy_update(t *testing.T) {
+	resourceName := "azurerm_mssql_server_security_alert_policy.test"
+	ri := tf.AccRandTimeInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMStorageAccountSqlServerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_basic(ri, testLocation()),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "state", "Enabled"),
+					resource.TestCheckResourceAttr(resourceName, "disabled_alerts.#", "2"),
+					resource.TestCheckResourceAttr(resourceName, "email_account_admins", "false"),
+					resource.TestCheckResourceAttr(resourceName, "retention_days", "20"),
+					resource.TestCheckResourceAttr(resourceName, "email_addresses.#", "0"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"storage_account_access_key"},
+			},
 			{
 				Config: testAccAzureRMMssqlServerSecurityAlertPolicy_update(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
