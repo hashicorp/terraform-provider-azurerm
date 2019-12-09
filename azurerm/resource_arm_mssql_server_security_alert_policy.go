@@ -136,7 +136,7 @@ func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta 
 
 	log.Printf("[INFO] reading mssql server security alert policy")
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -209,7 +209,7 @@ func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, met
 
 	log.Printf("[INFO] deleting mssql server security alert policy.")
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
