@@ -4,6 +4,12 @@ BUG FIXES:
 
 * Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
 * `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
+* `azurerm_storage_account` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_blob` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_container` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_file` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_queue` - querying all pages when listing storage accounts [GH-5075]
+* `azurerm_storage_table` - querying all pages when listing storage accounts [GH-5075]
 
 ## 1.38.0 (December 06, 2019)
 
