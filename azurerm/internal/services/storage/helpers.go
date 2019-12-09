@@ -56,7 +56,7 @@ func (client Client) AddToCache(accountName string, props storage.Account) error
 	accountsLock.Lock()
 	defer accountsLock.Unlock()
 
-	account, err := client.populateAccountDetails(accountName, props)
+	account, err := populateAccountDetails(accountName, props)
 	if err != nil {
 		return err
 	}
@@ -80,17 +80,26 @@ func (client Client) FindAccount(ctx context.Context, accountName string) (*acco
 		return &existing, nil
 	}
 
-	accounts, err := client.AccountsClient.List(ctx)
+	accountsPage, err := client.AccountsClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving storage accounts: %+v", err)
 	}
 
-	for _, v := range accounts.Values() {
+	var accounts []storage.Account
+	for accountsPage.NotDone() {
+		accounts = append(accounts, accountsPage.Values()...)
+		err = accountsPage.NextWithContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("Error retrieving next page of storage accounts: %+v", err)
+		}
+	}
+
+	for _, v := range accounts {
 		if v.Name == nil {
 			continue
 		}
 
-		account, err := client.populateAccountDetails(*v.Name, v)
+		account, err := populateAccountDetails(*v.Name, v)
 		if err != nil {
 			return nil, err
 		}
@@ -105,7 +114,7 @@ func (client Client) FindAccount(ctx context.Context, accountName string) (*acco
 	return nil, nil
 }
 
-func (client Client) populateAccountDetails(accountName string, props storage.Account) (*accountDetails, error) {
+func populateAccountDetails(accountName string, props storage.Account) (*accountDetails, error) {
 	if props.ID == nil {
 		return nil, fmt.Errorf("`id` was nil for Account %q", accountName)
 	}
