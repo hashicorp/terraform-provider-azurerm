@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -535,21 +534,7 @@ func Provider() terraform.ResourceProvider {
 	}
 
 	// TODO: remove all of this in 2.0 once Custom Timeouts are supported
-	if features.SupportsCustomTimeouts() {
-		// default everything to 3 hours for now
-		for _, v := range resources {
-			if v.Timeouts == nil {
-				v.Timeouts = &schema.ResourceTimeout{
-					Create: schema.DefaultTimeout(3 * time.Hour),
-					Update: schema.DefaultTimeout(3 * time.Hour),
-					Delete: schema.DefaultTimeout(3 * time.Hour),
-
-					// Read is the only exception, since if it's taken more than 5 minutes something's seriously wrong
-					Read: schema.DefaultTimeout(5 * time.Minute),
-				}
-			}
-		}
-	} else {
+	if !features.SupportsCustomTimeouts() {
 		// ensure any timeouts configured on the resources are removed until 2.0
 		for _, v := range resources {
 			v.Timeouts = nil
