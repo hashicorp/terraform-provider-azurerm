@@ -1,4 +1,10 @@
 ## 1.39.0 (Unreleased)
+
+BUG FIXES:
+
+* Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
+* `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
+
 ## 1.38.0 (December 06, 2019)
 
 FEATURES:
