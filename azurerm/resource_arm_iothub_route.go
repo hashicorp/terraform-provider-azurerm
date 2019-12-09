@@ -11,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
@@ -135,7 +136,7 @@ func resourceArmIotHubRouteCreateUpdate(d *schema.ResourceData, meta interface{}
 	for _, existingRoute := range *routing.Routes {
 		if existingRoute.Name != nil {
 			if strings.EqualFold(*existingRoute.Name, routeName) {
-				if d.IsNewResource() && requireResourcesToBeImported {
+				if d.IsNewResource() && features.ShouldResourcesBeImported() {
 					return tf.ImportAsExistsError("azurerm_iothub_route", resourceId)
 				}
 				routes = append(routes, route)
@@ -173,7 +174,7 @@ func resourceArmIotHubRouteRead(d *schema.ResourceData, meta interface{}) error 
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -216,7 +217,7 @@ func resourceArmIotHubRouteDelete(d *schema.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	parsedIothubRouteId, err := parseAzureResourceID(d.Id())
+	parsedIothubRouteId, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}

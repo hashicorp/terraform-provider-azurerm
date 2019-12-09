@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Stream Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stream_analytics_job"
 sidebar_current: "docs-azurerm-datasource-stream-analytics-job"

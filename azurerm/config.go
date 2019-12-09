@@ -9,17 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
@@ -75,40 +64,6 @@ import (
 type ArmClient struct {
 	// inherit the fields from the parent, so that we should be able to set/access these at either level
 	clients.Client
-
-	// Services
-	// NOTE: all new services should be Public as they're going to be relocated in the near-future
-	ManagementGroups *managementgroup.Client
-	Maps             *maps.Client
-	MariaDB          *mariadb.Client
-	Media            *media.Client
-	Monitor          *monitor.Client
-	Msi              *msi.Client
-	Mssql            *mssql.Client
-	Mysql            *mysql.Client
-	Netapp           *netapp.Client
-	Network          *network.Client
-	NotificationHubs *notificationhub.Client
-	Policy           *policy.Client
-	Portal           *portal.Client
-	Postgres         *postgres.Client
-	PrivateDns       *privatedns.Client
-	RecoveryServices *recoveryservices.Client
-	Redis            *redis.Client
-	Relay            *relay.Client
-	Resource         *resource.Client
-	Scheduler        *scheduler.Client
-	Search           *search.Client
-	SecurityCenter   *securitycenter.Client
-	ServiceBus       *servicebus.Client
-	ServiceFabric    *servicefabric.Client
-	SignalR          *signalr.Client
-	Storage          *storage.Client
-	StreamAnalytics  *streamanalytics.Client
-	Subscription     *subscription.Client
-	Sql              *sql.Client
-	TrafficManager   *trafficmanager.Client
-	Web              *web.Client
 }
 
 type armClientBuilder struct {
@@ -193,18 +148,19 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 		Environment:                 *env,
 	}
 
-	client.AnalysisServices = analysisservices.BuildClient(o)
-	client.ApiManagement = apimanagement.BuildClient(o)
-	client.AppInsights = applicationinsights.BuildClient(o)
-	client.Automation = automation.BuildClient(o)
-	client.Authorization = authorization.BuildClient(o)
-	client.Batch = batch.BuildClient(o)
-	client.Bot = bot.BuildClient(o)
-	client.Cdn = cdn.BuildClient(o)
-	client.Cognitive = cognitive.BuildClient(o)
-	client.Compute = clients.NewComputeClient(o)
-	client.Containers = containers.BuildClient(o)
-	client.Cosmos = cosmos.BuildClient(o)
+	if err := client.Build(o); err != nil {
+		return nil, fmt.Errorf("Error building Client: %+v", err)
+	}
+
+	return &client, nil
+}
+
+func (client *ArmClient) Build(o *common.ClientOptions) error {
+	if err := client.Client.Build(o); err != nil {
+		return err
+	}
+
+	// TODO: move these Clients inside of Common so this method can be moved in there
 	client.DataBricks = databricks.BuildClient(o)
 	client.DataFactory = datafactory.BuildClient(o)
 	client.Datalake = datalake.BuildClient(o)
@@ -254,5 +210,5 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 	client.TrafficManager = trafficmanager.BuildClient(o)
 	client.Web = web.BuildClient(o)
 
-	return &client, nil
+	return nil
 }

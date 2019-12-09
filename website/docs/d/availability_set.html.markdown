@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_availability_set"
 sidebar_current: "docs-azurerm-datasource-availability-set"

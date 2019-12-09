@@ -23,7 +23,7 @@ We recommend pinning the version of each Provider you use in Terraform - you can
 
 ```hcl
 provider "azurerm" {
-  version = "=1.36.0"
+  version = "=1.38.0"
 }
 ```
 
@@ -163,6 +163,10 @@ The deprecated block `agent_pool_profile` will be removed. This has been replace
 ### Data Source: `azurerm_network_interface`
 
 The deprecated field `internal_fqdn` will be removed.
+
+### Data Source: `azurerm_private_link_service`
+
+The deprecated field `network_interface_ids` will be removed.
 
 ### Data Source: `azurerm_scheduler_job_collection`
 
@@ -354,6 +358,10 @@ The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block 
 
 The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
 
+### Resource: `azurerm_private_link_service`
+
+The deprecated `network_interface_ids` field will be removed.
+
 ### Resource: `azurerm_public_ip`
 
 The deprecated `public_ip_address_allocation` field will be removed. This field has been replaced by `allocation_method`.
@@ -435,6 +443,10 @@ The `azurerm_virtual_machine_scale_set` resource will be deprecated in favour of
 Splitting the Virtual Machine Scale Set resource in two allows us to both provide finer-grain validation for this resource and update the schema.
 
 The existing `azurerm_virtual_machine_scale_set` Resource will continue to be available in it's current form, however it will eventually be deprecated and we recommend using the new resources going forward.
+
+### Resource: `azurerm_virtual_wan`
+
+The deprecated `security_provider_name` field will be removed, since this option is no longer supported by Azure.
 
 ---
 

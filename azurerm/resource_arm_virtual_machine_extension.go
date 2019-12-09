@@ -40,10 +40,9 @@ func resourceArmVirtualMachineExtensions() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"location": azure.SchemaLocation(),
-
+			// TODO: deprecate these 2/3 in favour of pulling it from the VMSS
+			"location":            azure.SchemaLocation(),
 			"resource_group_name": azure.SchemaResourceGroupName(),
-
 			"virtual_machine_name": {
 				Type:     schema.TypeString,
 				Required: true,
