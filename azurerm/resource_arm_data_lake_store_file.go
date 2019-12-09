@@ -93,7 +93,11 @@ func resourceArmDataLakeStoreFileCreate(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return fmt.Errorf("error opening file %q: %+v", localFilePath, err)
 	}
-	defer utils.IoCloseAndLogError(file, fmt.Sprintf("Error closing Data Lake Store File %q", localFilePath))
+	defer func(c io.Closer) {
+		if err := c.Close(); err != nil {
+			fmt.Sprintf("Error closing Data Lake Store File %q: %+v", localFilePath, err)
+		}
+	}(file)
 
 	if _, err = client.Create(ctx, accountName, remoteFilePath, nil, nil, filesystem.DATA, nil, nil); err != nil {
 		return fmt.Errorf("Error issuing create request for Data Lake Store File %q : %+v", remoteFilePath, err)
