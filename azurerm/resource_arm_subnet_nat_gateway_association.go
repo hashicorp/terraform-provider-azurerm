@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -10,6 +11,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/locks"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +22,12 @@ func resourceArmSubnetNatGatewayAssociation() *schema.Resource {
 		Delete: resourceArmSubnetNatGatewayAssociationDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -42,7 +50,8 @@ func resourceArmSubnetNatGatewayAssociation() *schema.Resource {
 
 func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Subnet <-> NAT Gateway Association creation.")
 	subnetId := d.Get("subnet_id").(string)
@@ -112,7 +121,9 @@ func resourceArmSubnetNatGatewayAssociationCreate(d *schema.ResourceData, meta i
 
 func resourceArmSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -151,7 +162,9 @@ func resourceArmSubnetNatGatewayAssociationRead(d *schema.ResourceData, meta int
 
 func resourceArmSubnetNatGatewayAssociationDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.SubnetsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
