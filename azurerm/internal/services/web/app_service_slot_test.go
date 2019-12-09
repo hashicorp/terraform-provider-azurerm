@@ -6,11 +6,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
-func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
+func TestParseAppServiceSlot(t *testing.T) {
 	testData := []struct {
 		Name     string
 		Input    string
-		Expected *AppServiceCustomHostnameBindingResourceID
+		Expected *AppServiceSlotResourceID
 	}{
 		{
 			Name:     "Empty",
@@ -43,15 +43,15 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 			Expected: nil,
 		},
 		{
-			Name:     "Missing Host Name Bindings Valud",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/",
+			Name:     "Missing Slots Value",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/slots/",
 			Expected: nil,
 		},
 		{
-			Name:  "Valid Resource ID",
-			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/hostNameBindings/binding1",
-			Expected: &AppServiceCustomHostnameBindingResourceID{
-				Name:           "binding1",
+			Name:  "App Service Slot Resource ID",
+			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/site1/slots/slot1",
+			Expected: &AppServiceSlotResourceID{
+				Name:           "slot1",
 				AppServiceName: "site1",
 				Base: azure.ResourceID{
 					ResourceGroup: "mygroup1",
@@ -60,7 +60,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 		},
 		{
 			Name:     "Wrong Casing",
-			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/Sites/site1/HostNameBindings/binding1",
+			Input:    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/Sites/site1/Slots/slot1",
 			Expected: nil,
 		},
 	}
@@ -68,7 +68,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseAppServiceCustomHostnameBindingID(v.Input)
+		actual, err := ParseAppServiceSlotID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue
@@ -82,7 +82,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 		}
 
 		if actual.AppServiceName != v.Expected.AppServiceName {
-			t.Fatalf("Expected %q but got %q for AppServiceName", v.Expected.AppServiceName, actual.AppServiceName)
+			t.Fatalf("Expected %q but got %q for AppServiceName", v.Expected.Name, actual.Name)
 		}
 
 		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
