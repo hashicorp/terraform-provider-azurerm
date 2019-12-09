@@ -1,9 +1,11 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -91,7 +93,9 @@ func updateV1ToV2StorageAccountName(is *terraform.InstanceState, meta interface{
 }
 
 func findAzureStorageAccountIdFromName(name string, meta interface{}) (string, error) {
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := context.WithTimeout(meta.(*ArmClient).StopContext, time.Minute*5)
+	defer cancel()
+
 	client := meta.(*ArmClient).Storage.AccountsClient
 	accounts, err := client.List(ctx)
 	if err != nil {

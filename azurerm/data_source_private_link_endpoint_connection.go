@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -61,6 +62,7 @@ func dataSourceArmPrivateLinkEndpointConnection() *schema.Resource {
 
 func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.PrivateEndpointClient
+	nicsClient := meta.(*ArmClient).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -91,8 +93,8 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 
 		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
 			nic := (*nics)[0]
-			if nic.ID != nil && *(nic.ID) != "" {
-				privateIpAddress = getPrivateIpAddress(*(nic.ID), meta)
+			if nic.ID != nil && *nic.ID != "" {
+				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
 			}
 		}
 
@@ -104,16 +106,13 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func getPrivateIpAddress(networkInterfaceId string, meta interface{}) string {
+func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
 	privateIpAddress := ""
 	id, err := azure.ParseAzureResourceID(networkInterfaceId)
 	if err != nil {
 		return privateIpAddress
 	}
 	name := id.Path["networkInterfaces"]
-
-	client := meta.(*ArmClient).Network.InterfacesClient
-	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, id.ResourceGroup, name, "")
 	if err != nil {
