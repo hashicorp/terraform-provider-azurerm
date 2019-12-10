@@ -14,6 +14,7 @@ BUG FIXES:
 
 * Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
 * `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
+* `azurerm_private_link_endpoint` - fixing the validation for the `subresource_names` field [GH-5118]
 * `azurerm_storage_account` - querying all pages when listing storage accounts [GH-5075]
 * `azurerm_storage_blob` - querying all pages when listing storage accounts [GH-5075]
 * `azurerm_storage_container` - querying all pages when listing storage accounts [GH-5075]
