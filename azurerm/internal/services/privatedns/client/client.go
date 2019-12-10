@@ -1,4 +1,4 @@
-package privatedns
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns"
@@ -11,19 +11,19 @@ type Client struct {
 	VirtualNetworkLinksClient *privatedns.VirtualNetworkLinksClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
-	RecordSetsClient := privatedns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&RecordSetsClient.Client, o.ResourceManagerAuthorizer)
+func NewClient(o *common.ClientOptions) *Client {
+	recordSetsClient := privatedns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&recordSetsClient.Client, o.ResourceManagerAuthorizer)
 
-	PrivateZonesClient := privatedns.NewPrivateZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&PrivateZonesClient.Client, o.ResourceManagerAuthorizer)
+	privateZonesClient := privatedns.NewPrivateZonesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&privateZonesClient.Client, o.ResourceManagerAuthorizer)
 
 	virtualNetworkLinksClient := privatedns.NewVirtualNetworkLinksClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&virtualNetworkLinksClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
-		RecordSetsClient:          &RecordSetsClient,
-		PrivateZonesClient:        &PrivateZonesClient,
+		RecordSetsClient:          &recordSetsClient,
+		PrivateZonesClient:        &privateZonesClient,
 		VirtualNetworkLinksClient: &virtualNetworkLinksClient,
 	}
 }
