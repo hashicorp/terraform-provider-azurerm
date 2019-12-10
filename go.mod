@@ -4,7 +4,7 @@ require (
 	contrib.go.opencensus.io/exporter/jaeger v0.2.0
 	contrib.go.opencensus.io/exporter/zipkin v0.1.1
 	github.com/Azure/azure-sdk-for-go v36.2.0+incompatible
-	github.com/Azure/go-autorest/autorest v0.9.2
+	github.com/Azure/go-autorest/autorest v0.9.3
 	github.com/Azure/go-autorest/autorest/date v0.2.0
 	github.com/Azure/go-autorest/tracing v0.5.0
 	github.com/Azure/go-autorest/tracing/opencensus v0.1.0
@@ -24,7 +24,7 @@ require (
 	github.com/terraform-providers/terraform-provider-azuread v0.6.1-0.20191007035844-361c0a206ad4
 	github.com/tombuildsstuff/giovanni v0.6.0
 	go.opencensus.io v0.22.0
-	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
+	golang.org/x/crypto v0.0.0-20191206172530-e9b2fee46413
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7
 	gopkg.in/yaml.v2 v2.2.2
 )

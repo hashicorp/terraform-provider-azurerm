@@ -30,7 +30,6 @@ func TestAccDataSourceAzureRMPrivateLinkService_complete(t *testing.T) {
 					resource.TestCheckResourceAttr(dataSourceName, "auto_approval_subscription_ids.0", subscriptionId),
 					resource.TestCheckResourceAttr(dataSourceName, "visibility_subscription_ids.0", subscriptionId),
 					resource.TestCheckResourceAttr(dataSourceName, "load_balancer_frontend_ip_configuration_ids.#", "1"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "network_interface_ids.0"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "load_balancer_frontend_ip_configuration_ids.0"),
 				),
 			},

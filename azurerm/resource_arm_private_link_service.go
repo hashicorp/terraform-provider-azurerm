@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -71,16 +71,6 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Set: schema.HashString,
 			},
 
-			// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
-			// "fqdns": {
-			// 	Type:     schema.TypeList,
-			// 	Optional: true,
-			// 	Elem: &schema.Schema{
-			// 		Type:         schema.TypeString,
-			// 		ValidateFunc: validate.NoEmptyStrings,
-			// 	},
-			// },
-
 			// Required by the API you can't create the resource without at least
 			// one ip configuration once primary is set it is set forever unless
 			// you destroy the resource and recreate it.
@@ -125,9 +115,6 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				},
 			},
 
-			// private_endpoint_connections have been removed and placed inside the
-			// azurerm_private_link_service_endpoint_connections datasource.
-
 			// Required by the API you can't create the resource without at least one load balancer id
 			"load_balancer_frontend_ip_configuration_ids": {
 				Type:     schema.TypeSet,
@@ -145,8 +132,9 @@ func resourceArmPrivateLinkService() *schema.Resource {
 			},
 
 			"network_interface_ids": {
-				Type:     schema.TypeSet,
-				Computed: true,
+				Type:       schema.TypeSet,
+				Computed:   true,
+				Deprecated: "This field is deprecated and be removed in version 2.0 of the Azure Provider",
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: azure.ValidateResourceID,
@@ -188,26 +176,23 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	autoApproval := d.Get("auto_approval_subscription_ids").(*schema.Set)
-	// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
-	//fqdns := d.Get("fqdns").([]interface{})
+	autoApproval := d.Get("auto_approval_subscription_ids").(*schema.Set).List()
 	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
-	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").(*schema.Set)
-	visibility := d.Get("visibility_subscription_ids").(*schema.Set)
+	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").(*schema.Set).List()
+	visibility := d.Get("visibility_subscription_ids").(*schema.Set).List()
 	t := d.Get("tags").(map[string]interface{})
 
 	parameters := network.PrivateLinkService{
 		Location: utils.String(location),
 		PrivateLinkServiceProperties: &network.PrivateLinkServiceProperties{
 			AutoApproval: &network.PrivateLinkServicePropertiesAutoApproval{
-				Subscriptions: utils.ExpandStringSlice(autoApproval.List()),
+				Subscriptions: utils.ExpandStringSlice(autoApproval),
 			},
 			Visibility: &network.PrivateLinkServicePropertiesVisibility{
-				Subscriptions: utils.ExpandStringSlice(visibility.List()),
+				Subscriptions: utils.ExpandStringSlice(visibility),
 			},
 			IPConfigurations:                     expandArmPrivateLinkServiceIPConfiguration(primaryIpConfiguration),
 			LoadBalancerFrontendIPConfigurations: expandArmPrivateLinkServiceFrontendIPConfiguration(loadBalancerFrontendIpConfigurations),
-			//Fqdns:                                utils.ExpandStringSlice(fqdns),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -235,11 +220,21 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 		Pending:    []string{"Pending", "Updating", "Creating"},
 		Target:     []string{"Succeeded"},
 		Refresh:    privateLinkServiceWaitForReadyRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout:    60 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		if d.IsNewResource() {
+			stateConf.Timeout = d.Timeout(schema.TimeoutCreate)
+		} else {
+			stateConf.Timeout = d.Timeout(schema.TimeoutUpdate)
+		}
+	} else {
+		stateConf.Timeout = 60 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Private Link Service %q (Resource Group %q) to complete: %s", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for Private Link Service %q (Resource Group %q) to become available: %s", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -281,18 +276,15 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 		if err := d.Set("visibility_subscription_ids", utils.FlattenStringSlice(props.Visibility.Subscriptions)); err != nil {
 			return fmt.Errorf("Error setting `visibility_subscription_ids`: %+v", err)
 		}
-		// currently not implemented yet, timeline unknown, exact purpose unknown, maybe coming to a future API near you
-		// if props.Fqdns != nil {
-		// 	if err := d.Set("fqdns", utils.FlattenStringSlice(props.Fqdns)); err != nil {
-		// 		return fmt.Errorf("Error setting `fqdns`: %+v", err)
-		// 	}
-		// }
 		if err := d.Set("nat_ip_configuration", flattenArmPrivateLinkServiceIPConfiguration(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `nat_ip_configuration`: %+v", err)
 		}
+
 		if err := d.Set("load_balancer_frontend_ip_configuration_ids", flattenArmPrivateLinkServiceFrontendIPConfiguration(props.LoadBalancerFrontendIPConfigurations)); err != nil {
 			return fmt.Errorf("Error setting `load_balancer_frontend_ip_configuration_ids`: %+v", err)
 		}
+
+		// TODO: remove in 2.0
 		if err := d.Set("network_interface_ids", flattenArmPrivateLinkServiceInterface(props.NetworkInterfaces)); err != nil {
 			return fmt.Errorf("Error setting `network_interface_ids`: %+v", err)
 		}
@@ -323,7 +315,7 @@ func resourceArmPrivateLinkServiceDelete(d *schema.ResourceData, meta interface{
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
 		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("Error waiting for deleting Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
+			return fmt.Errorf("Error waiting for deletion of Private Link Service %q (Resource Group %q): %+v", name, resourceGroup, err)
 		}
 	}
 
@@ -358,9 +350,9 @@ func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.
 		}
 
 		if privateIpAddress != "" {
-			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethod("Static")
+			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.Static
 		} else {
-			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.IPAllocationMethod("Dynamic")
+			result.PrivateLinkServiceIPConfigurationProperties.PrivateIPAllocationMethod = network.Dynamic
 		}
 
 		results = append(results, result)
@@ -369,15 +361,14 @@ func expandArmPrivateLinkServiceIPConfiguration(input []interface{}) *[]network.
 	return &results
 }
 
-func expandArmPrivateLinkServiceFrontendIPConfiguration(input *schema.Set) *[]network.FrontendIPConfiguration {
-	ids := input.List()
-	if len(ids) == 0 {
+func expandArmPrivateLinkServiceFrontendIPConfiguration(input []interface{}) *[]network.FrontendIPConfiguration {
+	if len(input) == 0 {
 		return nil
 	}
 
 	results := make([]network.FrontendIPConfiguration, 0)
 
-	for _, item := range ids {
+	for _, item := range input {
 		result := network.FrontendIPConfiguration{
 			ID: utils.String(item.(string)),
 		}
@@ -395,27 +386,39 @@ func flattenArmPrivateLinkServiceIPConfiguration(input *[]network.PrivateLinkSer
 	}
 
 	for _, item := range *input {
-		c := make(map[string]interface{})
-
-		if name := item.Name; name != nil {
-			c["name"] = *name
+		name := ""
+		if item.Name != nil {
+			name = *item.Name
 		}
+
+		privateIpAddress := ""
+		privateIpVersion := ""
+		subnetId := ""
+		primary := false
+
 		if props := item.PrivateLinkServiceIPConfigurationProperties; props != nil {
-			if v := props.PrivateIPAddress; v != nil {
-				c["private_ip_address"] = *v
+			if props.PrivateIPAddress != nil {
+				privateIpAddress = *props.PrivateIPAddress
 			}
-			c["private_ip_address_version"] = string(props.PrivateIPAddressVersion)
-			if v := props.Subnet; v != nil {
-				if i := v.ID; i != nil {
-					c["subnet_id"] = *i
-				}
+
+			privateIpVersion = string(props.PrivateIPAddressVersion)
+
+			if props.Subnet != nil && props.Subnet.ID != nil {
+				subnetId = *props.Subnet.ID
 			}
-			if v := props.Primary; v != nil {
-				c["primary"] = *v
+
+			if props.Primary != nil {
+				primary = *props.Primary
 			}
 		}
 
-		results = append(results, c)
+		results = append(results, map[string]interface{}{
+			"name":                       name,
+			"primary":                    primary,
+			"private_ip_address":         privateIpAddress,
+			"private_ip_address_version": privateIpVersion,
+			"subnet_id":                  subnetId,
+		})
 	}
 
 	return results

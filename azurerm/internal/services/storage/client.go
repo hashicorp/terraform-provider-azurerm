@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/go-autorest/autorest"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
 
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	az "github.com/Azure/go-autorest/autorest/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
@@ -53,7 +53,11 @@ func (client Client) BlobsClient(ctx context.Context, account accountDetails) (*
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(account.name, *accountKey)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKey)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
 	blobsClient := blobs.NewWithEnvironment(client.environment)
 	blobsClient.Client.Authorizer = storageAuth
 	return &blobsClient, nil
@@ -65,7 +69,11 @@ func (client Client) ContainersClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyAuthorizer(account.name, *accountKey)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKey)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
 	containersClient := containers.NewWithEnvironment(client.environment)
 	containersClient.Client.Authorizer = storageAuth
 	return &containersClient, nil
@@ -77,7 +85,11 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(account.name, *accountKey)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyLite)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
 	directoriesClient := directories.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
@@ -89,7 +101,11 @@ func (client Client) FileSharesClient(ctx context.Context, account accountDetail
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(account.name, *accountKey)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyLite)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
 	directoriesClient := shares.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
@@ -101,7 +117,11 @@ func (client Client) QueuesClient(ctx context.Context, account accountDetails) (
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteAuthorizer(account.name, *accountKey)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyLite)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
 	queuesClient := queues.NewWithEnvironment(client.environment)
 	queuesClient.Client.Authorizer = storageAuth
 	return &queuesClient, nil
@@ -113,7 +133,11 @@ func (client Client) TableEntityClient(ctx context.Context, account accountDetai
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(account.name, *accountKey)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyLiteForTable)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
 	entitiesClient := entities.NewWithEnvironment(client.environment)
 	entitiesClient.Client.Authorizer = storageAuth
 	return &entitiesClient, nil
@@ -125,7 +149,11 @@ func (client Client) TablesClient(ctx context.Context, account accountDetails) (
 		return nil, fmt.Errorf("Error retrieving Account Key: %s", err)
 	}
 
-	storageAuth := authorizers.NewSharedKeyLiteTableAuthorizer(account.name, *accountKey)
+	storageAuth, err := autorest.NewSharedKeyAuthorizer(account.name, *accountKey, autorest.SharedKeyLiteForTable)
+	if err != nil {
+		return nil, fmt.Errorf("Error building Authorizer: %+v", err)
+	}
+
 	tablesClient := tables.NewWithEnvironment(client.environment)
 	tablesClient.Client.Authorizer = storageAuth
 	return &tablesClient, nil

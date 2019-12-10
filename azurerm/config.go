@@ -9,29 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/applicationinsights"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/authorization"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/automation"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/batch"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/bot"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cdn"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cognitive"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -159,30 +136,19 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 		Environment:                 *env,
 	}
 
-	client.AnalysisServices = analysisservices.BuildClient(o)
-	client.ApiManagement = apimanagement.BuildClient(o)
-	client.AppInsights = applicationinsights.BuildClient(o)
-	client.Automation = automation.BuildClient(o)
-	client.Authorization = authorization.BuildClient(o)
-	client.Batch = batch.BuildClient(o)
-	client.Bot = bot.BuildClient(o)
-	client.Cdn = cdn.BuildClient(o)
-	client.Cognitive = cognitive.BuildClient(o)
-	client.Compute = clients.NewComputeClient(o)
-	client.Containers = containers.BuildClient(o)
-	client.Cosmos = cosmos.BuildClient(o)
-	client.DataBricks = databricks.BuildClient(o)
-	client.DataFactory = datafactory.BuildClient(o)
-	client.Datalake = datalake.BuildClient(o)
-	client.DevSpace = devspace.BuildClient(o)
-	client.DevTestLabs = devtestlabs.BuildClient(o)
-	client.Dns = dns.BuildClient(o)
-	client.EventGrid = eventgrid.BuildClient(o)
-	client.Eventhub = eventhub.BuildClient(o)
-	client.Frontdoor = frontdoor.BuildClient(o)
-	client.Graph = graph.BuildClient(o)
-	client.HDInsight = hdinsight.BuildClient(o)
-	client.Healthcare = healthcare.BuildClient(o)
+	if err := client.Build(o); err != nil {
+		return nil, fmt.Errorf("Error building Client: %+v", err)
+	}
+
+	return &client, nil
+}
+
+func (client *ArmClient) Build(o *common.ClientOptions) error {
+	if err := client.Client.Build(o); err != nil {
+		return err
+	}
+
+	// TODO: move these Clients inside of Common so this method can be moved in there
 	client.IoTHub = iothub.BuildClient(o)
 	client.KeyVault = keyvault.BuildClient(o)
 	client.Kusto = kusto.BuildClient(o)
@@ -220,5 +186,5 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 	client.TrafficManager = trafficmanager.BuildClient(o)
 	client.Web = web.BuildClient(o)
 
-	return &client, nil
+	return nil
 }
