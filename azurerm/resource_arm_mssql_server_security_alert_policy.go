@@ -3,12 +3,14 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -20,6 +22,13 @@ func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
 		Delete: resourceArmMssqlServerSecurityAlertPolicyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -98,7 +107,8 @@ func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
 
 func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for mssql server security alert policy creation.")
 
@@ -132,7 +142,8 @@ func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceDat
 
 func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] reading mssql server security alert policy")
 
@@ -205,7 +216,8 @@ func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta 
 
 func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] deleting mssql server security alert policy.")
 
