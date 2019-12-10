@@ -52,7 +52,6 @@ func TestAccAzureRMCosmosDbMongoCollection_complete(t *testing.T) {
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
-					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
 				),
 			},
 			{
@@ -83,9 +82,8 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 				Config: testAccAzureRMCosmosDbMongoCollection_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "shard_key", "day"),
+					resource.TestCheckResourceAttr(resourceName, "shard_key", "seven"),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "707"),
-					resource.TestCheckResourceAttr(resourceName, "indexes.#", "2"),
 				),
 			},
 			{
@@ -98,7 +96,6 @@ func TestAccAzureRMCosmosDbMongoCollection_update(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_ttl_seconds", "70707"),
-					resource.TestCheckResourceAttr(resourceName, "indexes.#", "3"),
 				),
 			},
 			{
