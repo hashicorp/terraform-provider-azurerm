@@ -132,7 +132,7 @@ func ValidatePrivateLinkSubResourceName(i interface{}, k string) (_ []string, er
 	}
 
 	if len(strings.TrimSpace(v)) >= 1 {
-		if m, _ := validate.RegExHelper(i, k, `^[\w\.]$`); !m {
+		if m, _ := validate.RegExHelper(i, k, `^[\w\.]*$`); !m {
 			errors = append(errors, fmt.Errorf("%s must only contain upper or lowercase letters, numbers, underscores, and periods", k))
 		}
 	} else {
