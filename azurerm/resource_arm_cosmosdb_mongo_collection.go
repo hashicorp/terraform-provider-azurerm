@@ -85,8 +85,9 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 			},
 
 			"indexes": {
-				Type:     schema.TypeSet,
-				Optional: true,
+				Type:       schema.TypeSet,
+				Optional:   true,
+				Deprecated: "Indexes are ignored unless they are the shared key so have ben deprecated. ",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
@@ -147,6 +148,7 @@ func resourceArmCosmosDbMongoCollectionCreate(d *schema.ResourceData, meta inter
 				ID:      &name,
 				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
 			},
+			Options: map[string]*string{},
 		},
 	}
 
@@ -206,6 +208,7 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 				ID:      &id.Collection,
 				Indexes: expandCosmosMongoCollectionIndexes(d.Get("indexes"), ttl),
 			},
+			Options: map[string]*string{},
 		},
 	}
 
@@ -224,30 +227,27 @@ func resourceArmCosmosDbMongoCollectionUpdate(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error waiting on create/update future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
 	}
 
-	throughputParameters := documentdb.ThroughputUpdateParameters{
-		ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
-			Resource: &documentdb.ThroughputResource{
-				Throughput: utils.Int32(int32(throughputInt)),
+	if d.HasChange("throughput") {
+		throughputParameters := documentdb.ThroughputUpdateParameters{
+			ThroughputUpdateProperties: &documentdb.ThroughputUpdateProperties{
+				Resource: &documentdb.ThroughputResource{
+					Throughput: utils.Int32(int32(d.Get("throughput").(int))),
+				},
 			},
-		},
-	}
-
-	throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection, throughputParameters)
-	if err != nil {
-		if throughputFuture.Response().StatusCode == http.StatusNotFound {
-			d.Set("throughput", nil)
-			return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %s (Account %s, Database %s): %+v - "+
-				"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Collection, id.Account, id.Database, err)
 		}
-	}
 
-	if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
-	}
+		throughputFuture, err := client.UpdateMongoDBCollectionThroughput(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection, throughputParameters)
+		if err != nil {
+			if throughputFuture.Response().StatusCode == http.StatusNotFound {
+				d.Set("throughput", nil)
+				return fmt.Errorf("Error setting Throughput for Cosmos MongoDB Collection %s (Account %s, Database %s): %+v - "+
+					"If the collection has not been created with an initial throughput, you cannot configure it later.", id.Collection, id.Account, id.Database, err)
+			}
+		}
 
-	resp, err := client.GetMongoDBCollection(ctx, id.ResourceGroup, id.Account, id.Database, id.Collection)
-	if err != nil {
-		return fmt.Errorf("Error making get request for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+		if err = throughputFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
+			return fmt.Errorf("Error waiting on ThroughputUpdate future for Cosmos Mongo Collection %s (Account %s, Database %s): %+v", id.Collection, id.Account, id.Database, err)
+		}
 	}
 
 	return resourceArmCosmosDbMongoCollectionRead(d, meta)
