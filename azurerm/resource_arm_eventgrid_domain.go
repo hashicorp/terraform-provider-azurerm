@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/eventgrid/mgmt/2018-09-15-preview/eventgrid"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
@@ -130,6 +130,18 @@ func resourceArmEventGridDomain() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"primary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"secondary_access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -243,6 +255,13 @@ func resourceArmEventGridDomainRead(d *schema.ResourceData, meta interface{}) er
 			return fmt.Errorf("Error setting `input_schema_mapping_fields` for EventGrid Domain %q (Resource Group %q): %s", name, resourceGroup, err)
 		}
 	}
+
+	keys, err := client.ListSharedAccessKeys(ctx, resourceGroup, name)
+	if err != nil {
+		return fmt.Errorf("Error retrieving Shared Access Keys for EventGrid Domain %q: %+v", name, err)
+	}
+	d.Set("primary_access_key", keys.Key1)
+	d.Set("secondary_access_key", keys.Key2)
 
 	return tags.FlattenAndSet(d, resp.Tags)
 }

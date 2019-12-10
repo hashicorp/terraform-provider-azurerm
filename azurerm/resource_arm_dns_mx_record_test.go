@@ -26,6 +26,7 @@ func TestAccAzureRMDnsMxRecord_basic(t *testing.T) {
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMDnsMxRecordExists(resourceName),
+					resource.TestCheckResourceAttrSet(resourceName, "fqdn"),
 				),
 			},
 			{

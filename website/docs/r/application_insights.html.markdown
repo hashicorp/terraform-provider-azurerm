@@ -14,24 +14,24 @@ Manages an Application Insights component.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
 }
 
-resource "azurerm_application_insights" "test" {
+resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   application_type    = "web"
 }
 
 output "instrumentation_key" {
-  value = "${azurerm_application_insights.test.instrumentation_key}"
+  value = "${azurerm_application_insights.example.instrumentation_key}"
 }
 
 output "app_id" {
-  value = "${azurerm_application_insights.test.app_id}"
+  value = "${azurerm_application_insights.example.app_id}"
 }
 ```
 
@@ -48,6 +48,8 @@ The following arguments are supported:
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
 * `application_type` - (Required) Specifies the type of Application Insights to create. Valid values are `ios` for _iOS_, `java` for _Java web_, `MobileCenter` for _App Center_, `Node.JS` for _Node.js_, `other` for _General_, `phone` for _Windows Phone_, `store` for _Windows Store_ and `web` for _ASP.NET_. Please note these values are case sensitive; unmatched values are treated as _ASP.NET_ by Azure. Changing this forces a new resource to be created.
+
+* `sampling_percentage` - (Optional) Specifies the percentage of the data produced by the monitored application that is sampled for Application Insights telemetry.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

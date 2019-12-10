@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required for `Classic` Sku - Forbidden otherwise) The ID of a Storage Account which must be located in the same Azure Region as the Container Registry.
 
-* `sku` - (Optional) The SKU name of the the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
+* `sku` - (Optional) The SKU name of the container registry. Possible values are `Classic` (which was previously `Basic`), `Basic`, `Standard` and `Premium`.
 
 ~> **NOTE:** The `Classic` SKU is Deprecated and will no longer be available for new resources from the end of March 2019.
 
@@ -98,5 +98,5 @@ The following attributes are exported:
 Container Registries can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_container_registry.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
+terraform import azurerm_container_registry.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```

@@ -29,7 +29,7 @@ resource "azurerm_resource_group" "example" {
   location = "West Europe"
 }
 
-resource "azurerm_virtual_network" "test" {
+resource "azurerm_virtual_network" "example" {
   name                = "example-network"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
@@ -402,5 +402,5 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 Windows Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_windows_virtual_machine_scale_set.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachineScaleSets/scaleset1
+terraform import azurerm_windows_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```

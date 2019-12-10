@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "App Service (Web Apps)"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_app_service"
 sidebar_current: "docs-azurerm-datasource-app-service-x"
@@ -14,13 +14,13 @@ Use this data source to access information about an existing App Service.
 ## Example Usage
 
 ```hcl
-data "azurerm_app_service" "test" {
+data "azurerm_app_service" "example" {
   name                = "search-app-service"
   resource_group_name = "search-service"
 }
 
 output "app_service_id" {
-  value = "${data.azurerm_app_service.test.id}"
+  value = "${data.azurerm_app_service.example.id}"
 }
 ```
 

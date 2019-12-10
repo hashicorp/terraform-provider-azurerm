@@ -104,7 +104,7 @@ func dataSourceArmSubscriptionsRead(d *schema.ResourceData, meta interface{}) er
 		subscriptions = append(subscriptions, s)
 	}
 
-	d.SetId("subscriptions-" + armClient.tenantId)
+	d.SetId("subscriptions-" + armClient.Account.TenantId)
 	if err = d.Set("subscriptions", subscriptions); err != nil {
 		return fmt.Errorf("Error setting `subscriptions`: %+v", err)
 	}

@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_express_route_circuit"
 sidebar_current: "docs-azurerm-datasource-express-route-circuit"
@@ -14,17 +14,17 @@ Use this data source to access information about an existing ExpressRoute circui
 ## Example Usage
 
 ```hcl
-data "azurerm_express_route_circuit" test {
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  name                = "${azurerm_express_route_circuit.test.name}"
+data "azurerm_express_route_circuit" "example" {
+  resource_group_name = "${azurerm_resource_group.example.name}"
+  name                = "${azurerm_express_route_circuit.example.name}"
 }
 
 output "express_route_circuit_id" {
-  value = "${data.azurerm_express_route_circuit.test.id}"
+  value = "${data.azurerm_express_route_circuit.example.id}"
 }
 
 output "service_key" {
-  value = "${data.azurerm_express_route_circuit.test.service_key}"
+  value = "${data.azurerm_express_route_circuit.example.service_key}"
 }
 ```
 

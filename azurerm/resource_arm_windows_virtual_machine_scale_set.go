@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/compute/mgmt/2019-07-01/compute"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -15,6 +16,7 @@ import (
 	computeSvc "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tags"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/tf/base64"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -26,6 +28,13 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 		Delete: resourceArmWindowsVirtualMachineScaleSetDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		// TODO: exposing requireGuestProvisionSignal once it's available
@@ -336,7 +345,8 @@ func resourceArmWindowsVirtualMachineScaleSet() *schema.Resource {
 
 func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	resourceGroup := d.Get("resource_group_name").(string)
 	name := d.Get("name").(string)
@@ -580,7 +590,8 @@ func resourceArmWindowsVirtualMachineScaleSetCreate(d *schema.ResourceData, meta
 
 func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := computeSvc.ParseVirtualMachineScaleSetResourceID(d.Id())
 	if err != nil {
@@ -864,7 +875,8 @@ func resourceArmWindowsVirtualMachineScaleSetUpdate(d *schema.ResourceData, meta
 
 func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := computeSvc.ParseVirtualMachineScaleSetResourceID(d.Id())
 	if err != nil {
@@ -1040,7 +1052,8 @@ func resourceArmWindowsVirtualMachineScaleSetRead(d *schema.ResourceData, meta i
 
 func resourceArmWindowsVirtualMachineScaleSetDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Compute.VMScaleSetClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := computeSvc.ParseVirtualMachineScaleSetResourceID(d.Id())
 	if err != nil {

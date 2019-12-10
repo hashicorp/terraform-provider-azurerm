@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Compute"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_platform_image"
 sidebar_current: "docs-azurerm-datasource-platform-image"
@@ -14,7 +14,7 @@ Use this data source to access information about a Platform Image.
 ## Example Usage
 
 ```hcl
-data "azurerm_platform_image" "test" {
+data "azurerm_platform_image" "example" {
   location  = "West Europe"
   publisher = "Canonical"
   offer     = "UbuntuServer"
@@ -22,7 +22,7 @@ data "azurerm_platform_image" "test" {
 }
 
 output "version" {
-  value = "${data.azurerm_platform_image.test.version}"
+  value = "${data.azurerm_platform_image.example.version}"
 }
 ```
 

@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_postgresql_server"
 sidebar_current: "docs-azurerm-datasource-postgresql-server"
@@ -14,13 +14,13 @@ Use this data source to access information about an existing PostgreSQL Azure Da
 ## Example Usage
 
 ```hcl
-data "azurerm_postgresql_server" "test" {
+data "azurerm_postgresql_server" "example" {
   name                = "postgresql-server-1"
   resource_group_name = "api-rg-pro"
 }
 
 output "postgresql_server_id" {
-  value = "${data.azurerm_postgresql_server.test.id}"
+  value = "${data.azurerm_postgresql_server.example.id}"
 }
 ```
 

@@ -109,5 +109,5 @@ The following attributes are exported:
 Service Bus Subscriptions can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_servicebus_subscription.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
+terraform import azurerm_servicebus_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/microsoft.servicebus/namespaces/sbns1/topics/sntopic1/subscriptions/sbsub1
 ```
