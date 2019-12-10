@@ -1,4 +1,4 @@
-package hdinsight
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/hdinsight/mgmt/2018-06-01-preview/hdinsight"
@@ -11,7 +11,7 @@ type Client struct {
 	ConfigurationsClient *hdinsight.ConfigurationsClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	ApplicationsClient := hdinsight.NewApplicationsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationsClient.Client, o.ResourceManagerAuthorizer)
 

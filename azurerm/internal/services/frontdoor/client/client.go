@@ -1,4 +1,4 @@
-package frontdoor
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/frontdoor/mgmt/2019-04-01/frontdoor"
@@ -11,7 +11,7 @@ type Client struct {
 	FrontDoorsPolicyClient   *frontdoor.PoliciesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	frontDoorsClient := frontdoor.NewFrontDoorsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&frontDoorsClient.Client, o.ResourceManagerAuthorizer)
 

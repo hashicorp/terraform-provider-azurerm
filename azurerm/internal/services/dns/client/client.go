@@ -1,4 +1,4 @@
-package dns
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
@@ -10,7 +10,7 @@ type Client struct {
 	ZonesClient      *dns.ZonesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	RecordSetsClient := dns.NewRecordSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&RecordSetsClient.Client, o.ResourceManagerAuthorizer)
 

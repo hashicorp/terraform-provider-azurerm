@@ -1,4 +1,4 @@
-package healthcare
+package client
 
 import (
 	healthcare "github.com/Azure/azure-sdk-for-go/services/healthcareapis/mgmt/2019-09-16/healthcareapis"
@@ -9,7 +9,7 @@ type Client struct {
 	HealthcareServiceClient *healthcare.ServicesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	HealthcareServiceClient := healthcare.NewServicesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&HealthcareServiceClient.Client, o.ResourceManagerAuthorizer)
 

@@ -1,4 +1,4 @@
-package datafactory
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/datafactory/mgmt/2018-06-01/datafactory"
@@ -14,7 +14,7 @@ type Client struct {
 	TriggersClient            *datafactory.TriggersClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	DatasetClient := datafactory.NewDatasetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&DatasetClient.Client, o.ResourceManagerAuthorizer)
 

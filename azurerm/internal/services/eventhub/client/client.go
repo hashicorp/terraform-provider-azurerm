@@ -1,4 +1,4 @@
-package eventhub
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
@@ -12,7 +12,7 @@ type Client struct {
 	NamespacesClient              *eventhub.NamespacesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	EventHubsClient := eventhub.NewEventHubsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&EventHubsClient.Client, o.ResourceManagerAuthorizer)
 

@@ -1,4 +1,4 @@
-package datalake
+package client
 
 import (
 	analytics "github.com/Azure/azure-sdk-for-go/services/datalake/analytics/mgmt/2016-11-01/account"
@@ -18,7 +18,7 @@ type Client struct {
 	AnalyticsFirewallRulesClient *analytics.FirewallRulesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	StoreAccountsClient := store.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&StoreAccountsClient.Client, o.ResourceManagerAuthorizer)
 
