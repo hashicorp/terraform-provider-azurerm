@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
@@ -144,7 +143,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	client.PrivateDns = privatedns.BuildClient(o)
 	client.RecoveryServices = recoveryservices.BuildClient(o)
 	client.Redis = redis.BuildClient(o)
-	client.Relay = relay.BuildClient(o)
 
 	client.Search = search.BuildClient(o)
 	client.SecurityCenter = securitycenter.BuildClient(o)
