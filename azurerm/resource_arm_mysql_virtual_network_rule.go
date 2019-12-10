@@ -63,7 +63,7 @@ func resourceArmMySqlVirtualNetworkRule() *schema.Resource {
 }
 
 func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -171,7 +171,7 @@ func resourceArmMySqlVirtualNetworkRuleCreateUpdate(d *schema.ResourceData, meta
 }
 
 func resourceArmMySqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -207,7 +207,7 @@ func resourceArmMySqlVirtualNetworkRuleRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceArmMySqlVirtualNetworkRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.VirtualNetworkRulesClient
+	client := meta.(*ArmClient).MySQL.VirtualNetworkRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

@@ -39,6 +39,16 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -80,5 +90,16 @@ func SupportedServices() []common.ServiceRegistration {
 		msi.Registration{},
 		mssql.Registration{},
 		mysql.Registration{},
+
+		network.Registration{},
+		notificationhub.Registration{},
+		policy.Registration{},
+		portal.Registration{},
+		postgres.Registration{},
+		privatedns.Registration{},
+		recoveryservices.Registration{},
+		redis.Registration{},
+		relay.Registration{},
+		resource.Registration{},
 	}
 }
