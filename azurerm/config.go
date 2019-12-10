@@ -18,7 +18,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -129,10 +128,9 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	client.ServiceFabric = servicefabric.BuildClient(o)
 	client.Scheduler = scheduler.BuildClient(o)
 	client.SignalR = signalr.BuildClient(o)
-	client.StreamAnalytics = streamanalytics.BuildClient(o)
-	client.Storage = storage.BuildClient(o)
-	client.Subscription = subscription.BuildClient(o)
 	client.Sql = sql.BuildClient(o)
+	client.Storage = storage.BuildClient(o)
+	client.StreamAnalytics = streamanalytics.BuildClient(o)
 
 	return nil
 }
