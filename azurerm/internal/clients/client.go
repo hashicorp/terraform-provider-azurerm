@@ -45,7 +45,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
+	portal "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/client"
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
 	recoveryservices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
@@ -181,6 +181,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Mssql = mssql.NewClient(o)
 	client.Mysql = mysql.NewClient(o)
 
+	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
 	client.RecoveryServices = recoveryservices.NewClient(o)

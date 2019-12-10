@@ -39,6 +39,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
@@ -87,6 +88,7 @@ func SupportedServices() []common.ServiceRegistration {
 		mssql.Registration{},
 		mysql.Registration{},
 
+		portal.Registration{},
 		postgres.Registration{},
 		privatedns.Registration{},
 		recoveryservices.Registration{},
