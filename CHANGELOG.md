@@ -1,5 +1,9 @@
 ## 1.39.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* storage: switching to use the Authorizers from Azure/go-autorest [GH-5109]
+
 BUG FIXES:
 
 * Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
