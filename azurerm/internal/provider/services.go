@@ -39,6 +39,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -80,5 +81,7 @@ func SupportedServices() []common.ServiceRegistration {
 		msi.Registration{},
 		mssql.Registration{},
 		mysql.Registration{},
+
+		resource.Registration{},
 	}
 }

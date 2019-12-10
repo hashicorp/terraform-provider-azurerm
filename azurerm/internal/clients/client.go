@@ -51,7 +51,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
@@ -180,6 +180,8 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Msi = msi.NewClient(o)
 	client.Mssql = mssql.NewClient(o)
 	client.Mysql = mysql.NewClient(o)
+
+	client.Resource = resource.NewClient(o)
 
 	return nil
 }
