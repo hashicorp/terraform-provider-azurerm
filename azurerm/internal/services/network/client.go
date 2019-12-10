@@ -21,6 +21,7 @@ type Client struct {
 	PointToSiteVpnGatewaysClient         *network.P2sVpnGatewaysClient
 	ProfileClient                        *network.ProfilesClient
 	PacketCapturesClient                 *network.PacketCapturesClient
+	PrivateEndpointClient                *network.PrivateEndpointsClient
 	PublicIPsClient                      *network.PublicIPAddressesClient
 	PublicIPPrefixesClient               *network.PublicIPPrefixesClient
 	RoutesClient                         *network.RoutesClient
@@ -28,6 +29,7 @@ type Client struct {
 	SecurityGroupClient                  *network.SecurityGroupsClient
 	SecurityRuleClient                   *network.SecurityRulesClient
 	SubnetsClient                        *network.SubnetsClient
+	NatGatewayClient                     *network.NatGatewaysClient
 	VnetGatewayConnectionsClient         *network.VirtualNetworkGatewayConnectionsClient
 	VnetGatewayClient                    *network.VirtualNetworkGatewaysClient
 	VnetClient                           *network.VirtualNetworksClient
@@ -93,6 +95,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 	PacketCapturesClient := network.NewPacketCapturesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&PacketCapturesClient.Client, o.ResourceManagerAuthorizer)
 
+	PrivateEndpointClient := network.NewPrivateEndpointsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&PrivateEndpointClient.Client, o.ResourceManagerAuthorizer)
+
 	VnetPeeringsClient := network.NewVirtualNetworkPeeringsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetPeeringsClient.Client, o.ResourceManagerAuthorizer)
 
@@ -122,6 +127,9 @@ func BuildClient(o *common.ClientOptions) *Client {
 
 	VnetGatewayClient := network.NewVirtualNetworkGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayClient.Client, o.ResourceManagerAuthorizer)
+
+	NatGatewayClient := network.NewNatGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
+	o.ConfigureClient(&NatGatewayClient.Client, o.ResourceManagerAuthorizer)
 
 	VnetGatewayConnectionsClient := network.NewVirtualNetworkGatewayConnectionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VnetGatewayConnectionsClient.Client, o.ResourceManagerAuthorizer)
@@ -157,6 +165,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		PointToSiteVpnGatewaysClient:         &pointToSiteVpnGatewaysClient,
 		ProfileClient:                        &ProfileClient,
 		PacketCapturesClient:                 &PacketCapturesClient,
+		PrivateEndpointClient:                &PrivateEndpointClient,
 		PublicIPsClient:                      &PublicIPsClient,
 		PublicIPPrefixesClient:               &PublicIPPrefixesClient,
 		RoutesClient:                         &RoutesClient,
@@ -164,6 +173,7 @@ func BuildClient(o *common.ClientOptions) *Client {
 		SecurityGroupClient:                  &SecurityGroupClient,
 		SecurityRuleClient:                   &SecurityRuleClient,
 		SubnetsClient:                        &SubnetsClient,
+		NatGatewayClient:                     &NatGatewayClient,
 		VnetGatewayConnectionsClient:         &VnetGatewayConnectionsClient,
 		VnetGatewayClient:                    &VnetGatewayClient,
 		VnetClient:                           &VnetClient,
