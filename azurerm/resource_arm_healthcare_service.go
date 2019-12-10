@@ -159,7 +159,7 @@ func resourceArmHealthcareService() *schema.Resource {
 }
 
 func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -224,7 +224,7 @@ func resourceArmHealthcareServiceCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -280,7 +280,7 @@ func resourceArmHealthcareServiceRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmHealthcareServiceDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Healthcare.HealthcareServiceClient
+	client := meta.(*ArmClient).HealthCare.HealthcareServiceClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

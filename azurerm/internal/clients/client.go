@@ -97,7 +97,7 @@ type Client struct {
 	Frontdoor   *frontdoor.Client
 	Graph       *graph.Client
 	HDInsight   *hdinsight.Client
-	Healthcare  *healthcare.Client
+	HealthCare  *healthcare.Client
 
 	// Phrase 3
 	IoTHub           *iothub.Client
@@ -110,12 +110,12 @@ type Client struct {
 	MariaDB          *mariadb.Client
 	Media            *media.Client
 	Monitor          *monitor.Client
-	Msi              *msi.Client
-	Mssql            *mssql.Client
-	Mysql            *mysql.Client
+	MSI              *msi.Client
+	MSSQL            *mssql.Client
+	MySQL            *mysql.Client
 
 	// Phase 4
-	Netapp           *netapp.Client
+	NetApp           *netapp.Client
 	Network          *network.Client
 	NotificationHubs *notificationhub.Client
 	Policy           *policy.Client
@@ -166,7 +166,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Frontdoor = frontdoor.NewClient(o)
 	client.Graph = graph.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
-	client.Healthcare = healthcare.NewClient(o)
+	client.HealthCare = healthcare.NewClient(o)
 	client.IoTHub = iothub.NewClient(o)
 	client.KeyVault = keyvault.NewClient(o)
 	client.Kusto = kusto.NewClient(o)
@@ -177,11 +177,11 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.MariaDB = mariadb.NewClient(o)
 	client.Media = media.NewClient(o)
 	client.Monitor = monitor.NewClient(o)
-	client.Msi = msi.NewClient(o)
-	client.Mssql = mssql.NewClient(o)
-	client.Mysql = mysql.NewClient(o)
+	client.MSI = msi.NewClient(o)
+	client.MSSQL = mssql.NewClient(o)
+	client.MySQL = mysql.NewClient(o)
 
-	client.Netapp = netapp.NewClient(o)
+	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Policy = policy.NewClient(o)
