@@ -45,7 +45,7 @@ func TestAccAzureRMCosmosDbMongoDatabase_complete(t *testing.T) {
 		CheckDestroy: testCheckAzureRMCosmosDbMongoDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMCosmosDbMongoDatabase_basic(ri, testLocation()),
+				Config: testAccAzureRMCosmosDbMongoDatabase_complete(ri, testLocation()),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testCheckAzureRMCosmosDbMongoDatabaseExists(resourceName),
 				),

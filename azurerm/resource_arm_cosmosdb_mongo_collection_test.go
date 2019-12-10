@@ -26,7 +26,6 @@ func TestAccAzureRMCosmosDbMongoCollection_basic(t *testing.T) {
 					testCheckAzureRMCosmosDbMongoCollectionExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "throughput", "400"),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 			{
 				ResourceName:      resourceName,
