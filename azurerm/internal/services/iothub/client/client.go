@@ -1,4 +1,4 @@
-package iothub
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/iothub/mgmt/2018-12-01-preview/devices"
@@ -12,7 +12,7 @@ type Client struct {
 	DPSCertificateClient *iothub.DpsCertificateClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	ResourceClient := devices.NewIotHubResourceClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ResourceClient.Client, o.ResourceManagerAuthorizer)
 

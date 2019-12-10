@@ -1,4 +1,4 @@
-package keyvault
+package client
 
 import (
 	keyvaultmgmt "github.com/Azure/azure-sdk-for-go/services/keyvault/2016-10-01/keyvault"
@@ -11,7 +11,7 @@ type Client struct {
 	ManagementClient *keyvaultmgmt.BaseClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	VaultsClient := keyvault.NewVaultsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&VaultsClient.Client, o.ResourceManagerAuthorizer)
 

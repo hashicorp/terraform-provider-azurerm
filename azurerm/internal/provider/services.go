@@ -26,6 +26,19 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -54,5 +67,18 @@ func SupportedServices() []common.ServiceRegistration {
 		graph.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
+		iothub.Registration{},
+		keyvault.Registration{},
+		kusto.Registration{},
+		loganalytics.Registration{},
+		logic.Registration{},
+		managementgroup.Registration{},
+		maps.Registration{},
+		mariadb.Registration{},
+		media.Registration{},
+		monitor.Registration{},
+		msi.Registration{},
+		mssql.Registration{},
+		mysql.Registration{},
 	}
 }

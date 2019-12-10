@@ -28,19 +28,19 @@ import (
 	graph "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph/client"
 	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
 	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	iothub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub/client"
+	keyvault "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault/client"
+	kusto "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto/client"
+	loganalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics/client"
+	logic "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic/client"
+	managementgroup "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup/client"
+	maps "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps/client"
+	mariadb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb/client"
+	media "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media/client"
+	monitor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor/client"
+	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
+	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
+	mysql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
@@ -85,7 +85,7 @@ type Client struct {
 	Containers       *containerServices.Client
 	Cosmos           *cosmosdb.Client
 
-	// TODO: Phase 2
+	// Phase 2
 	DataBricks  *databricks.Client
 	DataFactory *datafactory.Client
 	Datalake    *datalake.Client
@@ -99,7 +99,7 @@ type Client struct {
 	HDInsight   *hdinsight.Client
 	Healthcare  *healthcare.Client
 
-	// TODO: Phrase 3
+	// Phrase 3
 	IoTHub           *iothub.Client
 	KeyVault         *keyvault.Client
 	Kusto            *kusto.Client
@@ -167,6 +167,19 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Graph = graph.NewClient(o)
 	client.HDInsight = hdinsight.NewClient(o)
 	client.Healthcare = healthcare.NewClient(o)
+	client.IoTHub = iothub.NewClient(o)
+	client.KeyVault = keyvault.NewClient(o)
+	client.Kusto = kusto.NewClient(o)
+	client.LogAnalytics = loganalytics.NewClient(o)
+	client.Logic = logic.NewClient(o)
+	client.ManagementGroups = managementgroup.NewClient(o)
+	client.Maps = maps.NewClient(o)
+	client.MariaDB = mariadb.NewClient(o)
+	client.Media = media.NewClient(o)
+	client.Monitor = monitor.NewClient(o)
+	client.Msi = msi.NewClient(o)
+	client.Mssql = mssql.NewClient(o)
+	client.Mysql = mysql.NewClient(o)
 
 	return nil
 }
