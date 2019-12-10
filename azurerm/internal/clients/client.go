@@ -44,7 +44,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	policy "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/client"
 	portal "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/client"
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
@@ -114,7 +114,7 @@ type Client struct {
 	Mssql            *mssql.Client
 	Mysql            *mysql.Client
 
-	// TODO: Phase 4
+	// Phase 4
 	Netapp           *netapp.Client
 	Network          *network.Client
 	NotificationHubs *notificationhub.Client
@@ -181,6 +181,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Mssql = mssql.NewClient(o)
 	client.Mysql = mysql.NewClient(o)
 
+	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
