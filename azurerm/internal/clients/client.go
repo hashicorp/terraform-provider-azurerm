@@ -64,7 +64,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
+	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
 
 type Client struct {
@@ -129,7 +129,7 @@ type Client struct {
 	Relay            *relay.Client
 	Resource         *resource.Client
 
-	// TODO: Phase 5
+	// Phase 5
 	Scheduler       *scheduler.Client
 	Search          *search.Client
 	SecurityCenter  *securitycenter.Client
@@ -183,7 +183,6 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.MSI = msi.NewClient(o)
 	client.MSSQL = mssql.NewClient(o)
 	client.MySQL = mysql.NewClient(o)
-
 	client.NetApp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
@@ -195,6 +194,8 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Redis = redis.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
+
+	client.Web = web.NewClient(o)
 
 	return nil
 }

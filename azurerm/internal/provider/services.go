@@ -49,6 +49,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -90,7 +91,6 @@ func SupportedServices() []common.ServiceRegistration {
 		msi.Registration{},
 		mssql.Registration{},
 		mysql.Registration{},
-
 		network.Registration{},
 		notificationhub.Registration{},
 		policy.Registration{},
@@ -101,5 +101,7 @@ func SupportedServices() []common.ServiceRegistration {
 		redis.Registration{},
 		relay.Registration{},
 		resource.Registration{},
+
+		web.Registration{},
 	}
 }

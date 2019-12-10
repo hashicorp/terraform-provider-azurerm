@@ -20,7 +20,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -136,7 +135,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	client.Subscription = subscription.BuildClient(o)
 	client.Sql = sql.BuildClient(o)
 	client.TrafficManager = trafficmanager.BuildClient(o)
-	client.Web = web.BuildClient(o)
 
 	return nil
 }
