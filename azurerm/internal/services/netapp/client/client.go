@@ -1,4 +1,4 @@
-package netapp
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/netapp/mgmt/2019-06-01/netapp"
@@ -10,7 +10,7 @@ type Client struct {
 	PoolClient    *netapp.PoolsClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	accountClient := netapp.NewAccountsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&accountClient.Client, o.ResourceManagerAuthorizer)
 

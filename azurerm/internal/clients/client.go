@@ -41,14 +41,14 @@ import (
 	msi "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi/client"
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
 	mysql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
+	netapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp/client"
 	network "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/client"
 	notificationhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/client"
 	policy "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/client"
 	portal "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/client"
 	postgres "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres/client"
 	privatedns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns/client"
-	recoveryservices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
+	recoveryServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
 	relay "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/client"
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
@@ -122,7 +122,7 @@ type Client struct {
 	Portal           *portal.Client
 	Postgres         *postgres.Client
 	PrivateDns       *privatedns.Client
-	RecoveryServices *recoveryservices.Client
+	RecoveryServices *recoveryServices.Client
 	Redis            *redis.Client
 	Relay            *relay.Client
 	Resource         *resource.Client
@@ -181,13 +181,14 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Mssql = mssql.NewClient(o)
 	client.Mysql = mysql.NewClient(o)
 
+	client.Netapp = netapp.NewClient(o)
 	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)
 	client.Postgres = postgres.NewClient(o)
 	client.PrivateDns = privatedns.NewClient(o)
-	client.RecoveryServices = recoveryservices.NewClient(o)
+	client.RecoveryServices = recoveryServices.NewClient(o)
 	client.Redis = redis.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
