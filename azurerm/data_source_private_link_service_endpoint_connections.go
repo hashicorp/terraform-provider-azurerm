@@ -2,16 +2,21 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPrivateLinkServiceEndpointConnectionsRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"service_id": {
@@ -71,7 +76,8 @@ func dataSourceArmPrivateLinkServiceEndpointConnections() *schema.Resource {
 
 func dataSourceArmPrivateLinkServiceEndpointConnectionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.PrivateLinkServiceClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	serviceId := d.Get("service_id").(string)
 

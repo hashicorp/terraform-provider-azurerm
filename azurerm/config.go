@@ -9,18 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -161,18 +149,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	}
 
 	// TODO: move these Clients inside of Common so this method can be moved in there
-	client.DataBricks = databricks.BuildClient(o)
-	client.DataFactory = datafactory.BuildClient(o)
-	client.Datalake = datalake.BuildClient(o)
-	client.DevSpace = devspace.BuildClient(o)
-	client.DevTestLabs = devtestlabs.BuildClient(o)
-	client.Dns = dns.BuildClient(o)
-	client.EventGrid = eventgrid.BuildClient(o)
-	client.Eventhub = eventhub.BuildClient(o)
-	client.Frontdoor = frontdoor.BuildClient(o)
-	client.Graph = graph.BuildClient(o)
-	client.HDInsight = hdinsight.BuildClient(o)
-	client.Healthcare = healthcare.BuildClient(o)
 	client.IoTHub = iothub.BuildClient(o)
 	client.KeyVault = keyvault.BuildClient(o)
 	client.Kusto = kusto.BuildClient(o)

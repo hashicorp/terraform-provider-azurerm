@@ -16,18 +16,18 @@ import (
 	compute "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute/client"
 	containerServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/containers/client"
 	cosmosdb "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/cosmos/client"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	databricks "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/databricks/client"
+	datafactory "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datafactory/client"
+	datalake "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/datalake/client"
+	devspace "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devspace/client"
+	devtestlabs "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/devtestlabs/client"
+	dns "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/dns/client"
+	eventgrid "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventgrid/client"
+	eventhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/eventhub/client"
+	frontdoor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/frontdoor/client"
+	graph "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph/client"
+	hdinsight "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight/client"
+	healthcare "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
@@ -155,6 +155,18 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Compute = compute.NewClient(o)
 	client.Containers = containerServices.NewClient(o)
 	client.Cosmos = cosmosdb.NewClient(o)
+	client.DataBricks = databricks.NewClient(o)
+	client.DataFactory = datafactory.NewClient(o)
+	client.Datalake = datalake.NewClient(o)
+	client.DevSpace = devspace.NewClient(o)
+	client.DevTestLabs = devtestlabs.NewClient(o)
+	client.Dns = dns.NewClient(o)
+	client.EventGrid = eventgrid.NewClient(o)
+	client.Eventhub = eventhub.NewClient(o)
+	client.Frontdoor = frontdoor.NewClient(o)
+	client.Graph = graph.NewClient(o)
+	client.HDInsight = hdinsight.NewClient(o)
+	client.Healthcare = healthcare.NewClient(o)
 
 	return nil
 }

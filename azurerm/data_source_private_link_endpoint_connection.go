@@ -1,18 +1,24 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznet "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmPrivateLinkEndpointConnection() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmPrivateLinkEndpointConnectionRead,
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -56,7 +62,9 @@ func dataSourceArmPrivateLinkEndpointConnection() *schema.Resource {
 
 func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.PrivateEndpointClient
-	ctx := meta.(*ArmClient).StopContext
+	nicsClient := meta.(*ArmClient).Network.InterfacesClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -85,8 +93,8 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 
 		if nics := props.NetworkInterfaces; nics != nil && len(*nics) > 0 {
 			nic := (*nics)[0]
-			if nic.ID != nil && *(nic.ID) != "" {
-				privateIpAddress = getPrivateIpAddress(*(nic.ID), meta)
+			if nic.ID != nil && *nic.ID != "" {
+				privateIpAddress = getPrivateIpAddress(ctx, nicsClient, *nic.ID)
 			}
 		}
 
@@ -98,16 +106,13 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func getPrivateIpAddress(networkInterfaceId string, meta interface{}) string {
+func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
 	privateIpAddress := ""
 	id, err := azure.ParseAzureResourceID(networkInterfaceId)
 	if err != nil {
 		return privateIpAddress
 	}
 	name := id.Path["networkInterfaces"]
-
-	client := meta.(*ArmClient).Network.InterfacesClient
-	ctx := meta.(*ArmClient).StopContext
 
 	resp, err := client.Get(ctx, id.ResourceGroup, name, "")
 	if err != nil {
