@@ -48,7 +48,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
+	recoveryservices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices/client"
 	redis "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis/client"
 	relay "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay/client"
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
@@ -181,6 +181,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Mssql = mssql.NewClient(o)
 	client.Mysql = mysql.NewClient(o)
 
+	client.RecoveryServices = recoveryservices.NewClient(o)
 	client.Redis = redis.NewClient(o)
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
