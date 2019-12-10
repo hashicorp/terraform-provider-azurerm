@@ -1,5 +1,9 @@
 ## 1.39.0 (Unreleased)
 
+FEATURESE: 
+
+* **New Resource:** `azurerm_app_configuration` [GH-4859]
+
 IMPROVEMENTS:
 
 * storage: switching to use the Authorizers from Azure/go-autorest [GH-5109]
