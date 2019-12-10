@@ -63,7 +63,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager"
+	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
 )
 
@@ -140,7 +140,7 @@ type Client struct {
 	StreamAnalytics *streamanalytics.Client
 	Subscription    *subscription.Client
 	Sql             *sql.Client
-	TrafficManager  *trafficmanager.Client
+	TrafficManager  *trafficManager.Client
 	Web             *web.Client
 }
 
@@ -195,6 +195,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
 
+	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
 
 	return nil
