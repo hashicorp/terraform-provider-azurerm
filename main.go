@@ -4,9 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/Azure/go-autorest/tracing"
-
-	"go.opencensus.io/trace"
+	opencensusTrace "go.opencensus.io/trace"
 
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm"
@@ -14,13 +12,16 @@ import (
 )
 
 func main() {
-	tracing.Register(tracer.Tracer)
-	_, tracer.RootSpan = trace.StartSpan(context.Background(), "root")
-	defer tracer.RootSpan.End()
-
 	// enable tracer
 	// remove date and time stamp from log output as the plugin SDK already adds its own
 	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+
+	if tracer.TracingEnabled() {
+		tracer.Init()
+		// create the first root span, this span has the same lifetime as the plugin server
+		_, tracer.RootSpan = opencensusTrace.StartSpan(context.Background(), "root")
+		defer tracer.RootSpan.End()
+	}
 
 	plugin.Serve(&plugin.ServeOpts{
 		ProviderFunc: azurerm.Provider})

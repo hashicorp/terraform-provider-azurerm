@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"go.opencensus.io/trace"
+	opencensusTrace "go.opencensus.io/trace"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -62,13 +62,19 @@ func buildWithTimeout(ctx context.Context, timeout time.Duration, name, opname s
 	if features.SupportsCustomTimeouts() {
 		return context.WithTimeout(ctx, timeout)
 	}
-	newctx, span := trace.StartSpanWithRemoteParent(ctx, fmt.Sprintf("%s: %s", name, opname), tracer.RootSpan.SpanContext())
-	//newctx = context.WithValue(newctx, tracer.TraceSpanKey{}, span)
-
 	nullFunc := func() {
-		span.End()
-		//tracer.Tracer.EndSpan(newctx, 0, nil)
 		// do nothing on cancel since timeouts aren't enabled
 	}
-	return newctx, nullFunc
+
+	if tracer.TracingEnabled() {
+		var span *opencensusTrace.Span
+		ctx, span = opencensusTrace.StartSpanWithRemoteParent(ctx, fmt.Sprintf("%s: %s", name, opname), tracer.RootSpan.SpanContext())
+		originNullFunc := nullFunc
+		nullFunc = func() {
+			originNullFunc()
+			span.End()
+		}
+	}
+
+	return ctx, nullFunc
 }
