@@ -39,6 +39,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
@@ -90,6 +91,7 @@ func SupportedServices() []common.ServiceRegistration {
 		mssql.Registration{},
 		mysql.Registration{},
 
+		network.Registration{},
 		notificationhub.Registration{},
 		policy.Registration{},
 		portal.Registration{},

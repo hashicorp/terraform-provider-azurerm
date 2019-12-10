@@ -42,7 +42,7 @@ import (
 	mssql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql/client"
 	mysql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	network "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network/client"
 	notificationhub "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub/client"
 	policy "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy/client"
 	portal "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal/client"
@@ -181,6 +181,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Mssql = mssql.NewClient(o)
 	client.Mysql = mysql.NewClient(o)
 
+	client.Network = network.NewClient(o)
 	client.NotificationHubs = notificationhub.NewClient(o)
 	client.Policy = policy.NewClient(o)
 	client.Portal = portal.NewClient(o)

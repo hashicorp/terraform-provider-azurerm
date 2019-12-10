@@ -1,4 +1,4 @@
-package network
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/network/mgmt/2019-09-01/network"
@@ -43,7 +43,7 @@ type Client struct {
 	PrivateLinkServiceClient             *network.PrivateLinkServicesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	ApplicationGatewaysClient := network.NewApplicationGatewaysClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&ApplicationGatewaysClient.Client, o.ResourceManagerAuthorizer)
 
