@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -112,9 +111,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	if err := client.Client.Build(o); err != nil {
 		return err
 	}
-
-	// TODO: move these Clients inside of Common so this method can be moved in there
-	client.Scheduler = scheduler.BuildClient(o)
 
 	return nil
 }
