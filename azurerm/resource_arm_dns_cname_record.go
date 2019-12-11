@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -54,8 +54,9 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			},
 
 			"record": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ConflictsWith: []string{"target_resource_id"},
 			},
 
 			"ttl": {
@@ -66,6 +67,13 @@ func resourceArmDnsCNameRecord() *schema.Resource {
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"target_resource_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"records"},
 			},
 
 			"tags": tags.Schema(),
@@ -98,6 +106,16 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 	ttl := int64(d.Get("ttl").(int))
 	record := d.Get("record").(string)
 	t := d.Get("tags").(map[string]interface{})
+	targetResourceId := d.Get("target_resource_id").(string)
+
+	if bool(targetResourceId == "") && bool(len(record) == 0) {
+		return fmt.Errorf("Neither 'record' nor 'target_resource_id' is defined")
+	}
+
+	var targetResource dns.SubResource
+	if targetResourceId != "" {
+		targetResource.ID = utils.String(targetResourceId)
+	}
 
 	parameters := dns.RecordSet{
 		Name: &name,
@@ -107,6 +125,7 @@ func resourceArmDnsCNameRecordCreateUpdate(d *schema.ResourceData, meta interfac
 			CnameRecord: &dns.CnameRecord{
 				Cname: &record,
 			},
+			TargetResource: &targetResource,
 		},
 	}
 
@@ -158,6 +177,7 @@ func resourceArmDnsCNameRecordRead(d *schema.ResourceData, meta interface{}) err
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
+	d.Set("target_resource_id", (resp.TargetResource).ID)
 
 	if props := resp.RecordSetProperties; props != nil {
 		if record := props.CnameRecord; record != nil {

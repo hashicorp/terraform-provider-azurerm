@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+	"github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
@@ -47,10 +47,11 @@ func resourceArmDnsARecord() *schema.Resource {
 			},
 
 			"records": {
-				Type:     schema.TypeSet,
-				Required: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				Elem:          &schema.Schema{Type: schema.TypeString},
+				Set:           schema.HashString,
+				ConflictsWith: []string{"target_resource_id"},
 			},
 
 			"ttl": {
@@ -61,6 +62,13 @@ func resourceArmDnsARecord() *schema.Resource {
 			"fqdn": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+
+			"target_resource_id": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  azure.ValidateResourceID,
+				ConflictsWith: []string{"records"},
 			},
 
 			"tags": tags.Schema(),
@@ -92,13 +100,24 @@ func resourceArmDnsARecordCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	ttl := int64(d.Get("ttl").(int))
 	t := d.Get("tags").(map[string]interface{})
+	targetResourceId := d.Get("target_resource_id").(string)
+
+	if bool(targetResourceId == "") && bool(len(d.Get("records").(*schema.Set).List()) == 0) {
+		return fmt.Errorf("Neither 'records' nor 'target_resource_id' is defined")
+	}
+
+	var targetResource dns.SubResource
+	if targetResourceId != "" {
+		targetResource.ID = utils.String(targetResourceId)
+	}
 
 	parameters := dns.RecordSet{
 		Name: &name,
 		RecordSetProperties: &dns.RecordSetProperties{
-			Metadata: tags.Expand(t),
-			TTL:      &ttl,
-			ARecords: expandAzureRmDnsARecords(d),
+			Metadata:       tags.Expand(t),
+			TTL:            &ttl,
+			ARecords:       expandAzureRmDnsARecords(d),
+			TargetResource: &targetResource,
 		},
 	}
 
@@ -150,10 +169,15 @@ func resourceArmDnsARecordRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("zone_name", zoneName)
 	d.Set("ttl", resp.TTL)
 	d.Set("fqdn", resp.Fqdn)
+	d.Set("target_resource_id", (resp.TargetResource).ID)
 
-	if err := d.Set("records", flattenAzureRmDnsARecords(resp.ARecords)); err != nil {
-		return err
+	// Only flatten DNS records if they are present in the resource, e.g. not for alias records
+	if resp.ARecords != nil {
+		if err := d.Set("records", flattenAzureRmDnsARecords(resp.ARecords)); err != nil {
+			return err
+		}
 	}
+
 	return tags.FlattenAndSet(d, resp.Metadata)
 }
 
