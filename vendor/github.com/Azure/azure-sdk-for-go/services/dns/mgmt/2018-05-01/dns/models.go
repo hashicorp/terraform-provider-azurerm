@@ -28,7 +28,7 @@ import (
 )
 
 // The package's fully qualified name.
-const fqdn = "github.com/Azure/azure-sdk-for-go/services/preview/dns/mgmt/2018-03-01-preview/dns"
+const fqdn = "github.com/Azure/azure-sdk-for-go/services/dns/mgmt/2018-05-01/dns"
 
 // RecordType enumerates the values for record type.
 type RecordType string
@@ -88,18 +88,6 @@ type ARecord struct {
 	Ipv4Address *string `json:"ipv4Address,omitempty"`
 }
 
-// AzureEntityResource the resource model definition for a Azure Resource Manager resource with an etag.
-type AzureEntityResource struct {
-	// Etag - READ-ONLY; Resource Etag.
-	Etag *string `json:"etag,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
-	Type *string `json:"type,omitempty"`
-}
-
 // CaaRecord a CAA record.
 type CaaRecord struct {
 	// Flags - The flags for this CAA record as an integer between 0 and 255.
@@ -146,17 +134,6 @@ type MxRecord struct {
 type NsRecord struct {
 	// Nsdname - The name server name for this NS record.
 	Nsdname *string `json:"nsdname,omitempty"`
-}
-
-// ProxyResource the resource model definition for a ARM proxy resource. It will have everything other than
-// required location and tags
-type ProxyResource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
-	Type *string `json:"type,omitempty"`
 }
 
 // PtrRecord a PTR record.
@@ -406,6 +383,10 @@ type RecordSetProperties struct {
 	TTL *int64 `json:"TTL,omitempty"`
 	// Fqdn - READ-ONLY; Fully qualified domain name of the record set.
 	Fqdn *string `json:"fqdn,omitempty"`
+	// ProvisioningState - READ-ONLY; provisioning State of the record set.
+	ProvisioningState *string `json:"provisioningState,omitempty"`
+	// TargetResource - A reference to an azure resource from where the dns resource value is taken.
+	TargetResource *SubResource `json:"targetResource,omitempty"`
 	// ARecords - The list of A records in the record set.
 	ARecords *[]ARecord `json:"ARecords,omitempty"`
 	// AaaaRecords - The list of AAAA records in the record set.
@@ -436,6 +417,9 @@ func (rsp RecordSetProperties) MarshalJSON() ([]byte, error) {
 	}
 	if rsp.TTL != nil {
 		objectMap["TTL"] = rsp.TTL
+	}
+	if rsp.TargetResource != nil {
+		objectMap["targetResource"] = rsp.TargetResource
 	}
 	if rsp.ARecords != nil {
 		objectMap["ARecords"] = rsp.ARecords
@@ -476,14 +460,130 @@ type RecordSetUpdateParameters struct {
 	RecordSet *RecordSet `json:"RecordSet,omitempty"`
 }
 
-// Resource ...
+// Resource common properties of an Azure Resource Manager resource
 type Resource struct {
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
+	// ID - READ-ONLY; Resource ID.
 	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
+	// Name - READ-ONLY; Resource name.
 	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
+	// Type - READ-ONLY; Resource type.
 	Type *string `json:"type,omitempty"`
+	// Location - Resource location.
+	Location *string `json:"location,omitempty"`
+	// Tags - Resource tags.
+	Tags map[string]*string `json:"tags"`
+}
+
+// MarshalJSON is the custom marshaler for Resource.
+func (r Resource) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if r.Location != nil {
+		objectMap["location"] = r.Location
+	}
+	if r.Tags != nil {
+		objectMap["tags"] = r.Tags
+	}
+	return json.Marshal(objectMap)
+}
+
+// ResourceReference represents a single Azure resource and its referencing DNS records.
+type ResourceReference struct {
+	// DNSResources - A list of dns Records
+	DNSResources *[]SubResource `json:"dnsResources,omitempty"`
+	// TargetResource - A reference to an azure resource from where the dns resource value is taken.
+	TargetResource *SubResource `json:"targetResource,omitempty"`
+}
+
+// ResourceReferenceRequest represents the properties of the Dns Resource Reference Request.
+type ResourceReferenceRequest struct {
+	// ResourceReferenceRequestProperties - The properties of the Resource Reference Request.
+	*ResourceReferenceRequestProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceReferenceRequest.
+func (rrr ResourceReferenceRequest) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rrr.ResourceReferenceRequestProperties != nil {
+		objectMap["properties"] = rrr.ResourceReferenceRequestProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ResourceReferenceRequest struct.
+func (rrr *ResourceReferenceRequest) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var resourceReferenceRequestProperties ResourceReferenceRequestProperties
+				err = json.Unmarshal(*v, &resourceReferenceRequestProperties)
+				if err != nil {
+					return err
+				}
+				rrr.ResourceReferenceRequestProperties = &resourceReferenceRequestProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// ResourceReferenceRequestProperties represents the properties of the Dns Resource Reference Request.
+type ResourceReferenceRequestProperties struct {
+	// TargetResources - A list of references to azure resources for which referencing dns records need to be queried.
+	TargetResources *[]SubResource `json:"targetResources,omitempty"`
+}
+
+// ResourceReferenceResult represents the properties of the Dns Resource Reference Result.
+type ResourceReferenceResult struct {
+	autorest.Response `json:"-"`
+	// ResourceReferenceResultProperties - The result of dns resource reference request. Returns a list of dns resource references for each of the azure resource in the request.
+	*ResourceReferenceResultProperties `json:"properties,omitempty"`
+}
+
+// MarshalJSON is the custom marshaler for ResourceReferenceResult.
+func (rrr ResourceReferenceResult) MarshalJSON() ([]byte, error) {
+	objectMap := make(map[string]interface{})
+	if rrr.ResourceReferenceResultProperties != nil {
+		objectMap["properties"] = rrr.ResourceReferenceResultProperties
+	}
+	return json.Marshal(objectMap)
+}
+
+// UnmarshalJSON is the custom unmarshaler for ResourceReferenceResult struct.
+func (rrr *ResourceReferenceResult) UnmarshalJSON(body []byte) error {
+	var m map[string]*json.RawMessage
+	err := json.Unmarshal(body, &m)
+	if err != nil {
+		return err
+	}
+	for k, v := range m {
+		switch k {
+		case "properties":
+			if v != nil {
+				var resourceReferenceResultProperties ResourceReferenceResultProperties
+				err = json.Unmarshal(*v, &resourceReferenceResultProperties)
+				if err != nil {
+					return err
+				}
+				rrr.ResourceReferenceResultProperties = &resourceReferenceResultProperties
+			}
+		}
+	}
+
+	return nil
+}
+
+// ResourceReferenceResultProperties the result of dns resource reference request. Returns a list of dns
+// resource references for each of the azure resource in the request.
+type ResourceReferenceResultProperties struct {
+	// DNSResourceReferences - The result of dns resource reference request. A list of dns resource references for each of the azure resource in the request
+	DNSResourceReferences *[]ResourceReference `json:"dnsResourceReferences,omitempty"`
 }
 
 // SoaRecord an SOA record.
@@ -522,32 +622,6 @@ type SubResource struct {
 	ID *string `json:"id,omitempty"`
 }
 
-// TrackedResource the resource model definition for a ARM tracked top level resource
-type TrackedResource struct {
-	// Tags - Resource tags.
-	Tags map[string]*string `json:"tags"`
-	// Location - The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
-	Type *string `json:"type,omitempty"`
-}
-
-// MarshalJSON is the custom marshaler for TrackedResource.
-func (tr TrackedResource) MarshalJSON() ([]byte, error) {
-	objectMap := make(map[string]interface{})
-	if tr.Tags != nil {
-		objectMap["tags"] = tr.Tags
-	}
-	if tr.Location != nil {
-		objectMap["location"] = tr.Location
-	}
-	return json.Marshal(objectMap)
-}
-
 // TxtRecord a TXT record.
 type TxtRecord struct {
 	// Value - The text value of this TXT record.
@@ -561,16 +635,16 @@ type Zone struct {
 	Etag *string `json:"etag,omitempty"`
 	// ZoneProperties - The properties of the zone.
 	*ZoneProperties `json:"properties,omitempty"`
+	// ID - READ-ONLY; Resource ID.
+	ID *string `json:"id,omitempty"`
+	// Name - READ-ONLY; Resource name.
+	Name *string `json:"name,omitempty"`
+	// Type - READ-ONLY; Resource type.
+	Type *string `json:"type,omitempty"`
+	// Location - Resource location.
+	Location *string `json:"location,omitempty"`
 	// Tags - Resource tags.
 	Tags map[string]*string `json:"tags"`
-	// Location - The geo-location where the resource lives
-	Location *string `json:"location,omitempty"`
-	// ID - READ-ONLY; Fully qualified resource Id for the resource. Ex - /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}
-	ID *string `json:"id,omitempty"`
-	// Name - READ-ONLY; The name of the resource
-	Name *string `json:"name,omitempty"`
-	// Type - READ-ONLY; The type of the resource. Ex- Microsoft.Compute/virtualMachines or Microsoft.Storage/storageAccounts.
-	Type *string `json:"type,omitempty"`
 }
 
 // MarshalJSON is the custom marshaler for Zone.
@@ -582,11 +656,11 @@ func (z Zone) MarshalJSON() ([]byte, error) {
 	if z.ZoneProperties != nil {
 		objectMap["properties"] = z.ZoneProperties
 	}
-	if z.Tags != nil {
-		objectMap["tags"] = z.Tags
-	}
 	if z.Location != nil {
 		objectMap["location"] = z.Location
+	}
+	if z.Tags != nil {
+		objectMap["tags"] = z.Tags
 	}
 	return json.Marshal(objectMap)
 }
@@ -618,24 +692,6 @@ func (z *Zone) UnmarshalJSON(body []byte) error {
 				}
 				z.ZoneProperties = &zoneProperties
 			}
-		case "tags":
-			if v != nil {
-				var tags map[string]*string
-				err = json.Unmarshal(*v, &tags)
-				if err != nil {
-					return err
-				}
-				z.Tags = tags
-			}
-		case "location":
-			if v != nil {
-				var location string
-				err = json.Unmarshal(*v, &location)
-				if err != nil {
-					return err
-				}
-				z.Location = &location
-			}
 		case "id":
 			if v != nil {
 				var ID string
@@ -662,6 +718,24 @@ func (z *Zone) UnmarshalJSON(body []byte) error {
 					return err
 				}
 				z.Type = &typeVar
+			}
+		case "location":
+			if v != nil {
+				var location string
+				err = json.Unmarshal(*v, &location)
+				if err != nil {
+					return err
+				}
+				z.Location = &location
+			}
+		case "tags":
+			if v != nil {
+				var tags map[string]*string
+				err = json.Unmarshal(*v, &tags)
+				if err != nil {
+					return err
+				}
+				z.Tags = tags
 			}
 		}
 	}

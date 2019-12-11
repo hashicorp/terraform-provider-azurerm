@@ -21,7 +21,6 @@ import (
 	"context"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/validation"
 	"github.com/Azure/go-autorest/tracing"
 	"net/http"
 )
@@ -43,7 +42,7 @@ func NewRecordSetsClientWithBaseURI(baseURI string, subscriptionID string) Recor
 
 // CreateOrUpdate creates or updates a record set within a DNS zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // relativeRecordSetName - the name of the record set, relative to the name of the zone.
 // recordType - the type of DNS record in this record set. Record sets of type SOA can be updated but not
@@ -64,16 +63,6 @@ func (client RecordSetsClient) CreateOrUpdate(ctx context.Context, resourceGroup
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.RecordSetsClient", "CreateOrUpdate", err.Error())
-	}
-
 	req, err := client.CreateOrUpdatePreparer(ctx, resourceGroupName, zoneName, relativeRecordSetName, recordType, parameters, ifMatch, ifNoneMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "CreateOrUpdate", nil, "Failure preparing request")
@@ -105,7 +94,7 @@ func (client RecordSetsClient) CreateOrUpdatePreparer(ctx context.Context, resou
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -153,7 +142,7 @@ func (client RecordSetsClient) CreateOrUpdateResponder(resp *http.Response) (res
 
 // Delete deletes a record set from a DNS zone. This operation cannot be undone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // relativeRecordSetName - the name of the record set, relative to the name of the zone.
 // recordType - the type of DNS record in this record set. Record sets of type SOA cannot be deleted (they are
@@ -171,16 +160,6 @@ func (client RecordSetsClient) Delete(ctx context.Context, resourceGroupName str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.RecordSetsClient", "Delete", err.Error())
-	}
-
 	req, err := client.DeletePreparer(ctx, resourceGroupName, zoneName, relativeRecordSetName, recordType, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "Delete", nil, "Failure preparing request")
@@ -212,7 +191,7 @@ func (client RecordSetsClient) DeletePreparer(ctx context.Context, resourceGroup
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -250,7 +229,7 @@ func (client RecordSetsClient) DeleteResponder(resp *http.Response) (result auto
 
 // Get gets a record set.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // relativeRecordSetName - the name of the record set, relative to the name of the zone.
 // recordType - the type of DNS record in this record set.
@@ -265,16 +244,6 @@ func (client RecordSetsClient) Get(ctx context.Context, resourceGroupName string
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.RecordSetsClient", "Get", err.Error())
-	}
-
 	req, err := client.GetPreparer(ctx, resourceGroupName, zoneName, relativeRecordSetName, recordType)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "Get", nil, "Failure preparing request")
@@ -306,7 +275,7 @@ func (client RecordSetsClient) GetPreparer(ctx context.Context, resourceGroupNam
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -341,7 +310,7 @@ func (client RecordSetsClient) GetResponder(resp *http.Response) (result RecordS
 
 // ListAllByDNSZone lists all record sets in a DNS zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // top - the maximum number of record sets to return. If not specified, returns up to 100 record sets.
 // recordSetNameSuffix - the suffix label of the record set name that has to be used to filter the record set
@@ -358,16 +327,6 @@ func (client RecordSetsClient) ListAllByDNSZone(ctx context.Context, resourceGro
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.RecordSetsClient", "ListAllByDNSZone", err.Error())
-	}
-
 	result.fn = client.listAllByDNSZoneNextResults
 	req, err := client.ListAllByDNSZonePreparer(ctx, resourceGroupName, zoneName, top, recordSetNameSuffix)
 	if err != nil {
@@ -398,7 +357,7 @@ func (client RecordSetsClient) ListAllByDNSZonePreparer(ctx context.Context, res
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -476,7 +435,7 @@ func (client RecordSetsClient) ListAllByDNSZoneComplete(ctx context.Context, res
 
 // ListByDNSZone lists all record sets in a DNS zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // top - the maximum number of record sets to return. If not specified, returns up to 100 record sets.
 // recordsetnamesuffix - the suffix label of the record set name that has to be used to filter the record set
@@ -493,16 +452,6 @@ func (client RecordSetsClient) ListByDNSZone(ctx context.Context, resourceGroupN
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.RecordSetsClient", "ListByDNSZone", err.Error())
-	}
-
 	result.fn = client.listByDNSZoneNextResults
 	req, err := client.ListByDNSZonePreparer(ctx, resourceGroupName, zoneName, top, recordsetnamesuffix)
 	if err != nil {
@@ -533,7 +482,7 @@ func (client RecordSetsClient) ListByDNSZonePreparer(ctx context.Context, resour
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -611,7 +560,7 @@ func (client RecordSetsClient) ListByDNSZoneComplete(ctx context.Context, resour
 
 // ListByType lists the record sets of a specified type in a DNS zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // recordType - the type of record sets to enumerate.
 // top - the maximum number of record sets to return. If not specified, returns up to 100 record sets.
@@ -629,16 +578,6 @@ func (client RecordSetsClient) ListByType(ctx context.Context, resourceGroupName
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.RecordSetsClient", "ListByType", err.Error())
-	}
-
 	result.fn = client.listByTypeNextResults
 	req, err := client.ListByTypePreparer(ctx, resourceGroupName, zoneName, recordType, top, recordsetnamesuffix)
 	if err != nil {
@@ -670,7 +609,7 @@ func (client RecordSetsClient) ListByTypePreparer(ctx context.Context, resourceG
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -748,7 +687,7 @@ func (client RecordSetsClient) ListByTypeComplete(ctx context.Context, resourceG
 
 // Update updates a record set within a DNS zone.
 // Parameters:
-// resourceGroupName - the name of the resource group. The name is case insensitive.
+// resourceGroupName - the name of the resource group.
 // zoneName - the name of the DNS zone (without a terminating dot).
 // relativeRecordSetName - the name of the record set, relative to the name of the zone.
 // recordType - the type of DNS record in this record set.
@@ -766,16 +705,6 @@ func (client RecordSetsClient) Update(ctx context.Context, resourceGroupName str
 			tracing.EndSpan(ctx, sc, err)
 		}()
 	}
-	if err := validation.Validate([]validation.Validation{
-		{TargetValue: resourceGroupName,
-			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MaxLength, Rule: 90, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil},
-				{Target: "resourceGroupName", Name: validation.Pattern, Rule: `^[-\w\._\(\)]+$`, Chain: nil}}},
-		{TargetValue: client.SubscriptionID,
-			Constraints: []validation.Constraint{{Target: "client.SubscriptionID", Name: validation.MinLength, Rule: 1, Chain: nil}}}}); err != nil {
-		return result, validation.NewError("dns.RecordSetsClient", "Update", err.Error())
-	}
-
 	req, err := client.UpdatePreparer(ctx, resourceGroupName, zoneName, relativeRecordSetName, recordType, parameters, ifMatch)
 	if err != nil {
 		err = autorest.NewErrorWithError(err, "dns.RecordSetsClient", "Update", nil, "Failure preparing request")
@@ -807,7 +736,7 @@ func (client RecordSetsClient) UpdatePreparer(ctx context.Context, resourceGroup
 		"zoneName":              autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2018-03-01-preview"
+	const APIVersion = "2018-05-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
