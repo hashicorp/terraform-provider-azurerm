@@ -55,7 +55,7 @@ import (
 	resource "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource/client"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
+	securityCenter "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter/client"
 	serviceBus "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus/client"
 	serviceFabric "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric/client"
 	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
@@ -132,8 +132,8 @@ type Client struct {
 	// Phase 5
 	Scheduler       *scheduler.Client
 	Search          *search.Client
-	SecurityCenter  *securitycenter.Client
-	ServiceBus      *servicebus.Client
+	SecurityCenter  *securityCenter.Client
+	ServiceBus      *serviceBus.Client
 	ServiceFabric   *serviceFabric.Client
 	SignalR         *signalr.Client
 	Storage         *storage.Client
@@ -195,6 +195,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
 
+	client.SecurityCenter = securityCenter.NewClient(o)
 	client.ServiceBus = serviceBus.NewClient(o)
 	client.ServiceFabric = serviceFabric.NewClient(o)
 	client.SignalR = signalr.NewClient(o)

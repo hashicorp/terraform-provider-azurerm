@@ -11,7 +11,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -118,7 +117,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	// TODO: move these Clients inside of Common so this method can be moved in there
 	client.Scheduler = scheduler.BuildClient(o)
 	client.Search = search.BuildClient(o)
-	client.SecurityCenter = securitycenter.BuildClient(o)
 
 	return nil
 }
