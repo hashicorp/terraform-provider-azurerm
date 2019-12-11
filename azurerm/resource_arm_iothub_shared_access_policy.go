@@ -350,7 +350,7 @@ func flattenAccessRights(r devices.AccessRights) accessRights {
 			rights.registryWrite = true
 			// RegistryWrite implies RegistryRead.
 			// What's more, creating a Access Policy with both RegistryRead and RegistryWrite
-			// only really sets RegistryWrite permission, which then also implies RedistryRead
+			// only really sets RegistryWrite permission, which then also implies RegistryRead
 			fallthrough
 		case "registryread":
 			rights.registryRead = true
