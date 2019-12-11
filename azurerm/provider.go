@@ -456,6 +456,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_site_recovery_protection_container":                                     resourceArmSiteRecoveryProtectionContainer(),
 		"azurerm_site_recovery_protection_container_mapping":                             resourceArmSiteRecoveryProtectionContainerMapping(),
 		"azurerm_site_recovery_replicated_vm":                                            resourceArmSiteRecoveryReplicatedVM(),
+		"azurerm_site_recovery_replication_policy":                                       resourceArmSiteRecoveryReplicationPolicy(),
 		"azurerm_snapshot":                                                               resourceArmSnapshot(),
 		"azurerm_sql_active_directory_administrator":                                     resourceArmSqlAdministrator(),
 		"azurerm_sql_database":                                                           resourceArmSqlDatabase(),
