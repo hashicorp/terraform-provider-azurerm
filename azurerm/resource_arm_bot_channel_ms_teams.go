@@ -3,13 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/botservice/mgmt/2018-07-12/botservice"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -49,13 +48,13 @@ func resourceArmBotChannelMsTeams() *schema.Resource {
 			"calling_web_hook": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ValidateFunc: validateCallingWebHook,
+				ValidateFunc: validate.ValidateBotMSTeamsCallingWebHook(),
 			},
 
 			"enable_calling": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 		},
 	}
@@ -210,13 +209,4 @@ func resourceArmBotChannelMsTeamsDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
-}
-
-func validateCallingWebHook(i interface{}, k string) (warnings []string, errors []error) {
-	value := i.(string)
-	if !strings.HasPrefix(value, "https://") || !strings.HasSuffix(value, "/") {
-		errors = append(errors, fmt.Errorf("invalid `calling_web_hook`, must start with `https://` and end with `/`"))
-	}
-
-	return warnings, errors
 }
