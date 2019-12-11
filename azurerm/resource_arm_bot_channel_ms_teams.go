@@ -140,7 +140,6 @@ func resourceArmBotChannelMsTeamsRead(d *schema.ResourceData, meta interface{}) 
 	if props := resp.Properties; props != nil {
 		if channel, ok := props.AsMsTeamsChannel(); ok {
 			if channelProps := channel.Properties; channelProps != nil {
-				d.Set("enabled", channelProps.IsEnabled)
 				d.Set("calling_web_hook", channelProps.CallingWebHook)
 				d.Set("enable_calling", channelProps.EnableCalling)
 			}
