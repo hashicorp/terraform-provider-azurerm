@@ -1320,12 +1320,11 @@ func ExpandAppServiceLogs(input interface{}) web.SiteLogsConfigProperties {
 	return logs
 }
 
-func ExpandAppServiceIdentity(d *schema.ResourceData) *web.ManagedServiceIdentity {
-	identities := d.Get("identity").([]interface{})
-	if len(identities) == 0 {
+func ExpandAppServiceIdentity(input []interface{}) *web.ManagedServiceIdentity {
+	if len(input) == 0 {
 		return nil
 	}
-	identity := identities[0].(map[string]interface{})
+	identity := input[0].(map[string]interface{})
 	identityType := web.ManagedServiceIdentityType(identity["type"].(string))
 
 	identityIds := make(map[string]*web.ManagedServiceIdentityUserAssignedIdentitiesValue)
@@ -1657,8 +1656,7 @@ func FlattenAppServiceSiteConfig(input *web.SiteConfig) []interface{} {
 	return append(results, result)
 }
 
-func ExpandAppServiceStorageAccounts(d *schema.ResourceData) map[string]*web.AzureStorageInfoValue {
-	input := d.Get("storage_account").(*schema.Set).List()
+func ExpandAppServiceStorageAccounts(input []interface{}) map[string]*web.AzureStorageInfoValue {
 	output := make(map[string]*web.AzureStorageInfoValue, len(input))
 
 	for _, v := range input {

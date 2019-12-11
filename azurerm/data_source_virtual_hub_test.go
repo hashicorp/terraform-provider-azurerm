@@ -34,8 +34,8 @@ func testAccDataSourceVirtualHub_basic(rInt int, location string) string {
 %s
 
 data "azurerm_virtual_hub" "test" {
-  name                = "${azurerm_virtual_hub.test.name}"
-  resource_group_name = "${azurerm_virtual_hub.test.resource_group_name}"
+  name                = azurerm_virtual_hub.test.name
+  resource_group_name = azurerm_virtual_hub.test.resource_group_name
 }
 `, config)
 }

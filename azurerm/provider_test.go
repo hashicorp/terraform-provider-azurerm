@@ -3,23 +3,29 @@ package azurerm
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/authentication"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azuread/azuread"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/acceptance"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
 var testAccProvider *schema.Provider
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
+	azureProvider := Provider().(*schema.Provider)
+
+	testAccProvider = azureProvider
+	acceptance.AzureProvider = azureProvider
+
+	// NOTE: these /cannot/ be simplified into a single shared variable (tried, it causes a nil-slice)
 	testAccProviders = map[string]terraform.ResourceProvider{
+		"azurerm": testAccProvider,
+		"azuread": azuread.Provider().(*schema.Provider),
+	}
+	acceptance.SupportedProviders = map[string]terraform.ResourceProvider{
 		"azurerm": testAccProvider,
 		"azuread": azuread.Provider().(*schema.Provider),
 	}
@@ -31,83 +37,82 @@ func TestProvider(t *testing.T) {
 	}
 }
 
+func TestDataSourcesSupportCustomTimeouts(t *testing.T) {
+	// this is required until 2.0
+	os.Setenv("ARM_PROVIDER_CUSTOM_TIMEOUTS", "true")
+
+	provider := Provider().(*schema.Provider)
+	for dataSourceName, dataSource := range provider.DataSourcesMap {
+		t.Run(fmt.Sprintf("DataSource/%s", dataSourceName), func(t *testing.T) {
+			t.Logf("[DEBUG] Testing Data Source %q..", dataSourceName)
+
+			if dataSource.Timeouts == nil {
+				t.Fatalf("Data Source %q has no timeouts block defined!", dataSourceName)
+			}
+
+			// Azure's bespoke enough we want to be explicit about the timeouts for each value
+			if dataSource.Timeouts.Default != nil {
+				t.Fatalf("Data Source %q defines a Default timeout when it shouldn't!", dataSourceName)
+			}
+
+			// Data Sources must have a Read
+			if dataSource.Timeouts.Read == nil {
+				t.Fatalf("Data Source %q doesn't define a Read timeout", dataSourceName)
+			}
+
+			// but shouldn't have anything else
+			if dataSource.Timeouts.Create != nil {
+				t.Fatalf("Data Source %q defines a Create timeout when it shouldn't!", dataSourceName)
+			}
+
+			if dataSource.Timeouts.Update != nil {
+				t.Fatalf("Data Source %q defines a Update timeout when it shouldn't!", dataSourceName)
+			}
+
+			if dataSource.Timeouts.Delete != nil {
+				t.Fatalf("Data Source %q defines a Delete timeout when it shouldn't!", dataSourceName)
+			}
+		})
+	}
+}
+
+func TestResourcesSupportCustomTimeouts(t *testing.T) {
+	// this is required until 2.0
+	os.Setenv("ARM_PROVIDER_CUSTOM_TIMEOUTS", "true")
+
+	provider := Provider().(*schema.Provider)
+	for resourceName, resource := range provider.ResourcesMap {
+		t.Run(fmt.Sprintf("Resource/%s", resourceName), func(t *testing.T) {
+			t.Logf("[DEBUG] Testing Resource %q..", resourceName)
+
+			if resource.Timeouts == nil {
+				t.Fatalf("Resource %q has no timeouts block defined!", resourceName)
+			}
+
+			// Azure's bespoke enough we want to be explicit about the timeouts for each value
+			if resource.Timeouts.Default != nil {
+				t.Fatalf("Resource %q defines a Default timeout when it shouldn't!", resourceName)
+			}
+
+			// every Resource has to have a Create, Read & Destroy timeout
+			if resource.Timeouts.Create == nil && resource.Create != nil {
+				t.Fatalf("Resource %q defines a Create method but no Create Timeout", resourceName)
+			}
+			if resource.Timeouts.Delete == nil && resource.Delete != nil {
+				t.Fatalf("Resource %q defines a Delete method but no Delete Timeout", resourceName)
+			}
+			if resource.Timeouts.Read == nil {
+				t.Fatalf("Resource %q doesn't define a Read timeout", resourceName)
+			}
+
+			// Optional
+			if resource.Timeouts.Update == nil && resource.Update != nil {
+				t.Fatalf("Resource %q defines a Update method but no Update Timeout", resourceName)
+			}
+		})
+	}
+}
+
 func TestProvider_impl(t *testing.T) {
 	var _ = Provider()
-}
-
-func testAccPreCheck(t *testing.T) {
-	variables := []string{
-		"ARM_CLIENT_ID",
-		"ARM_CLIENT_SECRET",
-		"ARM_SUBSCRIPTION_ID",
-		"ARM_TENANT_ID",
-		"ARM_TEST_LOCATION",
-		"ARM_TEST_LOCATION_ALT",
-		"ARM_TEST_LOCATION_ALT2",
-	}
-
-	for _, variable := range variables {
-		value := os.Getenv(variable)
-		if value == "" {
-			t.Fatalf("`%s` must be set for acceptance tests!", variable)
-		}
-	}
-}
-
-func testLocation() string {
-	return os.Getenv("ARM_TEST_LOCATION")
-}
-
-func testAltLocation() string {
-	return os.Getenv("ARM_TEST_LOCATION_ALT")
-}
-
-func testAltLocation2() string {
-	return os.Getenv("ARM_TEST_LOCATION_ALT2")
-}
-
-func testArmEnvironmentName() string {
-	envName, exists := os.LookupEnv("ARM_ENVIRONMENT")
-	if !exists {
-		envName = "public"
-	}
-
-	return envName
-}
-
-func testArmEnvironment() (*azure.Environment, error) {
-	envName := testArmEnvironmentName()
-	return authentication.DetermineEnvironment(envName)
-}
-
-func testGetAzureConfig(t *testing.T) *authentication.Config {
-	if os.Getenv(resource.TestEnvVar) == "" {
-		t.Skip(fmt.Sprintf("Integration test skipped unless env '%s' set", resource.TestEnvVar))
-		return nil
-	}
-
-	environment := testArmEnvironmentName()
-
-	builder := authentication.Builder{
-		SubscriptionID: os.Getenv("ARM_SUBSCRIPTION_ID"),
-		ClientID:       os.Getenv("ARM_CLIENT_ID"),
-		TenantID:       os.Getenv("ARM_TENANT_ID"),
-		ClientSecret:   os.Getenv("ARM_CLIENT_SECRET"),
-		Environment:    environment,
-
-		// we intentionally only support Client Secret auth for tests (since those variables are used all over)
-		SupportsClientSecretAuth: true,
-	}
-	config, err := builder.Build()
-	if err != nil {
-		t.Fatalf("Error building ARM Client: %+v", err)
-		return nil
-	}
-
-	return config
-}
-
-func testRequiresImportError(resourceName string) *regexp.Regexp {
-	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
-	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }
