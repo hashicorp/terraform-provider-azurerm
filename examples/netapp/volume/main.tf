@@ -47,8 +47,8 @@ resource "azurerm_netapp_volume" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   account_name        = "${azurerm_netapp_account.example.name}"
   pool_name           = "${azurerm_netapp_pool.example.name}"
-  creation_token      = "my-unique-file-path"
+  volume_path         = "my-unique-file-path"
   service_level       = "Premium"
   subnet_id           = "${azurerm_subnet.example.id}"
-  usage_threshold     = 100
+  storage_quota_in_gb = 100
 }

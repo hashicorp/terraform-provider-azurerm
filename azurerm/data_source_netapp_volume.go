@@ -2,16 +2,22 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmNetAppVolume() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmNetAppVolumeRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -36,7 +42,7 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				ValidateFunc: aznetapp.ValidateNetAppPoolName,
 			},
 
-			"creation_token": {
+			"volume_path": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -51,7 +57,7 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 				Computed: true,
 			},
 
-			"usage_threshold": {
+			"storage_quota_in_gb": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -60,8 +66,9 @@ func dataSourceArmNetAppVolume() *schema.Resource {
 }
 
 func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.VolumeClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.VolumeClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)
@@ -76,6 +83,10 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
+	if resp.ID == nil && *resp.ID != "" {
+		return fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): ID was nil", name, resourceGroup)
+	}
+
 	d.SetId(*resp.ID)
 
 	d.Set("name", name)
@@ -86,12 +97,12 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.VolumeProperties; props != nil {
-		d.Set("creation_token", props.CreationToken)
+		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
 
 		if props.UsageThreshold != nil {
-			d.Set("usage_threshold", *props.UsageThreshold/1073741824)
+			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
 	}
 

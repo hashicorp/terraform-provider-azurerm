@@ -16,6 +16,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -28,6 +29,13 @@ func resourceArmNetAppVolume() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -56,11 +64,11 @@ func resourceArmNetAppVolume() *schema.Resource {
 				ValidateFunc: aznetapp.ValidateNetAppPoolName,
 			},
 
-			"creation_token": {
+			"volume_path": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: aznetapp.ValidateNetAppVolumeCreationToken,
+				ValidateFunc: aznetapp.ValidateNetAppVolumeVolumePath,
 			},
 
 			"service_level": {
@@ -80,7 +88,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"usage_threshold": {
+			"storage_quota_in_gb": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntBetween(100, 4096),
@@ -105,7 +113,7 @@ func resourceArmNetAppVolume() *schema.Resource {
 								ValidateFunc: aznetapp.ValidateNetAppVolumeAllowedClients,
 							},
 						},
-						"cifs": {
+						"cifs_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
@@ -119,11 +127,11 @@ func resourceArmNetAppVolume() *schema.Resource {
 						},
 						"unix_read_only": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 						"unix_read_write": {
 							Type:     schema.TypeBool,
-							Required: true,
+							Optional: true,
 						},
 					},
 				},
@@ -133,8 +141,9 @@ func resourceArmNetAppVolume() *schema.Resource {
 }
 
 func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.VolumeClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.VolumeClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -154,19 +163,19 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
-	creationToken := d.Get("creation_token").(string)
+	volumePath := d.Get("volume_path").(string)
 	serviceLevel := d.Get("service_level").(string)
 	subnetId := d.Get("subnet_id").(string)
-	usageThreshold := int64(d.Get("usage_threshold").(int) * 1073741824)
+	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 	exportPolicyRule := d.Get("export_policy_rule").(*schema.Set).List()
 
 	parameters := netapp.Volume{
 		Location: utils.String(location),
 		VolumeProperties: &netapp.VolumeProperties{
-			CreationToken:  utils.String(creationToken),
+			CreationToken:  utils.String(volumePath),
 			ServiceLevel:   netapp.ServiceLevel(serviceLevel),
 			SubnetID:       utils.String(subnetId),
-			UsageThreshold: utils.Int64(usageThreshold),
+			UsageThreshold: utils.Int64(storageQuotaInGB),
 			ExportPolicy:   expandArmNetAppVolumeExportPolicyRule(exportPolicyRule),
 		},
 	}
@@ -183,7 +192,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil {
+	if resp.ID == nil && *resp.ID != "" {
 		return fmt.Errorf("Cannot read NetApp Volume %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)
@@ -192,8 +201,9 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.VolumeClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.VolumeClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -222,12 +232,12 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
 	if props := resp.VolumeProperties; props != nil {
-		d.Set("creation_token", props.CreationToken)
+		d.Set("volume_path", props.CreationToken)
 		d.Set("service_level", props.ServiceLevel)
 		d.Set("subnet_id", props.SubnetID)
 
 		if props.UsageThreshold != nil {
-			d.Set("usage_threshold", *props.UsageThreshold/1073741824)
+			d.Set("storage_quota_in_gb", *props.UsageThreshold/1073741824)
 		}
 		if err := d.Set("export_policy_rule", flattenArmNetAppVolumeExportPolicyRule(props.ExportPolicy)); err != nil {
 			return fmt.Errorf("Error setting `export_policy_rule`: %+v", err)
@@ -238,8 +248,9 @@ func resourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceArmNetAppVolumeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.VolumeClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.VolumeClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -302,7 +313,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			v := item.(map[string]interface{})
 			ruleIndex := int32(v["rule_index"].(int))
 			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*schema.Set).List()), ",")
-			cifs := v["cifs"].(bool)
+			cifsEnabled := v["cifs_enabled"].(bool)
 			nfsv3 := v["nfsv3"].(bool)
 			nfsv4 := v["nfsv4"].(bool)
 			unixReadOnly := v["unix_read_only"].(bool)
@@ -310,7 +321,7 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 
 			result := netapp.ExportPolicyRule{
 				AllowedClients: utils.String(allowedClients),
-				Cifs:           utils.Bool(cifs),
+				Cifs:           utils.Bool(cifsEnabled),
 				Nfsv3:          utils.Bool(nfsv3),
 				Nfsv4:          utils.Bool(nfsv4),
 				RuleIndex:      utils.Int32(ruleIndex),
@@ -342,9 +353,9 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.AllowedClients; v != nil {
 			allowedClients = strings.Split(*v, ",")
 		}
-		cifs := false
+		cifsEnabled := false
 		if v := item.Cifs; v != nil {
-			cifs = *v
+			cifsEnabled = *v
 		}
 		nfsv3 := false
 		if v := item.Nfsv3; v != nil {
@@ -366,7 +377,7 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		results = append(results, map[string]interface{}{
 			"rule_index":      ruleIndex,
 			"allowed_clients": utils.FlattenStringSlice(&allowedClients),
-			"cifs":            cifs,
+			"cifs_enabled":    cifsEnabled,
 			"nfsv3":           nfsv3,
 			"nfsv4":           nfsv4,
 			"unix_read_only":  unixReadOnly,

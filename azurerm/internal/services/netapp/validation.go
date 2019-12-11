@@ -36,7 +36,7 @@ func ValidateNetAppVolumeName(v interface{}, k string) (warnings []string, error
 	return warnings, errors
 }
 
-func ValidateNetAppVolumeCreationToken(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateNetAppVolumeVolumePath(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if !regexp.MustCompile(`^[a-zA-Z][-\da-zA-Z]{0,79}$`).MatchString(value) {

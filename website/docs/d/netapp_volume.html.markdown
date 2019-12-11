@@ -44,10 +44,10 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Volume exists.
 
-* `creation_token` - The unique file path of the volume.
+* `volume_path` - The unique file path of the volume.
 
 * `service_level` - The service level of the file system.
 
 * `subnet_id` - The ID of a Subnet in which the NetApp Volume resides.
 
-* `usage_threshold` - The maximum Storage Quota in Gigabytes allowed for a file system.
+* `storage_quota_in_gb` - The maximum Storage Quota in Gigabytes allowed for a file system.

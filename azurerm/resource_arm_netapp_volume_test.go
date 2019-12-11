@@ -80,7 +80,7 @@ func TestAccAzureRMNetAppVolume_complete(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "service_level", "Premium"),
-					resource.TestCheckResourceAttr(resourceName, "usage_threshold", "101"),
+					resource.TestCheckResourceAttr(resourceName, "storage_quota_in_gb", "101"),
 					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "2"),
 				),
 			},
@@ -107,7 +107,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "usage_threshold", "100"),
+					resource.TestCheckResourceAttr(resourceName, "storage_quota_in_gb", "100"),
 					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "0"),
 				),
 			},
@@ -120,7 +120,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_complete(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "usage_threshold", "101"),
+					resource.TestCheckResourceAttr(resourceName, "storage_quota_in_gb", "101"),
 					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "2"),
 				),
 			},
@@ -133,7 +133,7 @@ func TestAccAzureRMNetAppVolume_update(t *testing.T) {
 				Config: testAccAzureRMNetAppVolume_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMNetAppVolumeExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "usage_threshold", "100"),
+					resource.TestCheckResourceAttr(resourceName, "storage_quota_in_gb", "100"),
 					resource.TestCheckResourceAttr(resourceName, "export_policy_rule.#", "0"),
 				),
 			},
@@ -244,7 +244,7 @@ func testCheckAzureRMNetAppVolumeExists(resourceName string) resource.TestCheckF
 		poolName := rs.Primary.Attributes["pool_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Netapp.VolumeClient
+		client := testAccProvider.Meta().(*ArmClient).NetApp.VolumeClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, poolName, name); err != nil {
@@ -259,7 +259,7 @@ func testCheckAzureRMNetAppVolumeExists(resourceName string) resource.TestCheckF
 }
 
 func testCheckAzureRMNetAppVolumeDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Netapp.VolumeClient
+	client := testAccProvider.Meta().(*ArmClient).NetApp.VolumeClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -295,10 +295,10 @@ resource "azurerm_netapp_volume" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
-  creation_token      = "my-unique-file-path-%d"
+  volume_path         = "my-unique-file-path-%d"
   service_level       = "Premium"
   subnet_id           = "${azurerm_subnet.test.id}"
-  usage_threshold     = 100
+  storage_quota_in_gb = 100
 }
 `, template, rInt, rInt)
 }
@@ -327,14 +327,14 @@ resource "azurerm_netapp_volume" "test" {
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
   service_level       = "Premium"
-  creation_token      = "my-unique-file-path-%d"
+  volume_path         = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
-  usage_threshold     = 101
+  storage_quota_in_gb = 101
 
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.3.0/24"]
-    cifs            = false
+    cifs_enabled    = false
     nfsv3           = true
     nfsv4           = false
     unix_read_only  = false
@@ -344,7 +344,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index      = 2
     allowed_clients = ["1.2.5.0"]
-    cifs            = false
+    cifs_enabled    = false
     nfsv3           = true
     nfsv4           = false
     unix_read_only  = true
@@ -388,10 +388,10 @@ resource "azurerm_netapp_volume" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
-  creation_token      = "my-unique-file-path-%d"
+  volume_path         = "my-unique-file-path-%d"
   service_level       = "Premium"
   subnet_id           = "${azurerm_subnet.updated.id}"
-  usage_threshold     = 100
+  storage_quota_in_gb = 100
 }
 `, template, rInt, rInt, rInt, rInt)
 }
@@ -408,14 +408,14 @@ resource "azurerm_netapp_volume" "test" {
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
   service_level       = "Premium"
-  creation_token      = "my-unique-file-path-%d"
+  volume_path         = "my-unique-file-path-%d"
   subnet_id           = "${azurerm_subnet.test.id}"
-  usage_threshold     = 101
+  storage_quota_in_gb = 101
 
   export_policy_rule {
     rule_index      = 1
     allowed_clients = ["1.2.4.0/24", "1.3.4.0"]
-    cifs            = false
+    cifs_enabled    = false
     nfsv3           = true
     nfsv4           = false
     unix_read_only  = false

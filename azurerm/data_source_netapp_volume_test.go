@@ -20,10 +20,10 @@ func TestAccDataSourceAzureRMNetAppVolume_basic(t *testing.T) {
 			{
 				Config: testAccDataSourceNetAppVolume_basic(ri, location),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet(dataSourceName, "creation_token"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "volume_path"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "service_level"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "subnet_id"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "usage_threshold"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "storage_quota_in_gb"),
 				),
 			},
 		},

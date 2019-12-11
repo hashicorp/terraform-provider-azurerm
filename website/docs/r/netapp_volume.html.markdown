@@ -63,10 +63,10 @@ resource "azurerm_netapp_volume" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   account_name        = "${azurerm_netapp_account.example.name}"
   pool_name           = "${azurerm_netapp_pool.example.name}"
-  creation_token      = "my-unique-file-path"
+  volume_path         = "my-unique-file-path"
   service_level       = "Premium"
   subnet_id           = "${azurerm_subnet.example.id}"
-  usage_threshold     = 100
+  storage_quota_in_gb = 100
 }
 ```
 
@@ -82,15 +82,15 @@ The following arguments are supported:
 
 * `account_name` - (Required) The name of the NetApp account in which the NetApp Pool should be created. Changing this forces a new resource to be created.
 
-* `creation_token` - (Required) A unique file path for the volume. Used when creating mount targets. Changing this forces a new resource to be created.
+* `volume_path` - (Required) A unique file path for the volume. Used when creating mount targets. Changing this forces a new resource to be created.
 
 * `pool_name` - (Required) The name of the NetApp pool in which the NetApp Volume should be created. Changing this forces a new resource to be created.
 
 * `service_level` - (Required) The target performance of the file system. Valid values include `Premium`, `Standard`, or `Ultra`.
 
-* `subnet_id` - (Required) The ID of the Subnet within the NetApp Volume, which must have the delegation Microsoft.NetApp/volumes. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The ID of the Subnet the NetApp Volume resides in, which must have the `Microsoft.NetApp/volumes` delegation. Changing this forces a new resource to be created.
 
-* `usage_threshold` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
+* `storage_quota_in_gb` - (Required) The maximum Storage Quota allowed for a file system in Gigabytes.
 
 * `export_policy_rule` - (Optional) One or more `export_policy_rule` block defined below.
 
@@ -100,17 +100,17 @@ An `export_policy_rule` block supports the following:
 
 * `rule_index` - (Required) The index number of the rule.
 
-* `allowed_clients` - (Required) The allowed clients as set with IPv4 CIDRs, IPv4 host addresses.
+* `allowed_clients` - (Required) A list of allowed clients IPv4 addresses.
 
-* `cifs` - (Required) Is the CIFS protocol allowed?
+* `cifs_enabled` - (Required) Is the CIFS protocol allowed?
 
 * `nfsv3` - (Required) Is the NFSv3 protocol allowed?
 
 * `nfsv4` - (Required) Is the NFSv4 protocol allowed?
 
-* `unix_read_only` - (Required) Is the file system on unix read only?
+* `unix_read_only` - (Optional) Is the file system on unix read only?
 
-* `unix_read_write` - (Required) Is the file system on unix read and write?
+* `unix_read_write` - (Optional) Is the file system on unix read and write?
 
 ---
 
