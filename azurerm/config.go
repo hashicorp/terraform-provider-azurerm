@@ -100,17 +100,9 @@ func getArmClient(ctx context.Context, builder armClientBuilder) (*ArmClient, er
 		Environment:                 *env,
 	}
 
-	if err := client.Build(o); err != nil {
+	if err := client.Client.Build(o); err != nil {
 		return nil, fmt.Errorf("Error building Client: %+v", err)
 	}
 
 	return &client, nil
-}
-
-func (client *ArmClient) Build(o *common.ClientOptions) error {
-	if err := client.Client.Build(o); err != nil {
-		return err
-	}
-
-	return nil
 }

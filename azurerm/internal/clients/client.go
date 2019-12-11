@@ -86,22 +86,18 @@ type Client struct {
 	Compute          *compute.Client
 	Containers       *containerServices.Client
 	Cosmos           *cosmosdb.Client
-
-	// Phase 2
-	DataBricks  *databricks.Client
-	DataFactory *datafactory.Client
-	Datalake    *datalake.Client
-	DevSpace    *devspace.Client
-	DevTestLabs *devtestlabs.Client
-	Dns         *dns.Client
-	EventGrid   *eventgrid.Client
-	Eventhub    *eventhub.Client
-	Frontdoor   *frontdoor.Client
-	Graph       *graph.Client
-	HDInsight   *hdinsight.Client
-	HealthCare  *healthcare.Client
-
-	// Phrase 3
+	DataBricks       *databricks.Client
+	DataFactory      *datafactory.Client
+	Datalake         *datalake.Client
+	DevSpace         *devspace.Client
+	DevTestLabs      *devtestlabs.Client
+	Dns              *dns.Client
+	EventGrid        *eventgrid.Client
+	Eventhub         *eventhub.Client
+	Frontdoor        *frontdoor.Client
+	Graph            *graph.Client
+	HDInsight        *hdinsight.Client
+	HealthCare       *healthcare.Client
 	IoTHub           *iothub.Client
 	KeyVault         *keyvault.Client
 	Kusto            *kusto.Client
@@ -115,8 +111,6 @@ type Client struct {
 	MSI              *msi.Client
 	MSSQL            *mssql.Client
 	MySQL            *mysql.Client
-
-	// Phase 4
 	NetApp           *netapp.Client
 	Network          *network.Client
 	NotificationHubs *notificationhub.Client
@@ -128,20 +122,18 @@ type Client struct {
 	Redis            *redis.Client
 	Relay            *relay.Client
 	Resource         *resource.Client
-
-	// Phase 5
-	Scheduler       *scheduler.Client
-	Search          *search.Client
-	SecurityCenter  *securityCenter.Client
-	ServiceBus      *serviceBus.Client
-	ServiceFabric   *serviceFabric.Client
-	SignalR         *signalr.Client
-	Storage         *storage.Client
-	StreamAnalytics *streamAnalytics.Client
-	Subscription    *subscription.Client
-	Sql             *sql.Client
-	TrafficManager  *trafficManager.Client
-	Web             *web.Client
+	Scheduler        *scheduler.Client
+	Search           *search.Client
+	SecurityCenter   *securityCenter.Client
+	ServiceBus       *serviceBus.Client
+	ServiceFabric    *serviceFabric.Client
+	SignalR          *signalr.Client
+	Storage          *storage.Client
+	StreamAnalytics  *streamAnalytics.Client
+	Subscription     *subscription.Client
+	Sql              *sql.Client
+	TrafficManager   *trafficManager.Client
+	Web              *web.Client
 }
 
 func (client *Client) Build(o *common.ClientOptions) error {

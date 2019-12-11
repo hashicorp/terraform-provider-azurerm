@@ -111,7 +111,6 @@ func SupportedServices() []common.ServiceRegistration {
 		redis.Registration{},
 		relay.Registration{},
 		resource.Registration{},
-
 		search.Registration{},
 		securitycenter.Registration{},
 		servicebus.Registration{},
