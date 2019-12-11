@@ -61,7 +61,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics"
+	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
 	subscription "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/subscription/client"
 	trafficManager "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/trafficmanager/client"
 	web "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/web/client"
@@ -137,7 +137,7 @@ type Client struct {
 	ServiceFabric   *servicefabric.Client
 	SignalR         *signalr.Client
 	Storage         *storage.Client
-	StreamAnalytics *streamanalytics.Client
+	StreamAnalytics *streamAnalytics.Client
 	Subscription    *subscription.Client
 	Sql             *sql.Client
 	TrafficManager  *trafficManager.Client
@@ -195,6 +195,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
 
+	client.StreamAnalytics = streamAnalytics.NewClient(o)
 	client.Subscription = subscription.NewClient(o)
 	client.TrafficManager = trafficManager.NewClient(o)
 	client.Web = web.NewClient(o)
