@@ -453,6 +453,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_shared_image":                                                           resourceArmSharedImage(),
 		"azurerm_signalr_service":                                                        resourceArmSignalRService(),
 		"azurerm_site_recovery_network_mapping":                                          resourceArmSiteRecoveryNetworkMapping(),
+		"azurerm_site_recovery_protection_container":                                     resourceArmSiteRecoveryProtectionContainer(),
 		"azurerm_site_recovery_protection_container_mapping":                             resourceArmSiteRecoveryProtectionContainerMapping(),
 		"azurerm_snapshot":                                                               resourceArmSnapshot(),
 		"azurerm_sql_active_directory_administrator":                                     resourceArmSqlAdministrator(),
