@@ -87,7 +87,7 @@ func resourceArmCosmosDbMongoCollection() *schema.Resource {
 			"indexes": {
 				Type:       schema.TypeSet,
 				Optional:   true,
-				Deprecated: "Indexes are ignored unless they are the shared key so have ben deprecated. ",
+				Deprecated: "Indexes are ignored unless they are the shared key so have been deprecated.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
