@@ -70,7 +70,7 @@ func TestValidateNetAppVolumeName(t *testing.T) {
 	}
 }
 
-func TestValidateNetAppVolumeCreationToken(t *testing.T) {
+func TestValidateNetAppVolumeVolumePath(t *testing.T) {
 	testData := []struct {
 		input    string
 		expected bool
@@ -130,7 +130,7 @@ func TestValidateNetAppVolumeCreationToken(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q..", v.input)
 
-		_, errors := ValidateNetAppVolumeCreationToken(v.input, "creation_token")
+		_, errors := ValidateNetAppVolumeVolumePath(v.input, "volume_path")
 		actual := len(errors) == 0
 		if v.expected != actual {
 			t.Fatalf("Expected %t but got %t", v.expected, actual)
