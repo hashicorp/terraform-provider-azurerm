@@ -14,7 +14,6 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
 )
 
 // ArmClient contains the handles to all the specific Azure Resource Manager
@@ -124,7 +123,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	client.ServiceBus = servicebus.BuildClient(o)
 	client.ServiceFabric = servicefabric.BuildClient(o)
 	client.Scheduler = scheduler.BuildClient(o)
-	client.SignalR = signalr.BuildClient(o)
 
 	return nil
 }

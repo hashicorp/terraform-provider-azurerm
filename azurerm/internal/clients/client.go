@@ -58,7 +58,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicebus"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/servicefabric"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr"
+	signalr "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/signalr/client"
 	sql "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/sql/client"
 	storage "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/client"
 	streamAnalytics "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/streamanalytics/client"
@@ -195,6 +195,7 @@ func (client *Client) Build(o *common.ClientOptions) error {
 	client.Relay = relay.NewClient(o)
 	client.Resource = resource.NewClient(o)
 
+	client.SignalR = signalr.NewClient(o)
 	client.Sql = sql.NewClient(o)
 	client.Storage = storage.NewClient(o)
 	client.StreamAnalytics = streamAnalytics.NewClient(o)
