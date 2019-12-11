@@ -26,6 +26,13 @@ func resourceArmStreamAnalyticsReferenceInputBlob() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -127,7 +134,8 @@ func getBlobReferenceInputProps(ctx context.Context, d *schema.ResourceData) str
 
 func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).StreamAnalytics.InputsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input Blob creation.")
 	name := d.Get("name").(string)
@@ -168,7 +176,8 @@ func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, 
 
 func resourceArmStreamAnalyticsReferenceInputBlobUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).StreamAnalytics.InputsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input Blob creation.")
 	name := d.Get("name").(string)
@@ -186,7 +195,8 @@ func resourceArmStreamAnalyticsReferenceInputBlobUpdate(d *schema.ResourceData, 
 
 func resourceArmStreamAnalyticsReferenceInputBlobRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).StreamAnalytics.InputsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
@@ -242,7 +252,8 @@ func resourceArmStreamAnalyticsReferenceInputBlobRead(d *schema.ResourceData, me
 
 func resourceArmStreamAnalyticsReferenceInputBlobDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).StreamAnalytics.InputsClient
-	ctx := meta.(*ArmClient).StopContext
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := parseAzureResourceID(d.Id())
 	if err != nil {
