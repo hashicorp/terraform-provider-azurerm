@@ -3,16 +3,19 @@ package azurerm
 import (
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
+	"github.com/hashicorp/go-azure-helpers/response"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 
 	"github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -92,7 +95,29 @@ func resourceArmStreamAnalyticsReferenceInputBlob() *schema.Resource {
 	}
 }
 
-func getBlobReferenceInputProps(ctx context.Context, d *schema.ResourceData) streamanalytics.Input {
+func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*ArmClient).StreamAnalytics.InputsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input Blob creation.")
+	name := d.Get("name").(string)
+	jobName := d.Get("stream_analytics_job_name").(string)
+	resourceGroup := d.Get("resource_group_name").(string)
+
+	if features.ShouldResourcesBeImported() && d.IsNewResource() {
+		existing, err := client.Get(ctx, resourceGroup, jobName, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(existing.Response) {
+				return fmt.Errorf("Error checking for presence of existing Stream Analytics Reference Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
+			}
+		}
+
+		if existing.ID != nil && *existing.ID != "" {
+			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", *existing.ID)
+		}
+	}
+
 	containerName := d.Get("storage_container_name").(string)
 	dateFormat := d.Get("date_format").(string)
 	pathPattern := d.Get("path_pattern").(string)
@@ -107,7 +132,7 @@ func getBlobReferenceInputProps(ctx context.Context, d *schema.ResourceData) str
 	}
 
 	props := streamanalytics.Input{
-		Name: utils.String(name),
+		Name: utils.String(d.Get("name").(string)),
 		Properties: &streamanalytics.ReferenceInputProperties{
 			Type: streamanalytics.TypeReference,
 			Datasource: &streamanalytics.BlobReferenceInputDataSource{
@@ -128,34 +153,6 @@ func getBlobReferenceInputProps(ctx context.Context, d *schema.ResourceData) str
 			Serialization: serialization,
 		},
 	}
-
-	return props
-}
-
-func resourceArmStreamAnalyticsReferenceInputBlobCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).StreamAnalytics.InputsClient
-	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
-	defer cancel()
-
-	log.Printf("[INFO] preparing arguments for Azure Stream Analytics Reference Input Blob creation.")
-	name := d.Get("name").(string)
-	jobName := d.Get("stream_analytics_job_name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	if requireResourcesToBeImported && d.IsNewResource() {
-		existing, err := client.Get(ctx, resourceGroup, jobName, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing Stream Analytics Reference Input %q (Job %q / Resource Group %q): %s", name, jobName, resourceGroup, err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_stream_analytics_reference_input_blob", *existing.ID)
-		}
-	}
-
-	props := getBlobReferenceInputProps(ctx, d)
 
 	if _, err := client.CreateOrReplace(ctx, props, resourceGroup, jobName, name, "", ""); err != nil {
 		return fmt.Errorf("Error Creating Stream Analytics Reference Input Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
@@ -184,7 +181,41 @@ func resourceArmStreamAnalyticsReferenceInputBlobUpdate(d *schema.ResourceData, 
 	jobName := d.Get("stream_analytics_job_name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
 
-	props := getBlobReferenceInputProps(ctx, d)
+	containerName := d.Get("storage_container_name").(string)
+	dateFormat := d.Get("date_format").(string)
+	pathPattern := d.Get("path_pattern").(string)
+	storageAccountKey := d.Get("storage_account_key").(string)
+	storageAccountName := d.Get("storage_account_name").(string)
+	timeFormat := d.Get("time_format").(string)
+
+	serializationRaw := d.Get("serialization").([]interface{})
+	serialization, err := azure.ExpandStreamAnalyticsStreamInputSerialization(serializationRaw)
+	if err != nil {
+		return fmt.Errorf("Error expanding `serialization`: %+v", err)
+	}
+
+	props := streamanalytics.Input{
+		Name: utils.String(d.Get("name").(string)),
+		Properties: &streamanalytics.ReferenceInputProperties{
+			Type: streamanalytics.TypeReference,
+			Datasource: &streamanalytics.BlobReferenceInputDataSource{
+				Type: streamanalytics.TypeBasicReferenceInputDataSourceTypeMicrosoftStorageBlob,
+				BlobReferenceInputDataSourceProperties: &streamanalytics.BlobReferenceInputDataSourceProperties{
+					Container:   utils.String(containerName),
+					DateFormat:  utils.String(dateFormat),
+					PathPattern: utils.String(pathPattern),
+					TimeFormat:  utils.String(timeFormat),
+					StorageAccounts: &[]streamanalytics.StorageAccount{
+						{
+							AccountName: utils.String(storageAccountName),
+							AccountKey:  utils.String(storageAccountKey),
+						},
+					},
+				},
+			},
+			Serialization: serialization,
+		},
+	}
 
 	if _, err := client.Update(ctx, props, resourceGroup, jobName, name, ""); err != nil {
 		return fmt.Errorf("Error Updating Stream Analytics Reference Input Blob %q (Job %q / Resource Group %q): %+v", name, jobName, resourceGroup, err)
@@ -198,7 +229,7 @@ func resourceArmStreamAnalyticsReferenceInputBlobRead(d *schema.ResourceData, me
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -255,7 +286,7 @@ func resourceArmStreamAnalyticsReferenceInputBlobDelete(d *schema.ResourceData, 
 	ctx, cancel := timeouts.ForCreate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := parseAzureResourceID(d.Id())
+	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
 	}
