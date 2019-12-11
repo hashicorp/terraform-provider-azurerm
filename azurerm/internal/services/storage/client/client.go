@@ -1,4 +1,4 @@
-package storage
+package client
 
 import (
 	"context"
@@ -27,7 +27,7 @@ type Client struct {
 	environment az.Environment
 }
 
-func BuildClient(options *common.ClientOptions) *Client {
+func NewClient(options *common.ClientOptions) *Client {
 	accountsClient := storage.NewAccountsClientWithBaseURI(options.ResourceManagerEndpoint, options.SubscriptionId)
 	options.ConfigureClient(&accountsClient.Client, options.ResourceManagerAuthorizer)
 
