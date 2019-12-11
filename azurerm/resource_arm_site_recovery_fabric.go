@@ -14,13 +14,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesFabric() *schema.Resource {
+func resourceArmSiteRecoveryFabric() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "`azurerm_recovery_services_fabric` resource is deprecated in favor of `azurerm_site_recovery_fabric` and will be removed in v2.0 of the AzureRM Provider",
-		Create:             resourceArmRecoveryServicesFabricCreate,
-		Read:               resourceArmRecoveryServicesFabricRead,
-		Update:             nil,
-		Delete:             resourceArmRecoveryServicesFabricDelete,
+		Create: resourceArmSiteRecoveryFabricCreate,
+		Read:   resourceArmSiteRecoveryFabricRead,
+		Update: nil,
+		Delete: resourceArmSiteRecoveryFabricDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,7 +51,7 @@ func resourceArmRecoveryServicesFabric() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryServicesFabricCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryFabricCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -66,12 +65,12 @@ func resourceArmRecoveryServicesFabricCreate(d *schema.ResourceData, meta interf
 		existing, err := client.Get(ctx, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing rec	overy services fabric %s (vault %s): %+v", name, vaultName, err)
+				return fmt.Errorf("Error checking for presence of existing site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_resource_group", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_fabric", azure.HandleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -86,23 +85,23 @@ func resourceArmRecoveryServicesFabricCreate(d *schema.ResourceData, meta interf
 
 	future, err := client.Create(ctx, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating recovery services fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating recovery services fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving recovery services fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error retrieving site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmRecoveryServicesFabricRead(d, meta)
+	return resourceArmSiteRecoveryFabricRead(d, meta)
 }
 
-func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryFabricRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -122,7 +121,7 @@ func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on recovery services fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error making read request on site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", resp.Name)
@@ -136,7 +135,7 @@ func resourceArmRecoveryServicesFabricRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmRecoveryServicesFabricDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryFabricDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -152,11 +151,11 @@ func resourceArmRecoveryServicesFabricDelete(d *schema.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting recovery services fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error deleting site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of recovery services fabric %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error waiting for deletion of site recovery fabric %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil
