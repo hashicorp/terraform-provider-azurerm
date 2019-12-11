@@ -82,7 +82,7 @@ func TestResourcesSupportCustomTimeouts(t *testing.T) {
 
 	provider := Provider().(*schema.Provider)
 	for resourceName, resource := range provider.ResourcesMap {
-		t.Run(fmt.Sprintf("DataSource/%s", resourceName), func(t *testing.T) {
+		t.Run(fmt.Sprintf("Resource/%s", resourceName), func(t *testing.T) {
 			t.Logf("[DEBUG] Testing Resource %q..", resourceName)
 
 			if resource.Timeouts == nil {

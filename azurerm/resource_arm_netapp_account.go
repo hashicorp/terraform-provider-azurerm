@@ -105,7 +105,7 @@ func resourceArmNetAppAccount() *schema.Resource {
 }
 
 func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.AccountClient
+	client := meta.(*ArmClient).NetApp.AccountClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -155,7 +155,7 @@ func resourceArmNetAppAccountCreateUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.AccountClient
+	client := meta.(*ArmClient).NetApp.AccountClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -186,7 +186,7 @@ func resourceArmNetAppAccountRead(d *schema.ResourceData, meta interface{}) erro
 }
 
 func resourceArmNetAppAccountDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.AccountClient
+	client := meta.(*ArmClient).NetApp.AccountClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

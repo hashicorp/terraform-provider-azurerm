@@ -142,7 +142,7 @@ func testCheckAzureRMNetAppPoolExists(resourceName string) resource.TestCheckFun
 		accountName := rs.Primary.Attributes["account_name"]
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Netapp.PoolClient
+		client := testAccProvider.Meta().(*ArmClient).NetApp.PoolClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if resp, err := client.Get(ctx, resourceGroup, accountName, name); err != nil {
@@ -157,7 +157,7 @@ func testCheckAzureRMNetAppPoolExists(resourceName string) resource.TestCheckFun
 }
 
 func testCheckAzureRMNetAppPoolDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Netapp.PoolClient
+	client := testAccProvider.Meta().(*ArmClient).NetApp.PoolClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

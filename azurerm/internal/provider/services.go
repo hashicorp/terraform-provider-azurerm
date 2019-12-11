@@ -26,6 +26,29 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/graph"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/hdinsight"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/healthcare"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 )
 
 func SupportedServices() []common.ServiceRegistration {
@@ -54,5 +77,29 @@ func SupportedServices() []common.ServiceRegistration {
 		graph.Registration{},
 		hdinsight.Registration{},
 		healthcare.Registration{},
+		iothub.Registration{},
+		keyvault.Registration{},
+		kusto.Registration{},
+		loganalytics.Registration{},
+		logic.Registration{},
+		managementgroup.Registration{},
+		maps.Registration{},
+		mariadb.Registration{},
+		media.Registration{},
+		monitor.Registration{},
+		msi.Registration{},
+		mssql.Registration{},
+		mysql.Registration{},
+
+		network.Registration{},
+		notificationhub.Registration{},
+		policy.Registration{},
+		portal.Registration{},
+		postgres.Registration{},
+		privatedns.Registration{},
+		recoveryservices.Registration{},
+		redis.Registration{},
+		relay.Registration{},
+		resource.Registration{},
 	}
 }

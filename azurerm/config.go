@@ -9,30 +9,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/iothub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/keyvault"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/kusto"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/loganalytics"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/logic"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/managementgroup"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/maps"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mariadb"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/media"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/monitor"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/msi"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mssql"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/mysql"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/network"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/notificationhub"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/policy"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/portal"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/postgres"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/privatedns"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/recoveryservices"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/redis"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/relay"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/resource"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/scheduler"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/search"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/securitycenter"
@@ -149,30 +125,6 @@ func (client *ArmClient) Build(o *common.ClientOptions) error {
 	}
 
 	// TODO: move these Clients inside of Common so this method can be moved in there
-	client.IoTHub = iothub.BuildClient(o)
-	client.KeyVault = keyvault.BuildClient(o)
-	client.Kusto = kusto.BuildClient(o)
-	client.Logic = logic.BuildClient(o)
-	client.LogAnalytics = loganalytics.BuildClient(o)
-	client.Maps = maps.BuildClient(o)
-	client.MariaDB = mariadb.BuildClient(o)
-	client.Media = media.BuildClient(o)
-	client.Monitor = monitor.BuildClient(o)
-	client.Mssql = mssql.BuildClient(o)
-	client.Msi = msi.BuildClient(o)
-	client.Mysql = mysql.BuildClient(o)
-	client.ManagementGroups = managementgroup.BuildClient(o)
-	client.Netapp = netapp.BuildClient(o)
-	client.Network = network.BuildClient(o)
-	client.NotificationHubs = notificationhub.BuildClient(o)
-	client.Policy = policy.BuildClient(o)
-	client.Portal = portal.BuildClient(o)
-	client.Postgres = postgres.BuildClient(o)
-	client.PrivateDns = privatedns.BuildClient(o)
-	client.RecoveryServices = recoveryservices.BuildClient(o)
-	client.Redis = redis.BuildClient(o)
-	client.Relay = relay.BuildClient(o)
-	client.Resource = resource.BuildClient(o)
 	client.Search = search.BuildClient(o)
 	client.SecurityCenter = securitycenter.BuildClient(o)
 	client.ServiceBus = servicebus.BuildClient(o)

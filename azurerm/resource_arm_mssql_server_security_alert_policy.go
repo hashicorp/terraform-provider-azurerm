@@ -106,7 +106,7 @@ func resourceArmMssqlServerSecurityAlertPolicy() *schema.Resource {
 }
 
 func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
+	client := meta.(*ArmClient).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -141,7 +141,7 @@ func resourceArmMssqlServerSecurityAlertPolicyCreateUpdate(d *schema.ResourceDat
 }
 
 func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
+	client := meta.(*ArmClient).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -215,7 +215,7 @@ func resourceArmMssqlServerSecurityAlertPolicyRead(d *schema.ResourceData, meta 
 }
 
 func resourceArmMssqlServerSecurityAlertPolicyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
+	client := meta.(*ArmClient).MSSQL.ServerSecurityAlertPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

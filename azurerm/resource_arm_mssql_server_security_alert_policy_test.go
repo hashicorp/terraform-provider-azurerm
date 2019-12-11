@@ -97,7 +97,7 @@ func testCheckAzureRMMssqlServerSecurityAlertPolicyExists(resourceName string) r
 		resourceGroup := rs.Primary.Attributes["resource_group_name"]
 		serverName := rs.Primary.Attributes["server_name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Mssql.ServerSecurityAlertPoliciesClient
+		client := testAccProvider.Meta().(*ArmClient).MSSQL.ServerSecurityAlertPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName)
