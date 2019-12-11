@@ -1,4 +1,4 @@
-package servicebus
+package client
 
 import (
 	servicebusPreview "github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus"
@@ -15,7 +15,7 @@ type Client struct {
 	SubscriptionRulesClient *servicebus.RulesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	QueuesClient := servicebus.NewQueuesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&QueuesClient.Client, o.ResourceManagerAuthorizer)
 
