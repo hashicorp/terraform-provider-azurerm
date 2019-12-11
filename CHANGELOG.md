@@ -1,5 +1,9 @@
 ## 1.39.0 (Unreleased)
 
+FEATURESE: 
+
+* **New Resource:** `azurerm_app_configuration` [GH-4859]
+
 IMPROVEMENTS:
 
 * storage: switching to use the Authorizers from Azure/go-autorest [GH-5109]
@@ -9,6 +13,9 @@ IMPROVEMENTS:
 * `azurerm_app_service_plan` - adding validation to import [GH-5107]
 * `azurerm_app_service_slot` - adding validation to import [GH-5107]
 * `azurerm_app_service_source_control_token` - adding validation to import [GH-5107]
+* `azurerm_cosmos_mongo_collection`: deprecate the `indexes` property [GH-5116]
+* `azurerm_cosmos_mongo_collection`: make throughput computed and remove the default to let the API handel it [GH-5116]
+* `azurerm_cosmos_mongo_database`: support for the `throughput` property [GH-5116]
 
 BUG FIXES:
 

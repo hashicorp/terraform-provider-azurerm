@@ -1,4 +1,4 @@
-package redis
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/redis/mgmt/2018-03-01/redis"
@@ -11,7 +11,7 @@ type Client struct {
 	PatchSchedulesClient *redis.PatchSchedulesClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	client := redis.NewClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
 	o.ConfigureClient(&client.Client, o.ResourceManagerAuthorizer)
 
