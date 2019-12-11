@@ -15,6 +15,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -27,6 +28,13 @@ func resourceArmNetAppPool() *schema.Resource {
 
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+			Read:   schema.DefaultTimeout(5 * time.Minute),
+			Update: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -68,8 +76,9 @@ func resourceArmNetAppPool() *schema.Resource {
 }
 
 func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.PoolClient
+	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	resourceGroup := d.Get("resource_group_name").(string)
@@ -89,13 +98,15 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	serviceLevel := d.Get("service_level").(string)
-	size := int64(d.Get("size_in_tb").(int) * 1099511627776)
+	sizeInTB := int64(d.Get("size_in_tb").(int))
+	sizeInMB := sizeInTB * 1024 * 1024
+	sizeInBytes := sizeInMB * 1024 * 1024
 
 	capacityPoolParameters := netapp.CapacityPool{
 		Location: utils.String(location),
 		PoolProperties: &netapp.PoolProperties{
 			ServiceLevel: netapp.ServiceLevel(serviceLevel),
-			Size:         utils.Int64(size),
+			Size:         utils.Int64(sizeInBytes),
 		},
 	}
 
@@ -120,8 +131,9 @@ func resourceArmNetAppPoolCreateUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.PoolClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
@@ -149,17 +161,23 @@ func resourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
 	}
 	if poolProperties := resp.PoolProperties; poolProperties != nil {
 		d.Set("service_level", poolProperties.ServiceLevel)
+
+		sizeInTB := int64(0)
 		if poolProperties.Size != nil {
-			d.Set("size_in_tb", *poolProperties.Size/1099511627776)
+			sizeInBytes := *poolProperties.Size
+			sizeInMB := sizeInBytes / 1024 / 1024
+			sizeInTB = sizeInMB / 1024 / 1024
 		}
+		d.Set("size_in_tb", int(sizeInTB))
 	}
 
 	return nil
 }
 
 func resourceArmNetAppPoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.PoolClient
+	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {

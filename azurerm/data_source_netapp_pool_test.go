@@ -24,7 +24,7 @@ func TestAccDataSourceAzureRMNetAppPool_basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(dataSourceName, "name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "account_name"),
 					resource.TestCheckResourceAttrSet(dataSourceName, "service_level"),
-					resource.TestCheckResourceAttrSet(dataSourceName, "size"),
+					resource.TestCheckResourceAttrSet(dataSourceName, "size_in_tb"),
 				),
 			},
 		},

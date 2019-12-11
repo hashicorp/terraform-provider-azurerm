@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Network"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_network_security_group"
 sidebar_current: "docs-azurerm-datasource-network-security-group"

@@ -5,15 +5,13 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/common"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/compute"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/provider"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -30,8 +28,7 @@ func Provider() terraform.ResourceProvider {
 	//  4. (DONE) Introducing a parent struct which becomes a nested field in `config.go`
 	//  	for those properties, to ease migration (probably internal/common/clients.go)
 	//	5. (DONE) Making the SDK Clients public in the ArmClient
-	//
-	//  6. Migrating the Fields from the `ArmClient` to the new base `Client`
+	//  6. (DONE) Migrating the Fields from the `ArmClient` to the new base `Client`
 	//		But leaving the referencing accessing the top-level field e.g.
 	//			type Client struct { // ./azurerm/internal/common/client.go
 	//				Example example.Client
@@ -41,16 +38,16 @@ func Provider() terraform.ResourceProvider {
 	//			}
 	//		Then access the fields using: `meta.(*ArmClient).Example.Inner`
 	//		Rather than `meta.(*ArmClient).Client.Example.Inner`
-	//		This allows us to have less code changes in Step 7
-	//	7. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
+	//		This allows us to have less code changes in Step 8
+	//
+	//	7. Move the client registration into a Build method on the Common struct, allowing us
+	//	   to move the resources without breaking (as) many WIP PR's
+	//
+	//	8. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
 	//		Unfortunately this'll need to be in a big-bang, due to the fact this is cast
 	//		All over the place
 	//
 	// For the moment/until that's done, we'll have to continue defining these inline
-	supportedServices := []common.ServiceRegistration{
-		compute.Registration{},
-	}
-
 	dataSources := map[string]*schema.Resource{
 		"azurerm_api_management":                            dataSourceApiManagementService(),
 		"azurerm_api_management_api":                        dataSourceApiManagementApi(),
@@ -107,6 +104,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_monitor_diagnostic_categories":             dataSourceArmMonitorDiagnosticCategories(),
 		"azurerm_monitor_log_profile":                       dataSourceArmMonitorLogProfile(),
 		"azurerm_mssql_elasticpool":                         dataSourceArmMsSqlElasticpool(),
+		"azurerm_nat_gateway":                               dataSourceArmNatGateway(),
 		"azurerm_netapp_account":                            dataSourceArmNetAppAccount(),
 		"azurerm_netapp_pool":                               dataSourceArmNetAppPool(),
 		"azurerm_netapp_volume":                             dataSourceArmNetAppVolume(),
@@ -119,6 +117,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_platform_image":                            dataSourceArmPlatformImage(),
 		"azurerm_policy_definition":                         dataSourceArmPolicyDefinition(),
 		"azurerm_postgresql_server":                         dataSourcePostgreSqlServer(),
+		"azurerm_private_link_endpoint_connection":          dataSourceArmPrivateLinkEndpointConnection(),
 		"azurerm_private_link_service":                      dataSourceArmPrivateLinkService(),
 		"azurerm_private_link_service_endpoint_connections": dataSourceArmPrivateLinkServiceEndpointConnections(),
 		"azurerm_proximity_placement_group":                 dataSourceArmProximityPlacementGroup(),
@@ -181,6 +180,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_api_management_property":                            resourceArmApiManagementProperty(),
 		"azurerm_api_management_subscription":                        resourceArmApiManagementSubscription(),
 		"azurerm_api_management_user":                                resourceArmApiManagementUser(),
+		"azurerm_app_configuration":                                  resourceArmAppConfiguration(),
 		"azurerm_app_service_active_slot":                            resourceArmAppServiceActiveSlot(),
 		"azurerm_app_service_certificate":                            resourceArmAppServiceCertificate(),
 		"azurerm_app_service_certificate_order":                      resourceArmAppServiceCertificateOrder(),
@@ -308,6 +308,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_iothub_dps_certificate":                             resourceArmIotHubDPSCertificate(),
 		"azurerm_iothub_consumer_group":                              resourceArmIotHubConsumerGroup(),
 		"azurerm_iothub":                                             resourceArmIotHub(),
+		"azurerm_iothub_fallback_route":                              resourceArmIotHubFallbackRoute(),
 		"azurerm_iothub_route":                                       resourceArmIotHubRoute(),
 		"azurerm_iothub_endpoint_eventhub":                           resourceArmIotHubEndpointEventHub(),
 		"azurerm_iothub_endpoint_servicebus_queue":                   resourceArmIotHubEndpointServiceBusQueue(),
@@ -367,6 +368,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_mysql_firewall_rule":                                resourceArmMySqlFirewallRule(),
 		"azurerm_mysql_server":                                       resourceArmMySqlServer(),
 		"azurerm_mysql_virtual_network_rule":                         resourceArmMySqlVirtualNetworkRule(),
+		"azurerm_nat_gateway":                                        resourceArmNatGateway(),
 		"azurerm_network_connection_monitor":                         resourceArmNetworkConnectionMonitor(),
 		"azurerm_network_ddos_protection_plan":                       resourceArmNetworkDDoSProtectionPlan(),
 		"azurerm_network_interface":                                  resourceArmNetworkInterface(),
@@ -389,6 +391,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_policy_assignment":                                                      resourceArmPolicyAssignment(),
 		"azurerm_policy_definition":                                                      resourceArmPolicyDefinition(),
 		"azurerm_policy_set_definition":                                                  resourceArmPolicySetDefinition(),
+		"azurerm_point_to_site_vpn_gateway":                                              resourceArmPointToSiteVPNGateway(),
 		"azurerm_postgresql_configuration":                                               resourceArmPostgreSQLConfiguration(),
 		"azurerm_postgresql_database":                                                    resourceArmPostgreSQLDatabase(),
 		"azurerm_postgresql_firewall_rule":                                               resourceArmPostgreSQLFirewallRule(),
@@ -398,9 +401,11 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_private_dns_a_record":                                                   resourceArmPrivateDnsARecord(),
 		"azurerm_private_dns_aaaa_record":                                                resourceArmPrivateDnsAaaaRecord(),
 		"azurerm_private_dns_cname_record":                                               resourceArmPrivateDnsCNameRecord(),
+		"azurerm_private_dns_mx_record":                                                  resourceArmPrivateDnsMxRecord(),
 		"azurerm_private_dns_ptr_record":                                                 resourceArmPrivateDnsPtrRecord(),
 		"azurerm_private_dns_srv_record":                                                 resourceArmPrivateDnsSrvRecord(),
 		"azurerm_private_dns_zone_virtual_network_link":                                  resourceArmPrivateDnsZoneVirtualNetworkLink(),
+		"azurerm_private_link_endpoint":                                                  resourceArmPrivateLinkEndpoint(),
 		"azurerm_private_link_service":                                                   resourceArmPrivateLinkService(),
 		"azurerm_proximity_placement_group":                                              resourceArmProximityPlacementGroup(),
 		"azurerm_public_ip":                                                              resourceArmPublicIp(),
@@ -451,6 +456,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_sql_server":                                                             resourceArmSqlServer(),
 		"azurerm_sql_virtual_network_rule":                                               resourceArmSqlVirtualNetworkRule(),
 		"azurerm_storage_account":                                                        resourceArmStorageAccount(),
+		"azurerm_storage_account_network_rules":                                          resourceArmStorageAccountNetworkRules(),
 		"azurerm_storage_blob":                                                           resourceArmStorageBlob(),
 		"azurerm_storage_container":                                                      resourceArmStorageContainer(),
 		"azurerm_storage_data_lake_gen2_filesystem":                                      resourceArmStorageDataLakeGen2FileSystem(),
@@ -472,11 +478,13 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_stream_analytics_stream_input_iothub":                                   resourceArmStreamAnalyticsStreamInputIoTHub(),
 		"azurerm_subnet_network_security_group_association":                              resourceArmSubnetNetworkSecurityGroupAssociation(),
 		"azurerm_subnet_route_table_association":                                         resourceArmSubnetRouteTableAssociation(),
+		"azurerm_subnet_nat_gateway_association":                                         resourceArmSubnetNatGatewayAssociation(),
 		"azurerm_subnet":                                                                 resourceArmSubnet(),
 		"azurerm_template_deployment":                                                    resourceArmTemplateDeployment(),
 		"azurerm_traffic_manager_endpoint":                                               resourceArmTrafficManagerEndpoint(),
 		"azurerm_traffic_manager_profile":                                                resourceArmTrafficManagerProfile(),
 		"azurerm_user_assigned_identity":                                                 resourceArmUserAssignedIdentity(),
+		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
 		"azurerm_virtual_machine_data_disk_attachment":                                   resourceArmVirtualMachineDataDiskAttachment(),
 		"azurerm_virtual_machine_extension":                                              resourceArmVirtualMachineExtensions(),
 		"azurerm_virtual_machine_scale_set":                                              resourceArmVirtualMachineScaleSet(),
@@ -486,13 +494,15 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_virtual_network_peering":                                                resourceArmVirtualNetworkPeering(),
 		"azurerm_virtual_network":                                                        resourceArmVirtualNetwork(),
 		"azurerm_virtual_wan":                                                            resourceArmVirtualWan(),
-		"azurerm_virtual_hub":                                                            resourceArmVirtualHub(),
+		"azurerm_vpn_gateway":                                                            resourceArmVPNGateway(),
+		"azurerm_vpn_server_configuration":                                               resourceArmVPNServerConfiguration(),
 		"azurerm_web_application_firewall_policy":                                        resourceArmWebApplicationFirewallPolicy(),
 	}
 
 	// 2.0 resources
 	if features.SupportsTwoPointZeroResources() {
 		resources["azurerm_linux_virtual_machine_scale_set"] = resourceArmLinuxVirtualMachineScaleSet()
+		resources["azurerm_virtual_machine_scale_set_extension"] = resourceArmVirtualMachineScaleSetExtension()
 		resources["azurerm_windows_virtual_machine_scale_set"] = resourceArmWindowsVirtualMachineScaleSet()
 	}
 
@@ -504,6 +514,8 @@ func Provider() terraform.ResourceProvider {
 
 		log.Printf(f, v...)
 	}
+
+	supportedServices := provider.SupportedServices()
 	for _, service := range supportedServices {
 		debugLog("[DEBUG] Registering Data Sources for %q..", service.Name())
 		for k, v := range service.SupportedDataSources() {
@@ -525,22 +537,7 @@ func Provider() terraform.ResourceProvider {
 	}
 
 	// TODO: remove all of this in 2.0 once Custom Timeouts are supported
-	if features.SupportsCustomTimeouts() {
-		// default everything to 3 hours for now
-		for _, v := range resources {
-			if v.Timeouts == nil {
-				v.Timeouts = &schema.ResourceTimeout{
-					Create:  schema.DefaultTimeout(3 * time.Hour),
-					Update:  schema.DefaultTimeout(3 * time.Hour),
-					Delete:  schema.DefaultTimeout(3 * time.Hour),
-					Default: schema.DefaultTimeout(3 * time.Hour),
-
-					// Read is the only exception, since if it's taken more than 5 minutes something's seriously wrong
-					Read: schema.DefaultTimeout(5 * time.Minute),
-				}
-			}
-		}
-	} else {
+	if !features.SupportsCustomTimeouts() {
 		// ensure any timeouts configured on the resources are removed until 2.0
 		for _, v := range resources {
 			v.Timeouts = nil
@@ -714,11 +711,6 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			return nil, fmt.Errorf("Error building AzureRM Client: %s", err)
 		}
 
-		partnerId := d.Get("partner_id").(string)
-		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
-		disableCorrelationRequestID := d.Get("disable_correlation_request_id").(bool)
-		disableTerraformPartnerID := d.Get("disable_terraform_partner_id").(bool)
-
 		terraformVersion := p.TerraformVersion
 		if terraformVersion == "" {
 			// Terraform 0.12 introduced this field to the protocol
@@ -726,8 +718,16 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 			terraformVersion = "0.11+compatible"
 		}
 
-		// TODO: we should pass in an Object here
-		client, err := getArmClient(config, skipProviderRegistration, terraformVersion, partnerId, disableCorrelationRequestID, disableTerraformPartnerID)
+		skipProviderRegistration := d.Get("skip_provider_registration").(bool)
+		clientBuilder := armClientBuilder{
+			authConfig:                  config,
+			skipProviderRegistration:    skipProviderRegistration,
+			terraformVersion:            terraformVersion,
+			partnerId:                   d.Get("partner_id").(string),
+			disableCorrelationRequestID: d.Get("disable_correlation_request_id").(bool),
+			disableTerraformPartnerID:   d.Get("disable_terraform_partner_id").(bool),
+		}
+		client, err := getArmClient(p.StopContext(), clientBuilder)
 		if err != nil {
 			return nil, err
 		}
@@ -762,7 +762,7 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 				err := ensureResourceProvidersAreRegistered(ctx, *client.Resource.ProvidersClient, availableResourceProviders, requiredResourceProviders)
 				if err != nil {
-					return nil, fmt.Errorf("Error ensuring Resource Providers are registered. If you do not have permissions to register resource providers you may want to use the skip_provider_registration flag, however this may cause additional errors if unregistered APIs are called that look something like `API version 2017-07-07 was not found for Microsoft.Foo`. Please see https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration for more details: %s", err)
+					return nil, fmt.Errorf(resourceProviderRegistrationErrorFmt, err)
 				}
 			}
 		}
@@ -770,3 +770,25 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 		return client, nil
 	}
 }
+
+const resourceProviderRegistrationErrorFmt = `Error ensuring Resource Providers are registered.
+
+Terraform automatically attempts to register the Resource Providers it supports to
+ensure it's able to provision resources.
+
+If you don't have permission to register Resource Providers you may wish to use the
+"skip_provider_registration" flag in the Provider block to disable this functionality.
+
+Please note that if you opt out of Resource Provider Registration and Terraform tries
+to provision a resource from a Resource Provider which is unregistered, then the errors
+may appear misleading - for example:
+
+> API version 2019-XX-XX was not found for Microsoft.Foo
+
+Could indicate either that the Resource Provider "Microsoft.Foo" requires registration,
+but this could also indicate that this Azure Region doesn't support this API version.
+
+More information on the "skip_provider_registration" flag can be found here:
+https://www.terraform.io/docs/providers/azurerm/index.html#skip_provider_registration
+
+Original Error: %s`

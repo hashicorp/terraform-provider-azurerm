@@ -25,7 +25,6 @@ resource "azurerm_eventhub_namespace" "example" {
   resource_group_name = "${azurerm_resource_group.example.name}"
   sku                 = "Standard"
   capacity            = 1
-  kafka_enabled       = false
 
   tags = {
     environment = "Production"

@@ -2,16 +2,22 @@ package azurerm
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
 func dataSourceArmNetAppPool() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceArmNetAppPoolRead,
+
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(5 * time.Minute),
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -44,8 +50,9 @@ func dataSourceArmNetAppPool() *schema.Resource {
 }
 
 func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
-	ctx := meta.(*ArmClient).StopContext
+	client := meta.(*ArmClient).NetApp.PoolClient
+	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
+	defer cancel()
 
 	name := d.Get("name").(string)
 	accountName := d.Get("account_name").(string)

@@ -61,7 +61,7 @@ func resourceArmUserAssignedIdentity() *schema.Resource {
 }
 
 func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -110,7 +110,7 @@ func resourceArmUserAssignedIdentityCreateUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -148,7 +148,7 @@ func resourceArmUserAssignedIdentityRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceArmUserAssignedIdentityDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Msi.UserAssignedIdentitiesClient
+	client := meta.(*ArmClient).MSI.UserAssignedIdentitiesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
