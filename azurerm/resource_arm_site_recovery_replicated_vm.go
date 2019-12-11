@@ -20,12 +20,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
+func resourceArmSiteRecoveryReplicatedVM() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "`azurerm_recovery_replicated_vm` resource is deprecated in favor of `azurerm_site_recovery_replicated_vm` and will be removed in v2.0 of the AzureRM Provider",
-		Create:             resourceArmRecoveryReplicatedItemCreate,
-		Read:               resourceArmRecoveryReplicatedItemRead,
-		Delete:             resourceArmRecoveryReplicatedItemDelete,
+		Create: resourceArmSiteRecoveryReplicatedItemCreate,
+		Read:   resourceArmSiteRecoveryReplicatedItemRead,
+		Delete: resourceArmSiteRecoveryReplicatedItemDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -111,7 +110,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Optional:   true,
 				ForceNew:   true,
-				Set:        resourceArmRecoveryReplicatedVmDiskHash,
+				Set:        resourceArmSiteRecoveryReplicatedVMDiskHash,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"disk_id": {
@@ -166,7 +165,7 @@ func resourceArmRecoveryServicesReplicatedVm() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
@@ -193,12 +192,12 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 		existing, err := client.Get(ctx, fabricName, sourceProtectionContainerName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
+				return fmt.Errorf("Error checking for presence of existing site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_recovery_replicated_vm", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_replicated_vm", azure.HandleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -248,10 +247,10 @@ func resourceArmRecoveryReplicatedItemCreate(d *schema.ResourceData, meta interf
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmRecoveryReplicatedItemRead(d, meta)
+	return resourceArmSiteRecoveryReplicatedItemRead(d, meta)
 }
 
-func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryReplicatedItemRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -272,7 +271,7 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error making Read request on site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("name", name)
@@ -300,14 +299,14 @@ func resourceArmRecoveryReplicatedItemRead(d *schema.ResourceData, meta interfac
 
 				disksOutput = append(disksOutput, diskOutput)
 			}
-			d.Set("managed_disk", schema.NewSet(resourceArmRecoveryReplicatedVmDiskHash, disksOutput))
+			d.Set("managed_disk", schema.NewSet(resourceArmSiteRecoveryReplicatedVMDiskHash, disksOutput))
 		}
 	}
 
 	return nil
 }
 
-func resourceArmRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -331,16 +330,16 @@ func resourceArmRecoveryReplicatedItemDelete(d *schema.ResourceData, meta interf
 	defer cancel()
 	future, err := client.Delete(ctx, fabricName, protectionContainerName, name, disableProtectionInput)
 	if err != nil {
-		return fmt.Errorf("Error deleting recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error deleting site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of recovery services replicated vm %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error waiting for deletion of site recovery replicated vm %s (vault %s): %+v", name, vaultName, err)
 	}
 	return nil
 }
 
-func resourceArmRecoveryReplicatedVmDiskHash(v interface{}) int {
+func resourceArmSiteRecoveryReplicatedVMDiskHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
