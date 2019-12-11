@@ -15,12 +15,11 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func resourceArmRecoveryServicesNetworkMapping() *schema.Resource {
+func resourceArmSiteRecoveryNetworkMapping() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: "`azurerm_recovery_network_mapping` resource is deprecated in favor of `azurerm_site_recovery_network_mapping` and will be removed in v2.0 of the AzureRM Provider",
-		Create:             resourceArmRecoveryNetworkMappingCreate,
-		Read:               resourceArmRecoveryNetworkMappingRead,
-		Delete:             resourceArmRecoveryNetworkMappingDelete,
+		Create: resourceArmSiteRecoveryNetworkMappingCreate,
+		Read:   resourceArmSiteRecoveryNetworkMappingRead,
+		Delete: resourceArmSiteRecoveryNetworkMappingDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -77,7 +76,7 @@ func resourceArmRecoveryServicesNetworkMapping() *schema.Resource {
 	}
 }
 
-func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interface{}) error {
 	resGroup := d.Get("resource_group_name").(string)
 	vaultName := d.Get("recovery_vault_name").(string)
 	fabricName := d.Get("source_recovery_fabric_name").(string)
@@ -107,12 +106,12 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 		existing, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 		if err != nil {
 			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("Error checking for presence of existing recovery services fabric %s (vault %s): %+v", name, vaultName, err)
+				return fmt.Errorf("Error checking for presence of existing site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 			}
 		}
 
 		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_recovery_network_mapping", azure.HandleAzureSdkForGoBug2824(*existing.ID))
+			return tf.ImportAsExistsError("azurerm_site_recovery_network_mapping", azure.HandleAzureSdkForGoBug2824(*existing.ID))
 		}
 	}
 
@@ -127,23 +126,23 @@ func resourceArmRecoveryNetworkMappingCreate(d *schema.ResourceData, meta interf
 	}
 	future, err := client.Create(ctx, fabricName, sourceNetworkName, name, parameters)
 	if err != nil {
-		return fmt.Errorf("Error creating recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error creating recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error creating site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	resp, err := client.Get(ctx, fabricName, sourceNetworkName, name)
 	if err != nil {
-		return fmt.Errorf("Error retrieving recovery network mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error retrieving site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.SetId(azure.HandleAzureSdkForGoBug2824(*resp.ID))
 
-	return resourceArmRecoveryNetworkMappingRead(d, meta)
+	return resourceArmSiteRecoveryNetworkMappingRead(d, meta)
 }
 
-func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryNetworkMappingRead(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -165,7 +164,7 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error making Read request on recovery services protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error making Read request on site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	d.Set("resource_group_name", resGroup)
@@ -186,7 +185,7 @@ func resourceArmRecoveryNetworkMappingRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func resourceArmRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceArmSiteRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interface{}) error {
 	id, err := azure.ParseAzureResourceID(d.Id())
 	if err != nil {
 		return err
@@ -204,11 +203,11 @@ func resourceArmRecoveryNetworkMappingDelete(d *schema.ResourceData, meta interf
 
 	future, err := client.Delete(ctx, fabricName, networkName, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting recovery services protection container mapping %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error deleting site recovery network mapping %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("Error waiting for deletion of recovery services protection container mapping  %s (vault %s): %+v", name, vaultName, err)
+		return fmt.Errorf("Error waiting for deletion of site recovery network mapping  %s (vault %s): %+v", name, vaultName, err)
 	}
 
 	return nil
