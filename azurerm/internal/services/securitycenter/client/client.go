@@ -1,4 +1,4 @@
-package securitycenter
+package client
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security"
@@ -12,7 +12,7 @@ type Client struct {
 	AdvancedThreatProtectionClient *security.AdvancedThreatProtectionClient
 }
 
-func BuildClient(o *common.ClientOptions) *Client {
+func NewClient(o *common.ClientOptions) *Client {
 	ascLocation := "Global"
 
 	ContactsClient := security.NewContactsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId, ascLocation)
