@@ -60,8 +60,8 @@ github.com/Azure/azure-sdk-for-go/services/preview/resources/mgmt/2018-03-01-pre
 github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v1.0/security
 github.com/Azure/azure-sdk-for-go/services/preview/servicebus/mgmt/2018-01-01-preview/servicebus
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
-github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-03-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2017-10-01-preview/sql
+github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
 github.com/Azure/azure-sdk-for-go/services/privatedns/mgmt/2018-09-01/privatedns
 github.com/Azure/azure-sdk-for-go/services/provisioningservices/mgmt/2018-01-22/iothub
 github.com/Azure/azure-sdk-for-go/services/recoveryservices/mgmt/2016-06-01/recoveryservices
@@ -83,9 +83,6 @@ github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage
 github.com/Azure/azure-sdk-for-go/services/streamanalytics/mgmt/2016-03-01/streamanalytics
 github.com/Azure/azure-sdk-for-go/services/trafficmanager/mgmt/2018-04-01/trafficmanager
 github.com/Azure/azure-sdk-for-go/services/web/mgmt/2018-02-01/web
-github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/2018-06-01-preview/sql
-github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-06-01/subscriptions
-github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2016-02-01/resources
 github.com/Azure/azure-sdk-for-go/version
 # github.com/Azure/go-autorest/autorest v0.9.3
 github.com/Azure/go-autorest/autorest
@@ -333,7 +330,7 @@ github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/slices
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/tf
 github.com/terraform-providers/terraform-provider-azuread/azuread/helpers/validate
 github.com/terraform-providers/terraform-provider-azuread/version
-# github.com/tombuildsstuff/giovanni v0.6.0
+# github.com/tombuildsstuff/giovanni v0.7.1
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers
 github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems
