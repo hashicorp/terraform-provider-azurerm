@@ -225,6 +225,16 @@ func resourceArmFunctionApp() *schema.Resource {
 							Optional: true,
 							Default:  false,
 						},
+						"min_tls_version": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.OneFullStopZero),
+								string(web.OneFullStopOne),
+								string(web.OneFullStopTwo),
+							}, false),
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -726,6 +736,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
 	}
 
+	if v, ok := config["min_tls_version"]; ok {
+		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -761,6 +775,8 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	if input.HTTP20Enabled != nil {
 		result["http2_enabled"] = *input.HTTP20Enabled
 	}
+
+	result["min_tls_version"] = string(input.MinTLSVersion)
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
