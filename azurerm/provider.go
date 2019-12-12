@@ -157,6 +157,7 @@ func Provider() terraform.ResourceProvider {
 	}
 
 	resources := map[string]*schema.Resource{
+		"azurerm_advisor_configurations":                             resourceArmAdvisorConfigurations(),
 		"azurerm_analysis_services_server":                           resourceArmAnalysisServicesServer(),
 		"azurerm_api_management":                                     resourceArmApiManagementService(),
 		"azurerm_api_management_api":                                 resourceArmApiManagementApi(),

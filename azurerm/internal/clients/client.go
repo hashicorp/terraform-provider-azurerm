@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
+	advisor "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/advisor/client"
 	analysisServices "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/analysisservices/client"
 	apiManagement "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/apimanagement/client"
 	appConfiguration "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/appconfiguration/client"
@@ -71,8 +72,8 @@ type Client struct {
 	// StopContext is used for propagating control from Terraform Core (e.g. Ctrl/Cmd+C)
 	StopContext context.Context
 
-	Account *ResourceManagerAccount
-
+	Account          *ResourceManagerAccount
+	Advisor          *advisor.Client
 	AnalysisServices *analysisServices.Client
 	ApiManagement    *apiManagement.Client
 	AppConfiguration *appConfiguration.Client
@@ -145,6 +146,7 @@ type Client struct {
 }
 
 func (client *Client) Build(o *common.ClientOptions) error {
+	client.Advisor = advisor.NewClient(o)
 	client.AnalysisServices = analysisServices.NewClient(o)
 	client.ApiManagement = apiManagement.NewClient(o)
 	client.AppConfiguration = appConfiguration.NewClient(o)

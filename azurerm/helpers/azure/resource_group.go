@@ -14,7 +14,7 @@ func SchemaResourceGroupName() *schema.Schema {
 		Type:         schema.TypeString,
 		Required:     true,
 		ForceNew:     true,
-		ValidateFunc: validateResourceGroupName,
+		ValidateFunc: ValidateResourceGroupName,
 	}
 }
 
@@ -33,7 +33,7 @@ func SchemaResourceGroupNameDiffSuppress() *schema.Schema {
 		Required:         true,
 		ForceNew:         true,
 		DiffSuppressFunc: suppress.CaseDifference,
-		ValidateFunc:     validateResourceGroupName,
+		ValidateFunc:     ValidateResourceGroupName,
 	}
 }
 
@@ -44,7 +44,7 @@ func SchemaResourceGroupNameForDataSource() *schema.Schema {
 	}
 }
 
-func validateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
+func ValidateResourceGroupName(v interface{}, k string) (warnings []string, errors []error) {
 	value := v.(string)
 
 	if len(value) > 90 {
