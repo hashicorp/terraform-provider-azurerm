@@ -503,7 +503,6 @@ func getArmVirtualNetworkGatewayConnectionProperties(d *schema.ResourceData) (*n
 	if v, ok := d.GetOk("connection_protocol"); ok {
 		connectionProtocol := v.(string)
 		props.ConnectionProtocol = network.VirtualNetworkGatewayConnectionProtocol(connectionProtocol)
-
 	}
 
 	if v, ok := d.GetOk("ipsec_policy"); ok {
