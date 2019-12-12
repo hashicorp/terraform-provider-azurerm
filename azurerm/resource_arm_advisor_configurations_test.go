@@ -143,7 +143,7 @@ resource "azurerm_resource_group" "test" {
 resource "azurerm_advisor_configurations" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   exclude             = false
-  low_cpu_threshold   = 5
+  low_cpu_threshold   = "5"
 }
 `, rInt, location)
 }

@@ -2,9 +2,10 @@ package azurerm
 
 import (
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2017-04-19/advisor"
 	"log"
 	"time"
+
+	"github.com/Azure/azure-sdk-for-go/services/advisor/mgmt/2017-04-19/advisor"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
