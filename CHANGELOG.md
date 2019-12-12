@@ -4,6 +4,9 @@ FEATURESE:
 
 * **New Resource:** `azurerm_app_configuration` [GH-4859]
 * **New Resource:** `azurerm_bot_channel_ms_teams` [GH-4984]
+* **New Resource:** `azurerm_mssql_database_vulnerability_assessment_rule_baseline` [GH-3806]
+* **New Resource:** `azurerm_mssql_server_vulnerability_assessment` [GH-3806]
+* **New Resource:** `azurerm_mssql_server_security_alert_policy` [GH-3806]
 
 IMPROVEMENTS:
 
