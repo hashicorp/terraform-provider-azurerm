@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 )
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -22,7 +22,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, location, "kubenet"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(ri, clientId, clientSecret, location, "kubenet"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "kubenet"),
@@ -40,7 +40,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenet(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -53,7 +53,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, location, "kubenet"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(ri, clientId, clientSecret, location, "kubenet"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "kubenet"),
@@ -71,7 +71,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingKubenetComplete(t *testin
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -84,7 +84,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworking(ri, clientId, clientSecret, location, "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingConfig(ri, clientId, clientSecret, location, "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
@@ -102,7 +102,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzure(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -115,7 +115,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingComplete(ri, clientId, clientSecret, location, "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(ri, clientId, clientSecret, location, "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
@@ -133,7 +133,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureComplete(t *testing.
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -146,7 +146,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(ri, clientId, clientSecret, location, "azure", "calico"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(ri, clientId, clientSecret, location, "azure", "calico"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
@@ -165,7 +165,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicy(t *test
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -178,7 +178,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(ri, clientId, clientSecret, location, "azure", "calico"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(ri, clientId, clientSecret, location, "azure", "calico"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
@@ -197,7 +197,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureCalicoPolicyComplete
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -210,7 +210,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(ri, clientId, clientSecret, location, "azure", "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(ri, clientId, clientSecret, location, "azure", "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
@@ -229,7 +229,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicy(t *testing
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
+func testAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -242,7 +242,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(ri, clientId, clientSecret, location, "azure", "azure"),
+				Config: testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(ri, clientId, clientSecret, location, "azure", "azure"),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.network_plugin", "azure"),
@@ -261,7 +261,7 @@ func TestAccAzureRMKubernetesCluster_advancedNetworkingAzureNPMPolicyComplete(t 
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
+func testAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -275,7 +275,7 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				// Enabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location, true),
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(ri, clientId, clientSecret, location, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.enable_node_public_ip", "true"),
@@ -291,7 +291,7 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 			},
 			{
 				// Disabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location, false),
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(ri, clientId, clientSecret, location, false),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.enable_node_public_ip", "false"),
@@ -307,7 +307,7 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 			},
 			{
 				// Enabled
-				Config: testAccAzureRMKubernetesCluster_enableNodePublicIP(ri, clientId, clientSecret, location, true),
+				Config: testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(ri, clientId, clientSecret, location, true),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.enable_node_public_ip", "true"),
@@ -325,7 +325,7 @@ func TestAccAzureRMKubernetesCluster_enableNodePublicIP(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
+func testAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -338,7 +338,7 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_internalNetwork(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_internalNetworkConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "default_node_pool.0.max_pods", "60"),
@@ -356,7 +356,7 @@ func TestAccAzureRMKubernetesCluster_internalNetwork(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
+func testAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -369,7 +369,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancer(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
@@ -387,7 +387,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancer(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
+func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) {
 	resourceName := "azurerm_kubernetes_cluster.test"
 	ri := tf.AccRandTimeInt()
 	clientId := os.Getenv("ARM_CLIENT_ID")
@@ -400,7 +400,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(ri, clientId, clientSecret, location),
+				Config: testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(ri, clientId, clientSecret, location),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "network_profile.0.load_balancer_sku", "Standard"),
@@ -418,7 +418,7 @@ func TestAccAzureRMKubernetesCluster_standardLoadBalancerComplete(t *testing.T) 
 	})
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworking(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingConfig(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -477,7 +477,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingComplete(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingCompleteConfig(rInt int, clientId string, clientSecret string, location string, networkPlugin string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -557,7 +557,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicy(rInt int, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyConfig(rInt int, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -612,7 +612,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin, networkPolicy)
 }
 
-func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyComplete(rInt int, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
+func testAccAzureRMKubernetesCluster_advancedNetworkingWithPolicyCompleteConfig(rInt int, clientId string, clientSecret string, location string, networkPlugin string, networkPolicy string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -689,7 +689,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret, networkPlugin, networkPolicy)
 }
 
-func testAccAzureRMKubernetesCluster_enableNodePublicIP(rInt int, clientId, clientSecret, location string, enabled bool) string {
+func testAccAzureRMKubernetesCluster_enableNodePublicIPConfig(rInt int, clientId, clientSecret, location string, enabled bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -717,7 +717,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, enabled, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_internalNetwork(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_internalNetworkConfig(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -773,7 +773,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancer(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_standardLoadBalancerConfig(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
@@ -829,7 +829,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, rInt, location, rInt, rInt, rInt, rInt, currentKubernetesVersion, rInt, clientId, clientSecret)
 }
 
-func testAccAzureRMKubernetesCluster_standardLoadBalancerComplete(rInt int, clientId string, clientSecret string, location string) string {
+func testAccAzureRMKubernetesCluster_standardLoadBalancerCompleteConfig(rInt int, clientId string, clientSecret string, location string) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%d"
