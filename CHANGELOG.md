@@ -3,6 +3,7 @@
 FEATURESE: 
 
 * **New Resource:** `azurerm_app_configuration` [GH-4859]
+* **New Resource:** `azurerm_bot_channel_ms_teams` [GH-4984]
 
 IMPROVEMENTS:
 

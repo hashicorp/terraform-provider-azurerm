@@ -39,8 +39,7 @@ func Provider() terraform.ResourceProvider {
 	//		Then access the fields using: `meta.(*ArmClient).Example.Inner`
 	//		Rather than `meta.(*ArmClient).Client.Example.Inner`
 	//		This allows us to have less code changes in Step 8
-	//
-	//	7. Move the client registration into a Build method on the Common struct, allowing us
+	//	7. (DONE) Move the client registration into a Build method on the Common struct, allowing us
 	//	   to move the resources without breaking (as) many WIP PR's
 	//
 	//	8. This should allow us to Find+Replace `(*ArmClient)` to `*common.Client`
@@ -217,6 +216,7 @@ func Provider() terraform.ResourceProvider {
 		"azurerm_batch_certificate":                                     resourceArmBatchCertificate(),
 		"azurerm_bot_channel_email":                                     resourceArmBotChannelEmail(),
 		"azurerm_bot_channel_slack":                                     resourceArmBotChannelSlack(),
+		"azurerm_bot_channel_ms_teams":                                  resourceArmBotChannelMsTeams(),
 		"azurerm_bot_channels_registration":                             resourceArmBotChannelsRegistration(),
 		"azurerm_bot_connection":                                        resourceArmBotConnection(),
 		"azurerm_bot_web_app":                                           resourceArmBotWebApp(),

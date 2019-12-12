@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/storage/parsers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
@@ -121,7 +121,7 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemExists(resourceName string) re
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
-		storageID, err := storage.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
@@ -149,7 +149,7 @@ func testCheckAzureRMStorageDataLakeGen2FileSystemDestroy(s *terraform.State) er
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		fileSystemName := rs.Primary.Attributes["name"]
-		storageID, err := storage.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
+		storageID, err := parsers.ParseAccountID(rs.Primary.Attributes["storage_account_id"])
 		if err != nil {
 			return err
 		}
