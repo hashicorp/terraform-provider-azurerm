@@ -262,9 +262,9 @@ func PossibleStateValues() []State {
 type AzureCapacity struct {
 	// ScaleType - Scale type. Possible values include: 'Automatic', 'Manual', 'None'
 	ScaleType AzureScaleType `json:"scaleType,omitempty"`
-	// Minimum - Minimum allowed instances count.
+	// Minimum - Minimum allowed capacity.
 	Minimum *int32 `json:"minimum,omitempty"`
-	// Maximum - Maximum allowed instances count.
+	// Maximum - Maximum allowed capacity.
 	Maximum *int32 `json:"maximum,omitempty"`
 	// Default - The default capacity that would be used.
 	Default *int32 `json:"default,omitempty"`
