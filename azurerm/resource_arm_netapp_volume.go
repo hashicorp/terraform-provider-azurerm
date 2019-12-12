@@ -192,7 +192,7 @@ func resourceArmNetAppVolumeCreateUpdate(d *schema.ResourceData, meta interface{
 	if err != nil {
 		return fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
-	if resp.ID == nil && *resp.ID != "" {
+	if resp.ID == nil || *resp.ID == "" {
 		return fmt.Errorf("Cannot read NetApp Volume %q (Resource Group %q) ID", name, resourceGroup)
 	}
 	d.SetId(*resp.ID)

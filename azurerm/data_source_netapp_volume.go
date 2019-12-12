@@ -83,8 +83,8 @@ func dataSourceArmNetAppVolumeRead(d *schema.ResourceData, meta interface{}) err
 		return fmt.Errorf("Error reading NetApp Volume %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
-	if resp.ID == nil && *resp.ID != "" {
-		return fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): ID was nil", name, resourceGroup)
+	if resp.ID == nil || *resp.ID == "" {
+		return fmt.Errorf("Error retrieving NetApp Volume %q (Resource Group %q): ID was nil or empty", name, resourceGroup)
 	}
 
 	d.SetId(*resp.ID)
