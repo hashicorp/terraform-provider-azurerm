@@ -19,7 +19,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicDaily(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, testLocation()),
@@ -46,7 +46,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, testLocation()),
@@ -67,7 +67,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_basicWeekly(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(ri, testLocation()),
@@ -89,7 +89,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeDaily(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeDaily(ri, testLocation()),
@@ -111,7 +111,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_completeWeekly(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(ri, testLocation()),
@@ -133,7 +133,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDaily(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, testLocation()),
@@ -159,7 +159,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeekly(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(ri, testLocation()),
@@ -184,7 +184,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateDailyToWeekly(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicDaily(ri, testLocation()),
@@ -209,7 +209,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToDaily(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_basicWeekly(ri, testLocation()),
@@ -235,7 +235,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectionPolicyVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectionPolicyVM_completeWeekly(ri, testLocation()),
@@ -254,7 +254,7 @@ func TestAccAzureRMBackupProtectionPolicyVM_updateWeeklyToPartial(t *testing.T) 
 	})
 }
 
-func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.State) error {
+func testCheckAzureRMBackupProtectionPolicyVmDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
@@ -282,7 +282,7 @@ func testCheckAzureRMRecoveryServicesProtectionPolicyVmDestroy(s *terraform.Stat
 	return nil
 }
 
-func testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMBackupProtectionPolicyVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*ArmClient).RecoveryServices.ProtectionPoliciesClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
@@ -373,7 +373,7 @@ resource "azurerm_backup_protection_policy_vm" "import" {
 
 func checkAccAzureRMBackupProtectionPolicyVM_basicDaily(resourceName string, ri int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName),
+		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
@@ -408,7 +408,7 @@ resource "azurerm_backup_protection_policy_vm" "test" {
 
 func checkAccAzureRMBackupProtectionPolicyVM_basicWeekly(resourceName string, ri int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName),
+		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
@@ -460,7 +460,7 @@ resource "azurerm_backup_protection_policy_vm" "test" {
 
 func checkAccAzureRMBackupProtectionPolicyVM_completeDaily(resourceName string, ri int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName),
+		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
@@ -517,7 +517,7 @@ resource "azurerm_backup_protection_policy_vm" "test" {
 
 func checkAccAzureRMBackupProtectionPolicyVM_completeWeekly(resourceName string, ri int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName),
+		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),
@@ -574,7 +574,7 @@ resource "azurerm_backup_protection_policy_vm" "test" {
 
 func checkAccAzureRMBackupProtectionPolicyVM_completeWeeklyPartial(resourceName string, ri int) resource.TestCheckFunc {
 	return resource.ComposeAggregateTestCheckFunc(
-		testCheckAzureRMRecoveryServicesProtectionPolicyVmExists(resourceName),
+		testCheckAzureRMBackupProtectionPolicyVmExists(resourceName),
 		resource.TestCheckResourceAttr(resourceName, "name", fmt.Sprintf("acctest-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "resource_group_name", fmt.Sprintf("acctestRG-%d", ri)),
 		resource.TestCheckResourceAttr(resourceName, "recovery_vault_name", fmt.Sprintf("acctest-%d", ri)),

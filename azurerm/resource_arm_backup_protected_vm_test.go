@@ -20,12 +20,12 @@ func TestAccAzureRMBackupProtectedVm_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedVm_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName),
+					testCheckAzureRMBackupProtectedVmExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 				),
 			},
@@ -54,12 +54,12 @@ func TestAccAzureRMBackupProtectedVm_requiresImport(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedVm_basic(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName),
+					testCheckAzureRMBackupProtectedVmExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 				),
 			},
@@ -82,12 +82,12 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccAzureRMBackupProtectedVm_separateResourceGroups(ri, testLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName),
+					testCheckAzureRMBackupProtectedVmExists(resourceName),
 					resource.TestCheckResourceAttrSet(resourceName, "resource_group_name"),
 				),
 			},
@@ -107,15 +107,15 @@ func TestAccAzureRMBackupProtectedVm_separateResourceGroups(t *testing.T) {
 func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	virtualMachine := "azurerm_virtual_machine.test"
 	protectedVmResourceName := "azurerm_backup_protected_vm.test"
-	fBackupPolicyResourceName := "azurerm_backup_policy_vm.test"
-	sBackupPolicyResourceName := "azurerm_backup_policy_vm.test_change_backup"
+	fBackupPolicyResourceName := "azurerm_backup_protection_policy_vm.test"
+	sBackupPolicyResourceName := "azurerm_backup_protection_policy_vm.test_change_backup"
 
 	ri := tf.AccRandTimeInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testCheckAzureRMRecoveryServicesProtectedVmDestroy,
+		CheckDestroy: testCheckAzureRMBackupProtectedVmDestroy,
 		Steps: []resource.TestStep{
 			{ // Create resources and link first backup policy id
 				ResourceName: fBackupPolicyResourceName,
@@ -153,7 +153,7 @@ func TestAccAzureRMBackupProtectedVm_updateBackupPolicyId(t *testing.T) {
 	})
 }
 
-func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) error {
+func testCheckAzureRMBackupProtectedVmDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "azurerm_backup_protected_vm" {
 			continue
@@ -193,7 +193,7 @@ func testCheckAzureRMRecoveryServicesProtectedVmDestroy(s *terraform.State) erro
 	return nil
 }
 
-func testCheckAzureRMRecoveryServicesProtectedVmExists(resourceName string) resource.TestCheckFunc {
+func testCheckAzureRMBackupProtectedVmExists(resourceName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		rs, ok := s.RootModule().Resources[resourceName]
@@ -351,7 +351,7 @@ resource "azurerm_recovery_services_vault" "test" {
   sku                 = "Standard"
 }
 
-resource "azurerm_backup_policy_vm" "test" {
+resource "azurerm_backup_protection_policy_vm" "test" {
   name                = "acctest-%[1]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -376,7 +376,7 @@ resource "azurerm_backup_protected_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
-  backup_policy_id    = "${azurerm_backup_policy_vm.test.id}"
+  backup_policy_id    = "${azurerm_backup_protection_policy_vm.test.id}"
 }
 `, testAccAzureRMBackupProtectedVm_base(rInt, location))
 }
@@ -463,7 +463,7 @@ func testAccAzureRMBackupProtectedVm_withFirstPolicy(rInt int, location string) 
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_backup_policy_vm" "test" {
+resource "azurerm_backup_protection_policy_vm" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -485,7 +485,7 @@ func testAccAzureRMBackupProtectedVm_withSecondPolicy(rInt int, location string)
 	return fmt.Sprintf(`
 %[1]s
 
-resource "azurerm_backup_policy_vm" "test_change_backup" {
+resource "azurerm_backup_protection_policy_vm" "test_change_backup" {
   name                = "acctest2-%[2]d"
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
@@ -565,7 +565,7 @@ resource "azurerm_backup_protected_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
-  backup_policy_id    = "${azurerm_backup_policy_vm.test.id}"
+  backup_policy_id    = "${azurerm_backup_protection_policy_vm.test.id}"
 }
 `, testAccAzureRMBackupProtectedVm_withVM(rInt, location))
 }
@@ -579,7 +579,7 @@ resource "azurerm_backup_protected_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test.name}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
-  backup_policy_id    = "${azurerm_backup_policy_vm.test_change_backup.id}"
+  backup_policy_id    = "${azurerm_backup_protection_policy_vm.test_change_backup.id}"
 }
 `, testAccAzureRMBackupProtectedVm_withVM(rInt, location))
 }
@@ -613,7 +613,7 @@ resource "azurerm_recovery_services_vault" "test2" {
   sku                 = "Standard"
 }
 
-resource "azurerm_backup_policy_vm" "test2" {
+resource "azurerm_backup_protection_policy_vm" "test2" {
   name                = "acctest2-%[2]d"
   resource_group_name = "${azurerm_resource_group.test2.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test2.name}"
@@ -637,7 +637,7 @@ func testAccAzureRMBackupProtectedVm_separateResourceGroups(rInt int, location s
 resource "azurerm_backup_protected_vm" "test" {
   resource_group_name = "${azurerm_resource_group.test2.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.test2.name}"
-  backup_policy_id    = "${azurerm_backup_policy_vm.test2.id}"
+  backup_policy_id    = "${azurerm_backup_protection_policy_vm.test2.id}"
   source_vm_id        = "${azurerm_virtual_machine.test.id}"
 }
 `, testAccAzureRMBackupProtectedVm_additionalVault(rInt, location))

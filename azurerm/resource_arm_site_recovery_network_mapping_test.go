@@ -26,7 +26,7 @@ func TestAccAzureRMSiteRecoveryNetworkMapping_basic(t *testing.T) {
 			{
 				Config: testAccAzureRMSiteRecoveryNetworkMapping_basic(ri, testLocation(), testAltLocation()),
 				Check: resource.ComposeTestCheckFunc(
-					testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupName, vaultName, fabricName, networkName, resourceName),
+					testCheckAzureRMSiteRecoveryNetworkMappingExists(resourceGroupName, vaultName, fabricName, networkName, resourceName),
 				),
 			},
 			{
@@ -93,7 +93,7 @@ resource "azurerm_site_recovery_network_mapping" "test" {
 `, rInt, location, rInt, rInt, rInt, altLocation, rInt, rInt, rInt)
 }
 
-func testCheckAzureRMRecoveryNetworkMappingExists(resourceGroupStateName, vaultStateName string, fabricStateName string, networkStateName string, networkStateMappingName string) resource.TestCheckFunc {
+func testCheckAzureRMSiteRecoveryNetworkMappingExists(resourceGroupStateName, vaultStateName string, fabricStateName string, networkStateName string, networkStateMappingName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		// Ensure we have enough information in state to look up in API
 		resourceGroupState, ok := s.RootModule().Resources[resourceGroupStateName]
