@@ -12,7 +12,7 @@ import (
 var olderKubernetesVersion = "1.14.8"
 var currentKubernetesVersion = "1.15.5"
 
-func TestAccAzureRMKubernetes(t *testing.T) {
+func TestAccAzureRMKubernetes_all(t *testing.T) {
 	// NOTE: this is a combined test rather than separate split out tests to
 	// ease the load on the kubernetes api
 	testCases := map[string]map[string]func(t *testing.T){
