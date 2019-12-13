@@ -136,6 +136,10 @@ resource "azurerm_subnet" "virtual" {
 
 * `windows_profile` - (Optional) A `windows_profile` block as defined below.
 
+* `private_link_enabled` (Optional) Enables private link for the AKS cluster, providing a private IP for the k8s api. Defaults to false.
+
+-> **NOTE:**  At this time Private Link is in Public Preview. For an example of how to enable a Preview feature, please visit  [Private Azure Kubernetes Service cluster] (https://docs.microsoft.com/en-gb/azure/aks/private-clusters)
+
 ---
 
 A `addon_profile` block supports the following:
@@ -349,6 +353,10 @@ The following attributes are exported:
 * `id` - The Kubernetes Managed Cluster ID.
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
+
+* `private_fqdn` - The FQDN when private link has been enabled with `private_link_enabled`, this name is only resolvable inside the AKS vnet. 
+
+-> **NOTE:**  At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled.
 

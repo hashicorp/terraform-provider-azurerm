@@ -88,6 +88,14 @@ func (client ManagedClustersClient) CreateOrUpdate(ctx context.Context, resource
 								Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.DNSServiceIP", Name: validation.Pattern, Rule: `^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`, Chain: nil}}},
 							{Target: "parameters.ManagedClusterProperties.NetworkProfile.DockerBridgeCidr", Name: validation.Null, Rule: false,
 								Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.DockerBridgeCidr", Name: validation.Pattern, Rule: `^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`, Chain: nil}}},
+							{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile", Name: validation.Null, Rule: false,
+								Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs", Name: validation.Null, Rule: false,
+									Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.Null, Rule: false,
+										Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.InclusiveMaximum, Rule: int64(100), Chain: nil},
+											{Target: "parameters.ManagedClusterProperties.NetworkProfile.LoadBalancerProfile.ManagedOutboundIPs.Count", Name: validation.InclusiveMinimum, Rule: 1, Chain: nil},
+										}},
+									}},
+								}},
 						}},
 					{Target: "parameters.ManagedClusterProperties.AadProfile", Name: validation.Null, Rule: false,
 						Chain: []validation.Constraint{{Target: "parameters.ManagedClusterProperties.AadProfile.ClientAppID", Name: validation.Null, Rule: true, Chain: nil},
@@ -120,7 +128,7 @@ func (client ManagedClustersClient) CreateOrUpdatePreparer(ctx context.Context, 
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -209,7 +217,7 @@ func (client ManagedClustersClient) DeletePreparer(ctx context.Context, resource
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -301,7 +309,7 @@ func (client ManagedClustersClient) GetPreparer(ctx context.Context, resourceGro
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -391,7 +399,7 @@ func (client ManagedClustersClient) GetAccessProfilePreparer(ctx context.Context
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -479,7 +487,7 @@ func (client ManagedClustersClient) GetUpgradeProfilePreparer(ctx context.Contex
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -553,7 +561,7 @@ func (client ManagedClustersClient) ListPreparer(ctx context.Context) (*http.Req
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -673,7 +681,7 @@ func (client ManagedClustersClient) ListByResourceGroupPreparer(ctx context.Cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -798,7 +806,7 @@ func (client ManagedClustersClient) ListClusterAdminCredentialsPreparer(ctx cont
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -886,7 +894,7 @@ func (client ManagedClustersClient) ListClusterUserCredentialsPreparer(ctx conte
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -971,7 +979,7 @@ func (client ManagedClustersClient) ResetAADProfilePreparer(ctx context.Context,
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1062,7 +1070,7 @@ func (client ManagedClustersClient) ResetServicePrincipalProfilePreparer(ctx con
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -1097,6 +1105,92 @@ func (client ManagedClustersClient) ResetServicePrincipalProfileResponder(resp *
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted),
+		autorest.ByClosing())
+	result.Response = resp
+	return
+}
+
+// RotateClusterCertificates rotate certificates of a managed cluster.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// resourceName - the name of the managed cluster resource.
+func (client ManagedClustersClient) RotateClusterCertificates(ctx context.Context, resourceGroupName string, resourceName string) (result ManagedClustersRotateClusterCertificatesFuture, err error) {
+	if tracing.IsEnabled() {
+		ctx = tracing.StartSpan(ctx, fqdn+"/ManagedClustersClient.RotateClusterCertificates")
+		defer func() {
+			sc := -1
+			if result.Response() != nil {
+				sc = result.Response().StatusCode
+			}
+			tracing.EndSpan(ctx, sc, err)
+		}()
+	}
+	if err := validation.Validate([]validation.Validation{
+		{TargetValue: resourceGroupName,
+			Constraints: []validation.Constraint{{Target: "resourceGroupName", Name: validation.MinLength, Rule: 1, Chain: nil}}},
+		{TargetValue: resourceName,
+			Constraints: []validation.Constraint{{Target: "resourceName", Name: validation.MaxLength, Rule: 63, Chain: nil},
+				{Target: "resourceName", Name: validation.MinLength, Rule: 1, Chain: nil},
+				{Target: "resourceName", Name: validation.Pattern, Rule: `^[a-zA-Z0-9]$|^[a-zA-Z0-9][-_a-zA-Z0-9]{0,61}[a-zA-Z0-9]$`, Chain: nil}}}}); err != nil {
+		return result, validation.NewError("containerservice.ManagedClustersClient", "RotateClusterCertificates", err.Error())
+	}
+
+	req, err := client.RotateClusterCertificatesPreparer(ctx, resourceGroupName, resourceName)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "RotateClusterCertificates", nil, "Failure preparing request")
+		return
+	}
+
+	result, err = client.RotateClusterCertificatesSender(req)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "containerservice.ManagedClustersClient", "RotateClusterCertificates", result.Response(), "Failure sending request")
+		return
+	}
+
+	return
+}
+
+// RotateClusterCertificatesPreparer prepares the RotateClusterCertificates request.
+func (client ManagedClustersClient) RotateClusterCertificatesPreparer(ctx context.Context, resourceGroupName string, resourceName string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"resourceName":      autorest.Encode("path", resourceName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+	}
+
+	const APIVersion = "2019-10-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsPost(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{resourceName}/rotateClusterCertificates", pathParameters),
+		autorest.WithQueryParameters(queryParameters))
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// RotateClusterCertificatesSender sends the RotateClusterCertificates request. The method will close the
+// http.Response Body if it receives an error.
+func (client ManagedClustersClient) RotateClusterCertificatesSender(req *http.Request) (future ManagedClustersRotateClusterCertificatesFuture, err error) {
+	sd := autorest.GetSendDecorators(req.Context(), azure.DoRetryWithRegistration(client.Client))
+	var resp *http.Response
+	resp, err = autorest.SendWithSender(client, req, sd...)
+	if err != nil {
+		return
+	}
+	future.Future, err = azure.NewFutureFromResponse(resp)
+	return
+}
+
+// RotateClusterCertificatesResponder handles the response to the RotateClusterCertificates request. The method always
+// closes the http.Response Body.
+func (client ManagedClustersClient) RotateClusterCertificatesResponder(resp *http.Response) (result autorest.Response, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
 		autorest.ByClosing())
 	result.Response = resp
 	return
@@ -1151,7 +1245,7 @@ func (client ManagedClustersClient) UpdateTagsPreparer(ctx context.Context, reso
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2019-06-01"
+	const APIVersion = "2019-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}

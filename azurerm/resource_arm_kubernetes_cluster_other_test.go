@@ -3,6 +3,7 @@ package azurerm
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -90,7 +91,44 @@ func testAccAzureRMKubernetesCluster_basicVMSS(t *testing.T) {
 	})
 }
 
+func testAccAzureRMKubernetesCluster_privateLink(t *testing.T) {
+	resourceName := "azurerm_kubernetes_cluster.test"
+	ri := tf.AccRandTimeInt()
+	clientId := os.Getenv("ARM_CLIENT_ID")
+	clientSecret := os.Getenv("ARM_CLIENT_SECRET")
+	location := testLocation()
+
+	privateIpAddressCdir := "10.0.0.0/8"
+	privatefqdnRegex, err := regexp.Compile(".*.azmk8s.io")
+	if err != nil {
+		t.Error("This is a developer error, the regex used to test the private fqdn is not valid")
+	}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, privateIpAddressCdir),
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMKubernetesClusterExists(resourceName),
+					resource.TestMatchResourceAttr(resourceName, "private_fqdn", privatefqdnRegex),
+					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "true"),
+				),
+			},
+			{
+				ResourceName:            resourceName,
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"service_principal.0.client_secret"},
+			},
+		},
+	})
+}
+
 func testAccAzureRMKubernetesCluster_requiresImport(t *testing.T) {
+
 	if !features.ShouldResourcesBeImported() {
 		t.Skip("Skipping since resources aren't required to be imported")
 		return
@@ -376,6 +414,49 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
 `, rInt, location, rInt, rInt, clientId, clientSecret)
+}
+
+func testAccAzureRMKubernetesCluster_privateLinkConfig(rInt int, clientId string, clientSecret string, location string, cdir string) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  linux_profile {
+    admin_username = "acctestuser%d"
+
+    ssh_key {
+      key_data = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+    }
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  service_principal {
+    client_id     = "%s"
+    client_secret = "%s"
+  }
+  
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+  
+  api_server_authorized_ip_ranges = [ "%s"]
+  private_link_enabled            = true
+}
+`, rInt, location, rInt, rInt, rInt, clientId, clientSecret, cdir)
 }
 
 func testAccAzureRMKubernetesCluster_requiresImportConfig(rInt int, clientId, clientSecret, location string) string {
