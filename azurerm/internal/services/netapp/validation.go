@@ -2,7 +2,6 @@ package netapp
 
 import (
 	"fmt"
-	"net"
 	"regexp"
 )
 
@@ -44,23 +43,4 @@ func ValidateNetAppVolumeVolumePath(v interface{}, k string) (warnings []string,
 	}
 
 	return warnings, errors
-}
-
-func ValidateNetAppVolumeAllowedClients(v interface{}, k string) (warnings []string, errors []error) {
-	value := v.(string)
-
-	if !regexp.MustCompile(`^([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?$`).MatchString(value) {
-		errors = append(errors, fmt.Errorf("%s must start with IPV4 address and/or slash, number of bits (0-32) as prefix. Example: 127.0.0.1/8. Got %q.", k, value))
-	}
-
-	ip := net.ParseIP(value)
-	if four := ip.To4(); four == nil {
-		errors = append(errors, fmt.Errorf("%q is not a valid IPv4 address: %q", k, v))
-	}
-
-	if len(errors) == 2 {
-		return warnings, errors
-	} else {
-		return warnings, nil
-	}
 }

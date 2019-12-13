@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
 	aznetapp "github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/services/netapp"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/timeouts"
@@ -110,18 +111,18 @@ func resourceArmNetAppVolume() *schema.Resource {
 							Required: true,
 							Elem: &schema.Schema{
 								Type:         schema.TypeString,
-								ValidateFunc: aznetapp.ValidateNetAppVolumeAllowedClients,
+								ValidateFunc: validate.CIDR,
 							},
 						},
 						"cifs_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
-						"nfsv3": {
+						"nfsv3_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
-						"nfsv4": {
+						"nfsv4_enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
@@ -314,16 +315,16 @@ func expandArmNetAppVolumeExportPolicyRule(input []interface{}) *netapp.VolumePr
 			ruleIndex := int32(v["rule_index"].(int))
 			allowedClients := strings.Join(*utils.ExpandStringSlice(v["allowed_clients"].(*schema.Set).List()), ",")
 			cifsEnabled := v["cifs_enabled"].(bool)
-			nfsv3 := v["nfsv3"].(bool)
-			nfsv4 := v["nfsv4"].(bool)
+			nfsv3Enabled := v["nfsv3_enabled"].(bool)
+			nfsv4Enabled := v["nfsv4_enabled"].(bool)
 			unixReadOnly := v["unix_read_only"].(bool)
 			unixReadWrite := v["unix_read_write"].(bool)
 
 			result := netapp.ExportPolicyRule{
 				AllowedClients: utils.String(allowedClients),
 				Cifs:           utils.Bool(cifsEnabled),
-				Nfsv3:          utils.Bool(nfsv3),
-				Nfsv4:          utils.Bool(nfsv4),
+				Nfsv3:          utils.Bool(nfsv3Enabled),
+				Nfsv4:          utils.Bool(nfsv4Enabled),
 				RuleIndex:      utils.Int32(ruleIndex),
 				UnixReadOnly:   utils.Bool(unixReadOnly),
 				UnixReadWrite:  utils.Bool(unixReadWrite),
@@ -357,13 +358,13 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 		if v := item.Cifs; v != nil {
 			cifsEnabled = *v
 		}
-		nfsv3 := false
+		nfsv3Enabled := false
 		if v := item.Nfsv3; v != nil {
-			nfsv3 = *v
+			nfsv3Enabled = *v
 		}
-		nfsv4 := false
+		nfsv4Enabled := false
 		if v := item.Nfsv4; v != nil {
-			nfsv4 = *v
+			nfsv4Enabled = *v
 		}
 		unixReadOnly := false
 		if v := item.UnixReadOnly; v != nil {
@@ -378,8 +379,8 @@ func flattenArmNetAppVolumeExportPolicyRule(input *netapp.VolumePropertiesExport
 			"rule_index":      ruleIndex,
 			"allowed_clients": utils.FlattenStringSlice(&allowedClients),
 			"cifs_enabled":    cifsEnabled,
-			"nfsv3":           nfsv3,
-			"nfsv4":           nfsv4,
+			"nfsv3_enabled":   nfsv3Enabled,
+			"nfsv4_enabled":   nfsv4Enabled,
 			"unix_read_only":  unixReadOnly,
 			"unix_read_write": unixReadWrite,
 		})

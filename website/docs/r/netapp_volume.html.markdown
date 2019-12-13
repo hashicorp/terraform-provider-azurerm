@@ -33,7 +33,7 @@ resource "azurerm_subnet" "example" {
   address_prefix       = "10.0.2.0/24"
 
   delegation {
-    name = "testdelegation"
+    name = "netapp"
   
     service_delegation {
       name    = "Microsoft.Netapp/volumes"
@@ -104,9 +104,9 @@ An `export_policy_rule` block supports the following:
 
 * `cifs_enabled` - (Required) Is the CIFS protocol allowed?
 
-* `nfsv3` - (Required) Is the NFSv3 protocol allowed?
+* `nfsv3_enabled` - (Required) Is the NFSv3 protocol allowed?
 
-* `nfsv4` - (Required) Is the NFSv4 protocol allowed?
+* `nfsv4_enabled` - (Required) Is the NFSv4 protocol allowed?
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
