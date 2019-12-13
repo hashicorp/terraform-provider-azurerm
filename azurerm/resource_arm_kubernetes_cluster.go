@@ -271,7 +271,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 			"private_link_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Computed: false,
 				ForceNew: true,
 				Default:  false,
 			},
