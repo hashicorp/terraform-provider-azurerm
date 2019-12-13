@@ -1,0 +1,35 @@
+package powerbidedicated
+
+import (
+	"fmt"
+	"github.com/hashicorp/go-uuid"
+	"regexp"
+)
+
+func ValidateCapacityName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[a-z][a-z0-9]{3,63}$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q must be between 4 and 64 characters in length and contains only lowercase letters or numbers.", k))
+	}
+
+	return warnings, errors
+}
+
+func ValidateCapacityAdministratorName(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+
+	if !regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`).MatchString(value) {
+		errors = append(errors, fmt.Errorf("%q isn't a valid email address.", k))
+	}
+
+	if _, err := uuid.ParseUUID(value); err != nil {
+		errors = append(errors, fmt.Errorf("%q isn't a valid UUID (%q): %+v", k, v, err))
+	}
+
+	if len(errors) == 2 {
+		return warnings, errors
+	} else {
+		return nil, nil
+	}
+}
