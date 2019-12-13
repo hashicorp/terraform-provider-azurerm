@@ -103,7 +103,7 @@ func TestValidateCapacityAdministratorName(t *testing.T) {
 		{
 			// invalid uuid
 			input:    "00000000-0000-0000-0000-00000000-0000",
-			expected: true,
+			expected: false,
 		},
 	}
 
