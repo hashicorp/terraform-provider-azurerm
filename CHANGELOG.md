@@ -10,6 +10,7 @@ FEATURESE:
 
 IMPROVEMENTS:
 
+* dependencies: upgrading to `v0.7.1` of github.com/tombuildsstuff/giovanni [GH-5143]
 * storage: switching to use the Authorizers from Azure/go-autorest [GH-5109]
 * `azurerm_app_service` - adding validation to import [GH-5107]
 * `azurerm_app_service_certificate` - adding validation to import [GH-5107]
