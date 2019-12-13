@@ -50,7 +50,7 @@ func dataSourceArmNetAppPool() *schema.Resource {
 }
 
 func dataSourceArmNetAppPoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Netapp.PoolClient
+	client := meta.(*ArmClient).NetApp.PoolClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

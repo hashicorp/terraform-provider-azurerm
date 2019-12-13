@@ -25,8 +25,10 @@ func TestAccAzureRMBotChannelsRegistration(t *testing.T) {
 			"complete": testAccAzureRMBotConnection_complete,
 		},
 		"channel": {
-			"slackBasic":  testAccAzureRMBotChannelSlack_basic,
-			"slackUpdate": testAccAzureRMBotChannelSlack_update,
+			"slackBasic":    testAccAzureRMBotChannelSlack_basic,
+			"slackUpdate":   testAccAzureRMBotChannelSlack_update,
+			"msteamsBasic":  testAccAzureRMBotChannelMsTeams_basic,
+			"msteamsUpdate": testAccAzureRMBotChannelMsTeams_update,
 		},
 		"web_app": {
 			"basic":    testAccAzureRMBotWebApp_basic,

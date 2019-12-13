@@ -182,7 +182,7 @@ func TestAccAzureRMApplicationInsightsAPIKey_full_permissions(t *testing.T) {
 }
 
 func testCheckAzureRMApplicationInsightsAPIKeyDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeyClient
+	conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeysClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -228,7 +228,7 @@ func testCheckAzureRMApplicationInsightsAPIKeyExists(resourceName string) resour
 		resGroup := id.ResourceGroup
 		appInsightsName := id.Path["components"]
 
-		conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeyClient
+		conn := testAccProvider.Meta().(*ArmClient).AppInsights.APIKeysClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := conn.Get(ctx, resGroup, appInsightsName, keyID)

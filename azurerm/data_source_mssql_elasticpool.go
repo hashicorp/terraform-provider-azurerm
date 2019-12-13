@@ -65,7 +65,7 @@ func dataSourceArmMsSqlElasticpool() *schema.Resource {
 }
 
 func dataSourceArmMsSqlElasticpoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mssql.ElasticPoolsClient
+	client := meta.(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

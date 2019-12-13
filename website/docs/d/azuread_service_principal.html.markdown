@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Azure Active Directory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_service_principal"
 sidebar_current: "docs-azurerm-datasource-azuread-service-principal"

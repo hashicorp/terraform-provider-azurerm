@@ -62,7 +62,7 @@ func resourceArmMySqlFirewallRule() *schema.Resource {
 }
 
 func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	client := meta.(*ArmClient).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -117,7 +117,7 @@ func resourceArmMySqlFirewallRuleCreateUpdate(d *schema.ResourceData, meta inter
 }
 
 func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	client := meta.(*ArmClient).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
@@ -148,7 +148,7 @@ func resourceArmMySqlFirewallRuleRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceArmMySqlFirewallRuleDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*ArmClient).Mysql.FirewallRulesClient
+	client := meta.(*ArmClient).MySQL.FirewallRulesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 

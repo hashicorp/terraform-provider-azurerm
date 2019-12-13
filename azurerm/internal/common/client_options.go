@@ -44,7 +44,7 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 	c.Sender = sender.BuildSender("AzureRM")
 	c.SkipResourceProviderRegistration = o.SkipProviderReg
 	if !o.DisableCorrelationRequestID {
-		c.RequestInspector = WithCorrelationRequestID(CorrelationRequestID())
+		c.RequestInspector = withCorrelationRequestID(correlationRequestID())
 	}
 
 	// TODO: remove in 2.0
