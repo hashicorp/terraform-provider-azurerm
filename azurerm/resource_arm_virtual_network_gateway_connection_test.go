@@ -111,6 +111,29 @@ func TestAccAzureRMVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
 	})
 }
 
+func TestAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(t *testing.T) {
+	expectedConnectionProtocol := "IKEv1"
+	resourceName := "azurerm_virtual_network_gateway_connection.test"
+
+	ri := tf.AccRandTimeInt()
+	config := testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(ri, testLocation())
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testCheckAzureRMVirtualNetworkGatewayConnectionDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testCheckAzureRMVirtualNetworkGatewayConnectionExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "connection_protocol", expectedConnectionProtocol),
+				),
+			},
+		},
+	})
+}
+
 func TestAccAzureRMVirtualNetworkGatewayConnection_updatingSharedKey(t *testing.T) {
 	firstResourceName := "azurerm_virtual_network_gateway_connection.test_1"
 	secondResourceName := "azurerm_virtual_network_gateway_connection.test_2"
@@ -486,6 +509,91 @@ resource "azurerm_virtual_network_gateway_connection" "test" {
 
   use_policy_based_traffic_selectors = true
   routing_weight                     = 20
+
+  ipsec_policy {
+    dh_group         = "DHGroup14"
+    ike_encryption   = "AES256"
+    ike_integrity    = "SHA256"
+    ipsec_encryption = "AES256"
+    ipsec_integrity  = "SHA256"
+    pfs_group        = "PFS2048"
+    sa_datasize      = 102400000
+    sa_lifetime      = 27000
+  }
+
+  shared_key = "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
+}
+`, rInt, location)
+}
+
+func testAccAzureRMVirtualNetworkGatewayConnection_connectionprotocol(rInt int, location string) string {
+	return fmt.Sprintf(`
+variable "random" {
+  default = "%d"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-${var.random}"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-${var.random}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "GatewaySubnet"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefix       = "10.0.1.0/24"
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctest-${var.random}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_virtual_network_gateway" "test" {
+  name                = "acctest-${var.random}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  type     = "Vpn"
+  vpn_type = "RouteBased"
+  sku      = "VpnGw1"
+
+  ip_configuration {
+    name                          = "vnetGatewayConfig"
+    public_ip_address_id          = "${azurerm_public_ip.test.id}"
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = "${azurerm_subnet.test.id}"
+  }
+}
+
+resource "azurerm_local_network_gateway" "test" {
+  name                = "acctest-${var.random}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  gateway_address = "168.62.225.23"
+  address_space   = ["10.1.1.0/24"]
+}
+
+resource "azurerm_virtual_network_gateway_connection" "test" {
+  name                = "acctest-${var.random}"
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+
+  type                       = "IPsec"
+  virtual_network_gateway_id = "${azurerm_virtual_network_gateway.test.id}"
+  local_network_gateway_id   = "${azurerm_local_network_gateway.test.id}"
+
+  connection_protocol = "IKEv1"
 
   ipsec_policy {
     dh_group         = "DHGroup14"
