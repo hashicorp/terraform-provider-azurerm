@@ -97,12 +97,12 @@ func TestValidateCapacityAdministratorName(t *testing.T) {
 		},
 		{
 			// valid uuid
-			input:    "00000000-0000-0000-0000-00000000",
+			input:    "1cf9c591-172b-4654-8ab8-81964aa5335e",
 			expected: true,
 		},
 		{
 			// invalid uuid
-			input:    "00000000-0000-0000-0000-00000000-0000",
+			input:    "1cf9c591-172b-4654-8ab8-81964aa5335e-0000",
 			expected: false,
 		},
 	}
