@@ -3,6 +3,10 @@
 FEATURESE: 
 
 * **New Resource:** `azurerm_app_configuration` [GH-4859]
+* **New Resource:** `azurerm_bot_channel_ms_teams` [GH-4984]
+* **New Resource:** `azurerm_mssql_database_vulnerability_assessment_rule_baseline` [GH-3806]
+* **New Resource:** `azurerm_mssql_server_vulnerability_assessment` [GH-3806]
+* **New Resource:** `azurerm_mssql_server_security_alert_policy` [GH-3806]
 
 IMPROVEMENTS:
 
@@ -13,13 +17,15 @@ IMPROVEMENTS:
 * `azurerm_app_service_plan` - adding validation to import [GH-5107]
 * `azurerm_app_service_slot` - adding validation to import [GH-5107]
 * `azurerm_app_service_source_control_token` - adding validation to import [GH-5107]
-* `azurerm_cosmos_mongo_collection`: deprecate the `indexes` property [GH-5116]
-* `azurerm_cosmos_mongo_collection`: make throughput computed and remove the default to let the API handel it [GH-5116]
-* `azurerm_cosmos_mongo_database`: support for the `throughput` property [GH-5116]
+* `azurerm_cosmos_mongo_collection` - deprecate the `indexes` property [GH-5116]
+* `azurerm_cosmos_mongo_collection` - make throughput computed and remove the default to let the API handel it [GH-5116]
+* `azurerm_cosmos_mongo_database` - support for the `throughput` property [GH-5116]
+* `azurerm_function_app` - support for `min_tls_version` [GH-5074]
 
 BUG FIXES:
 
 * Data Source: `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
+* `azurerm_api_management_api` - ensuring `version_set_id` is specified when `version` is [GH-4993]
 * `azurerm_nat_gateway` - handling a crash when the `sku` block was malformed [GH-5104]
 * `azurerm_private_link_endpoint` - fixing the validation for the `subresource_names` field [GH-5118]
 * `azurerm_storage_account` - querying all pages when listing storage accounts [GH-5075]
