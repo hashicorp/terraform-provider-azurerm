@@ -21,6 +21,7 @@ IMPROVEMENTS:
 * `azurerm_cosmos_mongo_collection` - make throughput computed and remove the default to let the API handel it [GH-5116]
 * `azurerm_cosmos_mongo_database` - support for the `throughput` property [GH-5116]
 * `azurerm_function_app` - support for `min_tls_version` [GH-5074]
+* `azurerm_private_link_endpoint` - has been deprecated and renamed to `azurerm_private_endpoint` [GH-5150]
 
 BUG FIXES:
 
