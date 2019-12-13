@@ -118,7 +118,7 @@ func testCheckAzureRMMySQLConfigurationValue(resourceName string, value string) 
 			return fmt.Errorf("Bad: no resource group found in state for MySQL Configuration: %s", name)
 		}
 
-		client := testAccProvider.Meta().(*ArmClient).Mysql.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).MySQL.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, name)
@@ -143,7 +143,7 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 		resourceGroup := fmt.Sprintf("acctestRG-%d", rInt)
 		serverName := fmt.Sprintf("acctestmysqlsvr-%d", rInt)
 
-		client := testAccProvider.Meta().(*ArmClient).Mysql.ConfigurationsClient
+		client := testAccProvider.Meta().(*ArmClient).MySQL.ConfigurationsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, configurationName)
@@ -166,7 +166,7 @@ func testCheckAzureRMMySQLConfigurationValueReset(rInt int, configurationName st
 }
 
 func testCheckAzureRMMySQLConfigurationDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Mysql.ConfigurationsClient
+	client := testAccProvider.Meta().(*ArmClient).MySQL.ConfigurationsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {

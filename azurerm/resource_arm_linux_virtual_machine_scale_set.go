@@ -32,6 +32,7 @@ func resourceArmLinuxVirtualMachineScaleSet() *schema.Resource {
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(time.Minute * 30),
 			Update: schema.DefaultTimeout(time.Minute * 60),
+			Read:   schema.DefaultTimeout(time.Minute * 5),
 			Delete: schema.DefaultTimeout(time.Minute * 30),
 		},
 

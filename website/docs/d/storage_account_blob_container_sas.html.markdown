@@ -1,5 +1,5 @@
 ---
-subcategory: ""
+subcategory: "Storage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_storage_account_blob_container_sas"
 sidebar_current: "docs-azurerm-datasource-storage-account-blob-container-sas"
