@@ -4,18 +4,19 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/profiles/latest/storage/mgmt/storage"
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
-
-	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	az "github.com/Azure/go-autorest/autorest/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/authorizers"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/common"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/blobs"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/blob/containers"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/directories"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/file/shares"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/queue/queues"
-	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2017-07-29/blob/blobs"
+	"github.com/tombuildsstuff/giovanni/storage/2017-07-29/blob/containers"
+	"github.com/tombuildsstuff/giovanni/storage/2017-07-29/file/directories"
+	"github.com/tombuildsstuff/giovanni/storage/2017-07-29/file/files"
+	"github.com/tombuildsstuff/giovanni/storage/2017-07-29/file/shares"
+	"github.com/tombuildsstuff/giovanni/storage/2017-07-29/queue/queues"
+	"github.com/tombuildsstuff/giovanni/storage/2017-07-29/table/entities"
+	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/datalakestore/filesystems"
 	"github.com/tombuildsstuff/giovanni/storage/2018-11-09/table/tables"
 )
 
@@ -93,6 +94,13 @@ func (client Client) FileShareDirectoriesClient(ctx context.Context, account acc
 	directoriesClient := directories.NewWithEnvironment(client.environment)
 	directoriesClient.Client.Authorizer = storageAuth
 	return &directoriesClient, nil
+}
+
+func (client Client) FileFilesClientWithSASToken(sasToken string) *files.Client {
+	fileClient := files.NewWithEnvironment(client.environment)
+	sasAuth := authorizers.NewSharedAccessSignatureAuthorizer(sasToken)
+	fileClient.Client.Authorizer = sasAuth
+	return &fileClient
 }
 
 func (client Client) FileSharesClient(ctx context.Context, account accountDetails) (*shares.Client, error) {
