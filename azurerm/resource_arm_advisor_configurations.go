@@ -103,9 +103,7 @@ func resourceArmAdvisorConfigurationsCreateUpdate(d *schema.ResourceData, meta i
 		}
 
 		d.SetId(*read.ID)
-
 	} else {
-
 		_, err := client.CreateInSubscription(ctx, parameters)
 		if err != nil {
 			return fmt.Errorf("Error creating Advisor Configurations: %+v", err)
@@ -154,17 +152,15 @@ func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface
 		d.Set("resource_group_name", resourceGroup)
 
 		if exclude := resp.Properties.Exclude; exclude != nil {
-			d.Set("exclude", *exclude)
+			d.Set("exclude", exclude)
 		}
 
 		if lowCPUThreshold := resp.Properties.LowCPUThreshold; lowCPUThreshold != nil {
-			d.Set("low_cpu_threshold", *lowCPUThreshold)
+			d.Set("low_cpu_threshold", lowCPUThreshold)
 		}
 
 		return nil
-
 	} else {
-
 		resplist, err := client.ListBySubscription(ctx)
 		if err != nil {
 			if resplist.NotDone() {
@@ -211,7 +207,6 @@ func resourceArmAdvisorConfigurationsDelete(d *schema.ResourceData, meta interfa
 		}
 
 		return nil
-
 	} else {
 		parameters := advisor.ConfigData{
 			Properties: &advisor.ConfigDataProperties{
@@ -226,5 +221,4 @@ func resourceArmAdvisorConfigurationsDelete(d *schema.ResourceData, meta interfa
 
 		return nil
 	}
-
 }
