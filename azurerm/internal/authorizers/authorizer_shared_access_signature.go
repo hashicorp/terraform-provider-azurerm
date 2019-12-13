@@ -10,14 +10,21 @@ import (
 // SharedAccessSignatureAuthorizer implements an authorization for Shared Access Signature
 // this can be used for interaction with Blob, File and Queue Storage Endpoints
 type SharedAccessSignatureAuthorizer struct {
-	sasQuery map[string][]string
+	sasQuery map[string]interface{}
 }
 
 // NewSharedAccessSignatureAuthorizer creates a SharedAccessSignatureAuthorizer using sasToken
 func NewSharedAccessSignatureAuthorizer(sasToken string) *SharedAccessSignatureAuthorizer {
 	m, _ := url.ParseQuery(sasToken)
+	query := make(map[string]interface{}, len(m))
+	for key, value := range m {
+		for i, v := range value {
+			value[i] = url.QueryEscape(v)
+		}
+		query[key] = value
+	}
 	return &SharedAccessSignatureAuthorizer{
-		sasQuery: m,
+		sasQuery: query,
 	}
 }
 
@@ -34,12 +41,7 @@ func (skl *SharedAccessSignatureAuthorizer) WithAuthorization() autorest.Prepare
 				return r, err
 			}
 
-			query := make(map[string]interface{}, len(skl.sasQuery))
-			for key, value := range skl.sasQuery {
-				query[key] = value
-			}
-
-			return autorest.Prepare(r, autorest.WithQueryParameters(query))
+			return autorest.Prepare(r, autorest.WithQueryParameters(skl.sasQuery))
 		})
 	}
 }
