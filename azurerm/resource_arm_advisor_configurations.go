@@ -113,7 +113,8 @@ func resourceArmAdvisorConfigurationsCreateUpdate(d *schema.ResourceData, meta i
 		if err != nil {
 			return fmt.Errorf("Error retrieving Advisor Configurations: %+v", err)
 		}
-		if readlist.NotDone() {
+		// here is a sdk problem, which NotDone return false when the response is empty
+		if !readlist.NotDone() {
 			return fmt.Errorf("Error retrieving Advisor Configurations, the response page enumeration should be started or is not yet complete")
 		}
 		read := readlist.Values()[0]
@@ -163,7 +164,7 @@ func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface
 	} else {
 		resplist, err := client.ListBySubscription(ctx)
 		if err != nil {
-			if resplist.NotDone() {
+			if !resplist.NotDone() {
 				d.SetId("")
 				log.Printf("[DEBUG] Advisor Configuration was not found  - removing from state!")
 				return nil

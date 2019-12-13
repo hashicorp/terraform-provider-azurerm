@@ -79,7 +79,7 @@ func testCheckAzureRMAdvisorConfigurationsExists(resourceName string) resource.T
 			if err != nil {
 				return fmt.Errorf("Bad: Get on Advisor Configurations: %+v", err)
 			}
-			if resp.NotDone() {
+			if !resp.NotDone() {
 				return fmt.Errorf("Bad: Advisor Configurations does not exist")
 			}
 		}
@@ -114,7 +114,7 @@ func testCheckAzureRMAdvisorConfigurationsDestroy(s *terraform.State) error {
 				return err
 			}
 
-			if resp.NotDone() || (*resp.Values()[0].Properties.Exclude) != true {
+			if !resp.NotDone() || (*resp.Values()[0].Properties.Exclude) != true {
 				return fmt.Errorf("Error deleting Advisor Configuration")
 			}
 
