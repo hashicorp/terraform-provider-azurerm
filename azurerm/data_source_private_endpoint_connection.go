@@ -1,6 +1,7 @@
 package azurerm
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -12,16 +13,9 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/utils"
 )
 
-func dataSourceArmPrivateLinkEndpointConnection() *schema.Resource {
+func dataSourceArmPrivateEndpointConnection() *schema.Resource {
 	return &schema.Resource{
-		DeprecationMessage: `The 'azurerm_private_link_endpoint_connection' resource is being deprecated in favour of the renamed version 'azurerm_private_endpoint_connection'.
-
-Information on migrating to the renamed resource can be found here: https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html
-
-As such the existing 'azurerm_private_link_endpoint_connection' resource is deprecated and will be removed in the next major version of the AzureRM Provider (2.0).
-`,
-
-		Read: dataSourceArmPrivateLinkEndpointConnectionRead,
+		Read: dataSourceArmPrivateEndpointConnectionRead,
 		Timeouts: &schema.ResourceTimeout{
 			Read: schema.DefaultTimeout(5 * time.Minute),
 		},
@@ -66,7 +60,7 @@ As such the existing 'azurerm_private_link_endpoint_connection' resource is depr
 	}
 }
 
-func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceArmPrivateEndpointConnectionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*ArmClient).Network.PrivateEndpointClient
 	nicsClient := meta.(*ArmClient).Network.InterfacesClient
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
@@ -81,10 +75,10 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error reading Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on Private Link Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("API returns a nil/empty id on Private Endpoint %q (Resource Group %q): %+v", name, resourceGroup, err)
 	}
 
 	d.SetId(*resp.ID)
@@ -104,7 +98,7 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 			}
 		}
 
-		if err := d.Set("private_service_connection", dataSourceFlattenArmPrivateLinkEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
+		if err := d.Set("private_service_connection", dataSourceFlattenArmPrivateEndpointServiceConnection(props.PrivateLinkServiceConnections, props.ManualPrivateLinkServiceConnections, privateIpAddress)); err != nil {
 			return fmt.Errorf("Error setting `private_service_connection`: %+v", err)
 		}
 	}
@@ -112,7 +106,36 @@ func dataSourceArmPrivateLinkEndpointConnectionRead(d *schema.ResourceData, meta
 	return nil
 }
 
-func dataSourceFlattenArmPrivateLinkEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
+func getPrivateIpAddress(ctx context.Context, client *network.InterfacesClient, networkInterfaceId string) string {
+	privateIpAddress := ""
+	id, err := azure.ParseAzureResourceID(networkInterfaceId)
+	if err != nil {
+		return privateIpAddress
+	}
+	name := id.Path["networkInterfaces"]
+
+	resp, err := client.Get(ctx, id.ResourceGroup, name, "")
+	if err != nil {
+		return privateIpAddress
+	}
+
+	if props := resp.InterfacePropertiesFormat; props != nil {
+		if configs := props.IPConfigurations; configs != nil {
+			for i, config := range *configs {
+				if propFmt := config.InterfaceIPConfigurationPropertiesFormat; propFmt != nil {
+					if propFmt.PrivateIPAddress != nil && *propFmt.PrivateIPAddress != "" && i == 0 {
+						privateIpAddress = *propFmt.PrivateIPAddress
+					}
+					break
+				}
+			}
+		}
+	}
+
+	return privateIpAddress
+}
+
+func dataSourceFlattenArmPrivateEndpointServiceConnection(serviceConnections *[]network.PrivateLinkServiceConnection, manualServiceConnections *[]network.PrivateLinkServiceConnection, privateIpAddress string) []interface{} {
 	results := make([]interface{}, 0)
 	if serviceConnections == nil && manualServiceConnections == nil {
 		return results
