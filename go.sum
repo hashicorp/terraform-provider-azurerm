@@ -415,6 +415,10 @@ github.com/terraform-providers/terraform-provider-openstack v1.15.0/go.mod h1:2a
 github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6/go.mod h1:ncp9v5uamzpCO7NfCPTXjqaC+bZgJeR0sMTm6dMHP7U=
 github.com/tombuildsstuff/giovanni v0.6.0 h1:8RwaDJJqbp8mMN/HOKEbGUvhW/yaGMzxN2XbkQ3lHuA=
 github.com/tombuildsstuff/giovanni v0.6.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.7.0 h1:+8wrCOTiE60qzB2VGzTlqNarWT2ymFusStOHRDWOPTQ=
+github.com/tombuildsstuff/giovanni v0.7.0/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
+github.com/tombuildsstuff/giovanni v0.7.1 h1:QJG5TJNIjcRbMsaQGF1HtWEpZbu8xLAOmZuMIk7wf14=
+github.com/tombuildsstuff/giovanni v0.7.1/go.mod h1:Xu/XU+DiRrKTDoCnJNGuh9ysD0eJyi/zU/naFh2aN9I=
 github.com/ugorji/go v0.0.0-20180813092308-00b869d2f4a5/go.mod h1:hnLbHMwcvSihnDhEfx2/BzKp2xb0Y+ErdfYcrs9tkJQ=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8 h1:3SVOIvH7Ae1KRYyQWRjXWJEA9sS/c/pjvH++55Gr648=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
