@@ -1,4 +1,5 @@
 ---
+subcategory: "Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_management_lock"
 sidebar_current: "docs-azurerm-resource-management-lock"
@@ -27,14 +28,14 @@ resource "azurerm_management_lock" "subscription-level" {
 ## Example Usage (Resource Group Level Lock)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "locked-resource-group"
   location = "West Europe"
 }
 
 resource "azurerm_management_lock" "resource-group-level" {
   name       = "resource-group-level"
-  scope      = "${azurerm_resource_group.test.id}"
+  scope      = "${azurerm_resource_group.example.id}"
   lock_level = "ReadOnly"
   notes      = "This Resource Group is Read-Only"
 }
@@ -43,22 +44,22 @@ resource "azurerm_management_lock" "resource-group-level" {
 ## Example Usage (Resource Level Lock)
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "locked-resource-group"
   location = "West Europe"
 }
 
-resource "azurerm_public_ip" "test" {
+resource "azurerm_public_ip" "example" {
   name                    = "locked-publicip"
-  location                = "${azurerm_resource_group.test.location}"
-  resource_group_name     = "${azurerm_resource_group.test.name}"
+  location                = "${azurerm_resource_group.example.location}"
+  resource_group_name     = "${azurerm_resource_group.example.name}"
   allocation_method       = "Static"
   idle_timeout_in_minutes = 30
 }
 
 resource "azurerm_management_lock" "public-ip" {
   name       = "resource-ip"
-  scope      = "${azurerm_public_ip.test.id}"
+  scope      = "${azurerm_public_ip.example.id}"
   lock_level = "CanNotDelete"
   notes      = "Locked because it's needed by a third-party"
 }

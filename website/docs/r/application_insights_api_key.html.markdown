@@ -1,4 +1,5 @@
 ---
+subcategory: "Application Insights"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_insights_api_key"
 sidebar_current: "docs-azurerm-resource-application-insights-api-key"
@@ -13,39 +14,39 @@ Manages an Application Insights API key.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "tf-test"
   location = "West Europe"
 }
 
-resource "azurerm_application_insights" "test" {
+resource "azurerm_application_insights" "example" {
   name                = "tf-test-appinsights"
   location            = "West Europe"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
   application_type    = "web"
 }
 
 resource "azurerm_application_insights_api_key" "read_telemetry" {
   name                    = "tf-test-appinsights-read-telemetry-api-key"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = "${azurerm_application_insights.example.id}"
   read_permissions        = ["aggregate", "api", "draft", "extendqueries", "search"]
 }
 
 resource "azurerm_application_insights_api_key" "write_annotations" {
   name                    = "tf-test-appinsights-write-annotations-api-key"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = "${azurerm_application_insights.example.id}"
   write_permissions       = ["annotations"]
 }
 
 resource "azurerm_application_insights_api_key" "authenticate_sdk_control_channel" {
   name                    = "tf-test-appinsights-authenticate-sdk-control-channel-api-key"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = "${azurerm_application_insights.example.id}"
   read_permissions        = ["agentconfig"]
 }
 
 resource "azurerm_application_insights_api_key" "full_permissions" {
   name                    = "tf-test-appinsights-full-permissions-api-key"
-  application_insights_id = "${azurerm_application_insights.test.id}"
+  application_insights_id = "${azurerm_application_insights.example.id}"
   read_permissions        = ["agentconfig", "aggregate", "api", "draft", "extendqueries", "search"]
   write_permissions       = ["annotations"]
 }

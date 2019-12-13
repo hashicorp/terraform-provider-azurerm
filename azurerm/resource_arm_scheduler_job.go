@@ -742,7 +742,7 @@ func expandAzureArmSchedulerJobActionRequest(b interface{}, meta interface{}) (*
 		if v, ok := b["audience"].(string); ok {
 			oauth.Audience = utils.String(v)
 		} else {
-			oauth.Audience = utils.String(meta.(*ArmClient).environment.ServiceManagementEndpoint)
+			oauth.Audience = utils.String(meta.(*ArmClient).Account.Environment.ServiceManagementEndpoint)
 		}
 
 		request.Authentication = oauth

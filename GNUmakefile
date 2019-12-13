@@ -31,6 +31,7 @@ fmt:
 # Currently required by tf-deploy compile, duplicated by linters
 fmtcheck:
 	@sh "$(CURDIR)/scripts/gofmtcheck.sh"
+	@sh "$(CURDIR)/scripts/timeouts.sh"
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
@@ -87,6 +88,9 @@ debugacc: fmtcheck
 website-lint:
 	@echo "==> Checking website against linters..."
 	@misspell -error -source=text -i hdinsight website/
+
+website-registrycheck:
+	@sh "$(CURDIR)/scripts/website-registrycheck.sh"
 
 website:
 ifeq (,$(wildcard $(GOPATH)/src/$(WEBSITE_REPO)))

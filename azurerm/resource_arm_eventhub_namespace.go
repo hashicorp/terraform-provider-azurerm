@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -360,18 +360,24 @@ func resourceArmEventHubNamespaceDelete(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error issuing delete request of EventHub Namespace %q (Resource Group %q): %+v", name, resGroup, err)
 	}
 
-	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name)
+	return waitForEventHubNamespaceToBeDeleted(ctx, client, resGroup, name, d)
 }
 
-func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string) error {
+func waitForEventHubNamespaceToBeDeleted(ctx context.Context, client *eventhub.NamespacesClient, resourceGroup, name string, d *schema.ResourceData) error {
 	// we can't use the Waiter here since the API returns a 200 once it's deleted which is considered a polling status code..
 	log.Printf("[DEBUG] Waiting for EventHub Namespace (%q in Resource Group %q) to be deleted", name, resourceGroup)
 	stateConf := &resource.StateChangeConf{
 		Pending: []string{"200"},
 		Target:  []string{"404"},
 		Refresh: eventHubNamespaceStateStatusCodeRefreshFunc(ctx, client, resourceGroup, name),
-		Timeout: 40 * time.Minute,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 40 * time.Minute
+	}
+
 	if _, err := stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for EventHub NameSpace (%q in Resource Group %q) to be deleted: %+v", name, resourceGroup, err)
 	}

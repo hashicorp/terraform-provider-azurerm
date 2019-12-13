@@ -1,4 +1,5 @@
 ---
+subcategory: "Front Door"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_frontdoor"
 sidebar_current: "docs-azurerm-resource-front-door"
@@ -192,7 +193,7 @@ The `forwarding_configuration` block supports the following:
 
 * `custom_forwarding_path` - (Optional) Path to use when constructing the request to forward to the backend. This functions as a URL Rewrite. Default behavior preserves the URL path.
 
-* `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HTTPOnly`, `HTTPSOnly`, or `MatchRequest`. Defaults to `MatchRequest`.
+* `forwarding_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, or `MatchRequest`. Defaults to `MatchRequest`.
 
 ---
 
@@ -200,7 +201,7 @@ The `redirect_configuration` block supports the following:
 
 * `custom_host` - (Optional)  Set this to change the URL for the redirection. 
 
-* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HTTPOnly`, `HTTPSOnly`, `MatchRequest`. Defaults to `MatchRequest`
+* `redirect_protocol` - (Optional) Protocol to use when redirecting. Valid options are `HttpOnly`, `HttpsOnly`, `MatchRequest`. Defaults to `MatchRequest`
 
 * `redirect_type` - (Optional) Status code for the redirect. Valida options are `Moved`, `Found`, `TemporaryRedirect`, `PermanentRedirect`. Defaults to `Found`
 
@@ -277,5 +278,5 @@ The following attributes are exported:
 Front Doors can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_frontdoor.test /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
+terraform import azurerm_frontdoor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourcegroups/mygroup1/providers/Microsoft.Network/frontdoors/frontdoor1
 ```

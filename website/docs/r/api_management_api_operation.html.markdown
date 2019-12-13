@@ -1,4 +1,5 @@
 ---
+subcategory: "API Management"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_api_management_api_operation"
 sidebar_current: "docs-azurerm-resource-api-management-api-operation"
@@ -186,5 +187,5 @@ In addition to all arguments above, the following attributes are exported:
 API Management API Operation's can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_api_operation.test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/operations/operation1
+terraform import azurerm_api_management_api_operation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/operations/operation1
 ```

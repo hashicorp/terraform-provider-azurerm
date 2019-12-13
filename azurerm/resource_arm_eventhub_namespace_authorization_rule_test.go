@@ -189,12 +189,12 @@ func testCheckAzureRMEventHubNamespaceAuthorizationRuleExists(resourceName strin
 func testAccAzureRMEventHubNamespaceAuthorizationRule_base(rInt int, location string, listen, send, manage bool) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-eventhub-%[1]d"
   location = "%[2]s"
 }
 
 resource "azurerm_eventhub_namespace" "test" {
-  name                = "acctesteventhubnamespace-%[1]d"
+  name                = "acctest-EHN-%[1]d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 
@@ -202,7 +202,7 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub_namespace_authorization_rule" "test" {
-  name                = "acctest-%[1]d"
+  name                = "acctest-EHN-AR%[1]d"
   namespace_name      = "${azurerm_eventhub_namespace.test.name}"
   resource_group_name = "${azurerm_resource_group.test.name}"
 

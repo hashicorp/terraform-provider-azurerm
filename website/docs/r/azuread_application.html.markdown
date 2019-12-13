@@ -1,4 +1,5 @@
 ---
+subcategory: "Azure Active Directory"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_azuread_application"
 sidebar_current: "docs-azurerm-resource-azuread-application"
@@ -18,7 +19,7 @@ Manages an Application within Azure Active Directory.
 ## Example Usage
 
 ```hcl
-resource "azurerm_azuread_application" "test" {
+resource "azurerm_azuread_application" "example" {
   name                       = "example"
   homepage                   = "https://homepage"
   identifier_uris            = ["https://uri"]
@@ -55,5 +56,5 @@ The following attributes are exported:
 Azure Active Directory Applications can be imported using the `object id`, e.g.
 
 ```shell
-terraform import azurerm_azuread_application.test 00000000-0000-0000-0000-000000000000
+terraform import azurerm_azuread_application.example 00000000-0000-0000-0000-000000000000
 ```

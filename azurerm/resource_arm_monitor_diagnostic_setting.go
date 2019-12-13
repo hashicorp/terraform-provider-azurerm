@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/monitor/mgmt/2019-06-01/insights"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/features"
@@ -34,7 +34,7 @@ func resourceArmMonitorDiagnosticSetting() *schema.Resource {
 			Create: schema.DefaultTimeout(30 * time.Minute),
 			Read:   schema.DefaultTimeout(5 * time.Minute),
 			Update: schema.DefaultTimeout(30 * time.Minute),
-			Delete: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -350,10 +350,16 @@ func resourceArmMonitorDiagnosticSettingDelete(d *schema.ResourceData, meta inte
 		Pending:                   []string{"Exists"},
 		Target:                    []string{"NotFound"},
 		Refresh:                   monitorDiagnosticSettingDeletedRefreshFunc(ctx, client, targetResourceId, id.name),
-		Timeout:                   60 * time.Minute,
 		MinTimeout:                15 * time.Second,
 		ContinuousTargetOccurence: 5,
 	}
+
+	if features.SupportsCustomTimeouts() {
+		stateConf.Timeout = d.Timeout(schema.TimeoutDelete)
+	} else {
+		stateConf.Timeout = 60 * time.Minute
+	}
+
 	if _, err = stateConf.WaitForState(); err != nil {
 		return fmt.Errorf("Error waiting for Monitor Diagnostic Setting %q for Resource %q to become available: %s", id.name, id.resourceID, err)
 	}

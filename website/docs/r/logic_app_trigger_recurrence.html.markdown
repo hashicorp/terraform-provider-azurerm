@@ -1,4 +1,5 @@
 ---
+subcategory: "Logic App"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_logic_app_trigger_recurrence"
 sidebar_current: "docs-azurerm-resource-logic-app-trigger-recurrence"
@@ -13,20 +14,20 @@ Manages a Recurrence Trigger within a Logic App Workflow
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "workflow-resources"
   location = "East US"
 }
 
-resource "azurerm_logic_app_workflow" "test" {
+resource "azurerm_logic_app_workflow" "example" {
   name                = "workflow1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 }
 
-resource "azurerm_logic_app_trigger_recurrence" "test" {
+resource "azurerm_logic_app_trigger_recurrence" "example" {
   name         = "run-every-day"
-  logic_app_id = "${azurerm_logic_app_workflow.test.id}"
+  logic_app_id = "${azurerm_logic_app_workflow.example.id}"
   frequency    = "Day"
   interval     = 1
 }

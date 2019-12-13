@@ -3,13 +3,12 @@ package azurerm
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/postgresql/mgmt/2017-12-01/postgresql"
+	"github.com/hashicorp/go-azure-helpers/response"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/response"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/suppress"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/tf"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
@@ -60,7 +59,7 @@ func resourceArmPostgreSQLDatabase() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.DatabaseCollation,
+				ValidateFunc: validate.PostgresDatabaseCollation,
 			},
 		},
 	}
@@ -152,11 +151,7 @@ func resourceArmPostgreSQLDatabaseRead(d *schema.ResourceData, meta interface{})
 
 	if props := resp.DatabaseProperties; props != nil {
 		d.Set("charset", props.Charset)
-
-		if collation := props.Collation; collation != nil {
-			v := strings.Replace(*collation, "-", "_", -1)
-			d.Set("collation", v)
-		}
+		d.Set("collation", props.Collation)
 	}
 
 	return nil

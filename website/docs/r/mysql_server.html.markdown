@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_mysql_server"
 sidebar_current: "docs-azurerm-resource-database-mysql-server"
@@ -14,15 +15,15 @@ Manages a MySQL Server.
 ## Example Usage
 
 ```hcl
-resource "azurerm_resource_group" "test" {
+resource "azurerm_resource_group" "example" {
   name     = "api-rg-pro"
   location = "West Europe"
 }
 
-resource "azurerm_mysql_server" "test" {
+resource "azurerm_mysql_server" "example" {
   name                = "mysql-server-1"
-  location            = "${azurerm_resource_group.test.location}"
-  resource_group_name = "${azurerm_resource_group.test.name}"
+  location            = "${azurerm_resource_group.example.location}"
+  resource_group_name = "${azurerm_resource_group.example.name}"
 
   sku {
     name     = "B_Gen5_2"
@@ -62,7 +63,7 @@ The following arguments are supported:
 
 * `administrator_login_password` - (Required) The Password associated with the `administrator_login` for the MySQL Server.
 
-* `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.6` and `5.7`. Changing this forces a new resource to be created.
+* `version` - (Required) Specifies the version of MySQL to use. Valid values are `5.6`, `5.7`, and `8.0`. Changing this forces a new resource to be created.
 
 * `ssl_enforcement` - (Required) Specifies if SSL should be enforced on connections. Possible values are `Enabled` and `Disabled`.
 

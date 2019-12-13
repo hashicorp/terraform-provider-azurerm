@@ -300,7 +300,7 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Mssql.ElasticPoolsClient
+		client := testAccProvider.Meta().(*ArmClient).MSSQL.ElasticPoolsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		resp, err := client.Get(ctx, resourceGroup, serverName, poolName)
@@ -317,7 +317,7 @@ func testCheckAzureRMMsSqlElasticPoolExists(resourceName string) resource.TestCh
 }
 
 func testCheckAzureRMMsSqlElasticPoolDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*ArmClient).Mssql.ElasticPoolsClient
+	client := testAccProvider.Meta().(*ArmClient).MSSQL.ElasticPoolsClient
 	ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 	for _, rs := range s.RootModule().Resources {
@@ -354,7 +354,7 @@ func testCheckAzureRMMsSqlElasticPoolDisappears(resourceName string) resource.Te
 		serverName := rs.Primary.Attributes["server_name"]
 		poolName := rs.Primary.Attributes["name"]
 
-		client := testAccProvider.Meta().(*ArmClient).Mssql.ElasticPoolsClient
+		client := testAccProvider.Meta().(*ArmClient).MSSQL.ElasticPoolsClient
 		ctx := testAccProvider.Meta().(*ArmClient).StopContext
 
 		if _, err := client.Delete(ctx, resourceGroup, serverName, poolName); err != nil {

@@ -1,4 +1,5 @@
 ---
+subcategory: "Database"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_sql_server"
 sidebar_current: "docs-azurerm-datasource-sql-server"
@@ -19,7 +20,7 @@ data "azurerm_sql_server" "example" {
 }
 
 output "sql_server_id" {
-  value = "${data.azurerm_sql_server.test.id}"
+  value = "${data.azurerm_sql_server.example.id}"
 }
 ```
 
