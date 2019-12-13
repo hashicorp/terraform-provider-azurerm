@@ -174,11 +174,11 @@ func resourceArmAdvisorConfigurationsRead(d *schema.ResourceData, meta interface
 		resp := resplist.Values()[0]
 
 		if exclude := resp.Properties.Exclude; exclude != nil {
-			d.Set("exclude", *exclude)
+			d.Set("exclude", exclude)
 		}
 
 		if lowCPUThreshold := resp.Properties.LowCPUThreshold; lowCPUThreshold != nil {
-			d.Set("low_cpu_threshold", *lowCPUThreshold)
+			d.Set("low_cpu_threshold", lowCPUThreshold)
 		}
 
 		return nil
