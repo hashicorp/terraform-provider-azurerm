@@ -52,7 +52,7 @@ func TestValidatePrivateLinkSubResourceName(t *testing.T) {
 		},
 		{
 			Name:  "Minimum Value Valid",
-			Input: "Sql",
+			Input: "dfs",
 			Valid: true,
 		},
 		{
@@ -87,7 +87,7 @@ func TestValidatePrivateLinkSubResourceName(t *testing.T) {
 		},
 		{
 			Name:  "Too Long",
-			Input: "the-name-of-this-subresource-is-way-way-too-long-for-this-resource",
+			Input: "the-name-of-this-subresource-is-way-too-looong-for-this-resource",
 			Valid: false,
 		},
 		{

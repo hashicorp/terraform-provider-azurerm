@@ -132,7 +132,7 @@ func ValidatePrivateLinkSubResourceName(i interface{}, k string) (_ []string, er
 	}
 
 	if len(strings.TrimSpace(v)) >= 3 {
-		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z0-9])([\w\.-]{1,62})([a-zA-Z0-9])$`); !m {
+		if m, _ := validate.RegExHelper(i, k, `^([a-zA-Z0-9])([\w\.-]{1,61})([a-zA-Z0-9])$`); !m {
 			errors = append(errors, fmt.Errorf("%s must begin and end with a alphanumeric character, be between 3 and 63 characters in length, only contain letters, numbers, underscores, periods, and dashes", k))
 		}
 	} else {
