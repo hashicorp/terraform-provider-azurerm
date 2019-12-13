@@ -383,12 +383,12 @@ resource "azurerm_subnet" "updated" {
 }
 
 resource "azurerm_netapp_volume" "test" {
-  name                = "acctest-NetAppVolume-%d"
+  name                = "acctest-updated-NetAppVolume-%d"
   location            = "${azurerm_resource_group.test.location}"
   resource_group_name = "${azurerm_resource_group.test.name}"
   account_name        = "${azurerm_netapp_account.test.name}"
   pool_name           = "${azurerm_netapp_pool.test.name}"
-  volume_path         = "my-unique-file-path-%d"
+  volume_path         = "my-updated-unique-file-path-%d"
   service_level       = "Premium"
   subnet_id           = "${azurerm_subnet.updated.id}"
   storage_quota_in_gb = 100
