@@ -9,7 +9,7 @@ import (
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/validate"
 )
 
-func ValidatePrivateLinkEndpointSettings(d *schema.ResourceData) error {
+func ValidatePrivateEndpointSettings(d *schema.ResourceData) error {
 	privateServiceConnections := d.Get("private_service_connection").([]interface{})
 
 	for _, psc := range privateServiceConnections {
@@ -132,8 +132,8 @@ func ValidatePrivateLinkSubResourceName(i interface{}, k string) (_ []string, er
 	}
 
 	if len(strings.TrimSpace(v)) >= 1 {
-		if m, _ := validate.RegExHelper(i, k, `^[\w\.]*$`); !m {
-			errors = append(errors, fmt.Errorf("%s must only contain upper or lowercase letters, numbers, underscores, and periods", k))
+		if m, _ := validate.RegExHelper(i, k, `^[a-zA-z0-9][\w\.-]{1,62}[a-zA-Z0-9]$`); !m {
+			errors = append(errors, fmt.Errorf("%s must begin and end with a alphanumeric , be between 3 and 63 characters in length, only contain letters, numbers, underscores, periods, and dashes", k))
 		}
 	} else {
 		errors = append(errors, fmt.Errorf("%s must be at least 1 character in length", k))
