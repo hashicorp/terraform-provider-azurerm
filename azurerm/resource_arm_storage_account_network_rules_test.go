@@ -145,7 +145,7 @@ resource "azurerm_storage_account_network_rules" "test" {
   storage_account_name = "${azurerm_storage_account.testsa.name}"
 
   default_action             = "Deny"
-  ip_rules                   = ["127.0.0.1"]
+  ip_rules                   = ["127.0.0.1/24"]
   virtual_network_subnet_ids = ["${azurerm_subnet.test.id}"]
 }
 `, rInt, location, rInt, rInt, rString)

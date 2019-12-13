@@ -70,7 +70,7 @@ func resourceArmStorageAccountNetworkRules() *schema.Resource {
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.IPv4Address,
+					ValidateFunc: validate.CIDR,
 				},
 				Set: schema.HashString,
 			},
@@ -120,7 +120,7 @@ func resourceArmStorageAccountNetworkRulesCreateUpdate(d *schema.ResourceData, m
 	}
 
 	if features.ShouldResourcesBeImported() {
-		if checkForNonDefaultStorageAccountNetworkRule(storageAccount.NetworkRuleSet) {
+		if !checkForNonDefaultStorageAccountNetworkRule(storageAccount.NetworkRuleSet) {
 			return tf.ImportAsExistsError("azurerm_storage_account_network_rule", *storageAccount.ID)
 		}
 	}
