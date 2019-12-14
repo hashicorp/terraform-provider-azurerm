@@ -565,11 +565,13 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {
 							Type:     schema.TypeString,
 							Required: true,
+							ForceNew: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(containerservice.None),
 								string(containerservice.SystemAssigned),
@@ -1011,10 +1013,8 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-	if identity := resp.Identity; identity != nil {
-		if err := d.Set("managed_cluster_identity", flattenKubernetesClusterManagedClusterIdentity(*identity)); err != nil {
-			return fmt.Errorf("Error setting `managed_cluster_identity`: %+v", err)
-		}
+	if err := d.Set("managed_cluster_identity", flattenKubernetesClusterManagedClusterIdentity(resp.Identity)); err != nil {
+		return fmt.Errorf("Error setting `managed_cluster_identity`: %+v", err)
 	}
 
 	kubeConfigRaw, kubeConfig := flattenKubernetesClusterAccessProfile(profile)
@@ -1587,7 +1587,11 @@ func flattenKubernetesClusterKubeConfigAAD(config kubernetes.KubeConfigAAD) []in
 	}
 }
 
-func flattenKubernetesClusterManagedClusterIdentity(input containerservice.ManagedClusterIdentity) []interface{} {
+func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.ManagedClusterIdentity) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
 	identity := make(map[string]interface{}, 0)
 	if input.PrincipalID != nil {
 		identity["principal_id"] = *input.PrincipalID
