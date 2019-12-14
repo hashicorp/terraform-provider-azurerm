@@ -235,6 +235,16 @@ func resourceArmFunctionApp() *schema.Resource {
 								string(web.OneFullStopTwo),
 							}, false),
 						},
+						"ftps_state": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(web.AllAllowed),
+								string(web.Disabled),
+								string(web.FtpsOnly),
+							}, false),
+						},
 						"cors": azure.SchemaWebCorsSettings(),
 					},
 				},
@@ -740,6 +750,10 @@ func expandFunctionAppSiteConfig(d *schema.ResourceData) web.SiteConfig {
 		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
 	}
 
+	if v, ok := config["ftps_state"]; ok {
+		siteConfig.FtpsState = web.FtpsState(v.(string))
+	}
+
 	return siteConfig
 }
 
@@ -777,6 +791,7 @@ func flattenFunctionAppSiteConfig(input *web.SiteConfig) []interface{} {
 	}
 
 	result["min_tls_version"] = string(input.MinTLSVersion)
+	result["ftps_state"] = string(input.FtpsState)
 
 	result["cors"] = azure.FlattenWebCorsSettings(input.Cors)
 
