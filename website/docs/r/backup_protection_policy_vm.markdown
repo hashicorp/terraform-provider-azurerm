@@ -1,17 +1,15 @@
 ---
 subcategory: "Recovery Services"
 layout: "azurerm"
-page_title: "Azure Resource Manager: azurerm_recovery_services_protection_policy_vm"
-sidebar_current: "docs-azurerm-recovery-services-protection-policy-vm"
+page_title: "Azure Resource Manager: azurerm_backup_protection_policy_vm"
+sidebar_current: "docs-azurerm-backup-protection-policy-vm"
 description: |-
-  Manages an Recovery Services VM Protection Policy.
+  Manages an Azure Backup VM Protection Policy.
 ---
 
-# azurerm_recovery_services_protection_policy_vm
+# azurerm_backup_protection_policy_vm
 
-~> **NOTE:** This resource has been deprecated in favour of the `azurerm_backup_protection_policy_vm` resource and will be removed in the next major version of the AzureRM Provider. The new resource shares the same fields as this one, and information on migrating across [can be found in this guide](../guides/migrating-between-renamed-resources.html).
-
-Manages an Recovery Services VM Protection Policy.
+Manages an Azure Backup VM Protection Policy.
 
 ## Example Usage
 
@@ -28,7 +26,7 @@ resource "azurerm_recovery_services_vault" "example" {
   sku                 = "Standard"
 }
 
-resource "azurerm_recovery_services_protection_policy_vm" "example" {
+resource "azurerm_backup_protection_policy_vm" "example" {
   name                = "tfex-recovery-vault-policy"
   resource_group_name = "${azurerm_resource_group.example.name}"
   recovery_vault_name = "${azurerm_recovery_services_vault.example.name}"
@@ -144,10 +142,10 @@ The following attributes are exported:
 
 ## Import
 
-Recovery Services VM Protection Policy can be imported using the `resource id`, e.g.
+An existing Azure Backup VM Protection Policy can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_recovery_services_protection_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
+terraform import azurerm_backup_protection_policy_vm.policy1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/example-recovery-vault/backupPolicies/policy1
 ```
 
  
