@@ -128,11 +128,12 @@ func resourceArmVirtualNetworkGatewayConnection() *schema.Resource {
 			"connection_protocol": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(network.IKEv1),
 					string(network.IKEv2),
-				}, true),
+				}, false),
 			},
 
 			"ipsec_policy": {
@@ -379,9 +380,7 @@ func resourceArmVirtualNetworkGatewayConnectionRead(d *schema.ResourceData, meta
 		d.Set("shared_key", conn.SharedKey)
 	}
 
-	if string(conn.ConnectionProtocol) != "" {
-		d.Set("connection_protocol", string(conn.ConnectionProtocol))
-	}
+	d.Set("connection_protocol", string(conn.ConnectionProtocol))
 
 	if conn.ExpressRouteGatewayBypass != nil {
 		d.Set("express_route_gateway_bypass", conn.ExpressRouteGatewayBypass)
