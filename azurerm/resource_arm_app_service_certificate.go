@@ -213,7 +213,7 @@ func resourceArmAppServiceCertificateRead(d *schema.ResourceData, meta interface
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resourceGroup, name)
@@ -256,7 +256,7 @@ func resourceArmAppServiceCertificateDelete(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
+	resourceGroup := id.ResourceGroup
 	name := id.Name
 
 	log.Printf("[DEBUG] Deleting App Service Certificate %q (Resource Group %q)", name, resourceGroup)

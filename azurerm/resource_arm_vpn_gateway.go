@@ -180,25 +180,22 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 
 	id, err := networkSvc.ParseVPNGatewayID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
-	name := id.Name
-
-	resp, err := client.Get(ctx, resourceGroup, name)
+	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] VPN Gateway %q was not found in Resource Group %q - removing from state", name, resourceGroup)
+			log.Printf("[DEBUG] VPN Gateway %q was not found in Resource Group %q - removing from state", id.Name, id.ResourceGroup)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("resource_group_name", resourceGroup)
+	d.Set("resource_group_name", id.ResourceGroup)
 	if location := resp.Location; location != nil {
 		d.Set("location", azure.NormalizeLocation(*location))
 	}
@@ -231,19 +228,16 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 
 	id, err := networkSvc.ParseVPNGatewayID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Error parsing Azure Resource ID %q: %+v", d.Id(), err)
+		return err
 	}
 
-	resourceGroup := id.Base.ResourceGroup
-	name := id.Name
-
-	deleteFuture, err := client.Delete(ctx, resourceGroup, name)
+	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		if response.WasNotFound(deleteFuture.Response()) {
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error deleting VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
@@ -252,7 +246,7 @@ func resourceArmVPNGatewayDelete(d *schema.ResourceData, meta interface{}) error
 			return nil
 		}
 
-		return fmt.Errorf("Error waiting for deletion of VPN Gateway %q (Resource Group %q): %+v", name, resourceGroup, err)
+		return fmt.Errorf("Error waiting for deletion of VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	return nil

@@ -7,30 +7,31 @@ import (
 )
 
 type VirtualMachineScaleSetExtensionResourceID struct {
-	Base azure.ResourceID
-
+	ResourceGroup      string
 	VirtualMachineName string
 	Name               string
 }
 
-func ParseVirtualMachineScaleSetExtensionResourceID(input string) (*VirtualMachineScaleSetExtensionResourceID, error) {
+func ParseVirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleSetExtensionResourceID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Virtual Machine Scale Set Extension ID %q: %+v", input, err)
 	}
 
 	extension := VirtualMachineScaleSetExtensionResourceID{
-		Base:               *id,
-		VirtualMachineName: id.Path["virtualMachineScaleSets"],
-		Name:               id.Path["extensions"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if extension.VirtualMachineName == "" {
-		return nil, fmt.Errorf("ID was missing the `virtualMachineScaleSets` element")
+	if extension.VirtualMachineName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
+		return nil, err
 	}
 
-	if extension.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `extensions` element")
+	if extension.Name, err = id.PopSegment("extensions"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &extension, nil

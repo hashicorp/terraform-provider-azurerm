@@ -7,9 +7,8 @@ import (
 )
 
 type AppServicePlanResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseAppServicePlanID(input string) (*AppServicePlanResourceID, error) {
@@ -18,22 +17,19 @@ func ParseAppServicePlanID(input string) (*AppServicePlanResourceID, error) {
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", input, err)
 	}
 
-	group := AppServicePlanResourceID{
-		Base: *id,
-		Name: id.Path["serverfarms"],
+	appServicePlan := AppServicePlanResourceID{
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `serverfarms` element")
+	if appServicePlan.Name, err = id.PopSegment("serverfarms"); err != nil {
+		return nil, err
 	}
 
-	pathWithoutElements := group.Base.Path
-	delete(pathWithoutElements, "serverfarms")
-	if len(pathWithoutElements) != 0 {
-		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	return &group, nil
+	return &appServicePlan, nil
 }
 
 // ValidateAppServicePlanID validates that the specified ID is a valid App Service Plan ID

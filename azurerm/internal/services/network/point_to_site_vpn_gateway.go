@@ -7,9 +7,8 @@ import (
 )
 
 type PointToSiteVPNGatewayResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParsePointToSiteVPNGatewayID(input string) (*PointToSiteVPNGatewayResourceID, error) {
@@ -19,12 +18,15 @@ func ParsePointToSiteVPNGatewayID(input string) (*PointToSiteVPNGatewayResourceI
 	}
 
 	routeTable := PointToSiteVPNGatewayResourceID{
-		Base: *id,
-		Name: id.Path["p2sVpnGateways"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if routeTable.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `p2sVpnGateways` element")
+	if routeTable.Name, err = id.PopSegment("p2sVpnGateways"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &routeTable, nil

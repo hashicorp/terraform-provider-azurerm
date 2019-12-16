@@ -2,8 +2,6 @@ package web
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
@@ -53,9 +51,7 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 			Expected: &AppServiceCustomHostnameBindingResourceID{
 				Name:           "binding1",
 				AppServiceName: "site1",
-				Base: azure.ResourceID{
-					ResourceGroup: "mygroup1",
-				},
+				ResourceGroup:  "mygroup1",
 			},
 		},
 		{
@@ -85,8 +81,8 @@ func TestParseAppServiceCustomHostnameBinding(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for AppServiceName", v.Expected.AppServiceName, actual.AppServiceName)
 		}
 
-		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.Base.ResourceGroup, actual.Base.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

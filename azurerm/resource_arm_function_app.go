@@ -390,7 +390,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -498,7 +498,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)
@@ -619,7 +619,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	log.Printf("[DEBUG] Deleting Function App %q (resource group %q)", name, resGroup)
@@ -679,10 +679,10 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 		return "", fmt.Errorf("[ERROR] Unable to parse App Service Plan ID %q: %+v", appServicePlanId, err)
 	}
 
-	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.Base.ResourceGroup)
+	log.Printf("[DEBUG] Retrieving App Service Plan %q (Resource Group %q)", id.Name, id.ResourceGroup)
 
 	appServicePlansClient := meta.(*ArmClient).Web.AppServicePlansClient
-	appServicePlan, err := appServicePlansClient.Get(ctx, id.Base.ResourceGroup, id.Name)
+	appServicePlan, err := appServicePlansClient.Get(ctx, id.ResourceGroup, id.Name)
 	if err != nil {
 		return "", fmt.Errorf("[ERROR] Could not retrieve App Service Plan ID %q: %+v", appServicePlanId, err)
 	}

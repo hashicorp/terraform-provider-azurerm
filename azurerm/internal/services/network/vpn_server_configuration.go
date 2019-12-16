@@ -7,9 +7,8 @@ import (
 )
 
 type VpnServerConfigurationResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseVpnServerConfigurationID(input string) (*VpnServerConfigurationResourceID, error) {
@@ -18,15 +17,19 @@ func ParseVpnServerConfigurationID(input string) (*VpnServerConfigurationResourc
 		return nil, fmt.Errorf("[ERROR] Unable to parse VPN Server Configuration ID %q: %+v", input, err)
 	}
 
-	vpnServerConfigurationResourceID := VpnServerConfigurationResourceID{
-		Base: *id,
-		Name: id.Path["vpnServerConfigurations"],
-	}
-	if vpnServerConfigurationResourceID.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `vpnServerConfigurations` element")
+	vpnServerConfiguration := VpnServerConfigurationResourceID{
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	return &vpnServerConfigurationResourceID, nil
+	if vpnServerConfiguration.Name, err = id.PopSegment("vpnServerConfigurations"); err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
+	}
+
+	return &vpnServerConfiguration, nil
 }
 
 func ValidateVpnServerConfigurationID(i interface{}, k string) (warnings []string, errors []error) {

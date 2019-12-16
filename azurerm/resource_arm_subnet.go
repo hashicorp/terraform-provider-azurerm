@@ -205,7 +205,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &nsgId,
 		}
 
-		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupResourceID(nsgId)
+		parsedNsgId, err := networksvc.ParseNetworkSecurityGroupID(nsgId)
 		if err != nil {
 			return err
 		}
@@ -222,7 +222,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &rtId,
 		}
 
-		parsedRouteTableId, err := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err := networksvc.ParseRouteTableID(rtId)
 		if err != nil {
 			return err
 		}
@@ -374,7 +374,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("network_security_group_id"); ok {
 		networkSecurityGroupId := v.(string)
-		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupResourceID(networkSecurityGroupId)
+		parsedNetworkSecurityGroupId, err2 := networksvc.ParseNetworkSecurityGroupID(networkSecurityGroupId)
 		if err2 != nil {
 			return err2
 		}
@@ -385,7 +385,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("route_table_id"); ok {
 		rtId := v.(string)
-		parsedRouteTableId, err2 := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err2 := networksvc.ParseRouteTableID(rtId)
 		if err2 != nil {
 			return err2
 		}

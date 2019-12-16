@@ -7,8 +7,7 @@ import (
 )
 
 type AppServiceCustomHostnameBindingResourceID struct {
-	Base azure.ResourceID
-
+	ResourceGroup  string
 	AppServiceName string
 	Name           string
 }
@@ -19,26 +18,21 @@ func ParseAppServiceCustomHostnameBindingID(input string) (*AppServiceCustomHost
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Custom Hostname Binding ID %q: %+v", input, err)
 	}
 
-	group := AppServiceCustomHostnameBindingResourceID{
-		Base:           *id,
-		AppServiceName: id.Path["sites"],
-		Name:           id.Path["hostNameBindings"],
+	binding := AppServiceCustomHostnameBindingResourceID{
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if group.AppServiceName == "" {
-		return nil, fmt.Errorf("ID was missing the `sites` element")
+	if binding.AppServiceName, err = id.PopSegment("sites"); err != nil {
+		return nil, err
 	}
 
-	if group.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `hostNameBindings` element")
+	if binding.Name, err = id.PopSegment("hostNameBindings"); err != nil {
+		return nil, err
 	}
 
-	pathWithoutElements := group.Base.Path
-	delete(pathWithoutElements, "sites")
-	delete(pathWithoutElements, "hostNameBindings")
-	if len(pathWithoutElements) != 0 {
-		return nil, fmt.Errorf("ID contained more segments than a Resource ID requires: %q", input)
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
-	return &group, nil
+	return &binding, nil
 }

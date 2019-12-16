@@ -2,8 +2,6 @@ package network
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestParseVPNGateway(t *testing.T) {
@@ -31,10 +29,8 @@ func TestParseVPNGateway(t *testing.T) {
 			Name:  "Completed",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/foo/vpnGateways/example",
 			Expected: &VPNGatewayResourceID{
-				Name: "example",
-				Base: azure.ResourceID{
-					ResourceGroup: "foo",
-				},
+				Name:          "example",
+				ResourceGroup: "foo",
 			},
 		},
 	}
@@ -55,8 +51,8 @@ func TestParseVPNGateway(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.Base.ResourceGroup, actual.Base.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for ResourceGroup", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }
