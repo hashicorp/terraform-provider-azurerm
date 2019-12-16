@@ -1592,7 +1592,7 @@ func flattenKubernetesClusterManagedClusterIdentity(input *containerservice.Mana
 		return []interface{}{}
 	}
 
-	identity := make(map[string]interface{}, 0)
+	identity := make(map[string]interface{})
 	if input.PrincipalID != nil {
 		identity["principal_id"] = *input.PrincipalID
 	}
