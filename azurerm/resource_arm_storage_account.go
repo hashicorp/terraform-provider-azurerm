@@ -781,12 +781,17 @@ func resourceArmStorageAccountCreate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if val, ok := d.GetOk("blob_properties"); ok {
-		blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+		// FileStorage does not support blob settings
+		if accountKind != string(storage.FileStorage) {
+			blobClient := meta.(*ArmClient).Storage.BlobServicesClient
 
-		blobProperties := expandBlobProperties(val.([]interface{}))
+			blobProperties := expandBlobProperties(val.([]interface{}))
 
-		if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+			}
+		} else {
+			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
 		}
 	}
 
@@ -997,14 +1002,19 @@ func resourceArmStorageAccountUpdate(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if d.HasChange("blob_properties") {
-		blobClient := meta.(*ArmClient).Storage.BlobServicesClient
-		blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
+		// FileStorage does not support blob settings
+		if accountKind != string(storage.FileStorage) {
+			blobClient := meta.(*ArmClient).Storage.BlobServicesClient
+			blobProperties := expandBlobProperties(d.Get("blob_properties").([]interface{}))
 
-		if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
-			return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+			if _, err = blobClient.SetServiceProperties(ctx, resourceGroupName, storageAccountName, blobProperties); err != nil {
+				return fmt.Errorf("Error updating Azure Storage Account `blob_properties` %q: %+v", storageAccountName, err)
+			}
+
+			d.SetPartial("blob_properties")
+		} else {
+			return fmt.Errorf("`blob_properties` aren't supported for File Storage accounts.")
 		}
-
-		d.SetPartial("blob_properties")
 	}
 
 	if d.HasChange("queue_properties") {
@@ -1211,15 +1221,18 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	blobClient := storageClient.BlobServicesClient
 
-	blobProps, err := blobClient.GetServiceProperties(ctx, resGroup, name)
-	if err != nil {
-		if !utils.ResponseWasNotFound(blobProps.Response) {
-			return fmt.Errorf("Error reading blob properties for AzureRM Storage Account %q: %+v", name, err)
+	// FileStorage does not support blob settings
+	if resp.Kind != storage.FileStorage {
+		blobProps, err := blobClient.GetServiceProperties(ctx, resGroup, name)
+		if err != nil {
+			if !utils.ResponseWasNotFound(blobProps.Response) {
+				return fmt.Errorf("Error reading blob properties for AzureRM Storage Account %q: %+v", name, err)
+			}
 		}
-	}
 
-	if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
-		return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+		if err := d.Set("blob_properties", flattenBlobProperties(blobProps)); err != nil {
+			return fmt.Errorf("Error setting `blob_properties `for AzureRM Storage Account %q: %+v", name, err)
+		}
 	}
 
 	queueClient, err := storageClient.QueuesClient(ctx, *account)
