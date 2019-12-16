@@ -10,9 +10,8 @@ import (
 // since these top level objects exist
 
 type RouteTableResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseRouteTableResourceID(input string) (*RouteTableResourceID, error) {
@@ -22,12 +21,16 @@ func ParseRouteTableResourceID(input string) (*RouteTableResourceID, error) {
 	}
 
 	routeTable := RouteTableResourceID{
-		Base: *id,
-		Name: id.Path["routeTables"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if routeTable.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `routeTables` element")
+	routeTable.Name, err = id.PopSegment("routeTables")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &routeTable, nil
