@@ -70,7 +70,7 @@ func resourceArmStorageAccountNetworkRules() *schema.Resource {
 				ConfigMode: schema.SchemaConfigModeAttr,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
-					ValidateFunc: validate.IPv4Address,
+					ValidateFunc: validate.CIDR,
 				},
 				Set: schema.HashString,
 			},
