@@ -1,7 +1,12 @@
 ## 1.40.0 (Unreleased)
+
+BUG FIXES:
+
+* `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
+
 ## 1.39.0 (December 16, 2019)
 
-FEATURESE: 
+FEATURES: 
 
 * **New Resource:** `azurerm_app_configuration` ([#4859](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4859))
 * **New Resource:** `azurerm_bot_channel_ms_teams` ([#4984](https://github.com/terraform-providers/terraform-provider-azurerm/issues/4984))
