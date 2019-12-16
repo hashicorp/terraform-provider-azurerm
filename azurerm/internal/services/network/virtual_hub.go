@@ -7,9 +7,8 @@ import (
 )
 
 type VirtualHubResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseVirtualHubID(input string) (*VirtualHubResourceID, error) {
@@ -19,12 +18,16 @@ func ParseVirtualHubID(input string) (*VirtualHubResourceID, error) {
 	}
 
 	virtualHub := VirtualHubResourceID{
-		Base: *id,
-		Name: id.Path["virtualHubs"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if virtualHub.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `virtualHubs` element")
+	virtualHub.Name, err = id.PopSegment("virtualHubs")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &virtualHub, nil
