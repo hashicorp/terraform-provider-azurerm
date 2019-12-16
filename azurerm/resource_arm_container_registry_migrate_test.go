@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
+	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/internal/clients"
 )
 
 func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
@@ -21,13 +22,13 @@ func TestAccAzureRMContainerRegistryMigrateState(t *testing.T) {
 		return
 	}
 
-	builder := armClientBuilder{
-		authConfig:                  config,
-		terraformVersion:            "0.0.0",
-		partnerId:                   "",
-		disableCorrelationRequestID: true,
-		disableTerraformPartnerID:   false,
-		skipProviderRegistration:    false,
+	builder := clients.ClientBuilder{
+		AuthConfig:                  config,
+		TerraformVersion:            "0.0.0",
+		PartnerId:                   "",
+		DisableCorrelationRequestID: true,
+		DisableTerraformPartnerID:   false,
+		SkipProviderRegistration:    false,
 	}
 	client, err := getArmClient(context.Background(), builder)
 	if err != nil {
