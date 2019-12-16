@@ -272,7 +272,6 @@ func resourceArmKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Default:  false,
 			},
 
 			"private_fqdn": {
@@ -767,7 +766,9 @@ func resourceArmKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}
 	if d.HasChange("api_server_authorized_ip_ranges") {
 		updateCluster = true
 		apiServerAuthorizedIPRangesRaw := d.Get("api_server_authorized_ip_ranges").(*schema.Set).List()
-		existing.ManagedClusterProperties.APIServerAccessProfile.AuthorizedIPRanges = utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw)
+		existing.ManagedClusterProperties.APIServerAccessProfile = &containerservice.ManagedClusterAPIServerAccessProfile{
+			AuthorizedIPRanges: utils.ExpandStringSlice(apiServerAuthorizedIPRangesRaw),
+		}
 	}
 
 	if d.HasChange("enable_pod_security_policy") {

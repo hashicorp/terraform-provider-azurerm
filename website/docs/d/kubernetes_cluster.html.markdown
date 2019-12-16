@@ -49,7 +49,7 @@ The following attributes are exported:
 
 * `fqdn` - The FQDN of the Azure Kubernetes Managed Cluster.
 
-* `private_fqdn` - The FQDN when private link has been enabled, this name is only resolvable inside the AKS vnet. 
+* `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located                   
 
 -> **NOTE:**  At this time Private Link is in Public Preview.
 
@@ -63,7 +63,7 @@ The following attributes are exported:
 
 * `kubernetes_version` - The version of Kubernetes used on the managed Kubernetes Cluster.
 
-* `private_link_enabled` - If private IP address for k8s API is enabled through private link.
+* `private_link_enabled` - Does this Kubernetes Cluster have the Kubernetes API exposed via Private Link?                           
 
 -> **NOTE:** At this time Private Link is in Public Preview
 

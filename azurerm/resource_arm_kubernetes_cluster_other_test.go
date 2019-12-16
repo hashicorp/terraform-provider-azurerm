@@ -3,7 +3,6 @@ package azurerm
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -99,10 +98,7 @@ func testAccAzureRMKubernetesCluster_privateLink(t *testing.T) {
 	location := testLocation()
 
 	privateIpAddressCdir := "10.0.0.0/8"
-	privatefqdnRegex, err := regexp.Compile(".*.azmk8s.io")
-	if err != nil {
-		t.Error("This is a developer error, the regex used to test the private fqdn is not valid")
-	}
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -112,7 +108,7 @@ func testAccAzureRMKubernetesCluster_privateLink(t *testing.T) {
 				Config: testAccAzureRMKubernetesCluster_privateLinkConfig(ri, clientId, clientSecret, location, privateIpAddressCdir),
 				Check: resource.ComposeTestCheckFunc(
 					testCheckAzureRMKubernetesClusterExists(resourceName),
-					resource.TestMatchResourceAttr(resourceName, "private_fqdn", privatefqdnRegex),
+					resource.TestCheckResourceAttrSet(resourceName, "private_fqdn"),
 					resource.TestCheckResourceAttr(resourceName, "api_server_authorized_ip_ranges.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "private_link_enabled", "true"),
 				),
