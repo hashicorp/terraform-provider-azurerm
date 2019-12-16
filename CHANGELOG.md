@@ -1,5 +1,9 @@
 ## 1.40.0 (Unreleased)
 
+IMPROVEMENTS:
+
+* `azurerm_function_app` - support for `ftps_state` [GH-5169]
+
 BUG FIXES:
 
 * `azurerm_api_management_api` - working around a behavioural change in the API detecting deleted resources [GH-5054]
