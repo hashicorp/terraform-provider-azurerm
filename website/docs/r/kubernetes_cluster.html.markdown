@@ -168,7 +168,7 @@ A `agent_pool_profile` block supports the following:
 
 * `availability_zones` - (Optional) Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
 
--> **NOTE:** If you have provided the `load_balancer_sku` argument with the value `Basic`, you will not be able use `availability_zones`. You must use the `Standard` SKU.
+-> **NOTE:** To configure Availability Zones the `load_balancer_sku` must be set to `Standard`
 
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
