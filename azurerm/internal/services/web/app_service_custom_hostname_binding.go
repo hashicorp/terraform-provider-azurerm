@@ -18,15 +18,15 @@ func ParseAppServiceCustomHostnameBindingID(input string) (*AppServiceCustomHost
 		return nil, fmt.Errorf("[ERROR] Unable to parse App Service Custom Hostname Binding ID %q: %+v", input, err)
 	}
 
-	group := AppServiceCustomHostnameBindingResourceID{
+	binding := AppServiceCustomHostnameBindingResourceID{
 		ResourceGroup: id.ResourceGroup,
 	}
-	group.AppServiceName, err = id.PopSegment("sites")
+	binding.AppServiceName, err = id.PopSegment("sites")
 	if err != nil {
 		return nil, err
 	}
 
-	group.Name, err = id.PopSegment("hostNameBindings")
+	binding.Name, err = id.PopSegment("hostNameBindings")
 	if err != nil {
 		return nil, err
 	}
@@ -35,5 +35,5 @@ func ParseAppServiceCustomHostnameBindingID(input string) (*AppServiceCustomHost
 		return nil, err
 	}
 
-	return &group, nil
+	return &binding, nil
 }
