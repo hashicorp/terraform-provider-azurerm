@@ -168,6 +168,8 @@ A `agent_pool_profile` block supports the following:
 
 * `availability_zones` - (Optional) Availability zones for nodes. The property `type` of the `agent_pool_profile` must be set to `VirtualMachineScaleSets` in order to use availability zones.
 
+-> **NOTE:** To configure Availability Zones the `load_balancer_sku` must be set to `Standard`
+
 * `enable_auto_scaling` - (Optional) Whether to enable [auto-scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler). Note that auto scaling feature requires the that the `type` is set to `VirtualMachineScaleSets`
 
 * `enable_node_public_ip` - (Optional) Should each node have a Public IP Address? Changing this forces a new resource to be created.
@@ -221,7 +223,7 @@ A `default_node_pool` block supports the following:
 
 * `availability_zones` - (Optional) A list of Availability Zones across which the Node Pool should be spread.
 
--> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets`.
+-> **NOTE:** This requires that the `type` is set to `VirtualMachineScaleSets` and that `load_balancer_sku` is set to `Standard`.
 
 * `enable_auto_scaling` - (Optional) Should [the Kubernetes Auto Scaler](https://docs.microsoft.com/en-us/azure/aks/cluster-autoscaler) be enabled for this Node Pool? Defaults to `false`.
 
