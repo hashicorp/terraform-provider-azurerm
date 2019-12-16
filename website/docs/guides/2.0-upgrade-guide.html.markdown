@@ -358,6 +358,10 @@ The `load_balancer_inbound_nat_rules_ids` field in the `ip_configuration` block 
 
 The `azurerm_packet_capture` resource will be deprecated in favour of a new resources `azurerm_network_packet_capture`.
 
+### Resource: `azurerm_private_link_endpoint`
+
+This resource has been renamed to `azurerm_private_endpoint` which is available from v1.39 of the AzureRM Provider - instructions on [how to migrate are available in this guide](https://terraform.io/docs/providers/azurerm/guides/migrating-between-renamed-resources.html). As such this resource will be removed.
+
 ### Resource: `azurerm_private_link_service`
 
 The deprecated `network_interface_ids` field will be removed.
