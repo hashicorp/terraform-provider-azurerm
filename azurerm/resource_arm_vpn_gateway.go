@@ -191,8 +191,8 @@ func resourceArmVPNGatewayRead(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 
+		return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return fmt.Errorf("Error retrieving VPN Gateway %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 
 	d.Set("name", resp.Name)
 	d.Set("resource_group_name", id.ResourceGroup)

@@ -171,8 +171,8 @@ func resourceArmVirtualWanRead(d *schema.ResourceData, meta interface{}) error {
 			return nil
 		}
 
+		return fmt.Errorf("Error making Read request on Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
-	return fmt.Errorf("Error making Read request on Virtual WAN %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 
 	d.Set("name", id.Name)
 	d.Set("resource_group_name", id.ResourceGroup)
