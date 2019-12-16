@@ -928,15 +928,14 @@ func resourceArmKubernetesClusterRead(d *schema.ResourceData, meta interface{}) 
 		d.Set("node_resource_group", props.NodeResourceGroup)
 		d.Set("enable_pod_security_policy", props.EnablePodSecurityPolicy)
 
-		if props.APIServerAccessProfile != nil {
-			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(props.APIServerAccessProfile.AuthorizedIPRanges)
+		// TODO: 2.0 we should introduce a access_profile block to match the new API design,
+		if accessProfile := props.APIServerAccessProfile; accessProfile != nil {
+			apiServerAuthorizedIPRanges := utils.FlattenStringSlice(accessProfile.AuthorizedIPRanges)
 			if err := d.Set("api_server_authorized_ip_ranges", apiServerAuthorizedIPRanges); err != nil {
 				return fmt.Errorf("Error setting `api_server_authorized_ip_ranges`: %+v", err)
 			}
 
-			if err := d.Set("private_link_enabled", props.APIServerAccessProfile.EnablePrivateCluster); err != nil {
-				return fmt.Errorf("Error setting `private_link_enabled`: %+v", err)
-			}
+			d.Set("private_link_enabled", accessProfile.EnablePrivateCluster)
 		}
 
 		addonProfiles := containers.FlattenKubernetesAddOnProfiles(props.AddonProfiles)
