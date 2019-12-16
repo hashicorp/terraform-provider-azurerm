@@ -126,7 +126,7 @@ The following arguments are supported:
 
 A `blob_properties` block supports the following:
 
-* `delete_retention_policy` - (Optional) block as defined below.
+* `delete_retention_policy` - (Optional) A `delete_retention_policy` block as defined below.
 
 ---
 
@@ -154,7 +154,7 @@ A `custom_domain` block supports the following:
 
 A `delete_retention_policy` block supports the following:
 
-* `days` - (Optional) Specifies the number of days that the blob should be retained. The minimum specified value can be 1 and the maximum value can be 365. Defaults to 7.
+* `days` - (Optional) Specifies the number of days that the blob should be retained, between `1` and `365` days. Defaults to `7`.
 
 --- 
 

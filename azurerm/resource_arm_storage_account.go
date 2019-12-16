@@ -1213,7 +1213,7 @@ func resourceArmStorageAccountRead(d *schema.ResourceData, meta interface{}) err
 
 	blobProps, err := blobClient.GetServiceProperties(ctx, resGroup, name)
 	if err != nil {
-		if blobProps.Response.Response != nil && !utils.ResponseWasNotFound(blobProps.Response) {
+		if !utils.ResponseWasNotFound(blobProps.Response) {
 			return fmt.Errorf("Error reading blob properties for AzureRM Storage Account %q: %+v", name, err)
 		}
 	}
@@ -1573,20 +1573,26 @@ func flattenBlobProperties(input storage.BlobServiceProperties) []interface{} {
 		return []interface{}{}
 	}
 
-	blobProperties := make(map[string]interface{})
+	deleteRetentionPolicies := make([]interface{}, 0)
 
 	if deletePolicy := input.BlobServicePropertiesProperties.DeleteRetentionPolicy; deletePolicy != nil {
 		if enabled := deletePolicy.Enabled; enabled != nil && *enabled {
-			deleteRetentionPolicy := make([]interface{}, 0)
-			attr := make(map[string]interface{})
+			days := 0
+			if deletePolicy.Days != nil {
+				days = int(*deletePolicy.Days)
+			}
 
-			attr["days"] = int(*deletePolicy.Days)
-
-			blobProperties["delete_retention_policy"] = append(deleteRetentionPolicy, attr)
+			deleteRetentionPolicies = append(deleteRetentionPolicies, map[string]interface{}{
+				"days": days,
+			})
 		}
 	}
 
-	return []interface{}{blobProperties}
+	return []interface{}{
+		map[string]interface{}{
+			"delete_retention_policy": deleteRetentionPolicies,
+		},
+	}
 }
 
 func flattenQueueProperties(input queues.StorageServicePropertiesResponse) []interface{} {
