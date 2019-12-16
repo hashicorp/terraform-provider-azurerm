@@ -8,7 +8,7 @@ description: |-
 
 ---
 
-# azurerm_container_registry
+# azurerm_app_configuration
 
 Manages an Azure App Configuration.
 
@@ -50,7 +50,7 @@ The following attributes are exported:
 
 * `id` - The App Configuration ID.
 
-* `endpoint` - The URL that can be used to log into the container registry.
+* `endpoint` - The URL of the App Configuration.
 
 * `primary_write_key` - An `access_key` block as defined below containing the primary write access key.
 
