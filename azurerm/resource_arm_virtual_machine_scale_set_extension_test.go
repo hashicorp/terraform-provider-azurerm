@@ -277,18 +277,18 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionExists(resourceName string) 
 
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
-		virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetResourceID(virtualMachineScaleSetIdRaw)
+		virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, virtualMachineScaleSetId.Base.ResourceGroup, virtualMachineScaleSetId.Name, name, "")
+		resp, err := client.Get(ctx, virtualMachineScaleSetId.ResourceGroup, virtualMachineScaleSetId.Name, name, "")
 		if err != nil {
 			return fmt.Errorf("Bad: Get on vmScaleSetClient: %+v", err)
 		}
 
 		if resp.StatusCode == http.StatusNotFound {
-			return fmt.Errorf("Bad: Extension %q (VirtualMachineScaleSet %q / Resource Group: %q) does not exist", name, virtualMachineScaleSetId.Name, virtualMachineScaleSetId.Base.ResourceGroup)
+			return fmt.Errorf("Bad: Extension %q (VirtualMachineScaleSet %q / Resource Group: %q) does not exist", name, virtualMachineScaleSetId.Name, virtualMachineScaleSetId.ResourceGroup)
 		}
 
 		return err
@@ -306,12 +306,12 @@ func testCheckAzureRMVirtualMachineScaleSetExtensionDestroy(s *terraform.State) 
 
 		name := rs.Primary.Attributes["name"]
 		virtualMachineScaleSetIdRaw := rs.Primary.Attributes["virtual_machine_scale_set_id"]
-		virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetResourceID(virtualMachineScaleSetIdRaw)
+		virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetID(virtualMachineScaleSetIdRaw)
 		if err != nil {
 			return err
 		}
 
-		resp, err := client.Get(ctx, virtualMachineScaleSetId.Base.ResourceGroup, virtualMachineScaleSetId.Name, name, "")
+		resp, err := client.Get(ctx, virtualMachineScaleSetId.ResourceGroup, virtualMachineScaleSetId.Name, name, "")
 
 		if err != nil {
 			return nil

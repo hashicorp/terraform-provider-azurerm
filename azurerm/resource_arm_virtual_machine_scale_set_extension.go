@@ -118,11 +118,11 @@ func resourceArmVirtualMachineScaleSetExtensionCreate(d *schema.ResourceData, me
 	defer cancel()
 
 	name := d.Get("name").(string)
-	virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetResourceID(d.Get("virtual_machine_scale_set_id").(string))
+	virtualMachineScaleSetId, err := computeSvc.ParseVirtualMachineScaleSetID(d.Get("virtual_machine_scale_set_id").(string))
 	if err != nil {
 		return err
 	}
-	resourceGroup := virtualMachineScaleSetId.Base.ResourceGroup
+	resourceGroup := virtualMachineScaleSetId.ResourceGroup
 	vmssName := virtualMachineScaleSetId.Name
 
 	if features.ShouldResourcesBeImported() {
