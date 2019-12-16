@@ -380,7 +380,7 @@ func resourceArmFunctionAppUpdate(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -488,7 +488,7 @@ func resourceArmFunctionAppRead(d *schema.ResourceData, meta interface{}) error 
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	resp, err := client.Get(ctx, resGroup, name)
@@ -609,7 +609,7 @@ func resourceArmFunctionAppDelete(d *schema.ResourceData, meta interface{}) erro
 		return err
 	}
 
-	resGroup := id.Base.ResourceGroup
+	resGroup := id.ResourceGroup
 	name := id.Name
 
 	log.Printf("[DEBUG] Deleting Function App %q (resource group %q)", name, resGroup)
