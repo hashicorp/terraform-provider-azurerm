@@ -38,7 +38,7 @@ func TestParseRouteTable(t *testing.T) {
 	for _, v := range testData {
 		t.Logf("[DEBUG] Testing %q", v.Name)
 
-		actual, err := ParseRouteTableResourceID(v.Input)
+		actual, err := ParseRouteTableID(v.Input)
 		if err != nil {
 			if v.Expected == nil {
 				continue

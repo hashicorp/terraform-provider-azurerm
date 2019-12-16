@@ -14,7 +14,7 @@ type RouteTableResourceID struct {
 	Name          string
 }
 
-func ParseRouteTableResourceID(input string) (*RouteTableResourceID, error) {
+func ParseRouteTableID(input string) (*RouteTableResourceID, error) {
 	id, err := azure.ParseAzureResourceID(input)
 	if err != nil {
 		return nil, fmt.Errorf("[ERROR] Unable to parse Route Table ID %q: %+v", input, err)

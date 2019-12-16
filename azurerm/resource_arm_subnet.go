@@ -222,7 +222,7 @@ func resourceArmSubnetCreateUpdate(d *schema.ResourceData, meta interface{}) err
 			ID: &rtId,
 		}
 
-		parsedRouteTableId, err := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err := networksvc.ParseRouteTableID(rtId)
 		if err != nil {
 			return err
 		}
@@ -385,7 +385,7 @@ func resourceArmSubnetDelete(d *schema.ResourceData, meta interface{}) error {
 
 	if v, ok := d.GetOk("route_table_id"); ok {
 		rtId := v.(string)
-		parsedRouteTableId, err2 := networksvc.ParseRouteTableResourceID(rtId)
+		parsedRouteTableId, err2 := networksvc.ParseRouteTableID(rtId)
 		if err2 != nil {
 			return err2
 		}

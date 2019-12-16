@@ -31,7 +31,7 @@ func resourceArmRouteTable() *schema.Resource {
 		Delete: resourceArmRouteTableDelete,
 
 		Importer: azSchema.ValidateResourceIDPriorToImport(func(id string) error {
-			_, err := networkSvc.ParseRouteTableResourceID(id)
+			_, err := networkSvc.ParseRouteTableID(id)
 			return err
 		}),
 
@@ -176,7 +176,7 @@ func resourceArmRouteTableRead(d *schema.ResourceData, meta interface{}) error {
 	ctx, cancel := timeouts.ForRead(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := networkSvc.ParseRouteTableResourceID(d.Id())
+	id, err := networkSvc.ParseRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -215,7 +215,7 @@ func resourceArmRouteTableDelete(d *schema.ResourceData, meta interface{}) error
 	ctx, cancel := timeouts.ForDelete(meta.(*ArmClient).StopContext, d)
 	defer cancel()
 
-	id, err := networkSvc.ParseRouteTableResourceID(d.Id())
+	id, err := networkSvc.ParseRouteTableID(d.Id())
 	if err != nil {
 		return err
 	}
