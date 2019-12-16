@@ -2,7 +2,9 @@
 
 IMPROVEMENTS:
 
-* `azurerm_function_app` - support for `ftps_state` [GH-5169]
+* Data Source: `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
+* `azurerm_function_app` - support for the `ftps_state` property [GH-5169]
+* `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
 
 BUG FIXES:
 
