@@ -24,8 +24,7 @@ func ParseRouteTableID(input string) (*RouteTableResourceID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	routeTable.Name, err = id.PopSegment("routeTables")
-	if err != nil {
+	if routeTable.Name, err = id.PopSegment("routeTables"); err != nil {
 		return nil, err
 	}
 

@@ -20,13 +20,11 @@ func ParseKubernetesNodePoolID(input string) (*KubernetesNodePoolID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	pool.ClusterName, err = id.PopSegment("managedClusters")
-	if err != nil {
+	if pool.ClusterName, err = id.PopSegment("managedClusters"); err != nil {
 		return nil, err
 	}
 
-	pool.Name, err = id.PopSegment("agentPools")
-	if err != nil {
+	if pool.Name, err = id.PopSegment("agentPools"); err != nil {
 		return nil, err
 	}
 

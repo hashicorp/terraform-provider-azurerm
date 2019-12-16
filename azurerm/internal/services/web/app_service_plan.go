@@ -21,8 +21,7 @@ func ParseAppServicePlanID(input string) (*AppServicePlanResourceID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	appServicePlan.Name, err = id.PopSegment("serverfarms")
-	if err != nil {
+	if appServicePlan.Name, err = id.PopSegment("serverfarms"); err != nil {
 		return nil, err
 	}
 

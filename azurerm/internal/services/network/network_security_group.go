@@ -21,8 +21,7 @@ func ParseNetworkSecurityGroupID(input string) (*NetworkSecurityGroupResourceID,
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	networkSecurityGroup.Name, err = id.PopSegment("networkSecurityGroups")
-	if err != nil {
+	if networkSecurityGroup.Name, err = id.PopSegment("networkSecurityGroups"); err != nil {
 		return nil, err
 	}
 

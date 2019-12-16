@@ -21,13 +21,12 @@ func ParseAppServiceCustomHostnameBindingID(input string) (*AppServiceCustomHost
 	binding := AppServiceCustomHostnameBindingResourceID{
 		ResourceGroup: id.ResourceGroup,
 	}
-	binding.AppServiceName, err = id.PopSegment("sites")
-	if err != nil {
+
+	if binding.AppServiceName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
 
-	binding.Name, err = id.PopSegment("hostNameBindings")
-	if err != nil {
+	if binding.Name, err = id.PopSegment("hostNameBindings"); err != nil {
 		return nil, err
 	}
 

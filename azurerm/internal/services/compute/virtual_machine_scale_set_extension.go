@@ -22,13 +22,11 @@ func ParseVirtualMachineScaleSetExtensionID(input string) (*VirtualMachineScaleS
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	extension.VirtualMachineName, err = id.PopSegment("virtualMachineScaleSets")
-	if err != nil {
+	if extension.VirtualMachineName, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
 		return nil, err
 	}
 
-	extension.Name, err = id.PopSegment("extensions")
-	if err != nil {
+	if extension.Name, err = id.PopSegment("extensions"); err != nil {
 		return nil, err
 	}
 

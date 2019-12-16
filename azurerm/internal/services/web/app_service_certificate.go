@@ -20,8 +20,8 @@ func ParseAppServiceCertificateID(input string) (*AppServiceCertificateResourceI
 	certificate := AppServiceCertificateResourceID{
 		ResourceGroup: id.ResourceGroup,
 	}
-	certificate.Name, err = id.PopSegment("certificates")
-	if err != nil {
+
+	if certificate.Name, err = id.PopSegment("certificates"); err != nil {
 		return nil, err
 	}
 

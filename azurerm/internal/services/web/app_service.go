@@ -20,8 +20,8 @@ func ParseAppServiceID(input string) (*AppServiceResourceID, error) {
 	appService := AppServiceResourceID{
 		ResourceGroup: id.ResourceGroup,
 	}
-	appService.Name, err = id.PopSegment("sites")
-	if err != nil {
+
+	if appService.Name, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
 

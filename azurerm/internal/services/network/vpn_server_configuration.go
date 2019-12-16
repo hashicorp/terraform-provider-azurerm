@@ -21,8 +21,7 @@ func ParseVpnServerConfigurationID(input string) (*VpnServerConfigurationResourc
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	vpnServerConfiguration.Name, err = id.PopSegment("vpnServerConfigurations")
-	if err != nil {
+	if vpnServerConfiguration.Name, err = id.PopSegment("vpnServerConfigurations"); err != nil {
 		return nil, err
 	}
 

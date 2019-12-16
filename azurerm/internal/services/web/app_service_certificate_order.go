@@ -20,8 +20,8 @@ func ParseAppServiceCertificateOrderID(input string) (*AppServiceCertificateOrde
 	order := AppServiceCertificateOrderResourceID{
 		ResourceGroup: id.ResourceGroup,
 	}
-	order.Name, err = id.PopSegment("certificateOrders")
-	if err != nil {
+
+	if order.Name, err = id.PopSegment("certificateOrders"); err != nil {
 		return nil, err
 	}
 

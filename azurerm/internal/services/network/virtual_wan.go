@@ -21,8 +21,7 @@ func ParseVirtualWanID(input string) (*VirtualWanResourceID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	virtualWan.Name, err = id.PopSegment("virtualWans")
-	if err != nil {
+	if virtualWan.Name, err = id.PopSegment("virtualWans"); err != nil {
 		return nil, err
 	}
 

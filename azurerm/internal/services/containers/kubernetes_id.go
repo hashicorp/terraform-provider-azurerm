@@ -31,8 +31,7 @@ func ParseKubernetesClusterID(input string) (*KubernetesClusterID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	cluster.Name, err = id.PopSegment("managedClusters")
-	if err != nil {
+	if cluster.Name, err = id.PopSegment("managedClusters"); err != nil {
 		return nil, err
 	}
 

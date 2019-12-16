@@ -21,8 +21,7 @@ func ParseVirtualHubID(input string) (*VirtualHubResourceID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	virtualHub.Name, err = id.PopSegment("virtualHubs")
-	if err != nil {
+	if virtualHub.Name, err = id.PopSegment("virtualHubs"); err != nil {
 		return nil, err
 	}
 

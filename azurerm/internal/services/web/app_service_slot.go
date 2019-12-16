@@ -24,13 +24,11 @@ func ParseAppServiceSlotID(input string) (*AppServiceSlotResourceID, error) {
 		Name:           id.Path["slots"],
 	}
 
-	slot.AppServiceName, err = id.PopSegment("sites")
-	if err != nil {
+	if slot.AppServiceName, err = id.PopSegment("sites"); err != nil {
 		return nil, err
 	}
 
-	slot.Name, err = id.PopSegment("slots")
-	if err != nil {
+	if slot.Name, err = id.PopSegment("slots"); err != nil {
 		return nil, err
 	}
 

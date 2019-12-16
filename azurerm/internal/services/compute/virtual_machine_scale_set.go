@@ -26,8 +26,7 @@ func ParseVirtualMachineScaleSetID(input string) (*VirtualMachineScaleSetResourc
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	vmScaleSet.Name, err = id.PopSegment("virtualMachineScaleSets")
-	if err != nil {
+	if vmScaleSet.Name, err = id.PopSegment("virtualMachineScaleSets"); err != nil {
 		return nil, err
 	}
 

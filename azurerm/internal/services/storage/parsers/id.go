@@ -19,8 +19,7 @@ func ParseAccountID(input string) (*AccountID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	account.Name, err = id.PopSegment("storageAccounts")
-	if err != nil {
+	if account.Name, err = id.PopSegment("storageAccounts"); err != nil {
 		return nil, err
 	}
 

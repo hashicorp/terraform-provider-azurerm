@@ -21,8 +21,7 @@ func ParseVPNGatewayID(input string) (*VPNGatewayResourceID, error) {
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	gateway.Name, err = id.PopSegment("vpnGateways")
-	if err != nil {
+	if gateway.Name, err = id.PopSegment("vpnGateways"); err != nil {
 		return nil, err
 	}
 

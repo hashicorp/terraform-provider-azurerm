@@ -21,8 +21,7 @@ func ParsePointToSiteVPNGatewayID(input string) (*PointToSiteVPNGatewayResourceI
 		ResourceGroup: id.ResourceGroup,
 	}
 
-	routeTable.Name, err = id.PopSegment("p2sVpnGateways")
-	if err != nil {
+	if routeTable.Name, err = id.PopSegment("p2sVpnGateways"); err != nil {
 		return nil, err
 	}
 
