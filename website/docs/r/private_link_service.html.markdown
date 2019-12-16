@@ -101,6 +101,8 @@ The following arguments are supported:
 
 * `auto_approval_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be automatically be able to use this Private Link Service.
 
+* `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? Defaults to `false`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource. Changing this forces a new resource to be created.
 
 * `visibility_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be able to see this Private Link Service.

@@ -61,6 +61,11 @@ func resourceArmPrivateLinkService() *schema.Resource {
 				Set: schema.HashString,
 			},
 
+			"enable_proxy_protocol": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"visibility_subscription_ids": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -177,6 +182,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
 	autoApproval := d.Get("auto_approval_subscription_ids").(*schema.Set).List()
+	enableProxyProtocol := d.Get("enable_proxy_protocol").(bool)
 	primaryIpConfiguration := d.Get("nat_ip_configuration").([]interface{})
 	loadBalancerFrontendIpConfigurations := d.Get("load_balancer_frontend_ip_configuration_ids").(*schema.Set).List()
 	visibility := d.Get("visibility_subscription_ids").(*schema.Set).List()
@@ -188,6 +194,7 @@ func resourceArmPrivateLinkServiceCreateUpdate(d *schema.ResourceData, meta inte
 			AutoApproval: &network.PrivateLinkServicePropertiesAutoApproval{
 				Subscriptions: utils.ExpandStringSlice(autoApproval),
 			},
+			EnableProxyProtocol: utils.Bool(enableProxyProtocol),
 			Visibility: &network.PrivateLinkServicePropertiesVisibility{
 				Subscriptions: utils.ExpandStringSlice(visibility),
 			},
@@ -270,6 +277,8 @@ func resourceArmPrivateLinkServiceRead(d *schema.ResourceData, meta interface{})
 
 	if props := resp.PrivateLinkServiceProperties; props != nil {
 		d.Set("alias", props.Alias)
+		d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+
 		if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(props.AutoApproval.Subscriptions)); err != nil {
 			return fmt.Errorf("Error setting `auto_approval_subscription_ids`: %+v", err)
 		}
