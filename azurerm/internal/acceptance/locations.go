@@ -39,15 +39,3 @@ func SupportedLocations() Regions {
 		Ternary:   locations[2],
 	}
 }
-
-func Location() string {
-	return os.Getenv("ARM_TEST_LOCATION")
-}
-
-func AltLocation() string {
-	return os.Getenv("ARM_TEST_LOCATION_ALT")
-}
-
-func AltLocation2() string {
-	return os.Getenv("ARM_TEST_LOCATION_ALT2")
-}
