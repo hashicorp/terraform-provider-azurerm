@@ -7,9 +7,8 @@ import (
 )
 
 type VirtualWanResourceID struct {
-	Base azure.ResourceID
-
-	Name string
+	ResourceGroup string
+	Name          string
 }
 
 func ParseVirtualWanID(input string) (*VirtualWanResourceID, error) {
@@ -19,12 +18,16 @@ func ParseVirtualWanID(input string) (*VirtualWanResourceID, error) {
 	}
 
 	virtualWan := VirtualWanResourceID{
-		Base: *id,
-		Name: id.Path["virtualWans"],
+		ResourceGroup: id.ResourceGroup,
 	}
 
-	if virtualWan.Name == "" {
-		return nil, fmt.Errorf("ID was missing the `virtualWans` element")
+	virtualWan.Name, err = id.PopSegment("virtualWans")
+	if err != nil {
+		return nil, err
+	}
+
+	if err := id.ValidateNoEmptySegments(input); err != nil {
+		return nil, err
 	}
 
 	return &virtualWan, nil
