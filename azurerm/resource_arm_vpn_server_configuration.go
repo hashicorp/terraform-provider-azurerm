@@ -445,7 +445,7 @@ func resourceArmVPNServerConfigurationRead(d *schema.ResourceData, meta interfac
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Point-To-Site VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("Error retrieving VPN Server Configuration %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 	}
 
 	d.Set("name", id.Name)
