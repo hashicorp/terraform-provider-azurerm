@@ -2,8 +2,6 @@ package web
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestParseAppServiceCertificateOrder(t *testing.T) {
@@ -46,10 +44,8 @@ func TestParseAppServiceCertificateOrder(t *testing.T) {
 			Name:  "App Service Certificate Order Resource ID",
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/certificateOrders/order1",
 			Expected: &AppServiceCertificateOrderResourceID{
-				Name: "order1",
-				Base: azure.ResourceID{
-					ResourceGroup: "mygroup1",
-				},
+				Name:          "order1",
+				ResourceGroup: "mygroup1",
 			},
 		},
 		{
@@ -75,8 +71,8 @@ func TestParseAppServiceCertificateOrder(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for Name", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.Base.ResourceGroup, actual.Base.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }

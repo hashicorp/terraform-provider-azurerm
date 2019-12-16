@@ -2,8 +2,6 @@ package web
 
 import (
 	"testing"
-
-	"github.com/terraform-providers/terraform-provider-azurerm/azurerm/helpers/azure"
 )
 
 func TestParseAppServiceSlot(t *testing.T) {
@@ -53,9 +51,7 @@ func TestParseAppServiceSlot(t *testing.T) {
 			Expected: &AppServiceSlotResourceID{
 				Name:           "slot1",
 				AppServiceName: "site1",
-				Base: azure.ResourceID{
-					ResourceGroup: "mygroup1",
-				},
+				ResourceGroup:  "mygroup1",
 			},
 		},
 		{
@@ -85,8 +81,8 @@ func TestParseAppServiceSlot(t *testing.T) {
 			t.Fatalf("Expected %q but got %q for AppServiceName", v.Expected.Name, actual.Name)
 		}
 
-		if actual.Base.ResourceGroup != v.Expected.Base.ResourceGroup {
-			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.Base.ResourceGroup, actual.Base.ResourceGroup)
+		if actual.ResourceGroup != v.Expected.ResourceGroup {
+			t.Fatalf("Expected %q but got %q for Resource Group", v.Expected.ResourceGroup, actual.ResourceGroup)
 		}
 	}
 }
