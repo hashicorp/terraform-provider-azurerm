@@ -1409,7 +1409,7 @@ func expandBlobProperties(input []interface{}) storage.BlobServiceProperties {
 			},
 		},
 	}
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return properties
 	}
 
