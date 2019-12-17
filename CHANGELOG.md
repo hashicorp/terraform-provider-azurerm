@@ -1,5 +1,8 @@
 ## 1.40.0 (Unreleased)
 
+* **New Resource:** `azurerm_stream_analytics_reference_input_blob` [GH-3633]
+
+
 IMPROVEMENTS:
 
 * Data Source: `azurerm_private_link_service` - support for the `enable_proxy_protocol` property  [GH-5178]
